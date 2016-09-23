@@ -10,9 +10,8 @@
    [zprint.zutil :refer [zmap-all]]
    [zprint.sutil]
    [zprint.config :as config :refer
-    [reset-options! reset-default-options! set-options! get-options
-     get-explained-options get-explained-all-options get-default-options
-     config-and-validate-all configure-all! validate-options apply-style]]
+    [get-explained-options get-explained-all-options get-default-options
+     validate-options apply-style]]
    clojure.string
    #_[clojure.spec :as spec :refer [get-spec describe]]
    [clojure.java.io :refer [reader]]
@@ -93,6 +92,31 @@
 ;;
 ;;
 
+;;
+;; Clean up the API a bit by putting all of the public functions
+;; in zprint.core
+;;
+
+(defn set-options!
+  "Add some options to the current options, checking to make
+  sure that they are correct."
+  ([new-options doc-str] 
+    (do (zprint.config/set-options! new-options doc-str)
+        nil))
+  ([new-options] 
+    (do (zprint.config/set-options! new-options) nil)))
+
+(defn configure-all!
+  "Do external configuration if it has not already been done, 
+  replacing any internal configuration.  Returns nil if successful, 
+  a vector of errors if not."
+  []
+  (zprint.config/configure-all!))
+
+(defn get-options 
+  "Return any prevsiouly set options." 
+  [] 
+  (zprint.config/get-options))
            
 ;;
 ;; # Zipper determination and handling

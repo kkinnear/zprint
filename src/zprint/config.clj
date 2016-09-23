@@ -937,17 +937,21 @@
 
 (defn get-config-from-file
   "If there is a :config key in the opts, read in a map from that file."
-  [filename]
-  (when filename
-    (try
-      (let [lines (file-line-seq-file filename)
-            opts-file (clojure.edn/read-string (apply str lines))]
-        [opts-file nil filename])
-      (catch Exception
-             e
-             [nil
-              (str "Unable to read configuration from file " filename
-                   " because " e) filename]))))
+  ([filename optional?]
+    (when filename
+      (try
+	(let [lines (file-line-seq-file filename)
+	      opts-file (clojure.edn/read-string (apply str lines))]
+	  [opts-file nil filename])
+	(catch Exception
+	       e
+	  (if optional?
+	     nil
+	     [nil
+	      (str "Unable to read configuration from file " filename
+		   " because " e) filename])))))
+   ([filename] (get-config-from-file filename nil)))
+		   
 
 (defn get-config-from-map
   "If there is a :config-map key in the opts, read in a map from that string."
@@ -1047,10 +1051,13 @@
 ;;
 
 (defn config-and-validate-all
-  "Take the opts and errors from the command line arguments, and do
-  the rest of the configuration and validation along the way.  If there
-  are no command line arguments, that's ok too. Returns
-  [new-map doc-map errors]"
+  "Take the opts and errors from the command line arguments, if any,
+  and do the rest of the configuration and validation along the way.  
+  If there are no command line arguments, that's ok too. Since we
+  took the main.clj out, there aren't going to be any soon.  Left
+  the config map, config file, and cli processing in place in case
+  we go replace the uberjar capability soon.  
+  Returns [new-map doc-map errors]"
   [cli-opts cli-errors]
   (let [default-map (get-default-options)
         ;
@@ -1060,7 +1067,8 @@
         file-separator (System/getProperty "file.separator")
         zprintrc-file (str home file-separator zprintrc)
         [opts-rcfile errors-rcfile rc-filename]
-          (when (and home file-separator) (get-config-from-file zprintrc-file))
+          (when (and home file-separator) 
+	    (get-config-from-file zprintrc-file :optional))
         [updated-map new-doc-map rc-errors] (config-and-validate
                                               (str "File: " zprintrc-file)
                                               default-map

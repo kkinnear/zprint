@@ -6,6 +6,14 @@ either embedded in a larger codebase, or as a useful utility at the
 repl.  See [lein-zprint][leinzprint] to use the zprint library to
 reformat your source files.
 
+------------------------------
+### For the present, please consider this ALPHA quality software.
+
+It needs a few more people to beat on it before it is ready for
+prime time.
+
+------------------------------
+
 Zprint is designed to be a single pretty printer to use for code
 and data structures.
 
@@ -372,10 +380,9 @@ itself:
 * Java properties for individual option map values
 
 You can invoke the function `(configure-all!)` at any time to
-cause zprint to re-examine the above information.  It will add any
-additional information found in these three areas to information already
-in the internal options map.  In particular, it will not forget information
-specified in prior calls to `set-options!`.
+cause zprint to re-examine the above information.  It will delete
+any current configuration and rebuild it from the information
+available at that time.
 
 You can add configuration information by:
 

@@ -5,8 +5,8 @@
    [zprint.core :refer :all]
    [zprint.core-test :refer :all]
    [zprint.zprint :refer :all]
-   [zprint.config :refer :all 
-     :exclude [set-options! configure-all! get-options]]
+   [zprint.config :refer :all :exclude
+    [set-options! configure-all! get-options]]
    [zprint.finish :refer :all]
    [clojure.string :as str]
    [rewrite-clj.parser :as p :only [parse-string parse-string-all]]

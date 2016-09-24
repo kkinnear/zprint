@@ -12,9 +12,8 @@
    [rewrite-clj.node :as n]
    [rewrite-clj.zip :as z :only [edn*]]))
 
-;;
-;; WARNING:  If you lein zprint this file, use {:comment {:wrap? false}}
-;;
+;; Keep some of the test on wrapping so they still work
+;!zprint {:comment {:wrap? false}}
 
 ;;
 ;; # Pretty Tests
@@ -787,4 +786,3 @@
 
 (expect 4 (max-width (zprint-str ba1 48 {:array {:wrap? nil}})))
 (expect 50 (line-count (zprint-str ba1 48 {:array {:wrap? nil}})))
-

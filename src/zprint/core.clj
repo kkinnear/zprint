@@ -6,8 +6,9 @@
     [fzprint blanks line-count max-width line-widths expand-tabs merge-deep]]
    [zprint.finish :refer
     [cvec-to-style-vec compress-style no-style-map color-comp-vec cursor-style]]
-   [zprint.config :as config :refer [help-str]]
-   [zprint.zutil :refer [zmap-all]]
+   [zprint.config :as config :refer
+    [config-set-options! config-get-options config-configure-all! help-str]]
+   [zprint.zutil :refer [zmap-all zcomment?]]
    [zprint.sutil]
    [zprint.config :as config :refer
     [get-explained-options get-explained-all-options get-default-options
@@ -17,7 +18,7 @@
    [clojure.java.io :refer [reader]]
    [rewrite-clj.parser :as p]
    [rewrite-clj.node :as n]
-   [rewrite-clj.zip :as z :only [edn*]])
+   [rewrite-clj.zip :as z :only [edn* position]])
   (:import
    (java.io InputStreamReader
             OutputStreamWriter
@@ -100,23 +101,17 @@
 (defn set-options!
   "Add some options to the current options, checking to make
   sure that they are correct."
-  ([new-options doc-str] 
-    (do (zprint.config/set-options! new-options doc-str)
-        nil))
-  ([new-options] 
-    (do (zprint.config/set-options! new-options) nil)))
+  ([new-options doc-str] (do (config-set-options! new-options doc-str) nil))
+  ([new-options] (do (config-set-options! new-options) nil)))
 
 (defn configure-all!
   "Do external configuration if it has not already been done, 
   replacing any internal configuration.  Returns nil if successful, 
   a vector of errors if not."
   []
-  (zprint.config/configure-all!))
+  (config-configure-all!))
 
-(defn get-options 
-  "Return any prevsiouly set options." 
-  [] 
-  (zprint.config/get-options))
+(defn get-options "Return any prevsiouly set options." [] (config-get-options))
            
 ;;
 ;; # Zipper determination and handling
@@ -359,10 +354,138 @@
 ;; # File operations
 ;;
 
+;;
+;; ## Parse a comment to see if it has an options map in it
+;;
+
+(defn get-options-from-comment
+  "s is string containing a comment.  See if it starts out ;!zprint, 
+  and if it does, attempt to parse it as an options map.  
+  Return [options error-str] with only one of the two populated 
+  if it started with ;!zprint, and nil otherwise."
+  [zprint-num s]
+  (let [comment-split (clojure.string/split s #"^;!zprint ")]
+    (when-let [possible-options (second comment-split)]
+      (try
+        [(read-string possible-options) nil]
+        (catch Exception
+               e
+               [nil
+                (str "Unable to create zprint options map from: '"
+                       possible-options
+                     "' found in !zprint directive number: " zprint-num
+                     " because: " e)])))))
+
+;;
+;; ## Process the sequences of forms in a file
+;;
+;!zprint {:format :next :vector {:wrap-after-multi? false}}
+
+(defn process-form
+  "Take one form from a file and process it.  The primary goal is
+  of course to produce a string to put into the output file.  In
+  addition, see if that string starts with ;!zprint and if it does,
+  pass along that information back to the caller.  The input is a 
+  [[next-options <previous-string>] form], where next-options accumulates
+  the information to be applied to the next non-comment/non-whitespace
+  element in the file.  The output is [next-options output-str], since
+  reductions is used to call this function.  See process file-forms
+  for what is actually done with the various :format values."
+  [file-name [next-options _ zprint-num] form]
+  (let [comment? (zcomment? form)
+        whitespace? (z/whitespace? form)
+        [new-options error-str] (when comment?
+                                  (get-options-from-comment (inc zprint-num)
+                                                            (z/string form)))
+        ; If this was a ;!zprint line, don't wrap it
+        internal-options (if new-options
+                           {:comment {:wrap? false}, :zipper? true}
+                           {:zipper? true})
+        output-str
+          ; Should we zprint this form?
+          (if (or (= :off (:format (get-options)))
+                  (and (not (or comment? whitespace?))
+                       (= :skip (:format next-options))))
+            (z/string form)
+            (zprint-str-internal
+              (if (or comment? whitespace? (empty? next-options))
+                internal-options
+                (do (def io internal-options)
+                    (def no next-options)
+                    (merge-deep internal-options next-options)))
+              form))
+        local? (or (= :skip (:format new-options))
+                   (= :next (:format new-options)))]
+    (when (and new-options (not local?))
+      (set-options! new-options
+                    (str ";!zprint number " (inc zprint-num)
+                         " in file: " file-name)))
+    (when error-str (println "Warning: " error-str))
+    [(cond local? (merge-deep next-options new-options)
+           (or comment? whitespace?) next-options
+           :else {})
+     output-str (if new-options (inc zprint-num) zprint-num)]))
+
+;;
+;; # File comment API
+;;
+;; In order to properly process a file, sometimes you want to alter
+;; the value of the zprint options map for a single function definition,
+;; or turn it off completely and the on again later.  Or, possibly,
+;; set some defaults which hold while formatting only this file.
+;;
+;; This is all possible because of the zprint comment API.
+;;
+;; If a comment starts with the string ";!zprint ", then the rest
+;; of the string will be parsed as a zprint options map.
+;;
+;; For example:
+;;
+;;   ;!zprint {:vector {:wrap? false}}
+;;
+;; will turn off vector wrapping in the file and it will stay that way
+;; until the end of the file (or another ;!zprint comment alters it).
+;;
+;; The API:
+;;
+;; ;!zprint <options>   perform a (set-options! <options>) which will
+;;                      be used until altered or the end of the file is
+;;                      reached
+;;
+;; ;!zprint {:format :off} Do not format successive forms with zprint to
+;;                         the end of the file
+;;
+;; ;!zprint {:format :on}  Format successive forms with zprint (default)
+;;
+;; ;!zprint {:format :skip} Do not format the next non-comment/non-whitespace
+;;                          element with zprint.
+;;
+;; ;!zprint {:format :next <other-options>} Format the next non-comment
+;;                                          non-whitespace element with the
+;;                                          specified <other-options>
+;;
+
+(defn process-file-forms
+  "Take a sequence of forms (which are zippers of the elements of
+  a file somewhere), and not only format them for output but
+  also handle comments containing ;!zprint that affect the options
+  map throughout the processing."
+  [file-name form-seq]
+  (apply str
+    (map second
+      (reductions (partial process-form file-name) [{} "" 0] form-seq))))
+
+;;
+;; ## Process an entire file
+;;
+
 (defn zprint-file
   "Take an input filename and an output filename, and do a zprint
-  on every form in the input file and write it to the output file."
-  [infile outfile]
+  on every form in the input file and write it to the output file.
+  Note that this uses whatever comes from (get-options).  If you
+  want to have each file be separate, you should call (configure-all!)
+  before calling this function."
+  [infile file-name outfile]
   (with-open [rdr (clojure.java.io/reader infile)]
     (let [lines (line-seq rdr)
           lines (if (:expand? (:tab (get-options)))
@@ -370,10 +493,10 @@
                   lines)
           filestring (apply str (interpose "\n" lines))
           forms (z/edn* (p/parse-string-all filestring))
-          strings (zmap-all (partial zprint-str-internal {:zipper? true})
-                            forms)]
-      (spit outfile (apply str strings)))))
-
+          form-seq (zmap-all identity forms)
+          #_(def fileform form-seq)
+          outputstr (process-file-forms file-name form-seq)]
+      (spit outfile outputstr))))
 
 ;;
 ;; # Process specs to go into a doc-string

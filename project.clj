@@ -1,4 +1,4 @@
-(defproject zprint "0.2.1"
+(defproject zprint "0.2.2"
   :description "Pretty print zippers and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License"
@@ -6,7 +6,8 @@
 	    :key "mit"
 	    :year 2015}
   :plugins [[lein-expectations "0.0.8"]
-	    [lein-zprint "0.1.1"]]
+	    [lein-zprint "0.1.3"]]
+  :zprint {:old? false}
   :profiles {:dev {:dependencies [[expectations "2.0.16"]
 				  [com.taoensso/timbre "4.0.2"]
 				  [com.taoensso/tufte "1.0.2"]

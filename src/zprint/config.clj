@@ -49,10 +49,10 @@
 (def zprint-keys [:width])
 
 (def explain-hide-keys
-  [:configured? :dbg-print? :dbg? :do-in-hang? :dbg-ge
+  [:configured? :dbg-print? :dbg? :do-in-hang? :dbg-ge :zipper?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:map :dbg-local? :hang-adjust] [:extend :hang-diff :hang-expand :hang?]
-   :tuning :zipper?])
+   :tuning])
 
 
 ;;
@@ -399,6 +399,8 @@
    :do-in-hang? true,
    :dbg-ge nil,
    :zipper? false,
+   :old? true,
+   :format :on,
    :parse-string? false,
    :style-map {:community {:binding {:indent 0},
                            :pair {:indent 0},
@@ -558,7 +560,10 @@
   (reset! configured-options default-zprint-options)
   (reset! explained-options default-zprint-options))
 
-(defn get-options "Return any prevsiouly set options." [] @configured-options)
+(defn config-get-options
+  "Return any prevsiouly set options."
+  []
+  @configured-options)
 
 (defn get-default-options
   "Return the base default options."
@@ -586,13 +591,13 @@
 
 (declare config-and-validate)
 (declare config-and-validate-all)
-(declare set-options!)
+(declare config-set-options!)
 
 ;;
 ;; # Configure Everything
 ;;
 
-(defn configure-all!
+(defn config-configure-all!
   "Do external configuration if it has not already been done, 
   replacing any internal configuration.  Returns nil if successful, 
   a vector of errors if not."
@@ -601,29 +606,29 @@
     (if errors
       errors
       (do (reset-options! zprint-options doc-map)
-          (set-options! {:configured? true} "internal")
+          (config-set-options! {:configured? true} "internal")
           nil))))
 
-(defn set-options!
+(defn config-set-options!
   "Add some options to the current options, checking to make
   sure that they are correct."
   ([new-options doc-str]
    ; avoid infinity recursion, while still getting the doc-map updated
-   (when (and (not (:configured? (get-options)))
+   (when (and (not (:configured? (config-get-options)))
               (not (:configured? new-options)))
-     (configure-all!))
+     (config-configure-all!))
    (let [[updated-map new-doc-map error-vec] (config-and-validate
                                                doc-str
                                                (get-explained-all-options)
-                                               (get-options)
+                                               (config-get-options)
                                                new-options)]
      (if error-vec
        (throw (Exception.
                 (apply str "set-options! found these errors: " error-vec)))
        (do (reset-options! updated-map new-doc-map) updated-map))))
   ([new-options]
-   (set-options! new-options
-                 (str "repl or api call " (inc-explained-sequence))))) 
+   (config-set-options! new-options
+                        (str "repl or api call " (inc-explained-sequence))))) 
 
 
 
@@ -634,6 +639,10 @@
 (s/defschema color-schema
              "An enum of the possible colors"
              (s/enum :green :purple :magenta :yellow :red :cyan :black :blue))
+
+(s/defschema format-schema
+             "An enum of the possible format options"
+             (s/enum :on :off :next :skip))
 
 (s/defschema
   fn-type
@@ -691,6 +700,8 @@
    (s/optional-key :max-length) s/Num,
    (s/optional-key :parse-string?) boolean-schema,
    (s/optional-key :zipper?) boolean-schema,
+   (s/optional-key :old?) boolean-schema,
+   (s/optional-key :format) format-schema,
    (s/optional-key :fn-name) s/Any,
    (s/optional-key :spec) s/Any,
    (s/optional-key :auto-width?) boolean-schema,
@@ -938,20 +949,20 @@
 (defn get-config-from-file
   "If there is a :config key in the opts, read in a map from that file."
   ([filename optional?]
-    (when filename
-      (try
-	(let [lines (file-line-seq-file filename)
-	      opts-file (clojure.edn/read-string (apply str lines))]
-	  [opts-file nil filename])
-	(catch Exception
-	       e
-	  (if optional?
-	     nil
-	     [nil
-	      (str "Unable to read configuration from file " filename
-		   " because " e) filename])))))
-   ([filename] (get-config-from-file filename nil)))
-		   
+   (when filename
+     (try
+       (let [lines (file-line-seq-file filename)
+             opts-file (clojure.edn/read-string (apply str lines))]
+         [opts-file nil filename])
+       (catch Exception
+              e
+              (if optional?
+                nil
+                [nil
+                 (str "Unable to read configuration from file " filename
+                      " because " e) filename])))))
+  ([filename] (get-config-from-file filename nil)))
+                   
 
 (defn get-config-from-map
   "If there is a :config-map key in the opts, read in a map from that string."
@@ -1067,8 +1078,8 @@
         file-separator (System/getProperty "file.separator")
         zprintrc-file (str home file-separator zprintrc)
         [opts-rcfile errors-rcfile rc-filename]
-          (when (and home file-separator) 
-	    (get-config-from-file zprintrc-file :optional))
+          (when (and home file-separator)
+            (get-config-from-file zprintrc-file :optional))
         [updated-map new-doc-map rc-errors] (config-and-validate
                                               (str "File: " zprintrc-file)
                                               default-map
@@ -1157,23 +1168,47 @@
   [vec-str]
   (apply str (interpose "\n" vec-str)))
 
+;!zprint {:vector {:wrap? false}}
+
 (def help-str
   (vec-str-to-str
-    [(about) "" " The basic call uses defaults, prints to stdout" ""
-     "   (zprint x)" ""
-     " All zprint functions also allow the following arguments:" ""
-     "   (zprint x <width>)" "   (zprint x <width> <options>)"
-     "   (zprint x <options>)" ""
-     " Format a function to stdout (accepts arguments as above)" ""
-     "   (zprint-fn <fn-name>)" "" " Output to a string instead of stdout:" ""
-     "   (zprint-str x)" "   (zprint-fn-str <fn-name>)" ""
-     " Colorize output for an ANSI terminal:" "" "   (czprint x)"
-     "   (czprint-fn <fn-name>)" "   (czprint-str x)"
-     "   (czprint-fn-str <fn-name>)" ""
+    [(about)
+     ""
+     " The basic call uses defaults, prints to stdout"
+     ""
+     "   (zprint x)"
+     ""
+     " All zprint functions also allow the following arguments:"
+     ""
+     "   (zprint x <width>)"
+     "   (zprint x <width> <options>)"
+     "   (zprint x <options>)"
+     ""
+     " Format a function to stdout (accepts arguments as above)"
+     ""
+     "   (zprint-fn <fn-name>)"
+     ""
+     " Output to a string instead of stdout:"
+     ""
+     "   (zprint-str x)"
+     "   (zprint-fn-str <fn-name>)"
+     ""
+     " Colorize output for an ANSI terminal:"
+     ""
+     "   (czprint x)"
+     "   (czprint-fn <fn-name>)"
+     "   (czprint-str x)"
+     "   (czprint-fn-str <fn-name>)"
+     ""
      " The first time you call a zprint printing function, it configures"
      " itself from $HOME/.zprintrc, as well as environment variables and"
-     " system properties." ""
-     " Explain current configuration, shows source of non-default values:" ""
-     "   (zprint nil :explain)" ""
-     " Change current configuration from running code:" ""
-     "   (set-options! <options>)" ""]))
+     " system properties."
+     ""
+     " Explain current configuration, shows source of non-default values:"
+     ""
+     "   (zprint nil :explain)"
+     ""
+     " Change current configuration from running code:"
+     ""
+     "   (set-options! <options>)"
+     ""]))

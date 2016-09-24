@@ -4,7 +4,8 @@
    [expectations :refer :all]
    [zprint.core :refer :all]
    [zprint.zprint :refer :all]
-   [zprint.config :refer :all :exclude [set-options! configure-all! get-options]]
+   [zprint.config :refer :all :exclude
+    [set-options! configure-all! get-options]]
    [clojure.repl :refer :all]))
 
 ;;
@@ -307,7 +308,7 @@
 (expect (read-string x18) (read-string (zprint-str x18 {:parse-string? true})))
 
 ;;
-;; # Test merge-deep 
+;; # Test merge-deep
 ;;
 ;; Merges maps including maps to any level
 ;;

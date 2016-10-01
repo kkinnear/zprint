@@ -51,7 +51,9 @@
 (def explain-hide-keys
   [:configured? :dbg-print? :dbg? :do-in-hang? :dbg-ge :zipper?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
-   [:map :dbg-local? :hang-adjust] [:extend :hang-diff :hang-expand :hang?]
+   [:pair :justify-hang :justify-tuning]
+   [:binding :justify-hang :justify-tuning]
+   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] [:extend :hang-diff :hang-expand :hang?]
    :tuning])
 
 
@@ -236,10 +238,6 @@
    "extend-type" :arg1-extend,
    "extend-protocol" :arg1-extend,
    "defprotocol" :arg1,
-   ;   "println" :pair
-   ;   "prn" :pair
-   ;   "pr" :pair
-   ;   "print" :pair
    "binding" :binding,
    "with-redefs" :binding,
    "with-open" :binding,
@@ -257,7 +255,6 @@
    "doseq" :binding,
    "fn" :fn,
    "fn*" :fn,
-   ;   "fn" :binding
    "->" :arg1->,
    "->>" :arg1-body,
    "do" :none-body,
@@ -267,7 +264,11 @@
    "!=" :hang,
    "try" :none-body,
    "catch" :none-body,
-   "with-meta" :arg1-body})
+   "with-meta" :arg1-body
+   "fdef" :arg1-pair
+   "alt" :pair
+   "cat" :pair
+   })
 
 ;;
 ;; ## The global defaults
@@ -330,9 +331,8 @@
    :object {:indent 1, :wrap-coll? true, :wrap-after-multi? true},
    :pair-fn
      {:indent 2, :hang? true, :hang-expand 2.0, :hang-size 10, :hang-diff 1},
-   :list {:indent-arg 2,
-          :indent-body 2,
-          ;   :indent 2
+   :list {:indent-arg nil,
+	  :indent 2
           :pair-hang? true,
           :hang? true,
           :hang-expand 2.0,
@@ -352,6 +352,8 @@
          ; wider stuff seems better with -1, so for now, we will go with that.
          :hang-adjust -1,
          :key-order nil,
+	 :ignore nil
+	 :ignore-silent nil
          :force-nl? nil,
          :justify? false,
          :justify-hang {:hang-expand 5},
@@ -384,7 +386,7 @@
           :justify? false,
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
-   :record {:record-type? true, :hang? true},
+   :record {:record-type? true, :hang? true :to-string? false},
    :array {:indent 1, :wrap? true, :hex? false, :object? false},
    :atom {:object? false},
    :fn-obj {:object? false},
@@ -560,7 +562,7 @@
   (reset! configured-options default-zprint-options)
   (reset! explained-options default-zprint-options))
 
-(defn config-get-options
+(defn get-options
   "Return any prevsiouly set options."
   []
   @configured-options)
@@ -614,13 +616,13 @@
   sure that they are correct."
   ([new-options doc-str]
    ; avoid infinity recursion, while still getting the doc-map updated
-   (when (and (not (:configured? (config-get-options)))
+   (when (and (not (:configured? (get-options)))
               (not (:configured? new-options)))
      (config-configure-all!))
    (let [[updated-map new-doc-map error-vec] (config-and-validate
                                                doc-str
                                                (get-explained-all-options)
-                                               (config-get-options)
+                                               (get-options)
                                                new-options)]
      (if error-vec
        (throw (Exception.
@@ -703,9 +705,10 @@
    (s/optional-key :old?) boolean-schema,
    (s/optional-key :format) format-schema,
    (s/optional-key :fn-name) s/Any,
-   (s/optional-key :spec) s/Any,
    (s/optional-key :auto-width?) boolean-schema,
    (s/optional-key :force-sexpr?) boolean-schema,
+   (s/optional-key :spec) {(s/optional-key :value) s/Any,
+			   (s/optional-key :docstring?) boolean-schema}
    (s/optional-key :tuning) {(s/optional-key :hang-flow) s/Num,
                              (s/optional-key :hang-type-flow) s/Num,
                              (s/optional-key :hang-flow-limit) s/Num,
@@ -728,8 +731,7 @@
                              (s/optional-key :wrap-after-multi?)
                                boolean-schema},
    (s/optional-key :list) {(s/optional-key :indent-arg) s/Num,
-                           (s/optional-key :indent-body) s/Num,
-                           ;(s/optional-key :indent) s/Num
+                           (s/optional-key :indent) s/Num,
                            (s/optional-key :hang?) boolean-schema,
                            (s/optional-key :pair-hang?) boolean-schema,
                            (s/optional-key :hang-expand) s/Num,
@@ -752,6 +754,8 @@
                           (s/optional-key :comma?) boolean-schema,
                           (s/optional-key :dbg-local?) boolean-schema,
                           (s/optional-key :key-order) [s/Any],
+                          (s/optional-key :key-ignore) [s/Any],
+                          (s/optional-key :key-ignore-silent) [s/Any],
                           (s/optional-key :force-nl?) boolean-schema,
                           (s/optional-key :justify?) boolean-schema,
                           (s/optional-key :justify-hang)
@@ -807,7 +811,8 @@
                               (s/optional-key :hang-flow-limit) s/Num,
                               (s/optional-key :general-hang-adjust) s/Num}},
    (s/optional-key :record) {(s/optional-key :record-type?) boolean-schema,
-                             (s/optional-key :hang?) boolean-schema},
+                             (s/optional-key :hang?) boolean-schema
+                             (s/optional-key :to-string?) boolean-schema},
    (s/optional-key :array) {(s/optional-key :hex?) boolean-schema-or-string,
                             (s/optional-key :object?) boolean-schema,
                             (s/optional-key :indent) s/Num,
@@ -1211,4 +1216,8 @@
      " Change current configuration from running code:"
      ""
      "   (set-options! <options>)"
+     ""
+     " Output information to include when submitting an issue:"
+     ""
+     "   (zprint nil :support)"
      ""]))

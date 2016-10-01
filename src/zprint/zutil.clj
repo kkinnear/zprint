@@ -276,7 +276,7 @@
   "Given a zipper of a function definition, add the spec info
   to the docstring."
   [zloc spec-str]
-  (println "spec-str:" spec-str)
+  #_(println "spec-str:" spec-str)
   (if-let [doc-zloc (find-docstring zloc)]
     (let [new-doc-zloc
             (z/replace*

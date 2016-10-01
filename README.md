@@ -115,6 +115,7 @@ following specific features:
 * Maximize screen utilization 
 * Sort and order map keys
 * Constant pairing (for keyword argument functions)
+* Justify paired output (maps, binding forms, cond clauses, etc.) if desired
 * Syntax coloring
 
 All of this is just so many words, of course.  Give zprint a try on
@@ -187,16 +188,21 @@ and formats the result.
 ### Support
 
 If you have a problem, file an issue with an example of what doesn't
-work, and please also include the output from these two calls:
+work, and please also include the output from this call:
 
 ```clojure
 (require '[zprint.core :as zp])
 
-(zp/zprint (zp/get-options) :default)
-(zp/zprint nil :explain)
+(zp/zprint nil :support)
 ```
 
 This will assist me a great deal in reproducing and working on the issue.  Thanks!
+
+### Acknowledgements
+
+At the core of `zprint` is the `rewrite-clj` library by Yannick Scherer, 
+which will parse Clojure source into a zipper.  It works great!  I would
+not have attempted `zprint` if `rewrite-clj` didn't exist to build upon.
 
 ### Another pretty printer
 
@@ -685,43 +691,126 @@ when the function call doesn't fit on the current line.  The following
 examples are shown with an implied width of well less than 80 columns
 in order to demonstrate the function style in a concise manner.
 
+Note that the 
+[community style guide](https://github.com/bbatsov/clojure-style-guide)
+specifies different indentation amounts for functions (forms) that have
+"body" parameters, and functions that just have arguments.  Personally,
+I've never really distinguished between these different types of functions
+(which is why the default indent for both is 2).  But I've created
+classifications so that you can class some functions as having body
+arguments instead of just plain arguments, so that if you specify a
+different indent for arg-type functions than body-type functions, the
+right things will happen.
+
+A function that is not classified explicitly by appearing in the
+`:fn-map` is considered an "arg" function as opposed to "body" function,
+and the indent for its arguments is controlled by `:list {:indent-arg n}` 
+if it appears, and `:list {:indent n}` if it does not. 
+
+
 The available classifications are:
 
 #### :arg1
 
 Print the first argument on the same line as the function, if possible.  
-Later arguments are indented.
+Later arguments are indented the amount specified by `:list {:indent-arg n}`, 
+or `:list {:indent n}` if `:indent-arg` is not specified.
+
+```clojure
+ (apply str
+   "prepend this one"
+   (generate-strings from arguments))
+```
+
+#### :arg1-body
+
+Print the first argument on the same line as the function, if possible.  
+Later arguments are indented the amount specified by `:list {:indent n}`.
 
 ```clojure
  (if (= a 1)
    (map inc coll)
    (map dec coll))
 ```
-#### :binding
-
-The function has a binding clause as its first argument.  
-Print the binding clause two-up.
-
-```clojure
- (let [a b
-       c d]
-   (+ a c))
-```
-
 #### :arg1-pair
 
 The function has an important first argument, then the rest of the 
-arguments are paired up.
+arguments are paired up. Leftmost part of the pair is indented
+by `:list {:indent-arg n}` if it is specified, and `:list {:indent n}` 
+if it is not.
 
 ```clojure
  (assoc my-map
    :key1 :val1
    :key2 :val2)
 ```
+#### :arg1-pair-body
+
+The function has an important first argument, then the rest of the 
+arguments are paired up.  The leftmost part of the pair is indented
+by the amount specified by `:list {:indent n}`.
+
+```clojure
+ (case fn-style
+   :arg1 nil
+   :arg1-pair :pair
+   :arg1-extend :extend
+   :arg2 :arg1
+   :arg2-pair :arg1-pair
+   fn-style)
+```
+
+#### :arg2
+ 
+Print the first argument on the same line as the function name if it will
+fit on the same line. If it does, print the second argument
+on the same line as the first argument if it fits. Indentation of
+later arguments is controlled by `:list {:indent n}`
+
+```clojure
+  (as-> initial-value tag
+    (process stuff tag bother)
+    (more-process tag foo bar))
+```
+
+#### :arg2-pair
+
+Just like :arg2, but prints the third through last arguments as pairs.
+Indentation of the leftmost elements of the pairs is controlled by
+`:list {:indent n}`.  If any of the rightmost elements end up not fitting
+or not hanging well, the flow indent is controlled by `:pair {:indent n}`.
+
+```clojure
+  (condp = stuff
+    :bother "bother"
+    :foo "foo"
+    :bar "bar"
+    "baz")
+```
+
+#### :binding
+
+The function has a binding clause as its first argument.  
+Print the binding clause two-up (as pairs)  The indent for any wrapped
+binding element is :binding `{:indent n}`, the indent for the functions
+executed after the binding is `:list {:indent n}`.
+
+```clojure
+ (let [first val1 
+       second
+         (calculate second using a lot of arguments)
+       c d]
+   (+ a c))
+```
 
 #### :pair-fn
 
-The function has a series of clauses which are paired.
+The function has a series of clauses which are paired.  Whether or
+not the paired clauses use hang or flow is controlled by
+`:pair-fn {:hang? boolen}` and the indent of the leftmost
+element is controlled by `:pair-fn {:indent n}`.  The indent of any
+of the rightmost elements of the pair if they don't fit on the
+same line or don't hang well is `:pair {:indent n}`.
 
 ```clojure
  (cond
@@ -734,7 +823,8 @@ The function has a series of clauses which are paired.
 The function has a series of arguments where it would be nice
 to put the first on the same line as the function and then
 indent the rest to that level.  This would usually always be nice,
-but zprint tries extra hard for these.
+but zprint tries extra hard for these.  The indent when the arguments
+don't hang well is `:list {:indent n}`.
 
 ```clojure
  (and (= i 1)
@@ -744,7 +834,7 @@ but zprint tries extra hard for these.
 #### :extend
 
 The s-expression has a series of symbols with one or more forms 
-following each.  The level of indent is configurable.
+following each.  The level of indent is configurable by `:extend {:indent n}`.
 
 ```clojure
   (reify
@@ -761,7 +851,8 @@ following each.  The level of indent is configurable.
 For the several functions which have an single argument
 prior to the :extend syntax.  They must have one argument,
 and if the second argument is a vector, it is also handled
-separately from the :extend syntax.
+separately from the :extend syntax.  The level of indent is controlled
+by `:extend {:indent n}`
 
 ```clojure
   (extend-protocol ZprintProtocol
@@ -779,12 +870,12 @@ separately from the :extend syntax.
       (bother [this x y] (list x y a b)))
 ```
 
-
 #### :fn
 
-Print the first argument on the same line as the (fn ...) if it will
+Print the first argument on the same line as the `(fn ...)` if it will
 fit on the same line. If it does, and the second argument is a vector, 
-print it on the same line as the first argument if it fits.
+print it on the same line as the first argument if it fits.  Indentation
+is controlled by `:list {:indent n}`.
 
 ```clojure
   (fn [a b c]
@@ -796,36 +887,20 @@ print it on the same line as the first argument if it fits.
       (inc d)))
 ```
 
-#### :arg2
- 
-Print the first argument on the same line as the function name if it will
-fit on the same line. If it does, print the second argument
-on the same line as the first argument if it fits.
-
-```clojure
-  (as-> initial-value tag
-    (process stuff tag bother)
-    (more-process tag foo bar))
-```
-
-#### :arg2-pair
-
-Just like :arg2, but prints the third through last arguments as pairs.
-
-```clojure
-  (condp = stuff
-    :bother "bother"
-    :foo "foo"
-    :bar "bar"
-    "baz")
-```
-
 #### :none
 
 This is for things like special forms that need to be in this
 map to show up as functions for syntax coloring, but don't actually 
 trigger the function recognition logic to represent them as such.
-Also, this is used to remove the default classification for functions.
+Also, `:none` used to remove the default classification for functions
+by specifying it in an option map.  The indent for arguments that
+don't hang or fit on the same line is `:list {:indent-arg n}`
+if it is specified, and `:list {:indent n}` if it is not.
+
+#### :none-body
+
+Like none, but the indent for arguments that don't hang or fit
+on the same is always `:list {:indent n}`.
 
 ### Changing or Adding Function Classifications
 
@@ -907,16 +982,18 @@ column.
 
 While the cases where it is a bit confusing are rather rare, I
 find them bothersome, so by default zprint will indent the
-second part of these pairs by 2 columns.
+second part of these pairs by 2 columns (controlled by `:pair {:indent 2}`
+for `cond` and `:binding {:indent 2}` for binding functions).
 
 Maps also have pairs, and perhaps suffer from the potential
 for confusion a bit more then binding-forms and cond functions.
 By default then, the map indent for the an item that placed on the
-next line (i.e., in a flow) is 2.  The default is 2 for
+next line (i.e., in a flow) is 2 (controlled by `:map {:indent 2}`).  
+The default is 2 for
 extend and reader-conditionals as well.
 
 Is this perfect?  No, there are opportunities for confusion here
-too, but it works a considerably better for me, and it might for
+too, but it works considerably better for me, and it might for
 you too. I find this particularly useful for :binding and :map
 formatting.
 
@@ -927,6 +1004,77 @@ when calling zprint (specify that in your .zprintrc file, perhaps).
 You can change the indent from the default of 2 to 0 individually
 in :binding, :map, or :pair if you want to tune it in more detail.
 
+#### A note on justifying two-up printing
+
+I have seen some code where people justify the second element of their
+pairs to all line up in the same column.  I call this justifying for
+lack of a better term.  Here is an example in code:
+
+```clojure
+; Regular formatting
+
+(zprint-fn compare-ordered-keys {:pair {:justify? true}})
+
+(defn compare-ordered-keys
+  "Do a key comparison that places ordered keys first."
+  [key-value zdotdotdot x y]
+  (cond (and (key-value x) (key-value y)) (compare (key-value x) (key-value y))
+        (key-value x) -1
+        (key-value y) +1
+        (= zdotdotdot x) +1
+        (= zdotdotdot y) -1
+        :else (compare-keys x y)))
+
+; Justified formatting
+
+(zprint-fn compare-ordered-keys {:pair {:justify? true}})
+
+(defn compare-ordered-keys
+  "Do a key comparison that places ordered keys first."
+  [key-value zdotdotdot x y]
+  (cond (and (key-value x) (key-value y)) (compare (key-value x) (key-value y))
+        (key-value x)                     -1
+        (key-value y)                     +1
+        (= zdotdotdot x)                  +1
+        (= zdotdotdot y)                  -1
+        :else                             (compare-keys x y)))
+```
+Zprint will optionally justify `:map`, `:binding`, and `:pair` elements.
+There are several detailed configuration parameters used to control the
+justification.  Obviously this works best if the keys in a map are
+all about the same length (and relatively short), and the test expressions
+in a code are about the same length, and the local in a binding are
+about the same length.
+
+I don't personally find the justified approach my favorite in code,
+though there are some functions where it looks good.  They are a good
+candidate for a directive to lein-zprint:
+
+```clojure
+;!zprint {:format :next {:style :justified}}
+```
+
+As you might gather, there is a `:style :justified` which you can use
+to turn this on for maps, pairs, and bindings.
+
+I was surprised what justification could do for some maps, however.
+You can see it for yourself if you enter:
+
+```clojure
+(czprint nil :explain-justified)
+```
+
+See what you think.
+
+__NOTE:__ Justification involves extra processing, and because of the way
+that zprint tries to do the best job possible, it can cause a bit of a
+combinatorial explosion that can make formatting some functions and
+structures take a very long time.  I have put scant effort into optimizing
+this capability, as I have no idea how interesting it is to people in
+general.  If you are using it and like it, and you have situations where
+it seems to be particularly slow for you, please enter an issue to let
+me know.
+
 ## Widely Used Configuration Parameters
 
 There are a several  configuration parameters that are meaningful
@@ -935,7 +1083,8 @@ across a number of formatting types.
 ### :indent
 
 The value for indent is how far to indent the second through nth of 
-something if it doesn't all fit on one line.
+something if it doesn't all fit on one line (and becomes a flow, see
+immediately below).
 
 ### hang and flow
 
@@ -955,10 +1104,10 @@ This is the same information in a flow:
 
 ```clojure
 (symbol
- "string"
- :keyword
- 5
- {:map-key :value})
+  "string"
+  :keyword
+  5
+  {:map-key :value})
 ```
 zprint will try (by default) to use the *hang* approach when it
 will use the same or fewer lines than a *flow*.  Unless the hang takes
@@ -973,7 +1122,7 @@ even try.
 
 #### :hang-expand
 
-`:hang-expand` is used to control whether or not to do a hang.  It
+`:hang-expand` one control used to decide whether or not to do a hang.  It
 relates the number of lines in the hang to the number of elements
 in the hang thus: `(/ (dec hang-lines) hang-element-count)`.  If every
 element in the hang fits on one line, then this ratio will be < 1.
@@ -983,7 +1132,7 @@ is rejected.  The idea is that hangs that run on and on down the
 right side of the page are not ideal, even when they don't take
 more lines than a flow.  Unless, in some cases, they are ok -- for
 instance for maps.  The `:hang-expand` for :map is 1000.0, since
-we expect maps to have large hangs.
+we expect maps to have large hangs that expand a lot.
 
 #### :hang-diff
 
@@ -998,6 +1147,11 @@ You could set `:hang-diff` to 0 if you wanted to be more "strict", and
 see if you like the results better.  Probably you won't want to deal
 with this level of control.
 
+#### :justify?
+
+Turn on [justification](#a-note-on-justifying-two-up-printing).
+Default is nil (justification off).
+
 _____
 ## :map
 
@@ -1009,6 +1163,7 @@ hangs.
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :hang-expand <text style="color:#A4A4A4;"><small>1000.0</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
 
 ####  :comma?  <text style="color:#A4A4A4;"><small>true</small></text>
 
@@ -1149,6 +1304,202 @@ When working with hundreds of maps, even the tiny improvement
 made by ordering a few keys in a better way can reduce the cognitive
 load, particularly when debugging.
 
+#### :key-ignore <text style="color:#A4A4A4;"><small>nil</small></text>
+#### :key-ignore-silent <text style="color:#A4A4A4;"><small>nil</small></text>
+
+You can also ignore keys (or key sequences) in maps when formatting
+them.  There are two basic approaches.  `:key-ignore` will replace
+the value of the key(s) to be ignored with `:zprint-ignored`, where
+`:key-ignore-silent` will simply remove them from the formatted output.
+
+You might use this to remove sensitive information from output, or
+to remove elements that have more data than you wish to display.
+
+You can also supply key-sequences, in addition to single keys, to
+either configuration parameter.
+
+An example of the basic approach.  First the unmodified data:
+
+```clojure
+zprint.core=> (czprint sort-demo)
+
+[{:code "58601",
+  :connection "2795",
+  :detail {:alternate "64:c1:2f:34",
+           :ident "64:c1:2f:34",
+           :interface "3.13.168.35",
+           :string "datacenter"},
+  :direction :received,
+  :reference 14873,
+  :time 1425704001,
+  :type "get"}
+ {:code "0xe4e9",
+  :connection "X13404",
+  :detail
+    {:code "0xe4e9", :ident "64:c1:2f:34", :ip4 "3.13.168.151", :time "30m"},
+  :direction :transmitted,
+  :reference 14133,
+  :time 1425704001,
+  :type "post"}
+ {:code "58601",
+  :connection "X13404",
+  :direction :transmitted,
+  :reference 14227,
+  :time 1425704001,
+  :type "post"}
+ {:code "0x1344a676",
+  :connection "2796",
+  :detail {:code "0x1344a676", :ident "50:56:a5:1d:61", :ip4 "3.13.171.81"},
+  :direction :received,
+  :reference 14133,
+  :time 1425704003,
+  :type "error"}
+ {:code "323266166",
+  :connection "2796",
+  :detail {:alternate "01:50:56:a5:1d:61",
+           :ident "50:56:a5:1d:61",
+           :interface "3.13.168.35",
+           :string "datacenter"},
+  :direction :transmitted,
+  :reference 14873,
+  :time 1425704003,
+  :type "error"}]
+```
+
+Here is the data with the `:detail` key ignored:
+
+```clojure
+zprint.core=> (czprint sort-demo {:map {:key-ignore [:detail]}})
+
+[{:code "58601",
+  :connection "2795",
+  :detail :zprint-ignored,
+  :direction :received,
+  :reference 14873,
+  :time 1425704001,
+  :type "get"}
+ {:code "0xe4e9",
+  :connection "X13404",
+  :detail :zprint-ignored,
+  :direction :transmitted,
+  :reference 14133,
+  :time 1425704001,
+  :type "post"}
+ {:code "58601",
+  :connection "X13404",
+  :direction :transmitted,
+  :reference 14227,
+  :time 1425704001,
+  :type "post"}
+ {:code "0x1344a676",
+  :connection "2796",
+  :detail :zprint-ignored,
+  :direction :received,
+  :reference 14133,
+  :time 1425704003,
+  :type "error"}
+ {:code "323266166",
+  :connection "2796",
+  :detail :zprint-ignored,
+  :direction :transmitted,
+  :reference 14873,
+  :time 1425704003,
+  :type "error"}]
+```
+
+The same as above, with `:key-ignore-silent` instead of `key-ignore`:
+
+```clojure
+zprint.core=> (czprint sort-demo {:map {:key-ignore-silent [:detail]}})
+
+[{:code "58601",
+  :connection "2795",
+  :direction :received,
+  :reference 14873,
+  :time 1425704001,
+  :type "get"}
+ {:code "0xe4e9",
+  :connection "X13404",
+  :direction :transmitted,
+  :reference 14133,
+  :time 1425704001,
+  :type "post"}
+ {:code "58601",
+  :connection "X13404",
+  :direction :transmitted,
+  :reference 14227,
+  :time 1425704001,
+  :type "post"}
+ {:code "0x1344a676",
+  :connection "2796",
+  :direction :received,
+  :reference 14133,
+  :time 1425704003,
+  :type "error"}
+ {:code "323266166",
+  :connection "2796",
+  :direction :transmitted,
+  :reference 14873,
+  :time 1425704003,
+  :type "error"}]
+```
+
+An example of the key-sequence approach.  This will remove all
+of the elements with key `:code` inside of the maps with the key
+`:detail`, but not the elements with the key `:code` elsewhere.
+This example uses `:key-ignore` so you can see where it removed
+values.  
+
+```clojure
+zprint.core=> (czprint sort-demo {:map {:key-ignore [[:detail :code]]}})
+
+[{:code "58601",
+  :connection "2795",
+  :detail {:alternate "64:c1:2f:34",
+           :ident "64:c1:2f:34",
+           :interface "3.13.168.35",
+           :string "datacenter"},
+  :direction :received,
+  :reference 14873,
+  :time 1425704001,
+  :type "get"}
+ {:code "0xe4e9",
+  :connection "X13404",
+  :detail {:code :zprint-ignored,
+           :ident "64:c1:2f:34",
+           :ip4 "3.13.168.151",
+           :time "30m"},
+  :direction :transmitted,
+  :reference 14133,
+  :time 1425704001,
+  :type "post"}
+ {:code "58601",
+  :connection "X13404",
+  :direction :transmitted,
+  :reference 14227,
+  :time 1425704001,
+  :type "post"}
+ {:code "0x1344a676",
+  :connection "2796",
+  :detail {:code :zprint-ignored, :ident "50:56:a5:1d:61", :ip4 "3.13.171.81"},
+  :direction :received,
+  :reference 14133,
+  :time 1425704003,
+  :type "error"}
+ {:code "323266166",
+  :connection "2796",
+  :detail {:alternate "01:50:56:a5:1d:61",
+           :ident "50:56:a5:1d:61",
+           :interface "3.13.168.35",
+           :string "datacenter"},
+  :direction :transmitted,
+  :reference 14873,
+  :time 1425704003,
+  :type "error"}]
+```
+
+
+
 _____
 ## :reader-cond
 
@@ -1287,6 +1638,17 @@ _____
 ##### :hang-expand <text style="color:#A4A4A4;"><small>2.0</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
 
+#### :indent-arg <text style="color:#A4A4A4;"><small>nil</small></text>
+
+The amount to indent the arguments of a function whose arguments do
+not contain "body" forms.
+See [here](#function-classification-for-pretty-printing)
+for an explanation of what this means.  If this is nil, then the value
+configured for `:indent` is used for the arguments of functions that
+are not "body" functions.  You would configure this value only if
+you wanted "arg" type functions to have a different indent from
+"body" type functions.  It is configured by `:style :community`.
+
 #### :hang-size <text style="color:#A4A4A4;"><small>100</small></text>
 
 The maximum number of lines that are allowed in a hang.  If the number
@@ -1361,6 +1723,8 @@ looking rather better than they would otherwise.  This feature was added
 to handle what I believed was a very narrow use case, but it has shown
 suprising generality, making unexpected things look much better.
 
+In particular, try it on your specs!
+
 #### :constant-pair-min <text style="color:#A4A4A4;"><small>4</small></text>
  
 An integer specifying the minimum number of required elements capable of being
@@ -1416,6 +1780,7 @@ __hang__ described above.
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
 
 _____
 ## :pair
@@ -1428,6 +1793,7 @@ supports __indent__ and __hang__ described above.
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
 
 #### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
 
@@ -1454,7 +1820,14 @@ _____
 ## :record
 
 Records are printed with the record-type and value of the record
-shown with map syntax.
+shown with map syntax, or by calling their `toString()` method.
+
+#### :to-string? <text style="color:#A4A4A4;"><small>false</small></text>
+
+This will output a record by calling its `toString()` java method, which
+can be useful for some records. If the record contains a lot of information
+that you didn't want to print, for instance. If `:to-string?` is true, 
+it overrides the other `:record` configuration options.
 
 #### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 
@@ -1464,7 +1837,7 @@ Should a hang be attempted?  See example below.
 
 Should the record type be output?  
 
-An example of both :hang? and :record-type?
+An example of `:hang?`, `:record-type?`, and `:to-string?`
 
 ```clojure
 (require '[zprint.core :as zp])
@@ -1491,6 +1864,10 @@ An example of both :hang? and :record-type?
 {:left ["a" "lot" "of" "stuff" "so" "that" "it" "doesn't" "fit" "all" "on"
         "one" "line"],
  :right [:more :stuff :but :not :quite :as :much]}
+
+(zprint x {:record {:to-string? true}})
+
+"zprint.core.myrecord@682a5f6b"
 ```
 _____
 ## :array
@@ -1646,6 +2023,7 @@ map in an individual call to zprint.
 
 You might wish to define several styles with different color-maps,
 perhaps, allowing you to alter the colors more easily.
+
 ______
 ______
 ## Debugging the configuration

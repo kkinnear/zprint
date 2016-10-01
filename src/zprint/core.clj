@@ -7,7 +7,7 @@
    [zprint.finish :refer
     [cvec-to-style-vec compress-style no-style-map color-comp-vec cursor-style]]
    [zprint.config :as config :refer
-    [config-set-options! config-get-options config-configure-all! help-str]]
+    [config-set-options! get-options config-configure-all! help-str]]
    [zprint.zutil :refer [zmap-all zcomment?]]
    [zprint.sutil]
    [zprint.config :as config :refer
@@ -111,8 +111,6 @@
   []
   (config-configure-all!))
 
-(defn get-options "Return any prevsiouly set options." [] (config-get-options))
-           
 ;;
 ;; # Zipper determination and handling
 ;;
@@ -191,7 +189,7 @@
   [coll internal-options & [width-or-options options]]
   (if (= width-or-options :default)
     (fzprint-style coll (get-default-options))
-    (let [[width-or-options special-option] (if (#{:explain :explain-all
+    (let [[width-or-options special-option] (if (#{:explain :support
                                                    :explain-justified :help}
                                                  width-or-options)
                                               [nil width-or-options]
@@ -231,18 +229,18 @@
                                             (merge-deep (get-default-options)
                                                         {:map {:justify?
                                                                  true}}))
-          :explain-all (fzprint-style (get-explained-all-options)
+          :support (fzprint-style (get-explained-all-options)
                                       (get-default-options))
           :help (println help-str)
           (println (str "Unknown keyword option: " special-option)))
         (fzprint-style
           coll
-          (if-let [fn-name nil
-                   #_(:fn-name actual-options)]
-            (assoc actual-options
-              :spec nil
-              #_(get-docstring-spec actual-options fn-name))
-            actual-options))))))
+          (if-let [fn-name (:fn-name actual-options)]
+	    (if (:docstring? (:spec actual-options))
+	      (assoc-in actual-options
+		[:spec :value] (get-docstring-spec actual-options fn-name))
+	      actual-options)
+	    actual-options))))))
 
 ;;
 ;; # API Support
@@ -388,8 +386,8 @@
   pass along that information back to the caller.  The input is a 
   [[next-options <previous-string>] form], where next-options accumulates
   the information to be applied to the next non-comment/non-whitespace
-  element in the file.  The output is [next-options output-str], since
-  reductions is used to call this function.  See process file-forms
+  element in the file.  The output is [next-options output-str zprint-num], 
+  since reductions is used to call this function.  See process file-forms
   for what is actually done with the various :format values."
   [file-name [next-options _ zprint-num] form]
   (let [comment? (zcomment? form)
@@ -410,8 +408,8 @@
             (zprint-str-internal
               (if (or comment? whitespace? (empty? next-options))
                 internal-options
-                (do (def io internal-options)
-                    (def no next-options)
+                (do #_(def io internal-options)
+                    #_(def no next-options)
                     (merge-deep internal-options next-options)))
               form))
         local? (or (= :skip (:format new-options))
@@ -486,54 +484,61 @@
   want to have each file be separate, you should call (configure-all!)
   before calling this function."
   [infile file-name outfile]
-  (with-open [rdr (clojure.java.io/reader infile)]
-    (let [lines (line-seq rdr)
-          lines (if (:expand? (:tab (get-options)))
-                  (map (partial expand-tabs (:size (:tab (get-options)))) lines)
-                  lines)
-          filestring (apply str (interpose "\n" lines))
-          forms (z/edn* (p/parse-string-all filestring))
-          form-seq (zmap-all identity forms)
-          #_(def fileform form-seq)
-          outputstr (process-file-forms file-name form-seq)]
-      (spit outfile outputstr))))
+  (let [wholefile (slurp infile)
+        lines (clojure.string/split wholefile #"\n")
+	lines (if (:expand? (:tab (get-options)))
+		(map (partial expand-tabs (:size (:tab (get-options)))) lines)
+		lines)
+	filestring (clojure.string/join "\n" lines)
+	; If file ended with a \newline, make sure it still does
+	filestring (if (= (last wholefile) \newline) 
+	             (str filestring "\n")
+		     filestring)
+	forms (z/edn* (p/parse-string-all filestring))
+	form-seq (zmap-all identity forms)
+	#_(def fileform form-seq)
+	outputstr (process-file-forms file-name form-seq)]
+    (spit outfile outputstr)))
 
 ;;
 ;; # Process specs to go into a doc-string
 ;;
 
-#_(defn format-spec
-    "Take a spec and a key, and format the output as a string. Width is
+(defn format-spec
+  "Take a spec and a key, and format the output as a string. Width is
   because the width isn't really (:width options)."
-    [options fn-spec indent key]
+    [options describe-fn fn-spec indent key]
     (when-let [key-spec (get fn-spec key)]
       (let [key-str (str (name key) ": ")
             total-indent (+ (count key-str) indent)
             ; leave room for double-quote at the end
             width (dec (- (:width options) total-indent))
-            key-spec-data (describe key-spec)
+            key-spec-data (describe-fn key-spec)
             spec-str (zprint-str key-spec-data width)
             spec-no-nl (clojure.string/split spec-str #"\n")
             spec-shift-right (apply str
                                (interpose (str "\n" (blanks total-indent))
                                  spec-no-nl))]
         (str (blanks indent) key-str spec-shift-right))))
-  
 
-#_(defn get-docstring-spec
-    "Given a function name (which, if used directly, needs to be quoted)
+(defn get-docstring-spec
+  "Given a function name (which, if used directly, needs to be quoted)
   return a string which is contains the spec information that could go
   in the doc string."
-    [{:keys [width rightcnt dbg?], {:keys [indent-body]} :list, :as options}
+    [{:keys [width rightcnt dbg?], {:keys [indent]} :list, :as options}
      fn-name]
-    (let [{n :ns, nm :name, :as m} (meta (resolve fn-name))]
-      (when-let [fn-spec (get-spec (symbol (str (ns-name n)) (name nm)))]
-        (apply str
-          "\n\n" (blanks indent-body)
-          "Spec:\n" (interpose "\n"
-                      (remove nil?
-                        (map (partial format-spec
-                                      options
-                                      fn-spec
-                                      (+ indent-body indent-body))
-                          [:args :ret :fn])))))))
+    (let [{n :ns, nm :name, :as m} (meta (resolve fn-name))
+          get-spec-fn (resolve 'clojure.spec/get-spec)
+	  describe-fn (resolve 'clojure.spec/describe)]
+      (when (and get-spec-fn describe-fn)
+	(when-let [fn-spec (get-spec-fn (symbol (str (ns-name n)) (name nm)))]
+	  (apply str
+	    "\n\n" (blanks indent)
+	    "Spec:\n" (interpose "\n"
+			(remove nil?
+			  (map (partial format-spec
+					options
+					describe-fn
+					fn-spec
+					(+ indent indent))
+			    [:args :ret :fn]))))))))

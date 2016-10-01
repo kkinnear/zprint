@@ -1,6 +1,7 @@
 /target
 /classes
 /checkouts
+/src/zprint/repl.clj
 pom.xml
 pom.xml.asc
 *.jar

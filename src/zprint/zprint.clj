@@ -817,6 +817,61 @@
   (or (zcomment? zloc) (zuneval? zloc)))
 
 ;;
+;; # Ignore keys in maps
+;;
+
+(defn remove-key-seq
+  "If given a non-collection, simply does a dissoc of the key, but
+  if given a sequence of keys, will remove the final one."
+  [m ks]
+  (if (coll? ks)
+    (let [this-key (first ks)
+          next-key (next ks)]
+      (if next-key
+        (let [removed-map (remove-key-seq (get m this-key) (next ks))]
+          (if (empty? removed-map)
+            (dissoc m this-key)
+            (assoc m this-key removed-map)))
+        (dissoc m this-key)))
+    (dissoc m ks)))
+
+(defn ignore-key-seq-silent
+  "Given a map and a key sequence, remove that key sequence if
+  it appears in the map, and terminate the reduce if it changes
+  the map."
+  [m ks]
+  (if (coll? ks)
+    (if (= (get-in m ks :zprint-not-found) :zprint-not-found)
+      m
+      (remove-key-seq m ks))
+    (if (= (get m ks :zprint-not-found) :zprint-not-found) m (dissoc m ks))))
+
+(defn ignore-key-seq
+  "Given a map and a key sequence, remove that key sequence if
+  it appears in the map leaving behind a key :zprint-ignored, 
+  and terminate the reduce if it changes the map."
+  [m ks]
+  (if (coll? ks)
+    (if (= (get-in m ks :zprint-not-found) :zprint-not-found)
+      m
+      (assoc-in m ks :zprint-ignored))
+    (if (= (get m ks :zprint-not-found) :zprint-not-found)
+      m
+      (assoc m ks :zprint-ignored))))
+
+(defn map-ignore
+  "Take a map and remove any of the key sequences specified from it.
+  Note that this only works for sexpressions, not for actual zippers."
+  [caller {{:keys [key-ignore key-ignore-silent]} caller, :as options} zloc]
+  (let [ignored-silent (if key-ignore-silent
+                         (reduce ignore-key-seq-silent zloc key-ignore-silent)
+                         zloc)
+        ignored (if key-ignore
+                  (reduce ignore-key-seq ignored-silent key-ignore)
+                  ignored-silent)]
+    ignored))
+
+;;
 ;; # Pre-processing for two-up printing
 ;;
 
@@ -1411,11 +1466,11 @@
     options))
 
 ;;
-;; Which fn-styles use :list {:indent-body n} instead of
+;; Which fn-styles use :list {:indent n} instead of
 ;; :list {:indent-arg n}
 ;;
 
-(def body-set-alt
+(def body-set
   #{:binding :arg1-> :arg2 :arg2-pair :pair :fn :arg1-body :arg1-pair-body
     :arg1-extend-body :none-body})
 
@@ -1434,7 +1489,7 @@
     {:keys [zstring zmap zfirst zsecond zsexpr zcoll? zcount zvector? znth
             zlist? zcomment? zmap-right zidentity zmeta? zsymbol?]}
       :zf,
-    {:keys [indent-arg indent-body]} caller,
+    {:keys [indent-arg indent]} caller,
     :as options} ind zloc]
   (let [len (zcount zloc)
         l-str-len (count l-str)
@@ -1447,7 +1502,7 @@
                    (fn-map (last (clojure.string/split fn-str #"\/")))
                    fn-style)
         ; set indent based on fn-style
-        indent (if (body-set-alt fn-style) indent-body indent-arg)
+        indent (if (body-set fn-style) indent (or indent-arg indent))
         ; remove -body from fn-style if it was there
         fn-style (or (body-map fn-style) fn-style)
         ; If l-str isn't one char, create an indent adjustment.  Largely
@@ -1852,11 +1907,14 @@
 
 (defn fzprint-map*
   [caller l-str r-str
-   {:keys [width dbg? one-line?],
+   {:keys [width dbg? one-line? ztype],
     {:keys [zseqnws zstring zfirst]} :zf,
-    {:keys [sort? comma?]} caller,
+    {:keys [sort? comma? key-ignore key-ignore-silent]} caller,
     :as options} ind zloc]
-  (let [pair-seq (partition-all-2-nc options (zseqnws zloc) caller)
+  (let [zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
+               (map-ignore caller options zloc)
+               zloc)
+        pair-seq (partition-all-2-nc options (zseqnws zloc) caller)
         indent (count l-str)
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options (+ indent ind) zloc r-str)]
@@ -2111,39 +2169,41 @@
 (defn fzprint-record
   [{:keys [width dbg? one-line?],
     {:keys [zseqnws zstring zfirst]} :zf,
-    {:keys [record-type?]} :record,
+    {:keys [record-type? to-string?]} :record,
     :as options} ind zloc]
-  (if-not record-type?
-    ; if not printing as record-type, turn it into map
-    (fzprint* options ind (into {} zloc))
-    (let [l-str "#"
-          r-str ""
-          indent (count l-str)
-          l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
-          arg-1 (pr-str (class zloc))
-          arg-1 (let [tokens (clojure.string/split arg-1 #"\.")]
-                  (apply str
-                    (conj (into [] (interpose "." (butlast tokens)))
-                          "/"
-                          (last tokens))))
-          arg-1-indent (+ ind indent 1 (count arg-1))]
-      (dbg-pr options
-              "fzprint-record: arg-1:" arg-1
-              "zstring zloc:" (zstring zloc))
-      (concat-no-nil
-        l-str-vec
-        [[arg-1 (zcolor-map options :none) :element]]
-        (fzprint-hang-one :record
-                          options
-                          ;(rightmost options)
-                          arg-1-indent
-                          (+ indent ind)
-                          ; this only works because
-                          ; we never actually get here
-                          ; with a zipper, just an sexpr
-                          (into {} zloc))
-        r-str-vec))))
+  (if to-string?
+    (fzprint* options ind (. zloc toString))
+    (if-not record-type?
+      ; if not printing as record-type, turn it into map
+      (fzprint* options ind (into {} zloc))
+      (let [l-str "#"
+	    r-str ""
+	    indent (count l-str)
+	    l-str-vec [[l-str (zcolor-map options l-str) :left]]
+	    r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
+	    arg-1 (pr-str (class zloc))
+	    arg-1 (let [tokens (clojure.string/split arg-1 #"\.")]
+		    (apply str
+		      (conj (into [] (interpose "." (butlast tokens)))
+			    "/"
+			    (last tokens))))
+	    arg-1-indent (+ ind indent 1 (count arg-1))]
+	(dbg-pr options
+		"fzprint-record: arg-1:" arg-1
+		"zstring zloc:" (zstring zloc))
+	(concat-no-nil
+	  l-str-vec
+	  [[arg-1 (zcolor-map options :none) :element]]
+	  (fzprint-hang-one :record
+			    options
+			    ;(rightmost options)
+			    arg-1-indent
+			    (+ indent ind)
+			    ; this only works because
+			    ; we never actually get here
+			    ; with a zipper, just an sexpr
+			    (into {} zloc))
+	  r-str-vec)))))
 
 (defn fzprint-uneval
   "Trim the #_ off the front of the uneval, and try to print it."
@@ -2296,6 +2356,7 @@
       :zf,
     :as options} indent zloc]
   (let [avail (- width indent)
+        ; note that depth affects how comments are printed, toward the end
         options (assoc options :depth (inc depth))
         options (if (or dbg? dbg-print?)
                   (assoc options
@@ -2353,7 +2414,7 @@
             (zcomment? zloc)
               (let [zcomment
                       ; Do we have a file-level comment?
-                      (if (zero? indent)
+                      (if (zero? depth)
                         zstr
                         (clojure.string/replace zstr "\n" ""))]
                 (if (and (:count? (:comment options)) overflow-in-hang?)
@@ -2525,10 +2586,10 @@
   ; if we are doing specs, find the docstring and modify it with
   ; the spec output.
   #_(println "fn-name:" (:fn-name options))
-  #_(println "spec:" (:spec options))
-  (let [zloc (if-not (and (= (:ztype options) :zipper) (:spec options))
-               zloc
-               (add-spec-to-docstring zloc (:spec options)))
+  #_(println "spec:" (:value (:spec options)))
+  (let [zloc (if-not (and (= (:ztype options) :zipper) (:value (:spec options)))
+	       zloc
+               (add-spec-to-docstring zloc (:value (:spec options))))
         style-vec (fzprint* (assoc options :depth 0) indent zloc)]
     (if (= (:ztype options) :sexpr)
       style-vec

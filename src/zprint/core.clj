@@ -189,11 +189,10 @@
   [coll internal-options & [width-or-options options]]
   (if (= width-or-options :default)
     (fzprint-style coll (get-default-options))
-    (let [[width-or-options special-option] (if (#{:explain :support
-                                                   :explain-justified :help}
-                                                 width-or-options)
-                                              [nil width-or-options]
-                                              [width-or-options nil])
+    (let [[width-or-options special-option]
+            (if (#{:explain :support :explain-justified :help} width-or-options)
+              [nil width-or-options]
+              [width-or-options nil])
           configure-errors (when-not (:configured? (get-options))
                              (configure-all!))
           width (when (number? width-or-options) width-or-options)
@@ -230,17 +229,18 @@
                                                         {:map {:justify?
                                                                  true}}))
           :support (fzprint-style (get-explained-all-options)
-                                      (get-default-options))
+                                  (get-default-options))
           :help (println help-str)
           (println (str "Unknown keyword option: " special-option)))
         (fzprint-style
           coll
           (if-let [fn-name (:fn-name actual-options)]
-	    (if (:docstring? (:spec actual-options))
-	      (assoc-in actual-options
-		[:spec :value] (get-docstring-spec actual-options fn-name))
-	      actual-options)
-	    actual-options))))))
+            (if (:docstring? (:spec actual-options))
+              (assoc-in actual-options
+                        [:spec :value]
+                        (get-docstring-spec actual-options fn-name))
+              actual-options)
+            actual-options))))))
 
 ;;
 ;; # API Support
@@ -486,18 +486,17 @@
   [infile file-name outfile]
   (let [wholefile (slurp infile)
         lines (clojure.string/split wholefile #"\n")
-	lines (if (:expand? (:tab (get-options)))
-		(map (partial expand-tabs (:size (:tab (get-options)))) lines)
-		lines)
-	filestring (clojure.string/join "\n" lines)
-	; If file ended with a \newline, make sure it still does
-	filestring (if (= (last wholefile) \newline) 
-	             (str filestring "\n")
-		     filestring)
-	forms (z/edn* (p/parse-string-all filestring))
-	form-seq (zmap-all identity forms)
-	#_(def fileform form-seq)
-	outputstr (process-file-forms file-name form-seq)]
+        lines (if (:expand? (:tab (get-options)))
+                (map (partial expand-tabs (:size (:tab (get-options)))) lines)
+                lines)
+        filestring (clojure.string/join "\n" lines)
+        ; If file ended with a \newline, make sure it still does
+        filestring
+          (if (= (last wholefile) \newline) (str filestring "\n") filestring)
+        forms (z/edn* (p/parse-string-all filestring))
+        form-seq (zmap-all identity forms)
+        #_(def fileform form-seq)
+        outputstr (process-file-forms file-name form-seq)]
     (spit outfile outputstr)))
 
 ;;
@@ -507,38 +506,37 @@
 (defn format-spec
   "Take a spec and a key, and format the output as a string. Width is
   because the width isn't really (:width options)."
-    [options describe-fn fn-spec indent key]
-    (when-let [key-spec (get fn-spec key)]
-      (let [key-str (str (name key) ": ")
-            total-indent (+ (count key-str) indent)
-            ; leave room for double-quote at the end
-            width (dec (- (:width options) total-indent))
-            key-spec-data (describe-fn key-spec)
-            spec-str (zprint-str key-spec-data width)
-            spec-no-nl (clojure.string/split spec-str #"\n")
-            spec-shift-right (apply str
-                               (interpose (str "\n" (blanks total-indent))
-                                 spec-no-nl))]
-        (str (blanks indent) key-str spec-shift-right))))
+  [options describe-fn fn-spec indent key]
+  (when-let [key-spec (get fn-spec key)]
+    (let [key-str (str (name key) ": ")
+          total-indent (+ (count key-str) indent)
+          ; leave room for double-quote at the end
+          width (dec (- (:width options) total-indent))
+          key-spec-data (describe-fn key-spec)
+          spec-str (zprint-str key-spec-data width)
+          spec-no-nl (clojure.string/split spec-str #"\n")
+          spec-shift-right
+            (apply str (interpose (str "\n" (blanks total-indent)) spec-no-nl))]
+      (str (blanks indent) key-str spec-shift-right))))
 
 (defn get-docstring-spec
   "Given a function name (which, if used directly, needs to be quoted)
   return a string which is contains the spec information that could go
   in the doc string."
-    [{:keys [width rightcnt dbg?], {:keys [indent]} :list, :as options}
-     fn-name]
-    (let [{n :ns, nm :name, :as m} (meta (resolve fn-name))
-          get-spec-fn (resolve 'clojure.spec/get-spec)
-	  describe-fn (resolve 'clojure.spec/describe)]
-      (when (and get-spec-fn describe-fn)
-	(when-let [fn-spec (get-spec-fn (symbol (str (ns-name n)) (name nm)))]
-	  (apply str
-	    "\n\n" (blanks indent)
-	    "Spec:\n" (interpose "\n"
-			(remove nil?
-			  (map (partial format-spec
-					options
-					describe-fn
-					fn-spec
-					(+ indent indent))
-			    [:args :ret :fn]))))))))
+  [{:keys [width rightcnt dbg?], {:keys [indent]} :list, :as options} fn-name]
+  (let [{n :ns, nm :name, :as m} (meta (resolve fn-name))
+        get-spec-fn (resolve 'clojure.spec/get-spec)
+        describe-fn (resolve 'clojure.spec/describe)]
+    (when (and get-spec-fn describe-fn)
+      (when-let [fn-spec (get-spec-fn (symbol (str (ns-name n)) (name nm)))]
+        (apply str
+          "\n\n" (blanks indent)
+          "Spec:\n"
+            (interpose "\n"
+              (remove nil?
+                (map (partial format-spec
+                              options
+                              describe-fn
+                              fn-spec
+                              (+ indent indent))
+                  [:args :ret :fn]))))))))

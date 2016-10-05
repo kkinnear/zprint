@@ -807,22 +807,24 @@
           ; a short comment that might be long
           :c)))
 
-(expect 
-"(defn zctest5a\n  \"Test indents.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a slightly long comment\n                   ; a second comment line\n                   (assoc b :a :c)))]\n    (list\n      :a\n      (with-meta name x)\n      (vector\n        :thisisalongkeyword :anotherlongkeyword\n        :ashorterkeyword :reallyshort)\n      ; a short comment that might be long\n      :c)))"
-(zprint-fn-str zprint.zprint-test/zctest5a {:list {:hang? false}}))
+(expect
+  "(defn zctest5a\n  \"Test indents.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a slightly long comment\n                   ; a second comment line\n                   (assoc b :a :c)))]\n    (list\n      :a\n      (with-meta name x)\n      (vector\n        :thisisalongkeyword :anotherlongkeyword\n        :ashorterkeyword :reallyshort)\n      ; a short comment that might be long\n      :c)))"
+  (zprint-fn-str zprint.zprint-test/zctest5a {:list {:hang? false}}))
 
 (expect
-"(defn zctest5a\n  \"Test indents.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a slightly long comment\n                   ; a second comment line\n                   (assoc b :a :c)))]\n    (list\n     :a\n     (with-meta name x)\n     (vector\n      :thisisalongkeyword :anotherlongkeyword\n      :ashorterkeyword :reallyshort)\n     ; a short comment that might be long\n     :c)))"
-(zprint-fn-str zprint.zprint-test/zctest5a {:list {:hang? false :indent-arg 1}}))
-
-(expect 
-"(defn zctest5a\n \"Test indents.\"\n [x]\n (let [abade :b\n       ceered (let [b :d]\n               (if (:a x)\n                ; this is a slightly long comment\n                ; a second comment line\n                (assoc b :a :c)))]\n  (list\n   :a\n   (with-meta name x)\n   (vector\n    :thisisalongkeyword :anotherlongkeyword\n    :ashorterkeyword :reallyshort)\n   ; a short comment that might be long\n   :c)))"
-(zprint-fn-str zprint.zprint-test/zctest5a 
-               {:list {:hang? false :indent-arg 1 :indent 1}}))
+  "(defn zctest5a\n  \"Test indents.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a slightly long comment\n                   ; a second comment line\n                   (assoc b :a :c)))]\n    (list\n     :a\n     (with-meta name x)\n     (vector\n      :thisisalongkeyword :anotherlongkeyword\n      :ashorterkeyword :reallyshort)\n     ; a short comment that might be long\n     :c)))"
+  (zprint-fn-str zprint.zprint-test/zctest5a
+                 {:list {:hang? false, :indent-arg 1}}))
 
 (expect
-"(defn zctest5a\n  \"Test indents.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a slightly long comment\n                   ; a second comment line\n                   (assoc b :a :c)))]\n    (list\n     :a\n     (with-meta name x)\n     (vector\n      :thisisalongkeyword :anotherlongkeyword\n      :ashorterkeyword :reallyshort)\n     ; a short comment that might be long\n     :c)))"
-(zprint-fn-str zprint.zprint-test/zctest5a {:list {:hang? false :indent-arg 1 :indent 2}}))
+  "(defn zctest5a\n \"Test indents.\"\n [x]\n (let [abade :b\n       ceered (let [b :d]\n               (if (:a x)\n                ; this is a slightly long comment\n                ; a second comment line\n                (assoc b :a :c)))]\n  (list\n   :a\n   (with-meta name x)\n   (vector\n    :thisisalongkeyword :anotherlongkeyword\n    :ashorterkeyword :reallyshort)\n   ; a short comment that might be long\n   :c)))"
+  (zprint-fn-str zprint.zprint-test/zctest5a
+                 {:list {:hang? false, :indent-arg 1, :indent 1}}))
+
+(expect
+  "(defn zctest5a\n  \"Test indents.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a slightly long comment\n                   ; a second comment line\n                   (assoc b :a :c)))]\n    (list\n     :a\n     (with-meta name x)\n     (vector\n      :thisisalongkeyword :anotherlongkeyword\n      :ashorterkeyword :reallyshort)\n     ; a short comment that might be long\n     :c)))"
+  (zprint-fn-str zprint.zprint-test/zctest5a
+                 {:list {:hang? false, :indent-arg 1, :indent 2}}))
 
 ;;
 ;; # key-ignore, key-ignore-silent
@@ -832,30 +834,29 @@
 ;; ## Basic routines
 ;;
 
-(def ignore-m {:a :b :c {:e {:f :g} :h :i}})
+(def ignore-m {:a :b, :c {:e {:f :g}, :h :i}})
 
 (expect {:a :b, :c {:e {:f :g}, :h :zprint-ignored}}
-(map-ignore :map {:map {:key-ignore [[:c :h]]}} ignore-m))
+        (map-ignore :map {:map {:key-ignore [[:c :h]]}} ignore-m))
 
 (expect {:a :b, :c {:e {:f :g}}}
-(map-ignore :map {:map {:key-ignore-silent [[:c :h]]}} ignore-m))
+        (map-ignore :map {:map {:key-ignore-silent [[:c :h]]}} ignore-m))
 
 (expect {:a :b, :c {:e {:f :g}}}
-(map-ignore :map {:map {:key-ignore-silent [:f [:c :h]]}} ignore-m))
+        (map-ignore :map {:map {:key-ignore-silent [:f [:c :h]]}} ignore-m))
 
-(expect {:a :b}
-(map-ignore :map {:map {:key-ignore-silent [[:c :h] [:c :e]]}} ignore-m))
+(expect
+  {:a :b}
+  (map-ignore :map {:map {:key-ignore-silent [[:c :h] [:c :e]]}} ignore-m))
 
-(expect {:a :b :c {:e :zprint-ignored :h :zprint-ignored}}
-(map-ignore :map {:map {:key-ignore [[:c :h] [:c :e]]}} ignore-m))
+(expect {:a :b, :c {:e :zprint-ignored, :h :zprint-ignored}}
+        (map-ignore :map {:map {:key-ignore [[:c :h] [:c :e]]}} ignore-m))
 
 (expect "{:a :b, :c {:e :zprint-ignored, :h :zprint-ignored}}"
-(zprint-str ignore-m {:map {:key-ignore [[:c :h] [:c :e]]}}))
+        (zprint-str ignore-m {:map {:key-ignore [[:c :h] [:c :e]]}}))
 
 (expect "{:a :zprint-ignored, :c {:e :zprint-ignored, :h :i}}"
- (zprint-str ignore-m {:map {:key-ignore [[:c :e] :a]}}))
+        (zprint-str ignore-m {:map {:key-ignore [[:c :e] :a]}}))
 
 (expect "{:c {:h :i}}"
-(zprint-str ignore-m {:map {:key-ignore-silent [ :a [:c :e :f]]}}))
-
-
+        (zprint-str ignore-m {:map {:key-ignore-silent [:a [:c :e :f]]}}))

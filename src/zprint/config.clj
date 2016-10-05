@@ -53,8 +53,8 @@
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning]
-   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] [:extend :hang-diff :hang-expand :hang?]
-   :tuning])
+   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning]
+   [:extend :hang-diff :hang-expand :hang?] :tuning])
 
 
 ;;
@@ -264,11 +264,10 @@
    "!=" :hang,
    "try" :none-body,
    "catch" :none-body,
-   "with-meta" :arg1-body
-   "fdef" :arg1-pair
-   "alt" :pair
-   "cat" :pair
-   })
+   "with-meta" :arg1-body,
+   "fdef" :arg1-pair,
+   "alt" :pair,
+   "cat" :pair})
 
 ;;
 ;; ## The global defaults
@@ -332,7 +331,7 @@
    :pair-fn
      {:indent 2, :hang? true, :hang-expand 2.0, :hang-size 10, :hang-diff 1},
    :list {:indent-arg nil,
-	  :indent 2
+          :indent 2,
           :pair-hang? true,
           :hang? true,
           :hang-expand 2.0,
@@ -352,8 +351,8 @@
          ; wider stuff seems better with -1, so for now, we will go with that.
          :hang-adjust -1,
          :key-order nil,
-	 :ignore nil
-	 :ignore-silent nil
+         :ignore nil,
+         :ignore-silent nil,
          :force-nl? nil,
          :justify? false,
          :justify-hang {:hang-expand 5},
@@ -386,7 +385,7 @@
           :justify? false,
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
-   :record {:record-type? true, :hang? true :to-string? false},
+   :record {:record-type? true, :hang? true, :to-string? false},
    :array {:indent 1, :wrap? true, :hex? false, :object? false},
    :atom {:object? false},
    :fn-obj {:object? false},
@@ -562,10 +561,7 @@
   (reset! configured-options default-zprint-options)
   (reset! explained-options default-zprint-options))
 
-(defn get-options
-  "Return any prevsiouly set options."
-  []
-  @configured-options)
+(defn get-options "Return any prevsiouly set options." [] @configured-options)
 
 (defn get-default-options
   "Return the base default options."
@@ -708,7 +704,7 @@
    (s/optional-key :auto-width?) boolean-schema,
    (s/optional-key :force-sexpr?) boolean-schema,
    (s/optional-key :spec) {(s/optional-key :value) s/Any,
-			   (s/optional-key :docstring?) boolean-schema}
+                           (s/optional-key :docstring?) boolean-schema},
    (s/optional-key :tuning) {(s/optional-key :hang-flow) s/Num,
                              (s/optional-key :hang-type-flow) s/Num,
                              (s/optional-key :hang-flow-limit) s/Num,
@@ -811,7 +807,7 @@
                               (s/optional-key :hang-flow-limit) s/Num,
                               (s/optional-key :general-hang-adjust) s/Num}},
    (s/optional-key :record) {(s/optional-key :record-type?) boolean-schema,
-                             (s/optional-key :hang?) boolean-schema
+                             (s/optional-key :hang?) boolean-schema,
                              (s/optional-key :to-string?) boolean-schema},
    (s/optional-key :array) {(s/optional-key :hex?) boolean-schema-or-string,
                             (s/optional-key :object?) boolean-schema,

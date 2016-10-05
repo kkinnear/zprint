@@ -6,7 +6,7 @@
 	    :key "mit"
 	    :year 2015}
   :plugins [[lein-expectations "0.0.8"]
-	    [lein-zprint "0.1.3"]]
+	    [lein-zprint "0.1.5"]]
   :zprint {:old? false}
   :profiles {:dev {:dependencies [[expectations "2.0.16"]
 				  [com.taoensso/timbre "4.0.2"]

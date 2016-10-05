@@ -2177,33 +2177,33 @@
       ; if not printing as record-type, turn it into map
       (fzprint* options ind (into {} zloc))
       (let [l-str "#"
-	    r-str ""
-	    indent (count l-str)
-	    l-str-vec [[l-str (zcolor-map options l-str) :left]]
-	    r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
-	    arg-1 (pr-str (class zloc))
-	    arg-1 (let [tokens (clojure.string/split arg-1 #"\.")]
-		    (apply str
-		      (conj (into [] (interpose "." (butlast tokens)))
-			    "/"
-			    (last tokens))))
-	    arg-1-indent (+ ind indent 1 (count arg-1))]
-	(dbg-pr options
-		"fzprint-record: arg-1:" arg-1
-		"zstring zloc:" (zstring zloc))
-	(concat-no-nil
-	  l-str-vec
-	  [[arg-1 (zcolor-map options :none) :element]]
-	  (fzprint-hang-one :record
-			    options
-			    ;(rightmost options)
-			    arg-1-indent
-			    (+ indent ind)
-			    ; this only works because
-			    ; we never actually get here
-			    ; with a zipper, just an sexpr
-			    (into {} zloc))
-	  r-str-vec)))))
+            r-str ""
+            indent (count l-str)
+            l-str-vec [[l-str (zcolor-map options l-str) :left]]
+            r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
+            arg-1 (pr-str (class zloc))
+            arg-1 (let [tokens (clojure.string/split arg-1 #"\.")]
+                    (apply str
+                      (conj (into [] (interpose "." (butlast tokens)))
+                            "/"
+                            (last tokens))))
+            arg-1-indent (+ ind indent 1 (count arg-1))]
+        (dbg-pr options
+                "fzprint-record: arg-1:" arg-1
+                "zstring zloc:" (zstring zloc))
+        (concat-no-nil
+          l-str-vec
+          [[arg-1 (zcolor-map options :none) :element]]
+          (fzprint-hang-one :record
+                            options
+                            ;(rightmost options)
+                            arg-1-indent
+                            (+ indent ind)
+                            ; this only works because
+                            ; we never actually get here
+                            ; with a zipper, just an sexpr
+                            (into {} zloc))
+          r-str-vec)))))
 
 (defn fzprint-uneval
   "Trim the #_ off the front of the uneval, and try to print it."
@@ -2588,7 +2588,7 @@
   #_(println "fn-name:" (:fn-name options))
   #_(println "spec:" (:value (:spec options)))
   (let [zloc (if-not (and (= (:ztype options) :zipper) (:value (:spec options)))
-	       zloc
+               zloc
                (add-spec-to-docstring zloc (:value (:spec options))))
         style-vec (fzprint* (assoc options :depth 0) indent zloc)]
     (if (= (:ztype options) :sexpr)

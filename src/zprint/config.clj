@@ -293,6 +293,7 @@
             ; one.
             :general-hang-adjust -1},
    :auto-width? false,
+   :spec {:docstring? true}
    :color-map {:paren :green,
                :bracket :purple,
                :brace :red,

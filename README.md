@@ -110,13 +110,13 @@ following specific features:
 * Competitive performance
 * Highly configurable, with an intuitive function classification scheme
 * Respects the right margin specification
-* Handles comments
+* Handles comments, will word wrap long ones
 * Optionally will indent right hand element of a pair (see below)
-* Maximize screen utilization 
+* Maximize screen utilization when formatting code
 * Sort and order map keys
 * Constant pairing (for keyword argument functions)
 * Justify paired output (maps, binding forms, cond clauses, etc.) if desired
-* Syntax coloring
+* Syntax coloring at the terminal
 
 All of this is just so many words, of course.  Give zprint a try on
 your code or data structures, and see what you think!
@@ -274,7 +274,7 @@ direct zprint to format any function (including functions you have
 defined) in a wide variety of ways using several different paths to
 get zprint to understand your desired configuration.
 
-## Introduction
+## Introduction to Configuration
 
 Part of the reason that zprint exists is because I find that the visual
 structure of pretty printed Clojure code tells me a lot about the semantics
@@ -291,18 +291,42 @@ configuration options as well as several different ways to configure zprint.
 You mostly don't have to care about any of this unless you want to change
 the way that zprint outputs your code or data.   If you do, read on...
 
-[Overview](#overview)  
-[How to Configure zprint](#how-to-configure-zprint)  
-[Configuration Interface](#configuration-interface)  
-[Option Validation](#option-validation)  
-[What is Configurable](#what-is-configurable)  
-[Generalized Capabilities](#generalized-capabilities)  
-[Syntax Coloring](#syntax-coloring)  
-[Function Classification for Pretty Printing](#function-classification-for-pretty-printing)  
-[Changing or Adding Function Classifications](#changing-or-adding-function-classifications)  
-[A note about two-up printing](#a-note-about-two-up-printing)  
-[Widely Used Configuration Parameters](#widely-used-configuration-parameters)  
-
+* [Overview](#overview)  
+* [How to Configure zprint](#how-to-configure-zprint)  
+* [Configuration Interface](#configuration-interface)  
+  * [ Option Validation](#option-validation)  
+  * [ What is Configurable](#what-is-configurable)  
+    * [  Generalized Capabilities](#generalized-capabilities)  
+    * [  Syntax Coloring](#syntax-coloring)  
+    * [  Function Classification for Pretty Printing](#function-classification-for-pretty-printing)  
+      * [   Changing or Adding Function Classifications](#changing-or-adding-function-classifications)  
+      * [   A note about two-up printing](#a-note-about-two-up-printing)  
+      * [   A note on justifying two-up printing](#a-note-on-justifying-two-up-printing)  
+  * [ Widely Used Configuration Parameters](#widely-used-configuration-parameters)  
+* [Configurable Elements](#configurable-elements)
+  * [:agent](#-agent-atom-delay-fn-future-promise)
+  * [:array](#-array)
+  * [:atom](#-agent-atom-delay-fn-future-promise)
+  * [:binding](#-binding)
+  * [:comment](#-comment)
+  * [:delay](#-agent-atom-delay-fn-future-promise)
+  * [:extend](#-extend)
+  * [:fn](#-agent-atom-delay-fn-future-promise)
+  * [:future](#-agent-atom-delay-fn-future-promise)
+  * [:list](#-list)
+  * [:map](#-map)
+  * [:object](#-object)
+  * [:pair](#-pair)
+  * [:pair-fn](#-pair-fn)
+  * [:promise](#-agent-atom-delay-fn-future-promise)
+  * [:reader-cond](#-reader-cond)
+  * [:record](#-record)
+  * [:set](#-set)
+  * [:spec](#-spec)
+  * [:style](#-style-and-style-map)
+  * [:style-map](#-style-and-style-map)
+  * [:tab](#-tab)
+  * [:vector](#-vector)
 
 ## Overview
 
@@ -368,7 +392,6 @@ of the options map looks like this:
  :style-map {...},
  :tab {...},
  :uneval {...},
- :user-fn-map {...},
  :vector {...},
  :width 80,
  :zipper? false}
@@ -707,6 +730,12 @@ A function that is not classified explicitly by appearing in the
 and the indent for its arguments is controlled by `:list {:indent-arg n}` 
 if it appears, and `:list {:indent n}` if it does not. 
 
+How does zprint classify functions that are called with a namespace
+on the front?  First, it looks up the string in the fn-map, and if
+it finds it, then it uses that.  If it doesn't find it, and the
+function string has a "/" in it, it then looks up string to the right
+of the "/".
+
 
 The available classifications are:
 
@@ -942,26 +971,33 @@ into detail about the individual elements, let's look at the overview
 of the capabilities:
 
 * two-up (pairs (or more) of things that go together)
-    * :binding
-    * :map
-    * :pair
-    * :extend
-    * :reader-cond
+  * [:binding](#-binding)
+  * [:map](#-map)
+  * [:pair](#-pair)
+  * [:pair-fn](#-pair-fn)
+  * [:extend](#-extend)
+  * [:reader-cond](#-reader-cond)
 * vector (wrap things out to the margin)
-    * :vector
-    * :set
-    * :array
+  * [:vector](#-vector)
+  * [:set](#-set)
+  * [:array](#-array)
 * list (things that might be code)
-    * :list
+  * [:list](#-list)
 * objects with values (format nicely or print as object)
-    * :agent
-    * :atom
-    * :delay
-    * :fn (function objects, not functions in code)
-    * :promise
-    * :object 
+  * [:agent](#-agent-atom-delay-fn-future-promise)
+  * [:atom](#-agent-atom-delay-fn-future-promise)
+  * [:delay](#-agent-atom-delay-fn-future-promise)
+  * [:fn](#-agent-atom-delay-fn-future-promise)
+  * [:future](#-agent-atom-delay-fn-future-promise)
+  * [:promise](#-agent-atom-delay-fn-future-promise)
+  * [:object](#-object)
 * misc
-    * :record
+  * [:comment](#-comment)
+  * [:record](#-record)
+  * [:spec](#-spec)
+  * [:style](#-style-and-style-map)
+  * [:style-map](#-style-and-style-map)
+  * [:tab](#-tab)
 
 #### A note about two-up printing
 
@@ -988,9 +1024,8 @@ for `cond` and `:binding {:indent 2}` for binding functions).
 Maps also have pairs, and perhaps suffer from the potential
 for confusion a bit more then binding-forms and cond functions.
 By default then, the map indent for the an item that placed on the
-next line (i.e., in a flow) is 2 (controlled by `:map {:indent 2}`).  
-The default is 2 for
-extend and reader-conditionals as well.
+next line (i.e., in a flow) is 2 (controlled by `:map {:indent 2}`).
+The default is 2 for extend and reader-conditionals as well.
 
 Is this perfect?  No, there are opportunities for confusion here
 too, but it works considerably better for me, and it might for
@@ -1043,7 +1078,7 @@ Zprint will optionally justify `:map`, `:binding`, and `:pair` elements.
 There are several detailed configuration parameters used to control the
 justification.  Obviously this works best if the keys in a map are
 all about the same length (and relatively short), and the test expressions
-in a code are about the same length, and the local in a binding are
+in a code are about the same length, and the locals in a binding are
 about the same length.
 
 I don't personally find the justified approach my favorite in code,
@@ -1152,6 +1187,291 @@ with this level of control.
 Turn on [justification](#a-note-on-justifying-two-up-printing).
 Default is nil (justification off).
 
+# Configurable Elements
+______
+## :agent, :atom, :delay, :fn, :future, :promise 
+
+All of these elements are formatted in a readable manner by default,
+which shows their current value and minimizes extra information.
+
+#### :object? <text style="color:#A4A4A4;"><small>false</small></text>
+
+All of these elements can be formatted more as Clojure represents
+Java objects by setting `:object?` to true.  
+
+_____
+## :array
+
+Arrays are formatted by default with the values of their elements.
+
+#### :hex? <text style="color:#A4A4A4;"><small>false</small></text>
+
+If the elements are numeric, format them in hex. Useful if you are 
+doing networking.  See below for an example. 
+
+#### :object? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Don't print the elements of the array, just print it as an 
+object. 
+
+A simple example:
+
+```clojure
+(require '[zprint.core :as zp])
+
+(def ba (byte-array (range 50)))
+
+(zp/zprint ba 75)
+
+[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27
+ 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49]
+
+(zp/zprint ba 75 {:array {:hex? true}})
+
+[00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18
+ 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30
+ 31]
+
+;; As an aside, notice that the 8 in 18 was in column 75, and so while the
+;; 31 would have fit, the ] would not, so they go on the next line.
+
+(zp/zprint ba 75 {:array {:object? true}})
+
+#object["[B" "0x31ef8e0b" "[B@31ef8e0b"]
+```
+_____
+## :binding
+
+Controls the formatting of the first argument of
+any function which has `:binding` as its function type.  `let` is, of
+course, the canonical example.  :binding supports __indent__ and
+__hang__ described above.
+
+##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
+##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
+##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
+##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
+
+_____
+## :comment
+
+zprint has two fundemental regimes -- printing s-expressions and
+parsing a string and printing the result.  There are no comments
+in s-expressions, except in the `comment` function, which is handled
+normally. When parsing a string, zprint will deal with comments.
+Comments are dealt with in one of two ways -- either they are ignored
+from a width standpoint while formatting, or their width is taken
+into account when formatting.  In addition, comments can be
+word-wrapped if they don't fit the width, or not.  These are
+indpendent capabilities.
+
+#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
+
+Wrap a comment if it doesn't fit within the width.  Works hard to preserve
+the initial part of the line.  
+
+#### :count? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Count the length of the comment when ensuring that things fit within the
+width.  Tends to mess up the code more than helping, in my view.  
+
+An example (using :parse-string? true to include the comment):
+
+```clojure
+(require '[zprint.core :as zp])
+
+(def cd "(let [a (stuff with arguments)] (list (or foo bar baz) (format output now) (and a b c (bother this)) ;; Comment that doesn't fit real well, but is almost a fit to see how it works\n (format other stuff))(list a :b :c \"d\"))")
+
+(zp/zprint cd 75 {:parse-string? true :comment {:count? nil}})
+
+(let [a (stuff with arguments)]
+  (list (or foo bar baz)
+        (format output now)
+        (and a b c (bother this))
+        ;; Comment that doesn't fit real well, but is almost a fit to see
+        ;; how it works
+        (format other stuff))
+  (list a :b :c "d"))
+
+zprint.core=> (czprint cd 75 {:parse-string? true :comment {:count? true}})
+
+(let [a (stuff with arguments)]
+  (list
+    (or foo bar baz)
+    (format output now)
+    (and a b c (bother this))
+    ;; Comment that doesn't fit real well, but is almost a fit to see how
+    ;; it works
+    (format other stuff))
+  (list a :b :c "d"))
+
+(zp/zprint cd 75 {:parse-string? true :comment {:count? nil :wrap? nil}})
+
+(let [a (stuff with arguments)]
+  (list (or foo bar baz)
+        (format output now)
+        (and a b c (bother this))
+        ;; Comment that doesn't fit real well, but is almost a fit to see how it works
+        (format other stuff))
+  (list a :b :c "d"))
+```
+_____
+## :extend
+
+When formatting functions which have extend in their function types.
+Supports __indent__ as described above.  
+
+##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
+
+#### :force-nl?  <text style="color:#A4A4A4;"><small>true</small></text>
+
+Forces a new line between the elements of the extend. 
+
+_____
+## :list
+
+Lists show up in lots of places, but mostly they are code.  So
+in addition to the various function types described above, the `:list`
+configuration affects the look of formatted code.
+
+`:list` supports __indent__ and __hang__ described above.
+
+##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
+##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
+##### :hang-expand <text style="color:#A4A4A4;"><small>2.0</small></text>
+##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+
+#### :indent-arg <text style="color:#A4A4A4;"><small>nil</small></text>
+
+The amount to indent the arguments of a function whose arguments do
+not contain "body" forms.
+See [here](#function-classification-for-pretty-printing)
+for an explanation of what this means.  If this is nil, then the value
+configured for `:indent` is used for the arguments of functions that
+are not "body" functions.  You would configure this value only if
+you wanted "arg" type functions to have a different indent from
+"body" type functions.  It is configured by `:style :community`.
+
+#### :hang-size <text style="color:#A4A4A4;"><small>100</small></text>
+
+The maximum number of lines that are allowed in a hang.  If the number
+of lines in the hang is greater than the `:hang-size`, it will not do
+the hang but instead will format this as a flow.  Together with
+`:hang-expand` this will keep hangs from getting too long so that
+code (typically) doesn't get very distorted.
+
+#### :constant-pair <text style="color:#A4A4A4;"><small>true</small></text>
+
+Lists (which are frequently code) support something called _**constant
+pairing**_.  This capability looks at the end of a list, and if the
+end of the list appears to contain pairs of constants followed by
+anything, it will print them paired up.  A constant in this context
+is a keyword, string, or number.  An example will best illustrate
+this.
+
+We will use a feature of zprint, where it will parse a string prior to
+formatting, so that the anonymous functions show up right.
+
+```clojure
+(require '[zprint.core :as zp])
+
+(def x "(s/fdef spec-test\n :args (s/and (s/cat :start integer? :end integer?)\n #(< (:start %) (:end %)))\n :ret integer?\n :fn (s/and #(>= (:ret %) (-> % :args :start))\n #(< (:ret %) (-> % :args :end))))\n")
+
+;;
+;; Without constant pairing, it is ok...
+;; 
+
+(zp/zprint x 60 {:parse-string? true :list {:constant-pair? nil}})
+
+(s/fdef spec-test
+        :args
+        (s/and (s/cat :start integer? :end integer?)
+               #(< (:start %) (:end %)))
+        :ret
+        integer?
+        :fn
+        (s/and #(>= (:ret %) (-> % :args :start))
+               #(< (:ret %) (-> % :args :end))))
+
+;;
+;; With constant pairing it is nicer
+;;
+
+(zp/zprint x 60 {:parse-string? true :list {:constant-pair true}})
+
+(s/fdef spec-test
+        :args (s/and (s/cat :start integer? :end integer?)
+                     #(< (:start %) (:end %)))
+        :ret integer?
+        :fn (s/and #(>= (:ret %) (-> % :args :start))
+                   #(< (:ret %) (-> % :args :end))))
+
+;;
+;; We can demonstrate another configuration capability here.
+;; If we tell zprint that s/fdef is an :arg1 style function, it is better
+;; (note that :constant-pair? true is the default).
+;;
+
+(zp/zprint x 60 {:parse-string? true :fn-map {"s/fdef" :arg1}})
+
+(s/fdef spec-test
+  :args (s/and (s/cat :start integer? :end integer?)
+               #(< (:start %) (:end %)))
+  :ret integer?
+  :fn (s/and #(>= (:ret %) (-> % :args :start))
+             #(< (:ret %) (-> % :args :end))))
+```
+Constant pairing tends to make keyword style arguments come out
+looking rather better than they would otherwise.  This feature was added
+to handle what I believed was a very narrow use case, but it has shown
+suprising generality, making unexpected things look much better.
+
+In particular, try it on your specs!
+
+#### :constant-pair-min <text style="color:#A4A4A4;"><small>4</small></text>
+ 
+An integer specifying the minimum number of required elements capable of being
+constant paired before constant pairing is used.  Note that constant
+pairing works from the end of the list back toward the front (not illustrated
+in these examples).  
+
+Using our previous example again:
+
+```clojure
+(require '[zprint.core :as zp])
+
+(def x "(s/fdef spec-test\n :args (s/and (s/cat :start integer? :end integer?)\n #(< (:start %) (:end %)))\n :ret integer?\n :fn (s/and #(>= (:ret %) (-> % :args :start))\n #(< (:ret %) (-> % :args :end))))\n")
+
+;;
+;; There are 6 elements that can be constant paired
+;;
+
+(zp/zprint x 60 {:parse-string? true :list {:constant-pair-min 6}})
+
+(s/fdef spec-test
+        :args (s/and (s/cat :start integer? :end integer?)
+                     #(< (:start %) (:end %)))
+        :ret integer?
+        :fn (s/and #(>= (:ret %) (-> % :args :start))
+                   #(< (:ret %) (-> % :args :end))))
+
+;;
+;; So, if we change the requirements to 8, it won't constant-pair
+;;
+
+(zp/zprint x 60 {:parse-string? true :list {:constant-pair-min 8}})
+
+(s/fdef spec-test
+        :args
+        (s/and (s/cat :start integer? :end integer?)
+               #(< (:start %) (:end %)))
+        :ret
+        integer?
+        :fn
+        (s/and #(>= (:ret %) (-> % :args :start))
+               #(< (:ret %) (-> % :args :end))))
+```
 _____
 ## :map
 
@@ -1311,6 +1631,11 @@ You can also ignore keys (or key sequences) in maps when formatting
 them.  There are two basic approaches.  `:key-ignore` will replace
 the value of the key(s) to be ignored with `:zprint-ignored`, where
 `:key-ignore-silent` will simply remove them from the formatted output.
+
+__NOTE:__ This only affects the formatting of s-expressions, and
+has no effect on the output when using the `{:parse-string? true}`
+capability (as is done when formatting code).  Nobody wants to
+lose map keys when formatting code.
 
 You might use this to remove sensitive information from output, or
 to remove elements that have more data than you wish to display.
@@ -1497,8 +1822,48 @@ zprint.core=> (czprint sort-demo {:map {:key-ignore [[:detail :code]]}})
   :time 1425704003,
   :type "error"}]
 ```
+_____
+## :object
 
+When elements are formatted with `:object?` `true`, then the output
+if formatted using the information specified in the `:object` 
+information.  :object supports __indent__ as described above.  
 
+##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+
+______
+## :pair
+
+The :pair key controls the printing of the arguments of a function
+which has -pair in its function type (e.g. :arg1-pair).  `:pair` 
+supports __indent__ and __hang__ described above. 
+
+##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
+##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
+##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
+##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
+
+#### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
+
+If you wish to force a newline between the things that are paired.
+
+_____
+## :pair-fn
+
+The :pair key controls the printing of the arguments of a function
+which has :pair-fn as its function type (e.g. `cond`).  `:pair-fn` 
+supports __indent__ and __hang__ described above. 
+
+##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
+##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
+##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
+##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+
+#### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
+
+If you wish to force a newline between the things that are paired in a
+pair-fn.
 
 _____
 ## :reader-cond
@@ -1520,16 +1885,111 @@ reader conditional.
 ##### :key-order <text style="color:#A4A4A4;"><small>nil</small></text>
 
 _____
-## :extend
+## :record
 
-When formatting functions which have extend in their function types.
-Supports __indent__ as described above.  
+Records are printed with the record-type and value of the record
+shown with map syntax, or by calling their `toString()` method.
 
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
+#### :to-string? <text style="color:#A4A4A4;"><small>false</small></text>
 
-#### :force-nl?  <text style="color:#A4A4A4;"><small>true</small></text>
+This will output a record by calling its `toString()` java method, which
+can be useful for some records. If the record contains a lot of information
+that you didn't want to print, for instance. If `:to-string?` is true, 
+it overrides the other `:record` configuration options.
 
-Forces a new line between the elements of the extend. 
+#### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
+
+Should a hang be attempted?  See example below. 
+
+#### :record-type? <text style="color:#A4A4A4;"><small>true</small></text>
+
+Should the record type be output?  
+
+An example of `:hang?`, `:record-type?`, and `:to-string?`
+
+```clojure
+(require '[zprint.core :as zp])
+
+(defrecord myrecord [left right])
+
+(def x (new myrecord ["a" "lot" "of" "stuff" "so" "that" "it" "doesn't" "fit" "all" "on" "one" "line"] [:more :stuff :but :not :quite :as :much]))
+
+(zp/zprint x 75)
+
+#zprint.core/myrecord {:left ["a" "lot" "of" "stuff" "so" "that" "it"
+                              "doesn't" "fit" "all" "on" "one" "line"],
+                      :right [:more :stuff :but :not :quite :as :much]}
+
+(zp/zprint x 75 {:record {:hang? nil}})
+
+#zprint.core/myrecord
+ {:left ["a" "lot" "of" "stuff" "so" "that" "it" "doesn't" "fit" "all" "on"
+         "one" "line"],
+  :right [:more :stuff :but :not :quite :as :much]}
+
+(zp/zprint x 75 {:record {:record-type? nil}})
+
+{:left ["a" "lot" "of" "stuff" "so" "that" "it" "doesn't" "fit" "all" "on"
+        "one" "line"],
+ :right [:more :stuff :but :not :quite :as :much]}
+
+(zprint x {:record {:to-string? true}})
+
+"zprint.core.myrecord@682a5f6b"
+```
+_____
+## :set
+
+`:set` supports exactly the same keys as does vector.
+
+##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+##### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
+##### :wrap-after-multi? <text style="color:#A4A4A4;"><small>true</small></text>
+
+_____
+## :spec
+
+`:spec` controls how specs are integrated into the `(zprint-fn ...)` and
+`(czprint-fn ...)` output.  This only operates if the version of Clojure
+supports specs, and the function being output _has_ a spec.  If
+that is true, and if:
+
+##### :docstring? <text style="color:#A4A4A4;"><small>true</small></text>
+
+is also true, then zprint will format the spec and append it to the
+docstring.  At present this only works for docstrings in `defn` and
+`defmacro` definitions, not functions defined with `def`.
+
+______
+## :style and :style-map
+
+You can define your own styles, by adding elements to the `:style-map`.
+You can do this the same way you make other configuration changes,
+but probably you want to define a style in the .zprintrc file, and
+then use it elsewhere.
+
+You can see the existing styles in the `:style-map`, and you would
+just add your own along the same lines.  The map associated with a
+style must validate successfully just as if you used it as an options
+map in an individual call to zprint.
+
+You might wish to define several styles with different color-maps,
+perhaps, allowing you to alter the colors more easily.
+
+______
+## :tab
+
+zprint will expand tabs by default when parsing a string, largely in order
+to properly size comments.  You can disable tab expansion and you can
+set the tab size.
+
+#### :expand? <text style="color:#A4A4A4;"><small>true</small></text>
+
+Expand tabs.  
+
+#### :size <text style="color:#A4A4A4;"><small>8</small></text>
+
+An integer for the tab size for tab expansion.  
 
 _____
 ## :vector
@@ -1619,411 +2079,6 @@ printed?
   "key" "value"}
  10 11 12 13 14 15 16 17 18 19
 ```
-_____
-## :set
-
-`:set` supports exactly the same keys as does vector.
-
-##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
-##### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :wrap-after-multi? <text style="color:#A4A4A4;"><small>true</small></text>
-
-_____
-## :list
-
-:list supports __indent__ and __hang__ described above.
-
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>2.0</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-
-#### :indent-arg <text style="color:#A4A4A4;"><small>nil</small></text>
-
-The amount to indent the arguments of a function whose arguments do
-not contain "body" forms.
-See [here](#function-classification-for-pretty-printing)
-for an explanation of what this means.  If this is nil, then the value
-configured for `:indent` is used for the arguments of functions that
-are not "body" functions.  You would configure this value only if
-you wanted "arg" type functions to have a different indent from
-"body" type functions.  It is configured by `:style :community`.
-
-#### :hang-size <text style="color:#A4A4A4;"><small>100</small></text>
-
-The maximum number of lines that are allowed in a hang.  If the number
-of lines in the hang is greater than the `:hang-size`, it will not do
-the hang but instead will format this as a flow.  Together with
-`:hang-expand` this will keep hangs from getting too long so that
-code (typically) doesn't get very distorted.
-
-#### :constant-pair <text style="color:#A4A4A4;"><small>true</small></text>
-
-Lists (which are frequently code) support something called _**constant
-pairing**_.  This capability looks at the end of a list, and if the
-end of the list appears to contain pairs of constants followed by
-anything, it will print them paired up.  A constant in this context
-is a keyword, string, or number.  An example will best illustrate
-this.
-
-We will use a feature of zprint, where it will parse a string prior to
-formatting, so that the anonymous functions show up right.
-
-```clojure
-(require '[zprint.core :as zp])
-
-(def x "(s/fdef spec-test\n :args (s/and (s/cat :start integer? :end integer?)\n #(< (:start %) (:end %)))\n :ret integer?\n :fn (s/and #(>= (:ret %) (-> % :args :start))\n #(< (:ret %) (-> % :args :end))))\n")
-
-;;
-;; Without constant pairing, it is ok...
-;; 
-
-(zp/zprint x 60 {:parse-string? true :list {:constant-pair? nil}})
-
-(s/fdef spec-test
-        :args
-        (s/and (s/cat :start integer? :end integer?)
-               #(< (:start %) (:end %)))
-        :ret
-        integer?
-        :fn
-        (s/and #(>= (:ret %) (-> % :args :start))
-               #(< (:ret %) (-> % :args :end))))
-
-;;
-;; With constant pairing it is nicer
-;;
-
-(zp/zprint x 60 {:parse-string? true :list {:constant-pair true}})
-
-(s/fdef spec-test
-        :args (s/and (s/cat :start integer? :end integer?)
-                     #(< (:start %) (:end %)))
-        :ret integer?
-        :fn (s/and #(>= (:ret %) (-> % :args :start))
-                   #(< (:ret %) (-> % :args :end))))
-
-;;
-;; We can demonstrate another configuration capability here.
-;; If we tell zprint that s/fdef is an :arg1 style function, it is better
-;; (note that :constant-pair? true is the default).
-;;
-
-(zp/zprint x 60 {:parse-string? true :fn-map {"s/fdef" :arg1}})
-
-(s/fdef spec-test
-  :args (s/and (s/cat :start integer? :end integer?)
-               #(< (:start %) (:end %)))
-  :ret integer?
-  :fn (s/and #(>= (:ret %) (-> % :args :start))
-             #(< (:ret %) (-> % :args :end))))
-```
-Constant pairing tends to make keyword style arguments come out
-looking rather better than they would otherwise.  This feature was added
-to handle what I believed was a very narrow use case, but it has shown
-suprising generality, making unexpected things look much better.
-
-In particular, try it on your specs!
-
-#### :constant-pair-min <text style="color:#A4A4A4;"><small>4</small></text>
- 
-An integer specifying the minimum number of required elements capable of being
-constant paired before constant pairing is used.  Note that constant
-pairing works from the end of the list back toward the front (not illustrated
-in these examples).  
-
-Using our previous example again:
-
-```clojure
-(require '[zprint.core :as zp])
-
-(def x "(s/fdef spec-test\n :args (s/and (s/cat :start integer? :end integer?)\n #(< (:start %) (:end %)))\n :ret integer?\n :fn (s/and #(>= (:ret %) (-> % :args :start))\n #(< (:ret %) (-> % :args :end))))\n")
-
-;;
-;; There are 6 elements that can be constant paired
-;;
-
-(zp/zprint x 60 {:parse-string? true :list {:constant-pair-min 6}})
-
-(s/fdef spec-test
-        :args (s/and (s/cat :start integer? :end integer?)
-                     #(< (:start %) (:end %)))
-        :ret integer?
-        :fn (s/and #(>= (:ret %) (-> % :args :start))
-                   #(< (:ret %) (-> % :args :end))))
-
-;;
-;; So, if we change the requirements to 8, it won't constant-pair
-;;
-
-(zp/zprint x 60 {:parse-string? true :list {:constant-pair-min 8}})
-
-(s/fdef spec-test
-        :args
-        (s/and (s/cat :start integer? :end integer?)
-               #(< (:start %) (:end %)))
-        :ret
-        integer?
-        :fn
-        (s/and #(>= (:ret %) (-> % :args :start))
-               #(< (:ret %) (-> % :args :end))))
-```
-_____
-## :binding
-
-Controls the formatting of the first argument of
-any function which has `:binding` as its function type.  `let` is, of
-course, the canonical example.  :binding supports __indent__ and
-__hang__ described above.
-
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
-
-_____
-## :pair
-
-The :pair key controls the printing of the arguments of a function
-which has -pair in its function type (e.g. :arg1-pair).  `:pair` 
-supports __indent__ and __hang__ described above. 
-
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
-
-#### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
-
-If you wish to force a newline between the things that are paired.
-
-_____
-## :pair-fn
-
-The :pair key controls the printing of the arguments of a function
-which has :pair-fn as its function type (e.g. `cond`).  `:pair-fn` 
-supports __indent__ and __hang__ described above. 
-
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-
-#### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
-
-If you wish to force a newline between the things that are paired in a
-pair-fn.
-
-_____
-## :record
-
-Records are printed with the record-type and value of the record
-shown with map syntax, or by calling their `toString()` method.
-
-#### :to-string? <text style="color:#A4A4A4;"><small>false</small></text>
-
-This will output a record by calling its `toString()` java method, which
-can be useful for some records. If the record contains a lot of information
-that you didn't want to print, for instance. If `:to-string?` is true, 
-it overrides the other `:record` configuration options.
-
-#### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-
-Should a hang be attempted?  See example below. 
-
-#### :record-type? <text style="color:#A4A4A4;"><small>true</small></text>
-
-Should the record type be output?  
-
-An example of `:hang?`, `:record-type?`, and `:to-string?`
-
-```clojure
-(require '[zprint.core :as zp])
-
-(defrecord myrecord [left right])
-
-(def x (new myrecord ["a" "lot" "of" "stuff" "so" "that" "it" "doesn't" "fit" "all" "on" "one" "line"] [:more :stuff :but :not :quite :as :much]))
-
-(zp/zprint x 75)
-
-#zprint.core/myrecord {:left ["a" "lot" "of" "stuff" "so" "that" "it"
-                              "doesn't" "fit" "all" "on" "one" "line"],
-                      :right [:more :stuff :but :not :quite :as :much]}
-
-(zp/zprint x 75 {:record {:hang? nil}})
-
-#zprint.core/myrecord
- {:left ["a" "lot" "of" "stuff" "so" "that" "it" "doesn't" "fit" "all" "on"
-         "one" "line"],
-  :right [:more :stuff :but :not :quite :as :much]}
-
-(zp/zprint x 75 {:record {:record-type? nil}})
-
-{:left ["a" "lot" "of" "stuff" "so" "that" "it" "doesn't" "fit" "all" "on"
-        "one" "line"],
- :right [:more :stuff :but :not :quite :as :much]}
-
-(zprint x {:record {:to-string? true}})
-
-"zprint.core.myrecord@682a5f6b"
-```
-_____
-## :array
-
-Arrays are formatted by default with the values of their elements.
-
-#### :hex? <text style="color:#A4A4A4;"><small>false</small></text>
-
-If the elements are numeric, format them in hex. Useful if you are 
-doing networking.  See below for an example. 
-
-#### :object? <text style="color:#A4A4A4;"><small>false</small></text>
-
-Don't print the elements of the array, just print it as an 
-object. 
-
-A simple example:
-
-```clojure
-(require '[zprint.core :as zp])
-
-(def ba (byte-array (range 50)))
-
-(zp/zprint ba 75)
-
-[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27
- 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49]
-
-(zp/zprint ba 75 {:array {:hex? true}})
-
-[00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18
- 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30
- 31]
-
-;; As an aside, notice that the 8 in 18 was in column 75, and so while the
-;; 31 would have fit, the ] would not, so they go on the next line.
-
-(zp/zprint ba 75 {:array {:object? true}})
-
-#object["[B" "0x31ef8e0b" "[B@31ef8e0b"]
-```
-
-______
-## :agent, :atom, :delay, :fn, :future, :promise 
-
-All of these elements are formatted in a readable manner by default,
-which shows their current value and minimizes extra information.
-
-#### :object? <text style="color:#A4A4A4;"><small>false</small></text>
-
-All of these elements can be formatted more as Clojure represents
-Java objects by setting `:object?` to true.  
-
-_____
-## :object
-
-When elements are formatted with `:object?` `true`, then the output
-if formatted using the information specified in the `:object` 
-information.  :object supports __indent__ as described above.  
-
-##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
-
-_____
-## :comment
-
-zprint has two fundemental regimes -- printing s-expressions and
-parsing a string and printing the result.  There are no comments
-in s-expressions, except in the `comment` function, which is handled
-normally. When parsing a string, zprint will deal with comments.
-Comments are dealt with in one of two ways -- either they are ignored
-from a width standpoint while formatting, or their width is taken
-into account when formatting.  In addition, comments can be
-word-wrapped if they don't fit the width, or not.  These are
-indpendent capabilities.
-
-#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
-
-Wrap a comment if it doesn't fit within the width.  Works hard to preserve
-the initial part of the line.  
-
-#### :count? <text style="color:#A4A4A4;"><small>false</small></text>
-
-Count the length of the comment when ensuring that things fit within the
-width.  Tends to mess up the code more than helping, in my view.  
-
-An example (using :parse-string? true to include the comment):
-
-```clojure
-(require '[zprint.core :as zp])
-
-(def cd "(let [a (stuff with arguments)] (list (or foo bar baz) (format output now) (and a b c (bother this)) ;; Comment that doesn't fit real well, but is almost a fit to see how it works\n (format other stuff))(list a :b :c \"d\"))")
-
-(zp/zprint cd 75 {:parse-string? true :comment {:count? nil}})
-
-(let [a (stuff with arguments)]
-  (list (or foo bar baz)
-        (format output now)
-        (and a b c (bother this))
-        ;; Comment that doesn't fit real well, but is almost a fit to see
-        ;; how it works
-        (format other stuff))
-  (list a :b :c "d"))
-
-zprint.core=> (czprint cd 75 {:parse-string? true :comment {:count? true}})
-
-(let [a (stuff with arguments)]
-  (list
-    (or foo bar baz)
-    (format output now)
-    (and a b c (bother this))
-    ;; Comment that doesn't fit real well, but is almost a fit to see how
-    ;; it works
-    (format other stuff))
-  (list a :b :c "d"))
-
-(zp/zprint cd 75 {:parse-string? true :comment {:count? nil :wrap? nil}})
-
-(let [a (stuff with arguments)]
-  (list (or foo bar baz)
-        (format output now)
-        (and a b c (bother this))
-        ;; Comment that doesn't fit real well, but is almost a fit to see how it works
-        (format other stuff))
-  (list a :b :c "d"))
-```
-______
-## :tab
-
-zprint will expand tabs by default when parsing a string, largely in order
-to properly size comments.  You can disable tab expansion and you can
-set the tab size.
-
-#### :expand? <text style="color:#A4A4A4;"><small>true</small></text>
-
-Expand tabs.  
-
-#### :size <text style="color:#A4A4A4;"><small>8</small></text>
-
-An integer for the tab size for tab expansion.  
-
-______
-## :style and :style-map
-
-You can define your own styles, by adding elements to the `:style-map`.
-You can do this the same way you make other configuration changes,
-but probably you want to define a style in the .zprintrc file, and
-then use it elsewhere.
-
-You can see the existing styles in the `:style-map`, and you would
-just add your own along the same lines.  The map associated with a
-style must validate successfully just as if you used it as an options
-map in an individual call to zprint.
-
-You might wish to define several styles with different color-maps,
-perhaps, allowing you to alter the colors more easily.
-
 ______
 ______
 ## Debugging the configuration

@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.4 - 2016-10-05
+
+### Changed
+
+* Reworked README.md, internal TOC, added information about several
+existing capabilities.  Alphabetized the configurable elements.
+
+### Removed
+
+### Fixed
+
 ## 0.2.3 - 2016-10-01
 
 ### Changed

@@ -1082,8 +1082,19 @@ in a code are about the same length, and the locals in a binding are
 about the same length.
 
 I don't personally find the justified approach my favorite in code,
-though there are some functions where it looks good.  They are a good
-candidate for a directive to lein-zprint:
+though there are some functions where it looks good.  
+
+Try:
+
+```clojure
+(czprint-fn resultset-seq {:style :justified})
+```
+
+and see what you think.  Looks great to me, but it just happens to
+have nice locals.
+
+For functions where this looks great, you can always turn it on
+just for that function (if you are using lein-zprint), like so:
 
 ```clojure
 ;!zprint {:format :next {:style :justified}}
@@ -1099,7 +1110,8 @@ You can see it for yourself if you enter:
 (czprint nil :explain-justified)
 ```
 
-See what you think.
+This prints out the regular :explain output for the current zprint options
+map, but justified.  See what you think.
 
 __NOTE:__ Justification involves extra processing, and because of the way
 that zprint tries to do the best job possible, it can cause a bit of a

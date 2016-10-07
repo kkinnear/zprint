@@ -150,17 +150,17 @@
   "Do a basic zprint and output the style vector and the options used for
   further processing: [<style-vec> options]"
   [coll options]
-  (let [input (cond
-                (:zipper? options)
-                  (if (zipper? coll)
-                    coll
-                    (throw (Exception. (str "Collection is not a zipper"
-                                            " yet :zipper? specified!"))))
-                (:parse-string? options)
-                  (if (string? coll)
-                    (get-zipper options coll)
-                    (throw (Exception. (str "Collection is not a string yet"
-                                            " :parse-string? specified!")))))
+  (let [input (cond (:zipper? options)
+                      (if (zipper? coll)
+                        coll
+                        (throw (Exception. (str "Collection is not a zipper"
+                                                " yet :zipper? specified!"))))
+                    (:parse-string? options)
+                      (if (string? coll)
+                        (get-zipper options coll)
+                        (throw (Exception. (str
+                                             "Collection is not a string yet"
+                                             " :parse-string? specified!")))))
         z-type (if input :zipper :sexpr)
         input (or input coll)]
     (if (nil? input)
@@ -531,12 +531,11 @@
       (when-let [fn-spec (get-spec-fn (symbol (str (ns-name n)) (name nm)))]
         (apply str
           "\n\n" (blanks indent)
-          "Spec:\n"
-            (interpose "\n"
-              (remove nil?
-                (map (partial format-spec
-                              options
-                              describe-fn
-                              fn-spec
-                              (+ indent indent))
-                  [:args :ret :fn]))))))))
+          "Spec:\n" (interpose "\n"
+                      (remove nil?
+                        (map (partial format-spec
+                                      options
+                                      describe-fn
+                                      fn-spec
+                                      (+ indent indent))
+                          [:args :ret :fn]))))))))

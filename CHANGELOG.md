@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.4 - 2016-10-06
+
+### Changed
+
+* Changed heuristics so that if hang and flow take the same number of
+lines, then it will hang.  Can be adjusted with tuning.
+
+### Removed
+
+### Fixed
+
 ## 0.2.4 - 2016-10-05
 
 ### Changed

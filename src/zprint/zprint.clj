@@ -131,7 +131,8 @@
   is typically flow. p-count is the number of elements in the hang."
   [caller
    {:keys [width rightcnt dbg?],
-    {:keys [hang-flow hang-type-flow hang-flow-limit general-hang-adjust]}
+    {:keys [hang-flow hang-type-flow hang-flow-limit general-hang-adjust
+            hang-if-equal-flow?]}
       :tuning,
     {:keys [hang-expand hang-diff hang-size hang-adjust]} caller,
     :as options} fn-style p-count indent-diff
@@ -167,28 +168,34 @@
                   ; do we have lines to operate on?
                   (> b-lines 0)
                   (> p-count 0)
-                  ; is the difference between the indents so small that
-                  ; we don't care?
-                  (if (<= indent-diff hang-diff)
+                  ; if the hang and the flow are the same size, why not hang?
+                  (if (and (= p-lines b-lines) hang-if-equal-flow?)
                     true
-                    ; Do the number of lines in the hang exceed the number
-                    ; of elements in the hang?
-                    (<= (/ (dec p-lines) p-count) hang-expand))
-                  (if hang-size (< p-lines hang-size) true)
-                  (let [factor (if (= fn-style :hang) hang-type-flow hang-flow)]
-                    ; if we have more than n lines, take the shortest
-                    (if (> p-lines hang-flow-limit)
-                      (<= (dec p-lines) b-lines)
-                      ; if we have less then n lines, we don't necessarily
-                      ; take the shortest
-                      ; once we did (dec p-lines) here, fwiw
-                      ; then we tried it w/out the dec, now we let you
-                      ; set it in :tuning.  The whole point of having a
-                      ; hang-adjust of -1 is to allow hangs when the
-                      ; number of lines in a hang is the same as the
-                      ; number of lines in a flow.
-                      ;(< (/ p-lines b-lines) factor)))))))]
-                      (< (/ (+ p-lines hang-adjust) b-lines) factor)))))))]
+                    ; is the difference between the indents so small that
+                    ; we don't care?
+                    (and
+                      (if (<= indent-diff hang-diff)
+                        true
+                        ; Do the number of lines in the hang exceed the number
+                        ; of elements in the hang?
+                        (<= (/ (dec p-lines) p-count) hang-expand))
+                      (if hang-size (< p-lines hang-size) true)
+                      (let [factor
+                              (if (= fn-style :hang) hang-type-flow hang-flow)]
+                        ; if we have more than n lines, take the shortest
+                        (if (> p-lines hang-flow-limit)
+                          (<= (dec p-lines) b-lines)
+                          ; if we have less then n lines, we don't necessarily
+                          ; take the shortest
+                          ; once we did (dec p-lines) here, fwiw
+                          ; then we tried it w/out the dec, now we let you
+                          ; set it in :tuning.  The whole point of having a
+                          ; hang-adjust of -1 is to allow hangs when the
+                          ; number of lines in a hang is the same as the
+                          ; number of lines in a flow.
+                          ;(< (/ p-lines b-lines) factor)))))))]
+                          (< (/ (+ p-lines hang-adjust) b-lines)
+                             factor)))))))))]
     (dbg options
          (if result "++++++" "XXXXXX")
          "p-what" p-what
@@ -308,22 +315,21 @@
   comment size -- that is handled with the wrap-comments at the
   end."
   [options ind style-vec]
-  (let [length-vec
-          (first
-            ; this final accumulate-ll is to terminate the last line,
-            ; the one in progress
-            (let [count-comment? (:count? (:comment options))
-                  [_ _ just-eol? just-comment? :as result]
-                    (reduce (partial generate-ll count-comment?)
-                      [[] (if (coll? ind) (first ind) ind) nil nil]
-                      style-vec)]
-              (if (and just-eol? (not just-comment?))
-                result
-                (accumulate-ll count-comment?
-                               (assoc result 2 nil)
-                               ""
-                               nil
-                               true))))]
+  (let [length-vec (first
+                     ; this final accumulate-ll is to terminate the last line,
+                     ; the one in progress
+                     (let [count-comment? (:count? (:comment options))
+                           [_ _ just-eol? just-comment? :as result]
+                             (reduce (partial generate-ll count-comment?)
+                               [[] (if (coll? ind) (first ind) ind) nil nil]
+                               style-vec)]
+                       (if (and just-eol? (not just-comment?))
+                         result
+                         (accumulate-ll count-comment?
+                                        (assoc result 2 nil)
+                                        ""
+                                        nil
+                                        true))))]
     length-vec))
 
 (defn find-what
@@ -727,17 +733,16 @@
                  (merge-deep {:tuning (caller-options :justify-tuning)}))
                options)]
       #_(def jo (conj jo [justify-width justify-options]))
-      (let [beginning
-              (mapv-no-nil-too-big
-                (when one-line? (- width ind))
-                (partial fzprint-two-up
-                         caller
-                         justify-options
-                         ind
-                         commas?
-                         justify-width
-                         nil)
-                (butlast coll))
+      (let [beginning (mapv-no-nil-too-big
+                        (when one-line? (- width ind))
+                        (partial fzprint-two-up
+                                 caller
+                                 justify-options
+                                 ind
+                                 commas?
+                                 justify-width
+                                 nil)
+                        (butlast coll))
             beginning-lines
               (if one-line? (style-lines options ind (apply concat beginning)))
             end (mapv-no-nil-too-big
@@ -1026,15 +1031,14 @@
                    "fzprint-hang: ending: hang-count:" hang-count
                    "hanging:" hanging
                    "flow:" flow)
-            hr-good?
-              (when (:hang? (caller options))
-                (good-enough? caller
-                              options
-                              :none-hang
-                              hang-count
-                              (- hindent findent)
-                              hr-lines
-                              fd-lines))]
+            hr-good? (when (:hang? (caller options))
+                       (good-enough? caller
+                                     options
+                                     :none-hang
+                                     hang-count
+                                     (- hindent findent)
+                                     hr-lines
+                                     fd-lines))]
         (if hr-good? hanging flow)))))
 
 (defn fzprint-pairs
@@ -1098,16 +1102,16 @@
         (do (dbg options "fzprint-one-line: exiting count:" (count out)) out)
         (let [next-zloc (first zloc-seq)
               [sep next-options]
-                (cond
-                  ; this needs to come first in case there
-                  ; is only one
-                  ; element in the list -- it needs to have
-                  ; the rightcnt
-                  ; passed through
-                  (= index last-index) [(if-not (zero? index)
-                                          [[" " :none :whitespace]]) options]
-                  (= index 0) [nil (not-rightmost options)]
-                  :else [[[" " :none :whitespace]] (not-rightmost options)])
+                (cond ; this needs to come first in case there
+                      ; is only one
+                      ; element in the list -- it needs to have
+                      ; the rightcnt
+                      ; passed through
+                      (= index last-index) [(if-not (zero? index)
+                                              [[" " :none :whitespace]])
+                                            options]
+                      (= index 0) [nil (not-rightmost options)]
+                      :else [[[" " :none :whitespace]] (not-rightmost options)])
               next-out (fzprint* next-options new-ind next-zloc)
               _ (log-lines options "fzprint-one-line:" new-ind next-out)
               [line-count max-width :as next-lines]
@@ -1245,16 +1249,15 @@
                    "fzprint-hang-one: ending: hang-count:" hang-count
                    "hanging:" (pr-str hanging)
                    "flow:" (pr-str flow))
-            hr-good?
-              (and
-                (:hang? (caller options))
-                (good-enough? caller
-                              options
-                              :none-hang-one
-                              hang-count
-                              (- hindent findent)
-                              hr-lines
-                              fd-lines))]
+            hr-good? (and
+                       (:hang? (caller options))
+                       (good-enough? caller
+                                     options
+                                     :none-hang-one
+                                     hang-count
+                                     (- hindent findent)
+                                     hr-lines
+                                     fd-lines))]
         (if hr-good? hanging flow)))))
 
 ;;
@@ -1359,27 +1362,26 @@
         _ (dbg options
                "fzprint-hang-remaining count pair-seq:"
                (count pair-seq))
-        flow
-          (apply concat-no-nil
-            (interpose [[(str "\n" (blanks findent)) :none :whitespace]]
-              (if-not pair-seq
-                (fzprint-seq options findent seq-right)
-                (if (not (zero? non-paired-item-count))
-                  (concat-no-nil
-                    (mapv (partial fzprint* (not-rightmost options) findent)
-                      (take non-paired-item-count seq-right))
-                    (fzprint-map-two-up :pair
-                                        ;caller
-                                        options
-                                        findent
-                                        nil
-                                        pair-seq))
-                  (fzprint-map-two-up :pair
-                                      ;caller
-                                      options
-                                      findent
-                                      nil
-                                      pair-seq)))))
+        flow (apply concat-no-nil
+               (interpose [[(str "\n" (blanks findent)) :none :whitespace]]
+                 (if-not pair-seq
+                   (fzprint-seq options findent seq-right)
+                   (if (not (zero? non-paired-item-count))
+                     (concat-no-nil
+                       (mapv (partial fzprint* (not-rightmost options) findent)
+                         (take non-paired-item-count seq-right))
+                       (fzprint-map-two-up :pair
+                                           ;caller
+                                           options
+                                           findent
+                                           nil
+                                           pair-seq))
+                     (fzprint-map-two-up :pair
+                                         ;caller
+                                         options
+                                         findent
+                                         nil
+                                         pair-seq)))))
         flow-lines (style-lines options findent flow)
         ; Now determine if there is any point in doing a hang, because
         ; if the flow is beyond the expand limit, there is really no
@@ -1722,25 +1724,24 @@
       ; sure that the (zfirst zloc) isn't a function
       ; and we aren't doing code.
       ;
-      :else
-        (concat-no-nil
-          l-str-vec
-          (fzprint* loptions (+ l-str-len ind) (zfirst zloc))
-          (if arg-1-indent
-            (fzprint-hang-remaining caller
-                                    options
-                                    arg-1-indent
-                                    (+ indent ind indent-adj)
-                                    (znth zloc 0)
-                                    fn-style)
-            (concat-no-nil
-              [[(str "\n" (blanks (+ default-indent ind indent-adj))) :none
-                :whitespace]]
-              (fzprint-flow-seq options
-                                (+ default-indent ind indent-adj)
-                                (nthnext (zmap identity zloc) 1)
-                                :force-nl)))
-          r-str-vec))))
+      :else (concat-no-nil
+              l-str-vec
+              (fzprint* loptions (+ l-str-len ind) (zfirst zloc))
+              (if arg-1-indent
+                (fzprint-hang-remaining caller
+                                        options
+                                        arg-1-indent
+                                        (+ indent ind indent-adj)
+                                        (znth zloc 0)
+                                        fn-style)
+                (concat-no-nil
+                  [[(str "\n" (blanks (+ default-indent ind indent-adj))) :none
+                    :whitespace]]
+                  (fzprint-flow-seq options
+                                    (+ default-indent ind indent-adj)
+                                    (nthnext (zmap identity zloc) 1)
+                                    :force-nl)))
+              r-str-vec))))
 
 (defn fzprint-list
   "Pretty print and focus style a :list element."
@@ -2410,44 +2411,44 @@
               overflow-in-hang? (and in-hang?
                                      (> (+ (count zstr) indent (or rightcnt 0))
                                         width))]
-          (cond
-            (zcomment? zloc)
-              (let [zcomment
-                      ; Do we have a file-level comment?
-                      (if (zero? depth)
-                        zstr
-                        (clojure.string/replace zstr "\n" ""))]
-                (if (and (:count? (:comment options)) overflow-in-hang?)
-                  (do (dbg options "fzprint*: overflow comment ========") nil)
-                  [[zcomment (zcolor-map options :comment) :comment]]))
-            ; Really just testing for whitespace, comments filtered out above
-            (zwhitespaceorcomment? zloc) [[zstr :none :whitespace]]
-            ; At this point, having filtered out whitespace and
-            ; comments above, now we expect zsexpr will work for all of
-            ; the remaining things.
-            ;
-            ; If we are going to overflow, and we are doing a hang, let's
-            ; stop now!
-            overflow-in-hang? (do (dbg options "fzprint*: overflow <<<<<<<<<<")
-                                  nil)
-            (string? (zsexpr zloc))
-              [[(if string-str?
-                  (str (zsexpr zloc))
-                  ; zstr
-                  (zstring zloc))
-                (if string-color string-color (zcolor-map options :string))
-                :element]]
-            (keyword? (zsexpr zloc)) [[zstr (zcolor-map options :keyword)
-                                       :element]]
-            (showfn? fn-map (zsexpr zloc)) [[zstr (zcolor-map options :fn)
-                                             :element]]
-            (show-user-fn? options (zsexpr zloc))
-              [[zstr (zcolor-map options :user-fn) :element]]
-            (number? (zsexpr zloc))
-              [[(if hex? (znumstr zloc hex? shift-seq) zstr)
-                (zcolor-map options :number) :element]]
-            (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil) :element]]
-            :else [[zstr (zcolor-map options :none) :element]])))))
+          (cond (zcomment? zloc)
+                  (let [zcomment
+                          ; Do we have a file-level comment?
+                          (if (zero? depth)
+                            zstr
+                            (clojure.string/replace zstr "\n" ""))]
+                    (if (and (:count? (:comment options)) overflow-in-hang?)
+                      (do (dbg options "fzprint*: overflow comment ========")
+                          nil)
+                      [[zcomment (zcolor-map options :comment) :comment]]))
+                ; Really just testing for whitespace, comments filtered above
+                (zwhitespaceorcomment? zloc) [[zstr :none :whitespace]]
+                ; At this point, having filtered out whitespace and
+                ; comments above, now we expect zsexpr will work for all of
+                ; the remaining things.
+                ;
+                ; If we are going to overflow, and we are doing a hang, let's
+                ; stop now!
+                overflow-in-hang?
+                  (do (dbg options "fzprint*: overflow <<<<<<<<<<") nil)
+                (string? (zsexpr zloc))
+                  [[(if string-str?
+                      (str (zsexpr zloc))
+                      ; zstr
+                      (zstring zloc))
+                    (if string-color string-color (zcolor-map options :string))
+                    :element]]
+                (keyword? (zsexpr zloc)) [[zstr (zcolor-map options :keyword)
+                                           :element]]
+                (showfn? fn-map (zsexpr zloc)) [[zstr (zcolor-map options :fn)
+                                                 :element]]
+                (show-user-fn? options (zsexpr zloc))
+                  [[zstr (zcolor-map options :user-fn) :element]]
+                (number? (zsexpr zloc))
+                  [[(if hex? (znumstr zloc hex? shift-seq) zstr)
+                    (zcolor-map options :number) :element]]
+                (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil) :element]]
+                :else [[zstr (zcolor-map options :none) :element]])))))
 
 ;;
 ;; # Comment Wrap Support

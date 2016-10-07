@@ -291,9 +291,10 @@
             ; Note that :map has its own :hang-adjust which overides this
             ; general
             ; one.
-            :general-hang-adjust -1},
+            :general-hang-adjust -1,
+            :hang-if-equal-flow? true},
    :auto-width? false,
-   :spec {:docstring? true}
+   :spec {:docstring? true},
    :color-map {:paren :green,
                :bracket :purple,
                :brace :red,
@@ -709,7 +710,9 @@
    (s/optional-key :tuning) {(s/optional-key :hang-flow) s/Num,
                              (s/optional-key :hang-type-flow) s/Num,
                              (s/optional-key :hang-flow-limit) s/Num,
-                             (s/optional-key :general-hang-adjust) s/Num},
+                             (s/optional-key :general-hang-adjust) s/Num,
+                             (s/optional-key :hang-if-equal-flow?)
+                               boolean-schema},
    (s/optional-key :color-map) color-map,
    (s/optional-key :uneval) {(s/optional-key :color-map) color-map},
    (s/optional-key :fn-map) {s/Str fn-type},
@@ -1146,17 +1149,16 @@
         ;
         ; Process errors together
         ;
-        all-errors
-          (apply str
-            (interpose "\n"
-              (filter identity
-                (list errors-rcfile
-                      rc-errors
-                      env-errors
-                      prop-errors
-                      errors-configfile
-                      config-errors
-                      cli-errors))))
+        all-errors (apply str
+                     (interpose "\n"
+                       (filter identity
+                         (list errors-rcfile
+                               rc-errors
+                               env-errors
+                               prop-errors
+                               errors-configfile
+                               config-errors
+                               cli-errors))))
         all-errors (if (empty? all-errors) nil all-errors)]
     [updated-map new-doc-map all-errors]))
 

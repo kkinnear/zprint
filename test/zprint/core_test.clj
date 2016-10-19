@@ -24,7 +24,7 @@
   [x]
   (if (and (symbol? x) (re-find #"\#$" (name x)))
     (symbol (re-find #".*__" (name x)))
-    x)) 
+    x))
 
 (defn trim-gensym
   "Fix up all of the gensyms in a structure so that they compare correctly."
@@ -248,7 +248,7 @@
 
 (def x13 (source-fn 'testfn13))
 (expect (read-string x13) (read-string (zprint-str x13 {:parse-string? true})))
-    
+
 (defn testfn14
   [{:keys [width], {:keys [zsexpr zstring zfirst zcomment?]} :zf, :as options}
    coll sort?]
@@ -303,7 +303,7 @@
   []
   (list #(list (assoc {} :alongkey :alongervalue)
                (assoc {} :anotherlongkey :anotherevenlongervalue))))
- 
+
 (def x18 (source-fn 'testfn18))
 (expect (read-string x18) (read-string (zprint-str x18 {:parse-string? true})))
 
@@ -322,3 +322,50 @@
         (merge-deep {:a :b, :c {:e :f}} {:c {:h :i}}))
 
 (expect {:c :g, :a :b} (merge-deep {:a :b, :c {:e :f}} {:c :g}))
+
+;;
+;; # Test :parse-string-all? and its relationship to
+;;        :parse {:left-space :keep | :drop} and
+;;        :parse {:interpose nil | true | false | "<something>"}
+
+(expect "(defn abc [] (println :a)) (println :a)"
+        (zprint-str
+          "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+          {:parse-string-all? true,
+           :parse {:left-space :keep, :interpose " "}}))
+
+(expect "(defn abc [] (println :a))\n(println :a)"
+        (zprint-str
+          "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+          {:parse-string-all? true,
+           :parse {:left-space :keep, :interpose "\n"}}))
+
+(expect "(defn abc [] (println :a))\n\n(println :a)"
+        (zprint-str
+          "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+          {:parse-string-all? true,
+           :parse {:left-space :keep, :interpose "\n\n"}}))
+
+(expect "(defn abc [] (println :a))\n(println :a)"
+        (zprint-str
+          "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+          {:parse-string-all? true,
+           :parse {:left-space :keep, :interpose true}}))
+
+(expect "(defn abc [] (println :a))\n(println :a)"
+        (zprint-str
+          "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+          {:parse-string-all? true,
+           :parse {:left-space :keep, :interpose nil}}))
+
+(expect "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+        (zprint-str
+          "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+          {:parse-string-all? true,
+           :parse {:left-space :keep, :interpose false}}))
+
+(expect "(defn abc [] (println :a))\n\n\n\n\n(println :a)"
+        (zprint-str
+          "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+          {:parse-string-all? true,
+           :parse {:left-space :drop, :interpose false}}))

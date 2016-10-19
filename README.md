@@ -642,6 +642,38 @@ as the second argument of any of the zprint functions.
 By default, zprint expects an s-expression and will format it.  If you
 specify `:parse-string? true` in an options map, then the first argument
 must be a string, and zprint will parse the string and format the output.
+It expects a single expression in the string, and will trim spaces from
+before and after that single expression.
+
+#### :parse-string-all?
+
+By default, zprint expects an s-expression and will format it.  If
+you specify `:parse-string-all? true` in an options map, then the
+first argument must be a string, and zprint will parse the string
+and format the output.  It will accept multiple expression in the
+string, and will parse and format each expression independently.
+It will drop all whitespace between the expressions (and before the
+first expression), and will by default separate each expression
+with a new-line, since the expressions are formatted beginning in
+column 1.
+
+```clojure
+(czprint "(def a :b) (def c :d)" 40 {:parse-string-all? true})
+(def a :b)
+(def c :d)
+```
+
+You can separate the expressions with addtional newlines (or pretty
+much anything that ends with a new-line) by including an options
+map with `:parse {:interpose string}` in it.  The string must end
+with a new-line, or the resulting formatting will not be correct.
+
+```clojure
+(czprint "(def a :b) (def c :d)" 40 {:parse-string-all? true :parse {:interpose "\n\n"}})
+(def a :b)
+
+(def c :d)
+```
 
 ### Syntax coloring
 
@@ -899,6 +931,38 @@ by `:extend {:indent n}`
       (bother [this x y] (list x y a b)))
 ```
 
+#### :arg1->
+
+Print the first argument on the same line as
+the function, if possible.  Later arguments go
+indented and `:arg1` and `:arg-1-pair` top level fns
+are become `:none` and `:pair`, respectively.
+
+Currently `->` is `:narg1-body`, however, and there
+are no `:arg1->` functions.
+
+```clojure
+  (-> opts
+    (assoc
+      :stuff (list "and" "bother"))
+      (dissoc :things))
+```
+
+#### :noarg1-body
+
+Print the in whatever way is possible without
+special handling.  However, top level fns become
+different based on the lack of their first argument.
+Thus, `:arg1` becomes `:none`, `:arg1-pair` becomes `:pair`,
+etc.
+
+```clojure
+  (-> opts
+      (assoc
+        :stuff (list "and" "bother"))
+      (dissoc :things))
+```
+
 #### :fn
 
 Print the first argument on the same line as the `(fn ...)` if it will
@@ -939,7 +1003,7 @@ map is shown below:
 
 ```clojure
 :fn-map {"!=" :hang,
-          "->" :arg1,
+          "->" :noarg1-body,
           "->>" :arg1,
           "=" :hang,
           "and" :hang,

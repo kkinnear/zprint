@@ -2,6 +2,7 @@
 /classes
 /checkouts
 /src/zprint/repl.clj
+/src/zprint/repl.cljc
 pom.xml
 pom.xml.asc
 *.jar

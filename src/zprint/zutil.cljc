@@ -2,14 +2,81 @@
   zprint.zutil
   (:require
    clojure.string
-   [rewrite-clj.parser :as p :only [parse-string]]
+   [rewrite-clj.parser :as p]
    [rewrite-clj.node :as n]
-   [rewrite-clj.zip :as z]))
+   [rewrite-clj.zip :as z]
+   #?@(:cljs [[rewrite-clj.zip.base :as zb] [rewrite-clj.zip.whitespace :as zw]
+              clojure.zip])))
 
 ;;
-;; Zipper oriented style printers
+;; # Zipper oriented style printers
 ;;
 
+;;
+;; ## clj and cljs compatibility routines
+;;
+;; ### Routines missing in :cljs since it uses clojure.zip
+;; 
+
+(def down*
+  #?(:clj z/down*
+     :cljs clojure.zip/down))
+
+(def up*
+  #?(:clj z/up*
+     :cljs clojure.zip/up))
+
+(def right*
+  #?(:clj z/right*
+     :cljs clojure.zip/right))
+
+(def left*
+  #?(:clj z/left*
+     :cljs clojure.zip/left))
+
+(def next*
+  #?(:clj z/next*
+     :cljs clojure.zip/next))
+
+(def prev*
+  #?(:clj z/prev*
+     :cljs clojure.zip/prev))
+
+(def replace*
+  #?(:clj z/replace*
+     :cljs clojure.zip/replace))
+
+;;
+;; ### Routines with different namespaces
+;;
+
+(def edn*
+  #?(:clj z/edn*
+     :cljs zb/edn*))
+
+(def sexpr
+  #?(:clj z/sexpr
+     :cljs zb/sexpr))
+
+(def string
+  #?(:clj z/string
+     :cljs zb/string))
+
+(def tag
+  #?(:clj z/tag
+     :cljs zb/tag))
+
+(def skip
+  #?(:clj z/skip
+     :cljs zw/skip))
+
+(def whitespace?
+  #?(:clj z/whitespace?
+     :cljs zw/whitespace?))
+
+(def whitespace-or-comment?
+  #?(:clj z/whitespace-or-comment?
+     :cljs zw/whitespace-or-comment?))
 
 ;;
 ;; Check to see if we are at the focus by checking the
@@ -31,65 +98,64 @@
 
 (defn z-coll? "Is the zloc a collection?" [zloc] (z/seq? zloc))
 
-(defn zuneval? "Is this a #_(...)" [zloc] (= (z/tag zloc) :uneval))
+(defn zuneval? "Is this a #_(...)" [zloc] (= (tag zloc) :uneval))
 
-(defn zmeta? "Is this a ^{...}" [zloc] (= (z/tag zloc) :meta))
+(defn zmeta? "Is this a ^{...}" [zloc] (= (tag zloc) :meta))
 
 (defn zquote?
   "Is this a '(...) or '[ ... ] or some other quote?"
   [zloc]
-  (= (z/tag zloc) :quote))
+  (= (tag zloc) :quote))
 
-(defn zreader-macro? "Is this a @..." [zloc] (= (z/tag zloc) :reader-macro))
+(defn zreader-macro? "Is this a @..." [zloc] (= (tag zloc) :reader-macro))
 
-(defn ztag "Return the tag for this zloc" [zloc] (z/tag zloc))
+(defn ztag "Return the tag for this zloc" [zloc] (tag zloc))
 
 (defn zparseuneval
   "Turn an uneval zloc with #_ starting it into a zipper."
   [zloc]
-  (z/edn* (p/parse-string
-            (clojure.string/triml
-              (clojure.string/replace-first (z/string zloc) #"#_" "")))))
+  (edn* (p/parse-string
+          (clojure.string/triml
+            (clojure.string/replace-first (string zloc) #"#_" "")))))
 
 (defn zcreateuneval
   "Turn a zloc into an #_ uneval zipper."
   [zloc]
-  (z/edn* (p/parse-string (clojure.string/triml (str "#_" (z/string zloc))))))
+  (edn* (p/parse-string (clojure.string/triml (str "#_" (string zloc))))))
 
 (defn zcomment?
   "Returns true if this is a comment."
   [zloc]
-  (when zloc (= (z/tag zloc) :comment)))
+  (when zloc (= (tag zloc) :comment)))
 
 (defn znewline?
   "Returns true if this is a newline."
   [zloc]
-  (when zloc (= (z/tag zloc) :newline)))
+  (when zloc (= (tag zloc) :newline)))
 
 (defn znumstr
   "Does z/string, but takes an additional argument for hex conversion.
   Hex conversion is not implemented for zippers, though, because at present
   it is only used for byte-arrays, which don't really show up here."
   [zloc _ _]
-  (z/string zloc))
+  (string zloc))
 
 (defn zfirst
   "Find the first non-whitespace zloc inside of this zloc, or
   the first whitespace zloc that is the focus."
   [zloc]
-  (let [nloc (z/down* zloc)] (if nloc (z/skip z/right* z/whitespace? nloc))))
+  (let [nloc (down* zloc)] (if nloc (skip right* whitespace? nloc))))
 
 (defn zsecond
   "Find the second non-whitespace zloc inside of this zloc."
   [zloc]
   (if-let [first-loc (zfirst zloc)]
-    (if-let [nloc (z/right* first-loc)] (z/skip z/right* z/whitespace? nloc))))
+    (if-let [nloc (right* first-loc)] (skip right* whitespace? nloc))))
 
 (defn zrightnws
   "Find the next non-whitespace zloc inside of this zloc."
   [zloc]
-  (if zloc
-    (if-let [nloc (z/right* zloc)] (z/skip z/right* z/whitespace? nloc))))
+  (if zloc (if-let [nloc (right* zloc)] (skip right* whitespace? nloc))))
 
 (defn zrightmost
   "Find the rightmost non-whitespace zloc at this level"
@@ -101,7 +167,7 @@
 (defn zleftnws
   "Find the next non-whitespace zloc inside of this zloc."
   [zloc]
-  (if zloc (if-let [nloc (z/left* zloc)] (z/skip z/left* z/whitespace? nloc))))
+  (if zloc (if-let [nloc (left* zloc)] (skip left* whitespace? nloc))))
 
 (defn zleftmost
   "Find the leftmost non-whitespace zloc at this level"
@@ -115,17 +181,17 @@
   [zloc]
   (if (z/end? zloc)
     zloc
-    (if-let [nloc (z/next* zloc)] (z/skip z/next* z/whitespace? nloc))))
+    (if-let [nloc (next* zloc)] (skip next* whitespace? nloc))))
 
 (defn zprevnws
   "Find the next non-whitespace zloc."
   [zloc]
-  (if-let [ploc (z/prev* zloc)] (z/skip z/prev* z/whitespace? ploc)))
+  (if-let [ploc (prev* zloc)] (skip prev* whitespace? ploc)))
 
 (defn znth
   "Find the nth non-whitespace zloc inside of this zloc."
   [zloc n]
-  (loop [nloc (z/down* zloc)
+  (loop [nloc (down* zloc)
          i n]
     (if (or (nil? nloc) (= i 0)) nloc (recur (zrightnws nloc) (dec i)))))
 
@@ -133,12 +199,12 @@
   "Return a vector containing the return of applying a function to 
   every non-whitespace zloc inside of zloc."
   [zfn zloc]
-  (loop [nloc (z/down* zloc)
+  (loop [nloc (down* zloc)
          out []]
     (if-not nloc
       out
-      (recur (z/right* nloc)
-             (if-let [result (when (not (z/whitespace? nloc)) (zfn nloc))]
+      (recur (right* nloc)
+             (if-let [result (when (not (whitespace? nloc)) (zfn nloc))]
                (conj out result)
                out)))))
 
@@ -146,19 +212,18 @@
   "Return a vector containing the return of applying a function to 
   every zloc inside of zloc."
   [zfn zloc]
-  (loop [nloc (z/down* zloc)
+  (loop [nloc (down* zloc)
          out []]
-    (if-not nloc out (recur (z/right* nloc) (conj out (zfn nloc))))))
+    (if-not nloc out (recur (right* nloc) (conj out (zfn nloc))))))
 
 (defn zmap-right
   "Apply a function to every non-whitespace zloc to right of zloc."
   [zfn zloc]
-  (loop [nloc (z/right* zloc)
+  (loop [nloc (right* zloc)
          out []]
     (if-not nloc
       out
-      (recur (z/right* nloc)
-             (if (z/whitespace? nloc) out (conj out (zfn nloc)))))))
+      (recur (right* nloc) (if (whitespace? nloc) out (conj out (zfn nloc)))))))
 
 (defn zseqnws
   "Return a seq of all of the non-whitespace children of zloc."
@@ -180,9 +245,9 @@
     (loop [nloc zloc
            left 0
            out ()]
-      (if-not (z/left* nloc)
-        (if-not (z/up* nloc) [nloc out] (recur (z/up* nloc) 0 (cons left out)))
-        (recur (z/left* nloc) (inc left) out)))))
+      (if-not (left* nloc)
+        (if-not (up* nloc) [nloc out] (recur (up* nloc) 0 (cons left out)))
+        (recur (left* nloc) (inc left) out)))))
 
 (defn find-root-and-path-nw
   "Create a vector with the root as well as another vector
@@ -194,9 +259,9 @@
     (loop [nloc zloc
            left 0
            out ()]
-      (if-not (z/left* nloc)
-        (if-not (z/up* nloc) [nloc out] (recur (z/up* nloc) 0 (cons left out)))
-        (recur (z/left* nloc) (if (z/whitespace? nloc) left (inc left)) out)))))
+      (if-not (left* nloc)
+        (if-not (up* nloc) [nloc out] (recur (up* nloc) 0 (cons left out)))
+        (recur (left* nloc) (if (whitespace? nloc) left (inc left)) out)))))
 
 (defn find-root
   "Find the root from a zloc by doing lots of ups."
@@ -206,11 +271,11 @@
 (defn move-down-and-right
   "Move one down and then right a certain number of steps."
   [zloc right-count]
-  (loop [nloc (z/down* zloc)
+  (loop [nloc (down* zloc)
          remaining-right right-count]
     (if (zero? remaining-right)
       nloc
-      (recur (z/right* nloc) (dec remaining-right)))))
+      (recur (right* nloc) (dec remaining-right)))))
 
 (defn follow-path
   "Follow the path vector from the root and return the zloc
@@ -218,42 +283,75 @@
   [path-vec zloc]
   (reduce move-down-and-right zloc path-vec))
 
-(defn zanonfn? "Is this an anonymous fn?" [zloc] (= (z/tag zloc) :fn))
+(defn zanonfn? "Is this an anonymous fn?" [zloc] (= (tag zloc) :fn))
 
 (defn zlast
   "Return the last non-whitespace (but possibly comment) element inside
   of this zloc."
   [zloc]
-  (let [nloc (z/down* zloc)] (when nloc (zrightmost nloc))))
+  (let [nloc (down* zloc)] (when nloc (zrightmost nloc))))
 
 (defn zsexpr?
   "Returns true if this can be converted to an sexpr. Works around a bug
   where n/printable-only? returns false for n/tag :fn, but z/sexpr fails
   on something with n/tag :fn"
   [zloc]
-  (and (not= :fn (z/tag zloc)) (not (n/printable-only? (z/node zloc)))))
+  (and (not= :fn (tag zloc)) (not (n/printable-only? (z/node zloc)))))
 
 (defn zkeyword?
   "Returns true if this is a keyword."
   [zloc]
-  (and (zsexpr? zloc) (keyword? (z/sexpr zloc))))
+  (and (zsexpr? zloc) (keyword? (sexpr zloc))))
 
 (defn zsymbol?
   "Returns true if this is a symbol."
   [zloc]
-  (and zloc (zsexpr? zloc) (symbol? (z/sexpr zloc))))
+  (and zloc (zsexpr? zloc) (symbol? (sexpr zloc))))
+
+(defn znil?
+  "Returns true if this is nil."
+  [zloc]
+  (and zloc (zsexpr? zloc) (nil? (z/sexpr zloc))))
+
+(defn zreader-cond-w-symbol?
+  "Returns true if this is a reader-conditional with a symbol in 
+  the first position (could be :clj or :cljs, whatever)."
+  [zloc]
+  (let [result (when (zreader-macro? zloc)
+                 (let [element (z/down zloc)]
+                   (when (= (z/string element) "?")
+                     (let [element (z/down (z/right element))]
+                       (when (or (= (z/string element) ":clj")
+                                 (= (z/string element) ":cljs"))
+                         (zsymbol? (z/right element)))))))]
+    #_(println "zreader-cond-w-symbol?:" (z/string zloc) "result:" result)
+    result))
+
+(defn zreader-cond-w-coll?
+  "Returns true if this is a reader-conditional with a collection in 
+  the first position (could be :clj or :cljs, whatever)."
+  [zloc]
+  (let [result (when (zreader-macro? zloc)
+                 (let [element (z/down zloc)]
+                   (when (= (z/string element) "?")
+                     (let [element (z/down (z/right element))]
+                       (when (or (= (z/string element) ":clj")
+                                 (= (z/string element) ":cljs"))
+                         (z-coll? (z/right element)))))))]
+    #_(println "zreader-cond-w-coll?:" (z/string zloc) "result:" result)
+    result))
 
 (defn zdotdotdot
   "Return a zloc that will turn into a string of three dots."
   []
-  (z/edn* (p/parse-string "...")))
+  (edn* (p/parse-string "...")))
 
 (defn zconstant?
   "Returns true if this is a keyword, string, or number, in other words,
   a constant."
   [zloc]
   (when (zsexpr? zloc)
-    (let [sexpr (z/sexpr zloc)]
+    (let [sexpr (sexpr zloc)]
       (or (keyword? sexpr) (string? sexpr) (number? sexpr)))))
 
 ;;
@@ -269,9 +367,9 @@
   (let [fn-name (z/string (z/down zloc))]
     (cond (or (= fn-name "defn") (= fn-name "defmacro"))
             (let [docloc (z/right (z/right (z/down zloc)))]
-              (when (string? (z/sexpr docloc)) docloc))
+              (when (string? (sexpr docloc)) docloc))
           :else nil)))
-                
+
 (defn add-spec-to-docstring
   "Given a zipper of a function definition, add the spec info
   to the docstring."
@@ -279,12 +377,12 @@
   #_(println "spec-str:" spec-str)
   (if-let [doc-zloc (find-docstring zloc)]
     (let [new-doc-zloc
-            (z/replace*
-              doc-zloc
-              (z/node (z/edn*
-                        (p/parse-string
-                          (str "\"" (str (z/sexpr doc-zloc)) spec-str "\"")))))]
-      (z/edn* (z/root new-doc-zloc)))
+            (replace* doc-zloc
+                      (z/node
+                        (edn*
+                          (p/parse-string
+                            (str "\"" (str (sexpr doc-zloc)) spec-str "\"")))))]
+      (edn* (z/root new-doc-zloc)))
     zloc))
 
 ;;
@@ -296,7 +394,7 @@
    :znumstr znumstr,
    :zbyte-array? (constantly false),
    :zcomment? zcomment?,
-   :zsexpr z/sexpr,
+   :zsexpr sexpr,
    :zseqnws zseqnws,
    :zmap-right zmap-right,
    :zfocus-style zfocus-style,
@@ -309,7 +407,7 @@
    :zfn-obj? (constantly false),
    :zfocus zfocus,
    :zfind-path find-root-and-path,
-   :zwhitespace? z/whitespace?,
+   :zwhitespace? whitespace?,
    :zlist? z/list?,
    :zvector? z/vector?,
    :zmap? z/map?,
@@ -328,7 +426,7 @@
    :zobj-to-vec (constantly nil),
    :zexpandarray (constantly nil),
    :znewline? znewline?,
-   :zwhitespaceorcomment? z/whitespace-or-comment?,
+   :zwhitespaceorcomment? whitespace-or-comment?,
    :zmap-all zmap-all,
    :zpromise? (constantly false),
    :zfuture? (constantly false),
@@ -339,4 +437,7 @@
    :zreader-macro? zreader-macro?,
    :zarray-to-shift-seq (constantly nil),
    :zdotdotdot zdotdotdot,
-   :zsymbol? zsymbol?})
+   :zsymbol? zsymbol?,
+   :znil? znil?,
+   :zreader-cond-w-symbol? zreader-cond-w-symbol?,
+   :zreader-cond-w-coll? zreader-cond-w-coll?})

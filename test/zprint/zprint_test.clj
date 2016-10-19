@@ -52,7 +52,7 @@
 ;; Another couple of fidelity tests of two of our actual functions
 ;;
 
-(def y1 (source-fn 'fzprint*))
+(def y1 (source-fn 'fzprint-map-two-up))
 (expect (read-string y1) (read-string (zprint-str y1 {:parse-string? true})))
 
 (def y2 (source-fn 'partition-all-2-nc))
@@ -462,7 +462,7 @@
      [" " :none :whitespace] ["a" :black :element] [" " :none :whitespace]
      ["test" :blue :element] ["]" :purple :right]]))
 
- 
+
 ;;
 ;; # Comments handling
 ;;
@@ -574,7 +574,7 @@
                     30
                     {:parse-string? true}))
 
-           
+
 (expect "#?@(:clj (list :a :b)\n    :cljs (list :c :d))"
         (zprint-str "#?@(:clj (list :a :b) :cljs (list :c :d))"
                     30
@@ -606,21 +606,33 @@
 
 (expect "#?(:clj (list :c :d), :cljs (list :a :b))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-                    {:parse-string? true, :reader-cond {:sort? true}}))
-
-(expect "#?(:cljs (list :a :b), :clj (list :c :d))"
-        (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-                    {:parse-string? true, :reader-cond {:sort? nil}}))
+                    {:parse-string? true,
+                     :reader-cond {:force-nl? false, :sort? true}}))
 
 (expect "#?(:cljs (list :a :b), :clj (list :c :d))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
                     {:parse-string? true,
-                     :reader-cond {:sort? nil, :key-order [:clj :cljs]}}))
+                     :reader-cond {:force-nl? false, :sort? nil}}))
 
-(expect "#?(:clj (list :c :d), :cljs (list :a :b))"
+(expect
+  "#?(:cljs (list :a :b), :clj (list :c :d))"
+  (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+              {:parse-string? true,
+               :reader-cond
+                 {:force-nl? false, :sort? nil, :key-order [:clj :cljs]}}))
+
+(expect "#?(:cljs (list :a :b)\n   :clj (list :c :d))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
                     {:parse-string? true,
-                     :reader-cond {:sort? true, :key-order [:clj :cljs]}}))
+                     :reader-cond
+                       {:force-nl? true, :sort? nil, :key-order [:clj :cljs]}}))
+
+(expect
+  "#?(:clj (list :c :d), :cljs (list :a :b))"
+  (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+              {:parse-string? true,
+               :reader-cond
+                 {:force-nl? false, :sort? true, :key-order [:clj :cljs]}}))
 
 ;;
 ;; # Rightmost in reader conditionals
@@ -634,7 +646,7 @@
 (expect "#?(:cljs (list :a :b), :clj (list :c :d))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
                     41
-                    {:parse-string? true}))
+                    {:reader-cond {:force-nl? false}, :parse-string? true}))
 
 ;;
 ;; # Reader Literals
@@ -657,7 +669,7 @@
   "(let \n  [:a\n     ;x\n     ;y\n     :b\n   :c :d]\n  (println\n    :a))"
   (zprint-str "(let [:a ;x\n;y\n :b :c :d] (println :a))"
               10
-              {:parse-string? true})) 
+              {:parse-string? true}))
 
 ;;
 ;; # Promise, Future, Delay
@@ -749,7 +761,7 @@
 
 (expect "{:aaaa :bbbb,\n :ccc  :ddddd,\n :ee   :ffffff}"
         (zprint-str e2 38 {:map {:justify? true}}))
-  
+
 (expect "{:aaaa :bbbb, :ccc :ddddd, :ee :ffffff}"
         (zprint-str e2 39 {:map {:justify? true}}))
 
@@ -860,3 +872,24 @@
 
 (expect "{:c {:h :i}}"
         (zprint-str ignore-m {:map {:key-ignore-silent [:a [:c :e :f]]}}))
+
+;;
+;; Test fix for issue #1
+;;
+
+(expect
+  "(fn [arg1 arg2 arg3] [:first-keyword-in-vector\n                      :some-very-long-keyword-that-makes-this-wrap\n                      :next-keyword])"
+  (zprint-str
+    "(fn [arg1 arg2 arg3] [:first-keyword-in-vector :some-very-long-keyword-that-makes-this-wrap :next-keyword])"
+    {:parse-string? true}))
+
+;;
+;; no-arg? test
+;;
+
+(expect
+  "(-> context\n    (assoc ::error (throwable->ex-info t\n                                       execution-id\n                                       interceptor\n                                       :error)\n           ::stuff (assoc a-map\n                     :this-is-a-key :this-is-a-value))\n    (update-in [::suppressed] conj ex))"
+  (zprint-str
+    " (-> context (assoc ::error (throwable->ex-info t execution-id interceptor :error) ::stuff (assoc a-map :this-is-a-key :this-is-a-value)) (update-in [::suppressed] conj ex))"
+    55
+    {:parse-string? true}))

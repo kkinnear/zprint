@@ -1,18 +1,21 @@
 (ns
   zprint.config
+  #?(:cljs [:require-macros [schema.core :refer [defschema]]])
+  #?(:clj [:refer-clojure :exclude [read-string]])
   (:require
    clojure.string
    [zprint.sutil]
    [zprint.zprint :refer [merge-deep]]
-   [schema.core :as s]
    [clojure.data :as d]
-   [cprop.core :refer [load-config]]
-   [cprop.source :as cs :refer
-    [from-file from-resource from-system-props from-env read-system-env
-     read-system-props merge*]]
-   [table.width]
-   [trptcolin.versioneer.core :as version])
-  (:import (java.io InputStreamReader FileReader BufferedReader)))
+   #?(:clj [clojure.edn :refer [read-string]]
+      :cljs [cljs.reader :refer [read-string]])
+   [schema.core :as s]
+   #?@(:clj [[schema.core :refer [defschema]]
+             [cprop.source :as cs :refer
+              [from-file from-resource from-system-props from-env
+               read-system-env read-system-props merge*]]
+             [trptcolin.versioneer.core :as version] [table.width]]))
+  #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
 
 ;;
 ;; # Configuration
@@ -28,7 +31,9 @@
 (defn about
   "Return version of this program."
   []
-  (str "zprint-" (version/get-version "zprint" "zprint")))
+  (str "zprint-"
+       #?(:clj (version/get-version "zprint" "zprint")
+          :cljs "0.1.1")))
 
 ;;
 ;; # External Configuration
@@ -49,9 +54,10 @@
 (def zprint-keys [:width])
 
 (def explain-hide-keys
-  [:configured? :dbg-print? :dbg? :do-in-hang? :dbg-ge :zipper?
-   [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
-   [:pair :justify-hang :justify-tuning]
+  [:configured? :dbg-print? :dbg? :do-in-hang? :drop? :dbg-ge :file? :spaces?
+   :process-bang-zprint? :trim-comments?
+   :zipper? :indent [:object :wrap-after-multi? :wrap-coll?]
+   [:reader-cond :comma?] [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning]
    [:extend :hang-diff :hang-expand :hang?] :tuning])
@@ -157,12 +163,28 @@
 ;; Print the first argument on the same line as
 ;; the function, if possible.  Later arguments go
 ;; indented and :arg1 and :arg-1-pair top level fns
-;; are become nil and :pair, respectively.
+;; are become :none and :pair, respectively.
+;;
+;; Currently -> is :none-body, however, and there
+;; are no :arg1-> functions.
 ;;
 ;; (-> opts
 ;;   (assoc
 ;;     :stuff (list "and" "bother"))
 ;;   (dissoc :things))
+;;
+;; :noarg1-body
+;;
+;; Print the in whatever way is possible without
+;; special handling.  However, top level fns become
+;; different based on the lack of their first argument.
+;; Thus, :arg1 becomes :none, :arg1-pair becomes :pair,
+;; etc.
+;;
+;; (-> opts
+;;     (assoc
+;;       :stuff (list "and" "bother"))
+;;     (dissoc :things))
 ;;
 ;; :fn
 ;;
@@ -238,12 +260,13 @@
    "extend-type" :arg1-extend,
    "extend-protocol" :arg1-extend,
    "defprotocol" :arg1,
+   "defrecord" :arg1-extend,
    "binding" :binding,
    "with-redefs" :binding,
    "with-open" :binding,
    "with-local-vars" :binding,
-   "with-bindings" :binding,
-   "with-bindings*" :binding,
+   "with-bindings" :arg1,
+   "with-bindings*" :arg1,
    "when-some" :binding,
    "when-let" :binding,
    "when-first" :binding,
@@ -255,15 +278,15 @@
    "doseq" :binding,
    "fn" :fn,
    "fn*" :fn,
-   "->" :arg1->,
-   "->>" :arg1-body,
+   "->" :noarg1-body,
+   "->>" :none-body,
    "do" :none-body,
    "and" :hang,
    "or" :hang,
    "=" :hang,
    "!=" :hang,
    "try" :none-body,
-   "catch" :none-body,
+   "catch" :arg2,
    "with-meta" :arg1-body,
    "fdef" :arg1-pair,
    "alt" :pair,
@@ -276,8 +299,11 @@
 (def default-zprint-options
   {:width 80,
    ;:configured? false
+   :indent 0,
    :max-depth 1000,
    :max-length 1000,
+   :process-bang-zprint? nil
+   :trim-comments? nil
    :style nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
             :hang-flow 1.1,
@@ -331,12 +357,12 @@
    :set {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
    :object {:indent 1, :wrap-coll? true, :wrap-after-multi? true},
    :pair-fn
-     {:indent 2, :hang? true, :hang-expand 2.0, :hang-size 10, :hang-diff 1},
+     {:indent 2, :hang? true, :hang-expand 4.0, :hang-size 10, :hang-diff 1},
    :list {:indent-arg nil,
           :indent 2,
           :pair-hang? true,
           :hang? true,
-          :hang-expand 2.0,
+          :hang-expand 4.0,
           :hang-diff 1,
           :hang-size 100,
           :constant-pair? true,
@@ -353,8 +379,8 @@
          ; wider stuff seems better with -1, so for now, we will go with that.
          :hang-adjust -1,
          :key-order nil,
-         :ignore nil,
-         :ignore-silent nil,
+         :key-ignore nil,
+         :key-ignore-silent nil,
          :force-nl? nil,
          :justify? false,
          :justify-hang {:hang-expand 5},
@@ -371,10 +397,11 @@
                  :hang? true,
                  :hang-expand 1000.0,
                  :hang-diff 1,
+                 :force-nl? true,
                  :key-order nil},
    :binding {:indent 2,
              :hang? true,
-             :hang-expand 2.0,
+             :hang-expand 4.0,
              :hang-diff 1,
              :justify? false,
              :justify-hang {:hang-expand 5},
@@ -395,16 +422,20 @@
    :promise {:object? false},
    :delay {:object? false},
    :agent {:object? false},
+   :parse {:left-space :drop, :interpose nil},
    :tab {:expand? true, :size 8},
    :comment {:count? false, :wrap? true},
    :dbg? nil,
    :dbg-print? nil,
    :do-in-hang? true,
    :dbg-ge nil,
+   :drop? nil,
    :zipper? false,
+   :file? false,
    :old? true,
    :format :on,
    :parse-string? false,
+   :parse-string-all? false,
    :style-map {:community {:binding {:indent 0},
                            :pair {:indent 0},
                            :pair-fn {:indent 0},
@@ -500,16 +531,6 @@
                             only-after))))
 
 (defn diff-map "Diff two maps." [before after] (second (d/diff before after)))
-
-;;
-;; # Find terminal width
-;;
-
-(defn get-terminal-width
-  "Use the private detect-terminal-width fn in the table library to
-  find the current terminal width."
-  []
-  (#'table.width/detect-terminal-width))
 
 ;;
 ;; # Functions manipulating mutable options
@@ -623,12 +644,13 @@
                                                (get-options)
                                                new-options)]
      (if error-vec
-       (throw (Exception.
-                (apply str "set-options! found these errors: " error-vec)))
+       (throw (#?(:clj Exception.
+                  :cljs js/Error.)
+               (apply str "set-options! found these errors: " error-vec)))
        (do (reset-options! updated-map new-doc-map) updated-map))))
   ([new-options]
    (config-set-options! new-options
-                        (str "repl or api call " (inc-explained-sequence))))) 
+                        (str "repl or api call " (inc-explained-sequence)))))
 
 
 
@@ -636,15 +658,17 @@
 ;; # Schema for Validation
 ;;
 
-(s/defschema color-schema
-             "An enum of the possible colors"
-             (s/enum :green :purple :magenta :yellow :red :cyan :black :blue))
+(defschema color-schema
+           "An enum of the possible colors"
+           (s/enum :green :purple :magenta :yellow :red :cyan :black :blue))
 
-(s/defschema format-schema
-             "An enum of the possible format options"
-             (s/enum :on :off :next :skip))
+(defschema format-schema
+           "An enum of the possible format options"
+           (s/enum :on :off :next :skip))
 
-(s/defschema
+(defschema keep-drop-schema (s/enum :keep :drop))
+
+(defschema
   fn-type
   "An enum of the possible function types"
   (s/enum :binding :arg1
@@ -652,7 +676,7 @@
           :arg1-pair :pair
           :hang :extend
           :arg1-extend-body :arg1-extend
-          :fn :arg1->
+          :fn :arg1-> :noarg1-body
           :arg2 :arg2-pair
           :none :none-body))
 
@@ -663,15 +687,20 @@
 ;; styles, and if it doesn't, it is dealt with there.
 ;;
 
-(s/defschema boolean-schema
-             "Our version of boolen, which is true, false, and nil"
-             (s/conditional nil? s/Any :else s/Bool))
+(defschema boolean-schema
+           "Our version of boolen, which is true, false, and nil"
+           (s/conditional nil? s/Any :else s/Bool))
 
-(s/defschema boolean-schema-or-string
-             "Our version of boolen, which is true, false, and nil or string"
-             (s/conditional string? s/Any :else boolean-schema))
+(defschema boolean-schema-or-string
+           "Our version of boolen, which is true, false, and nil or string"
+           (s/conditional string? s/Any :else boolean-schema))
 
-(s/defschema
+(defschema num-or-nil-schema (s/conditional nil? s/Any :else s/Num))
+
+(defschema keyword-or-nil-schema (s/conditional nil? s/Any :else s/Keyword))
+
+
+(defschema
   color-map
   {(s/optional-key :paren) color-schema,
    (s/optional-key :bracket) color-schema,
@@ -689,17 +718,23 @@
    (s/optional-key :quote) color-schema,
    (s/optional-key :none) color-schema})
 
-(s/defschema
+(defschema
   zprint-options-schema
   "Use this to validate input, so ensure that people don't forget
   things like the ? on the end of booleans and such."
   {(s/optional-key :configured?) boolean-schema,
-   (s/optional-key :style) s/Keyword,
+   (s/optional-key :style) keyword-or-nil-schema,
    (s/optional-key :width) s/Num,
+   (s/optional-key :indent) s/Num,
+   (s/optional-key :trim-comments?) boolean-schema,
+   (s/optional-key :process-bang-zprint?) boolean-schema,
    (s/optional-key :max-depth) s/Num,
    (s/optional-key :max-length) s/Num,
    (s/optional-key :parse-string?) boolean-schema,
+   (s/optional-key :parse-string-all?) boolean-schema,
    (s/optional-key :zipper?) boolean-schema,
+   (s/optional-key :file?) boolean-schema,
+   (s/optional-key :spaces?) boolean-schema,
    (s/optional-key :old?) boolean-schema,
    (s/optional-key :format) format-schema,
    (s/optional-key :fn-name) s/Any,
@@ -730,7 +765,7 @@
                              (s/optional-key :wrap-coll?) boolean-schema,
                              (s/optional-key :wrap-after-multi?)
                                boolean-schema},
-   (s/optional-key :list) {(s/optional-key :indent-arg) s/Num,
+   (s/optional-key :list) {(s/optional-key :indent-arg) num-or-nil-schema,
                            (s/optional-key :indent) s/Num,
                            (s/optional-key :hang?) boolean-schema,
                            (s/optional-key :pair-hang?) boolean-schema,
@@ -780,6 +815,7 @@
                                   (s/optional-key :sort-in-code?)
                                     boolean-schema,
                                   (s/optional-key :comma?) boolean-schema,
+                                  (s/optional-key :force-nl?) boolean-schema,
                                   (s/optional-key :key-order) [s/Any]},
    (s/optional-key :binding) {(s/optional-key :indent) s/Num,
                               (s/optional-key :hang?) boolean-schema,
@@ -823,6 +859,9 @@
    (s/optional-key :promise) {(s/optional-key :object?) boolean-schema},
    (s/optional-key :delay) {(s/optional-key :object?) boolean-schema},
    (s/optional-key :agent) {(s/optional-key :object?) boolean-schema},
+   (s/optional-key :parse) {(s/optional-key :left-space) keep-drop-schema,
+                            (s/optional-key :interpose)
+                              boolean-schema-or-string},
    (s/optional-key :tab) {(s/optional-key :expand?) boolean-schema,
                           (s/optional-key :size) s/Num},
    (s/optional-key :comment) {(s/optional-key :count?) boolean-schema,
@@ -830,7 +869,9 @@
    (s/optional-key :dbg?) boolean-schema,
    (s/optional-key :dbg-print?) boolean-schema,
    (s/optional-key :dbg-ge) s/Any,
+   (s/optional-key :drop?) boolean-schema,
    (s/optional-key :do-in-hang?) boolean-schema})
+
 
 ;;
 ;; # Schema Validation Functions
@@ -853,6 +894,7 @@
   source-str is a descriptive phrase which will be included in the errors
   (if any). Returns nil for success, a string with error(s) if not."
   ([options source-str]
+   #_(println "validate-options:" options)
    (when options
      (empty-to-nil
        (apply str
@@ -863,12 +905,15 @@
                (try
                  (s/validate zprint-options-schema (dissoc options :style-map))
                  nil
-                 (catch Exception
-                        e
-                        (if source-str
-                          (str "In " source-str
-                               ", " (:cause (Throwable->map e)))
-                          (:cause (Throwable->map e)))))
+                 (catch
+                   #?(:clj Exception
+                      :cljs :default)
+                   e
+                   #?(:clj (if source-str
+                             (str "In " source-str
+                                  ", " (:cause (Throwable->map e)))
+                             (:cause (Throwable->map e)))
+                      :cljs (str (.-message e)))))
                (when (not (constants (get-in options [:map :key-order])))
                  (str "In " source-str
                       " :map :key-order were not all constants:"
@@ -911,41 +956,30 @@
   [updated-map new-doc-map error-string]"
   [doc-string doc-map existing-map new-map]
   (let [style-name (get new-map :style :not-specified)]
-    (if (= style-name :not-specified)
+    (if (or (= style-name :not-specified) (nil? style-name))
       [existing-map doc-map nil]
       (let [style-map (if (= style-name :default)
                         (get-default-options)
                         (get-in existing-map [:style-map style-name]))]
-        (cond
-          (nil? style-name) [existing-map doc-map
-                             "Can't specify a style of nil!"]
-          style-map [(merge-deep existing-map style-map)
-                     (when doc-map
-                       (diff-deep-doc
-                         (str doc-string " specified :style " style-name)
-                         doc-map
-                         existing-map
-                         style-map)) nil]
-          :else [existing-map doc-map
-                 (str "Style '" style-name "' not found!")])))))
+        (if style-map
+          [(merge-deep existing-map style-map)
+           (when doc-map
+             (diff-deep-doc (str doc-string " specified :style " style-name)
+                            doc-map
+                            existing-map
+                            style-map)) nil]
+          [existing-map doc-map (str "Style '" style-name "' not found!")])))))
 
 ;;
 ;; # File Access
 ;;
 
-(defn file-line-seq-resource
-  "Turn the lines in a file contained in a .jar file
+#?(:clj
+     (defn file-line-seq-file
+       "Turn the lines in a file from the filesystem    
    into a seq of lines."
-  [filename]
-  (let [r (clojure.java.io/resource filename)]
-    (line-seq (BufferedReader. (java.io.InputStreamReader.
-                                 (clojure.java.io/input-stream r))))))
-
-(defn file-line-seq-file
-  "Turn the lines in a file from the filesystem    
-   into a seq of lines."
-  [filename]
-  (line-seq (BufferedReader. (FileReader. filename))))
+       [filename]
+       (line-seq (BufferedReader. (FileReader. filename)))))
 
 ;;
 ;; # Configuration Utilities
@@ -954,28 +988,32 @@
 (defn get-config-from-file
   "If there is a :config key in the opts, read in a map from that file."
   ([filename optional?]
-   (when filename
-     (try
-       (let [lines (file-line-seq-file filename)
-             opts-file (clojure.edn/read-string (apply str lines))]
-         [opts-file nil filename])
-       (catch Exception
-              e
-              (if optional?
-                nil
-                [nil
-                 (str "Unable to read configuration from file " filename
-                      " because " e) filename])))))
+   #?(:clj (when filename
+             (try
+               (let [lines (file-line-seq-file filename)
+                     opts-file (clojure.edn/read-string (apply str lines))]
+                 [opts-file nil filename])
+               (catch
+                 #?(:clj Exception
+                    :cljs :default)
+                 e
+                 (if optional?
+                   nil
+                   [nil
+                    (str "Unable to read configuration from file " filename
+                         " because " e) filename]))))
+      :cljs nil))
   ([filename] (get-config-from-file filename nil)))
-                   
+
 
 (defn get-config-from-map
   "If there is a :config-map key in the opts, read in a map from that string."
   [map-string]
   (when map-string
     (try
-      (let [opts-map (clojure.edn/read-string map-string)] [opts-map nil])
-      (catch Exception
+      (let [opts-map (read-string map-string)] [opts-map nil])
+      (catch #?(:clj Exception
+                :cljs :default)
              e
              [nil
               (str "Unable to read configuration from map" map-string
@@ -1048,6 +1086,7 @@
   "Do a single new map. Returns [updated-map new-doc-map error-vec]
   Depends on existing-map to be the full, current options map!"
   [doc-string doc-map existing-map new-map]
+  #_(println "config-and-validate:" new-map)
   (if new-map
     (let [errors (validate-options new-map doc-string)
           ; do style first, so other things in new-map can override it
@@ -1079,8 +1118,10 @@
         ;
         ; $HOME/.zprintrc
         ;
-        home (System/getenv "HOME")
-        file-separator (System/getProperty "file.separator")
+        home #?(:clj (System/getenv "HOME")
+                :cljs nil)
+        file-separator #?(:clj (System/getProperty "file.separator")
+                          :cljs nil)
         zprintrc-file (str home file-separator zprintrc)
         [opts-rcfile errors-rcfile rc-filename]
           (when (and home file-separator)
@@ -1093,7 +1134,8 @@
         ;
         ; environment variables -- requires zprint on front
         ;
-        env-map (cs/read-system-env)
+        env-map #?(:clj (cs/read-system-env)
+                   :cljs nil)
         env-and-default-map (merge-existing {:zprint default-map} env-map)
         new-env-map (diff-map default-map (:zprint env-and-default-map))
         new-env-map (update-fn-map new-env-map env-map)
@@ -1106,7 +1148,8 @@
         ;
         ; System properties -- requires zprint on front
         ;
-        prop-map (cs/read-system-props)
+        prop-map #?(:clj (cs/read-system-props)
+                    :cljs nil)
         prop-and-default-map (merge-existing {:zprint default-map} prop-map)
         new-prop-map (diff-map default-map (:zprint prop-and-default-map))
         new-prop-map (update-fn-map new-prop-map prop-map)
@@ -1119,7 +1162,8 @@
         ;
         ; --config FILE
         ;
-        config-filename (:config cli-opts)
+        config-filename #?(:clj (:config cli-opts)
+                           :cljs nil)
         [opts-configfile errors-configfile config-filename]
           (when config-filename (get-config-from-file zprintrc-file))
         [updated-map new-doc-map config-errors]

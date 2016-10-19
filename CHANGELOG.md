@@ -1,7 +1,37 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.2.4 - 2016-10-06
+## 0.2.7 - 2016-10-31
+
+### Changed
+
+* Changed hang-expand to 4.0 most everywhere
+* Fixed bug where -> affected :arg1 status of more than immediate args
+* Changed fn-map of -> and ->> to :none-body, and catch to :arg2
+* Fixed issue #1 with incorrect indent on 3rd arg to (fn ...)
+* Considerable changes to support Clojurescript.  All files now .cljc
+* Added {:file {:left-space :keep}} or :drop to handle spaces on the
+  left of function definitions.
+* {:parse-string? true} will always trim spaces off of what is being parsed.
+* (:parse-string-all? true} will parse multiple forms in one string.  This
+  does not support ;!zprint {<options-map>} comments.
+
+### Removed
+
+### Fixed
+
+## 0.2.6 - 2016-10-10
+
+### Changed
+
+* Changes to support :reader-cond {:force-nl? boolean}
+* Added defrecord to function categorization.
+
+### Removed
+
+### Fixed
+
+## 0.2.5 - 2016-10-06
 
 ### Changed
 

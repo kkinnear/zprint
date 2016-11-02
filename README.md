@@ -6,13 +6,7 @@ either embedded in a larger codebase, or as a useful utility at the
 repl.  See [lein-zprint][leinzprint] to use the zprint library to
 reformat your source files.
 
-------------------------------
-### For the present, please consider this ALPHA quality software.
-
-It needs a few more people to beat on it before it is ready for
-prime time.
-
-------------------------------
+As of version 0.2.7, zprint include experimental support for Clojurescript!
 
 Zprint is designed to be a single pretty printer to use for code
 and data structures.
@@ -31,10 +25,10 @@ grasp its underlying structure.
 You can see the features available in zprint below, but the major
 goals for zprint are:
 
-* Reformat (pretty print) Clojure code, completely ignoring any
-  existing white space.  Fit the result as strictly as possible within 
-  a specified margin, while using the vertical space most 
-  efficiently.   
+* Reformat (pretty print) Clojure and Clojurescript code, completely 
+  ignoring any existing white space within functions.  Fit the result 
+  as strictly as possible within a specified margin, while using the 
+  vertical space most efficiently.   
 
   For example, here is a before and after:
 
@@ -104,9 +98,10 @@ __Leiningen ([via Clojars](http://clojars.org/zprint))__
 In addition to meeting the goals listed above, zprint has the 
 following specific features:
 
-* Prints function definitions at the repl (including clojure.core functions)
+* Prints function definitions at the Clojure repl (including clojure.core functions)
 * Prints s-expressions (EDN structures) at the repl
 * Processes Clojure source files through lein-zprint
+* Support Clojure and Clojurescript
 * Competitive performance
 * Highly configurable, with an intuitive function classification scheme
 * Respects the right margin specification
@@ -136,7 +131,8 @@ The API for zprint is small.  A simple example:
  :c (a pretty long list of symbols)}
 ```
 
-The basic API is:
+The basic API (except for the `-fn` variants) is supported
+in both Clojure and Clojurescript:
 
 ```clojure
 ;; The basic call uses defaults, prints to stdout
@@ -149,11 +145,11 @@ The basic API is:
 (zprint x <options>)
 
 ;; Format a function to stdout (accepts arguments as above)
-(zprint-fn <fn-name>)
+(zprint-fn <fn-name>)        ; Clojure only
 
 ;; Output to a string instead of stdout
 (zprint-str x)
-(zprint-fn-str <fn-name>)
+(zprint-fn-str <fn-name>)    ; Clojure only
 
 ;; Colorize output for an ANSI terminal
 ;;
@@ -161,9 +157,9 @@ The basic API is:
 ;;   all due to the github flavored markdown.
 ;;
 (czprint x)
-(czprint-fn <fn-name>)
+(czprint-fn <fn-name>)       ; Clojure only
 (czprint-str x)
-(czprint-fn-str <fn-name>)
+(czprint-fn-str <fn-name>)   ; Clojure only
 ```
 
 If `<width>` is an integer, it is assumed to be a the width.  If it
@@ -178,12 +174,14 @@ If you need to refresh your memory for the API while at the repl, try:
 
 Note that zprint completely ignores all whitespace and line breaks
 in the function definition -- the formatting above is entirely
-independent of the source of the function.
+independent of the source of the function.  When using `lein-zprint`
+to format source files, whitespace in the file between function definitions
+is preserved.
 
 Zprint has two fundemental regimes -- formatting s-expressions, or parsing
 a string and formatting the results of the parsing.  When the `-fn` versions
 of the API are used, zprint acquires the source of the function, parses it,
-and formats the result.  
+and formats the result at the repl.  
 
 ### Support
 
@@ -200,9 +198,12 @@ This will assist me a great deal in reproducing and working on the issue.  Thank
 
 ### Acknowledgements
 
-At the core of `zprint` is the `rewrite-clj` library by Yannick Scherer, 
-which will parse Clojure source into a zipper.  It works great!  I would
-not have attempted `zprint` if `rewrite-clj` didn't exist to build upon.
+At the core of `zprint` is the `rewrite-clj` library by Yannick
+Scherer, which will parse Clojure source into a zipper.  This is a
+great library!  I would not have attempted `zprint` if `rewrite-clj`
+didn't exist to build upon.  The Clojurescript port relies on Magnus
+Rundberget's port of `rewrite-clj` to Clojurescript, `rewrite-cljs`.
+It too worked with no issues when porting to Clojurescript!
 
 ### Another pretty printer
 

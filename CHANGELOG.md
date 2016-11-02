@@ -1,13 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.2.7 - 2016-10-31
+## 0.2.7 - 2016-11-1
 
 ### Changed
 
 * Changed hang-expand to 4.0 most everywhere
 * Fixed bug where -> affected :arg1 status of more than immediate args
-* Changed fn-map of -> and ->> to :none-body, and catch to :arg2
+* Changed fn-map of -> to :none-body, and catch to :arg2
 * Fixed issue #1 with incorrect indent on 3rd arg to (fn ...)
 * Considerable changes to support Clojurescript.  All files now .cljc
 * Added {:file {:left-space :keep}} or :drop to handle spaces on the

@@ -3,6 +3,7 @@
 /checkouts
 /src/zprint/repl.clj
 /src/zprint/repl.cljc
+/src/zprint/log.txt
 pom.xml
 pom.xml.asc
 *.jar

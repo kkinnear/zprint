@@ -1,12 +1,11 @@
-(ns
-  zprint.core-test
-  (:require
-   [expectations :refer :all]
-   [zprint.core :refer :all]
-   [zprint.zprint :refer :all]
-   [zprint.config :refer :all :exclude
-    [set-options! configure-all! get-options]]
-   [clojure.repl :refer :all]))
+(ns zprint.core-test
+    (:require
+     [expectations :refer :all]
+     [zprint.core :refer :all]
+     [zprint.zprint :refer :all]
+     [zprint.config :refer :all :exclude
+      [set-options! configure-all! get-options]]
+     [clojure.repl :refer :all]))
 
 ;;
 ;; # Anonymous Function Tests
@@ -92,17 +91,14 @@
         :bbbbbbbbbbbbbbb :ccccccccccccc
         :ddddddddddddddd :eeeeeeeeeeeeeee
         :fffffffffffffffff :ggggggggggggg)
-  (list
-    (list :aaaaaaaaaaaaaaaaaa
-          :bbbbbbbbbbbbbbb :ccccccccccccc
-          :ddddddddddddddd :eeeeeeeeeeeeeee
-          :fffffffffffffffff :ggggggggggggg))
-  (list
-    (list
-      (list :aaaaaaaaaaaaaaaaaa
-            :bbbbbbbbbbbbbbb :ccccccccccccc
-            :ddddddddddddddd :eeeeeeeeeeeeeee
-            :fffffffffffffffff :ggggggggggggg))))
+  (list (list :aaaaaaaaaaaaaaaaaa
+              :bbbbbbbbbbbbbbb :ccccccccccccc
+              :ddddddddddddddd :eeeeeeeeeeeeeee
+              :fffffffffffffffff :ggggggggggggg))
+  (list (list (list :aaaaaaaaaaaaaaaaaa
+                    :bbbbbbbbbbbbbbb :ccccccccccccc
+                    :ddddddddddddddd :eeeeeeeeeeeeeee
+                    :fffffffffffffffff :ggggggggggggg))))
 
 (def x3 (source-fn 'testfn3))
 (expect (read-string x3) (read-string (zprint-str x3 {:parse-string? true})))
@@ -369,3 +365,15 @@
           "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
           {:parse-string-all? true,
            :parse {:left-space :drop, :interpose false}}))
+
+(expect
+  "(defn x [] (println x))\n(defn y\n  []\n  (println y)\n  (println z)\n  (println a)\n  (println b)\n  (println c)\n  (println f)\n  (println g)\n  (println h))"
+  (zprint-str
+    "(defn x [] (println x))\n    (defn y [] (println y) (println z) (println a) (println b) (println c) (println f) (println g) (println h))"
+    {:parse-string-all? true, :parse {:left-space :drop, :interpose false}}))
+
+(expect
+  "(defn x [] (println x))\n    (defn y\n      []\n      (println y)\n      (println z)\n      (println a)\n      (println b)\n      (println c)\n      (println f)\n      (println g)\n      (println h))"
+  (zprint-str
+    "(defn x [] (println x))\n    (defn y [] (println y) (println z) (println a) (println b) (println c) (println f) (println g) (println h))"
+    {:parse-string-all? true, :parse {:left-space :keep, :interpose false}}))

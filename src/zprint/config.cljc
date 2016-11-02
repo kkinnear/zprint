@@ -1,5 +1,4 @@
-(ns
-  zprint.config
+(ns zprint.config
   #?(:cljs [:require-macros [schema.core :refer [defschema]]])
   #?(:clj [:refer-clojure :exclude [read-string]])
   (:require
@@ -33,7 +32,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.1.1")))
+          :cljs "0.2.8")))
 
 ;;
 ;; # External Configuration
@@ -55,9 +54,9 @@
 
 (def explain-hide-keys
   [:configured? :dbg-print? :dbg? :do-in-hang? :drop? :dbg-ge :file? :spaces?
-   :process-bang-zprint? :trim-comments?
-   :zipper? :indent [:object :wrap-after-multi? :wrap-coll?]
-   [:reader-cond :comma?] [:pair :justify-hang :justify-tuning]
+   :process-bang-zprint? :trim-comments? :zipper? :indent
+   [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
+   [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning]
    [:extend :hang-diff :hang-expand :hang?] :tuning])
@@ -228,7 +227,8 @@
 ;;
 
 (def zfnstyle
-  {"let" :binding,
+  {"ns" :arg1,
+   "let" :binding,
    "if" :arg1-body,
    "if-not" :arg1-body,
    "when" :arg1-body,
@@ -302,8 +302,8 @@
    :indent 0,
    :max-depth 1000,
    :max-length 1000,
-   :process-bang-zprint? nil
-   :trim-comments? nil
+   :process-bang-zprint? nil,
+   :trim-comments? nil,
    :style nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
             :hang-flow 1.1,
@@ -324,6 +324,7 @@
    :color-map {:paren :green,
                :bracket :purple,
                :brace :red,
+               :deref :red,
                :hash-brace :red,
                :hash-paren :green,
                :comment :green,
@@ -339,6 +340,7 @@
    :uneval {:color-map {:paren :yellow,
                         :bracket :yellow,
                         :brace :yellow,
+                        :deref :yellow,
                         :hash-brace :yellow,
                         :hash-paren :yellow,
                         :comment :green,
@@ -357,12 +359,12 @@
    :set {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
    :object {:indent 1, :wrap-coll? true, :wrap-after-multi? true},
    :pair-fn
-     {:indent 2, :hang? true, :hang-expand 4.0, :hang-size 10, :hang-diff 1},
+     {:indent 2, :hang? true, :hang-expand 2.0, :hang-size 10, :hang-diff 1},
    :list {:indent-arg nil,
           :indent 2,
           :pair-hang? true,
           :hang? true,
-          :hang-expand 4.0,
+          :hang-expand 2.0,
           :hang-diff 1,
           :hang-size 100,
           :constant-pair? true,
@@ -401,7 +403,7 @@
                  :key-order nil},
    :binding {:indent 2,
              :hang? true,
-             :hang-expand 4.0,
+             :hang-expand 2.0,
              :hang-diff 1,
              :justify? false,
              :justify-hang {:hang-expand 5},
@@ -668,17 +670,17 @@
 
 (defschema keep-drop-schema (s/enum :keep :drop))
 
-(defschema
-  fn-type
-  "An enum of the possible function types"
-  (s/enum :binding :arg1
-          :arg1-body :arg1-pair-body
-          :arg1-pair :pair
-          :hang :extend
-          :arg1-extend-body :arg1-extend
-          :fn :arg1-> :noarg1-body
-          :arg2 :arg2-pair
-          :none :none-body))
+(defschema fn-type
+           "An enum of the possible function types"
+           (s/enum :binding
+                   :arg1 :arg1-body
+                   :arg1-pair-body :arg1-pair
+                   :pair :hang
+                   :extend :arg1-extend-body
+                   :arg1-extend :fn
+                   :arg1-> :noarg1-body
+                   :arg2 :arg2-pair
+                   :none :none-body))
 
 ;;
 ;; There is no schema for possible styles, because people
@@ -700,23 +702,23 @@
 (defschema keyword-or-nil-schema (s/conditional nil? s/Any :else s/Keyword))
 
 
-(defschema
-  color-map
-  {(s/optional-key :paren) color-schema,
-   (s/optional-key :bracket) color-schema,
-   (s/optional-key :brace) color-schema,
-   (s/optional-key :hash-brace) color-schema,
-   (s/optional-key :hash-paren) color-schema,
-   (s/optional-key :comment) color-schema,
-   (s/optional-key :fn) color-schema,
-   (s/optional-key :user-fn) color-schema,
-   (s/optional-key :string) color-schema,
-   (s/optional-key :keyword) color-schema,
-   (s/optional-key :number) color-schema,
-   (s/optional-key :uneval) color-schema,
-   (s/optional-key :nil) color-schema,
-   (s/optional-key :quote) color-schema,
-   (s/optional-key :none) color-schema})
+(defschema color-map
+           {(s/optional-key :paren) color-schema,
+            (s/optional-key :bracket) color-schema,
+            (s/optional-key :brace) color-schema,
+            (s/optional-key :deref) color-schema,
+            (s/optional-key :hash-brace) color-schema,
+            (s/optional-key :hash-paren) color-schema,
+            (s/optional-key :comment) color-schema,
+            (s/optional-key :fn) color-schema,
+            (s/optional-key :user-fn) color-schema,
+            (s/optional-key :string) color-schema,
+            (s/optional-key :keyword) color-schema,
+            (s/optional-key :number) color-schema,
+            (s/optional-key :uneval) color-schema,
+            (s/optional-key :nil) color-schema,
+            (s/optional-key :quote) color-schema,
+            (s/optional-key :none) color-schema})
 
 (defschema
   zprint-options-schema
@@ -900,30 +902,27 @@
        (apply str
          (interpose ", "
            (remove #(or (nil? %) (empty? %))
-             (conj
-               []
-               (try
-                 (s/validate zprint-options-schema (dissoc options :style-map))
-                 nil
-                 (catch
-                   #?(:clj Exception
-                      :cljs :default)
-                   e
-                   #?(:clj (if source-str
-                             (str "In " source-str
-                                  ", " (:cause (Throwable->map e)))
-                             (:cause (Throwable->map e)))
-                      :cljs (str (.-message e)))))
-               (when (not (constants (get-in options [:map :key-order])))
-                 (str "In " source-str
-                      " :map :key-order were not all constants:"
-                        (get-in options [:map :key-order])))
-               (when (not (constants (get-in options
-                                             [:reader-cond :key-order])))
-                 (str " In " source-str
-                      " :reader-cond :key-order were not all constants:"
-                        (get-in options [:reader-cond :key-order])))
-               (validate-style-map options))))))))
+             (conj []
+                   (try (s/validate zprint-options-schema
+                                    (dissoc options :style-map))
+                        nil
+                        (catch #?(:clj Exception
+                                  :cljs :default) e
+                          #?(:clj (if source-str
+                                    (str "In " source-str
+                                         ", " (:cause (Throwable->map e)))
+                                    (:cause (Throwable->map e)))
+                             :cljs (str (.-message e)))))
+                   (when (not (constants (get-in options [:map :key-order])))
+                     (str "In " source-str
+                          " :map :key-order were not all constants:"
+                            (get-in options [:map :key-order])))
+                   (when (not (constants (get-in options
+                                                 [:reader-cond :key-order])))
+                     (str " In " source-str
+                          " :reader-cond :key-order were not all constants:"
+                            (get-in options [:reader-cond :key-order])))
+                   (validate-style-map options))))))))
   ([options] (validate-options options nil)))
 
 ;;
@@ -989,19 +988,16 @@
   "If there is a :config key in the opts, read in a map from that file."
   ([filename optional?]
    #?(:clj (when filename
-             (try
-               (let [lines (file-line-seq-file filename)
-                     opts-file (clojure.edn/read-string (apply str lines))]
-                 [opts-file nil filename])
-               (catch
-                 #?(:clj Exception
-                    :cljs :default)
-                 e
-                 (if optional?
-                   nil
-                   [nil
-                    (str "Unable to read configuration from file " filename
-                         " because " e) filename]))))
+             (try (let [lines (file-line-seq-file filename)
+                        opts-file (clojure.edn/read-string (apply str lines))]
+                    [opts-file nil filename])
+                  (catch #?(:clj Exception
+                            :cljs :default) e
+                    (if optional?
+                      nil
+                      [nil
+                       (str "Unable to read configuration from file " filename
+                            " because " e) filename]))))
       :cljs nil))
   ([filename] (get-config-from-file filename nil)))
 
@@ -1010,14 +1006,12 @@
   "If there is a :config-map key in the opts, read in a map from that string."
   [map-string]
   (when map-string
-    (try
-      (let [opts-map (read-string map-string)] [opts-map nil])
-      (catch #?(:clj Exception
-                :cljs :default)
-             e
-             [nil
-              (str "Unable to read configuration from map" map-string
-                   " because " e)]))))
+    (try (let [opts-map (read-string map-string)] [opts-map nil])
+         (catch #?(:clj Exception
+                   :cljs :default) e
+           [nil
+            (str "Unable to read configuration from map" map-string
+                 " because " e)]))))
 
 (defn strtf->boolean
   "If it is a string, and it is true or false (any case), turn it

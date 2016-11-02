@@ -1,5 +1,5 @@
 (ns zprint.sutil
-    (:require clojure.string #?@(:cljs [[cljs.reader :refer [read-string]]])))
+  (:require clojure.string #?@(:cljs [[cljs.reader :refer [read-string]]])))
 
 ;;
 ;; # Sexpression functions, see map at the end
@@ -166,14 +166,14 @@
   anything, so there isn't a particularly good sentinal here."
   ([obj val]
    (let [obj-term (-> (pr-str obj)
-                    (clojure.string/replace #"^\#object\[" "")
-                    (clojure.string/split #" " 3))]
+                      (clojure.string/replace #"^\#object\[" "")
+                      (clojure.string/split #" " 3))]
      [(read-string (first obj-term)) (second obj-term) val]))
   ([obj]
    (let [obj-term (-> (pr-str obj)
-                    (clojure.string/replace #"^\#object\[" "")
-                    (clojure.string/replace #"\]$" "")
-                    (clojure.string/split #" " 3))]
+                      (clojure.string/replace #"^\#object\[" "")
+                      (clojure.string/replace #"\]$" "")
+                      (clojure.string/split #" " 3))]
      [(read-string (first obj-term)) (second obj-term)
       (read-string (nth obj-term 2))])))
 

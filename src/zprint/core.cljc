@@ -1,5 +1,4 @@
-(ns
-  zprint.core
+(ns zprint.core
   ;#?@(:cljs [[:require-macros [zprint.macros :refer [dbg dbg-pr dbg-form
   ;dbg-print]]]])
   (:require
@@ -144,23 +143,22 @@
   "Do a basic zprint and output the style vector and the options used for
   further processing: [<style-vec> options]"
   [coll options]
-  (let [input
-          (cond
-            (:zipper? options) #?(:clj (if (zipper? coll)
-                                         coll
-                                         (throw
-                                           (#?(:clj Exception.
-                                               :cljs js/Error.)
-                                            (str "Collection is not a zipper"
-                                                 " yet :zipper? specified!"))))
-                                  :cljs coll)
-            (:parse-string? options) (if (string? coll)
-                                       (get-zipper options coll)
-                                       (throw
-                                         (#?(:clj Exception.
-                                             :cljs js/Error.)
-                                          (str "Collection is not a string yet"
-                                               " :parse-string? specified!")))))
+  (let [input (cond
+                (:zipper? options)
+                  #?(:clj (if (zipper? coll)
+                            coll
+                            (throw (#?(:clj Exception.
+                                       :cljs js/Error.)
+                                    (str "Collection is not a zipper"
+                                         " yet :zipper? specified!"))))
+                     :cljs coll)
+                (:parse-string? options)
+                  (if (string? coll)
+                    (get-zipper options coll)
+                    (throw (#?(:clj Exception.
+                               :cljs js/Error.)
+                            (str "Collection is not a string yet"
+                                 " :parse-string? specified!")))))
         z-type (if input :zipper :sexpr)
         input (or input coll)]
     (if (or (nil? input) (:drop? options))
@@ -189,11 +187,95 @@
 
 (declare get-docstring-spec)
 
+(defn process-rest-options
+  "Take some internal-options and the & rest of a zprint/czprint
+  call and figure out the options and width and all of that, but
+  stop short of integrating these values into the existing options
+  that show up with (get-options). Note that internal-options MUST
+  NOT be a full options map.  It needs to be just the options that
+  have been requested for this invocation.  Does auto-width if that
+  is requested, and determines if there are 'special-options', which
+  may short circuit the other options processing. 
+  Returns [special-option rest-options]"
+  [internal-options [width-or-options options]]
+  #(println "process-rest-options: internal-options:" internal-options
+            "width-or-options:" width-or-options
+            "options:" options)
+  #_(def prio internal-options)
+  #_(def prwoo width-or-options)
+  #_(def pro options)
+  (cond
+    (= width-or-options :default) [:default (get-default-options)]
+    :else
+      (let [[width-or-options special-option] (if (#{:explain :support
+                                                     :explain-justified :help}
+                                                   width-or-options)
+                                                [nil width-or-options]
+                                                [width-or-options nil])
+            configure-errors (when-not (:configured? (get-options))
+                               (configure-all!))
+            width (when (number? width-or-options) width-or-options)
+            rest-options (cond (and width (map? options)) options
+                               (map? width-or-options) width-or-options)
+            width-map (if width {:width width} {})
+            new-options (merge-deep rest-options width-map internal-options)
+            auto-width (when (and (not width)
+                                  ; check both new-options and already
+                                  ; configured ones
+                                  (:auto-width?
+                                   new-options
+                                   (:auto-width? (get-options))))
+                         (let [actual-width
+                                 #?(:clj (#'table.width/detect-terminal-width)
+                                    :cljs nil)]
+                           (when (number? actual-width) {:width actual-width})))
+            new-options
+              (if auto-width (merge-deep new-options auto-width) new-options)
+            #_(def nopt new-options)]
+        [special-option new-options])))
+
 (defn determine-options
-  "Take the & rest of a zprint/czprint call and figure out the options
-  and width and all of that.  Does auto-width if that is requested, and
-  determines if there are 'special-options', which may short circuit the
-  other options processing. Returns [special-option actual-options]"
+  "Take some internal-options and the & rest of a zprint/czprint
+  call and figure out the options and width and all of that. Note
+  that internal-options MUST NOT be a full options map.  It needs
+  to be just the options that have been requested for this invocation.
+  Does auto-width if that is requested, and determines if there are
+  'special-options', which may short circuit the other options
+  processing. Returns [special-option actual-options]"
+  [rest-options]
+  #(println "determine-options: rest-options:" rest-options)
+  #_(def dro rest-options)
+  (let [; Do what config-and-validate does, minus the doc-map
+        configure-errors (when-not (:configured? (get-options))
+                           (configure-all!))
+        errors (validate-options rest-options)
+        ; updated-map is the holder of the actual configuration
+        ; as of this point
+        [updated-map _ style-errors]
+          (apply-style nil nil (get-options) rest-options)
+        errors (if style-errors (str errors " " style-errors) errors)
+        combined-errors
+          (str (when configure-errors
+                 (str "Global configuration errors: " configure-errors))
+               (when errors (str "Option errors in this call: " errors)))
+        actual-options (if (not (empty? combined-errors))
+                         (throw (#?(:clj Exception.
+                                    :cljs js/Error.)
+                                 combined-errors))
+                         (config/add-calculated-options
+                           (merge-deep updated-map rest-options)))]
+    #_(def dout actual-options)
+    ; actual-options is a complete options-map
+    actual-options))
+
+(defn determine-options-old
+  "Take some internal-options and the & rest of a zprint/czprint
+  call and figure out the options and width and all of that. Note
+  that internal-options MUST NOT be a full options map.  It needs
+  to be just the options that have been requested for this invocation.
+  Does auto-width if that is requested, and determines if there are
+  'special-options', which may short circuit the other options
+  processing. Returns [special-option actual-options]"
   [internal-options [width-or-options options]]
   #(println "determine-options: internal-options:" internal-options
             "width-or-options:" width-or-options
@@ -203,7 +285,6 @@
   #_(def do options)
   (cond
     (= width-or-options :default) [:default (get-default-options)]
-    (= width-or-options :parse-string-all?) [:parse-string-all? nil]
     :else
       (let [[width-or-options special-option] (if (#{:explain :support
                                                      :explain-justified :help}
@@ -217,19 +298,23 @@
                           (map? width-or-options) width-or-options)
             width-map (if width {:width width} {})
             new-options (merge-deep options width-map internal-options)
-            auto-width
-              (when (and
-                      (not width)
-                      (:auto-width? new-options (:auto-width? (get-options))))
-                (let [actual-width #?(:clj
-                                        (#'table.width/detect-terminal-width)
-                                      :cljs nil)]
-                  (when (number? actual-width) {:width actual-width})))
+            auto-width (when (and (not width)
+                                  ; check both new-options and already
+                                  ; configured ones
+                                  (:auto-width?
+                                   new-options
+                                   (:auto-width? (get-options))))
+                         (let [actual-width
+                                 #?(:clj (#'table.width/detect-terminal-width)
+                                    :cljs nil)]
+                           (when (number? actual-width) {:width actual-width})))
             new-options
               (if auto-width (merge-deep new-options auto-width) new-options)
             #_(def nopt new-options)
             ; Do what config-and-validate does, minus the doc-map
             errors (validate-options new-options)
+            ; updated-map is the holder of the actual configuration
+            ; as of this point
             [updated-map _ style-errors]
               (apply-style nil nil (get-options) new-options)
             errors (if style-errors (str errors " " style-errors) errors)
@@ -244,6 +329,7 @@
                              (config/add-calculated-options
                                (merge-deep updated-map new-options)))]
         #_(def dout [special-option actual-options])
+        ; actual-options is a complete options-map
         [special-option actual-options])))
 
 ;;
@@ -288,10 +374,10 @@
   :parse {:interpose } to be true instead of nil."
   [options]
   (-> (if (nil? (:interpose (:parse options)))
-        (assoc-in options [:parse :interpose] true)
-        options)
-    (dissoc :parse-string-all?)
-    (assoc :trim-comments? true)))
+          (assoc-in options [:parse :interpose] true)
+          options)
+      (dissoc :parse-string-all?)
+      (assoc :trim-comments? true)))
 
 ;;
 ;; # API Support
@@ -315,19 +401,20 @@
   not only a different code path, but a different default for 
   :parse {:interpose nil} to :interpose true"
   [internal-options coll & rest]
-  (let [[special-option actual-options] (determine-options internal-options
-                                                           rest)]
-    (if (:parse-string-all? actual-options)
+  (let [[special-option rest-options] (process-rest-options internal-options
+                                                            rest)]
+    (if (:parse-string-all? rest-options)
       (if (string? coll)
-        (process-multiple-forms (parse-string-all-options actual-options)
+        (process-multiple-forms (parse-string-all-options rest-options)
                                 zprint-str-internal
                                 ":parse-string-all? call"
                                 (edn* (p/parse-string-all coll)))
         (throw (#?(:clj Exception.
                    :cljs js/Error.)
                 (str ":parse-string-all? requires a string!"))))
-      (apply str
-        (map first (first (zprint* coll special-option actual-options)))))))
+      (let [actual-options (determine-options rest-options)]
+        (apply str
+          (map first (first (zprint* coll special-option actual-options))))))))
 
 (defn czprint-str-internal
   "Take a zipper or string and pretty print with color with fzprint, 
@@ -335,18 +422,19 @@
   not only a different code path, but a different default for 
   :parse {:interpose nil} to :interpose true"
   [internal-options coll & rest]
-  (let [[special-option actual-options] (determine-options internal-options
-                                                           rest)]
-    (if (:parse-string-all? actual-options)
+  (let [[special-option rest-options] (process-rest-options internal-options
+                                                            rest)]
+    (if (:parse-string-all? rest-options)
       (if (string? coll)
-        (process-multiple-forms (parse-string-all-options actual-options)
+        (process-multiple-forms (parse-string-all-options rest-options)
                                 czprint-str-internal
                                 ":parse-string-all? call"
                                 (edn* (p/parse-string-all coll)))
         (throw (#?(:clj Exception.
                    :cljs js/Error.)
                 (str ":parse-string-all? requires a string!"))))
-      (let [[cvec options] (zprint* coll special-option actual-options)
+      (let [actual-options (determine-options rest-options)
+            [cvec options] (zprint* coll special-option actual-options)
             #_(def cv cvec)
             cvec-wo-empty (remove #(empty? (first %)) cvec)
             str-style-vec (cvec-to-style-vec {:style-map no-style-map}
@@ -360,15 +448,13 @@
 (defn get-fn-source
   "Call source-fn, and if it isn't there throw an exception."
   [fn-name]
-  (or
-    (try #?(:clj (source-fn fn-name))
-         (catch #?(:clj Exception
-                   :cljs :default)
-                e
-                nil))
-    (throw (#?(:clj Exception.
-               :cljs js/Error.)
-            (str "No definition found for a function named: " fn-name)))))
+  (or (try #?(:clj (source-fn fn-name))
+           (catch #?(:clj Exception
+                     :cljs :default) e
+             nil))
+      (throw (#?(:clj Exception.
+                 :cljs js/Error.)
+              (str "No definition found for a function named: " fn-name)))))
 
 ;;
 ;; # User level printing functions
@@ -429,22 +515,20 @@
 #?(:clj (defmacro zprint-fn
           "Take a fn name, and print it."
           [fn-name & rest]
-          `(println
-             (apply zprint-str-internal
-               {:parse-string? true}
-               (get-fn-source '~fn-name)
-               ~@rest
-               []))))
+          `(println (apply zprint-str-internal
+                      {:parse-string? true}
+                      (get-fn-source '~fn-name)
+                      ~@rest
+                      []))))
 
 #?(:clj (defmacro czprint-fn
           "Take a fn name, and print it with syntax highlighting."
           [fn-name & rest]
-          `(println
-             (apply czprint-str-internal
-               {:parse-string? true, :fn-name '~fn-name}
-               (get-fn-source '~fn-name)
-               ~@rest
-               []))))
+          `(println (apply czprint-str-internal
+                      {:parse-string? true, :fn-name '~fn-name}
+                      (get-fn-source '~fn-name)
+                      ~@rest
+                      []))))
 
 ;;
 ;; # File operations
@@ -464,10 +548,8 @@
     (when-let [possible-options (second comment-split)]
       (try
         [(read-string possible-options) nil]
-        (catch
-          #?(:clj Exception
-             :cljs :default)
-          e
+        (catch #?(:clj Exception
+                  :cljs :default) e
           [nil
            (str "Unable to create zprint options map from: '" possible-options
                 "' found in !zprint directive number: " zprint-num
@@ -496,57 +578,73 @@
   element in the file.  The output is [next-options output-str zprint-num], 
   since reductions is used to call this function.  See process file-forms
   for what is actually done with the various :format values."
-  [options zprint-fn zprint-specifier [next-options _ indent zprint-num] form]
+  [rest-options
+   zprint-fn
+   zprint-specifier
+   [next-options _ indent zprint-num]
+   form]
   (let [comment? (zcomment? form)
-        whitespace? (whitespace? form)
-        [new-options error-str] (when (and comment? 
-	                                  (zero? indent)
-					  (:process-bang-zprint? options))
+        whitespace-form? (whitespace? form)
+        [new-options error-str] (when (and comment?
+                                           (zero? indent)
+                                           (:process-bang-zprint? rest-options))
                                   (get-options-from-comment (inc zprint-num)
                                                             (string form)))
-        space-count (when whitespace?
-                      (if (:interpose (:parse options))
+        ; Develop the internal-options we want to call the zprint-fn
+        ; with, and also an options map with those integrated we can use
+        ; to decide what we are doing ourselves. zprint-fn will integrate
+        ; them into the options map as well.
+        next-options
+          (if (zero? indent) next-options (assoc next-options :indent indent))
+        internal-options (if (or comment?
+                                 ;whitespace-form?
+                                 (empty? next-options))
+                           rest-options
+                           (merge-deep rest-options next-options))
+        decision-options (merge-deep (get-options) internal-options)
+        ; Now make decisions about things
+        space-count (when whitespace-form?
+                      (if (:interpose (:parse decision-options))
                         ; we are getting rid of all whitespace between expr
                         0
-                        (if (= (:left-space (:parse options)) :drop)
-                          ; we are getting rid of just spaces between expr
-                          (spaces? (zprint.zutil/string form))
-                          nil)))
-        drop? (not (nil? (and space-count
-                              (or (:interpose (:parse options))
-                                  (= (:left-space (:parse options)) :drop)))))
+                        (spaces? (zprint.zutil/string form))
+                        #_(if (= (:left-space (:parse decision-options)) :drop)
+                            ; we are getting rid of just spaces between expr
+                            (spaces? (zprint.zutil/string form))
+                            nil)))
+        drop? (not (not (and space-count
+                             (not (= :skip (:format next-options)))
+                             (or (:interpose (:parse decision-options))
+                                 (= (:left-space (:parse decision-options))
+                                    :drop)))))
         ; If this was a ;!zprint line, don't wrap it
-        internal-options
+        local-options
           (if new-options
             {:comment {:wrap? false}, :zipper? true, :file? true, :drop? drop?}
             {:zipper? true, :file? true, :drop? drop?})
-        internal-options (merge-deep options internal-options)
-        next-options
-          (if (zero? indent) next-options (assoc next-options :indent indent))
+        internal-options (merge-deep internal-options local-options)
+        #_(do (println "-----------------------")
+              (println "form:")
+              (prn (zprint.zutil/string (or (zprint.zutil/zfirst form) form)))
+              (println "space-count:" space-count)
+              (println "indent:" indent)
+              (println "whitespace-form?:" whitespace-form?)
+              (println "interpose:" (:interpose (:parse decision-options)))
+              (println "left-space:" (:left-space (:parse decision-options)))
+              (println "new-options:" new-options)
+              (println "(:indent next-options):" (:indent next-options))
+              (println "internal-options:" internal-options)
+              (println "next-options:" next-options))
         output-str
           ; Should we zprint this form?
-          (if (or (= :off (:format (get-options)))
-                  (and (not (or comment? whitespace?))
-                       (= :skip (:format next-options))))
+          (if (or (= :off (:format decision-options))
+                  (and (not (or comment? whitespace-form?))
+                       ; used to be next-options but if not a comment then
+                       ; they are in internal-options
+                       (= :skip (:format internal-options))))
             (string form)
-            (do #_(println "form:")
-                #_(prn (zprint.zutil/string (or (zprint.zutil/zfirst form)
-                                                form)))
-                #_(println "space-count:" space-count)
-                #_(println "indent:" indent)
-                #_(println "(:indent next-options):" (:indent next-options))
-                #_(println "internal-options:" internal-options)
-                #_(println "next-options:" next-options)
-                ; call zprint-str-internal or czprint-str-internal
-                (zprint-fn
-                  (if (or comment?
-                          ;whitespace?
-                          (empty? next-options))
-                    internal-options
-                    (do #_(def io internal-options)
-                        #_(def no next-options)
-                        (merge-deep internal-options next-options)))
-                  form)))
+            ; call zprint-str-internal or czprint-str-internal
+            (zprint-fn internal-options form))
         local? (or (= :skip (:format new-options))
                    (= :next (:format new-options)))]
     (when (and new-options (not local?))
@@ -555,7 +653,7 @@
                          " in " zprint-specifier)))
     (when error-str (println "Warning: " error-str))
     [(cond local? (merge-deep next-options new-options)
-           (or comment? whitespace?) next-options
+           (or comment? whitespace-form?) next-options
            :else {})
      output-str
      (or space-count 0)
@@ -605,22 +703,23 @@
   a file or a string containing multiple forms somewhere), and not 
   only format them for output but also handle comments containing 
   ;!zprint that affect the options map throughout the processing."
-  [options zprint-fn zprint-specifier forms]
-  (let [interpose-option (:interpose (:parse options))
+  [rest-options zprint-fn zprint-specifier forms]
+  (let [interpose-option (or (:interpose (:parse rest-options))
+                             (:interpose (:parse (get-options))))
         interpose-str
           (cond (or (nil? interpose-option) (false? interpose-option)) nil
                 (string? interpose-option) interpose-option
                 ; here is where :interpose true turns into :interpose "\n"
                 (true? interpose-option) "\n"
-                :else (throw
-                        (#?(:clj Exception.
-                            :cljs js/Error.)
-                         (str "Unsupported {:parse {:interpose value}}: "
-                              interpose-option))))
+                :else (throw (#?(:clj Exception.
+                                 :cljs js/Error.)
+                              (str "Unsupported {:parse {:interpose value}}: "
+                                   interpose-option))))
         seq-of-zprint-fn
-          (reductions (partial process-form options zprint-fn zprint-specifier)
-                      [{} "" 0 0]
-                      (zmap-all identity forms))
+          (reductions
+            (partial process-form rest-options zprint-fn zprint-specifier)
+            [{} "" 0 0]
+            (zmap-all identity forms))
         #_(def sozf seq-of-zprint-fn)
         seq-of-strings (map second seq-of-zprint-fn)]
     #_(def sos seq-of-strings)

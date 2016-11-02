@@ -400,35 +400,35 @@
 
 (expect [3 0] (zprint.zprint/line-lengths {} 3 [["; stuff" :none :comment]]))
 
-(expect
-  [14 30 20]
-  (zprint.zprint/line-lengths
-    {}
-    12
-    [[":c" :magenta :element] ["\n            " :none :whitespace]
-     ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
-     ["\"stuff\"" :red :element] [")" :green :right]
-     ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
+(expect [14 30 20]
+        (zprint.zprint/line-lengths
+          {}
+          12
+          [[":c" :magenta :element] ["\n            " :none :whitespace]
+           ["(" :green :left] ["identity" :blue :element]
+           [" " :none :whitespace] ["\"stuff\"" :red :element]
+           [")" :green :right] ["\n            " :none :whitespace]
+           ["\"bother\"" :red :element]]))
 
-(expect
-  [2 30 20]
-  (zprint.zprint/line-lengths
-    {}
-    0
-    [[":c" :magenta :element] ["\n            " :none :whitespace]
-     ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
-     ["\"stuff\"" :red :element] [")" :green :right]
-     ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
+(expect [2 30 20]
+        (zprint.zprint/line-lengths
+          {}
+          0
+          [[":c" :magenta :element] ["\n            " :none :whitespace]
+           ["(" :green :left] ["identity" :blue :element]
+           [" " :none :whitespace] ["\"stuff\"" :red :element]
+           [")" :green :right] ["\n            " :none :whitespace]
+           ["\"bother\"" :red :element]]))
 
-(expect
-  [12 30 20]
-  (zprint.zprint/line-lengths
-    {}
-    12
-    [[";" :green :comment] ["\n            " :none :whitespace]
-     ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
-     ["\"stuff\"" :red :element] [")" :green :right]
-     ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
+(expect [12 30 20]
+        (zprint.zprint/line-lengths
+          {}
+          12
+          [[";" :green :comment] ["\n            " :none :whitespace]
+           ["(" :green :left] ["identity" :blue :element]
+           [" " :none :whitespace] ["\"stuff\"" :red :element]
+           [")" :green :right] ["\n            " :none :whitespace]
+           ["\"bother\"" :red :element]]))
 
 (expect "(;a\n list\n :b\n :c\n ;def\n  )"
         (zprint-str "(;a\nlist\n:b\n:c ;def\n)" {:parse-string? true}))
@@ -604,22 +604,22 @@
 ;; # Ordered Options in reader-conditionals
 ;;
 
-(expect "#?(:clj (list :c :d), :cljs (list :a :b))"
+(expect "#?(:clj (list :c :d) :cljs (list :a :b))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
                     {:parse-string? true,
                      :reader-cond {:force-nl? false, :sort? true}}))
 
-(expect "#?(:cljs (list :a :b), :clj (list :c :d))"
+(expect "#?(:cljs (list :a :b) :clj (list :c :d))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
                     {:parse-string? true,
                      :reader-cond {:force-nl? false, :sort? nil}}))
 
-(expect
-  "#?(:cljs (list :a :b), :clj (list :c :d))"
-  (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-              {:parse-string? true,
-               :reader-cond
-                 {:force-nl? false, :sort? nil, :key-order [:clj :cljs]}}))
+(expect "#?(:cljs (list :a :b) :clj (list :c :d))"
+        (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+                    {:parse-string? true,
+                     :reader-cond {:force-nl? false,
+                                   :sort? nil,
+                                   :key-order [:clj :cljs]}}))
 
 (expect "#?(:cljs (list :a :b)\n   :clj (list :c :d))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
@@ -627,12 +627,12 @@
                      :reader-cond
                        {:force-nl? true, :sort? nil, :key-order [:clj :cljs]}}))
 
-(expect
-  "#?(:clj (list :c :d), :cljs (list :a :b))"
-  (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-              {:parse-string? true,
-               :reader-cond
-                 {:force-nl? false, :sort? true, :key-order [:clj :cljs]}}))
+(expect "#?(:clj (list :c :d) :cljs (list :a :b))"
+        (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+                    {:parse-string? true,
+                     :reader-cond {:force-nl? false,
+                                   :sort? true,
+                                   :key-order [:clj :cljs]}}))
 
 ;;
 ;; # Rightmost in reader conditionals
@@ -643,7 +643,7 @@
                     40
                     {:parse-string? true}))
 
-(expect "#?(:cljs (list :a :b), :clj (list :c :d))"
+(expect "#?(:cljs (list :a :b) :clj (list :c :d))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
                     41
                     {:reader-cond {:force-nl? false}, :parse-string? true}))
@@ -893,3 +893,28 @@
     " (-> context (assoc ::error (throwable->ex-info t execution-id interceptor :error) ::stuff (assoc a-map :this-is-a-key :this-is-a-value)) (update-in [::suppressed] conj ex))"
     55
     {:parse-string? true}))
+
+;;
+;; Test equal size hang and flow should hang, particularly issue in
+;; fzprint-hang-remaining where it was messing that up unless hang-expand was 4.0
+;; instead of the 2.0.  This *should* hang up next to the do, not flow under the do.
+;;
+
+(expect
+  "(do (afunction :stuff t\n               :reallybother (:rejection-type ex)\n               :downtrodden-id bits-id)\n    (-> pretext\n        (assoc ::error (catchable->my-info u\n                                           pretext-id\n                                           sceptor\n                                           :error))\n        (update-in [::expressed] con ex)))"
+  (zprint-str
+    "(do (afunction :stuff t :reallybother (:rejection-type ex) :downtrodden-id bits-id) (-> pretext (assoc ::error (catchable->my-info u pretext-id sceptor :error)) (update-in [::expressed] con ex)))"
+    60
+    {:parse-string? true}))
+
+;;
+;; Test for the bug with not calculating the size of the left part of a pair
+;; correctly.  Shows up with commas in maps that fit on one line as the
+;; left part of a pair.
+;;
+
+(expect
+"(defn ctest20\n  ([query-string body]\n   (let [aabcdefghijklmnopqrstuvwxyzabcdefghijkllmnpqr @(http-get query-string\n                                                                  {:body body})]\n     nil)))"
+(zprint-str
+"(defn ctest20\n ([query-string body]\n   (let [aabcdefghijklmnopqrstuvwxyzabcdefghijkllmnpqr @(http-get query-string {:body body})]\n    \n   nil)))"
+{:parse-string? true}))

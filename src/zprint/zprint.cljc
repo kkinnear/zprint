@@ -1,5 +1,4 @@
-(ns
-  zprint.zprint
+(ns zprint.zprint
   #?@(:cljs [[:require-macros
               [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])
   (:require
@@ -66,23 +65,21 @@
   [fn-map f]
   (when (not (string? f))
     (let [f-str (str f)]
-      (or
-        (fn-map f-str)
-        (re-find #"clojure" f-str)
-        (if (symbol? f)
-          ; This is necessary because f can be a symbol that
-          ; resolve will have a problem with.  The obvious ones
-          ; were (ns-name <some-namespace>), but there are almost
-          ; certainly others.
-          (try
-            (or (re-find #"clojure"
-                         (str (:ns
-                               (meta #?(:clj (resolve f)
-                                        :cljs f)))))
-                (fn-map (name f)))
-            (catch #?(:clj Exception
-                      :cljs :default) e
-              nil)))))))
+      (or (fn-map f-str)
+          (re-find #"clojure" f-str)
+          (if (symbol? f)
+            ; This is necessary because f can be a symbol that
+            ; resolve will have a problem with.  The obvious ones
+            ; were (ns-name <some-namespace>), but there are almost
+            ; certainly others.
+            (try (or (re-find #"clojure"
+                              (str (:ns
+                                    (meta #?(:clj (resolve f)
+                                             :cljs f)))))
+                     (fn-map (name f)))
+                 (catch #?(:clj Exception
+                           :cljs :default) e
+                   nil)))))))
 
 (defn show-user-fn?
   "Show this thing as a user defined function?  Assumes that we
@@ -91,21 +88,19 @@
   (when (not (string? f))
     (let [f-str (str f)
           user-fn-map (:user-fn-map options)]
-      (or
-        (get user-fn-map f-str)
-        (if (symbol? f)
-          ; This is necessary because f can be a symbol that
-          ; resolve will have a problem with.  The obvious ones
-          ; were (ns-name <some-namespace>), but there are almost
-          ; certainly others.
-          (try
-            (or (not (empty? (str (:ns
-                                   (meta #?(:clj (resolve f)
-                                            :cljs f))))))
-                (get user-fn-map (name f)))
-            (catch #?(:clj Exception
-                      :cljs :default) e
-              nil)))))))
+      (or (get user-fn-map f-str)
+          (if (symbol? f)
+            ; This is necessary because f can be a symbol that
+            ; resolve will have a problem with.  The obvious ones
+            ; were (ns-name <some-namespace>), but there are almost
+            ; certainly others.
+            (try (or (not (empty? (str (:ns
+                                        (meta #?(:clj (resolve f)
+                                                 :cljs f))))))
+                     (get user-fn-map (name f)))
+                 (catch #?(:clj Exception
+                           :cljs :default) e
+                   nil)))))))
 
 (def right-separator-map {")" 1, "]" 1, "}" 1})
 
@@ -132,61 +127,67 @@
         hang-diff (or hang-diff 0)
         hang-expand (or hang-expand 1000.)
         hang-adjust (or hang-adjust general-hang-adjust)
-        #_(options
-            (if (and p-lines
-                     p-count
-                     (pos? p-count)
-                     (not (<= indent-diff hang-diff))
-                     (not (<= (/ (dec p-lines) p-count) hang-expand)))
-              (assoc options :dbg? true)
-              options))
+        #_(options (if (and p-lines
+                            p-count
+                            (pos? p-count)
+                            (not (<= indent-diff hang-diff))
+                            (not (<= (/ (dec p-lines) p-count) hang-expand)))
+                     (assoc options :dbg? true)
+                     options))
         options (if (or p-what b-what) (assoc options :dbg? true) options)
         result
           (if (not b-lines)
             true
-            (and
-              p-lines
-              ; Does the last line fit, including the collection ending stuff?
-              ; Do we really need this anymore?
-              (<= p-last-maxwidth (- width (fix-rightcnt rightcnt)))
-              ; Does it widest line fit?
-              ; Do we have a problem if the widest line has a rightcnt?
-              (<= p-maxwidth width)
-              ;      (<= p-maxwidth (- width (fix-rightcnt rightcnt)))
-              (or
-                (zero? p-lines)
-                (and
-                  ; do we have lines to operate on?
-                  (> b-lines 0)
-                  (> p-count 0)
-                  ; if the hang and the flow are the same size, why not hang?
-                  (if (and (= p-lines b-lines) hang-if-equal-flow?)
-                    true
-                    ; is the difference between the indents so small that
-                    ; we don't care?
-                    (and
-                      (if (<= indent-diff hang-diff)
-                        true
-                        ; Do the number of lines in the hang exceed the number
-                        ; of elements in the hang?
-                        (<= (/ (dec p-lines) p-count) hang-expand))
-                      (if hang-size (< p-lines hang-size) true)
-                      (let [factor
-                              (if (= fn-style :hang) hang-type-flow hang-flow)]
-                        ; if we have more than n lines, take the shortest
-                        (if (> p-lines hang-flow-limit)
-                          (<= (dec p-lines) b-lines)
-                          ; if we have less then n lines, we don't necessarily
-                          ; take the shortest
-                          ; once we did (dec p-lines) here, fwiw
-                          ; then we tried it w/out the dec, now we let you
-                          ; set it in :tuning.  The whole point of having a
-                          ; hang-adjust of -1 is to allow hangs when the
-                          ; number of lines in a hang is the same as the
-                          ; number of lines in a flow.
-                          ;(< (/ p-lines b-lines) factor)))))))]
-                          (< (/ (+ p-lines hang-adjust) b-lines)
-                             factor)))))))))]
+            (and p-lines
+                 ; Does the last line fit, including the collection ending
+                 ; stuff?
+                 ; Do we really need this anymore?
+                 (<= p-last-maxwidth (- width (fix-rightcnt rightcnt)))
+                 ; Does it widest line fit?
+                 ; Do we have a problem if the widest line has a rightcnt?
+                 (<= p-maxwidth width)
+                 ;      (<= p-maxwidth (- width (fix-rightcnt rightcnt)))
+                 (or (zero? p-lines)
+                     (and ; do we have lines to operate on?
+                          (> b-lines 0)
+                          (> p-count 0)
+                          ; if the hang and the flow are the same size, why not
+                          ; hang?
+                          (if (and (= p-lines b-lines) hang-if-equal-flow?)
+                            true
+                            ; is the difference between the indents so small
+                            ; that
+                            ; we don't care?
+                            (and (if (<= indent-diff hang-diff)
+                                   true
+                                   ; Do the number of lines in the hang exceed
+                                   ; the number
+                                   ; of elements in the hang?
+                                   (<= (/ (dec p-lines) p-count) hang-expand))
+                                 (if hang-size (< p-lines hang-size) true)
+                                 (let [factor (if (= fn-style :hang)
+                                                hang-type-flow
+                                                hang-flow)]
+                                   ; if we have more than n lines, take the
+                                   ; shortest
+                                   (if (> p-lines hang-flow-limit)
+                                     (<= (dec p-lines) b-lines)
+                                     ; if we have less then n lines, we don't
+                                     ; necessarily
+                                     ; take the shortest
+                                     ; once we did (dec p-lines) here, fwiw
+                                     ; then we tried it w/out the dec, now we
+                                     ; let you
+                                     ; set it in :tuning.  The whole point of
+                                     ; having a
+                                     ; hang-adjust of -1 is to allow hangs when
+                                     ; the
+                                     ; number of lines in a hang is the same as
+                                     ; the
+                                     ; number of lines in a flow.
+                                     ;(< (/ p-lines b-lines) factor)))))))]
+                                     (< (/ (+ p-lines hang-adjust) b-lines)
+                                        factor)))))))))]
     (dbg options
          (if result "++++++" "XXXXXX")
          "p-what" p-what
@@ -306,21 +307,21 @@
   comment size -- that is handled with the wrap-comments at the
   end."
   [options ind style-vec]
-  (let [length-vec (first
-                     ; this final accumulate-ll is to terminate the last line,
-                     ; the one in progress
-                     (let [count-comment? (:count? (:comment options))
-                           [_ _ just-eol? just-comment? :as result]
-                             (reduce (partial generate-ll count-comment?)
-                               [[] (if (coll? ind) (first ind) ind) nil nil]
-                               style-vec)]
-                       (if (and just-eol? (not just-comment?))
-                         result
-                         (accumulate-ll count-comment?
-                                        (assoc result 2 nil)
-                                        ""
-                                        nil
-                                        true))))]
+  (let [length-vec
+          (first ; this final accumulate-ll is to terminate the last line,
+                 ; the one in progress
+                 (let [count-comment? (:count? (:comment options))
+                       [_ _ just-eol? just-comment? :as result]
+                         (reduce (partial generate-ll count-comment?)
+                           [[] (if (coll? ind) (first ind) ind) nil nil]
+                           style-vec)]
+                   (if (and just-eol? (not just-comment?))
+                     result
+                     (accumulate-ll count-comment?
+                                    (assoc result 2 nil)
+                                    ""
+                                    nil
+                                    true))))]
     length-vec))
 
 (defn find-what
@@ -425,7 +426,8 @@
    "'" :quote,
    "`" :quote,
    "~" :quote,
-   "~@" :quote})
+   "~@" :quote,
+   "@" :deref})
 
 
 (defn zcolor-map
@@ -500,15 +502,19 @@
         local-roptions
           (c-r-pair commas? rightmost-pair? :rightmost local-options)
         arg-1 (fzprint* loptions ind lloc)
-        arg-1-lines (style-lines options ind arg-1)
+        [_ arg-1-max-width :as arg-1-lines] (style-lines options ind arg-1)
         ;     arg-1-fit-oneline? (and (not force-nl?)
         ;                             (fzfit-one-line loptions arg-1-lines))
         arg-1-fit-oneline? (fzfit-one-line loptions arg-1-lines)
         arg-1-fit? (or arg-1-fit-oneline?
-                       (when (not one-line?) (fzfit loptions arg-1-lines)))]
-    ; if arg-1 doesn't fit, maybe that's just how it is!
-    ; If we are in-hang, then we can bail, but otherwise, not.
-    (when (or arg-1-fit? (not in-hang?))
+                       (when (not one-line?) (fzfit loptions arg-1-lines)))
+        ; sometimes arg-1-max-width is nil because we fzprint* returned nil,
+        ; but we need to have something for later code to use as a number
+        arg-1-width (- (or arg-1-max-width 0) ind)]
+    ; If we don't *have* an arg1, no point in continuing...
+    ;  If arg-1 doesn't fit, maybe that's just how it is!
+    ;  If we are in-hang, then we can bail, but otherwise, not.
+    (when (and arg-1 (or arg-1-fit? (not in-hang?)))
       (cond
         (= (count pair) 1) (fzprint* roptions ind lloc)
         (= (count pair) 2)
@@ -521,12 +527,9 @@
             ;
             ; But now, we don't do hang if arg-1-fit-oneline? is false, since
             ; we won't use it.
-            (let [hanging-width
-                    (if justify-width justify-width (count (zstring lloc)))
-                  hanging-spaces (if justify-width
-                                   (inc (- justify-width
-                                           (count (zstring lloc))))
-                                   1)
+            (let [hanging-width (if justify-width justify-width arg-1-width)
+                  hanging-spaces
+                    (if justify-width (inc (- justify-width arg-1-width)) 1)
                   hanging-indent (+ 1 hanging-width ind)
                   flow-indent (+ indent ind)]
               (if (and (zstring lloc)
@@ -728,16 +731,15 @@
                      (merge-deep {:tuning (caller-options :justify-tuning)}))
                  options)]
         #_(def jo (conj jo [justify-width justify-options]))
-        (let [beginning (mapv-no-nil-too-big
-                          (when one-line? (- width ind))
-                          (partial fzprint-two-up
-                                   caller
-                                   justify-options
-                                   ind
-                                   commas?
-                                   justify-width
-                                   nil)
-                          (butlast coll))
+        (let [beginning (mapv-no-nil-too-big (when one-line? (- width ind))
+                                             (partial fzprint-two-up
+                                                      caller
+                                                      justify-options
+                                                      ind
+                                                      commas?
+                                                      justify-width
+                                                      nil)
+                                             (butlast coll))
               beginning-lines
                 (if one-line?
                   (style-lines options ind (apply concat beginning)))
@@ -1070,7 +1072,9 @@
           false
           (let [part (partition-all-2-nc options (zmap-right identity zloc))]
             #_(def fp part)
-            (dbg options "fzprint-pairs: partition:" (map zstring part))
+            (dbg options
+                 "fzprint-pairs: partition:"
+                 (map (comp zstring first) part))
             part))))))
 
 (defn fzprint-extend
@@ -1177,20 +1181,19 @@
                     (interpose [[" " :none :whitespace]] coll-print))
          _ (log-lines options "fzprint-flow-seq:" ind one-line)
          one-line-lines (style-lines options ind one-line)]
-     (dbg-form
-       options
-       "fzprint-flow-seq: exit:"
-       (if (and (not force-nl?) (fzfit-one-line options one-line-lines))
-         one-line
-         (apply concat-no-nil
-           (if (coll? ind)
-             (drop 1
-                   (interleave (map #(vector [(str "\n" (blanks %)) :none
-                                              :whitespace])
-                                 ind)
-                               coll-print))
-             (interpose [[(str "\n" (blanks ind)) :none :whitespace]]
-               coll-print)))))))
+     (dbg-form options
+               "fzprint-flow-seq: exit:"
+               (if (and (not force-nl?) (fzfit-one-line options one-line-lines))
+                 one-line
+                 (apply concat-no-nil
+                   (if (coll? ind)
+                     (drop 1
+                           (interleave (map #(vector [(str "\n" (blanks %))
+                                                      :none :whitespace])
+                                         ind)
+                                       coll-print))
+                     (interpose [[(str "\n" (blanks ind)) :none :whitespace]]
+                       coll-print)))))))
   ([options ind zloc-seq] (fzprint-flow-seq options ind zloc-seq nil)))
 
 (defn fzprint-hang-one
@@ -1261,15 +1264,14 @@
                    "fzprint-hang-one: ending: hang-count:" hang-count
                    "hanging:" (pr-str hanging)
                    "flow:" (pr-str flow))
-            hr-good? (and
-                       (:hang? (caller options))
-                       (good-enough? caller
-                                     options
-                                     :none-hang-one
-                                     hang-count
-                                     (- hindent findent)
-                                     hr-lines
-                                     fd-lines))]
+            hr-good? (and (:hang? (caller options))
+                          (good-enough? caller
+                                        options
+                                        :none-hang-one
+                                        hang-count
+                                        (- hindent findent)
+                                        hr-lines
+                                        fd-lines))]
         (if hr-good? hanging flow)))))
 
 ;;
@@ -1395,6 +1397,15 @@
                                          nil
                                          pair-seq)))))
         flow-lines (style-lines options findent flow)
+        #_(options (let [[_ _ _ b-what] flow-lines]
+                     (if b-what (assoc options :dbg? true) options)))
+        #_(dbg options
+               "fzprint-hang-remaining: *=*=*=*=*=*" (zstring zloc)
+               "hindent:" hindent
+               "findent:" findent
+               "caller:" caller
+               "hang?" hang?
+               "hang-diff" hang-diff)
         ; Now determine if there is any point in doing a hang, because
         ; if the flow is beyond the expand limit, there is really no
         ; chance that the hang is not beyond the expand limit.
@@ -1403,12 +1414,29 @@
         ;  Also need to account for the indent diffs.
         ; Would be nice to move this into a common routine, since this
         ; duplicates logic in good-enough?
+        ;
+        ; Yes, and this caused a proble when I put in the
+        ; hang-if-equal-flow? option in good-enough, so that now
+        ; we can't cancel the hang even though we are beyond the hang-expand
+        ; because the hang might be the same as the flow, and in that case
+        ; we don't really care how long the hang-expand is. We could make
+        ; this a feature, by having a large-ish hang-expand and having it
+        ; override hang-if-equal-flow.  If we do that, we have to reorder
+        ; the checks in good-enough to put the hang-expand check first.
+        ; I can't see any great reason for doing a flow if the hang and
+        ; flow are equal, though, so we won't do that now.  And this
+        ; code comes out.
+        ;
         hang? (and hang?
+                   ; This is a key for "don't hang no matter what", it isn't
+                   ; about making it prettier. People call this routine with
+                   ; these values equal to ensure that it always flows.
                    (not= hindent findent)
                    flow-lines
-                   (or (<= (- hindent findent) hang-diff)
-                       (<= (/ (dec (first flow-lines)) (count seq-right))
-                           hang-expand)))
+                   ;;TODO make this uneval!!!
+                   #_(or (<= (- hindent findent) hang-diff)
+                         (<= (/ (dec (first flow-lines)) (count seq-right))
+                             hang-expand)))
         hanging
           (when hang?
             (if-not pair-seq
@@ -1421,15 +1449,14 @@
                                            (not-rightmost (in-hang options))
                                            hindent)
                               (take non-paired-item-count seq-right)))
-                  (dbg-form
-                    options
-                    "fzprint-hang-remaining: fzprint-hang:"
-                    (fzprint-map-two-up :pair
-                                        ;caller
-                                        (in-hang options)
-                                        hindent
-                                        nil
-                                        pair-seq)))
+                  (dbg-form options
+                            "fzprint-hang-remaining: fzprint-hang:"
+                            (fzprint-map-two-up :pair
+                                                ;caller
+                                                (in-hang options)
+                                                hindent
+                                                nil
+                                                pair-seq)))
                 (fzprint-map-two-up :pair
                                     ;caller
                                     (in-hang options)
@@ -1950,6 +1977,7 @@
       (let [_ (dbg options
                    "fzprint-map*:" (zstring zloc)
                    "ind:" ind
+                   "comma?" comma?
                    "width:" width
                    "rightcnt:" (:rightcnt options))
             ; A possible one line representation of this map, but this is
@@ -1963,9 +1991,10 @@
                 pair-seq)
             one-line (when pair-print-one-line
                        (apply concat-no-nil
-                         ;; is this really whitespace?
-                         (interpose [[", " :none :whitespace]]
-                           pair-print-one-line)))
+                         (interpose-either [[", " :none :whitespace]]
+                                           [[" " :none :whitespace]]
+                                           (constantly comma?)
+                                           pair-print-one-line)))
             one-line-lines (style-lines options (+ indent ind) one-line)
             one-line (when (fzfit-one-line options one-line-lines) one-line)]
         (if one-line
@@ -2088,11 +2117,10 @@
                         (zpromise? zloc) :promise
                         (zdelay? zloc) :delay
                         (zagent? zloc) :agent
-                        :else (throw
-                                (#?(:clj Exception.
-                                    :cljs js/Error.)
-                                 "Not a future, promise, or delay:"
-                                 (zstring zloc))))]
+                        :else (throw (#?(:clj Exception.
+                                         :cljs js/Error.)
+                                      "Not a future, promise, or delay:"
+                                      (zstring zloc))))]
     (if (and (:object? (options zloc-type)) (object-str? (zstring zloc)))
       (if (or (= zloc-type :agent) (realized? zloc))
         (fzprint-object options ind zloc (zderef zloc))
@@ -2236,19 +2264,18 @@
         (dbg-pr options
                 "fzprint-record: arg-1:" arg-1
                 "zstring zloc:" (zstring zloc))
-        (concat-no-nil
-          l-str-vec
-          [[arg-1 (zcolor-map options :none) :element]]
-          (fzprint-hang-one :record
-                            options
-                            ;(rightmost options)
-                            arg-1-indent
-                            (+ indent ind)
-                            ; this only works because
-                            ; we never actually get here
-                            ; with a zipper, just an sexpr
-                            (into {} zloc))
-          r-str-vec)))))
+        (concat-no-nil l-str-vec
+                       [[arg-1 (zcolor-map options :none) :element]]
+                       (fzprint-hang-one :record
+                                         options
+                                         ;(rightmost options)
+                                         arg-1-indent
+                                         (+ indent ind)
+                                         ; this only works because
+                                         ; we never actually get here
+                                         ; with a zipper, just an sexpr
+                                         (into {} zloc))
+                       r-str-vec)))))
 
 (defn fzprint-uneval
   "Trim the #_ off the front of the uneval, and try to print it."
@@ -2310,11 +2337,10 @@
         l-str (cond (and reader-cond? at?) "#?@"
                     (and reader-cond? (zcoll? (zsecond zloc))) "#?"
                     reader-cond?
-                      (throw
-                        (#?(:clj Exception.
-                            :cljs js/Error.)
-                         (str "Unknown reader macro: '" (zstring zloc)
-                              "' zfirst zloc: " (zstring (zfirst zloc)))))
+                      (throw (#?(:clj Exception.
+                                 :cljs js/Error.)
+                              (str "Unknown reader macro: '" (zstring zloc)
+                                   "' zfirst zloc: " (zstring (zfirst zloc)))))
                     :else "#")
         r-str ""
         indent (count l-str)
@@ -2349,7 +2375,7 @@
         indent (count l-str)
         ; Since this is a single item, no point in figure an indent
         ; based on the l-str length."
-        l-str-vec [[l-str (zcolor-map options l-str) :left]]
+        l-str-vec [[l-str (zcolor-map options l-str) :element]]
         r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
         floc (zfirst zloc)
         #_(def zqs (zstring zloc))
@@ -2431,10 +2457,10 @@
           (zset? zloc) (fzprint-set options indent zloc)
           (zanonfn? zloc) (fzprint-anon-fn options indent zloc)
           (zfn-obj? zloc) (fzprint-fn-obj options indent zloc)
-          (zarray? zloc) (if (:object? (:array options))
-                           (fzprint-object options indent zloc)
-                           (fzprint-array
-                             #?(:clj (if (:hex? (:array options))
+          (zarray? zloc)
+            (if (:object? (:array options))
+              (fzprint-object options indent zloc)
+              (fzprint-array #?(:clj (if (:hex? (:array options))
                                        (assoc options
                                          :hex? (:hex? (:array options))
                                          :shift-seq (zarray-to-shift-seq zloc))

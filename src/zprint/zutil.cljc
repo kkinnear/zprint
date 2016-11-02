@@ -1,5 +1,4 @@
-(ns
-  zprint.zutil
+(ns zprint.zutil
   (:require
    clojure.string
    [rewrite-clj.parser :as p]
@@ -376,12 +375,12 @@
   [zloc spec-str]
   #_(println "spec-str:" spec-str)
   (if-let [doc-zloc (find-docstring zloc)]
-    (let [new-doc-zloc
-            (replace* doc-zloc
-                      (z/node
-                        (edn*
-                          (p/parse-string
-                            (str "\"" (str (sexpr doc-zloc)) spec-str "\"")))))]
+    (let [new-doc-zloc (replace* doc-zloc
+                                 (z/node (edn* (p/parse-string
+                                                 (str "\""
+                                                      (str (sexpr doc-zloc))
+                                                      spec-str
+                                                      "\"")))))]
       (edn* (z/root new-doc-zloc)))
     zloc))
 

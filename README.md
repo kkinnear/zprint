@@ -368,7 +368,6 @@ of the options map looks like this:
 {:agent {...},
  :array {...},
  :atom {...},
- :auto-width? false,
  :binding {...},
  :color-map {...},
  :comment {...},
@@ -1253,7 +1252,7 @@ a hang and a flow.  Clearly, if the indent for a hang and a flow are
 the same, you might as well do a hang, since a flow buys you nothing.
 The difference in these indents `(- hang-indent flow-indent)` is compared
 to the value of `:hang-diff`, and if this difference is <= then it 
-just does the hang regardless.  `:hang-diff` is by default 1, since even if a
+skips the `:hang-expand` check.  `:hang-diff` is by default 1, since even if a
 flow buys you one more space to the left, it often looks kind of odd.
 You could set `:hang-diff` to 0 if you wanted to be more "strict", and
 see if you like the results better.  Probably you won't want to deal
@@ -1316,6 +1315,11 @@ A simple example:
 
 #object["[B" "0x31ef8e0b" "[B@31ef8e0b"]
 ```
+
+#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
+
+Should it wrap its contents, or just list each on a separate line
+if they don't all fit on one line.?
 _____
 ## :binding
 
@@ -1346,7 +1350,8 @@ indpendent capabilities.
 #### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
 
 Wrap a comment if it doesn't fit within the width.  Works hard to preserve
-the initial part of the line.  
+the initial part of the line and word wraps the end.  Does not pull 
+subsequent lines up on to a wrapped line.  
 
 #### :count? <text style="color:#A4A4A4;"><small>false</small></text>
 
@@ -2020,6 +2025,7 @@ _____
 `:set` supports exactly the same keys as does vector.
 
 ##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+##### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :wrap-after-multi? <text style="color:#A4A4A4;"><small>true</small></text>
 
@@ -2073,7 +2079,7 @@ _____
 
 Supports __indent__ as described above.  
 
-##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+#### :indent <text style="color:#A4A4A4;"><small>1</small></text>
 
 Vectors wrap their contents, as distinct from maps and lists,
 which use hang or flow.  Wrapping means that they will fill out
@@ -2088,6 +2094,11 @@ a line and then continue on the next line.
  26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
  49 50 51 52 53 54 55 56 57 58 59]
 ```
+
+#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
+
+Should it wrap its contents, or just list each on a separate line
+if they don't all fit on one line?
 
 #### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
 
@@ -2155,6 +2166,40 @@ printed?
   :stuff "the value of stuff is hard to quantify",
   "key" "value"}
  10 11 12 13 14 15 16 17 18 19
+```
+
+______
+______
+## Experimental Features
+
+The following features are present in the library, but may not be
+supported in future versions.  Alternatively, they may be supported
+in a very different way in future versions.
+_____
+#### :auto-width <text style="color:#A4A4A4;"><small>false</small></text>
+
+This will attempt to determine the width of a terminal window and
+set the width to that value.  Seems to work on OS/X, untested on
+other platforms.
+
+#### :max-length <text style="color:#A4A4A4;"><small>1000</small></text>
+
+Will limit the length of a sequence on output -- more than this many
+will yield a `...`.
+
+```clojure
+(czprint [1 2 3 4 5] {:max-length 3})
+
+[1 2 3 ...]
+```
+#### :max-depth <text style="color:#A4A4A4;"><small>1000</small></text>
+
+Will limit depth of a collection.  
+
+```clojure
+(czprint {:a {:b {:c :d}}} {:max-depth 1})
+
+{:a {:b ##}}
 ```
 ______
 ______

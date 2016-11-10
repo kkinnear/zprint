@@ -1,11 +1,10 @@
 (ns zprint.zutil
-  (:require
-   clojure.string
-   [rewrite-clj.parser :as p]
-   [rewrite-clj.node :as n]
-   [rewrite-clj.zip :as z]
-   #?@(:cljs [[rewrite-clj.zip.base :as zb] [rewrite-clj.zip.whitespace :as zw]
-              clojure.zip])))
+  (:require clojure.string
+            [rewrite-clj.parser :as p]
+            [rewrite-clj.node :as n]
+            [rewrite-clj.zip :as z]
+            #?@(:cljs [[rewrite-clj.zip.base :as zb]
+                       [rewrite-clj.zip.whitespace :as zw] clojure.zip])))
 
 ;;
 ;; # Zipper oriented style printers
@@ -295,12 +294,12 @@
   where n/printable-only? returns false for n/tag :fn, but z/sexpr fails
   on something with n/tag :fn"
   [zloc]
-  (and (not= :fn (tag zloc)) (not (n/printable-only? (z/node zloc)))))
+  (and zloc (not= :fn (tag zloc)) (not (n/printable-only? (z/node zloc)))))
 
 (defn zkeyword?
   "Returns true if this is a keyword."
   [zloc]
-  (and (zsexpr? zloc) (keyword? (sexpr zloc))))
+  (and zloc (zsexpr? zloc) (keyword? (sexpr zloc))))
 
 (defn zsymbol?
   "Returns true if this is a symbol."

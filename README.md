@@ -963,6 +963,20 @@ etc.
       (dissoc :things))
 ```
 
+#### :force-nl and :force-nl-body
+
+Tag a function which should not with all of its arguments
+on the same line even if they fit.  Note that this function
+type has to show up in the set that is the value of :fn-force-nl
+to have any effect.
+
+```clojure
+  (->> opts
+       foo
+       bar
+       baz) 
+```
+
 #### :fn
 
 Print the first argument on the same line as the `(fn ...)` if it will
@@ -1004,7 +1018,7 @@ map is shown below:
 ```clojure
 :fn-map {"!=" :hang,
           "->" :noarg1-body,
-          "->>" :arg1,
+          "->>" :force-nl-body,
           "=" :hang,
           "and" :hang,
           "apply" :arg1,
@@ -1024,6 +1038,11 @@ that functions are formattted the way you prefer.  You can change the
 default formatting of functions as well as configure formatting for
 your own functions.  To remove formating for a function which has
 previously been configured, set the formatting to `:none`.
+
+#### :fn-force-nl <text style="color:#A4A4A4;"><small>#{:force-nl :force-nl-body :noarg1 :noarg1-body}</small></text>
+
+This is a set that specifies which function types will always format with
+a hang or a flow, and never be printed on the same line even if they fit.
 
 ### Detailed Configuration for maps, lists, vectors, etc.
 

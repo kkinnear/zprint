@@ -1,16 +1,14 @@
-(ns
-  zprint.zprint-test
-  (:require
-   [expectations :refer :all]
-   [zprint.core :refer :all]
-   [zprint.core-test :refer :all]
-   [zprint.zprint :refer :all]
-   [zprint.finish :refer :all]
-   [clojure.repl :refer :all]
-   [clojure.string :as str]
-   [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
-   [rewrite-clj.node :as n]
-   [rewrite-clj.zip :as z :only [edn*]]))
+(ns zprint.zprint-test
+  (:require [expectations :refer :all]
+            [zprint.core :refer :all]
+            [zprint.core-test :refer :all]
+            [zprint.zprint :refer :all]
+            [zprint.finish :refer :all]
+            [clojure.repl :refer :all]
+            [clojure.string :as str]
+            [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
+            [rewrite-clj.node :as n]
+            [rewrite-clj.zip :as z :only [edn*]]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -400,55 +398,54 @@
 
 (expect [3 0] (zprint.zprint/line-lengths {} 3 [["; stuff" :none :comment]]))
 
-(expect [14 30 20]
-        (zprint.zprint/line-lengths
-          {}
-          12
-          [[":c" :magenta :element] ["\n            " :none :whitespace]
-           ["(" :green :left] ["identity" :blue :element]
-           [" " :none :whitespace] ["\"stuff\"" :red :element]
-           [")" :green :right] ["\n            " :none :whitespace]
-           ["\"bother\"" :red :element]]))
+(expect
+  [14 30 20]
+  (zprint.zprint/line-lengths
+    {}
+    12
+    [[":c" :magenta :element] ["\n            " :none :whitespace]
+     ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
+     ["\"stuff\"" :red :element] [")" :green :right]
+     ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
 
-(expect [2 30 20]
-        (zprint.zprint/line-lengths
-          {}
-          0
-          [[":c" :magenta :element] ["\n            " :none :whitespace]
-           ["(" :green :left] ["identity" :blue :element]
-           [" " :none :whitespace] ["\"stuff\"" :red :element]
-           [")" :green :right] ["\n            " :none :whitespace]
-           ["\"bother\"" :red :element]]))
+(expect
+  [2 30 20]
+  (zprint.zprint/line-lengths
+    {}
+    0
+    [[":c" :magenta :element] ["\n            " :none :whitespace]
+     ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
+     ["\"stuff\"" :red :element] [")" :green :right]
+     ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
 
-(expect [12 30 20]
-        (zprint.zprint/line-lengths
-          {}
-          12
-          [[";" :green :comment] ["\n            " :none :whitespace]
-           ["(" :green :left] ["identity" :blue :element]
-           [" " :none :whitespace] ["\"stuff\"" :red :element]
-           [")" :green :right] ["\n            " :none :whitespace]
-           ["\"bother\"" :red :element]]))
+(expect
+  [12 30 20]
+  (zprint.zprint/line-lengths
+    {}
+    12
+    [[";" :green :comment] ["\n            " :none :whitespace]
+     ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
+     ["\"stuff\"" :red :element] [")" :green :right]
+     ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
 
 (expect "(;a\n list\n :b\n :c\n ;def\n  )"
         (zprint-str "(;a\nlist\n:b\n:c ;def\n)" {:parse-string? true}))
 
-(expect
-  [6 1 8 1 9 1 11]
-  (zprint.zprint/line-lengths
-    {}
-    0
-    [["(" :green :left] ["cond" :blue :element] [" " :none :whitespace]
-     ["; one" :green :comment] [" " :none :whitespace]
-     ["; two   " :green :comment] [" " :none :whitespace]
-     [":stuff" :magenta :element] [" " :none :whitespace]
-     ["; middle" :green :comment] [" " :none :whitespace]
-     ["; second middle" :green :comment] [" " :none :whitespace]
-     [":bother" :magenta :element] [" " :none :whitespace]
-     ["; three" :green :comment] [" " :none :whitespace]
-     ["; four" :green :comment] [" " :none :whitespace]
-     [":else" :magenta :element] [" " :none :whitespace]
-     ["nil" :yellow :element] [")" :green :right]]))
+(expect [6 1 8 1 9 1 11]
+        (zprint.zprint/line-lengths
+          {}
+          0
+          [["(" :green :left] ["cond" :blue :element] [" " :none :whitespace]
+           ["; one" :green :comment] [" " :none :whitespace]
+           ["; two   " :green :comment] [" " :none :whitespace]
+           [":stuff" :magenta :element] [" " :none :whitespace]
+           ["; middle" :green :comment] [" " :none :whitespace]
+           ["; second middle" :green :comment] [" " :none :whitespace]
+           [":bother" :magenta :element] [" " :none :whitespace]
+           ["; three" :green :comment] [" " :none :whitespace]
+           ["; four" :green :comment] [" " :none :whitespace]
+           [":else" :magenta :element] [" " :none :whitespace]
+           ["nil" :yellow :element] [")" :green :right]]))
 
 (expect
   [1 1 1 1 16]
@@ -614,12 +611,12 @@
                     {:parse-string? true,
                      :reader-cond {:force-nl? false, :sort? nil}}))
 
-(expect "#?(:cljs (list :a :b) :clj (list :c :d))"
-        (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-                    {:parse-string? true,
-                     :reader-cond {:force-nl? false,
-                                   :sort? nil,
-                                   :key-order [:clj :cljs]}}))
+(expect
+  "#?(:cljs (list :a :b) :clj (list :c :d))"
+  (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+              {:parse-string? true,
+               :reader-cond
+                 {:force-nl? false, :sort? nil, :key-order [:clj :cljs]}}))
 
 (expect "#?(:cljs (list :a :b)\n   :clj (list :c :d))"
         (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
@@ -627,12 +624,12 @@
                      :reader-cond
                        {:force-nl? true, :sort? nil, :key-order [:clj :cljs]}}))
 
-(expect "#?(:clj (list :c :d) :cljs (list :a :b))"
-        (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-                    {:parse-string? true,
-                     :reader-cond {:force-nl? false,
-                                   :sort? true,
-                                   :key-order [:clj :cljs]}}))
+(expect
+  "#?(:clj (list :c :d) :cljs (list :a :b))"
+  (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+              {:parse-string? true,
+               :reader-cond
+                 {:force-nl? false, :sort? true, :key-order [:clj :cljs]}}))
 
 ;;
 ;; # Rightmost in reader conditionals
@@ -914,7 +911,7 @@
 ;;
 
 (expect
-"(defn ctest20\n  ([query-string body]\n   (let [aabcdefghijklmnopqrstuvwxyzabcdefghijkllmnpqr @(http-get query-string\n                                                                  {:body body})]\n     nil)))"
-(zprint-str
-"(defn ctest20\n ([query-string body]\n   (let [aabcdefghijklmnopqrstuvwxyzabcdefghijkllmnpqr @(http-get query-string {:body body})]\n    \n   nil)))"
-{:parse-string? true}))
+  "(defn ctest20\n  ([query-string body]\n   (let [aabcdefghijklmnopqrstuvwxyzabcdefghijkllmnpqr @(http-get query-string\n                                                                  {:body body})]\n     nil)))"
+  (zprint-str
+    "(defn ctest20\n ([query-string body]\n   (let [aabcdefghijklmnopqrstuvwxyzabcdefghijkllmnpqr @(http-get query-string {:body body})]\n    \n   nil)))"
+    {:parse-string? true}))

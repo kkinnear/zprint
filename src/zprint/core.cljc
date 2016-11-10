@@ -1,23 +1,24 @@
 (ns zprint.core
   ;#?@(:cljs [[:require-macros [zprint.macros :refer [dbg dbg-pr dbg-form
   ;dbg-print]]]])
-  (:require
-   #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
-   clojure.string
-   #?@(:cljs [[cljs.reader :refer [read-string]]])
-   #?@(:clj [[clojure.repl :refer [source-fn]]])
-   [zprint.zprint :as zprint :refer
-    [fzprint blanks line-count max-width line-widths expand-tabs merge-deep]]
-   [zprint.finish :refer
-    [cvec-to-style-vec compress-style no-style-map color-comp-vec cursor-style]]
-   [zprint.config :as config :refer
-    [config-set-options! get-options config-configure-all! help-str
-     get-explained-options get-explained-all-options get-default-options
-     validate-options apply-style]]
-   [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string]]
-   [zprint.sutil]
-   [rewrite-clj.parser :as p]
-   #_[clojure.spec :as spec :refer [get-spec describe]]))
+  (:require #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
+            clojure.string
+            #?@(:cljs [[cljs.reader :refer [read-string]]])
+            #?@(:clj [[clojure.repl :refer [source-fn]]])
+            [zprint.zprint :as zprint :refer
+             [fzprint blanks line-count max-width line-widths expand-tabs
+              merge-deep]]
+            [zprint.finish :refer
+             [cvec-to-style-vec compress-style no-style-map color-comp-vec
+              cursor-style]]
+            [zprint.config :as config :refer
+             [config-set-options! get-options config-configure-all! help-str
+              get-explained-options get-explained-all-options
+              get-default-options validate-options apply-style]]
+            [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string]]
+            [zprint.sutil]
+            [rewrite-clj.parser :as p]
+            #_[clojure.spec :as spec :refer [get-spec describe]]))
 
 ;;
 ;; zprint
@@ -222,9 +223,8 @@
             auto-width (when (and (not width)
                                   ; check both new-options and already
                                   ; configured ones
-                                  (:auto-width?
-                                   new-options
-                                   (:auto-width? (get-options))))
+                                  (:auto-width? new-options
+                                                (:auto-width? (get-options))))
                          (let [actual-width
                                  #?(:clj (#'table.width/detect-terminal-width)
                                     :cljs nil)]
@@ -301,9 +301,8 @@
             auto-width (when (and (not width)
                                   ; check both new-options and already
                                   ; configured ones
-                                  (:auto-width?
-                                   new-options
-                                   (:auto-width? (get-options))))
+                                  (:auto-width? new-options
+                                                (:auto-width? (get-options))))
                          (let [actual-width
                                  #?(:clj (#'table.width/detect-terminal-width)
                                     :cljs nil)]

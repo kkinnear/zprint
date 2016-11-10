@@ -1,11 +1,10 @@
 (ns zprint.core-test
-    (:require
-     [expectations :refer :all]
-     [zprint.core :refer :all]
-     [zprint.zprint :refer :all]
-     [zprint.config :refer :all :exclude
-      [set-options! configure-all! get-options]]
-     [clojure.repl :refer :all]))
+  (:require [expectations :refer :all]
+            [zprint.core :refer :all]
+            [zprint.zprint :refer :all]
+            [zprint.config :refer :all :exclude
+             [set-options! configure-all! get-options]]
+            [clojure.repl :refer :all]))
 
 ;;
 ;; # Anonymous Function Tests

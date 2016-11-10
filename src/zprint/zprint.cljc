@@ -1,11 +1,10 @@
 (ns zprint.zprint
   #?@(:cljs [[:require-macros
               [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])
-  (:require
-   #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
-   [clojure.string :as s]
-   [zprint.ansi :refer [color-str]]
-   [zprint.zutil :refer [add-spec-to-docstring]]))
+  (:require #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
+            [clojure.string :as s]
+            [zprint.ansi :refer [color-str]]
+            [zprint.zutil :refer [add-spec-to-docstring]]))
 
 ;;
 ;; # Utility Functions
@@ -73,9 +72,8 @@
             ; were (ns-name <some-namespace>), but there are almost
             ; certainly others.
             (try (or (re-find #"clojure"
-                              (str (:ns
-                                    (meta #?(:clj (resolve f)
-                                             :cljs f)))))
+                              (str (:ns (meta #?(:clj (resolve f)
+                                                 :cljs f)))))
                      (fn-map (name f)))
                  (catch #?(:clj Exception
                            :cljs :default) e
@@ -94,9 +92,8 @@
             ; resolve will have a problem with.  The obvious ones
             ; were (ns-name <some-namespace>), but there are almost
             ; certainly others.
-            (try (or (not (empty? (str (:ns
-                                        (meta #?(:clj (resolve f)
-                                                 :cljs f))))))
+            (try (or (not (empty? (str (:ns (meta #?(:clj (resolve f)
+                                                     :cljs f))))))
                      (get user-fn-map (name f)))
                  (catch #?(:clj Exception
                            :cljs :default) e
@@ -1520,7 +1517,8 @@
    :arg1-pair-body :arg1-pair,
    :arg1-extend-body :arg1-extend,
    :none-body :none,
-   :noarg1-body :noarg1})
+   :noarg1-body :noarg1,
+   :force-nl-body :force-nl})
 
 ;;
 ;; If the noarg1? value is set, this is the mapping for functions
@@ -1546,15 +1544,17 @@
   Lots of work to make a list look good, as that is typically code. 
   Presently all of the callers of this are :list."
   [caller l-str r-str
-   {:keys [width fn-map user-fn-map one-line? dbg? fn-style no-arg1?],
+   {:keys [width fn-map user-fn-map one-line? dbg? fn-style no-arg1?
+           fn-force-nl],
     {:keys [zstring zmap zfirst zsecond zsexpr zcoll? zcount zvector? znth
-            zlist? zcomment? zmap-right zidentity zmeta? zsymbol?]}
+            zlist? zcomment? zmap-right zidentity zmeta? zsymbol? zkeyword?]}
       :zf,
     {:keys [indent-arg indent]} caller,
     :as options} ind zloc]
   (let [len (zcount zloc)
         l-str-len (count l-str)
-        arg-1-coll? (not (zsymbol? (zfirst zloc)))
+        arg-1-coll? (not (or (zsymbol? (zfirst zloc))
+                             (zkeyword? (zfirst zloc))))
         fn-str (if-not arg-1-coll? (zstring (zfirst zloc)))
         fn-style (or fn-style (fn-map fn-str) (user-fn-map fn-str))
         ; if we don't have a function style, let's see if we can get
@@ -1607,8 +1607,10 @@
                "len:" len
                "one-line?:" one-line?
                "rightcnt:" (:rightcnt options))
-        one-line
-          (if (zero? len) :empty (fzprint-one-line options one-line-ind zloc))]
+        one-line (if (zero? len)
+                   :empty
+                   (when-not (fn-force-nl fn-style)
+                     (fzprint-one-line options one-line-ind zloc)))]
     (cond
       one-line (if (= one-line :empty)
                  (concat-no-nil l-str-vec r-str-vec)

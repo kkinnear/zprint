@@ -1,19 +1,18 @@
 (ns zprint.config
   #?(:cljs [:require-macros [schema.core :refer [defschema]]])
   #?(:clj [:refer-clojure :exclude [read-string]])
-  (:require
-   clojure.string
-   [zprint.sutil]
-   [zprint.zprint :refer [merge-deep]]
-   [clojure.data :as d]
-   #?(:clj [clojure.edn :refer [read-string]]
-      :cljs [cljs.reader :refer [read-string]])
-   [schema.core :as s]
-   #?@(:clj [[schema.core :refer [defschema]]
-             [cprop.source :as cs :refer
-              [from-file from-resource from-system-props from-env
-               read-system-env read-system-props merge*]]
-             [trptcolin.versioneer.core :as version] [table.width]]))
+  (:require clojure.string
+            [zprint.sutil]
+            [zprint.zprint :refer [merge-deep]]
+            [clojure.data :as d]
+            #?(:clj [clojure.edn :refer [read-string]]
+               :cljs [cljs.reader :refer [read-string]])
+            [schema.core :as s]
+            #?@(:clj [[schema.core :refer [defschema]]
+                      [cprop.source :as cs :refer
+                       [from-file from-resource from-system-props from-env
+                        read-system-env read-system-props merge*]]
+                      [trptcolin.versioneer.core :as version] [table.width]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
 
 ;;
@@ -32,7 +31,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.8")))
+          :cljs "0.2.9")))
 
 ;;
 ;; # External Configuration
@@ -174,7 +173,7 @@
 ;;
 ;; :noarg1-body
 ;;
-;; Print the in whatever way is possible without
+;; Print the fn in whatever way is possible without
 ;; special handling.  However, top level fns become
 ;; different based on the lack of their first argument.
 ;; Thus, :arg1 becomes :none, :arg1-pair becomes :pair,
@@ -184,6 +183,16 @@
 ;;     (assoc
 ;;       :stuff (list "and" "bother"))
 ;;     (dissoc :things))
+;;
+;; :force-nl-body
+;;
+;; Ensure that even if it fits on one line, it always does
+;; a hang or a flow but doesn't end up on one line..
+;;
+;; (->> opts
+;;      foo
+;;      bar
+;;      baz)
 ;;
 ;; :fn
 ;;
@@ -279,7 +288,8 @@
    "fn" :fn,
    "fn*" :fn,
    "->" :noarg1-body,
-   "->>" :none-body,
+   "->>" :force-nl-body,
+   "some->" :force-nl-body,
    "do" :none-body,
    "and" :hang,
    "or" :hang,
@@ -354,6 +364,7 @@
                         :quote :yellow,
                         :none :yellow}},
    :fn-map zfnstyle,
+   :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl},
    :user-fn-map {},
    :vector {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
    :set {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
@@ -672,15 +683,16 @@
 
 (defschema fn-type
            "An enum of the possible function types"
-           (s/enum :binding
-                   :arg1 :arg1-body
-                   :arg1-pair-body :arg1-pair
-                   :pair :hang
-                   :extend :arg1-extend-body
-                   :arg1-extend :fn
-                   :arg1-> :noarg1-body
+           (s/enum :binding :arg1
+                   :arg1-body :arg1-pair-body
+                   :arg1-pair :pair
+                   :hang :extend
+                   :arg1-extend-body :arg1-extend
+                   :fn :arg1->
+                   :noarg1-body :noarg1
                    :arg2 :arg2-pair
-                   :none :none-body))
+                   :none :none-body
+                   :force-nl-body :force-nl))
 
 ;;
 ;; There is no schema for possible styles, because people
@@ -753,6 +765,7 @@
    (s/optional-key :color-map) color-map,
    (s/optional-key :uneval) {(s/optional-key :color-map) color-map},
    (s/optional-key :fn-map) {s/Str fn-type},
+   (s/optional-key :fn-force-nl) #{fn-type},
    (s/optional-key :user-fn-map) {s/Str fn-type},
    (s/optional-key :vector) {(s/optional-key :indent) s/Num,
                              (s/optional-key :wrap?) boolean-schema,
@@ -1169,7 +1182,7 @@
         ; --config-map STRING
         ;
         [opts-configmap errors-configmap] (get-config-from-map (:config-map
-                                                                cli-opts))
+                                                                 cli-opts))
         [updated-map new-doc-map config-errors]
           (config-and-validate (str "Config map:" (:config-map cli-opts))
                                new-doc-map

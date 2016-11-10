@@ -1,6 +1,20 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.9 - 2016-11-9
+
+### Changed
+
+* Added :force-nl and :force-nl-body along with :fn-force-nl set in
+  configuration to force some functions to never format onto the same
+  line.  Primarily for -> and ->> and other similar functions where
+  most people want to see them listed vertically, not on the same line.
+
+* Made keywords format as functions, since they are.  This cleans up
+  ns declarations a bit at the start of files.
+  
+### Fixed
+
 ## 0.2.8 - 2016-11-9
 
 ### Changed

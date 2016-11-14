@@ -1,5 +1,6 @@
 (ns zprint.finish
-  (:require [clojure.string :as s] [zprint.ansi :refer [color-str]]))
+  (:require [clojure.string :as s]
+            [zprint.ansi :refer [color-str]]))
 
 ;;
 ;; # Process results from fzprint*

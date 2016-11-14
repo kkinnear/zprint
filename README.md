@@ -3,10 +3,15 @@
 __zprint__ is a library providing a pretty printing capability for
 both Clojure code and Clojure/EDN structures.  It can be used as a library,
 either embedded in a larger codebase, or as a useful utility at the
-repl.  See [lein-zprint][leinzprint] to use the zprint library to
-reformat your source files.
+repl.  
 
-As of version 0.2.7, zprint include experimental support for Clojurescript!
+If you want to use the zprint library to format your Clojure source files, 
+you have two options:
+
+  * Leiningen:  [lein-zprint][leinzprint]
+  * Boot: [boot-fmt][bootfmt]
+
+As of version 0.2.7, zprint includes experimental support for Clojurescript!
 
 Zprint is designed to be a single pretty printer to use for code
 and data structures.
@@ -86,6 +91,7 @@ in __your__ code and data structures better than anything else of which I
 am aware.
 
 [leinzprint]: https://github.com/kkinnear/lein-zprint
+[bootfmt]: https://github.com/pesterhazy/boot-fmt
 
 ## Usage
 
@@ -110,6 +116,7 @@ following specific features:
 * Maximize screen utilization when formatting code
 * Sort and order map keys
 * Constant pairing (for keyword argument functions)
+* Does a great job printing spec files
 * Justify paired output (maps, binding forms, cond clauses, etc.) if desired
 * Syntax coloring at the terminal
 
@@ -165,6 +172,16 @@ in both Clojure and Clojurescript:
 If `<width>` is an integer, it is assumed to be a the width.  If it
 is a map, it is assumed to be an options map.  You can have both,
 either, or neither in any zprint or czprint call.
+
+In addition to the above API, you can access zprint's file processing
+capabilities (as does lein-zprint), by calling:
+
+```clojure
+(zprint-file-str <file-string> "file: <file-name>")
+```
+See the doc-string for `zprint-file-str` for details of how to use it.
+
+NOTE:  The only supported API is what is documented in this readme!
 
 If you need to refresh your memory for the API while at the repl, try:
 
@@ -821,6 +838,11 @@ by the amount specified by `:list {:indent n}`.
    fn-style)
 ```
 
+#### :arg1-force-nl
+
+This is like `:arg`, but since it appears in `:fn-force-nl`, it will
+never print on one line even if it would otherwise fit.
+
 #### :arg2
  
 Print the first argument on the same line as the function name if it will
@@ -847,6 +869,15 @@ or not hanging well, the flow indent is controlled by `:pair {:indent n}`.
     :foo "foo"
     :bar "bar"
     "baz")
+```
+#### :arg2-fn
+
+Just like :arg2, but prints the third through last arguments as functions.
+
+```clojure
+  (proxy [Classname] []
+    (stuff [] bother)
+    (foo [bar] baz))
 ```
 
 #### :binding
@@ -994,6 +1025,38 @@ is controlled by `:list {:indent n}`.
       (inc d)))
 ```
 
+#### :flow and :flow-body
+
+Don't hang under any circumstances. `:flow` assumes that the function
+has arguments, `:flow-body` assumes that the arguments are body elements.
+The only difference is when there are different indents for arguments
+and body elements.  Note that both `:flow` and `:flow-body` appear in
+the set `:fn-force-nl`, so that they will also never print one one line.
+
+```clojure
+  (foo
+    (bar a b c)
+    (baz d e f))
+```
+
+#### :gt2-force-nl and :gt3-force-nl
+
+These two function styles exist to be assigned to functions that should
+be printed on one line if they fit on one line -- unless they have more
+than 2 or 3 arguments.  These exist for functions that would otherwise
+not fit into any function style.  These function styles appear by default
+in the two sets `:fn-gt2-force-nl` and `:fn-gt3-force-nl` respectively.
+
+If function `foo` has a function style of `:gt2-force-nl`, then
+
+```clojure
+  (foo (bar a b c) (baz d e f))
+
+  (foo (bar a b c)
+       (baz d e f)
+       (stuff x y z))
+```
+
 #### :none
 
 This is for things like special forms that need to be in this
@@ -1039,10 +1102,61 @@ default formatting of functions as well as configure formatting for
 your own functions.  To remove formating for a function which has
 previously been configured, set the formatting to `:none`.
 
-#### :fn-force-nl <text style="color:#A4A4A4;"><small>#{:force-nl :force-nl-body :noarg1 :noarg1-body}</small></text>
+### Controlling Single and Multi-line Output
+
+By default, zprint will print any function call (or any structure)
+on one line if it will fit on one line.  However, some functions
+are generally printed on multiple lines even if they would fit on
+one line, and zprint will do this for some functions by default.
+
+There are three sets which control which function styles will never
+print on one line even if they would otherwise fit:
+
+#### :fn-force-nl <text style="color:#A4A4A4;"><small>#{:force-nl :force-nl-body :noarg1 :noarg1-body :arg1-force-nl :flow :flow-body}</small></text>
 
 This is a set that specifies which function types will always format with
 a hang or a flow, and never be printed on the same line even if they fit.
+
+#### :fn-gt2-force-nl <text style="color:#A4A4A4;"><small>#{:gt2-force-nl :binding}</small></text>
+
+This is a set that specifies which function types will always format with
+a hang or a flow, and never be printed on the same line if they have more
+than 2 arguments.
+
+#### :fn-gt3-force-nl <text style="color:#A4A4A4;"><small>#{:gt3-force-nl :arg1-pair :arg1-pair-body)</small></text>
+
+This is a set that specifies which function types will always format with
+a hang or a flow, and never be printed on the same line if they have more
+than 3 arguments.
+
+#### Altering the configuration of sets in the options map
+
+You can add one or more function styles to a set by simply placing a
+set containing only the additional function styles as the value of
+the appropriate key.  Thus:
+
+```clojure
+  (set-options! {:fn-gt2-force-nl #{:arg1-pair}})
+```
+yields a value for the key `:fn-gt2-force-nl` of
+`#{:gt2-force-nl :binding :arg1-pair}`.  It does not replace the
+set at that key with the new set, but includes its elements into
+the set.  Thus you don't have to specify the entire set to alter its
+value by adding something to it.
+
+How, then, do you remove elements from one of the sets in the options
+map?  You specify a set of elements to remove, rooted at the `:remove`
+key.  Thus:
+
+```clojure
+  (set-options! {:remove {:fn-gt3-force-nl #{:arg1-pair}}})
+```
+
+will yield a value for `:fn-gt3-force-nl` of `#{:gt3-force-nl :arg1-pair-body}`.
+
+If both additions and removals are specified in the same options map, the
+removals are performed first and the additions second.
+
 
 ### Detailed Configuration for maps, lists, vectors, etc.
 

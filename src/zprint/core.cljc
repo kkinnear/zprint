@@ -14,7 +14,7 @@
             [zprint.config :as config :refer
              [config-set-options! get-options config-configure-all! help-str
               get-explained-options get-explained-all-options
-              get-default-options validate-options apply-style]]
+              get-default-options validate-options apply-style perform-remove]]
             [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string]]
             [zprint.sutil]
             [rewrite-clj.parser :as p]
@@ -243,16 +243,17 @@
   'special-options', which may short circuit the other options
   processing. Returns [special-option actual-options]"
   [rest-options]
-  #(println "determine-options: rest-options:" rest-options)
-  #_(def dro rest-options)
   (let [; Do what config-and-validate does, minus the doc-map
         configure-errors (when-not (:configured? (get-options))
                            (configure-all!))
         errors (validate-options rest-options)
+        ; remove set elements before doing anything else
+        [internal-map rest-options _]
+          (perform-remove nil nil (get-options) rest-options)
         ; updated-map is the holder of the actual configuration
         ; as of this point
         [updated-map _ style-errors]
-          (apply-style nil nil (get-options) rest-options)
+          (apply-style nil nil internal-map rest-options)
         errors (if style-errors (str errors " " style-errors) errors)
         combined-errors
           (str (when configure-errors
@@ -267,69 +268,6 @@
     #_(def dout actual-options)
     ; actual-options is a complete options-map
     actual-options))
-
-(defn determine-options-old
-  "Take some internal-options and the & rest of a zprint/czprint
-  call and figure out the options and width and all of that. Note
-  that internal-options MUST NOT be a full options map.  It needs
-  to be just the options that have been requested for this invocation.
-  Does auto-width if that is requested, and determines if there are
-  'special-options', which may short circuit the other options
-  processing. Returns [special-option actual-options]"
-  [internal-options [width-or-options options]]
-  #(println "determine-options: internal-options:" internal-options
-            "width-or-options:" width-or-options
-            "options:" options)
-  #_(def dio internal-options)
-  #_(def dwoo width-or-options)
-  #_(def do options)
-  (cond
-    (= width-or-options :default) [:default (get-default-options)]
-    :else
-      (let [[width-or-options special-option] (if (#{:explain :support
-                                                     :explain-justified :help}
-                                                   width-or-options)
-                                                [nil width-or-options]
-                                                [width-or-options nil])
-            configure-errors (when-not (:configured? (get-options))
-                               (configure-all!))
-            width (when (number? width-or-options) width-or-options)
-            options (cond (and width (map? options)) options
-                          (map? width-or-options) width-or-options)
-            width-map (if width {:width width} {})
-            new-options (merge-deep options width-map internal-options)
-            auto-width (when (and (not width)
-                                  ; check both new-options and already
-                                  ; configured ones
-                                  (:auto-width? new-options
-                                                (:auto-width? (get-options))))
-                         (let [actual-width
-                                 #?(:clj (#'table.width/detect-terminal-width)
-                                    :cljs nil)]
-                           (when (number? actual-width) {:width actual-width})))
-            new-options
-              (if auto-width (merge-deep new-options auto-width) new-options)
-            #_(def nopt new-options)
-            ; Do what config-and-validate does, minus the doc-map
-            errors (validate-options new-options)
-            ; updated-map is the holder of the actual configuration
-            ; as of this point
-            [updated-map _ style-errors]
-              (apply-style nil nil (get-options) new-options)
-            errors (if style-errors (str errors " " style-errors) errors)
-            combined-errors
-              (str (when configure-errors
-                     (str "Global configuration errors: " configure-errors))
-                   (when errors (str "Option errors in this call: " errors)))
-            actual-options (if (not (empty? combined-errors))
-                             (throw (#?(:clj Exception.
-                                        :cljs js/Error.)
-                                     combined-errors))
-                             (config/add-calculated-options
-                               (merge-deep updated-map new-options)))]
-        #_(def dout [special-option actual-options])
-        ; actual-options is a complete options-map
-        [special-option actual-options])))
 
 ;;
 ;; # Fundemental interface for fzprint-style, does configuration
@@ -472,29 +410,32 @@
 ;;
 
 (defn zprint-str
-  "Take a zipper or string and pretty print it with fzprint, 
-  output a str."
+  "Take a strutcure or a string and  pretty print it, and
+  output a str. (zprint-str nil :help) for more information."
   [coll & rest]
   (apply zprint-str-internal {} coll rest))
 
 (defn czprint-str
-  "Take a zipper or string and pretty print it with fzprint, 
-  output a str that has ansi color in it."
+  "Take a structure or string and pretty print it, and output 
+  a str that has ansi color in it.  (czprint nil :help) for 
+  more information."
   [coll & rest]
   (apply czprint-str-internal {} coll rest))
 
 (defn zprint
-  "Take a zipper or string and pretty print it."
+  "Take a structure or string and pretty print it. 
+  (zprint nil :help) for more information."
   [coll & rest]
   (println (apply zprint-str-internal {} coll rest)))
 
 (defn czprint
-  "Take a zipper or string and pretty print it."
+  "Take a zipper or string and pretty print it.
+  (czprint nil :help) for more information."
   [coll & rest]
   (println (apply czprint-str-internal {} coll rest)))
 
 #?(:clj (defmacro zprint-fn-str
-          "Take a fn name, and print it."
+          "Take a fn name, and pretty print it, output a string."
           [fn-name & rest]
           `(apply zprint-str-internal
              {:parse-string? true}
@@ -502,17 +443,19 @@
              ~@rest
              [])))
 
-#?(:clj (defmacro czprint-fn-str
-          "Take a fn name, and print it with syntax highlighting."
-          [fn-name & rest]
-          `(apply czprint-str-internal
-             {:parse-string? true}
-             (get-fn-source '~fn-name)
-             ~@rest
-             [])))
+#?(:clj
+     (defmacro czprint-fn-str
+       "Take a fn name, and pretty print it with syntax highlighting
+  into a string."
+       [fn-name & rest]
+       `(apply czprint-str-internal
+          {:parse-string? true}
+          (get-fn-source '~fn-name)
+          ~@rest
+          [])))
 
 #?(:clj (defmacro zprint-fn
-          "Take a fn name, and print it."
+          "Take a fn name, and pretty print it."
           [fn-name & rest]
           `(println (apply zprint-str-internal
                       {:parse-string? true}
@@ -521,7 +464,7 @@
                       []))))
 
 #?(:clj (defmacro czprint-fn
-          "Take a fn name, and print it with syntax highlighting."
+          "Take a fn name, and pretty print it with syntax highlighting."
           [fn-name & rest]
           `(println (apply czprint-str-internal
                       {:parse-string? true, :fn-name '~fn-name}
@@ -575,7 +518,7 @@
   [[next-options <previous-string>] form], where next-options accumulates
   the information to be applied to the next non-comment/non-whitespace
   element in the file.  The output is [next-options output-str zprint-num], 
-  since reductions is used to call this function.  See process file-forms
+  since reductions is used to call this function.  See process-multiple-forms
   for what is actually done with the various :format values."
   [rest-options
    zprint-fn
@@ -730,6 +673,33 @@
 ;; ## Process an entire file
 ;;
 
+(defn zprint-file-str
+  "Take a string, which typically represents file but doesn't have
+  to, and format the entire string, outputing a formatted string.
+  It respects white space at the top level, while completely ignoring
+  it within all top level forms (typically defs and function
+  definitions).  It allows comments at the top level, as well as
+  in function definitions, and also supports ;!zprint directives
+  at the top level.  zprint-specifier is the thing that will be
+  used in messages if errors detected in ;!zprint directives,
+  so it should identify the file (or other element) to allow the 
+  user to find the problem."
+  [file-str zprint-specifier]
+  (let [lines (clojure.string/split file-str #"\n")
+        lines (if (:expand? (:tab (get-options)))
+                (map (partial expand-tabs (:size (:tab (get-options)))) lines)
+                lines)
+        filestring (clojure.string/join "\n" lines)
+        ; If file ended with a \newline, make sure it still does
+        filestring
+          (if (= (last file-str) \newline) (str filestring "\n") filestring)
+        forms (edn* (p/parse-string-all filestring))]
+    #_(def fileforms (zmap-all identity forms))
+    (process-multiple-forms {:process-bang-zprint? true}
+                            zprint-str-internal
+                            zprint-specifier
+                            forms)))
+
 #?(:clj
      (defn zprint-file
        "Take an input filename and an output filename, and do a zprint
@@ -738,23 +708,8 @@
   want to have each file be separate, you should call (configure-all!)
   before calling this function."
        [infile file-name outfile]
-       (let [wholefile (slurp infile)
-             lines (clojure.string/split wholefile #"\n")
-             lines (if (:expand? (:tab (get-options)))
-                     (map (partial expand-tabs (:size (:tab (get-options))))
-                       lines)
-                     lines)
-             filestring (clojure.string/join "\n" lines)
-             ; If file ended with a \newline, make sure it still does
-             filestring (if (= (last wholefile) \newline)
-                          (str filestring "\n")
-                          filestring)
-             forms (edn* (p/parse-string-all filestring))
-             #_(def fileforms (zmap-all identity forms))
-             outputstr (process-multiple-forms {:process-bang-zprint? true}
-                                               zprint-str-internal
-                                               (str "file: " file-name)
-                                               forms)]
+       (let [file-str (slurp infile)
+             outputstr (zprint-file-str file-str (str "file: " file-name))]
          (spit outfile outputstr))))
 
 ;;

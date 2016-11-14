@@ -1,4 +1,5 @@
-(ns zprint.macros (:require [clojure.string :as s]))
+(ns zprint.macros
+  (:require [clojure.string :as s]))
 
 (defmacro dbg-pr
   "Output debugging print with pr."

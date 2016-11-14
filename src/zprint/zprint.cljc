@@ -26,12 +26,22 @@
 ;; # Utility functions for manipulating option maps
 ;;
 
-(defn merge-with-fn
+(defn merge-with-fn-alt
   "Take two arguments of things to merge and figure it out."
   [val-in-result val-in-latter]
   (if (and (map? val-in-result) (map? val-in-latter))
-    (merge-with merge-with-fn val-in-result val-in-latter)
+    (merge-with merge-with-fn-alt val-in-result val-in-latter)
     val-in-latter))
+
+(defn merge-with-fn
+  "Take two arguments of things to merge and figure it out.
+  Works for sets too."
+  [val-in-result val-in-latter]
+  (cond (and (map? val-in-result) (map? val-in-latter))
+          (merge-with merge-with-fn val-in-result val-in-latter)
+        (and (set? val-in-result) (set? val-in-latter))
+          (apply conj val-in-result (seq val-in-latter))
+        :else val-in-latter))
 
 (defn merge-deep
   "Do a merge of maps all the way down."
@@ -212,7 +222,9 @@
   [options]
   (if (:in-hang? options)
     options
-    (if (:do-in-hang? options) (assoc options :in-hang? true) options)))
+    (if (:do-in-hang? options)
+      (assoc options :in-hang? (or (:depth options) true))
+      options)))
 
 (defn contains-nil?
   "Scan a collection, and return the number of nils present (if any),
@@ -248,6 +260,44 @@
 ;; # Work with style-vecs and analyze results
 ;;
 
+(defn accumulate-ll-alt
+  "Take the vector carrying the intermediate results, and
+  do the right thing with a new string. Vector is
+  [ 0 out - vector accumulating line lengths
+    1 cur-len - length of current line
+    just-eol? - did we just do an eol?
+    ]
+  s - string to add to current line
+  tag - element type of string (comment's don't count in length)
+  eol? - should we terminate line after adding count of s"
+  [count-comment? [out cur-len just-eol? just-comment? :as in] s tag eol?]
+  (let [comment? (= tag :comment)
+        count-s (if (and comment? (not count-comment?)) 0 (count s))]
+    (cond
+      #_((and comment? (not just-eol?))
+          ; if a comment and we didn't just do
+          ; a newline, then terminate the previous
+          ; line and do a line just with the comment
+          (assoc in
+            0 (conj out cur-len count-s)
+            1 0
+            2 true))
+      ; if we are told to terminate the line or it
+      ; is a comment, we terminate the line with the
+      ; size of the string added to it
+      (or (and eol? (not (and just-eol? (zero? count-s)))) comment?)
+        (assoc in
+          0 (conj out (+ cur-len count-s))
+          1 0
+          2 true
+          3 comment?)
+      ; no reason to terminate the line, just accumulate
+      ; the size in cur-len
+      :else (assoc in
+              1 (+ cur-len count-s)
+              2 nil
+              3 comment?))))
+
 (defn accumulate-ll
   "Take the vector carrying the intermediate results, and
   do the right thing with a new string. Vector is
@@ -266,15 +316,20 @@
           ; if a comment and we didn't just do
           ; a newline, then terminate the previous
           ; line and do a line just with the comment
-          (assoc in 0 (conj out cur-len count-s) 1 0 2 true))
+          (assoc in
+            0 (conj out cur-len count-s)
+            1 0
+            2 true))
       ; if we are told to terminate the line or it
       ; is a comment, we terminate the line with the
       ; size of the string added to it
       (or (and eol? (not (and just-eol? (zero? count-s)))) comment?)
-        (assoc in 0 (conj out (+ cur-len count-s)) 1 0 2 true 3 comment?)
+        [(conj out (+ cur-len count-s)) 0 true comment?]
+      ;(assoc in 0 (conj out (+ cur-len count-s)) 1 0 2 true 3 comment?)
       ; no reason to terminate the line, just accumulate
       ; the size in cur-len
-      :else (assoc in 1 (+ cur-len count-s) 2 nil 3 comment?))))
+      :else [out (+ cur-len count-s) nil comment?])))
+; (assoc in 1 (+ cur-len count-s) 2 nil 3 comment?))))
 
 (defn generate-ll
   [count-comment? [out cur-len just-eol? just-comment? :as in]
@@ -948,7 +1003,7 @@
         split-non-coll
         (concat (list remainder) split-non-coll)))))
 
-(defn partition-all-sym
+(defn partition-all-sym-alt
   "Similar to partition-all-2-nc, but instead of trying to pair things
   up (modulo comments and unevaled expressions), this begins things
   with a symbol, and then accumulates collections until the next symbol.
@@ -979,6 +1034,44 @@
                         [(nthnext remaining 2)
                          (conj out
                                (concat (first remaining) (second remaining)))]
+                      :else [(next remaining) (conj out (first remaining))])]
+          (recur next-remaining new-out))))))
+
+(defn partition-all-sym
+  "Similar to partition-all-2-nc, but instead of trying to pair things
+  up (modulo comments and unevaled expressions), this begins things
+  with a symbol, and then accumulates collections until the next symbol.
+  Made harder by the fact that the symbol might be inside of a #?() reader
+  conditional.  It handles comments before symbols on the symbol indent, 
+  and the comments before the collections on the collection indent.  
+  Since it doesn't know how many collections there are, this is not trivial.  
+  Must be called with a sequence of z-things"
+  [{:as options,
+    {:keys [zsymbol? zstring znil? zcoll? zreader-cond-w-symbol?]} :zf} coll]
+  #_(def scoll coll)
+  (dbg options "partition-all-sym: coll:" (map zstring coll))
+  (let [part-sym (partition-by
+                   #(or (zsymbol? %) (znil? %) (zreader-cond-w-symbol? %))
+                   coll)
+        split-non-coll (mapcat (partial cleave-end options) part-sym)]
+    #_(def ps part-sym)
+    #_(def snc split-non-coll)
+    (loop [remaining split-non-coll
+           out []]
+      (if (empty? remaining)
+        out
+        (let [[next-remaining new-out]
+                (cond (and (or (zsymbol? (ffirst remaining))
+                               (znil? (ffirst remaining))
+                               (zreader-cond-w-symbol? (ffirst remaining)))
+                           (not (empty? (second remaining))))
+                        (if (= (count (first remaining)) 1)
+                          ; original
+                          [(nthnext remaining 2)
+                           (conj out
+                                 (concat (first remaining) (second remaining)))]
+                          [(cons (next (first remaining)) (next remaining))
+                           (conj out (list (ffirst remaining)))])
                       :else [(next remaining) (conj out (first remaining))])]
           (recur next-remaining new-out))))))
 
@@ -1030,7 +1123,8 @@
                                  (fzfn (in-hang options) hindent zloc)))
         hang-count (or zloc-count (zcount zloc))
         hr-lines (style-lines options (dec hindent) hanging)
-        flow (fzfn options findent zloc)]
+        ;flow (fzfn options findent zloc)
+        ]
     (if (or (fzfit-one-line options hr-lines) one-line?)
       hanging
       (let [flow (concat-no-nil [[(str "\n" (blanks findent)) :none
@@ -1076,9 +1170,11 @@
 
 (defn fzprint-extend
   "Print things with a symbol and collections following.  Kind of like with
-  pairs, but not quite."
+  pairs, but not quite. This skips over zloc and does everything to the
+  right of it!"
   [{:keys [width dbg?], {:keys [zmap-right zstring zfirst]} :zf, :as options}
    ind zloc]
+  #_(def fezloc zloc)
   (dbg options "fzprint-extend:" (zstring (zfirst zloc)))
   (dbg-form
     options
@@ -1472,7 +1568,11 @@
         _ (dbg options
                "fzprint-hang-remaining: hanging-lines:" hanging-lines
                "hang-count:" hang-count)
-        _ (if (fzfit-one-line options hanging-lines)
+        ; If the next if is true, it means that we are hanging lines
+        ; that fit on one line, so why are we hanging them?  Well, we used
+        ; to not do that, but now we do sometimes, so we don't need to sound
+        ; an alarm about that.
+        #_(if (fzfit-one-line options hanging-lines)
             (println "*_*_*_*_*_*_*_*_*_*_"))]
     (dbg options "fzprint-hang-remaining: flow-lines:" flow-lines)
     (when dbg?
@@ -1509,14 +1609,15 @@
 ;;
 
 (def body-set
-  #{:binding :arg1-> :arg2 :arg2-pair :pair :fn :arg1-body :arg1-pair-body
-    :arg1-extend-body :none-body :noarg1-body})
+  #{:binding :arg1-> :arg2 :arg2-fn :arg2-pair :pair :fn :arg1-body
+    :arg1-pair-body :arg1-extend-body :none-body :noarg1-body :flow-body})
 
 (def body-map
   {:arg1-body :arg1,
    :arg1-pair-body :arg1-pair,
    :arg1-extend-body :arg1-extend,
    :none-body :none,
+   :flow-body :flow,
    :noarg1-body :noarg1,
    :force-nl-body :force-nl})
 
@@ -1538,6 +1639,14 @@
   "Set noarg1 in the options if it is the right fn-type."
   [options fn-type]
   (if (noarg1-set fn-type) (assoc options :no-arg1? true) options))
+
+(defn allow-one-line?
+  "Should we allow this function to print on a single line?"
+  [{:keys [fn-force-nl fn-gt2-force-nl fn-gt3-force-nl], :as options} len
+   fn-style]
+  (not (or (fn-force-nl fn-style)
+           (and (> len 3) (fn-gt2-force-nl fn-style))
+           (and (> len 4) (fn-gt3-force-nl fn-style)))))
 
 (defn fzprint-list*
   "Print a list, which might be a list or an anon fn.  
@@ -1565,6 +1674,7 @@
         ; set indent based on fn-style
         indent (if (body-set fn-style) indent (or indent-arg indent))
         ; remove -body from fn-style if it was there
+        one-line-ok? (allow-one-line? options len fn-style)
         fn-style (or (body-map fn-style) fn-style)
         ; All styles except :hang need three elements minimum.
         ; We could put this in the fn-map, but until there is more
@@ -1609,7 +1719,7 @@
                "rightcnt:" (:rightcnt options))
         one-line (if (zero? len)
                    :empty
-                   (when-not (fn-force-nl fn-style)
+                   (when one-line-ok?
                      (fzprint-one-line options one-line-ind zloc)))]
     (cond
       one-line (if (= one-line :empty)
@@ -1673,6 +1783,7 @@
       ; needs (> len 2) but we already checked for that above in fn-style
       (or (and (= fn-style :fn) (not (zlist? (zsecond zloc))))
           (= fn-style :arg2)
+          (= fn-style :arg2-fn)
           (= fn-style :arg2-pair))
         (let [second-element (fzprint-hang-one caller
                                                (if (= len 2) options loptions)
@@ -1691,6 +1802,7 @@
                   second-element
                   (if (or (= fn-style :arg2)
                           (= fn-style :arg2-pair)
+                          (= fn-style :arg2-fn)
                           (and (zvector? third) (= line-count 1)))
                     (fzprint-hang-one caller
                                       (if (= len 3) options loptions)
@@ -1713,14 +1825,20 @@
                   [[(str "\n" (blanks (+ indent ind))) :none :whitespace]]
                   (fzprint-pairs options (+ indent ind) (znth zloc 2)))
                 (fzprint-hang-remaining caller
-                                        options
+                                        ;options
+                                        (if (= fn-style :arg2-fn)
+                                          (assoc options :fn-style :fn)
+                                          options)
                                         (+ indent ind)
                                         ; force flow
                                         (+ indent ind)
                                         (znth zloc 2)
                                         fn-style))
               r-str-vec)))
-      (or (= fn-style :arg1-pair) (= fn-style :arg1) (= fn-style :arg1->))
+      (or (= fn-style :arg1-pair)
+          (= fn-style :arg1)
+          (= fn-style :arg1-force-nl)
+          (= fn-style :arg1->))
         (concat-no-nil
           l-str-vec
           (fzprint* loptions (inc ind) (zfirst zloc))
@@ -1754,7 +1872,10 @@
               [[(str "\n" (blanks (+ indent ind))) :none :whitespace]]
               (fzprint* loptions (inc ind) (zsecond zloc))
               [[(str "\n" (blanks (+ indent ind))) :none :whitespace]]
-              (fzprint-extend options (+ indent ind) (znth zloc 2))
+              ; This needs to be (znth zloc 1) and not 2 because
+              ; fzprint-extend does (zmap-right identity zloc), skipping
+              ; the first one!
+              (fzprint-extend options (+ indent ind) (znth zloc 1))
               r-str-vec)
           :else (concat-no-nil
                   l-str-vec
@@ -1782,20 +1903,24 @@
       :else (concat-no-nil
               l-str-vec
               (fzprint* loptions (+ l-str-len ind) (zfirst zloc))
-              (if arg-1-indent
+              (if (and arg-1-indent (not= fn-style :flow))
                 (fzprint-hang-remaining caller
                                         (noarg1 options fn-style)
                                         arg-1-indent
                                         (+ indent ind indent-adj)
                                         (znth zloc 0)
                                         fn-style)
-                (concat-no-nil
-                  [[(str "\n" (blanks (+ default-indent ind indent-adj))) :none
-                    :whitespace]]
-                  (fzprint-flow-seq (noarg1 options fn-style)
-                                    (+ default-indent ind indent-adj)
-                                    (nthnext (zmap identity zloc) 1)
-                                    :force-nl)))
+                ; This might be a collection as the first thing, or it
+                ; might be a :flow type.  Do different indents for these.
+                (let [local-indent (if (= fn-style :flow)
+                                     (+ indent ind)
+                                     (+ default-indent ind indent-adj))]
+                  (concat-no-nil
+                    [[(str "\n" (blanks local-indent)) :none :whitespace]]
+                    (fzprint-flow-seq (noarg1 options fn-style)
+                                      local-indent
+                                      (nthnext (zmap identity zloc) 1)
+                                      :force-nl))))
               r-str-vec))))
 
 (defn fzprint-list
@@ -1963,11 +2088,12 @@
 
 (defn fzprint-map*
   [caller l-str r-str
-   {:keys [width dbg? one-line? ztype],
+   {:keys [width dbg? one-line? ztype map-depth],
     {:keys [zseqnws zstring zfirst]} :zf,
     {:keys [sort? comma? key-ignore key-ignore-silent force-nl?]} caller,
     :as options} ind zloc]
-  (let [zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
+  (let [options (assoc options :map-depth (inc map-depth))
+        zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
                (map-ignore caller options zloc)
                zloc)
         pair-seq (partition-all-2-nc options (zseqnws zloc) caller)
@@ -2422,12 +2548,13 @@
 (defn fzprint*
   "The pretty print part of fzprint."
   [{:keys [width rightcnt fn-map hex? shift-seq dbg? dbg-print? in-hang?
-           one-line? string-str? string-color depth max-depth trim-comments?],
+           one-line? string-str? string-color depth max-depth trim-comments?
+           in-code? max-hang-depth max-hang-span max-hang-count],
     {:keys [zfind-path zlist? zvector? zmap? zset? zanonfn? zfn-obj? zuneval?
             zwhitespace? zstring zcomment? zsexpr zcoll? zarray? zexpandarray
             zatom? znumstr zrecord? zns? zmeta? ztag znewline?
             zwhitespaceorcomment? zpromise? zfuture? zreader-macro? zdelay?
-            zagent? zarray-to-shift-seq zdotdotdot]}
+            zagent? zarray-to-shift-seq zdotdotdot zcount]}
       :zf,
     :as options} indent zloc]
   (let [avail (- width indent)
@@ -2452,6 +2579,14 @@
             (if (= zloc (zdotdotdot))
               [["..." (zcolor-map options :none) :element]]
               [["##" (zcolor-map options :keyword) :element]])
+          (and in-hang?
+               (not in-code?)
+               ;(> (/ indent width) 0.3)
+               (or (> (- depth in-hang?) max-hang-span)
+                   (and (not one-line?)
+                        (> (zcount zloc) max-hang-count)
+                        (> depth max-hang-depth))))
+            nil
           (zrecord? zloc) (fzprint-record options indent zloc)
           (zlist? zloc) (fzprint-list options indent zloc)
           (zvector? zloc) (fzprint-vec options indent zloc)
@@ -2668,7 +2803,11 @@
   (let [zloc (if-not (and (= (:ztype options) :zipper) (:value (:spec options)))
                zloc
                (add-spec-to-docstring zloc (:value (:spec options))))
-        style-vec (fzprint* (assoc options :depth 0) indent zloc)]
+        style-vec (fzprint* (assoc options
+                              :depth 0
+                              :map-depth 0)
+                            indent
+                            zloc)]
     (if (= (:ztype options) :sexpr)
       style-vec
       (if (:wrap? (:comment options))

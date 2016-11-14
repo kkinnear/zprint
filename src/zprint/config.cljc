@@ -31,7 +31,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.9")))
+          :cljs "0.2.10")))
 
 ;;
 ;; # External Configuration
@@ -53,7 +53,7 @@
 
 (def explain-hide-keys
   [:configured? :dbg-print? :dbg? :do-in-hang? :drop? :dbg-ge :file? :spaces?
-   :process-bang-zprint? :trim-comments? :zipper? :indent
+   :process-bang-zprint? :trim-comments? :zipper? :indent :remove
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning]
@@ -71,8 +71,19 @@
 ;;
 ;; :arg1
 ;;
+;; (map #(if (= % :big)
+;;         (takes 2 "lines")
+;;         (just 1 "line"))
+;;   (list 'stuff 'bother))
+;;
 ;; Print the first argument on the same line as
 ;; the function, if possible.  Later arguments go
+;; indented.
+;;
+;; :arg1-body
+;;
+;; Print the first argument on the same line as
+;; the function, if possible.  Later body arguments go
 ;; indented.
 ;;
 ;; (if (= a 1)
@@ -228,6 +239,32 @@
 ;;   :bar "bar"
 ;;   "baz")
 ;;
+;; :arg2-fn
+;;
+;; Just like :arg2, but prints the third through last arguments as fn's.
+;;
+;; (proxy [Classname] []
+;;   (stuff [] bother)
+;;   (foo [bar] baz))
+;;
+;; :flow
+;;
+;; Don't hang under any circumstances.  :flow assume arguments,
+;; :flow-body assumes executable things.
+;;
+;; (foo
+;;   (bar a b c)
+;;   (baz d e f))
+;;
+;; :flow-body
+;;
+;; Don't hang under any circumstances.  :flow assume arguments,
+;; :flow-body assumes executable things.
+;;
+;; (foo
+;;   (bar a b c)
+;;   (baz d e f))
+;;
 ;; :none
 ;;
 ;; This is for things like special forms that need to be in this
@@ -270,6 +307,7 @@
    "extend-protocol" :arg1-extend,
    "defprotocol" :arg1,
    "defrecord" :arg1-extend,
+   "proxy" :arg2-fn,
    "binding" :binding,
    "with-redefs" :binding,
    "with-open" :binding,
@@ -298,9 +336,13 @@
    "try" :none-body,
    "catch" :arg2,
    "with-meta" :arg1-body,
-   "fdef" :arg1-pair,
+   ":require" :force-nl-body,
+   ":import" :force-nl-body,
+   "fdef" :arg1-force-nl,
    "alt" :pair,
-   "cat" :pair})
+   "cat" :force-nl,
+   "s/and" :gt2-force-nl,
+   "s/or" :gt2-force-nl})
 
 ;;
 ;; ## The global defaults
@@ -312,6 +354,9 @@
    :indent 0,
    :max-depth 1000,
    :max-length 1000,
+   :max-hang-span 4,
+   :max-hang-count 4,
+   :max-hang-depth 3,
    :process-bang-zprint? nil,
    :trim-comments? nil,
    :style nil,
@@ -364,7 +409,11 @@
                         :quote :yellow,
                         :none :yellow}},
    :fn-map zfnstyle,
-   :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl},
+   :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
+                  :arg1-force-nl :flow-body},
+   :fn-gt2-force-nl #{:gt2-force-nl :binding},
+   :fn-gt3-force-nl #{:gt3-force-nl :arg1-pair :arg1-pair-body},
+   :remove nil,
    :user-fn-map {},
    :vector {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
    :set {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
@@ -515,6 +564,47 @@
   (reduce #(remove-key %1 %2) m ks))
 
 ;;
+;; ## Remove set elements
+;;
+
+(defn key-seq
+  "Get the key seq for every terminal element in a map."
+  [m]
+  (when (map? m)
+    (mapcat (fn [[k v]]
+              (let [ks (key-seq v)]
+                (if ks
+                  (map #(cons k (if (coll? %) % [%])) ks)
+                  ;(map (partial list k) ks)
+                  [[k]])))
+      m)))
+
+(defn remove-elements
+  "Given a key sequence and two maps, remove the elements of the set at
+  the key sequence in the second map from set in the first map."
+  [map-remove map-orig ks]
+  (update-in map-orig ks clojure.set/difference (get-in map-remove ks)))
+
+(defn remove-set-elements
+  "Take two maps, and remove all of the elemnts in the second maps sets
+  from equivalent places in the first map."
+  [map-orig map-remove]
+  (reduce (partial remove-elements map-remove) map-orig (key-seq map-remove)))
+
+(declare diff-deep-ks)
+
+(defn perform-remove
+  "Take an options map, and remove the set elements that are at the :remove
+  key, and also remove the :remove key."
+  [doc-string doc-map options new-options]
+  (let [map-remove (:remove new-options)
+        options-out (remove-set-elements options map-remove)
+        remove-ks-seq (key-seq map-remove)
+        new-options-out (dissoc new-options :remove)]
+    [options-out new-options-out
+     (diff-deep-ks doc-string doc-map remove-ks-seq options-out)]))
+
+;;
 ;; The best way is to just label all of the nodes.
 ;;
 
@@ -542,6 +632,20 @@
     (merge-deep doc-map
                 (map-leaves #(zipmap [:value :set-by] [% doc-string])
                             only-after))))
+
+(defn value-set-by
+  "Create a map with a :value and :set-by elements."
+  [set-by _ value]
+  {:value value, :set-by set-by})
+
+(defn diff-deep-ks
+  "Update an existing doc-map with labels of everything that shows up
+  in the ks-seq."
+  [doc-string doc-map changed-key-seq existing]
+  (reduce
+    #(update-in %1 %2 (partial value-set-by doc-string) (get-in existing %2))
+    doc-map
+    changed-key-seq))
 
 (defn diff-map "Diff two maps." [before after] (second (d/diff before after)))
 
@@ -691,7 +795,10 @@
                    :fn :arg1->
                    :noarg1-body :noarg1
                    :arg2 :arg2-pair
-                   :none :none-body
+                   :arg2-fn :none
+                   :none-body :arg1-force-nl
+                   :gt2-force-nl :gt3-force-nl
+                   :flow :flow-body
                    :force-nl-body :force-nl))
 
 ;;
@@ -744,6 +851,9 @@
    (s/optional-key :process-bang-zprint?) boolean-schema,
    (s/optional-key :max-depth) s/Num,
    (s/optional-key :max-length) s/Num,
+   (s/optional-key :max-hang-depth) s/Num,
+   (s/optional-key :max-hang-count) s/Num,
+   (s/optional-key :max-hang-span) s/Num,
    (s/optional-key :parse-string?) boolean-schema,
    (s/optional-key :parse-string-all?) boolean-schema,
    (s/optional-key :zipper?) boolean-schema,
@@ -766,6 +876,11 @@
    (s/optional-key :uneval) {(s/optional-key :color-map) color-map},
    (s/optional-key :fn-map) {s/Str fn-type},
    (s/optional-key :fn-force-nl) #{fn-type},
+   (s/optional-key :fn-gt2-force-nl) #{fn-type},
+   (s/optional-key :fn-gt3-force-nl) #{fn-type},
+   (s/optional-key :remove) {(s/optional-key :fn-force-nl) #{fn-type},
+                             (s/optional-key :fn-gt2-force-nl) #{fn-type},
+                             (s/optional-key :fn-gt3-force-nl) #{fn-type}},
    (s/optional-key :user-fn-map) {s/Str fn-type},
    (s/optional-key :vector) {(s/optional-key :indent) s/Num,
                              (s/optional-key :wrap?) boolean-schema,
@@ -1096,9 +1211,12 @@
   #_(println "config-and-validate:" new-map)
   (if new-map
     (let [errors (validate-options new-map doc-string)
-          ; do style first, so other things in new-map can override it
+          ; remove set elements, and then remove the :remove key too
+          [existing-map new-map new-doc-map]
+            (perform-remove doc-string doc-map existing-map new-map)
+          ; do style early, so other things in new-map can override it
           [updated-map new-doc-map style-errors]
-            (apply-style doc-string doc-map existing-map new-map)
+            (apply-style doc-string new-doc-map existing-map new-map)
           errors (if style-errors (str errors " " style-errors) errors)
           updated-map (merge-deep updated-map new-map)
           new-doc-map

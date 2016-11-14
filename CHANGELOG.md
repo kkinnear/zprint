@@ -1,7 +1,56 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.2.9 - 2016-11-9
+## 0.2.10 - 2016-12-23
+
+### Changed
+
+* Added two new sets in the config, :fn-gt2-force-nl and :fn-gt3-force-nl
+  into which you can put fn-styles so that they will never print on the
+  same line even if they could.  The gt2 is if it has greater than 2 args
+  and the gt3 is likewise if it has greater than 3 args.  Issue #3.
+
+* Refactored `zprint-file`, pulling out `zprint-file-str` so that boot-fmt
+  can use it.  Added `zprint-file-str` to the API.  Issue #7.
+
+* Added `:arg2-fn` to support proxy.
+
+* Added `:arg1-force-nl` to support `s/def`.  Put several additional
+  spec functions into the `:fn-map` so that spec files now pretty nicely.
+
+* Added experimental options to try to speed up map printing at the
+  repl, which slows down when the maps are really deeply nested.
+  `:max-hang-span`
+  `:max-hang-depth`
+  `:max-hang-count`
+  These are experimental, and will probably not keep their current names
+  or location in the options map.  They are not documented.  Do not 
+  depend on them.
+
+* Added `:flow` and `:flow-body` to force some functions to never hang.
+  Largely added for `:require` in `ns` declarations.  Issue #5.
+
+* Added `:require` to the `:fn-map` as `:force-nl-body` so that it will
+  hang all of the requires.  If you want it to pull them 
+  all over to the left and not even have something on the same line as
+  the `:require`, define it as `:flow-body`.  Issue #2.
+
+### Fixed
+
+* Added a capability to remove elements from a set, now that sets in
+  the config are more common.   Also, fixed it so that you can specify
+  additional members for a set, and they will be merged into the set,
+  instead of replacing the entire set.  Issue #4.
+
+* Fixed `:fn-force-nl` to accurately match the function type, and not
+  do it after the `-body` has been removed.  Issue #6.
+
+* A bug in `:arg1-extend` where, when used for `proxy`, some of the function
+  was getting dropped and not output.  Since `proxy` was not defined as
+  `:arg1-extend`, this is not as serious as it might seem, but it was not
+  good.
+
+## 0.2.9 - 2016-11-13
 
 ### Changed
 

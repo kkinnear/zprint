@@ -1,5 +1,6 @@
 (ns zprint.sutil
-  (:require clojure.string #?@(:cljs [[cljs.reader :refer [read-string]]])))
+  (:require clojure.string
+            #?@(:cljs [[cljs.reader :refer [read-string]]])))
 
 ;;
 ;; # Sexpression functions, see map at the end

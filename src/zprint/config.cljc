@@ -31,7 +31,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.10")))
+          :cljs "0.2.11")))
 
 ;;
 ;; # External Configuration
@@ -294,7 +294,7 @@
    "def" :arg1-body,
    "assoc" :arg1-pair,
    "case" :arg1-pair-body,
-   "cond" :pair,
+   "cond" :pair-fn,
    "cond->" :arg1-pair-body,
    "condp" :arg2-pair,
    "as->" :arg2,
@@ -339,7 +339,7 @@
    ":require" :force-nl-body,
    ":import" :force-nl-body,
    "fdef" :arg1-force-nl,
-   "alt" :pair,
+   "alt" :pair-fn,
    "cat" :force-nl,
    "s/and" :gt2-force-nl,
    "s/or" :gt2-force-nl})
@@ -418,8 +418,7 @@
    :vector {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
    :set {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
    :object {:indent 1, :wrap-coll? true, :wrap-after-multi? true},
-   :pair-fn
-     {:indent 2, :hang? true, :hang-expand 2.0, :hang-size 10, :hang-diff 1},
+   :pair-fn {:hang? true, :hang-expand 2.0, :hang-size 10, :hang-diff 1},
    :list {:indent-arg nil,
           :indent 2,
           :pair-hang? true,
@@ -444,6 +443,8 @@
          :key-ignore nil,
          :key-ignore-silent nil,
          :force-nl? nil,
+         :nl-separator? false,
+         :flow? false,
          :justify? false,
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
@@ -451,7 +452,9 @@
             :hang? true,
             :hang-expand 1000.0,
             :hang-diff 1,
-            :force-nl? true},
+            :flow? false,
+            :force-nl? true,
+            :nl-separator? false},
    :reader-cond {:indent 2,
                  :sort? nil,
                  :sort-in-code? nil,
@@ -465,6 +468,9 @@
              :hang? true,
              :hang-expand 2.0,
              :hang-diff 1,
+             :flow? false,
+             :force-nl? false,
+             :nl-separator? false,
              :justify? false,
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
@@ -472,7 +478,9 @@
           :hang? true,
           :hang-expand 2.0,
           :hang-diff 1,
+          :flow? false,
           :force-nl? nil,
+          :nl-separator? false,
           :justify? false,
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
@@ -500,7 +508,6 @@
    :parse-string-all? false,
    :style-map {:community {:binding {:indent 0},
                            :pair {:indent 0},
-                           :pair-fn {:indent 0},
                            :map {:indent 0},
                            :list {:indent-arg 1},
                            :fn-map {"filter" :none,
@@ -787,19 +794,20 @@
 
 (defschema fn-type
            "An enum of the possible function types"
-           (s/enum :binding :arg1
-                   :arg1-body :arg1-pair-body
-                   :arg1-pair :pair
-                   :hang :extend
-                   :arg1-extend-body :arg1-extend
-                   :fn :arg1->
-                   :noarg1-body :noarg1
-                   :arg2 :arg2-pair
-                   :arg2-fn :none
-                   :none-body :arg1-force-nl
-                   :gt2-force-nl :gt3-force-nl
-                   :flow :flow-body
-                   :force-nl-body :force-nl))
+           (s/enum :binding
+                   :arg1 :arg1-body
+                   :arg1-pair-body :arg1-pair
+                   :pair :hang
+                   :extend :arg1-extend-body
+                   :arg1-extend :fn
+                   :arg1-> :noarg1-body
+                   :noarg1 :arg2
+                   :arg2-pair :arg2-fn
+                   :none :none-body
+                   :arg1-force-nl :gt2-force-nl
+                   :gt3-force-nl :flow
+                   :flow-body :force-nl-body
+                   :force-nl :pair-fn))
 
 ;;
 ;; There is no schema for possible styles, because people
@@ -904,8 +912,7 @@
                            (s/optional-key :hang-size) s/Num,
                            (s/optional-key :constant-pair?) boolean-schema,
                            (s/optional-key :constant-pair-min) s/Num},
-   (s/optional-key :pair-fn) {(s/optional-key :indent) s/Num,
-                              (s/optional-key :hang?) boolean-schema,
+   (s/optional-key :pair-fn) {(s/optional-key :hang?) boolean-schema,
                               (s/optional-key :hang-expand) s/Num,
                               (s/optional-key :hang-size) s/Num,
                               (s/optional-key :hang-diff) s/Num},
@@ -921,6 +928,8 @@
                           (s/optional-key :key-order) [s/Any],
                           (s/optional-key :key-ignore) [s/Any],
                           (s/optional-key :key-ignore-silent) [s/Any],
+                          (s/optional-key :flow?) boolean-schema,
+                          (s/optional-key :nl-separator?) boolean-schema,
                           (s/optional-key :force-nl?) boolean-schema,
                           (s/optional-key :justify?) boolean-schema,
                           (s/optional-key :justify-hang)
@@ -936,6 +945,8 @@
                              (s/optional-key :hang?) boolean-schema,
                              (s/optional-key :hang-expand) s/Num,
                              (s/optional-key :hang-diff) s/Num,
+                             (s/optional-key :nl-separator?) boolean-schema,
+                             (s/optional-key :flow?) boolean-schema,
                              (s/optional-key :force-nl?) boolean-schema},
    (s/optional-key :reader-cond) {(s/optional-key :indent) s/Num,
                                   (s/optional-key :hang?) boolean-schema,
@@ -951,6 +962,9 @@
                               (s/optional-key :hang?) boolean-schema,
                               (s/optional-key :hang-expand) s/Num,
                               (s/optional-key :hang-diff) s/Num,
+                              (s/optional-key :flow?) boolean-schema,
+                              (s/optional-key :force-nl?) boolean-schema,
+                              (s/optional-key :nl-separator?) boolean-schema,
                               (s/optional-key :justify?) boolean-schema,
                               (s/optional-key :justify-hang)
                                 {(s/optional-key :hang?) boolean-schema,
@@ -965,7 +979,9 @@
                            (s/optional-key :hang?) boolean-schema,
                            (s/optional-key :hang-expand) s/Num,
                            (s/optional-key :hang-diff) s/Num,
+                           (s/optional-key :flow?) boolean-schema,
                            (s/optional-key :force-nl?) boolean-schema,
+                           (s/optional-key :nl-separator?) boolean-schema,
                            (s/optional-key :justify?) boolean-schema,
                            (s/optional-key :justify-hang)
                              {(s/optional-key :hang?) boolean-schema,

@@ -68,6 +68,10 @@
   #?(:clj z/skip
      :cljs zw/skip))
 
+(def skip-whitespace
+  #?(:clj z/skip-whitespace
+     :cljs zw/skip-whitespace))
+
 (def whitespace?
   #?(:clj z/whitespace?
      :cljs zw/whitespace?))
@@ -189,7 +193,7 @@
 (defn znth
   "Find the nth non-whitespace zloc inside of this zloc."
   [zloc n]
-  (loop [nloc (down* zloc)
+  (loop [nloc (skip-whitespace (down* zloc))
          i n]
     (if (or (nil? nloc) (= i 0)) nloc (recur (zrightnws nloc) (dec i)))))
 

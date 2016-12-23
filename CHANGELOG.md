@@ -1,6 +1,46 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.11 - 2016-1-8
+
+### Changed
+
+* Removed `:indent n` from `:pair-fn`, as it wasn't used.
+
+* Changed `cond` and `alt` to be `:pair-fn`, and not `:pair`, since
+  `:pair` was supposed to not be a function style on its own, but a
+  configuration element for functions that have pairs in them, like
+  `:arg1-pair` and `:pair-fn`.
+
+* Added capability to produce blank lines after pairs where the second element
+  of the pair doesn't fit on the same line as the first.  The options key
+  for this is `:nl-separator?`, and is by default false for all occurances
+  of this configuration option.  It is supported for `:map`, `:extend`,
+  `:binding`, and `:pair` formatting.  This was requested for `:map`, but
+  the implementation also allows configuring `:extend` to produce a commonly
+  used format as well. Issue #12.
+
+* Added `:flow?` options key for `:map`, `:extend`, `:binding`, and `:pair`.
+  By default false for all.  When enabled, this will cause the second
+  element of every pair to be formatted on the line after the first element,
+  thus acting line a "flow".  See the readme for differences between
+  `:flow?`, `:hang?`, `:force-nl?`, and `:nl-separator?`.  This was
+  largely added to work together with `:nl-separator?` in `:extend`, but
+  also has uses elsewhere.  `:flow?` will override the indent checks in
+  when printing things two up, so that it will force a flow even though
+  the first element of the pair is so short that it doesn't make any
+  sense.  Just because it is so confusing if it doesn't do that.
+
+### Fixed
+
+* Fixed constant pairs to be formatted under control of the configuration
+  for `:pair`, which now includes `:flow?` and `:nl-separator?`.
+
+* Serious bug where whitespace after left parenthesis causes either the 
+  first or second element in a list to be repeated if the list doesn't fit
+  entirely on one line.  Issue #16.
+
+
 ## 0.2.10 - 2016-12-23
 
 ### Changed

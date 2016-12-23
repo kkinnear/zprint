@@ -915,3 +915,234 @@
   (zprint-str
     "(defn ctest20\n ([query-string body]\n   (let [aabcdefghijklmnopqrstuvwxyzabcdefghijkllmnpqr @(http-get query-string {:body body})]\n    \n   nil)))"
     {:parse-string? true}))
+
+;;
+;; Test new :nl-separator? capability
+;;
+
+(def mx
+  {:djlsfdjfkld {:jlsdfjsdlk :kjsldkfjdslk,
+                 :jsldfjdlsd :ksdfjldsjkf,
+                 :jslfjdsfkl :jslkdfjsld},
+   :jsdlfjskdlfjldsk :jlksdfdlkfsdj,
+   :lsafjsdlfj :ljsdfjsdlk})
+
+(def my
+  {:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,
+                      :sjlkfjdlf :sdlkfjdsl,
+                      :slkfjdlskf :slfjdsfkldsljfk},
+   :djlsfdjfkld {:jlsdfjsdlk :kjsldkfjdslk,
+                 :jsldfjdlsd :ksdfjldsjkf,
+                 :jslfjdsfkl :jslkdfjsld},
+   :jsdlfjskdlfjldsk :jlksdfdlkfsdj,
+   :lsafjsdlfj :ljsdfjsdlk})
+
+(expect
+  "{:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,\n                    :sjlkfjdlf :sdlkfjdsl,\n                    :slkfjdlskf :slfjdsfkldsljfk},\n \n :djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n \n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
+  (zprint-str my
+              {:map {:hang? true,
+                     :force-nl? false,
+                     :flow? false,
+                     :indent 0,
+                     :nl-separator? true}}))
+
+(expect
+  "{:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,\n                    :sjlkfjdlf :sdlkfjdsl,\n                    :slkfjdlskf :slfjdsfkldsljfk},\n :djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
+  (zprint-str my
+              {:map {:hang? true,
+                     :force-nl? false,
+                     :flow? false,
+                     :indent 0,
+                     :nl-separator? false}}))
+
+(expect
+  "{:djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
+  (zprint-str mx
+              {:map {:hang? true,
+                     :force-nl? false,
+                     :flow? false,
+                     :indent 0,
+                     :nl-separator? false}}))
+
+(expect
+  "{:djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n \n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
+  (zprint-str mx
+              {:map {:hang? true,
+                     :force-nl? false,
+                     :flow? false,
+                     :indent 0,
+                     :nl-separator? true}}))
+
+(expect
+  "{:djlsfdjfkld\n {:jlsdfjsdlk\n  :kjsldkfjdslk,\n  \n  :jsldfjdlsd\n  :ksdfjldsjkf,\n  \n  :jslfjdsfkl\n  :jslkdfjsld},\n \n :jsdlfjskdlfjldsk\n :jlksdfdlkfsdj,\n \n :lsafjsdlfj\n :ljsdfjsdlk}"
+  (zprint-str mx
+              {:map {:hang? true,
+                     :force-nl? false,
+                     :flow? true,
+                     :indent 0,
+                     :nl-separator? true}}))
+
+;;
+;; # :flow? tests
+;;
+
+
+(expect "(cond a b c d)"
+        (zprint-str "(cond a b c d)"
+                    {:parse-string? true, :pair {:flow? false}}))
+
+; Note that this also tests that :flow? overrides the indent checks in
+; fzprint-two-up, which would otherwise prevent the flow because the keys
+; are only 1 character long.
+
+(expect "(cond a\n        b\n      c\n        d)"
+        (zprint-str "(cond a b c d)"
+                    {:parse-string? true, :pair {:flow? true}}))
+
+(expect "{:abc :def, :ghi :ijk}"
+        (zprint-str {:abc :def, :ghi :ijk} {:map {:flow? false}}))
+
+(expect "{:abc\n   :def,\n :ghi\n   :ijk}"
+        (zprint-str {:abc :def, :ghi :ijk} {:map {:flow? true}}))
+
+(expect "(let [a b c d e f] (list a b c d e f))"
+        (zprint-str "(let [a b c d e f] (list a b c d e f))"
+                    {:parse-string? true, :binding {:flow? false}}))
+
+(expect
+  "(let [a\n        b\n      c\n        d\n      e\n        f]\n  (list a b c d e f))"
+  (zprint-str "(let [a b c d e f] (list a b c d e f))"
+              {:parse-string? true, :binding {:flow? true}}))
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq (hasheq [this] (list this))
+  clojure.lang.Counted (count [_] cnt)
+  clojure.lang.IMeta (meta [_] _meta))
+
+(expect
+  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest))
+
+(expect
+  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest {:extend {:flow? true}}))
+
+;;
+;; # :force-nl? tests
+;;
+
+
+(expect "(cond a b c d)"
+        (zprint-str "(cond a b c d)"
+                    {:parse-string? true, :pair {:force-nl? false}}))
+
+(expect "(cond a b\n      c d)"
+        (zprint-str "(cond a b c d)"
+                    {:parse-string? true, :pair {:force-nl? true}}))
+
+(expect "{:abc :def, :ghi :ijk}"
+        (zprint-str {:abc :def, :ghi :ijk} {:map {:force-nl? false}}))
+
+(expect "{:abc :def,\n :ghi :ijk}"
+        (zprint-str {:abc :def, :ghi :ijk} {:map {:force-nl? true}}))
+
+(expect "(let [a b c d e f] (list a b c d e f))"
+        (zprint-str "(let [a b c d e f] (list a b c d e f))"
+                    {:parse-string? true, :binding {:force-nl? false}}))
+
+(expect "(let [a b\n      c d\n      e f]\n  (list a b c d e f))"
+        (zprint-str "(let [a b c d e f] (list a b c d e f))"
+                    {:parse-string? true, :binding {:force-nl? true}}))
+
+(expect
+  "(deftype Typetest [cnt _meta] clojure.lang.IHashEq (hasheq [this] (list this)) clojure.lang.Counted (count [_] cnt) clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest
+                 200
+                 {:extend {:force-nl? false}}))
+
+(expect
+  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest 200 {:extend {:force-nl? true}}))
+
+;;
+;; # :nl-separator? tests
+;;
+
+(expect "(cond a\n        b\n      c\n        d)"
+        (zprint-str "(cond a b c d)"
+                    {:parse-string? true,
+                     :pair {:flow? true, :nl-separator? false}}))
+
+(expect "(cond a\n        b\n\n      c\n        d)"
+        (zprint-str "(cond a b c d)"
+                    {:parse-string? true,
+                     :pair {:flow? true, :nl-separator? true}}))
+
+(expect "{:abc\n   :def,\n :ghi\n   :ijk}"
+        (zprint-str {:abc :def, :ghi :ijk}
+                    {:map {:flow? true, :nl-separator? false}}))
+
+(expect "{:abc\n   :def,\n \n :ghi\n   :ijk}"
+        (zprint-str {:abc :def, :ghi :ijk}
+                    {:map {:flow? true, :nl-separator? true}}))
+
+(expect
+  "(let [a\n        b\n      c\n        d\n      e\n        f]\n  (list a b c d e f))"
+  (zprint-str "(let [a b c d e f] (list a b c d e f))"
+              {:parse-string? true,
+               :binding {:flow? true, :nl-separator? false}}))
+
+(expect
+  "(let [a\n        b\n\n      c\n        d\n\n      e\n        f]\n  (list a b c d e f))"
+  (zprint-str "(let [a b c d e f] (list a b c d e f))"
+              {:parse-string? true,
+               :binding {:flow? true, :nl-separator? true}}))
+
+(expect
+  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest {:extend {:flow? true}}))
+
+(expect
+  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n\n  clojure.lang.Counted\n    (count [_] cnt)\n\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest
+                 {:extend {:flow? true, :nl-separator? true}}))
+
+;;
+;; # Does :flow? and :nl-separator? work for constant pairs?
+;;
+
+(expect "(println :this :should\n         :constant :pair)"
+        (zprint-str "(println :this :should :constant :pair)"
+                    37
+                    {:parse-string? true, :pair {:flow? false}}))
+
+(expect
+  "(println :this\n           :should\n         :constant\n           :pair)"
+  (zprint-str "(println :this :should :constant :pair)"
+              37
+              {:parse-string? true, :pair {:flow? true}}))
+
+(expect
+  "(println :this\n           :should\n         :constant\n           :pair)"
+  (zprint-str "(println :this :should :constant :pair)"
+              37
+              {:parse-string? true, :pair {:flow? true, :nl-separator? false}}))
+
+(expect
+  "(println :this\n           :should\n\n         :constant\n           :pair)"
+  (zprint-str "(println :this :should :constant :pair)"
+              37
+              {:parse-string? true, :pair {:flow? true, :nl-separator? true}}))
+
+(expect "(println\n  :this\n    :should\n  :constant\n    :pair)"
+        (zprint-str "(println :this :should :constant :pair)"
+                    15
+                    {:parse-string? true,
+                     :pair {:flow? true, :nl-separator? false}}))
+
+(expect "(println\n  :this\n    :should\n\n  :constant\n    :pair)"
+        (zprint-str "(println :this :should :constant :pair)"
+                    15
+                    {:parse-string? true,
+                     :pair {:flow? true, :nl-separator? true}}))

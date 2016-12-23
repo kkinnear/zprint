@@ -898,11 +898,18 @@ executed after the binding is `:list {:indent n}`.
 #### :pair-fn
 
 The function has a series of clauses which are paired.  Whether or
-not the paired clauses use hang or flow is controlled by
-`:pair-fn {:hang? boolen}` and the indent of the leftmost
-element is controlled by `:pair-fn {:indent n}`.  The indent of any
-of the rightmost elements of the pair if they don't fit on the
-same line or don't hang well is `:pair {:indent n}`.
+not the paired clauses use hang or flow with respect to the function
+name is controlled by `:pair-fn {:hang? boolen}` and the indent of
+the leftmost element is controlled by `:pair-fn {:indent n}`.
+
+The actual formatting of the pairs themselves is controlled by
+`:pair`.  The controls for `:pair-fn` are govern how to handle the
+block of pairs -- whether or not they should be in a hang with
+respect to the function name.  The controls for how the elements
+within the pairs are printed are governed by `:pair`. For instance,
+the indent of any of the rightmost elements of the pair if they
+don't fit on the same line or don't hang well is `:pair {:indent
+n}`.
 
 ```clojure
  (cond
@@ -1361,7 +1368,8 @@ hang and flow.
 
 #### :hang?
 
-If :hang? is true, zprint will attempt to hang.  If it is false, it won't
+If :hang? is true, zprint will attempt to hang if all of the elements in
+the collection don't fit on one line. If it is false, it won't
 even try.
 
 #### :hang-expand
@@ -1390,6 +1398,207 @@ flow buys you one more space to the left, it often looks kind of odd.
 You could set `:hang-diff` to 0 if you wanted to be more "strict", and
 see if you like the results better.  Probably you won't want to deal
 with this level of control.
+
+#### :flow?
+
+If `:flow?` is true, all of the elements of a collection will be forced
+onto a new line, even if they would have fit on the same line originally. 
+When a function has a function type of `:flow`, all of the arguments will
+be flowed below the function, each taking its own line.  The `:flow?` options
+configuration key does a similar thing for data structures (both within
+code and just in data structures).  For example:
+
+```clojure
+(czprint {:a :b :c :d :e :f :g { :i {:j :k} :l :m}} {:map {:flow? false}})
+
+{:a :b, :c :d, :e :f, :g {:i {:j :k}, :l :m}}
+
+(czprint {:a :b :c :d :e :f :g { :i {:j :k} :l :m}} {:map {:flow? true}})
+
+{:a
+   :b,
+ :c
+   :d,
+ :e
+   :f,
+ :g
+   {:i
+      {:j
+         :k},
+    :l
+      :m}}
+```
+
+This looks a bit strange because the keys are very short, making the 
+indentation of the second element in each pair odd.  If you do this, you
+might want to reduce the indent, thus:
+
+```clojure
+(czprint {:a :b :c :d :e :f :g { :i {:j :k} :l :m}} {:map {:indent 0 :flow? true}})
+
+{:a
+ :b,
+ :c
+ :d,
+ :e
+ :f,
+ :g
+ {:i
+  {:j
+   :k},
+  :l
+  :m}}
+```
+
+The `:flow?` capability was added along with `:nl-separator?` to make
+formatting `:extend` type work in an alternative way:
+
+```clojure
+(czprint-fn ->Typetest)
+
+; Default output, :force-nl? is true
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq (hasheq [this] (list this))
+  clojure.lang.Counted (count [_] cnt)
+  clojure.lang.IMeta (meta [_] _meta))
+
+(czprint-fn ->Typetest {:extend {:flow? true}})
+
+; Add :flow? true, always keeps fn defns on separate line
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq
+    (hasheq [this] (list this))
+  clojure.lang.Counted
+    (count [_] cnt)
+  clojure.lang.IMeta
+    (meta [_] _meta))
+
+(czprint-fn ->Typetest {:extend {:flow? true :indent 0}})
+
+; Reduce indent
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq
+  (hasheq [this] (list this))
+  clojure.lang.Counted
+  (count [_] cnt)
+  clojure.lang.IMeta
+  (meta [_] _meta))
+
+(czprint-fn ->Typetest {:extend {:flow? true :indent 0 :nl-separator? true}})
+
+; Add :nl-separator? true for an altogether different (but commonly used) look
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq
+  (hasheq [this] (list this))
+
+  clojure.lang.Counted
+  (count [_] cnt)
+
+  clojure.lang.IMeta
+  (meta [_] _meta))
+
+```
+
+#### :force-nl?
+
+Very similar to `:flow?`, but operates on pairs, not individual elements
+of a pair.  For example:
+
+```clojure
+(czprint {:a :b :c :d :e :f :g { :i {:j :k} :l :m}} {:map {:force-nl? false}})
+
+{:a :b, :c :d, :e :f, :g {:i {:j :k}, :l :m}}
+
+(czprint {:a :b :c :d :e :f :g { :i {:j :k} :l :m}} {:map {:force-nl? true}})
+
+{:a :b,
+ :c :d,
+ :e :f,
+ :g {:i {:j :k},
+     :l :m}}
+```
+
+Also works with `:pair` functions
+
+```clojure
+(czprint "(cond abcd b cdef d)" {:parse-string? true :pair {:force-nl? false}})
+
+(cond abcd b cdef d)
+
+(czprint "(cond abcd b cdef d)" {:parse-string? true :pair {:force-nl? true}})
+
+(cond abcd b
+      cdef d)
+```
+
+
+#### :nl-separator?
+
+This will put a blank line between any pair that took more than one line
+and the next pair.  Some examples:
+
+```clojure
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 40 {:map {:nl-separator? false}})
+
+{:a :b,
+ :c {:e :f, :g :h, :i :j, :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; No effect if all the pairs print on one line
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 40 {:map {:nl-separator? true}})
+{:a :b,
+ :c {:e :f, :g :h, :i :j, :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; With a narrower width, one of them take more than one line
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? false}})
+
+{:a :b,
+ :c {:e :f,
+     :g :h,
+     :i :j,
+     :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; and now :nl-separator? will kick in an have an effect
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true}})
+
+{:a :b,
+ :c {:e :f,
+     :g :h,
+     :i :j,
+     :k :l},
+ 
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; Probably more interesting if you turn off :hang? and remove all of the
+; indent.
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true :hang? false :indent 0}})
+
+{:a :b,
+ :c
+ {:e :f, :g :h, :i :j, :k :l},
+ 
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+```
+
 
 #### :justify?
 
@@ -1466,7 +1675,83 @@ __hang__ described above.
 ##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
 ##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :force-nl?  <text style="color:#A4A4A4;"><small>true</small></text>
 
+If you never want to see multiple binding pairs on the same line,
+like this:
+
+```clojure
+(czprint "(let [abcd b cdef d efgh f] (list a f))" {:parse-string? true}
+
+(let [abcd b cdef d efgh f] (list a f))
+```
+
+You can configure `:binding` to have `:force-nl? true`, which will yield this:
+```clojure
+(czprint "(let [abcd b cdef d efgh f] (list a f))" {:parse-string? true :binding {:force-nl? true}})
+
+(let [abcd b
+      cdef d
+      efgh f]
+  (list a f))
+
+(czprint "(let [abcd b] (list a f))" {:parse-string? true :binding {:force-nl? true}})
+
+(let [abcd b]
+  (list a f))
+```
+
+#### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Both `:flow?` and `:nl-separator?` together with `:indent` can significantly
+alter the way binding pairs are printed:
+
+```clojure
+(czprint "(let [abcd b cdef d efgh f] (list a f))" {:parse-string? true :binding {:flow? false}})
+
+(let [abcd b cdef d efgh f] (list a f))
+
+(czprint "(let [abcd b cdef d efgh f] (list a f))" {:parse-string? true :binding {:flow? true}})
+
+; This isn't all that nice, but we are on the way to something different
+
+(let [abcd
+        b
+      cdef
+        d
+      efgh
+        f]
+  (list a f))
+
+(czprint "(let [abcd b cdef d efgh f] (list a f))" 
+         {:parse-string? true :binding {:flow? true :indent 0}})
+
+; Remove the indent
+
+(let [abcd
+      b
+      cdef
+      d
+      efgh
+      f]
+  (list a f))
+
+(czprint "(let [abcd b cdef d efgh f] (list a f))" 
+         {:parse-string? true :binding {:flow? true :indent 0 :nl-separator? true}})
+
+; Some people like their binding pairs formatted this way:
+
+(let [abcd
+      b
+
+      cdef
+      d
+
+      efgh
+      f]
+  (list a f))
+```
 _____
 ## :comment
 
@@ -1538,10 +1823,75 @@ When formatting functions which have extend in their function types.
 Supports __indent__ as described above.  
 
 ##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-
 #### :force-nl?  <text style="color:#A4A4A4;"><small>true</small></text>
 
-Forces a new line between the elements of the extend. 
+Forces a new line between one type/fn defn set and the next in the extend.
+
+#### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Places a blank line between one type/fn defn set and the next.
+
+#### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Places a new line between the type and the fn defns in a single 
+type/fn defn set in the extend.
+
+Here are some examples of two rather different, but commonly used,
+ways to format extend:
+
+```clojure
+(czprint-fn ->Typetest)
+
+; Default output, :force-nl? is true
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq (hasheq [this] (list this))
+  clojure.lang.Counted (count [_] cnt)
+  clojure.lang.IMeta (meta [_] _meta))
+
+(czprint-fn ->Typetest {:extend {:flow? true}})
+
+; Add :flow? true, always keeps fn defns on separate line
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq
+    (hasheq [this] (list this))
+  clojure.lang.Counted
+    (count [_] cnt)
+  clojure.lang.IMeta
+    (meta [_] _meta))
+
+(czprint-fn ->Typetest {:extend {:flow? true :indent 0}})
+
+; Remove all indent
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq
+  (hasheq [this] (list this))
+  clojure.lang.Counted
+  (count [_] cnt)
+  clojure.lang.IMeta
+  (meta [_] _meta))
+
+(czprint-fn ->Typetest {:extend {:flow? true :indent 0 :nl-separator? true}})
+
+; Add :nl-separator? true for an altogether different (but commonly used) look
+
+(deftype Typetest
+  [cnt _meta]
+  clojure.lang.IHashEq
+  (hasheq [this] (list this))
+
+  clojure.lang.Counted
+  (count [_] cnt)
+
+  clojure.lang.IMeta
+  (meta [_] _meta))
+
+```
 
 _____
 ## :list
@@ -1576,7 +1926,7 @@ the hang but instead will format this as a flow.  Together with
 `:hang-expand` this will keep hangs from getting too long so that
 code (typically) doesn't get very distorted.
 
-#### :constant-pair <text style="color:#A4A4A4;"><small>true</small></text>
+#### :constant-pair? <text style="color:#A4A4A4;"><small>true</small></text>
 
 Lists (which are frequently code) support something called _**constant
 pairing**_.  This capability looks at the end of a list, and if the
@@ -1644,6 +1994,10 @@ suprising generality, making unexpected things look much better.
 
 In particular, try it on your specs!
 
+Note that the formatting of the pairs in a constant pair is controlled
+by the `:pair` configuration (just like the pairs in a `cond`, `assoc`,
+and any function style with "pair" in the name).
+
 #### :constant-pair-min <text style="color:#A4A4A4;"><small>4</small></text>
  
 An integer specifying the minimum number of required elements capable of being
@@ -1700,6 +2054,107 @@ hangs.
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
 ##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
 
+#### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Never print the key and value of a single key/value pair on the same
+line.
+
+```clojure
+(czprint {:abc :def :ghi :ijk})
+
+{:abc :def, :ghi :ijk}
+
+(czprint {:abc :def :ghi :ijk} {:map {:flow? true}})
+
+{:abc
+   :def,
+ :ghi
+   :ijk}
+```
+#### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Put an entirely blank line between any key/value pair that takes more than
+one line.
+
+```clojure
+(czprint {:abc :def :ghi :ijk})
+
+{:abc :def, :ghi :ijk}
+
+(czprint {:abc :def :ghi :ijk} {:map {:flow? true :indent 0}})
+
+{:abc
+ :def,
+ :ghi
+ :ijk}
+
+(czprint {:abc :def :ghi :ijk} {:map {:flow? true :indent 0 :nl-separator? true}})
+
+{:abc
+ :def,
+ 
+ :ghi
+ :ijk}
+```
+
+But maybe you want to still allow the values of a key/value pair to
+print on the same line when possible, and only want a blank line when
+the key/value pair takes multiple lines:
+
+```clojure
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 40 {:map {:nl-separator? false}})
+
+{:a :b,
+ :c {:e :f, :g :h, :i :j, :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; No effect if all the pairs print on one line
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 40 {:map {:nl-separator? true}})
+{:a :b,
+ :c {:e :f, :g :h, :i :j, :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; With a narrower width (30 instead of 40), one of them take more than one line
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? false}})
+
+{:a :b,
+ :c {:e :f,
+     :g :h,
+     :i :j,
+     :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; and now :nl-separator? will kick in an have an effect
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true}})
+
+{:a :b,
+ :c {:e :f,
+     :g :h,
+     :i :j,
+     :k :l},
+ 
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; Probably more interesting if you turn off :hang? and remove all of the
+; indent.
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true :hang? false :indent 0}})
+
+{:a :b,
+ :c
+ {:e :f, :g :h, :i :j, :k :l},
+ 
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+```
+
 ####  :comma?  <text style="color:#A4A4A4;"><small>true</small></text>
 
 Put a comma after the value in a key-value pair, if it is not the
@@ -1707,8 +2162,19 @@ last pair in a map.
 
 #### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
 
-Force new-lines between each key and value in a map.  Will never print
-the value on the same line as the key. 
+Force a new-line between each key and value pair in a map.  
+
+```clojure
+(czprint {:abc :def :ghi :ijk})
+
+{:abc :def, :ghi :ijk}
+
+(czprint {:abc :def :ghi :ijk} {:map {:force-nl? true}})
+
+{:abc :def,
+ :ghi :ijk}
+
+```
 
 #### :sort? <text style="color:#A4A4A4;"><small>true</small></text>
 
@@ -2050,7 +2516,7 @@ ______
 ## :pair
 
 The :pair key controls the printing of the arguments of a function
-which has -pair in its function type (e.g. :arg1-pair).  `:pair` 
+which has -pair in its function type (e.g. `:arg1-pair`, `:pair-fn`, `:arg2-pair`).  `:pair` 
 supports __indent__ and __hang__ described above. 
 
 ##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
@@ -2061,24 +2527,125 @@ supports __indent__ and __hang__ described above.
 
 #### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
 
-If you wish to force a newline between the things that are paired.
+If you wish to force a newline between all things that are paired
+(which is more than just `cond`), you can use `:force-nl?`.  For example:
 
+```clojure
+(czprint "(cond abcd b cdef d)" {:parse-string? true :pair {:force-nl? false}})
+
+(cond abcd b cdef d)
+
+(czprint "(cond abcd b cdef d)" {:parse-string? true :pair {:force-nl? true}})
+
+(cond abcd b
+      cdef d)
+```
+
+You could achieve a similar result by placing the function style `:pair-fn` 
+into the set of `:fn-gt2-force-nl`, thus:
+
+```clojure
+(czprint "(cond abcd b)" {:parse-string? true :fn-gt2-force-nl #{:pair-fn}})
+
+(cond abcd b)
+
+(czprint "(cond abcd b cdef d)" {:parse-string? true :fn-gt2-force-nl #{:pair-fn}})
+
+(cond abcd b
+      cdef d)
+```
+#### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Format the right-hand part of every pair to onto a different
+line from the left-hand part of every pair.
+
+#### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Insert an entirely blank line between every pair that takes more than one
+line.
+
+Some examples of how `:flow?` an `:nl-separator?` can interact:
+
+```clojure
+(czprint "(cond abcd b cdef d)" {:parse-string? true})
+
+(cond abcd b cdef d)
+
+(czprint "(cond abcd b cdef d)" {:parse-string? true :pair {:flow? true}})
+
+; :flow? causes the right-hand part of each pair to move to another line
+
+(cond abcd
+        b
+      cdef
+        d)
+
+(czprint "(cond abcd b cdef d)" {:parse-string? true :pair {:flow? true :indent 0}})
+
+; Remove the indent
+
+(cond abcd
+      b
+      cdef
+      d)
+
+(czprint "(cond abcd b cdef d)" 
+         {:parse-string? true :pair {:flow? true :indent 0 :nl-separator? true}})
+
+; :nl-separator? places an entirely blank line between any pair that takes more than one line
+
+(cond abcd
+      b
+
+      cdef
+      d)
+
+(czprint "(cond abcd b cdef d)" 
+         {:parse-string? true 
+          :pair {:flow? true
+                 :indent 0 
+                 :nl-separator? true} 
+          :pair-fn {:hang? false}})
+
+; Just FYI, this is how to cause cond to never hang its pairs
+
+(cond
+  abcd
+  b
+
+  cdef
+  d)
+
+```
 _____
 ## :pair-fn
 
-The :pair key controls the printing of the arguments of a function
+The :pair-fn key controls the printing of the arguments of a function
 which has :pair-fn as its function type (e.g. `cond`).  `:pair-fn` 
-supports __indent__ and __hang__ described above. 
+supports __hang__ described above. 
 
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
 
-#### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
+This function type exists largely to allow you to control how the
+pairs of a `cond` are formatted with respect to the function name.  
+For example:
 
-If you wish to force a newline between the things that are paired in a
-pair-fn.
+```clojure
+(czprint "(cond abcd efgh ijkl mnop)" 20 {:parse-string? true :pair-fn {:hang? true}})
+
+(cond abcd efgh
+      ijkl mnop)
+
+(czprint "(cond abcd efgh ijkl mnop)" 20 {:parse-string? true :pair-fn {:hang? false}})
+
+(cond
+  abcd efgh
+  ijkl mnop)
+```
+
+The formatting of the pairs themselves is controlled by `:pair`.
 
 _____
 ## :reader-cond
@@ -2094,7 +2661,7 @@ reader conditional.
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :hang-expand <text style="color:#A4A4A4;"><small>1000.0</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-##### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
+##### :force-nl? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :sort? <text style="color:#A4A4A4;"><small>false</small></text>
 ##### :sort-in-code? <text style="color:#A4A4A4;"><small>false</small></text>
 ##### :key-order <text style="color:#A4A4A4;"><small>nil</small></text>

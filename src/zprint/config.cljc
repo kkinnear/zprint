@@ -332,7 +332,7 @@
    "and" :hang,
    "or" :hang,
    "=" :hang,
-   "!=" :hang,
+   "not=" :hang,
    "try" :none-body,
    "catch" :arg2,
    "with-meta" :arg1-body,

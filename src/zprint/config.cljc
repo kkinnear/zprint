@@ -273,7 +273,7 @@
 ;;
 
 (def zfnstyle
-  {"ns" :arg1,
+  {"ns" :arg1-body,
    "let" :binding,
    "if" :arg1-body,
    "if-not" :arg1-body,

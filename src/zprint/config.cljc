@@ -31,7 +31,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.12")))
+          :cljs "0.2.13")))
 
 ;;
 ;; # External Configuration
@@ -57,8 +57,7 @@
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning]
-   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning]
-   [:extend :hang-diff :hang-expand :hang?] :tuning])
+   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] :tuning])
 
 
 ;;
@@ -522,7 +521,9 @@
                                     "with-meta" :none-body}},
                :justified {:binding {:justify? true},
                            :pair {:justify? true},
-                           :map {:justify? true}}}})
+                           :map {:justify? true}},
+               :extend-nl {:extend
+                             {:flow? true, :indent 0, :nl-separator? true}}}})
 
 ;;
 ;; # Mutable Options storage
@@ -827,7 +828,8 @@
 (defschema num-or-nil-schema (s/conditional nil? s/Any :else s/Num))
 
 (defschema keyword-or-nil-schema (s/conditional nil? s/Any :else s/Keyword))
-
+(defschema keyword-nil-or-keyword-list-schema
+           (s/conditional coll? [s/Keyword] :else keyword-or-nil-schema))
 
 (defschema color-map
            {(s/optional-key :paren) color-schema,
@@ -852,7 +854,7 @@
   "Use this to validate input, so ensure that people don't forget
   things like the ? on the end of booleans and such."
   {(s/optional-key :configured?) boolean-schema,
-   (s/optional-key :style) keyword-or-nil-schema,
+   (s/optional-key :style) keyword-nil-or-keyword-list-schema,
    (s/optional-key :width) s/Num,
    (s/optional-key :indent) s/Num,
    (s/optional-key :trim-comments?) boolean-schema,
@@ -1093,7 +1095,40 @@
         error-str (apply str (interpose ", " error-seq))]
     (if (empty? error-str) nil error-str)))
 
+(defn apply-one-style
+  "Take a [doc-string [existing-map doc-map error-str] style-name]
+  and produce a new [existing-map doc-map error-str] from the style defined
+  in the existing map."
+  [doc-string [existing-map doc-map error-str] style-name]
+  (if (or (= style-name :not-specified) (nil? style-name))
+    [existing-map doc-map nil]
+    (let [style-map (if (= style-name :default)
+                      (get-default-options)
+                      (get-in existing-map [:style-map style-name]))]
+      (if style-map
+        [(merge-deep existing-map style-map)
+         (when doc-map
+           (diff-deep-doc (str doc-string " specified :style " style-name)
+                          doc-map
+                          existing-map
+                          style-map)) nil]
+        [existing-map doc-map (str "Style '" style-name "' not found!")]))))
+
 (defn apply-style
+  "Given an existing-map and a new-map, if the new-map specifies a
+  style, apply it if it exists.  Otherwise do nothing. Return
+  [updated-map new-doc-map error-string]"
+  [doc-string doc-map existing-map new-map]
+  (let [style-name (get new-map :style :not-specified)]
+    (if (or (= style-name :not-specified) (nil? style-name))
+      [existing-map doc-map nil]
+      (if (not (coll? style-name))
+        (apply-one-style doc-string [existing-map doc-map nil] style-name)
+        (reduce (partial apply-one-style doc-string)
+          [existing-map doc-map nil]
+          style-name)))))
+
+(defn apply-style-alt
   "Given an existing-map and a new-map, if the new-map specifies a
   style, apply it if it exists.  Otherwise do nothing. Return
   [updated-map new-doc-map error-string]"

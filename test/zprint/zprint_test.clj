@@ -508,7 +508,7 @@
   (zprint-fn-str zprint.zprint-test/zctest3 40 {:pair-fn {:hang? nil}}))
 
 (expect
-  "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let \n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things way\n           ; to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
+  "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let\n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things way\n           ; to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
   (zprint-fn-str zprint.zprint-test/zctest5
                  70
                  {:comment {:count? true, :wrap? true}}))
@@ -663,7 +663,7 @@
 ;;
 
 (expect
-  "(let \n  [:a\n     ;x\n     ;y\n     :b\n   :c :d]\n  (println\n    :a))"
+  "(let\n  [:a\n     ;x\n     ;y\n     :b\n   :c :d]\n  (println\n    :a))"
   (zprint-str "(let [:a ;x\n;y\n :b :c :d] (println :a))"
               10
               {:parse-string? true}))
@@ -937,14 +937,33 @@
    :jsdlfjskdlfjldsk :jlksdfdlkfsdj,
    :lsafjsdlfj :ljsdfjsdlk})
 
+;
+; This is the test for where maps only get an extra new-line when the
+; right hand part of the pair gets a :flow, and you don't get an extra
+; new line when the right hand part gets a hang (i.e. a multi-line hang).
+;
+
 (expect
-  "{:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,\n                    :sjlkfjdlf :sdlkfjdsl,\n                    :slkfjdlskf :slfjdsfkldsljfk},\n \n :djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n \n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
+  "{:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,\n                    :sjlkfjdlf :sdlkfjdsl,\n                    :slkfjdlskf :slfjdsfkldsljfk},\n :djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n \n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
   (zprint-str my
               {:map {:hang? true,
                      :force-nl? false,
                      :flow? false,
                      :indent 0,
                      :nl-separator? true}}))
+
+;
+; This is the test for when any multi-line pair gets an extra new-line
+; with :nl-separator? true, not just the ones that did flow.
+;
+#_(expect
+    "{:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,\n                    :sjlkfjdlf :sdlkfjdsl,\n                    :slkfjdlskf :slfjdsfkldsljfk},\n \n :djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n \n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
+    (zprint-str my
+                {:map {:hang? true,
+                       :force-nl? false,
+                       :flow? false,
+                       :indent 0,
+                       :nl-separator? true}}))
 
 (expect
   "{:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,\n                    :sjlkfjdlf :sdlkfjdsl,\n                    :slkfjdlskf :slfjdsfkldsljfk},\n :djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
@@ -1146,3 +1165,82 @@
                     15
                     {:parse-string? true,
                      :pair {:flow? true, :nl-separator? true}}))
+
+;;
+;; # :extend -- support :hang? for :extend
+;;
+
+
+(deftype Typetest1
+  [cnt _meta]
+  clojure.lang.IHashEq
+    (hasheq [this] (list this) (list this this) (list this this this this))
+  clojure.lang.Counted (count [_] cnt)
+  clojure.lang.IMeta (meta [_] _meta))
+
+(expect
+  "(deftype Typetest1\n  [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this]\n                         (list this)\n                         (list this this)\n                         (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest1 60 {:extend {:hang? true}}))
+
+(expect
+  "(deftype Typetest1\n  [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest1 60 {:extend {:hang? false}}))
+
+
+;;
+;; # Test a variant form of cond with :nl-separator?
+;;
+
+(defn zctest8x
+  []
+  (let [a (list 'with 'arguments)
+        foo nil
+        bar true
+        baz "stuff"
+        other 1
+        bother 2
+        stuff 3
+        now 4
+        output 5
+        b 3
+        c 5
+        this "is"]
+    (cond (or foo bar baz) (format output now)
+          :let [stuff (and bother foo bar)
+                bother (or other output foo)]
+          (and a b c (bother this)) (format other stuff))
+    (list a :b :c "d")))
+
+(expect
+  "(defn zctest8x\n  []\n  (let\n    [a (list\n         'with\n         'arguments)\n     foo nil\n     bar true\n     baz \"stuff\"\n     other 1\n     bother 2\n     stuff 3\n     now 4\n     output 5\n     b 3\n     c 5\n     this \"is\"]\n    (cond\n      (or foo\n          bar\n          baz)\n        (format\n          output\n          now)\n      :let\n        [stuff\n           (and\n             bother\n             foo\n             bar)\n         bother\n           (or\n             other\n             output\n             foo)]\n      (and a\n           b\n           c\n           (bother\n             this))\n        (format\n          other\n          stuff))\n    (list a\n          :b\n          :c\n          \"d\")))"
+  (zprint-fn-str zprint.zprint-test/zctest8x 20))
+
+(expect
+  "(defn zctest8x\n  []\n  (let\n    [a (list\n         'with\n         'arguments)\n     foo nil\n     bar true\n     baz \"stuff\"\n     other 1\n     bother 2\n     stuff 3\n     now 4\n     output 5\n     b 3\n     c 5\n     this \"is\"]\n    (cond\n      (or foo\n          bar\n          baz)\n        (format\n          output\n          now)\n\n      :let\n        [stuff\n           (and\n             bother\n             foo\n             bar)\n         bother\n           (or\n             other\n             output\n             foo)]\n\n      (and a\n           b\n           c\n           (bother\n             this))\n        (format\n          other\n          stuff))\n    (list a\n          :b\n          :c\n          \"d\")))"
+  (zprint-fn-str zprint.zprint-test/zctest8x 20 {:pair {:nl-separator? true}}))
+
+;;
+;; # Issue 17
+;;
+;; There should be no completely blank lines in the output for this function.
+;;
+
+(defn zpair-tst
+  []
+  (println (list :ajfkdkfdj :bjlfkdsfjsdl)
+           (list :cjslkfsdjl :dklsdfjsdsjsldf)
+           [:ejlkfjdsfdfklfjsljfsd :fjflksdfjlskfdjlk]
+           :const1 "stuff"
+           :const2 "bother"))
+
+(expect
+  "(defn zpair-tst\n  []\n  (println\n    (list :ajfkdkfdj\n          :bjlfkdsfjsdl)\n    (list :cjslkfsdjl\n          :dklsdfjsdsjsldf)\n    [:ejlkfjdsfdfklfjsljfsd\n     :fjflksdfjlskfdjlk]\n    :const1 \"stuff\"\n    :const2 \"bother\"))"
+  (zprint-fn-str zprint.zprint-test/zpair-tst 30 {:pair {:nl-separator? true}}))
+
+;
+; Should be one blank line here
+;
+
+(expect
+  "(defn zpair-tst\n  []\n  (println\n    (list\n      :ajfkdkfdj\n      :bjlfkdsfjsdl)\n    (list\n      :cjslkfsdjl\n      :dklsdfjsdsjsldf)\n    [:ejlkfjdsfdfklfjsljfsd\n     :fjflksdfjlskfdjlk]\n    :const1\n      \"stuff\"\n\n    :const2\n      \"bother\"))"
+  (zprint-fn-str zprint.zprint-test/zpair-tst 17 {:pair {:nl-separator? true}}))

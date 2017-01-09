@@ -1451,7 +1451,7 @@ might want to reduce the indent, thus:
 ```
 
 The `:flow?` capability was added along with `:nl-separator?` to make
-formatting `:extend` type work in an alternative way:
+formatting `:extend` types work in an alternative way:
 
 ```clojure
 (czprint-fn ->Typetest)
@@ -1542,8 +1542,8 @@ Also works with `:pair` functions
 
 #### :nl-separator?
 
-This will put a blank line between any pair that took more than one line
-and the next pair.  Some examples:
+This will put a blank line between any pair where the right part of a pair
+was formatted with a flow. Some examples:
 
 ```clojure
 (czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 40 {:map {:nl-separator? false}})
@@ -1573,7 +1573,10 @@ and the next pair.  Some examples:
  :m :n,
  :o {:p {:q :r, :s :t}}}
 
-; and now :nl-separator? will kick in an have an effect
+; and even now :nl-separator? will not have any effect because none of the
+; right hand pairs are formatted with a flow -- that is, none of the right
+; hand parts of the pairs start all of the way to the left.  They are still
+; formatted as a hang
 
 (czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true}})
 
@@ -1582,14 +1585,33 @@ and the next pair.  Some examples:
      :g :h,
      :i :j,
      :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; If you turn off the hang, then now if a pair doesn't fit on one line,
+; you get a flow:
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 
+         30 
+         {:map {:nl-separator? true :hang? false}})
+
+{:a :b,
+ :c
+   {:e :f,
+    :g :h,
+    :i :j,
+    :k :l},
  
  :m :n,
  :o {:p {:q :r, :s :t}}}
 
-; Probably more interesting if you turn off :hang? and remove all of the
-; indent.
+; Most people use the :nl-separator? kind of formatting when they don't
+; want the right hand side of a pair indented.  So if you turn off :hang?
+; then you probably want to remove the indent as well.
 
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true :hang? false :indent 0}})
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 
+         30 
+         {:map {:nl-separator? true :hang? false :indent 0}})
 
 {:a :b,
  :c
@@ -1823,13 +1845,15 @@ When formatting functions which have extend in their function types.
 Supports __indent__ as described above.  
 
 ##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
+##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 #### :force-nl?  <text style="color:#A4A4A4;"><small>true</small></text>
 
 Forces a new line between one type/fn defn set and the next in the extend.
 
 #### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
 
-Places a blank line between one type/fn defn set and the next.
+Places a blank line between one type/fn defn set and the next if the
+fn defn set formats with a flow.
 
 #### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
 
@@ -2073,8 +2097,8 @@ line.
 ```
 #### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
 
-Put an entirely blank line between any key/value pair that takes more than
-one line.
+Put an entirely blank line between any key/value pair where the value
+part of the pair formats as a flow.
 
 ```clojure
 (czprint {:abc :def :ghi :ijk})
@@ -2099,7 +2123,7 @@ one line.
 
 But maybe you want to still allow the values of a key/value pair to
 print on the same line when possible, and only want a blank line when
-the key/value pair takes multiple lines:
+the key/value pair formats with the value as a flow.
 
 ```clojure
 (czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 40 {:map {:nl-separator? false}})
@@ -2129,7 +2153,10 @@ the key/value pair takes multiple lines:
  :m :n,
  :o {:p {:q :r, :s :t}}}
 
-; and now :nl-separator? will kick in an have an effect
+; and even now :nl-separator? will not have any effect because non of tghe
+; right hand pairs are formatted with a flow -- that is, none of the right
+; hand parts of the pairs start all of the way to the left.  They are still
+; formatted as a hang
 
 (czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true}})
 
@@ -2138,14 +2165,23 @@ the key/value pair takes multiple lines:
      :g :h,
      :i :j,
      :k :l},
- 
  :m :n,
  :o {:p {:q :r, :s :t}}}
 
-; Probably more interesting if you turn off :hang? and remove all of the
-; indent.
+; If you turn off the hang, then now if a pair doesn't fit on one line,
+; you get a flow:
 
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true :hang? false :indent 0}})
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 
+         30 
+         {:map {:nl-separator? true :hang? false}})
+
+; Most people use the :nl-separator? kind of formatting when they don't
+; want the right hand side of a pair indented.  So if you turn off :hang?
+; then you probably want to remove the indent as well.
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 
+         30 
+         {:map {:nl-separator? true :hang? false :indent 0}})
 
 {:a :b,
  :c
@@ -2561,8 +2597,8 @@ line from the left-hand part of every pair.
 
 #### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
 
-Insert an entirely blank line between every pair that takes more than one
-line.
+Insert an entirely blank line between every pair where the right hand part
+of the pair is formatted as a flow.
 
 Some examples of how `:flow?` an `:nl-separator?` can interact:
 
@@ -2592,7 +2628,7 @@ Some examples of how `:flow?` an `:nl-separator?` can interact:
 (czprint "(cond abcd b cdef d)" 
          {:parse-string? true :pair {:flow? true :indent 0 :nl-separator? true}})
 
-; :nl-separator? places an entirely blank line between any pair that takes more than one line
+; :nl-separator? places an entirely blank line between any pair that formats as a flow
 
 (cond abcd
       b
@@ -2758,6 +2794,10 @@ map in an individual call to zprint.
 
 You might wish to define several styles with different color-maps,
 perhaps, allowing you to alter the colors more easily.
+
+You cannot define a style and apply it in the same configuration
+pass, as styles are applied before the rest of the configuration in
+a options map.
 
 ______
 ## :tab

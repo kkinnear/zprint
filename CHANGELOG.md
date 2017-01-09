@@ -1,6 +1,40 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.13 - 2016-1-19
+
+### Changed
+
+* Added support for `:hang?` in `:extend`, so that you can control
+  whether or not the function definitions end up formatting as a
+  hang after the type.  `:hang?` defaults to `true` (and this is
+  not a change), but can now be turned off to force a flow.  Note
+  that if a type and function defnition all fit on one line, that
+  `:hang? false` will not affect it.  If you want them on separate
+  lines you need to use `:flow? true`, which will override the normal
+  desire to print things on one line.
+
+* Altered the meaning of :nl-separator?.  In its initial release it
+  would place an extra new-line whenever a pair took more than one line.
+  Now, it only places an extra new-line when the pair did an actual
+  flow, so that a multi-line hang does not trigger an extra new-line.
+  The previous capability would be easy to add if there is any
+  interest in doing that.
+
+* Added the ability to set multiple styles at once, with a sequence
+  of style keywords instead of just a single keyword.  Also added
+  some great style tests.  Go expectations!
+
+### Fixed
+
+* The new `:nl-separator?` capability does not work right with lists
+  that have constant-pairs at the end but regular s-expressions earlier.
+  If the earlier s-expressions take more than one line, then they get
+  blank lines below them which is wrong from several different perspectives.
+  Now multiple line s-expressions don't ever trigger blank lines, since
+  the `:nl-separator?` blank lines are triggered by a pair with the right
+  hand part of the pair being formatted with a flow. Issue #17.
+
 ## 0.2.12 - 2016-1-9
 
 ### Fixed

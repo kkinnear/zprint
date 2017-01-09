@@ -1,6 +1,16 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.12 - 2016-1-9
+
+### Fixed
+
+* Accepted pull request to change function style for "ns" to `:arg1-body`.
+  Thanks to pesterhazy!
+
+* Accepted pull request to change function "!=" to "not=".  Thanks to
+  mynomoto!
+
 ## 0.2.11 - 2016-1-8
 
 ### Changed

@@ -31,7 +31,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.11")))
+          :cljs "0.2.12")))
 
 ;;
 ;; # External Configuration

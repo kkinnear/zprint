@@ -31,7 +31,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.13")))
+          :cljs "0.2.14")))
 
 ;;
 ;; # External Configuration
@@ -341,7 +341,8 @@
    "alt" :pair-fn,
    "cat" :force-nl,
    "s/and" :gt2-force-nl,
-   "s/or" :gt2-force-nl})
+   "s/or" :gt2-force-nl,
+   "defui" :arg1-extend})
 
 ;;
 ;; ## The global defaults
@@ -453,7 +454,8 @@
             :hang-diff 1,
             :flow? false,
             :force-nl? true,
-            :nl-separator? false},
+            :nl-separator? false,
+            :modifiers #{"static"}},
    :reader-cond {:indent 2,
                  :sort? nil,
                  :sort-in-code? nil,
@@ -522,6 +524,9 @@
                :justified {:binding {:justify? true},
                            :pair {:justify? true},
                            :map {:justify? true}},
+               :binding-nl {:binding {:indent 0, :nl-separator? true}},
+               :pair-nl {:pair {:indent 0, :nl-separator? true}},
+               :map-nl {:map {:indent 0, :nl-separator? true}},
                :extend-nl {:extend
                              {:flow? true, :indent 0, :nl-separator? true}}}})
 
@@ -630,16 +635,6 @@
   (i.e., not map value) has been replaced by the (f leaf-value)."
   [f m]
   (reduce (partial map-leaf f) m (keys m)))
-
-(defn diff-deep-doc
-  "Do a diff of two maps, and update an existing doc-map with labels 
-  of everything that is different. Existing is before the update with
-  new."
-  [doc-string doc-map existing new]
-  (let [[only-before only-after both] (d/diff existing new)]
-    (merge-deep doc-map
-                (map-leaves #(zipmap [:value :set-by] [% doc-string])
-                            only-after))))
 
 (defn value-set-by
   "Create a map with a :value and :set-by elements."
@@ -810,6 +805,12 @@
                    :flow-body :force-nl-body
                    :force-nl :pair-fn))
 
+;(defschema
+;  modifiers
+;  "Possible words that can come before a protocol or object
+;           in an extend type function."
+;  s/Str)
+
 ;;
 ;; There is no schema for possible styles, because people
 ;; can define their own.  There is special code to check to
@@ -890,7 +891,9 @@
    (s/optional-key :fn-gt3-force-nl) #{fn-type},
    (s/optional-key :remove) {(s/optional-key :fn-force-nl) #{fn-type},
                              (s/optional-key :fn-gt2-force-nl) #{fn-type},
-                             (s/optional-key :fn-gt3-force-nl) #{fn-type}},
+                             (s/optional-key :fn-gt3-force-nl) #{fn-type},
+                             (s/optional-key :extend)
+                               {(s/optional-key :modifiers) #{s/Str}}},
    (s/optional-key :user-fn-map) {s/Str fn-type},
    (s/optional-key :vector) {(s/optional-key :indent) s/Num,
                              (s/optional-key :wrap?) boolean-schema,
@@ -949,7 +952,8 @@
                              (s/optional-key :hang-diff) s/Num,
                              (s/optional-key :nl-separator?) boolean-schema,
                              (s/optional-key :flow?) boolean-schema,
-                             (s/optional-key :force-nl?) boolean-schema},
+                             (s/optional-key :force-nl?) boolean-schema,
+                             (s/optional-key :modifiers) #{s/Str}},
    (s/optional-key :reader-cond) {(s/optional-key :indent) s/Num,
                                   (s/optional-key :hang?) boolean-schema,
                                   (s/optional-key :hang-expand) s/Num,
@@ -1106,12 +1110,13 @@
                       (get-default-options)
                       (get-in existing-map [:style-map style-name]))]
       (if style-map
-        [(merge-deep existing-map style-map)
-         (when doc-map
-           (diff-deep-doc (str doc-string " specified :style " style-name)
-                          doc-map
-                          existing-map
-                          style-map)) nil]
+        (let [updated-map (merge-deep existing-map style-map)]
+          [updated-map
+           (when doc-map
+             (diff-deep-ks (str doc-string " specified :style " style-name)
+                           doc-map
+                           (key-seq style-map)
+                           updated-map)) nil])
         [existing-map doc-map (str "Style '" style-name "' not found!")]))))
 
 (defn apply-style
@@ -1127,26 +1132,6 @@
         (reduce (partial apply-one-style doc-string)
           [existing-map doc-map nil]
           style-name)))))
-
-(defn apply-style-alt
-  "Given an existing-map and a new-map, if the new-map specifies a
-  style, apply it if it exists.  Otherwise do nothing. Return
-  [updated-map new-doc-map error-string]"
-  [doc-string doc-map existing-map new-map]
-  (let [style-name (get new-map :style :not-specified)]
-    (if (or (= style-name :not-specified) (nil? style-name))
-      [existing-map doc-map nil]
-      (let [style-map (if (= style-name :default)
-                        (get-default-options)
-                        (get-in existing-map [:style-map style-name]))]
-        (if style-map
-          [(merge-deep existing-map style-map)
-           (when doc-map
-             (diff-deep-doc (str doc-string " specified :style " style-name)
-                            doc-map
-                            existing-map
-                            style-map)) nil]
-          [existing-map doc-map (str "Style '" style-name "' not found!")])))))
 
 ;;
 ;; # File Access
@@ -1263,17 +1248,18 @@
   (if new-map
     (let [errors (validate-options new-map doc-string)
           ; remove set elements, and then remove the :remove key too
-          [existing-map new-map new-doc-map]
+          [existing-map new-ap new-doc-map]
             (perform-remove doc-string doc-map existing-map new-map)
           ; do style early, so other things in new-map can override it
           [updated-map new-doc-map style-errors]
             (apply-style doc-string new-doc-map existing-map new-map)
           errors (if style-errors (str errors " " style-errors) errors)
-          updated-map (merge-deep updated-map new-map)
-          new-doc-map
-            #_(diff-deep-doc doc-string doc-map default-map new-map)
-            (diff-deep-doc doc-string new-doc-map existing-map new-map)]
-      [updated-map new-doc-map errors])
+          new-updated-map (merge-deep updated-map new-map)
+          new-doc-map (diff-deep-ks doc-string
+                                    new-doc-map
+                                    (key-seq new-map)
+                                    new-updated-map)]
+      [new-updated-map new-doc-map errors])
     ; if we didn't get a map, just return something with no changes
     [existing-map doc-map nil]))
 

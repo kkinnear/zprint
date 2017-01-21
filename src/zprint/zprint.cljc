@@ -511,7 +511,7 @@
 
 (declare fzprint-binding-vec)
 
-(defn fzprint-two-up
+(defn fzprint-two-up-alt
   "Print a single pair of things (though it might not be exactly
   a pair, given comments and :extend and the like), 
   like bindings in a let, clauses in a cond, keys and values in a map.  
@@ -721,6 +721,238 @@
                                                          (+ indent ind)
                                                          (next pair)
                                                          :force-nl)))))))
+(defn fzprint-two-up
+  "Print a single pair of things (though it might not be exactly
+  a pair, given comments and :extend and the like), 
+  like bindings in a let, clauses in a cond, keys and values in a map.  
+  Controlled by various maps, the key of which is caller."
+  [hangflow? caller
+   {:keys [width one-line? dbg? dbg-indent in-hang? do-in-hang?],
+    {:keys [zstring znth zcount zvector?]} :zf,
+    {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow?]} caller,
+    :as options} ind commas? justify-width rightmost-pair?
+   [lloc rloc xloc :as pair]]
+  (if dbg-cnt? (println "two-up: caller:" caller "hang?" hang? "dbg?" dbg?))
+  (if (or dbg? dbg-local?)
+    (println (or dbg-indent "")
+             "==========================" (str "\n" (or dbg-indent ""))
+             "fzprint-two-up:" (zstring lloc)
+             "caller:" caller
+             "count:" (count pair)
+             "ind:" ind
+             "indent:" indent
+             "indent-arg:" indent-arg
+             "justify-width:" justify-width
+             "one-line?:" one-line?
+             "hang?:" hang?
+             "in-hang?" in-hang?
+             "do-in-hang?" do-in-hang?
+             "flow?" flow?
+             "commas?" commas?
+             "rightmost-pair?" rightmost-pair?))
+  (let [local-hang? (or one-line? hang?)
+        indent (or indent indent-arg)
+        local-options
+          (if (not local-hang?) (assoc options :one-line? true) options)
+        loptions (c-r-pair commas? rightmost-pair? nil options)
+        roptions (c-r-pair commas? rightmost-pair? :rightmost options)
+        local-roptions
+          (c-r-pair commas? rightmost-pair? :rightmost local-options)
+        ; It is possible that lloc is a modifier, and if we have exactly
+        ; three things, we will pull rloc in with it, and move xloc to rloc.
+        ; If it is just two, we'll leave it to be handled normally.
+        ; Which might need to be re-thought due to justification, but since
+        ; we are really only talking :extend here, maybe not.
+        modifier-set (:modifiers (options caller))
+        modifier?
+          (and modifier-set (modifier-set (zstring lloc)) (> (count pair) 2))
+        arg-1 (fzprint* loptions ind lloc)
+        arg-1 (if modifier?
+                (concat-no-nil arg-1
+                               [[(str " ") :none :whitespace]]
+                               (fzprint* loptions ind rloc))
+                arg-1)
+        mloc (if modifier? lloc nil)
+        lloc (if modifier? rloc lloc)
+        rloc (if modifier? xloc rloc)
+        [_ arg-1-max-width :as arg-1-lines] (style-lines options ind arg-1)
+        ;     arg-1-fit-oneline? (and (not force-nl?)
+        ;                             (fzfit-one-line loptions arg-1-lines))
+        arg-1-fit-oneline? (and (not flow?)
+                                (fzfit-one-line loptions arg-1-lines))
+        arg-1-fit? (or arg-1-fit-oneline?
+                       (when (not one-line?) (fzfit loptions arg-1-lines)))
+        ; sometimes arg-1-max-width is nil because fzprint* returned nil,
+        ; but we need to have something for later code to use as a number
+        arg-1-width (- (or arg-1-max-width 0) ind)]
+    ; If we don't *have* an arg1, no point in continuing...
+    ;  If arg-1 doesn't fit, maybe that's just how it is!
+    ;  If we are in-hang, then we can bail, but otherwise, not.
+    (when (and arg-1 (or arg-1-fit? (not in-hang?)))
+      (cond
+        (= (count pair) 1)
+          (hangflow hangflow? :hang (fzprint* roptions ind lloc))
+        (or (= (count pair) 2) (and modifier? (= (count pair) 3)))
+          ;(concat-no-nil
+          ;  arg-1
+          ; We used to think:
+          ; We will always do hanging, either fully or with one-line? true,
+          ; we will then do flow if hanging didn't do anything or if it did,
+          ; we will try to see if flow is better.
+          ;
+          ; But now, we don't do hang if arg-1-fit-oneline? is false, since
+          ; we won't use it.
+          (let [hanging-width (if justify-width justify-width arg-1-width)
+                hanging-spaces
+                  (if justify-width (inc (- justify-width arg-1-width)) 1)
+                hanging-indent (+ 1 hanging-width ind)
+                flow-indent (+ indent ind)]
+            (if (and (zstring lloc)
+                     (keyword-fn? options (zstring lloc))
+                     (zvector? rloc))
+              ; This is an embedded :let or :when-let or something
+              ; Presently we assume that anything with a vector after something
+              ; that is a keyword must be one of these, but we could check
+              ; for a :binding fn-style instead which might make more sense.
+              (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
+                                               loptions
+                                               hanging-indent
+                                               flow-indent
+                                               fzprint-binding-vec
+                                               rloc)
+                    arg-1 (if (= hang-or-flow :hang)
+                            (concat-no-nil arg-1
+                                           [[(blanks hanging-spaces) :none
+                                             :whitespace]])
+                            arg-1)]
+                (hangflow hangflow?
+                          hang-or-flow
+                          (concat-no-nil arg-1 style-vec)))
+              ; This is a normal two element pair thing
+              (let [; Perhaps someday we could figure out if we are already
+                    ; completely in flow to this point, and be smarter about
+                    ; possibly dealing with the hang or flow now.  But for
+                    ; now, we will simply do hang even if arg-1 didn't fit
+                    ; on one line if the flow indent isn't better than the
+                    ; hang indent.
+                    _ (dbg options
+                           "fzprint-two-up: before hang.  in-hang?"
+                           (and do-in-hang?
+                                (and (not flow?)
+                                     (< flow-indent hanging-indent))))
+                    hanging (when (or arg-1-fit-oneline?
+                                      (and (not flow?)
+                                           (>= flow-indent hanging-indent)))
+                              (fzprint* (if (< flow-indent hanging-indent)
+                                          (in-hang local-roptions)
+                                          local-roptions)
+                                        hanging-indent
+                                        rloc))
+                    hang-count (zcount rloc)
+                    _ (log-lines options
+                                 "fzprint-two-up: hanging:"
+                                 hanging-indent
+                                 hanging)
+                    hanging-lines (style-lines options hanging-indent hanging)
+                    fit? (fzfit-one-line local-roptions hanging-lines)
+                    hanging-lines (if fit?
+                                    hanging-lines
+                                    (when (and (not one-line?) hang?)
+                                      hanging-lines))
+                    ; Don't flow if it fit, or it didn't fit and we were doing
+                    ; one line on input.  Do flow if we don't have
+                    ; hanging-lines
+                    ; and we were not one-line on input.
+                    _ (log-lines options
+                                 "fzprint-two-up: hanging-2:"
+                                 hanging-indent
+                                 hanging)
+                    flow-it? (and (or (and (not hanging-lines) (not one-line?))
+                                      (not (or fit? one-line?)))
+                                  ; this is for situations where the first
+                                  ; element is short and so the hanging indent
+                                  ; is the same as the flow indent, so there
+                                  ; is
+                                  ; no point in flow -- unless we don't have
+                                  ; any hanging-lines, in which case we better
+                                  ; do flow
+                                  (or (< flow-indent hanging-indent)
+                                      (not hanging-lines)))
+                    _ (dbg options
+                           "fzprint-two-up: before flow. flow-it?"
+                           flow-it?)
+                    flow (when flow-it? (fzprint* roptions flow-indent rloc))
+                    _ (log-lines options
+                                 "fzprint-two-up: flow:"
+                                 (+ indent ind)
+                                 flow)
+                    flow-lines (style-lines options (+ indent ind) flow)]
+                (when dbg-local?
+                  (prn "fzprint-two-up: local-hang:" local-hang?)
+                  (prn "fzprint-two-up: one-line?:" one-line?)
+                  (prn "fzprint-two-up: hanging-indent:" hanging-indent)
+                  (prn "fzprint-two-up: hanging-lines:" hanging-lines)
+                  (prn "fzprint-two-up: flow?:" flow?)
+                  (prn "fzprint-two-up: flow-it?:" flow-it?)
+                  (prn "fzprint-two-up: fit?:" fit?)
+                  (prn "fzprint-two-up: flow-indent:" flow-indent)
+                  (prn "fzprint-two-up: hanging:" (zstring lloc) hanging)
+                  (prn "fzprint-two-up: (+ indent ind):" (+ indent ind))
+                  (prn "fzprint-two-up: flow:" (zstring lloc) flow))
+                (dbg options "fzprint-two-up: before good-enough")
+                (if fit?
+                  (hangflow hangflow?
+                            :hang
+                            (concat-no-nil arg-1
+                                           [[(blanks hanging-spaces) :none
+                                             :whitespace]]
+                                           hanging))
+                  (when (or hanging-lines flow-lines)
+                    (if (good-enough? caller
+                                      roptions
+                                      :none-two-up
+                                      hang-count
+                                      (- hanging-indent flow-indent)
+                                      hanging-lines
+                                      flow-lines)
+                      (hangflow hangflow?
+                                :hang
+                                (concat-no-nil arg-1
+                                               [[(blanks hanging-spaces) :none
+                                                 :whitespace]]
+                                               hanging))
+                      (if justify-width
+                        nil
+                        (hangflow hangflow?
+                                  :flow
+                                  (concat-no-nil arg-1
+                                                 [[(str "\n"
+                                                        (blanks (+ indent ind)))
+                                                   :none :whitespace]]
+                                                 flow)))))))))
+        ; )
+        :else (hangflow
+                hangflow?
+                :flow
+                  ; The following always flows things of 3 or more
+                  ; (absent modifers).  If the lloc is a single char,
+                  ; then that can look kind of poor.  But that case
+                  ; is rare enough that it probably isn't worth dealing
+                  ; with.  Possibly a hang-remaining call might fix it.
+                  (concat-no-nil
+                    arg-1
+                    #_(fzprint* loptions ind lloc)
+                    [[(str "\n" (blanks (+ indent ind))) :none :whitespace]]
+                    ; This is a real seq, not a zloc seq
+                    #_(fzprint-remaining-seq options
+                                             (+ indent ind)
+                                             nil
+                                             :force-nl
+                                             (next pair))
+                    (fzprint-flow-seq options
+                                      (+ indent ind)
+                                      (if modifier? (nnext pair) (next pair))
+                                      :force-nl)))))))
 
 ;;
 ;; # Two-up printing
@@ -1040,108 +1272,23 @@
         split-non-coll
         (concat (list remainder) split-non-coll)))))
 
-(defn partition-all-sym-alt
-  "Similar to partition-all-2-nc, but instead of trying to pair things
-  up (modulo comments and unevaled expressions), this begins things
-  with a symbol, and then accumulates collections until the next symbol.
-  Made harder by the fact that the symbol might be inside of a #?() reader
-  conditional.  It handles comments before symbols on the symbol indent, 
-  and the comments before the collections on the collection indent.  
-  Since it doesn't know how many collections there are, this is not trivial.  
-  Must be called with a sequence of z-things"
-  [{:as options,
-    {:keys [zsymbol? zstring znil? zcoll? zreader-cond-w-symbol?]} :zf} coll]
-  #_(def scoll coll)
-  (dbg options "partition-all-sym: coll:" (map zstring coll))
-  (let [part-sym (partition-by
-                   #(or (zsymbol? %) (znil? %) (zreader-cond-w-symbol? %))
-                   coll)
-        split-non-coll (mapcat (partial cleave-end options) part-sym)]
-    #_(def ps part-sym)
-    #_(def snc split-non-coll)
-    (loop [remaining split-non-coll
-           out []]
-      (if (empty? remaining)
-        out
-        (let [[next-remaining new-out]
-                (cond (and (or (zsymbol? (ffirst remaining))
-                               (znil? (ffirst remaining))
-                               (zreader-cond-w-symbol? (ffirst remaining)))
-                           (not (empty? (second remaining))))
-                        [(nthnext remaining 2)
-                         (conj out
-                               (concat (first remaining) (second remaining)))]
-                      :else [(next remaining) (conj out (first remaining))])]
-          (recur next-remaining new-out))))))
-
-(defn partition-all-sym-static
-  "Similar to partition-all-2-nc, but instead of trying to pair things
-  up (modulo comments and unevaled expressions), this begins things
-  with a symbol, and then accumulates collections until the next symbol.
-  Made harder by the fact that the symbol might be inside of a #?() reader
-  conditional.  It handles comments before symbols on the symbol indent, 
-  and the comments before the collections on the collection indent.  
-  Since it doesn't know how many collections there are, this is not trivial.  
-  Must be called with a sequence of z-things"
-  [{:as options,
-    {:keys [zsymbol? zstring znil? zcoll? zreader-cond-w-symbol?]} :zf} coll]
-  #_(def scoll coll)
-  (dbg options "partition-all-sym: coll:" (map zstring coll))
-  (let [part-sym (partition-by
-                   #(or (zsymbol? %) (znil? %) (zreader-cond-w-symbol? %))
-                   coll)
-        split-non-coll (mapcat (partial cleave-end options) part-sym)]
-    #_(def ps part-sym)
-    #_(def snc split-non-coll)
-    (loop [remaining split-non-coll
-           out []]
-      ;(prn "remaining:" remaining)
-      ;(prn "out:" out)
-      ;(prn "remaining:" (map (comp zstring first) remaining))
-      ;(prn "out:" (map (comp zstring first) out))
-      (if (empty? remaining)
-        out
-        (let [[next-remaining new-out]
-                (cond (and (or (zsymbol? (ffirst remaining))
-                               (znil? (ffirst remaining))
-                               (zreader-cond-w-symbol? (ffirst remaining)))
-                           (not (empty? (second remaining))))
-                        (if (= (count (first remaining)) 1)
-                          ; original
-                          (do ;(prn "a:")
-                              [(nthnext remaining 2)
-                               (conj out
-                                     (concat (first remaining)
-                                             (second remaining)))])
-                          (do
-                            ;(prn "b:")
-                            (if (= (zstring (ffirst remaining)) "static")
-                              ; special case
-                              (do ;(prn "c:")
-                                  [(if (next (next (first remaining)))
-                                     (cons (next (next (first remaining)))
-                                           (next remaining))
-                                     (next remaining))
-                                   (conj out
-                                         (list (ffirst remaining)
-                                               (second (first remaining))))])
-                              ; normal flow
-                              [(cons (next (first remaining)) (next remaining))
-                               (conj out (list (ffirst remaining)))])))
-                      :else [(next remaining) (conj out (first remaining))])]
-          (recur next-remaining new-out))))))
-
 (defn partition-all-sym
   "Similar to partition-all-2-nc, but instead of trying to pair things
   up (modulo comments and unevaled expressions), this begins things
   with a symbol, and then accumulates collections until the next symbol.
+  Returns a seq of seqs, where the first thing in each internal seq is
+  a protocol and the remaining thing in that seq are the expressions that
+  follow.  If there is a single thing, it is returned in its own internal
+  seq. ((P (foo [this a) (bar-me [this] b) (barx [this y] (+ c y))) ...)
   Made harder by the fact that the symbol might be inside of a #?() reader
   conditional.  It handles comments before symbols on the symbol indent, 
   and the comments before the collections on the collection indent.  
   Since it doesn't know how many collections there are, this is not trivial.  
   Must be called with a sequence of z-things"
   [{:as options,
-    {:keys [zsymbol? zstring znil? zcoll? zreader-cond-w-symbol?]} :zf} coll]
+    {:keys [zsymbol? zstring znil? zcoll? zreader-cond-w-symbol?]} :zf}
+   modifier-set coll]
+  #_(prn "partition-all-sym-static:" modifier-set)
   #_(def scoll coll)
   (dbg options "partition-all-sym: coll:" (map zstring coll))
   (let [part-sym (partition-by
@@ -1164,16 +1311,61 @@
                            (znil? (ffirst remaining))
                            (zreader-cond-w-symbol? (ffirst remaining)))
                        (not (empty? (second remaining))))
+                    ; We have a non-collection in (first remaining) and
+                    ; we might have more than one, either because we just
+                    ; have a bunch of non-colls with no colls
+                    ; or because we have a modifier and then one or more
+                    ; non-colls (possibly with their own modifiers).
                     (if (= (count (first remaining)) 1)
                       ; original
                       (do #_(prn "a:")
+                          ; We have a single non-coll, pull the next seq
+                          ; of one or more seqs into a seq with it.
+                          ; This is where we marry up the non-coll with
+                          ; all of its associated colls.
                           [(nthnext remaining 2)
                            (conj out
                                  (concat (first remaining)
                                          (second remaining)))])
                       (do #_(prn "b:")
-                          [(cons (next (first remaining)) (next remaining))
-                           (conj out (list (ffirst remaining)))]))
+                          (if (and modifier-set
+                                   (modifier-set (zstring (ffirst remaining))))
+                            (if (= (count (first remaining)) 2)
+                              ; We have exactly two things in
+                              ; (first remaining), and the first one is
+                              ; both a non-coll and a modifier, so we know
+                              ; that the second one is a non-coll, and we
+                              ; know that we have a (second remaining) from
+                              ; above, so we bring the second remaining
+                              ; into the first remaining like we did
+                              ; above
+                              (do #_(prn "d:")
+                                  [(nthnext remaining 2)
+                                   (conj out
+                                         (concat (first remaining)
+                                                 (second remaining)))])
+                              ; We have a modifier as the first thing in a
+                              ; seq of non-colls and then some more non-colls
+                              ; after that (since we don't have exactly two,
+                              ; as that case was caught above).
+                              ; Pull the next one into a seq with it.
+                              ; Do we need to check that the next one is
+                              ; also a non-coll?  That shouldn't be
+                              ; necessary,as you won't get colls in
+                              ;with non-colls.
+                              (do #_(prn "c:")
+                                  [(if (next (next (first remaining)))
+                                     (cons (next (next (first remaining)))
+                                           (next remaining))
+                                     (next remaining))
+                                   (conj out
+                                         (list (ffirst remaining)
+                                               (second (first remaining))))]))
+                            ; we have more than one non-coll in first
+                            ; remaining, so pull one out, and leave the
+                            ; next ones for the next loop
+                            [(cons (next (first remaining)) (next remaining))
+                             (conj out (list (ffirst remaining)))])))
                   :else [(next remaining) (conj out (first remaining))])]
           (recur next-remaining new-out))))))
 
@@ -1326,7 +1518,9 @@
         (assoc options :fn-style :fn)
         ind
         false
-        (let [part (partition-all-sym options (zmap-right identity zloc))]
+        (let [part (partition-all-sym options
+                                      (:modifiers (:extend options))
+                                      (zmap-right identity zloc))]
           #_(def fe part)
           (dbg options "fzprint-extend: partition:" (map #(map zstring %) part))
           part)))))

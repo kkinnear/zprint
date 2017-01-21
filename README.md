@@ -24,7 +24,7 @@ for an explanation.
 One of the things I like the most about Clojure (and any Lisp) is that 
 the logical structure of a function has a visual representation -- if
 the function is pretty printed in a known way.  Zprint exists in part to take
-any Clojure code, and pretty print so that you can visually
+any Clojure code, and pretty print it so that you can visually
 grasp its underlying structure.
 
 You can see the features available in zprint below, but the major
@@ -1916,6 +1916,14 @@ ways to format extend:
   (meta [_] _meta))
 
 ```
+#### :modifiers <text style="color:#A4A4A4;"><small>#{"static"}</small></text>
+
+Contains a set of elements that will be placed on the same line as the
+protocol-or-interface-or-Object.  Created largely to support `defui` in
+Clojurescript om/next, but may have other utility. Elements specified
+by `{:extend {:modifiers #{<element1> <element2>}}}` are added to
+the set (as opposed to replacing the set entirely). You can remove 
+elements from the set by `{:remove {:extend {:modifers #{<thing-to-remove>}}}}`.
 
 _____
 ## :list
@@ -2781,6 +2789,77 @@ docstring.  At present this only works for docstrings in `defn` and
 
 ______
 ## :style and :style-map
+
+You specify a style by adding `:style <style>` at the top level
+of the options map.  You can also set more than one style by
+enclosing the styles in a vector, for example:
+
+```clojure
+(set-options! {:style [:binding-nl :extend-nl]})
+```
+When multiple styles are specified, they are applied in the order
+given.
+
+Note that styles are applied before the rest of the elements
+of a options map, so that you can override elements of the style
+that you wish to change by specifying an explicit element in the
+options map.
+
+### Available Styles:
+
+#### :community
+
+This attempts to recreate the community standards defined in the
+[community style guide](https://github.com/bbatsov/clojure-style-guide).
+It is an evolving effort -- if you see something that matters to you
+that differs from the community style guide when using `:style :community`, 
+please create an issue explaining the difference.
+
+#### :justified
+
+This sets `:justify? true` in each of `:binding`, `:pair`, and `:map`.
+It is useful to see what you think about justfied output.
+
+#### :extend-nl
+
+This sets up a different way of formatting extend styles, with a new-line
+between each group.  For example
+
+```clojure
+(czprint-fn ->Typetest1)
+
+; Default output
+
+(deftype Typetest1
+  [cnt _meta]
+  clojure.lang.IHashEq
+    (hasheq [this] (list this) (list this this) (list this this this this))
+  clojure.lang.Counted (count [_] cnt)
+  clojure.lang.IMeta (meta [_] _meta))
+
+(czprint-fn ->Typetest1 {:style :extend-nl})
+
+; Alternative output with {:style :extend-nl}
+
+(deftype Typetest1
+  [cnt _meta]
+  clojure.lang.IHashEq
+  (hasheq [this] (list this) (list this this) (list this this this this))
+
+  clojure.lang.Counted
+  (count [_] cnt)
+
+  clojure.lang.IMeta
+  (meta [_] _meta))
+
+```
+
+#### :map-nl, :pair-nl, :binding-nl
+
+These are convenience styles which simply allow you to set `{:indent 0 :nl-separator? true}` for each of the associated format elements.  They simply exist to
+save you some typing if these styles are favorites of yours.
+
+### Defining your own styles
 
 You can define your own styles, by adding elements to the `:style-map`.
 You can do this the same way you make other configuration changes,

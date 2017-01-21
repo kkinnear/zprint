@@ -150,3 +150,87 @@
         (redef-state [zprint.config]
                      (set-options! {:style :extend-nl})
                      (get-options)))
+
+(expect
+  (more-of options
+    true
+    (:nl-separator? (:map options))
+    0
+    (:indent (:map options)))
+  (redef-state [zprint.config] (set-options! {:style :map-nl}) (get-options)))
+
+(expect
+  (more-of options
+    true
+    (:nl-separator? (:pair options))
+    0
+    (:indent (:pair options)))
+  (redef-state [zprint.config] (set-options! {:style :pair-nl}) (get-options)))
+
+(expect (more-of options
+          true
+          (:nl-separator? (:binding options))
+          0
+          (:indent (:binding options)))
+        (redef-state [zprint.config]
+                     (set-options! {:style :binding-nl})
+                     (get-options)))
+
+;;
+;; # Test set element addition and removal
+;;
+
+; Define a new style
+
+(expect
+  (more-of options
+    {:extend {:modifiers #{"stuff"}}}
+    (:tst-style-1 (:style-map options)))
+  (redef-state [zprint.config]
+               (set-options! {:style-map {:tst-style-1
+                                            {:extend {:modifiers #{"stuff"}}}}})
+               (get-options)))
+
+; Apply a new style (which adds a set element)
+
+(expect
+  (more-of options #{"static" "stuff"} (:modifiers (:extend options)))
+  (redef-state [zprint.config]
+               (set-options! {:style-map {:tst-style-1
+                                            {:extend {:modifiers #{"stuff"}}}}})
+               (set-options! {:style :tst-style-1})
+               (get-options)))
+
+; Remove a set element
+
+(expect
+  (more-of options #{"stuff"} (:modifiers (:extend options)))
+  (redef-state [zprint.config]
+               (set-options! {:style-map {:tst-style-1
+                                            {:extend {:modifiers #{"stuff"}}}}})
+               (set-options! {:style :tst-style-1})
+               (set-options! {:remove {:extend {:modifiers #{"static"}}}})
+               (get-options)))
+
+; Do the explained-options work?
+
+; Add and remove something
+
+(expect
+  (more-of options #{"stuff"} (:value (:modifiers (:extend options))))
+  (redef-state [zprint.config]
+               (set-options! {:style-map {:tst-style-1
+                                            {:extend {:modifiers #{"stuff"}}}}})
+               (set-options! {:style :tst-style-1})
+               (set-options! {:remove {:extend {:modifiers #{"static"}}}})
+               (get-explained-all-options)))
+
+; Add without style
+
+(expect (more-of options
+          #{:force-nl :flow :noarg1 :noarg1-body :force-nl-body :binding
+            :arg1-force-nl :flow-body}
+          (:value (:fn-force-nl options)))
+        (redef-state [zprint.config]
+                     (set-options! {:fn-force-nl #{:binding}})
+                     (get-explained-all-options)))

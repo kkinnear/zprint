@@ -1,6 +1,31 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.14 - 2016-1-22
+
+### Changed
+
+* Added a new capability to `:extend`, `:modfiers #{"static"}`, which
+  will allow "static" to appear on the same line as protocol or type
+  when formatting extends.  You remove elements from the set  with 
+  `{:remove {:extend {:modifiers #{"static"}}}}` just like the other 
+  sets are changed.  Issue #10.
+
+* Added `defui` to the `:fn-map` as `:arg1-extend` so that when formatting
+  Clojurescript om/next code you get the `static` elements to format 
+  correctly.  Issue #10.
+
+* Added several new styles: `:map-nl`, `:binding-nl`, `:pair-nl`.  Also
+  added substantially to the documentation of styles in the readme.
+
+* Added the first tests for the `:explain` output, at least the `:value`
+  part of it.
+
+### Fixed
+
+* A problem when adding an element to any set in the options map, where the
+  element was added, but the :explain output was incorrect.  Issue #21.
+
 ## 0.2.13 - 2016-1-19
 
 ### Changed

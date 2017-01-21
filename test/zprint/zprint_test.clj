@@ -1244,3 +1244,39 @@
 (expect
   "(defn zpair-tst\n  []\n  (println\n    (list\n      :ajfkdkfdj\n      :bjlfkdsfjsdl)\n    (list\n      :cjslkfsdjl\n      :dklsdfjsdsjsldf)\n    [:ejlkfjdsfdfklfjsljfsd\n     :fjflksdfjlskfdjlk]\n    :const1\n      \"stuff\"\n\n    :const2\n      \"bother\"))"
   (zprint-fn-str zprint.zprint-test/zpair-tst 17 {:pair {:nl-separator? true}}))
+
+;;
+;; # {:extend {:modifers #{"static"}}} Tests
+;;
+
+(def zextend-tst1
+  '(deftype Foo
+     [a b c]
+     P (foo [this] a)
+     Q
+       (bar-me [this] b)
+       (bar-me [this y] (+ c y))
+     R
+     S (baz [this] a)
+     static T (baz-it [this] b)
+     static V
+       (baz-it [this] b)
+       (bar-none [this] a)
+     stuff
+     Q
+     R (fubar [this] it)))
+
+
+(expect
+  "(deftype Foo\n  [a b c]\n  P (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S (baz [this] a)\n  static T (baz-it [this] b)\n  static V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R (fubar [this] it))"
+  (zprint-str zprint.zprint-test/zextend-tst1))
+
+;
+; Test removal of a modifier to see both that it works and confirm that
+; removing it produces the right result.
+;
+
+(expect
+  "(deftype Foo\n  [a b c]\n  P (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S (baz [this] a)\n  static\n  T (baz-it [this] b)\n  static\n  V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R (fubar [this] it))"
+  (zprint-str zprint.zprint-test/zextend-tst1
+              {:remove {:extend {:modifiers #{"static"}}}}))

@@ -114,7 +114,9 @@ following specific features:
 * Handles comments, will word wrap long ones
 * Optionally will indent right hand element of a pair (see below)
 * Maximize screen utilization when formatting code
-* Sort and order map keys
+* Sort map keys alphabetically by default
+* Order map keys as desired
+* Color specified map keys as desired or based on depth (depth is EXPERIMENTAL)
 * Constant pairing (for keyword argument functions)
 * Does a great job printing spec files
 * Justify paired output (maps, binding forms, cond clauses, etc.) if desired
@@ -2547,6 +2549,29 @@ zprint.core=> (czprint sort-demo {:map {:key-ignore [[:detail :code]]}})
   :time 1425704003,
   :type "error"}]
 ```
+
+####  :key-color  <text style="color:#A4A4A4;"><small>nil</small></text>
+
+The value of `:key-color` is a map which relates keys that are 'constants'
+to a color in which to print that key.  A constant is a keyword, string,
+or number.  This way you can have some keys print in a color that is different
+from the color in which they would normally be printed based on their type.
+It can go well with `:key-order [:key1 :key2 ...]` which is another way
+to distinguish a special key.  You can place some keys at the front of the
+map and you can also adjust their colors to meet your needs.
+
+####  :key-depth-color  <text style="color:#A4A4A4;"><small>nil</small></text>
+
+Note that this is an EXPERIMENTAL feature.  The value of `:key-depth-color` is 
+a vector of colors, and these colors will be used to color the keys which
+are at a corresponding depth in the map.  Thus, the first color in the vector
+will be the color for the outermost keys in the map, the second color in 
+vector will be the color for the keys.  You can place a `nil` in the vector,
+and for that depth the normal colors (based on the type of the key) will
+be used.  If you also have defined a `:key-color` map, any colors speciied
+in that map for specific keys will override the color that they would be
+given by the `:key-depth-color` vector.
+
 _____
 ## :object
 

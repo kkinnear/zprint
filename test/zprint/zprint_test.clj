@@ -1280,3 +1280,166 @@
   "(deftype Foo\n  [a b c]\n  P (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S (baz [this] a)\n  static\n  T (baz-it [this] b)\n  static\n  V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R (fubar [this] it))"
   (zprint-str zprint.zprint-test/zextend-tst1
               {:remove {:extend {:modifiers #{"static"}}}}))
+
+;;
+;; # Tests for key-color and key-depth-color
+;;
+
+; key-depth-color
+
+
+(defn key-color-tst
+  []
+  {:abc
+     ;stuff
+     :bother,
+   "deep" {"and" "even", :deeper {"that" :is, :just "the", "way" :it-is}},
+   "def" "ghi",
+   5 "five",
+   ["hi"] "there"})
+
+; :key-depth-color []
+
+(expect
+  [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
+   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :whitespace] [";stuff" :green :comment]
+   ["\n     " :none :whitespace] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
+   [", " :none :whitespace] [":deeper" :magenta :element]
+   [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
+   [" " :none :whitespace] [":is" :magenta :element] [", " :none :whitespace]
+   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
+   [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
+   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["5" :purple :element] [" " :none :whitespace]
+   ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
+   ["}" :red :right] [")" :green :right]]
+  (czprint-fn-str zprint.zprint-test/key-color-tst
+                  {:map {:key-depth-color []}, :return-cvec? true}))
+
+; :key-depth-color [:blue :yellow :green]
+
+(expect
+  [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
+   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :blue :element]
+   ["\n     " :none :whitespace] [";stuff" :green :comment]
+   ["\n     " :none :whitespace] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"deep\"" :blue :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"and\"" :yellow :element] [" " :none :whitespace]
+   ["\"even\"" :red :element] [", " :none :whitespace]
+   [":deeper" :yellow :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"that\"" :green :element] [" " :none :whitespace]
+   [":is" :magenta :element] [", " :none :whitespace] [":just" :green :element]
+   [" " :none :whitespace] ["\"the\"" :red :element] [", " :none :whitespace]
+   ["\"way\"" :green :element] [" " :none :whitespace]
+   [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"def\"" :blue :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace] ["5" :blue :element]
+   [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
+   ["}" :red :right] [")" :green :right]]
+  (czprint-fn-str zprint.zprint-test/key-color-tst
+                  {:map {:key-depth-color [:blue :yellow :green]},
+                   :return-cvec? true}))
+
+; :key-color {}
+
+(expect
+  [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
+   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :whitespace] [";stuff" :green :comment]
+   ["\n     " :none :whitespace] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
+   [", " :none :whitespace] [":deeper" :magenta :element]
+   [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
+   [" " :none :whitespace] [":is" :magenta :element] [", " :none :whitespace]
+   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
+   [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
+   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["5" :purple :element] [" " :none :whitespace]
+   ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
+   ["}" :red :right] [")" :green :right]]
+  (czprint-fn-str zprint.zprint-test/key-color-tst
+                  {:map {:key-color {}}, :return-cvec? true}))
+
+; :key-color {:abc :blue "deep" :cyan 5 :green}
+
+(expect
+  [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
+   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :blue :element]
+   ["\n     " :none :whitespace] [";stuff" :green :comment]
+   ["\n     " :none :whitespace] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"deep\"" :cyan :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
+   [", " :none :whitespace] [":deeper" :magenta :element]
+   [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
+   [" " :none :whitespace] [":is" :magenta :element] [", " :none :whitespace]
+   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
+   [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
+   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["5" :green :element] [" " :none :whitespace]
+   ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
+   ["}" :red :right] [")" :green :right]]
+  (czprint-fn-str zprint.zprint-test/key-color-tst
+                  {:map {:key-color {:abc :blue, "deep" :cyan, 5 :green}},
+                   :return-cvec? true}))
+
+; Test out nil's in the :key-depth-color vector, and if :key-color values
+; will override what is in :key-depth-color
+
+(expect
+  [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
+   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :whitespace] [";stuff" :green :comment]
+   ["\n     " :none :whitespace] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
+   [", " :none :whitespace] [":deeper" :magenta :element]
+   [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
+   [" " :none :whitespace] [":is" :magenta :element] [", " :none :whitespace]
+   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
+   [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"def\"" :cyan :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace] ["5" :purple :element]
+   [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
+   ["}" :red :right] [")" :green :right]]
+  (czprint-fn-str zprint.zprint-test/key-color-tst
+                  {:map {:key-depth-color [:blue nil :green],
+                         :key-color {"def" :cyan}},
+                   :return-cvec? true}))

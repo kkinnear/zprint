@@ -1,6 +1,20 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.15 - 2016-1-24
+
+### Changed
+
+* Added `{:map {:key-color {:key1 :color1 :key2 :color2 ...}}}` which will color the specified
+  keys with the specified color.
+
+* Added `{:map {:key-depth-color [:level-1-color :level-2-color ...]}}`, which
+  will color the map keys based on depth, not their type.  The
+  `:key-color {:key :color ...}` map will override any values from the 
+  `:key-depth-color` map.  EXPERIMENTAL feature, might go away.
+
+### Fixed
+
 ## 0.2.14 - 2016-1-22
 
 ### Changed

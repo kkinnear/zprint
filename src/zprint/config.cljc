@@ -31,7 +31,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.14")))
+          :cljs "0.2.15")))
 
 ;;
 ;; # External Configuration
@@ -53,7 +53,7 @@
 
 (def explain-hide-keys
   [:configured? :dbg-print? :dbg? :do-in-hang? :drop? :dbg-ge :file? :spaces?
-   :process-bang-zprint? :trim-comments? :zipper? :indent :remove
+   :process-bang-zprint? :trim-comments? :zipper? :indent :remove :return-cvec?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning]
@@ -442,6 +442,8 @@
          :key-order nil,
          :key-ignore nil,
          :key-ignore-silent nil,
+         :key-color nil,
+         :key-depth-color nil,
          :force-nl? nil,
          :nl-separator? false,
          :flow? false,
@@ -505,6 +507,7 @@
    :file? false,
    :old? true,
    :format :on,
+   :return-cvec? false,
    :parse-string? false,
    :parse-string-all? false,
    :style-map {:community {:binding {:indent 0},
@@ -782,6 +785,8 @@
            "An enum of the possible colors"
            (s/enum :green :purple :magenta :yellow :red :cyan :black :blue))
 
+(defschema color-or-nil-schema (s/conditional nil? s/Any :else color-schema))
+
 (defschema format-schema
            "An enum of the possible format options"
            (s/enum :on :off :next :skip))
@@ -804,12 +809,6 @@
                    :gt3-force-nl :flow
                    :flow-body :force-nl-body
                    :force-nl :pair-fn))
-
-;(defschema
-;  modifiers
-;  "Possible words that can come before a protocol or object
-;           in an extend type function."
-;  s/Str)
 
 ;;
 ;; There is no schema for possible styles, because people
@@ -872,6 +871,7 @@
    (s/optional-key :spaces?) boolean-schema,
    (s/optional-key :old?) boolean-schema,
    (s/optional-key :format) format-schema,
+   (s/optional-key :return-cvec?) boolean-schema,
    (s/optional-key :fn-name) s/Any,
    (s/optional-key :auto-width?) boolean-schema,
    (s/optional-key :force-sexpr?) boolean-schema,
@@ -921,31 +921,33 @@
                               (s/optional-key :hang-expand) s/Num,
                               (s/optional-key :hang-size) s/Num,
                               (s/optional-key :hang-diff) s/Num},
-   (s/optional-key :map) {(s/optional-key :indent) s/Num,
-                          (s/optional-key :hang?) boolean-schema,
-                          (s/optional-key :hang-expand) s/Num,
-                          (s/optional-key :hang-diff) s/Num,
-                          (s/optional-key :hang-adjust) s/Num,
-                          (s/optional-key :sort?) boolean-schema,
-                          (s/optional-key :sort-in-code?) boolean-schema,
-                          (s/optional-key :comma?) boolean-schema,
-                          (s/optional-key :dbg-local?) boolean-schema,
-                          (s/optional-key :key-order) [s/Any],
-                          (s/optional-key :key-ignore) [s/Any],
-                          (s/optional-key :key-ignore-silent) [s/Any],
-                          (s/optional-key :flow?) boolean-schema,
-                          (s/optional-key :nl-separator?) boolean-schema,
-                          (s/optional-key :force-nl?) boolean-schema,
-                          (s/optional-key :justify?) boolean-schema,
-                          (s/optional-key :justify-hang)
-                            {(s/optional-key :hang?) boolean-schema,
-                             (s/optional-key :hang-expand) s/Num,
-                             (s/optional-key :hang-diff) s/Num},
-                          (s/optional-key :justify-tuning)
-                            {(s/optional-key :hang-flow) s/Num,
-                             (s/optional-key :hang-type-flow) s/Num,
-                             (s/optional-key :hang-flow-limit) s/Num,
-                             (s/optional-key :general-hang-adjust) s/Num}},
+   (s/optional-key :map)
+     {(s/optional-key :indent) s/Num,
+      (s/optional-key :hang?) boolean-schema,
+      (s/optional-key :hang-expand) s/Num,
+      (s/optional-key :hang-diff) s/Num,
+      (s/optional-key :hang-adjust) s/Num,
+      (s/optional-key :sort?) boolean-schema,
+      (s/optional-key :sort-in-code?) boolean-schema,
+      (s/optional-key :comma?) boolean-schema,
+      (s/optional-key :dbg-local?) boolean-schema,
+      (s/optional-key :key-order) [s/Any],
+      (s/optional-key :key-ignore) [s/Any],
+      (s/optional-key :key-ignore-silent) [s/Any],
+      (s/optional-key :key-color) {s/Any color-schema},
+      (s/optional-key :key-depth-color) [color-or-nil-schema],
+      (s/optional-key :flow?) boolean-schema,
+      (s/optional-key :nl-separator?) boolean-schema,
+      (s/optional-key :force-nl?) boolean-schema,
+      (s/optional-key :justify?) boolean-schema,
+      (s/optional-key :justify-hang) {(s/optional-key :hang?) boolean-schema,
+                                      (s/optional-key :hang-expand) s/Num,
+                                      (s/optional-key :hang-diff) s/Num},
+      (s/optional-key :justify-tuning) {(s/optional-key :hang-flow) s/Num,
+                                        (s/optional-key :hang-type-flow) s/Num,
+                                        (s/optional-key :hang-flow-limit) s/Num,
+                                        (s/optional-key :general-hang-adjust)
+                                          s/Num}},
    (s/optional-key :extend) {(s/optional-key :indent) s/Num,
                              (s/optional-key :hang?) boolean-schema,
                              (s/optional-key :hang-expand) s/Num,
@@ -1052,27 +1054,32 @@
        (apply str
          (interpose ", "
            (remove #(or (nil? %) (empty? %))
-             (conj []
-                   (try (s/validate zprint-options-schema
-                                    (dissoc options :style-map))
-                        nil
-                        (catch #?(:clj Exception
-                                  :cljs :default) e
-                          #?(:clj (if source-str
-                                    (str "In " source-str
-                                         ", " (:cause (Throwable->map e)))
-                                    (:cause (Throwable->map e)))
-                             :cljs (str (.-message e)))))
-                   (when (not (constants (get-in options [:map :key-order])))
-                     (str "In " source-str
-                          " :map :key-order were not all constants:"
-                            (get-in options [:map :key-order])))
-                   (when (not (constants (get-in options
-                                                 [:reader-cond :key-order])))
-                     (str " In " source-str
-                          " :reader-cond :key-order were not all constants:"
-                            (get-in options [:reader-cond :key-order])))
-                   (validate-style-map options))))))))
+             (conj
+               []
+               (try
+                 (s/validate zprint-options-schema (dissoc options :style-map))
+                 nil
+                 (catch #?(:clj Exception
+                           :cljs :default) e
+                   #?(:clj (if source-str
+                             (str "In " source-str
+                                  ", " (:cause (Throwable->map e)))
+                             (:cause (Throwable->map e)))
+                      :cljs (str (.-message e)))))
+               (when (not (constants (get-in options [:map :key-order])))
+                 (str "In " source-str
+                      " :map :key-order were not all constants:"
+                        (get-in options [:map :key-order])))
+               (when (not (constants (keys (get-in options [:map :key-color]))))
+                 (str "In " source-str
+                      " :map :key-color were not all constants:"
+                        (get-in options [:map :key-color])))
+               (when (not (constants (get-in options
+                                             [:reader-cond :key-order])))
+                 (str " In " source-str
+                      " :reader-cond :key-order were not all constants:"
+                        (get-in options [:reader-cond :key-order])))
+               (validate-style-map options))))))))
   ([options] (validate-options options nil)))
 
 ;;

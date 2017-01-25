@@ -372,7 +372,6 @@
                 (str ":parse-string-all? requires a string!"))))
       (let [actual-options (determine-options rest-options)
             [cvec options] (zprint* coll special-option actual-options)
-            #_(def cv cvec)
             cvec-wo-empty (remove #(empty? (first %)) cvec)
             str-style-vec (cvec-to-style-vec {:style-map no-style-map}
                                              cvec-wo-empty)
@@ -380,7 +379,7 @@
             comp-style (compress-style str-style-vec)
             #_(def cps comp-style)
             color-style (color-comp-vec comp-style)]
-        color-style))))
+        (if (:return-cvec? options) cvec color-style)))))
 
 (defn get-fn-source
   "Call source-fn, and if it isn't there throw an exception."

@@ -509,227 +509,27 @@
              (concat-no-nil [[(str "\n" (blanks findent)) :none :whitespace]]
                             (fzfn options findent zloc))])))))
 
+(defn replace-color
+  "Given a style-vec with exactly one thing in it, replace the color
+  with whatever local color we have determined is correct."
+  [local-color style-vec]
+  (if (= (count style-vec) 1)
+    (let [[[string color element]] style-vec] [[string local-color element]])
+    style-vec))
+
 (declare fzprint-binding-vec)
 
-(defn fzprint-two-up-alt
-  "Print a single pair of things (though it might not be exactly
-  a pair, given comments and :extend and the like), 
-  like bindings in a let, clauses in a cond, keys and values in a map.  
-  Controlled by various maps, the key of which is caller."
-  [hangflow? caller
-   {:keys [width one-line? dbg? dbg-indent in-hang? do-in-hang?],
-    {:keys [zstring znth zcount zvector?]} :zf,
-    {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow?]} caller,
-    :as options} ind commas? justify-width rightmost-pair?
-   [lloc rloc xloc :as pair]]
-  (if dbg-cnt? (println "two-up: caller:" caller "hang?" hang? "dbg?" dbg?))
-  (if (or dbg? dbg-local?)
-    (println (or dbg-indent "")
-             "==========================" (str "\n" (or dbg-indent ""))
-             "fzprint-two-up:" (zstring lloc)
-             "caller:" caller
-             "count:" (count pair)
-             "ind:" ind
-             "indent:" indent
-             "indent-arg:" indent-arg
-             "justify-width:" justify-width
-             "one-line?:" one-line?
-             "hang?:" hang?
-             "in-hang?" in-hang?
-             "do-in-hang?" do-in-hang?
-             "flow?" flow?
-             "commas?" commas?
-             "rightmost-pair?" rightmost-pair?))
-  (let [local-hang? (or one-line? hang?)
-        indent (or indent indent-arg)
-        local-options
-          (if (not local-hang?) (assoc options :one-line? true) options)
-        loptions (c-r-pair commas? rightmost-pair? nil options)
-        roptions (c-r-pair commas? rightmost-pair? :rightmost options)
-        local-roptions
-          (c-r-pair commas? rightmost-pair? :rightmost local-options)
-        arg-1 (fzprint* loptions ind lloc)
-        [_ arg-1-max-width :as arg-1-lines] (style-lines options ind arg-1)
-        ;     arg-1-fit-oneline? (and (not force-nl?)
-        ;                             (fzfit-one-line loptions arg-1-lines))
-        arg-1-fit-oneline? (and (not flow?)
-                                (fzfit-one-line loptions arg-1-lines))
-        arg-1-fit? (or arg-1-fit-oneline?
-                       (when (not one-line?) (fzfit loptions arg-1-lines)))
-        ; sometimes arg-1-max-width is nil because fzprint* returned nil,
-        ; but we need to have something for later code to use as a number
-        arg-1-width (- (or arg-1-max-width 0) ind)]
-    ; If we don't *have* an arg1, no point in continuing...
-    ;  If arg-1 doesn't fit, maybe that's just how it is!
-    ;  If we are in-hang, then we can bail, but otherwise, not.
-    (when (and arg-1 (or arg-1-fit? (not in-hang?)))
-      (cond
-        (= (count pair) 1)
-          (hangflow hangflow? :hang (fzprint* roptions ind lloc))
-        (= (count pair) 2)
-          ;(concat-no-nil
-          ;  arg-1
-          ; We used to think:
-          ; We will always do hanging, either fully or with one-line? true,
-          ; we will then do flow if hanging didn't do anything or if it did,
-          ; we will try to see if flow is better.
-          ;
-          ; But now, we don't do hang if arg-1-fit-oneline? is false, since
-          ; we won't use it.
-          (let [hanging-width (if justify-width justify-width arg-1-width)
-                hanging-spaces
-                  (if justify-width (inc (- justify-width arg-1-width)) 1)
-                hanging-indent (+ 1 hanging-width ind)
-                flow-indent (+ indent ind)]
-            (if (and (zstring lloc)
-                     (keyword-fn? options (zstring lloc))
-                     (zvector? rloc))
-              ; This is an embedded :let or :when-let or something
-              ; Presently we assume that anything with a vector after something
-              ; that is a keyword must be one of these, but we could check
-              ; for a :binding fn-style instead which might make more sense.
-              (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
-                                               loptions
-                                               hanging-indent
-                                               flow-indent
-                                               fzprint-binding-vec
-                                               rloc)
-                    arg-1 (if (= hang-or-flow :hang)
-                            (concat-no-nil arg-1
-                                           [[(blanks hanging-spaces) :none
-                                             :whitespace]])
-                            arg-1)]
-                (hangflow hangflow?
-                          hang-or-flow
-                          (concat-no-nil arg-1 style-vec)))
-              ; This is a normal two element pair thing
-              (let [; Perhaps someday we could figure out if we are already
-                    ; completely in flow to this point, and be smarter about
-                    ; possibly dealing with the hang or flow now.  But for
-                    ; now, we will simply do hang even if arg-1 didn't fit
-                    ; on one line if the flow indent isn't better than the
-                    ; hang indent.
-                    _ (dbg options
-                           "fzprint-two-up: before hang.  in-hang?"
-                           (and do-in-hang?
-                                (and (not flow?)
-                                     (< flow-indent hanging-indent))))
-                    hanging (when (or arg-1-fit-oneline?
-                                      (and (not flow?)
-                                           (>= flow-indent hanging-indent)))
-                              (fzprint* (if (< flow-indent hanging-indent)
-                                          (in-hang local-roptions)
-                                          local-roptions)
-                                        hanging-indent
-                                        rloc))
-                    hang-count (zcount rloc)
-                    _ (log-lines options
-                                 "fzprint-two-up: hanging:"
-                                 hanging-indent
-                                 hanging)
-                    hanging-lines (style-lines options hanging-indent hanging)
-                    fit? (fzfit-one-line local-roptions hanging-lines)
-                    hanging-lines (if fit?
-                                    hanging-lines
-                                    (when (and (not one-line?) hang?)
-                                      hanging-lines))
-                    ; Don't flow if it fit, or it didn't fit and we were doing
-                    ; one line on input.  Do flow if we don't have
-                    ; hanging-lines
-                    ; and we were not one-line on input.
-                    _ (log-lines options
-                                 "fzprint-two-up: hanging-2:"
-                                 hanging-indent
-                                 hanging)
-                    flow-it? (and (or (and (not hanging-lines) (not one-line?))
-                                      (not (or fit? one-line?)))
-                                  ; this is for situations where the first
-                                  ; element is short and so the hanging indent
-                                  ; is the same as the flow indent, so there
-                                  ; is
-                                  ; no point in flow -- unless we don't have
-                                  ; any hanging-lines, in which case we better
-                                  ; do flow
-                                  (or (< flow-indent hanging-indent)
-                                      (not hanging-lines)))
-                    _ (dbg options
-                           "fzprint-two-up: before flow. flow-it?"
-                           flow-it?)
-                    flow (when flow-it? (fzprint* roptions flow-indent rloc))
-                    _ (log-lines options
-                                 "fzprint-two-up: flow:"
-                                 (+ indent ind)
-                                 flow)
-                    flow-lines (style-lines options (+ indent ind) flow)]
-                (when dbg-local?
-                  (prn "fzprint-two-up: local-hang:" local-hang?)
-                  (prn "fzprint-two-up: one-line?:" one-line?)
-                  (prn "fzprint-two-up: hanging-indent:" hanging-indent)
-                  (prn "fzprint-two-up: hanging-lines:" hanging-lines)
-                  (prn "fzprint-two-up: flow?:" flow?)
-                  (prn "fzprint-two-up: flow-it?:" flow-it?)
-                  (prn "fzprint-two-up: fit?:" fit?)
-                  (prn "fzprint-two-up: flow-indent:" flow-indent)
-                  (prn "fzprint-two-up: hanging:" (zstring lloc) hanging)
-                  (prn "fzprint-two-up: (+ indent ind):" (+ indent ind))
-                  (prn "fzprint-two-up: flow:" (zstring lloc) flow))
-                (dbg options "fzprint-two-up: before good-enough")
-                (if fit?
-                  (hangflow hangflow?
-                            :hang
-                            (concat-no-nil arg-1
-                                           [[(blanks hanging-spaces) :none
-                                             :whitespace]]
-                                           hanging))
-                  (when (or hanging-lines flow-lines)
-                    (if (good-enough? caller
-                                      roptions
-                                      :none-two-up
-                                      hang-count
-                                      (- hanging-indent flow-indent)
-                                      hanging-lines
-                                      flow-lines)
-                      (hangflow hangflow?
-                                :hang
-                                (concat-no-nil arg-1
-                                               [[(blanks hanging-spaces) :none
-                                                 :whitespace]]
-                                               hanging))
-                      (if justify-width
-                        nil
-                        (hangflow hangflow?
-                                  :flow
-                                  (concat-no-nil arg-1
-                                                 [[(str "\n"
-                                                        (blanks (+ indent ind)))
-                                                   :none :whitespace]]
-                                                 flow)))))))))
-        ; )
-        :else (hangflow hangflow?
-                        :flow
-                        (concat-no-nil arg-1
-                                       #_(fzprint* loptions ind lloc)
-                                       [[(str "\n" (blanks (+ indent ind)))
-                                         :none :whitespace]]
-                                       ; This is a real seq, not a zloc seq
-                                       #_(fzprint-remaining-seq options
-                                                                (+ indent ind)
-                                                                nil
-                                                                :force-nl
-                                                                (next pair))
-                                       (fzprint-flow-seq options
-                                                         (+ indent ind)
-                                                         (next pair)
-                                                         :force-nl)))))))
 (defn fzprint-two-up
   "Print a single pair of things (though it might not be exactly
   a pair, given comments and :extend and the like), 
   like bindings in a let, clauses in a cond, keys and values in a map.  
   Controlled by various maps, the key of which is caller."
   [hangflow? caller
-   {:keys [width one-line? dbg? dbg-indent in-hang? do-in-hang?],
-    {:keys [zstring znth zcount zvector?]} :zf,
-    {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow?]} caller,
+   {:keys [width one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],
+    {:keys [zstring znth zcount zvector? zsexpr]} :zf,
+    {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color
+            key-depth-color]}
+      caller,
     :as options} ind commas? justify-width rightmost-pair?
    [lloc rloc xloc :as pair]]
   (if dbg-cnt? (println "two-up: caller:" caller "hang?" hang? "dbg?" dbg?))
@@ -766,7 +566,20 @@
         modifier-set (:modifiers (options caller))
         modifier?
           (and modifier-set (modifier-set (zstring lloc)) (> (count pair) 2))
+        ; Figure out if we want to color keys based on their depth, and if so,
+        ; figure out the color for this one.
+        local-color (get key-depth-color (dec map-depth))
+        ; Doesn't work if we have a modifier, but at this point, key-color
+        ; is only for maps and modifiers are only for extend.
+        local-color (if key-color (key-color (zsexpr lloc)) local-color)
+        #_local-color
+        #_(cond (and map-depth (= caller :map) (= map-depth 2)) :green
+                (and map-depth (= caller :map) (= map-depth 1)) :blue
+                (and map-depth (= caller :map) (= map-depth 3)) :yellow
+                (and map-depth (= caller :map) (= map-depth 4)) :red
+                :else nil)
         arg-1 (fzprint* loptions ind lloc)
+        arg-1 (if local-color (replace-color local-color arg-1) arg-1)
         arg-1 (if modifier?
                 (concat-no-nil arg-1
                                [[(str " ") :none :whitespace]]

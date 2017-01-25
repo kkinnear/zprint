@@ -3,18 +3,26 @@
 __zprint__ is a library providing a pretty printing capability for
 both Clojure code and Clojure/EDN structures.  It can be used as a library,
 either embedded in a larger codebase, or as a useful utility at the
-repl.  
+repl.  It can be configured to process entire files or just take small
+sections of code and reformat them on demand.
 
 If you want to use the zprint library to format your Clojure source files, 
-you have two options:
+you have three options:
 
   * Leiningen:  [lein-zprint][leinzprint]
   * Boot: [boot-fmt][bootfmt]
+  * use `planck` or `lumo` and configure zprint as a Clojure pretty-print filter. See [lein-zprint][leinzprint] for details.
 
-As of version 0.2.7, zprint includes experimental support for Clojurescript!
+The pretty-print filter using `planck` or `lumo` can be used from many
+editors to format a single function defintion on demand.  This is how
+I use zprint most of the time to format code.
+
+Zprint includes support for Clojurescript, both browser based and self-hosted.
 
 Zprint is designed to be a single pretty printer to use for code
-and data structures.
+and data structures.  It doesn't just re-indent code, it moves
+it around from line to line trying to find a good visual representation
+for your code.
 
 #### What, really?  Another pretty printer?
 
@@ -3103,7 +3111,7 @@ approaches.
 
 ## License
 
-Copyright © 2016 Kim Kinnear
+Copyright © 2016-2017 Kim Kinnear
 
 Distributed under the MIT License.  See the file LICENSE for details.
 

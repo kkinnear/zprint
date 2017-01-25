@@ -1,5 +1,6 @@
 (ns zprint.zutil
   (:require clojure.string
+            zprint.zfns
             [rewrite-clj.parser :as p]
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z]
@@ -300,10 +301,15 @@
   [zloc]
   (and zloc (not= :fn (tag zloc)) (not (n/printable-only? (z/node zloc)))))
 
-(defn zkeyword?
+(defn zkeyword?-alt
   "Returns true if this is a keyword."
   [zloc]
   (and zloc (zsexpr? zloc) (keyword? (sexpr zloc))))
+
+(defn zkeyword?
+  "Returns true if this is a keyword."
+  [zloc]
+  (and zloc (clojure.string/starts-with? (z/string zloc) ":")))
 
 (defn zsymbol?
   "Returns true if this is a symbol."
@@ -352,9 +358,19 @@
   "Returns true if this is a keyword, string, or number, in other words,
   a constant."
   [zloc]
-  (when (zsexpr? zloc)
-    (let [sexpr (sexpr zloc)]
-      (or (keyword? sexpr) (string? sexpr) (number? sexpr)))))
+  #_(println "zconstant?" (z/string zloc))
+  (let [ztag (z/tag zloc)]
+    (if (or (= ztag :unquote) (= ztag :quote) (= ztag :syntax-quote))
+      (zconstant? (zfirst zloc))
+      (and (not (z-coll? zloc))
+           (or (zkeyword? zloc)
+               #_(println "zconstant? - not keyword:" (z/string zloc))
+               (when (zsexpr? zloc)
+                 #_(println "zconstant?:" (z/string zloc)
+                            "\n z-coll?" (z-coll? zloc)
+                            "z/tag:" (z/tag zloc))
+                 (let [sexpr (sexpr zloc)]
+                   (or (string? sexpr) (number? sexpr)))))))))
 
 ;;
 ;; # Integrate specs with doc-string
@@ -387,59 +403,59 @@
       (edn* (z/root new-doc-zloc)))
     zloc))
 
-;;
-;; # Define function map from keyword to actual function for zipper operation
-;;
-
-(def zf
-  {:zstring z/string,
-   :znumstr znumstr,
-   :zbyte-array? (constantly false),
-   :zcomment? zcomment?,
-   :zsexpr sexpr,
-   :zseqnws zseqnws,
-   :zmap-right zmap-right,
-   :zfocus-style zfocus-style,
-   :zfirst zfirst,
-   :zsecond zsecond,
-   :znth znth,
-   :zcount zcount,
-   :zmap zmap,
-   :zanonfn? zanonfn?,
-   :zfn-obj? (constantly false),
-   :zfocus zfocus,
-   :zfind-path find-root-and-path,
-   :zwhitespace? whitespace?,
-   :zlist? z/list?,
-   :zvector? z/vector?,
-   :zmap? z/map?,
-   :zset? z/set?,
-   :zcoll? z-coll?,
-   :zuneval? zuneval?,
-   :zmeta? zmeta?,
-   :ztag ztag,
-   :zparseuneval zparseuneval,
-   :zlast zlast,
-   :zarray? (constantly false),
-   :zatom? (constantly false),
-   :zderef (constantly false),
-   :zrecord? (constantly false),
-   :zns? (constantly false),
-   :zobj-to-vec (constantly nil),
-   :zexpandarray (constantly nil),
-   :znewline? znewline?,
-   :zwhitespaceorcomment? whitespace-or-comment?,
-   :zmap-all zmap-all,
-   :zpromise? (constantly false),
-   :zfuture? (constantly false),
-   :zdelay? (constantly false),
-   :zkeyword? zkeyword?,
-   :zconstant? zconstant?,
-   :zagent? (constantly false),
-   :zreader-macro? zreader-macro?,
-   :zarray-to-shift-seq (constantly nil),
-   :zdotdotdot zdotdotdot,
-   :zsymbol? zsymbol?,
-   :znil? znil?,
-   :zreader-cond-w-symbol? zreader-cond-w-symbol?,
-   :zreader-cond-w-coll? zreader-cond-w-coll?})
+(defn zredef-call
+  "Redefine all of the traversal functions for zippers, then
+  call the function of no arguments passed in."
+  [body-fn]
+  (with-redefs [zprint.zfns/zstring z/string
+                zprint.zfns/znumstr znumstr
+                zprint.zfns/zbyte-array? (constantly false)
+                zprint.zfns/zcomment? zcomment?
+                zprint.zfns/zsexpr sexpr
+                zprint.zfns/zseqnws zseqnws
+                zprint.zfns/zmap-right zmap-right
+                zprint.zfns/zfocus-style zfocus-style
+                zprint.zfns/zfirst zfirst
+                zprint.zfns/zsecond zsecond
+                zprint.zfns/znth znth
+                zprint.zfns/zcount zcount
+                zprint.zfns/zmap zmap
+                zprint.zfns/zanonfn? zanonfn?
+                zprint.zfns/zfn-obj? (constantly false)
+                zprint.zfns/zfocus zfocus
+                zprint.zfns/zfind-path find-root-and-path
+                zprint.zfns/zwhitespace? whitespace?
+                zprint.zfns/zlist? z/list?
+                zprint.zfns/zvector? z/vector?
+                zprint.zfns/zmap? z/map?
+                zprint.zfns/zset? z/set?
+                zprint.zfns/zcoll? z-coll?
+                zprint.zfns/zuneval? zuneval?
+                zprint.zfns/zmeta? zmeta?
+                zprint.zfns/ztag ztag
+                zprint.zfns/zparseuneval zparseuneval
+                zprint.zfns/zlast zlast
+                zprint.zfns/zarray? (constantly false)
+                zprint.zfns/zatom? (constantly false)
+                zprint.zfns/zderef (constantly false)
+                zprint.zfns/zrecord? (constantly false)
+                zprint.zfns/zns? (constantly false)
+                zprint.zfns/zobj-to-vec (constantly nil)
+                zprint.zfns/zexpandarray (constantly nil)
+                zprint.zfns/znewline? znewline?
+                zprint.zfns/zwhitespaceorcomment? whitespace-or-comment?
+                zprint.zfns/zmap-all zmap-all
+                zprint.zfns/zpromise? (constantly false)
+                zprint.zfns/zfuture? (constantly false)
+                zprint.zfns/zdelay? (constantly false)
+                zprint.zfns/zkeyword? zkeyword?
+                zprint.zfns/zconstant? zconstant?
+                zprint.zfns/zagent? (constantly false)
+                zprint.zfns/zreader-macro? zreader-macro?
+                zprint.zfns/zarray-to-shift-seq (constantly nil)
+                zprint.zfns/zdotdotdot zdotdotdot
+                zprint.zfns/zsymbol? zsymbol?
+                zprint.zfns/znil? znil?
+                zprint.zfns/zreader-cond-w-symbol? zreader-cond-w-symbol?
+                zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?]
+    (body-fn)))

@@ -171,19 +171,21 @@
       ;          ; we are getting rid of all whitespace between expr
       ;          (:interpose (:parse options)))))
       [[["" :b]] options]
-      (let [options
-              (assoc options
-                :ztype z-type
-                :zf (if (= z-type :zipper) zprint.zutil/zf zprint.sutil/sf))]
+      (let [options (assoc options :ztype z-type)
+            fzprint-fn (partial fzprint
+                                options
+                                (if (and (:file? options)
+                                         (= (:left-space (:parse options))
+                                            :keep))
+                                  (or (:indent options) 0)
+                                  0)
+                                input)]
         #_(def coreopt options)
         ;REMOVE
         ;(println "fzprint-style: (:indent options)" (:indent options))
-        [(fzprint options
-                  (if (and (:file? options)
-                           (= (:left-space (:parse options)) :keep))
-                    (or (:indent options) 0)
-                    0)
-                  input)
+        [(if (= z-type :zipper)
+           (zprint.zutil/zredef-call fzprint-fn)
+           (zprint.sutil/sredef-call fzprint-fn))
          options]))))
 
 (declare get-docstring-spec)

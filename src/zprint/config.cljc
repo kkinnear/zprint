@@ -1,15 +1,16 @@
 (ns zprint.config
-  #?(:cljs [:require-macros [schema.core :refer [defschema]]])
+  ;  #?(:cljs [:require-macros [schema.core :refer [defschema]]])
   #?(:clj [:refer-clojure :exclude [read-string]])
   (:require clojure.string
             [zprint.sutil]
+            [clojure.set :refer [difference]]
             [zprint.zprint :refer [merge-deep]]
             [clojure.data :as d]
+            #?(:clj [zprint.schema :refer [validate-basic]]
+               :cljs [zprint.spec :refer [validate-basic]])
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]])
-            [schema.core :as s]
-            #?@(:clj [[schema.core :refer [defschema]]
-                      [cprop.source :as cs :refer
+            #?@(:clj [[cprop.source :as cs :refer
                        [from-file from-resource from-system-props from-env
                         read-system-env read-system-props merge*]]
                       [trptcolin.versioneer.core :as version] [table.width]]))
@@ -31,7 +32,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.15")))
+          :cljs "0.2.16")))
 
 ;;
 ;; # External Configuration
@@ -272,162 +273,151 @@
 ;;
 
 (def zfnstyle
-  {"ns" :arg1-body,
-   "let" :binding,
-   "if" :arg1-body,
-   "if-not" :arg1-body,
-   "when" :arg1-body,
-   "when-not" :arg1-body,
+  {"->" :noarg1-body,
+   "->>" :force-nl-body,
+   ":import" :force-nl-body,
+   ":require" :force-nl-body,
+   "=" :hang,
+   "alt" :pair-fn,
+   "and" :hang,
    "apply" :arg1,
-   "map" :arg1,
-   "mapv" :arg1,
-   "filter" :arg1,
-   "filterv" :arg1,
-   "remove" :arg1,
-   "reduce" :arg1,
-   "mapcat" :arg1,
-   "interpose" :arg1,
-   "defn" :arg1-body,
-   "defn-" :arg1-body,
-   "defmacro" :arg1-body,
-   "def" :arg1-body,
+   "as->" :arg2,
    "assoc" :arg1-pair,
+   "binding" :binding,
    "case" :arg1-pair-body,
+   "cat" :force-nl,
+   "catch" :arg2,
    "cond" :pair-fn,
    "cond->" :arg1-pair-body,
    "condp" :arg2-pair,
-   "as->" :arg2,
+   "def" :arg1-body,
+   "defmacro" :arg1-body,
    "defmethod" :arg2,
    "defmulti" :arg1-body,
-   "reify" :extend,
-   "deftype" :arg1-extend,
-   "extend" :arg1-extend,
-   "extend-type" :arg1-extend,
-   "extend-protocol" :arg1-extend,
+   "defn" :arg1-body,
+   "defn-" :arg1-body,
+   "defproject" :arg1,
    "defprotocol" :arg1,
    "defrecord" :arg1-extend,
-   "proxy" :arg2-fn,
-   "binding" :binding,
-   "with-redefs" :binding,
-   "with-open" :binding,
-   "with-local-vars" :binding,
-   "with-bindings" :arg1,
-   "with-bindings*" :arg1,
-   "when-some" :binding,
-   "when-let" :binding,
-   "when-first" :binding,
-   "loop" :binding,
-   "if-some" :binding,
-   "if-let" :binding,
-   "for" :binding,
-   "dotimes" :binding,
+   "deftype" :arg1-extend,
+   "defui" :arg1-extend,
+   "do" :none-body,
    "doseq" :binding,
+   "dotimes" :binding,
+   "extend" :arg1-extend,
+   "extend-protocol" :arg1-extend,
+   "extend-type" :arg1-extend,
+   "fdef" :arg1-force-nl,
+   "filter" :arg1,
+   "filterv" :arg1,
    "fn" :fn,
    "fn*" :fn,
-   "->" :noarg1-body,
-   "->>" :force-nl-body,
-   "some->" :force-nl-body,
-   "do" :none-body,
-   "and" :hang,
-   "or" :hang,
-   "=" :hang,
+   "for" :binding,
+   "if" :arg1-body,
+   "if-let" :binding,
+   "if-not" :arg1-body,
+   "if-some" :binding,
+   "interpose" :arg1,
+   "let" :binding,
+   "loop" :binding,
+   "map" :arg1,
+   "mapcat" :arg1,
+   "mapv" :arg1,
    "not=" :hang,
-   "try" :none-body,
-   "catch" :arg2,
-   "with-meta" :arg1-body,
-   ":require" :force-nl-body,
-   ":import" :force-nl-body,
-   "fdef" :arg1-force-nl,
-   "alt" :pair-fn,
-   "cat" :force-nl,
+   "ns" :arg1-body,
+   "or" :hang,
+   "proxy" :arg2-fn,
+   "reduce" :arg1,
+   "reify" :extend,
+   "remove" :arg1,
    "s/and" :gt2-force-nl,
    "s/or" :gt2-force-nl,
-   "defui" :arg1-extend})
+   "some->" :force-nl-body,
+   "try" :none-body,
+   "when" :arg1-body,
+   "when-first" :binding,
+   "when-let" :binding,
+   "when-not" :arg1-body,
+   "when-some" :binding,
+   "with-bindings" :arg1,
+   "with-bindings*" :arg1,
+   "with-local-vars" :binding,
+   "with-meta" :arg1-body,
+   "with-open" :binding,
+   "with-redefs" :binding})
 
 ;;
 ;; ## The global defaults
 ;;
 
 (def default-zprint-options
-  {:width 80,
-   ;:configured? false
-   :indent 0,
-   :max-depth 1000,
-   :max-length 1000,
-   :max-hang-span 4,
-   :max-hang-count 4,
-   :max-hang-depth 3,
-   :process-bang-zprint? nil,
-   :trim-comments? nil,
-   :style nil,
-   :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
-            :hang-flow 1.1,
-            ; if the :fn-style is hang, then this become the :hang-flow above
-            :hang-type-flow 1.5,
-            ; when (> hang-count :hang-flow-limit),
-            ;  hang if (<= (dec hang-count) flow-count)
-            :hang-flow-limit 10,
-            ; this is added to the count of hanging lines before the comparison
-            ; when doing the one with :hang-flow or :hang-type-flow
-            ; Note that :map has its own :hang-adjust which overides this
-            ; general
-            ; one.
-            :general-hang-adjust -1,
-            :hang-if-equal-flow? true},
+  {:agent {:object? false},
+   :array {:hex? false, :indent 1, :object? false, :wrap? true},
+   :atom {:object? false},
    :auto-width? false,
-   :spec {:docstring? true},
-   :color-map {:paren :green,
+   :binding {:flow? false,
+             :force-nl? false,
+             :hang-diff 1,
+             :hang-expand 2.0,
+             :hang? true,
+             :indent 2,
+             :justify-hang {:hang-expand 5},
+             :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+             :justify? false,
+             :nl-separator? false},
+   :color-map {:brace :red,
                :bracket :purple,
-               :brace :red,
+               :comment :green,
                :deref :red,
+               :fn :blue,
                :hash-brace :red,
                :hash-paren :green,
-               :comment :green,
-               :fn :blue,
-               :user-fn :black,
-               :string :red,
                :keyword :magenta,
-               :number :purple,
-               :uneval :magenta,
                :nil :yellow,
+               :none :black,
+               :number :purple,
+               :paren :green,
                :quote :red,
-               :none :black},
-   :uneval {:color-map {:paren :yellow,
-                        :bracket :yellow,
-                        :brace :yellow,
-                        :deref :yellow,
-                        :hash-brace :yellow,
-                        :hash-paren :yellow,
-                        :comment :green,
-                        :fn :cyan,
-                        :user-fn :cyan,
-                        :string :yellow,
-                        :keyword :yellow,
-                        :number :yellow,
-                        :uneval :magenta,
-                        :nil :yellow,
-                        :quote :yellow,
-                        :none :yellow}},
-   :fn-map zfnstyle,
+               :string :red,
+               :uneval :magenta,
+               :user-fn :black},
+   :comment {:count? false, :wrap? true},
+   :configured? false,
+   :dbg-ge nil,
+   :dbg-print? nil,
+   :dbg? nil,
+   :delay {:object? false},
+   :do-in-hang? true,
+   :drop? nil,
+   :extend {:flow? false,
+            :force-nl? true,
+            :hang-diff 1,
+            :hang-expand 1000.0,
+            :hang? true,
+            :indent 2,
+            :modifiers #{"static"},
+            :nl-separator? false},
+   :file? false,
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
                   :arg1-force-nl :flow-body},
    :fn-gt2-force-nl #{:gt2-force-nl :binding},
    :fn-gt3-force-nl #{:gt3-force-nl :arg1-pair :arg1-pair-body},
-   :remove nil,
-   :user-fn-map {},
-   :vector {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
-   :set {:indent 1, :wrap? true, :wrap-coll? true, :wrap-after-multi? true},
-   :object {:indent 1, :wrap-coll? true, :wrap-after-multi? true},
-   :pair-fn {:hang? true, :hang-expand 2.0, :hang-size 10, :hang-diff 1},
-   :list {:indent-arg nil,
-          :indent 2,
-          :pair-hang? true,
-          :hang? true,
-          :hang-expand 2.0,
-          :hang-diff 1,
-          :hang-size 100,
+   :fn-map zfnstyle,
+   :fn-name nil,
+   :fn-obj {:object? false},
+   :format :on,
+   :future {:object? false},
+   ; This is used for {:parse {:left-space :keep}}
+   :indent 0,
+   :list {:constant-pair-min 4,
           :constant-pair? true,
-          :constant-pair-min 4},
+          :hang-diff 1,
+          :hang-expand 2.0,
+          :hang-size 100,
+          :hang? true,
+          :indent 2,
+          :indent-arg nil,
+          :pair-hang? true},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -450,88 +440,106 @@
          :justify? false,
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
-   :extend {:indent 2,
-            :hang? true,
-            :hang-expand 1000.0,
-            :hang-diff 1,
-            :flow? false,
-            :force-nl? true,
-            :nl-separator? false,
-            :modifiers #{"static"}},
-   :reader-cond {:indent 2,
-                 :sort? nil,
-                 :sort-in-code? nil,
-                 :comma? nil,
-                 :hang? true,
-                 :hang-expand 1000.0,
-                 :hang-diff 1,
-                 :force-nl? true,
-                 :key-order nil},
-   :binding {:indent 2,
-             :hang? true,
-             :hang-expand 2.0,
-             :hang-diff 1,
-             :flow? false,
-             :force-nl? false,
-             :nl-separator? false,
-             :justify? false,
-             :justify-hang {:hang-expand 5},
-             :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
-   :pair {:indent 2,
-          :hang? true,
-          :hang-expand 2.0,
-          :hang-diff 1,
-          :flow? false,
-          :force-nl? nil,
-          :nl-separator? false,
-          :justify? false,
-          :justify-hang {:hang-expand 5},
-          :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
-   :record {:record-type? true, :hang? true, :to-string? false},
-   :array {:indent 1, :wrap? true, :hex? false, :object? false},
-   :atom {:object? false},
-   :fn-obj {:object? false},
-   :future {:object? false},
-   :promise {:object? false},
-   :delay {:object? false},
-   :agent {:object? false},
-   :parse {:left-space :drop, :interpose nil},
-   :tab {:expand? true, :size 8},
-   :comment {:count? false, :wrap? true},
-   :dbg? nil,
-   :dbg-print? nil,
-   :do-in-hang? true,
-   :dbg-ge nil,
-   :drop? nil,
-   :zipper? false,
-   :file? false,
+   :max-depth 1000,
+   :max-hang-count 4,
+   :max-hang-depth 3,
+   :max-hang-span 4,
+   :max-length 1000,
+   :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
-   :format :on,
-   :return-cvec? false,
-   :parse-string? false,
+   :pair {:flow? false,
+          :force-nl? nil,
+          :hang-diff 1,
+          :hang-expand 2.0,
+          :hang? true,
+          :indent 2,
+          :justify-hang {:hang-expand 5},
+          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+          :justify? false,
+          :nl-separator? false},
+   :pair-fn {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
+   :parse {:interpose nil, :left-space :drop},
    :parse-string-all? false,
-   :style-map {:community {:binding {:indent 0},
-                           :pair {:indent 0},
-                           :map {:indent 0},
-                           :list {:indent-arg 1},
-                           :fn-map {"filter" :none,
-                                    "filterv" :none,
-                                    "apply" :none,
+   :parse-string? false,
+   :process-bang-zprint? nil,
+   :promise {:object? false},
+   :reader-cond {:comma? nil,
+                 :force-nl? true,
+                 :hang-diff 1,
+                 :hang-expand 1000.0,
+                 :hang? true,
+                 :indent 2,
+                 :key-order nil,
+                 :sort-in-code? nil,
+                 :sort? nil},
+   :record {:hang? true, :record-type? true, :to-string? false},
+   :remove {:fn-force-nl nil,
+            :fn-gt2-force-nl nil,
+            :fn-gt3-force-nl nil,
+            :extend {:modifiers nil}},
+   :return-cvec? false,
+   :set {:indent 1, :wrap-after-multi? true, :wrap-coll? true, :wrap? true},
+   :spaces? nil,
+   :spec {:docstring? true, :value nil},
+   :style nil,
+   :style-map {:binding-nl {:binding {:indent 0, :nl-separator? true}},
+               :community {:binding {:indent 0},
+                           :fn-map {"apply" :none,
                                     "assoc" :none,
                                     "cond->" :none-body,
+                                    "filter" :none,
+                                    "filterv" :none,
                                     "map" :none,
                                     "mapv" :none,
                                     "reduce" :none,
                                     "remove" :none,
-                                    "with-meta" :none-body}},
-               :justified {:binding {:justify? true},
-                           :pair {:justify? true},
-                           :map {:justify? true}},
-               :binding-nl {:binding {:indent 0, :nl-separator? true}},
-               :pair-nl {:pair {:indent 0, :nl-separator? true}},
-               :map-nl {:map {:indent 0, :nl-separator? true}},
+                                    "with-meta" :none-body},
+                           :list {:indent-arg 1},
+                           :map {:indent 0},
+                           :pair {:indent 0}},
                :extend-nl {:extend
-                             {:flow? true, :indent 0, :nl-separator? true}}}})
+                             {:flow? true, :indent 0, :nl-separator? true}},
+               :justified {:binding {:justify? true},
+                           :map {:justify? true},
+                           :pair {:justify? true}},
+               :map-nl {:map {:indent 0, :nl-separator? true}},
+               :pair-nl {:pair {:indent 0, :nl-separator? true}}},
+   :tab {:expand? true, :size 8},
+   :trim-comments? nil,
+   :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
+            :hang-flow 1.1,
+            ; if the :fn-style is hang, then this become the :hang-flow above
+            :hang-type-flow 1.5,
+            ; when (> hang-count :hang-flow-limit),
+            ;  hang if (<= (dec hang-count) flow-count)
+            :hang-flow-limit 10,
+            ; this is added to the count of hanging lines before the comparison
+            ; when doing the one with :hang-flow or :hang-type-flow
+            ; Note that :map has its own :hang-adjust which overides this
+            ; general
+            ; one.
+            :general-hang-adjust -1,
+            :hang-if-equal-flow? true},
+   :uneval {:color-map {:brace :yellow,
+                        :bracket :yellow,
+                        :comment :green,
+                        :deref :yellow,
+                        :fn :cyan,
+                        :hash-brace :yellow,
+                        :hash-paren :yellow,
+                        :keyword :yellow,
+                        :nil :yellow,
+                        :none :yellow,
+                        :number :yellow,
+                        :paren :yellow,
+                        :quote :yellow,
+                        :string :yellow,
+                        :uneval :magenta,
+                        :user-fn :cyan}},
+   :user-fn-map {},
+   :vector {:indent 1, :wrap-after-multi? true, :wrap-coll? true, :wrap? true},
+   :width 80,
+   :zipper? false})
 
 ;;
 ;; # Mutable Options storage
@@ -554,7 +562,7 @@
     (merge-with (partial merge-with-fn-doc doc-string)
                 val-in-result
                 val-in-latter)
-    {:value val-in-latter, :from doc-string}))
+    {:from doc-string, :value val-in-latter}))
 
 (defn merge-deep-doc
   "Do a merge of maps all the way down, keeping track of where every
@@ -642,7 +650,7 @@
 (defn value-set-by
   "Create a map with a :value and :set-by elements."
   [set-by _ value]
-  {:value value, :set-by set-by})
+  {:set-by set-by, :value value})
 
 (defn diff-deep-ks
   "Update an existing doc-map with labels of everything that shows up
@@ -775,266 +783,37 @@
    (config-set-options! new-options
                         (str "repl or api call " (inc-explained-sequence)))))
 
-
-
 ;;
-;; # Schema for Validation
+;; # Options Validation Functions
 ;;
 
-(defschema color-schema
-           "An enum of the possible colors"
-           (s/enum :green :purple :magenta :yellow :red :cyan :black :blue))
+(defn build-key-seq-set
+  "Given a map, build a set of key-seqs that are in the map.  This
+  will leave out the :fn-map elements, and possibly do other special
+  processing."
+  [options]
+  (->> (key-seq options)
+       (map vec)
+       (remove #(= (first %) :fn-map))
+       (into #{})))
 
-(defschema color-or-nil-schema (s/conditional nil? s/Any :else color-schema))
+(def allowed-key-set (atom nil))
 
-(defschema format-schema
-           "An enum of the possible format options"
-           (s/enum :on :off :next :skip))
+(defn set-allowed-key-set!
+  "Generate the allowed key-set and save it."
+  []
+  (reset! allowed-key-set (build-key-seq-set (get-options))))
 
-(defschema keep-drop-schema (s/enum :keep :drop))
-
-(defschema fn-type
-           "An enum of the possible function types"
-           (s/enum :binding
-                   :arg1 :arg1-body
-                   :arg1-pair-body :arg1-pair
-                   :pair :hang
-                   :extend :arg1-extend-body
-                   :arg1-extend :fn
-                   :arg1-> :noarg1-body
-                   :noarg1 :arg2
-                   :arg2-pair :arg2-fn
-                   :none :none-body
-                   :arg1-force-nl :gt2-force-nl
-                   :gt3-force-nl :flow
-                   :flow-body :force-nl-body
-                   :force-nl :pair-fn))
-
-;;
-;; There is no schema for possible styles, because people
-;; can define their own.  There is special code to check to
-;; see if a style specification matches one of the defined
-;; styles, and if it doesn't, it is dealt with there.
-;;
-
-(defschema boolean-schema
-           "Our version of boolen, which is true, false, and nil"
-           (s/conditional nil? s/Any :else s/Bool))
-
-(defschema boolean-schema-or-string
-           "Our version of boolen, which is true, false, and nil or string"
-           (s/conditional string? s/Any :else boolean-schema))
-
-(defschema num-or-nil-schema (s/conditional nil? s/Any :else s/Num))
-
-(defschema keyword-or-nil-schema (s/conditional nil? s/Any :else s/Keyword))
-(defschema keyword-nil-or-keyword-list-schema
-           (s/conditional coll? [s/Keyword] :else keyword-or-nil-schema))
-
-(defschema color-map
-           {(s/optional-key :paren) color-schema,
-            (s/optional-key :bracket) color-schema,
-            (s/optional-key :brace) color-schema,
-            (s/optional-key :deref) color-schema,
-            (s/optional-key :hash-brace) color-schema,
-            (s/optional-key :hash-paren) color-schema,
-            (s/optional-key :comment) color-schema,
-            (s/optional-key :fn) color-schema,
-            (s/optional-key :user-fn) color-schema,
-            (s/optional-key :string) color-schema,
-            (s/optional-key :keyword) color-schema,
-            (s/optional-key :number) color-schema,
-            (s/optional-key :uneval) color-schema,
-            (s/optional-key :nil) color-schema,
-            (s/optional-key :quote) color-schema,
-            (s/optional-key :none) color-schema})
-
-(defschema
-  zprint-options-schema
-  "Use this to validate input, so ensure that people don't forget
-  things like the ? on the end of booleans and such."
-  {(s/optional-key :configured?) boolean-schema,
-   (s/optional-key :style) keyword-nil-or-keyword-list-schema,
-   (s/optional-key :width) s/Num,
-   (s/optional-key :indent) s/Num,
-   (s/optional-key :trim-comments?) boolean-schema,
-   (s/optional-key :process-bang-zprint?) boolean-schema,
-   (s/optional-key :max-depth) s/Num,
-   (s/optional-key :max-length) s/Num,
-   (s/optional-key :max-hang-depth) s/Num,
-   (s/optional-key :max-hang-count) s/Num,
-   (s/optional-key :max-hang-span) s/Num,
-   (s/optional-key :parse-string?) boolean-schema,
-   (s/optional-key :parse-string-all?) boolean-schema,
-   (s/optional-key :zipper?) boolean-schema,
-   (s/optional-key :file?) boolean-schema,
-   (s/optional-key :spaces?) boolean-schema,
-   (s/optional-key :old?) boolean-schema,
-   (s/optional-key :format) format-schema,
-   (s/optional-key :return-cvec?) boolean-schema,
-   (s/optional-key :fn-name) s/Any,
-   (s/optional-key :auto-width?) boolean-schema,
-   (s/optional-key :force-sexpr?) boolean-schema,
-   (s/optional-key :spec) {(s/optional-key :value) s/Any,
-                           (s/optional-key :docstring?) boolean-schema},
-   (s/optional-key :tuning) {(s/optional-key :hang-flow) s/Num,
-                             (s/optional-key :hang-type-flow) s/Num,
-                             (s/optional-key :hang-flow-limit) s/Num,
-                             (s/optional-key :general-hang-adjust) s/Num,
-                             (s/optional-key :hang-if-equal-flow?)
-                               boolean-schema},
-   (s/optional-key :color-map) color-map,
-   (s/optional-key :uneval) {(s/optional-key :color-map) color-map},
-   (s/optional-key :fn-map) {s/Str fn-type},
-   (s/optional-key :fn-force-nl) #{fn-type},
-   (s/optional-key :fn-gt2-force-nl) #{fn-type},
-   (s/optional-key :fn-gt3-force-nl) #{fn-type},
-   (s/optional-key :remove) {(s/optional-key :fn-force-nl) #{fn-type},
-                             (s/optional-key :fn-gt2-force-nl) #{fn-type},
-                             (s/optional-key :fn-gt3-force-nl) #{fn-type},
-                             (s/optional-key :extend)
-                               {(s/optional-key :modifiers) #{s/Str}}},
-   (s/optional-key :user-fn-map) {s/Str fn-type},
-   (s/optional-key :vector) {(s/optional-key :indent) s/Num,
-                             (s/optional-key :wrap?) boolean-schema,
-                             (s/optional-key :wrap-coll?) boolean-schema,
-                             (s/optional-key :wrap-after-multi?)
-                               boolean-schema},
-   (s/optional-key :set) {(s/optional-key :indent) s/Num,
-                          (s/optional-key :wrap?) boolean-schema,
-                          (s/optional-key :wrap-coll?) boolean-schema,
-                          (s/optional-key :wrap-after-multi?) boolean-schema},
-   (s/optional-key :object) {(s/optional-key :indent) s/Num,
-                             (s/optional-key :wrap-coll?) boolean-schema,
-                             (s/optional-key :wrap-after-multi?)
-                               boolean-schema},
-   (s/optional-key :list) {(s/optional-key :indent-arg) num-or-nil-schema,
-                           (s/optional-key :indent) s/Num,
-                           (s/optional-key :hang?) boolean-schema,
-                           (s/optional-key :pair-hang?) boolean-schema,
-                           (s/optional-key :hang-expand) s/Num,
-                           (s/optional-key :hang-diff) s/Num,
-                           (s/optional-key :hang-size) s/Num,
-                           (s/optional-key :constant-pair?) boolean-schema,
-                           (s/optional-key :constant-pair-min) s/Num},
-   (s/optional-key :pair-fn) {(s/optional-key :hang?) boolean-schema,
-                              (s/optional-key :hang-expand) s/Num,
-                              (s/optional-key :hang-size) s/Num,
-                              (s/optional-key :hang-diff) s/Num},
-   (s/optional-key :map)
-     {(s/optional-key :indent) s/Num,
-      (s/optional-key :hang?) boolean-schema,
-      (s/optional-key :hang-expand) s/Num,
-      (s/optional-key :hang-diff) s/Num,
-      (s/optional-key :hang-adjust) s/Num,
-      (s/optional-key :sort?) boolean-schema,
-      (s/optional-key :sort-in-code?) boolean-schema,
-      (s/optional-key :comma?) boolean-schema,
-      (s/optional-key :dbg-local?) boolean-schema,
-      (s/optional-key :key-order) [s/Any],
-      (s/optional-key :key-ignore) [s/Any],
-      (s/optional-key :key-ignore-silent) [s/Any],
-      (s/optional-key :key-color) {s/Any color-schema},
-      (s/optional-key :key-depth-color) [color-or-nil-schema],
-      (s/optional-key :flow?) boolean-schema,
-      (s/optional-key :nl-separator?) boolean-schema,
-      (s/optional-key :force-nl?) boolean-schema,
-      (s/optional-key :justify?) boolean-schema,
-      (s/optional-key :justify-hang) {(s/optional-key :hang?) boolean-schema,
-                                      (s/optional-key :hang-expand) s/Num,
-                                      (s/optional-key :hang-diff) s/Num},
-      (s/optional-key :justify-tuning) {(s/optional-key :hang-flow) s/Num,
-                                        (s/optional-key :hang-type-flow) s/Num,
-                                        (s/optional-key :hang-flow-limit) s/Num,
-                                        (s/optional-key :general-hang-adjust)
-                                          s/Num}},
-   (s/optional-key :extend) {(s/optional-key :indent) s/Num,
-                             (s/optional-key :hang?) boolean-schema,
-                             (s/optional-key :hang-expand) s/Num,
-                             (s/optional-key :hang-diff) s/Num,
-                             (s/optional-key :nl-separator?) boolean-schema,
-                             (s/optional-key :flow?) boolean-schema,
-                             (s/optional-key :force-nl?) boolean-schema,
-                             (s/optional-key :modifiers) #{s/Str}},
-   (s/optional-key :reader-cond) {(s/optional-key :indent) s/Num,
-                                  (s/optional-key :hang?) boolean-schema,
-                                  (s/optional-key :hang-expand) s/Num,
-                                  (s/optional-key :hang-diff) s/Num,
-                                  (s/optional-key :sort?) boolean-schema,
-                                  (s/optional-key :sort-in-code?)
-                                    boolean-schema,
-                                  (s/optional-key :comma?) boolean-schema,
-                                  (s/optional-key :force-nl?) boolean-schema,
-                                  (s/optional-key :key-order) [s/Any]},
-   (s/optional-key :binding) {(s/optional-key :indent) s/Num,
-                              (s/optional-key :hang?) boolean-schema,
-                              (s/optional-key :hang-expand) s/Num,
-                              (s/optional-key :hang-diff) s/Num,
-                              (s/optional-key :flow?) boolean-schema,
-                              (s/optional-key :force-nl?) boolean-schema,
-                              (s/optional-key :nl-separator?) boolean-schema,
-                              (s/optional-key :justify?) boolean-schema,
-                              (s/optional-key :justify-hang)
-                                {(s/optional-key :hang?) boolean-schema,
-                                 (s/optional-key :hang-expand) s/Num,
-                                 (s/optional-key :hang-diff) s/Num},
-                              (s/optional-key :justify-tuning)
-                                {(s/optional-key :hang-flow) s/Num,
-                                 (s/optional-key :hang-type-flow) s/Num,
-                                 (s/optional-key :hang-flow-limit) s/Num,
-                                 (s/optional-key :general-hang-adjust) s/Num}},
-   (s/optional-key :pair) {(s/optional-key :indent) s/Num,
-                           (s/optional-key :hang?) boolean-schema,
-                           (s/optional-key :hang-expand) s/Num,
-                           (s/optional-key :hang-diff) s/Num,
-                           (s/optional-key :flow?) boolean-schema,
-                           (s/optional-key :force-nl?) boolean-schema,
-                           (s/optional-key :nl-separator?) boolean-schema,
-                           (s/optional-key :justify?) boolean-schema,
-                           (s/optional-key :justify-hang)
-                             {(s/optional-key :hang?) boolean-schema,
-                              (s/optional-key :hang-expand) s/Num,
-                              (s/optional-key :hang-diff) s/Num},
-                           (s/optional-key :justify-tuning)
-                             {(s/optional-key :hang-flow) s/Num,
-                              (s/optional-key :hang-type-flow) s/Num,
-                              (s/optional-key :hang-flow-limit) s/Num,
-                              (s/optional-key :general-hang-adjust) s/Num}},
-   (s/optional-key :record) {(s/optional-key :record-type?) boolean-schema,
-                             (s/optional-key :hang?) boolean-schema,
-                             (s/optional-key :to-string?) boolean-schema},
-   (s/optional-key :array) {(s/optional-key :hex?) boolean-schema-or-string,
-                            (s/optional-key :object?) boolean-schema,
-                            (s/optional-key :indent) s/Num,
-                            (s/optional-key :wrap?) boolean-schema},
-   (s/optional-key :atom) {(s/optional-key :object?) boolean-schema},
-   (s/optional-key :fn-obj) {(s/optional-key :object?) boolean-schema},
-   (s/optional-key :future) {(s/optional-key :object?) boolean-schema},
-   (s/optional-key :promise) {(s/optional-key :object?) boolean-schema},
-   (s/optional-key :delay) {(s/optional-key :object?) boolean-schema},
-   (s/optional-key :agent) {(s/optional-key :object?) boolean-schema},
-   (s/optional-key :parse) {(s/optional-key :left-space) keep-drop-schema,
-                            (s/optional-key :interpose)
-                              boolean-schema-or-string},
-   (s/optional-key :tab) {(s/optional-key :expand?) boolean-schema,
-                          (s/optional-key :size) s/Num},
-   (s/optional-key :comment) {(s/optional-key :count?) boolean-schema,
-                              (s/optional-key :wrap?) boolean-schema},
-   (s/optional-key :dbg?) boolean-schema,
-   (s/optional-key :dbg-print?) boolean-schema,
-   (s/optional-key :dbg-ge) s/Any,
-   (s/optional-key :drop?) boolean-schema,
-   (s/optional-key :do-in-hang?) boolean-schema})
-
-
-;;
-;; # Schema Validation Functions
-;;
-
-(defn constants
-  "Ensure that all of the elements of this collection are constants."
-  [coll]
-  (reduce #(and %1 (zprint.sutil/sconstant? %2)) true coll))
+(defn validate-incoming-keys
+  "Take an options map, and validate that all of the keys in the
+  map are acceptable.  This is largely a comparison with the keys
+  in the default options map, but includes special processing for
+  the :fn-map, where new keys are allowed and so they are not checked.
+  Returns nil for success and a sequence of invalid keys if failure."
+  [options]
+  (let [incoming-key-seq-set (build-key-seq-set options)
+        wrong-key-seqs (difference incoming-key-seq-set @allowed-key-set)]
+    (seq wrong-key-seqs)))
 
 (defn empty-to-nil
   "If the sequence is empty, then return nil, else return the sequence."
@@ -1044,9 +823,9 @@
 (declare validate-style-map)
 
 (defn validate-options
-  "Using the schema defined above, validate the options being given us.
-  source-str is a descriptive phrase which will be included in the errors
-  (if any). Returns nil for success, a string with error(s) if not."
+  "Validate an options map, source-str is a descriptive phrase 
+  which will be included in the errors (if any). Returns nil 
+  for success, a string with error(s) if not."
   ([options source-str]
    #_(println "validate-options:" options)
    (when options
@@ -1054,32 +833,10 @@
        (apply str
          (interpose ", "
            (remove #(or (nil? %) (empty? %))
-             (conj
-               []
-               (try
-                 (s/validate zprint-options-schema (dissoc options :style-map))
-                 nil
-                 (catch #?(:clj Exception
-                           :cljs :default) e
-                   #?(:clj (if source-str
-                             (str "In " source-str
-                                  ", " (:cause (Throwable->map e)))
-                             (:cause (Throwable->map e)))
-                      :cljs (str (.-message e)))))
-               (when (not (constants (get-in options [:map :key-order])))
-                 (str "In " source-str
-                      " :map :key-order were not all constants:"
-                        (get-in options [:map :key-order])))
-               (when (not (constants (keys (get-in options [:map :key-color]))))
-                 (str "In " source-str
-                      " :map :key-color were not all constants:"
-                        (get-in options [:map :key-color])))
-               (when (not (constants (get-in options
-                                             [:reader-cond :key-order])))
-                 (str " In " source-str
-                      " :reader-cond :key-order were not all constants:"
-                        (get-in options [:reader-cond :key-order])))
-               (validate-style-map options))))))))
+             (conj []
+                   (validate-basic (dissoc options :style-map) source-str)
+                   (when (:style-map options)
+                     (validate-style-map options)))))))))
   ([options] (validate-options options nil)))
 
 ;;

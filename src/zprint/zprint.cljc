@@ -1,10 +1,19 @@
 (ns zprint.zprint
   #?@(:cljs [[:require-macros
               [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])
-  (:require #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
-            [clojure.string :as s]
-            [zprint.ansi :refer [color-str]]
-            [zprint.zutil :refer [add-spec-to-docstring]]))
+  (:require
+    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
+    [clojure.string :as s]
+    [zprint.zfns :refer
+     [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zmap-right
+      zfocus-style zfirst zsecond znth zcount zmap zanonfn? zfn-obj? zfocus
+      zfind-path zwhitespace? zlist? zvector? zmap? zset? zcoll? zuneval? zmeta?
+      ztag zparseuneval zlast zarray? zatom? zderef zrecord? zns? zobj-to-vec
+      zexpandarray znewline? zwhitespaceorcomment? zmap-all zpromise? zfuture?
+      zdelay? zkeyword? zconstant? zagent? zreader-macro? zarray-to-shift-seq
+      zdotdotdot zsymbol? znil? zreader-cond-w-symbol? zreader-cond-w-coll?]]
+    [zprint.ansi :refer [color-str]]
+    [zprint.zutil :refer [add-spec-to-docstring]]))
 
 (declare interpose-nl-hf)
 
@@ -494,8 +503,7 @@
   but strongly prefer hang.  Has hang and flow indents, and fzfn is the
   fzprint-? function to use with zloc.  Callers need to know whether this
   was hang or flow, so it returns [{:hang | :flow} style-vec] all the time."
-  [{:keys [width dbg?], {:keys [zseqnws zstring zfirst]} :zf, :as options}
-   hindent findent fzfn zloc]
+  [{:keys [width dbg?], :as options} hindent findent fzfn zloc]
   (dbg options "fzprint-hang-unless-fail:" (zstring (zfirst zloc)))
   (let [hanging (fzfn (in-hang options) hindent zloc)]
     (dbg-form
@@ -526,7 +534,6 @@
   Controlled by various maps, the key of which is caller."
   [hangflow? caller
    {:keys [width one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],
-    {:keys [zstring znth zcount zvector? zsexpr]} :zf,
     {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color
             key-depth-color]}
       caller,
@@ -810,9 +817,7 @@
   "Figure the widthfor a justification of a set of pairs in coll.  
   Also, decide if it makes any sense to justify the pairs at all.
   For instance, they all need to be one-line."
-  [caller
-   {{:keys [zstring]} :zf, {:keys [justify?]} caller, :keys [dbg?], :as options}
-   ind coll]
+  [caller {{:keys [justify?]} caller, :keys [dbg?], :as options} ind coll]
   (let [firsts (remove nil?
                  (map #(when (> (count %) 1) (fzprint* options ind (first %)))
                    coll))
@@ -839,8 +844,7 @@
   returns a sequence of vector pairs:
   [[:hang <style-vec-for-one-pair>] [:flow <style-vec-for-one-pair>] ...]"
   [hangflow? caller
-   {{:keys [zstring]} :zf,
-    {:keys [justify? force-nl?]} caller,
+   {{:keys [justify? force-nl?]} caller,
     :keys [dbg? width rightcnt one-line?],
     :as options} ind commas? coll]
   (dbg-print options
@@ -934,10 +938,7 @@
   any keys in that vector and place them first (in order) before
   sorting the other keys."
   [caller
-   {:keys [dbg?],
-    {:keys [zsexpr zdotdotdot]} :zf,
-    {:keys [sort? key-order key-value]} caller,
-    :as options} out]
+   {:keys [dbg?], {:keys [sort? key-order key-value]} caller, :as options} out]
   (cond (or sort? key-order)
           (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
                    (zsexpr (first %1))
@@ -952,7 +953,7 @@
   "This checks to see if an element should be considered part of a pair.
   Mostly this will trigger on comments, but a #_(...) element will also
   trigger this."
-  [{:as options, {:keys [zuneval? zcomment?]} :zf} zloc]
+  [options zloc]
   (or (zcomment? zloc) (zuneval? zloc)))
 
 ;;
@@ -1023,9 +1024,7 @@
   of the pair (one per line).  If there are any comments or unevaled
   sexpressions, don't sort the keys, as we might lose track of where 
   the comments go."
-  ([{:as options,
-     :keys [width dbg? in-code? max-length],
-     {:keys [zsexpr zstring zfirst zmap zdotdotdot]} :zf} coll caller]
+  ([{:as options, :keys [width dbg? in-code? max-length]} coll caller]
    (dbg options "partition-all-2-nc: caller:" caller)
    (when-not (empty? coll)
      (loop [remaining coll
@@ -1067,9 +1066,7 @@
   it in another seq.  If it contains something else, remove any non
   collections off of the end and return them in their own double seqs,
   as well as return the remainder (the beginning) as a double seq."
-  [{:as options,
-    {:keys [zcoll? zsymbol? zreader-cond-w-symbol? zreader-cond-w-coll?]} :zf}
-   coll]
+  [options coll]
   (if (or (zsymbol? (first coll)) (zreader-cond-w-symbol? (first coll)))
     ;(symbol? (first coll))
     (list coll)
@@ -1098,9 +1095,7 @@
   and the comments before the collections on the collection indent.  
   Since it doesn't know how many collections there are, this is not trivial.  
   Must be called with a sequence of z-things"
-  [{:as options,
-    {:keys [zsymbol? zstring znil? zcoll? zreader-cond-w-symbol?]} :zf}
-   modifier-set coll]
+  [options modifier-set coll]
   #_(prn "partition-all-sym-static:" modifier-set)
   #_(def scoll coll)
   (dbg options "partition-all-sym: coll:" (map zstring coll))
@@ -1185,7 +1180,7 @@
 (defn rstr-vec
   "Create an r-str-vec with, possibly, a newline at the beginning if
   the last thing before it is a comment."
-  ([{{:keys [zcomment? zlast]} :zf, :as options} ind zloc r-str r-type]
+  ([options ind zloc r-str r-type]
    (let [nl (when (zcomment? (zlast zloc))
               [[(str "\n" (blanks ind)) :none :whitespace]])]
      (concat nl [[r-str (zcolor-map options (or r-type r-str)) :right]])))
@@ -1220,10 +1215,7 @@
 
 
 (defn fzprint-binding-vec
-  [{:keys [width dbg?],
-    {:keys [zseqnws zstring zfirst zcount]} :zf,
-    {:keys [nl-separator?]} :binding,
-    :as options} ind zloc]
+  [{:keys [width dbg?], {:keys [nl-separator?]} :binding, :as options} ind zloc]
   (dbg options "fzprint-binding-vec:" (zstring (zfirst zloc)))
   (let [options (rightmost options)
         l-str "["
@@ -1251,9 +1243,8 @@
   "Try to hang something and try to flow it, and then see which is
   better.  Has hang and flow indents. fzfn is the function to use 
   to do zloc."
-  [{:keys [width dbg? one-line?],
-    {:keys [zseqnws zstring zfirst zcount]} :zf,
-    :as options} caller hindent findent fzfn zloc-count zloc]
+  [{:keys [width dbg? one-line?], :as options} caller hindent findent fzfn
+   zloc-count zloc]
   (dbg options "fzprint-hang:" (zstring (zfirst zloc)) "caller:" caller)
   (let [hanging (when (and (not= hindent findent) ((options caller) :hang?))
                   (concat-no-nil [[(str " ") :none :whitespace]]
@@ -1285,10 +1276,7 @@
 
 (defn fzprint-pairs
   "Always prints pairs on a different line from other pairs."
-  [{:keys [width dbg?],
-    {:keys [zmap-right zstring zfirst]} :zf,
-    {:keys [nl-separator?]} :pair,
-    :as options} ind zloc]
+  [{:keys [width dbg?], {:keys [nl-separator?]} :pair, :as options} ind zloc]
   (dbg options "fzprint-pairs:" (zstring (zfirst zloc)))
   (dbg-form
     options
@@ -1313,10 +1301,7 @@
   "Print things with a symbol and collections following.  Kind of like with
   pairs, but not quite. This skips over zloc and does everything to the
   right of it!"
-  [{:keys [width dbg?],
-    {:keys [zmap-right zstring zfirst]} :zf,
-    {:keys [nl-separator?]} :extend,
-    :as options} ind zloc]
+  [{:keys [width dbg?], {:keys [nl-separator?]} :extend, :as options} ind zloc]
   #_(def fezloc zloc)
   (dbg options "fzprint-extend:" (zstring (zfirst zloc)))
   (dbg-form
@@ -1341,7 +1326,7 @@
 (defn fzprint-one-line
   "Do a fzprint-seq like thing, but do it incrementally and
   if it gets too big, return nil."
-  [{:keys [width dbg?], {:keys [zmap]} :zf, :as options} ind zloc]
+  [{:keys [width dbg?], :as options} ind zloc]
   (dbg-print options "fzprint-one-line:")
   (let [seq-right (zmap identity zloc)
         len (count seq-right)
@@ -1388,7 +1373,7 @@
   These would need to be concatenated together to become a style-vec.
   ind is either a constant or a seq of indents, one for each element in
   zloc-seq."
-  [{:keys [max-length], {:keys [zdotdotdot]} :zf, :as options} ind zloc-seq]
+  [{:keys [max-length], :as options} ind zloc-seq]
   (let [len (count zloc-seq)
         zloc-seq (if (> len max-length)
                    (concat (take max-length zloc-seq) (list (zdotdotdot)))
@@ -1411,8 +1396,7 @@
   original zloc, modify the result of (zmap identity zloc) to just 
   contain what you want to print. ind is either a single indent,
   or a seq of indents, one for each element in zloc-seq."
-  ([{:as options, :keys [width], {:keys [zstring zfirst]} :zf} ind zloc-seq
-    force-nl?]
+  ([{:as options, :keys [width]} ind zloc-seq force-nl?]
    (dbg options "fzprint-flow-seq: count zloc-seq:" (count zloc-seq))
    (let [coll-print (fzprint-seq options ind zloc-seq)
          one-line (apply concat-no-nil
@@ -1442,9 +1426,7 @@
   does ok as hanging, or better with flow. hindent is hang-indent, and 
   findent is flow-indent, and each contains the initial separator.  
   Might be nice if the fn-style actually got sent to this fn."
-  [caller
-   {{:keys [zstring zfirst zcoll? zcount]} :zf, :keys [one-line?], :as options}
-   hindent findent zloc]
+  [caller {:keys [one-line?], :as options} hindent findent zloc]
   (dbg options "fzprint-hang-one: hindent:" hindent "findent:" findent)
   (when (:dbg-hang options)
     (println (dots (:pdepth options))
@@ -1526,7 +1508,7 @@
   expect any whitespace in this, because this seq should have been
   produced by zmap-right or its equivalent, which already skips the
   whitespace."
-  [{{:keys [zcomment? zconstant?]} :zf, :as options} seq-right]
+  [options seq-right]
   (loop [seq-right-rev (reverse seq-right)
          element-count 0
          ; since it is reversed, we need a constant second
@@ -1534,13 +1516,13 @@
          pair-size 0]
     (let [element (first seq-right-rev)]
       (if (empty? seq-right-rev)
-        ; remove potential elements of this pair,
-        ; since we haven't seen the end of it
+        ; remove potential elements of this pair, since we haven't
+        ; seen the end of it
         (- element-count pair-size)
         (let [comment? (zcomment? element)]
           (if (and (not comment?) constant-required? (not (zconstant? element)))
-            ; we counted the right-hand and any comments
-            ; of this pair, but it isn't a pair
+            ; we counted the right-hand and any comments of this pair, but it
+            ; isn't a pair so exit now with whatever we have so far
             (- element-count pair-size)
             (recur (next seq-right-rev)
                    (inc element-count)
@@ -1552,12 +1534,30 @@
 
 (defn constant-pair
   "Argument is result of (zmap-right identity zloc), that is to say
+  a seq of zlocs.  Output is a [pair-seq non-paired-item-count],
+  if any.  If there are no pair-seqs, pair-seq must be nil, not
+  an empty seq."
+  [caller {{:keys [constant-pair? constant-pair-min]} caller, :as options}
+   seq-right]
+  (if constant-pair?
+    (let [paired-item-count (count-constant-pairs options seq-right)
+          non-paired-item-count (- (count seq-right) paired-item-count)
+          _ (dbg options
+                 "constant-pair: non-paired-items:"
+                 non-paired-item-count)
+          pair-seq (when (>= paired-item-count constant-pair-min)
+                     (partition-all-2-nc options
+                                         (drop non-paired-item-count
+                                               seq-right)))]
+      [pair-seq non-paired-item-count])
+    [nil (count seq-right)]))
+
+(defn constant-pair-alt
+  "Argument is result of (zmap-right identity zloc), that is to say
   a seq of zlocs.  Output is a pair-seq and non-paired-item-count,
   if any."
-  [caller
-   {{:keys [zconstant?]} :zf,
-    {:keys [constant-pair? constant-pair-min]} caller,
-    :as options} seq-right]
+  [caller {{:keys [constant-pair? constant-pair-min]} caller, :as options}
+   seq-right]
   (let [seq-right-rev (reverse seq-right)
         keywords (partition 2 2 nil (mapv zconstant? seq-right-rev))
         _ (dbg options "constant-pair: keywords:" keywords)
@@ -1597,8 +1597,6 @@
   ;equals the flow indent, then just do hanging.  Really?
   [caller
    {:keys [dbg?],
-    {:keys [zstring zfirst zcount zmap-right zconstant? zseqnws zmap znextnws]}
-      :zf,
     {:keys [hang? constant-pair? constant-pair-min hang-expand hang-diff
             nl-separator?]}
       caller,
@@ -1854,15 +1852,12 @@
   [caller l-str r-str
    {:keys [width fn-map user-fn-map one-line? dbg? fn-style no-arg1?
            fn-force-nl],
-    {:keys [zstring zmap zfirst zsecond zsexpr zcoll? zcount zvector? znth
-            zlist? zcomment? zmap-right zidentity zmeta? zsymbol? zkeyword?]}
-      :zf,
     {:keys [indent-arg indent]} caller,
     :as options} ind zloc]
   (let [len (zcount zloc)
         l-str-len (count l-str)
-        arg-1-coll? (not (or (zsymbol? (zfirst zloc))
-                             (zkeyword? (zfirst zloc))))
+        arg-1-coll? (not (or (zkeyword? (zfirst zloc))
+                             (zsymbol? (zfirst zloc))))
         fn-str (if-not arg-1-coll? (zstring (zfirst zloc)))
         fn-style (or fn-style (fn-map fn-str) (user-fn-map fn-str))
         ; if we don't have a function style, let's see if we can get
@@ -2135,7 +2130,7 @@
 
 (defn any-zcoll?
   "Return true if there are any collections in the collection."
-  [{:keys [width], {:keys [zmap zcoll?]} :zf, :as options} ind zloc]
+  [{:keys [width], :as options} ind zloc]
   (let [coll?-seq (zmap zcoll? zloc)] (reduce #(or %1 %2) nil coll?-seq)))
 
 ;;
@@ -2211,7 +2206,6 @@
   print them."
   [caller l-str r-str
    {:keys [width rightcnt dbg? one-line?],
-    {:keys [zstring zcount zmap]} :zf,
     {:keys [wrap-coll? wrap?]} caller,
     :as options} ind zloc]
   (let [l-str-vec [[l-str (zcolor-map options l-str) :left]]
@@ -2336,7 +2330,6 @@
 (defn fzprint-map*
   [caller l-str r-str
    {:keys [width dbg? one-line? ztype map-depth],
-    {:keys [zseqnws zstring zfirst]} :zf,
     {:keys [sort? comma? key-ignore key-ignore-silent nl-separator? force-nl?]}
       caller,
     :as options} ind zloc]
@@ -2419,18 +2412,14 @@
 (defn fzprint-object
   "Print something that looks like #object[...] in a way
   that will acknowledge the structure inside of the [...]"
-  ([{:keys [width dbg? one-line?],
-     {:keys [zobj-to-vec zstring zfirst]} :zf,
-     :as options} ind zloc zloc-value]
+  ([{:keys [width dbg? one-line?], :as options} ind zloc zloc-value]
    (fzprint-vec* :object
                  "#object["
                  "]"
                  options
                  ind
                  (zobj-to-vec zloc zloc-value)))
-  ([{:keys [width dbg? one-line?],
-     {:keys [zobj-to-vec zstring zfirst]} :zf,
-     :as options} ind zloc]
+  ([{:keys [width dbg? one-line?], :as options} ind zloc]
    (fzprint-vec* :object "#object[" "]" options ind (zobj-to-vec zloc))))
 
 (defn hash-identity-str
@@ -2443,10 +2432,8 @@
 ;    (printf "%08x" (System/identityHashCode obj))))
 
 (defn fzprint-atom
-  [{:keys [width dbg? one-line?],
-    {:keys [zstring zfirst zderef]} :zf,
-    {:keys [object?]} :atom,
-    :as options} ind zloc]
+  [{:keys [width dbg? one-line?], {:keys [object?]} :atom, :as options} ind
+   zloc]
   (if (and object? (object-str? (zstring zloc)))
     (fzprint-object options ind zloc (zderef zloc))
     (let [l-str "#<"
@@ -2473,9 +2460,7 @@
   sexpressions, since they don't exist in a textual representation 
   of code (or data for that matter).  That means that we can use 
   regular sexpression operations on zloc."
-  [{:keys [width dbg? one-line?],
-    {:keys [zstring zfirst zderef zpromise? zagent? zdelay? zfuture?]} :zf,
-    :as options} ind zloc]
+  [{:keys [width dbg? one-line?], :as options} ind zloc]
   (let [zloc-type (cond (zfuture? zloc) :future
                         (zpromise? zloc) :promise
                         (zdelay? zloc) :delay
@@ -2530,10 +2515,8 @@
   "Print a function object, what you get when you put a function in
   a collection, for instance.  This doesn't do macros, you will notice.
   It also can't be invoked when zloc is a zipper."
-  [{:keys [width dbg? one-line?],
-    {:keys [zstring zfirst zderef]} :zf,
-    {:keys [object?]} :fn-obj,
-    :as options} ind zloc]
+  [{:keys [width dbg? one-line?], {:keys [object?]} :fn-obj, :as options} ind
+   zloc]
   (if (and object? (object-str? (zstring zloc)))
     (fzprint-object options ind zloc)
     (let [l-str "#<"
@@ -2579,9 +2562,7 @@
                      r-str-vec))))
 
 (defn fzprint-ns
-  [{:keys [width dbg? one-line?],
-    {:keys [zseqnws zstring zfirst]} :zf,
-    :as options} ind zloc]
+  [{:keys [width dbg? one-line?], :as options} ind zloc]
   (let [l-str "#<"
         r-str ">"
         indent (count l-str)
@@ -2603,7 +2584,6 @@
 
 (defn fzprint-record
   [{:keys [width dbg? one-line?],
-    {:keys [zseqnws zstring zfirst]} :zf,
     {:keys [record-type? to-string?]} :record,
     :as options} ind zloc]
   (if to-string?
@@ -2642,9 +2622,7 @@
 
 (defn fzprint-uneval
   "Trim the #_ off the front of the uneval, and try to print it."
-  [{:keys [width dbg? one-line?],
-    {:keys [zparseuneval zstring]} :zf,
-    :as options} ind zloc]
+  [{:keys [width dbg? one-line?], :as options} ind zloc]
   (let [l-str "#_"
         r-str ""
         indent (count l-str)
@@ -2668,9 +2646,7 @@
   a single collection, so it doesn't do any indent or rightmost.  It also
   uses a different approach to calling fzprint-flow-seq with the
   results zmap, so that it prints all of the seq, not just the rightmost."
-  [{:keys [width dbg? one-line?],
-    {:keys [zstring zmap zcount]} :zf,
-    :as options} ind zloc]
+  [{:keys [width dbg? one-line?], :as options} ind zloc]
   (let [l-str "^"
         r-str ""
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
@@ -2691,10 +2667,53 @@
       r-str-vec)))
 
 (defn fzprint-reader-macro
-  "Print a reader-macro, often a reader-conditional."
-  [{:keys [width dbg? one-line?],
-    {:keys [zstring zfirst zsecond ztag zcoll? zmap]} :zf,
-    :as options} ind zloc]
+  "Print a reader-macro, often a reader-conditional. Adapted for differences
+  in parsing #?@ between rewrite-clj and rewrite-cljs."
+  [{:keys [width dbg? one-line?], :as options} ind zloc]
+  (let [zstr (zstring (zfirst zloc))
+        ; rewrite-cljs parses #?@ differently from rewrite-clj.  In
+        ; rewrite-cljs zfirst is ?@, not ?, so deal with that.
+        ; Not clear which is correct, I could see it go either way.
+        alt-at? (and (= (count zstr) 2) (= (subs zstr 1 2) "@"))
+        reader-cond? (= (subs zstr 0 1) "?")
+        at? (or (= (ztag (zsecond zloc)) :deref) alt-at?)
+        l-str (cond (and reader-cond? at?) "#?@"
+                    (and reader-cond? (zcoll? (zsecond zloc))) "#?"
+                    reader-cond?
+                      (throw (#?(:clj Exception.
+                                 :cljs js/Error.)
+                              (str "Unknown reader macro: '" (zstring zloc)
+                                   "' zfirst zloc: " (zstring (zfirst zloc)))))
+                    :else "#")
+        r-str ""
+        indent (count l-str)
+        ; we may want to color this based on something other than
+        ; its actual character string
+        l-str-vec [[l-str (zcolor-map options l-str) :left]]
+        r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
+        floc
+          (if (and at? (not alt-at?)) (zfirst (zsecond zloc)) (zsecond zloc))]
+    (dbg-pr options
+            "fzprint-reader-macro: zloc:" (zstring zloc)
+            "floc:" (zstring floc))
+    (concat-no-nil
+      l-str-vec
+      (if reader-cond?
+        ; yes rightmost, this is a collection
+        (fzprint-map* :reader-cond
+                      "("
+                      ")"
+                      (rightmost options)
+                      (+ indent ind)
+                      floc)
+        ; not reader-cond?
+        (fzprint-flow-seq options (+ indent ind) (zmap identity zloc)))
+      r-str-vec)))
+
+(defn fzprint-reader-macro-alt
+  "Print a reader-macro, often a reader-conditional.  Works for rewrite-clj
+  and not for rewrite-cljs."
+  [{:keys [width dbg? one-line?], :as options} ind zloc]
   (let [reader-cond? (= (zstring (zfirst zloc)) "?")
         at? (= (ztag (zsecond zloc)) :deref)
         l-str (cond (and reader-cond? at?) "#?@"
@@ -2731,9 +2750,7 @@
 
 (defn fzprint-prefix*
   "Print the single item after a variety of prefix characters."
-  [{:keys [width dbg? one-line?],
-    {:keys [zstring zfirst zsecond]} :zf,
-    :as options} ind zloc l-str]
+  [{:keys [width dbg? one-line?], :as options} ind zloc l-str]
   (let [r-str ""
         indent (count l-str)
         ; Since this is a single item, no point in figure an indent
@@ -2785,12 +2802,6 @@
   [{:keys [width rightcnt fn-map hex? shift-seq dbg? dbg-print? in-hang?
            one-line? string-str? string-color depth max-depth trim-comments?
            in-code? max-hang-depth max-hang-span max-hang-count],
-    {:keys [zfind-path zlist? zvector? zmap? zset? zanonfn? zfn-obj? zuneval?
-            zwhitespace? zstring zcomment? zsexpr zcoll? zarray? zexpandarray
-            zatom? znumstr zrecord? zns? zmeta? ztag znewline?
-            zwhitespaceorcomment? zpromise? zfuture? zreader-macro? zdelay?
-            zagent? zarray-to-shift-seq zdotdotdot zcount]}
-      :zf,
     :as options} indent zloc]
   (let [avail (- width indent)
         ; note that depth affects how comments are printed, toward the end
@@ -2877,6 +2888,7 @@
                 ; stop now!
                 overflow-in-hang?
                   (do (dbg options "fzprint*: overflow <<<<<<<<<<") nil)
+                (zkeyword? zloc) [[zstr (zcolor-map options :keyword) :element]]
                 (string? (zsexpr zloc))
                   [[(if string-str?
                       (str (zsexpr zloc))
@@ -2884,8 +2896,6 @@
                       (zstring zloc))
                     (if string-color string-color (zcolor-map options :string))
                     :element]]
-                (keyword? (zsexpr zloc)) [[zstr (zcolor-map options :keyword)
-                                           :element]]
                 (showfn? fn-map (zsexpr zloc)) [[zstr (zcolor-map options :fn)
                                                  :element]]
                 (show-user-fn? options (zsexpr zloc))

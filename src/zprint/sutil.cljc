@@ -1,5 +1,6 @@
 (ns zprint.sutil
   (:require clojure.string
+            zprint.zfns
             #?@(:cljs [[cljs.reader :refer [read-string]]])))
 
 ;;
@@ -198,63 +199,64 @@
   [x]
   (or (keyword? x) (string? x) (number? x)))
 
-;;
-;; # Define function map from keyword to actual function for r operation
-;;
-
-(def sf
-  {:zstring sstring,
-   :znumstr snumstr,
-   :zcomment? (constantly false),
-   :zsexpr identity,
-   :zseqnws sseqnws,
-   :zmap-right smap-right,
-   :zfocus-style sfocus-style,
-   :zfirst sfirst,
-   :zsecond ssecond,
-   :znth snth,
-   :zcount scount,
-   :zmap smap,
-   ;   :zfn? sfn?
-   :zanonfn? (constantly false),
-   ; this only works because lists, anon-fn's, etc. are checked before this
-   ; is used.
-   :zfn-obj? fn?,
-   :zfocus sfocus,
-   :zfind-path sfind-root-and-path,
-   :zwhitespace? swhitespace?,
-   :zlist? slist?,
-   :zvector? vector?,
-   :zmap? map?,
-   :zset? set?,
-   :zcoll? coll?,
-   :zmeta? (constantly false),
-   :zuneval? (constantly false),
-   :ztag (constantly nil),
-   :zparseuneval (constantly nil),
-   :zlast slast,
-   :zarray? sarray?,
-   :zatom? satom?,
-   :zderef sderef,
-   :zrecord? record?,
-   :zns? (constantly false),
-   :zobj-to-vec sobj-to-vec,
-   :zexpandarray sexpandarray,
-   :znewline? (constantly false),
-   :zwhitespaceorcomment? (constantly false),
-   :zmap-all map,
-   :zfuture? #?(:clj future?
-                :cljs (constantly false)),
-   :zpromise? spromise?,
-   :zkeyword? keyword?,
-   :zdelay? delay?,
-   :zconstant? sconstant?,
-   :zagent? sagent?,
-   :zreader-macro? (constantly false),
-   :zarray-to-shift-seq #?(:clj array-to-shift-seq
-                           :cljs nil),
-   :zdotdotdot (constantly '...),
-   :zsymbol? symbol?,
-   :znil? nil?,
-   :zreader-cond-w-symbol? (constantly false),
-   :zreader-cond-w-coll? (constantly false)})
+(defn sredef-call
+  "Redefine all of the traversal functions for s-expressions, then
+  call the function of no arguments passed in."
+  [body-fn]
+  (with-redefs [zprint.zfns/zstring sstring
+                zprint.zfns/znumstr snumstr
+                zprint.zfns/zcomment? (constantly false)
+                zprint.zfns/zsexpr identity
+                zprint.zfns/zseqnws sseqnws
+                zprint.zfns/zmap-right smap-right
+                zprint.zfns/zfocus-style sfocus-style
+                zprint.zfns/zfirst sfirst
+                zprint.zfns/zsecond ssecond
+                zprint.zfns/znth snth
+                zprint.zfns/zcount scount
+                zprint.zfns/zmap smap
+                ;   zprint.zfns/zfn? sfn?
+                zprint.zfns/zanonfn? (constantly false)
+                ; this only works because lists, anon-fn's, etc. are checked
+                ; before this
+                ; is used.
+                zprint.zfns/zfn-obj? fn?
+                zprint.zfns/zfocus sfocus
+                zprint.zfns/zfind-path sfind-root-and-path
+                zprint.zfns/zwhitespace? swhitespace?
+                zprint.zfns/zlist? slist?
+                zprint.zfns/zvector? vector?
+                zprint.zfns/zmap? map?
+                zprint.zfns/zset? set?
+                zprint.zfns/zcoll? coll?
+                zprint.zfns/zmeta? (constantly false)
+                zprint.zfns/zuneval? (constantly false)
+                zprint.zfns/ztag (constantly nil)
+                zprint.zfns/zparseuneval (constantly nil)
+                zprint.zfns/zlast slast
+                zprint.zfns/zarray? sarray?
+                zprint.zfns/zatom? satom?
+                zprint.zfns/zderef sderef
+                zprint.zfns/zrecord? record?
+                zprint.zfns/zns? (constantly false)
+                zprint.zfns/zobj-to-vec sobj-to-vec
+                zprint.zfns/zexpandarray sexpandarray
+                zprint.zfns/znewline? (constantly false)
+                zprint.zfns/zwhitespaceorcomment? (constantly false)
+                zprint.zfns/zmap-all map
+                zprint.zfns/zfuture? #?(:clj future?
+                                        :cljs (constantly false))
+                zprint.zfns/zpromise? spromise?
+                zprint.zfns/zkeyword? keyword?
+                zprint.zfns/zdelay? delay?
+                zprint.zfns/zconstant? sconstant?
+                zprint.zfns/zagent? sagent?
+                zprint.zfns/zreader-macro? (constantly false)
+                zprint.zfns/zarray-to-shift-seq #?(:clj array-to-shift-seq
+                                                   :cljs nil)
+                zprint.zfns/zdotdotdot (constantly '...)
+                zprint.zfns/zsymbol? symbol?
+                zprint.zfns/znil? nil?
+                zprint.zfns/zreader-cond-w-symbol? (constantly false)
+                zprint.zfns/zreader-cond-w-coll? (constantly false)]
+    (body-fn)))

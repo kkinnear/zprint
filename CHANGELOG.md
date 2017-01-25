@@ -1,6 +1,28 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.2.16 - 2016-2-27
+
+### Changed
+
+* Added zprint.lumo namespace to support zprint filter.  Only used when
+  initiated by lumo.
+
+* Added zprint.planck namespace to support zprint filter.  Only used when
+  initiated by plank.
+  
+* Replaced function-by-function destructuring with with-redefs in both
+  zutil.cljc and sutil.cljs.  Added new namespace zfns to make this work.
+  Resulted in small but significant speedup.
+
+* Major changes to Clojurescript port -- removed Prismatic/Plumatic Schema
+  and replaced it with spec for checking options maps.  Refactored option
+  map validation into two additional namespaces.  Now zprint will work
+  in self-hosted Clojurescript, and we are ready for a complete move to
+  spec when we can require 1.9.
+
+### Fixed
+
 ## 0.2.15 - 2016-1-24
 
 ### Changed
@@ -12,8 +34,6 @@ All notable changes to this project will be documented in this file.
   will color the map keys based on depth, not their type.  The
   `:key-color {:key :color ...}` map will override any values from the 
   `:key-depth-color` map.  EXPERIMENTAL feature, might go away.
-
-### Fixed
 
 ## 0.2.14 - 2016-1-22
 

@@ -1,4 +1,4 @@
-(defproject zprint "0.2.16"
+(defproject zprint "0.2.17"
   :description "Pretty print zippers and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License"
@@ -7,9 +7,10 @@
 	    :year 2015}
   :plugins [[lein-expectations "0.0.8"]
 	    [lein-zprint "0.1.16"]]
-  :profiles {:dev {:dependencies [[expectations "2.0.16"]]}}
+  :profiles {:dev {:dependencies [[expectations "2.0.16"]
+                                  [com.taoensso/tufte "1.1.1"]]}}
   :zprint {:old? false}
-  :dependencies [;[org.clojure/clojure "1.9.0-alpha13"]
+  :dependencies [;[org.clojure/clojure "1.9.0-alpha15"]
                  [org.clojure/clojure "1.8.0"]
                  [rewrite-cljs "0.4.3"]
                  [rewrite-clj "0.4.13" :exclusions [[com.cemerick/austin]]]

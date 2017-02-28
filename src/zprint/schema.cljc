@@ -96,6 +96,7 @@
    (s/optional-key :file?) boolean-schema,
    (s/optional-key :spaces?) boolean-schema,
    (s/optional-key :old?) boolean-schema,
+   (s/optional-key :parallel?) boolean-schema,
    (s/optional-key :format) format-schema,
    (s/optional-key :return-cvec?) boolean-schema,
    (s/optional-key :fn-name) s/Any,

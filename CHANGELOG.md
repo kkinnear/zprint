@@ -1,7 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.2.16 - 2016-2-27
+## 0.2.17 - 2017-3-26
+
+### Changed
+
+* Added futures to fzprint-hang-remaining, helped a lot.
+
+* Used pmap to handle two-up generation, helped a lot.
+
+* Added transient to some vectors being built.  Sometimes it helped, somtimes
+  it didn't.  Kept the one where it helped. 
+
+### Fixed
+
+* Dates in this file.
+
+## 0.2.16 - 2017-2-27
 
 ### Changed
 
@@ -21,9 +36,7 @@ All notable changes to this project will be documented in this file.
   in self-hosted Clojurescript, and we are ready for a complete move to
   spec when we can require 1.9.
 
-### Fixed
-
-## 0.2.15 - 2016-1-24
+## 0.2.15 - 2017-1-24
 
 ### Changed
 
@@ -35,7 +48,7 @@ All notable changes to this project will be documented in this file.
   `:key-color {:key :color ...}` map will override any values from the 
   `:key-depth-color` map.  EXPERIMENTAL feature, might go away.
 
-## 0.2.14 - 2016-1-22
+## 0.2.14 - 2017-1-22
 
 ### Changed
 
@@ -60,7 +73,7 @@ All notable changes to this project will be documented in this file.
 * A problem when adding an element to any set in the options map, where the
   element was added, but the :explain output was incorrect.  Issue #21.
 
-## 0.2.13 - 2016-1-19
+## 0.2.13 - 2017-1-19
 
 ### Changed
 
@@ -94,7 +107,7 @@ All notable changes to this project will be documented in this file.
   the `:nl-separator?` blank lines are triggered by a pair with the right
   hand part of the pair being formatted with a flow. Issue #17.
 
-## 0.2.12 - 2016-1-9
+## 0.2.12 - 2017-1-9
 
 ### Fixed
 
@@ -104,7 +117,7 @@ All notable changes to this project will be documented in this file.
 * Accepted pull request to change function "!=" to "not=".  Thanks to
   mynomoto!
 
-## 0.2.11 - 2016-1-8
+## 0.2.11 - 2017-1-8
 
 ### Changed
 

@@ -32,7 +32,7 @@
   []
   (str "zprint-"
        #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.16")))
+          :cljs "0.2.17")))
 
 ;;
 ;; # External Configuration
@@ -441,6 +441,7 @@
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
    :max-depth 1000,
+   :parallel? true,
    :max-hang-count 4,
    :max-hang-depth 3,
    :max-hang-span 4,

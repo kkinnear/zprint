@@ -52,8 +52,14 @@
   (s/or :string string?
         :number number?
         :keyword keyword?))
+(s/def ::constant-seq (s/coll-of ::constant :kind sequential?))
+(s/def ::key-or-ks-seq
+  (s/coll-of (s/or :constant ::constant
+                   :constant-seq ::constant-seq)
+             :kind sequential?))
 (s/def ::key-value (s/nilable (s/coll-of ::constant :kind sequential?)))
-(s/def ::key-color-value (s/nilable (s/coll-of ::color :kind sequential?)))
+(s/def ::key-color-value (s/nilable (s/coll-of (s/nilable ::color) :kind sequential?)))
+;(s/def ::key-color-seq (s/coll-of (s/nilable 
 (s/def ::boolean-or-string
   (s/or :boolean ::boolean
         :string string?))
@@ -91,8 +97,8 @@
                       ::general-hang-adjust]))
 (s/def ::key-color (s/nilable (s/map-of any? ::color)))
 (s/def ::key-depth-color ::key-color-value)
-(s/def ::key-ignore (s/nilable ::key-value))
-(s/def ::key-ignore-silent (s/nilable ::key-value))
+(s/def ::key-ignore (s/nilable ::key-or-ks-seq))
+(s/def ::key-ignore-silent (s/nilable ::key-or-ks-seq))
 (s/def ::key-order (s/nilable ::key-value))
 (s/def ::left-space ::keep-or-drop)
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))

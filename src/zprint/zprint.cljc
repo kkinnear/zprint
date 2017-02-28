@@ -1,8 +1,8 @@
 (ns zprint.zprint
   #?@(:cljs [[:require-macros
-              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])
+              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])
   (:require
-    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
+    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])
     [clojure.string :as s]
     [zprint.zfns :refer
      [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zmap-right
@@ -13,7 +13,10 @@
       zdelay? zkeyword? zconstant? zagent? zreader-macro? zarray-to-shift-seq
       zdotdotdot zsymbol? znil? zreader-cond-w-symbol? zreader-cond-w-coll?]]
     [zprint.ansi :refer [color-str]]
-    [zprint.zutil :refer [add-spec-to-docstring]]))
+    [zprint.zutil :refer [add-spec-to-docstring]]
+            [rewrite-clj.parser :as p]
+            [rewrite-clj.zip :as z]
+    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 (declare interpose-nl-hf)
 
@@ -32,6 +35,38 @@
   (apply str (repeat n ".")))
 
 (defn indent "error" [])
+
+(defn conj-it!
+  "Make a version of conj! that take multiple arguments."
+  [& rest]
+  (loop [out (first rest)
+         more (next rest)]
+    (if more (recur (conj! out (first more)) (next more)) out)))
+
+;;
+;; # Use pmap when we have it
+;;
+
+#?(:clj (defn zpmap
+          ([options f coll]
+           (if (:parallel? options) (pmap f coll) (map f coll)))
+          ([options f coll1 coll2]
+           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))
+   :cljs (defn zpmap
+           ([options f coll] (map f coll))
+           ([options f coll1 coll2] (map f coll1 coll2))))
+
+;;
+;; # More parallelism issues -- zderef to go with zfuture macro
+;;
+
+(defn zat
+  "Takes an option map and the return from zfuture.  If the
+  options map has (:parallel? options) as true, then deref
+  the value, otherwise just pass it through."
+  [options value]
+  #?(:clj (if (:parallel? options) (deref value) value)
+     :cljs value))
 
 ;;
 ;; # Utility functions for manipulating option maps
@@ -237,6 +272,19 @@
   (let [n (count (filter #(if (coll? %) (empty? %) (nil? %)) coll))]
     (when (not (zero? n)) n)))
 
+(defn concat-no-nil-alt
+  "Concatentate multiple sequences, but if any of them are nil, return nil.
+  This version is 15-20% slower than the version below. Keeping it around
+  just for illustrative purposes."
+  [& rest]
+  (loop [coll rest
+         out (transient [])]
+    (let [c (first coll)]
+      (if-not c
+        (persistent! out)
+        (when (or (and (coll? c) (not (empty? c))) (not (nil? c)))
+          (recur (next coll) (conj! out c)))))))
+
 (defn concat-no-nil
   "Concatentate multiple sequences, but if any of them are nil, return nil."
   [& rest]
@@ -264,10 +312,12 @@
 ;; # Work with style-vecs and analyze results
 ;;
 
+;; Transients don't help here, though they don't hurt much either.
+
 (defn accumulate-ll
   "Take the vector carrying the intermediate results, and
   do the right thing with a new string. Vector is
-  [ 0 out - vector accumulating line lengths
+  [ 0 out - vector accumulating line lengths 
     1 cur-len - length of current line
     just-eol? - did we just do an eol?
     ]
@@ -352,24 +402,6 @@
          ; TODO: fix this!
          false
          (map #(clojure.string/includes? (first %) "\n") style-vec))))
-
-(defn interpose-seq
-  "Like interpose, but instead of taking a single separator, takes a seq
-  of separators and interposes them in the coll. Throws an exception if
-  sep-seq contains something other than one less elements than does coll."
-  [sep-seq coll]
-  #_(prn "sep-seq:" sep-seq)
-  #_(prn "coll:" coll)
-  (when (not (empty? coll))
-    (if (not= (inc (count sep-seq)) (count coll))
-      (throw (#?(:clj Exception.
-                 :cljs js/Error.)
-              (str "interpose-seq: count of sep-seq: " (count sep-seq)
-                   " is not one less than count of coll: " (count coll))))
-      (let [result (concat (interleave coll sep-seq) (list (last coll)))]
-        #_(println "=============")
-        #_(prn "result:" result)
-        result))))
 
 (defn find-what
   "Given a style-vec, come up with a string that gives some hint of 
@@ -503,13 +535,13 @@
   but strongly prefer hang.  Has hang and flow indents, and fzfn is the
   fzprint-? function to use with zloc.  Callers need to know whether this
   was hang or flow, so it returns [{:hang | :flow} style-vec] all the time."
-  [{:keys [width dbg?], :as options} hindent findent fzfn zloc]
+  [options hindent findent fzfn zloc]
   (dbg options "fzprint-hang-unless-fail:" (zstring (zfirst zloc)))
   (let [hanging (fzfn (in-hang options) hindent zloc)]
     (dbg-form
       options
       "fzprint-hang-unless-fail: exit:"
-      (if hanging
+      (if (and hanging (fzfit options (style-lines options hindent hanging)))
         [:hang hanging]
         ; hang didn't work, do flow
         (do (dbg options "fzprint-hang-unless-fail: hang failed, doing flow")
@@ -533,7 +565,7 @@
   like bindings in a let, clauses in a cond, keys and values in a map.  
   Controlled by various maps, the key of which is caller."
   [hangflow? caller
-   {:keys [width one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],
+   {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],
     {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color
             key-depth-color]}
       caller,
@@ -656,10 +688,10 @@
                     ; on one line if the flow indent isn't better than the
                     ; hang indent.
                     _ (dbg options
-                           "fzprint-two-up: before hang.  in-hang?"
-                           (and do-in-hang?
+                           "fzprint-two-up: before hang.  hanging tried?"
+                           (and arg-1-fit-oneline?
                                 (and (not flow?)
-                                     (< flow-indent hanging-indent))))
+                                     (>= flow-indent hanging-indent))))
                     hanging (when (or arg-1-fit-oneline?
                                       (and (not flow?)
                                            (>= flow-indent hanging-indent)))
@@ -778,19 +810,14 @@
 ;; # Two-up printing
 ;;
 
+
 (defn map-stop-on-nil
   "A utility function to stop on nil."
   [f out in]
   (when out (let [result (f in)] (when result (conj out result)))))
 
-(defn mapv-no-nil
-  "A version of mapv which will stop the map if it gets a nil, and return
-  nil."
-  [stop-on-nil? f c]
-  (if stop-on-nil? (reduce (partial map-stop-on-nil f) [] c) (mapv f c)))
-
 (defn map-stop-on-nil-too-big
-  "A utility function to stop on nil or too big or newline."
+  "A utility function to stop on nil or too big or newline. out is transient."
   [width f [size out :as prev] in]
   (when prev
     (let [result (f in)]
@@ -798,7 +825,7 @@
         (let [result-str (apply str (mapv first result))
               new-size (+ (count result-str) size)]
           (when (and (not (re-find #"\n" result-str)) (<= new-size width))
-            [new-size (conj out result)]))))))
+            [new-size (conj! out result)]))))))
 
 ;TODO: needs to be fixed to total the width?  Maybe, I think I fixed that...
 
@@ -809,15 +836,15 @@
   [width-to-stop f c]
   (if width-to-stop
     (let [[_ out]
-            (reduce (partial map-stop-on-nil-too-big width-to-stop f) [0 []] c)]
-      out)
+            (reduce (partial map-stop-on-nil-too-big width-to-stop f) [0 (transient [])] c)]
+      (when out (persistent! out)))
     (reduce (partial map-stop-on-nil f) [] c)))
 
 (defn fzprint-justify-width
-  "Figure the widthfor a justification of a set of pairs in coll.  
+  "Figure the width for a justification of a set of pairs in coll.  
   Also, decide if it makes any sense to justify the pairs at all.
   For instance, they all need to be one-line."
-  [caller {{:keys [justify?]} caller, :keys [dbg?], :as options} ind coll]
+  [caller {{:keys [justify?]} caller, :as options} ind coll]
   (let [firsts (remove nil?
                  (map #(when (> (count %) 1) (fzprint* options ind (first %)))
                    coll))
@@ -829,6 +856,7 @@
         justify-width (when each-one-line?
                         (reduce #(max %1 (second %2)) 0 style-seq))]
     (when justify-width (- justify-width ind))))
+
 
 (defn fzprint-map-two-up
   "Accept a sequence of pairs, and map fzprint-two-up across those pairs.
@@ -845,15 +873,16 @@
   [[:hang <style-vec-for-one-pair>] [:flow <style-vec-for-one-pair>] ...]"
   [hangflow? caller
    {{:keys [justify? force-nl?]} caller,
-    :keys [dbg? width rightcnt one-line?],
+    :keys [width rightcnt one-line? parallel?],
     :as options} ind commas? coll]
-  (dbg-print options
-             "fzprint-map-two-up: one-line?" (:one-line? options)
-             "justify?:" justify?)
-  (let [len (count coll)
+  (let [caller-map (caller options)
+        len (count coll)
         justify-width (when (and justify? (not one-line?))
                         (fzprint-justify-width caller options ind coll))
         caller-options (when justify-width (options caller))]
+      (dbg-print options
+		 "fzprint-map-two-up: one-line?" (:one-line? options)
+		 "justify?:" justify?)
     ; If it is one-line? and force-nl? and there is more than one thing,
     ; this can't work.
     (when (not (and one-line? force-nl? (> len 1)))
@@ -866,17 +895,16 @@
                      (merge-deep {:tuning (caller-options :justify-tuning)}))
                  options)]
         #_(def jo (conj jo [justify-width justify-options]))
-        (let [beginning (mapv-no-nil-too-big (when one-line? (- width ind))
-                                             (partial fzprint-two-up
-                                                      hangflow?
-                                                      caller
-                                                      justify-options
-                                                      ind
-                                                      commas?
-                                                      justify-width
-                                                      nil)
-                                             (butlast coll))
-              beginning-lines
+        (let [beginning (zpmap options (partial fzprint-two-up
+                                                hangflow?
+                                                caller
+                                                justify-options
+                                                ind
+                                                commas?
+                                                justify-width
+                                                nil)
+                                       (butlast coll))
+	      beginning-lines
                 (if one-line?
                   (style-lines options ind (apply concat beginning)))
               end (mapv-no-nil-too-big
@@ -938,7 +966,7 @@
   any keys in that vector and place them first (in order) before
   sorting the other keys."
   [caller
-   {:keys [dbg?], {:keys [sort? key-order key-value]} caller, :as options} out]
+   {{:keys [sort? key-order key-value]} caller, :as options} out]
   (cond (or sort? key-order)
           (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
                    (zsexpr (first %1))
@@ -953,7 +981,7 @@
   "This checks to see if an element should be considered part of a pair.
   Mostly this will trigger on comments, but a #_(...) element will also
   trigger this."
-  [options zloc]
+  [zloc]
   (or (zcomment? zloc) (zuneval? zloc)))
 
 ;;
@@ -1024,23 +1052,23 @@
   of the pair (one per line).  If there are any comments or unevaled
   sexpressions, don't sort the keys, as we might lose track of where 
   the comments go."
-  ([{:as options, :keys [width dbg? in-code? max-length]} coll caller]
+  ([{:as options, :keys [in-code? max-length]} coll caller]
    (dbg options "partition-all-2-nc: caller:" caller)
    (when-not (empty? coll)
      (loop [remaining coll
             no-sort? (or (not (:sort? (options caller)))
                          (and in-code? (not (:sort-in-code? (options caller)))))
             index 0
-            out []]
+            out (transient [])]
        (if-not remaining
-         (if no-sort? out (order-out caller options out))
+         (if no-sort? (persistent! out) (order-out caller options (persistent! out)))
          (let [[new-remaining pair-vec new-no-sort?]
                  (cond
-                   (pair-element? options (first remaining))
+                   (pair-element? (first remaining))
                      [(next remaining) [(first remaining)] true]
-                   (pair-element? options (second remaining))
+                   (pair-element? (second remaining))
                      (let [[comment-seq rest-seq]
-                             (split-with (partial pair-element? options)
+                             (split-with pair-element?
                                          (next remaining))]
                        [(next rest-seq)
                         (into []
@@ -1054,7 +1082,7 @@
            (recur (if (not= index max-length) new-remaining (list (zdotdotdot)))
                   (or no-sort? new-no-sort?)
                   (inc index)
-                  (conj out pair-vec)))))))
+                  (conj! out pair-vec)))))))
   ([options coll] (partition-all-2-nc options coll nil)))
 
 ;;
@@ -1066,7 +1094,7 @@
   it in another seq.  If it contains something else, remove any non
   collections off of the end and return them in their own double seqs,
   as well as return the remainder (the beginning) as a double seq."
-  [options coll]
+  [coll]
   (if (or (zsymbol? (first coll)) (zreader-cond-w-symbol? (first coll)))
     ;(symbol? (first coll))
     (list coll)
@@ -1102,17 +1130,17 @@
   (let [part-sym (partition-by
                    #(or (zsymbol? %) (znil? %) (zreader-cond-w-symbol? %))
                    coll)
-        split-non-coll (mapcat (partial cleave-end options) part-sym)]
+        split-non-coll (mapcat cleave-end part-sym)]
     #_(def ps part-sym)
     #_(def snc split-non-coll)
     (loop [remaining split-non-coll
-           out []]
+           out (transient [])]
       #_(prn "remaining:" remaining)
       #_(prn "out:" out)
       ;(prn "remaining:" (map (comp zstring first) remaining))
       ;(prn "out:" (map (comp zstring first) out))
       (if (empty? remaining)
-        out
+        (persistent! out)
         (let [[next-remaining new-out]
                 (cond
                   (and (or (zsymbol? (ffirst remaining))
@@ -1132,7 +1160,7 @@
                           ; This is where we marry up the non-coll with
                           ; all of its associated colls.
                           [(nthnext remaining 2)
-                           (conj out
+                           (conj! out
                                  (concat (first remaining)
                                          (second remaining)))])
                       (do #_(prn "b:")
@@ -1149,7 +1177,7 @@
                               ; above
                               (do #_(prn "d:")
                                   [(nthnext remaining 2)
-                                   (conj out
+                                   (conj! out
                                          (concat (first remaining)
                                                  (second remaining)))])
                               ; We have a modifier as the first thing in a
@@ -1166,15 +1194,15 @@
                                      (cons (next (next (first remaining)))
                                            (next remaining))
                                      (next remaining))
-                                   (conj out
+                                   (conj! out
                                          (list (ffirst remaining)
                                                (second (first remaining))))]))
                             ; we have more than one non-coll in first
                             ; remaining, so pull one out, and leave the
                             ; next ones for the next loop
                             [(cons (next (first remaining)) (next remaining))
-                             (conj out (list (ffirst remaining)))])))
-                  :else [(next remaining) (conj out (first remaining))])]
+                             (conj! out (list (ffirst remaining)))])))
+                  :else [(next remaining) (conj! out (first remaining))])]
           (recur next-remaining new-out))))))
 
 (defn rstr-vec
@@ -1186,36 +1214,8 @@
      (concat nl [[r-str (zcolor-map options (or r-type r-str)) :right]])))
   ([options ind zloc r-str] (rstr-vec options ind zloc r-str nil)))
 
-(defn generate-sep-seq
-  "Given a seq of true non-true elements, generate a separator seq where
-  the separators of the non-true elements has two new-lines."
-  [ind one-line-seq]
-  (map #(vector
-          (vector (str (when-not % "\n") "\n" (blanks ind)) :none :whitespace))
-    (butlast one-line-seq)))
-
-(defn interpose-nl
-  "Take the output from fzprint-map-two-up, and interpose the right
-  kind of newline separators.  This is where :nl-separator? is processed."
-  ([nl-separator? ind seq-style-vec non-paired-count]
-   (when (not (empty? seq-style-vec))
-     #_(prn "interpose-nl: nl-separator?" nl-separator? seq-style-vec)
-     (let [one-line-seq (if nl-separator?
-                          (let [single-line-seq (map single-line?
-                                                  seq-style-vec)]
-                            (if non-paired-count
-                              (concat (repeat non-paired-count true)
-                                      (drop non-paired-count single-line-seq))
-                              single-line-seq))
-                          (repeat (count seq-style-vec) true))
-           sep-seq (generate-sep-seq ind one-line-seq)]
-       (apply concat-no-nil (interpose-seq sep-seq seq-style-vec)))))
-  ([nl-separator? ind seq-style-vec]
-   (interpose-nl nl-separator? ind seq-style-vec nil)))
-
-
 (defn fzprint-binding-vec
-  [{:keys [width dbg?], {:keys [nl-separator?]} :binding, :as options} ind zloc]
+  [{{:keys [nl-separator?]} :binding, :as options} ind zloc]
   (dbg options "fzprint-binding-vec:" (zstring (zfirst zloc)))
   (let [options (rightmost options)
         l-str "["
@@ -1243,7 +1243,7 @@
   "Try to hang something and try to flow it, and then see which is
   better.  Has hang and flow indents. fzfn is the function to use 
   to do zloc."
-  [{:keys [width dbg? one-line?], :as options} caller hindent findent fzfn
+  [{:keys [one-line?], :as options} caller hindent findent fzfn
    zloc-count zloc]
   (dbg options "fzprint-hang:" (zstring (zfirst zloc)) "caller:" caller)
   (let [hanging (when (and (not= hindent findent) ((options caller) :hang?))
@@ -1276,7 +1276,7 @@
 
 (defn fzprint-pairs
   "Always prints pairs on a different line from other pairs."
-  [{:keys [width dbg?], {:keys [nl-separator?]} :pair, :as options} ind zloc]
+  [{{:keys [nl-separator?]} :pair, :as options} ind zloc]
   (dbg options "fzprint-pairs:" (zstring (zfirst zloc)))
   (dbg-form
     options
@@ -1301,7 +1301,7 @@
   "Print things with a symbol and collections following.  Kind of like with
   pairs, but not quite. This skips over zloc and does everything to the
   right of it!"
-  [{:keys [width dbg?], {:keys [nl-separator?]} :extend, :as options} ind zloc]
+  [{{:keys [nl-separator?]} :extend, :as options} ind zloc]
   #_(def fezloc zloc)
   (dbg options "fzprint-extend:" (zstring (zfirst zloc)))
   (dbg-form
@@ -1323,10 +1323,23 @@
           (dbg options "fzprint-extend: partition:" (map #(map zstring %) part))
           part)))))
 
+(defn concatv!
+  "Given a transient vector v, concatenate all of the other
+  elements in all of the remaining collections onto v."
+  [v & rest]
+  (loop [cols rest
+         out v]
+    (if cols
+      (recur (next cols)
+             (loop [col (first cols)
+                    out out]
+               (if col (recur (next col) (conj! out (first col))) out)))
+      out)))
+
 (defn fzprint-one-line
   "Do a fzprint-seq like thing, but do it incrementally and
   if it gets too big, return nil."
-  [{:keys [width dbg?], :as options} ind zloc]
+  [options ind zloc]
   (dbg-print options "fzprint-one-line:")
   (let [seq-right (zmap identity zloc)
         len (count seq-right)
@@ -1336,9 +1349,10 @@
     (loop [zloc-seq seq-right
            new-ind ind
            index 0
-           out []]
+           out (transient [])]
       (if (empty? zloc-seq)
-        (do (dbg options "fzprint-one-line: exiting count:" (count out)) out)
+        (do (dbg options "fzprint-one-line: exiting count:" (count out))
+            (persistent! out))
         (let [next-zloc (first zloc-seq)
               [sep next-options]
                 (cond ; this needs to come first in case there
@@ -1362,7 +1376,7 @@
             (recur (next zloc-seq)
                    (inc max-width)
                    (inc index)
-                   (concat out sep next-out))))))))
+                   (concatv! out sep next-out))))))))
 
 (defn fzprint-seq
   "Take a seq of a zloc, created by (zmap identity zloc) when zloc
@@ -1380,7 +1394,7 @@
                    zloc-seq)]
     (dbg options "fzprint-seq: (count zloc-seq):" len)
     (when-not (empty? zloc-seq)
-      (let [left (mapv #(fzprint* (not-rightmost options) %1 %2)
+      (let [left (zpmap options #(fzprint* (not-rightmost options) %1 %2)
                    (if (coll? ind) ind (repeat ind))
                    (butlast zloc-seq))
             right [(fzprint* options
@@ -1396,7 +1410,7 @@
   original zloc, modify the result of (zmap identity zloc) to just 
   contain what you want to print. ind is either a single indent,
   or a seq of indents, one for each element in zloc-seq."
-  ([{:as options, :keys [width]} ind zloc-seq force-nl?]
+  ([options ind zloc-seq force-nl?]
    (dbg options "fzprint-flow-seq: count zloc-seq:" (count zloc-seq))
    (let [coll-print (fzprint-seq options ind zloc-seq)
          one-line (apply concat-no-nil
@@ -1417,6 +1431,7 @@
                      (interpose [[(str "\n" (blanks ind)) :none :whitespace]]
                        coll-print)))))))
   ([options ind zloc-seq] (fzprint-flow-seq options ind zloc-seq nil)))
+
 
 (defn fzprint-hang-one
   "Try out the given zloc, and if it fits on the current line, just
@@ -1508,7 +1523,7 @@
   expect any whitespace in this, because this seq should have been
   produced by zmap-right or its equivalent, which already skips the
   whitespace."
-  [options seq-right]
+  [seq-right]
   (loop [seq-right-rev (reverse seq-right)
          element-count 0
          ; since it is reversed, we need a constant second
@@ -1540,7 +1555,7 @@
   [caller {{:keys [constant-pair? constant-pair-min]} caller, :as options}
    seq-right]
   (if constant-pair?
-    (let [paired-item-count (count-constant-pairs options seq-right)
+    (let [paired-item-count (count-constant-pairs seq-right)
           non-paired-item-count (- (count seq-right) paired-item-count)
           _ (dbg options
                  "constant-pair: non-paired-items:"
@@ -1551,31 +1566,6 @@
                                                seq-right)))]
       [pair-seq non-paired-item-count])
     [nil (count seq-right)]))
-
-(defn constant-pair-alt
-  "Argument is result of (zmap-right identity zloc), that is to say
-  a seq of zlocs.  Output is a pair-seq and non-paired-item-count,
-  if any."
-  [caller {{:keys [constant-pair? constant-pair-min]} caller, :as options}
-   seq-right]
-  (let [seq-right-rev (reverse seq-right)
-        keywords (partition 2 2 nil (mapv zconstant? seq-right-rev))
-        _ (dbg options "constant-pair: keywords:" keywords)
-        #_(def kw keywords)
-        #_(def cpsr seq-right)
-        keywordsonly (take-while second keywords)
-        _ (dbg options
-               "constant-pair: keywordsonly:" keywordsonly
-               "keywords count:" (count keywords)
-               "keywordsonly count:" (count keywordsonly))
-        paired-item-count (count-constant-pairs options seq-right)
-        non-paired-item-count (- (count seq-right) paired-item-count)
-        _ (dbg options "constant-pair: non-paired-items:" non-paired-item-count)
-        pair-seq (when (and constant-pair?
-                            (>= paired-item-count constant-pair-min))
-                   (partition-all-2-nc options
-                                       (drop non-paired-item-count seq-right)))]
-    [pair-seq non-paired-item-count]))
 
 ;;
 ;; # Take into account constant pairs
@@ -1617,44 +1607,52 @@
                "fzprint-hang-remaining count pair-seq:"
                (count pair-seq))
         flow
-          (if-not pair-seq
-            ; We don't have any constant pairs
-            (apply concat-no-nil
-              (interpose [[(str "\n" (blanks findent)) :none :whitespace]]
-                (fzprint-seq options findent seq-right)))
-            (if (not (zero? non-paired-item-count))
-              ; We have constant pairs, ; but they follow
-              ; some stuff that isn't paired.
-              (concat-no-nil
-                ; The elements that are not pairs
-                (apply concat-no-nil
-                  (interpose [[(str "\n" (blanks findent)) :none :whitespace]]
-                    (mapv (partial fzprint* (not-rightmost options) findent)
-                      (take non-paired-item-count seq-right))))
-                ; Got to separate them since we are doing them in two
-                ; pieces
-                [[(str "\n" (blanks findent)) :none :whitespace]]
-                ; The elements that are constant pairs
-                (interpose-nl-hf (:pair options)
-                                 findent
-                                 (fzprint-map-two-up true
-                                                     :pair
-                                                     ;caller
-                                                     options
-                                                     findent
-                                                     nil
-                                                     pair-seq)))
-              ; This code path is where we have all constant pairs.
-              (interpose-nl-hf (:pair options)
-                               findent
-                               (fzprint-map-two-up true
-                                                   :pair
-                                                   ;caller
-                                                   options
-                                                   findent
-                                                   nil
-                                                   pair-seq))))
-        flow-lines (style-lines options findent flow)
+          (zfuture
+            options
+            (let [flow-result
+                    (if-not pair-seq
+                      ; We don't have any constant pairs
+                      (apply concat-no-nil
+                        (interpose [[(str "\n" (blanks findent)) :none
+                                     :whitespace]]
+                          (fzprint-seq options findent seq-right)))
+                      (if (not (zero? non-paired-item-count))
+                        ; We have constant pairs, ; but they follow
+                        ; some stuff that isn't paired.
+                        (concat-no-nil
+                          ; The elements that are not pairs
+                          (apply concat-no-nil
+                            (interpose [[(str "\n" (blanks findent)) :none
+                                         :whitespace]]
+                              (zpmap options
+                                     (partial fzprint*
+                                              (not-rightmost options)
+                                              findent)
+                                     (take non-paired-item-count seq-right))))
+                          ; Got to separate them since we are doing them in two
+                          ; pieces
+                          [[(str "\n" (blanks findent)) :none :whitespace]]
+                          ; The elements that are constant pairs
+                          (interpose-nl-hf (:pair options)
+                                           findent
+                                           (fzprint-map-two-up true
+                                                               :pair
+                                                               ;caller
+                                                               options
+                                                               findent
+                                                               nil
+                                                               pair-seq)))
+                        ; This code path is where we have all constant pairs.
+                        (interpose-nl-hf (:pair options)
+                                         findent
+                                         (fzprint-map-two-up true
+                                                             :pair
+                                                             ;caller
+                                                             options
+                                                             findent
+                                                             nil
+                                                             pair-seq))))]
+              [flow-result (style-lines options findent flow-result)]))
         #_(options (let [[_ _ _ b-what] flow-lines]
                      (if b-what (assoc options :dbg? true) options)))
         #_(dbg options
@@ -1690,64 +1688,73 @@
                    ; about making it prettier. People call this routine with
                    ; these values equal to ensure that it always flows.
                    (not= hindent findent)
-                   flow-lines
+                   ;flow-lines
                    ;;TODO make this uneval!!!
                    #_(or (<= (- hindent findent) hang-diff)
                          (<= (/ (dec (first flow-lines)) (count seq-right))
                              hang-expand)))
         hanging
-          (when hang?
-            (if-not pair-seq
-              ; There are no paired elements
-              (apply concat-no-nil
-                (interpose [[(str "\n" (blanks hindent)) :none :whitespace]]
-                  (fzprint-seq (in-hang options) hindent seq-right)))
-              (if (not (zero? non-paired-item-count))
-                (concat-no-nil
-                  ; The elements that are not paired
-                  (dbg-form options
-                            "fzprint-hang-remaining: mapv:"
-                            (apply concat-no-nil
-                              (interpose [[(str "\n" (blanks hindent)) :none
-                                           :whitespace]]
-                                (mapv (partial fzprint*
-                                               (not-rightmost (in-hang options))
-                                               hindent)
-                                  (take non-paired-item-count seq-right)))))
-                  ; Got to separate them because they were done in two
-                  ; pieces
-                  [[(str "\n" (blanks hindent)) :none :whitespace]]
-                  ; The elements that are paired
-                  (dbg-form
-                    options
-                    "fzprint-hang-remaining: fzprint-hang:"
-                    (interpose-nl-hf (:pair options)
-                                     hindent
-                                     (fzprint-map-two-up true
-                                                         :pair
-                                                         ;caller
-                                                         (in-hang options)
-                                                         hindent
-                                                         nil
-                                                         pair-seq))))
-                ; All elements are paired
-                (interpose-nl-hf (:pair options)
-                                 hindent
-                                 (fzprint-map-two-up true
-                                                     :pair
-                                                     ;caller
-                                                     (in-hang options)
-                                                     hindent
-                                                     nil
-                                                     pair-seq)))))
+          (zfuture
+	    options
+            (let [hang-result
+                    (when hang?
+                      (if-not pair-seq
+                        ; There are no paired elements
+                        (apply concat-no-nil
+                          (interpose [[(str "\n" (blanks hindent)) :none
+                                       :whitespace]]
+                            (fzprint-seq (in-hang options) hindent seq-right)))
+                        (if (not (zero? non-paired-item-count))
+                          (concat-no-nil
+                            ; The elements that are not paired
+                            (dbg-form
+                              options
+                              "fzprint-hang-remaining: mapv:"
+                              (apply concat-no-nil
+                                (interpose [[(str "\n" (blanks hindent)) :none
+                                             :whitespace]]
+                                  (zpmap
+                                    options
+                                    (partial fzprint*
+                                             (not-rightmost (in-hang options))
+                                             hindent)
+                                    (take non-paired-item-count seq-right)))))
+                            ; Got to separate them because they were done in two
+                            ; pieces
+                            [[(str "\n" (blanks hindent)) :none :whitespace]]
+                            ; The elements that are paired
+                            (dbg-form options
+                                      "fzprint-hang-remaining: fzprint-hang:"
+                                      (interpose-nl-hf
+                                        (:pair options)
+                                        hindent
+                                        (fzprint-map-two-up true
+                                                            :pair
+                                                            ;caller
+                                                            (in-hang options)
+                                                            hindent
+                                                            nil
+                                                            pair-seq))))
+                          ; All elements are paired
+                          (interpose-nl-hf (:pair options)
+                                           hindent
+                                           (fzprint-map-two-up true
+                                                               :pair
+                                                               ;caller
+                                                               (in-hang options)
+                                                               hindent
+                                                               nil
+                                                               pair-seq)))))]
+              [hang-result (style-lines options hindent hang-result)]))
         ; We used to calculate hang-count by doing the hang an then counting
         ; the output.  But ultimately this is simple a series of map calls
         ; to the elements of seq-right, so we go right to the source for this
         ; number now.  That let's us move the interpose calls above this
         ; point.
+        [flow flow-lines] (zat options flow)
+        [hanging hanging-lines] (zat options hanging)
         hang-count (count seq-right)
         _ (log-lines options "fzprint-hang-remaining: hanging:" hindent hanging)
-        hanging-lines (style-lines options hindent hanging)
         _ (dbg options
                "fzprint-hang-remaining: hanging-lines:" hanging-lines
                "hang-count:" hang-count)
@@ -1778,13 +1785,6 @@
 ;; # Utilities to modify list printing in various ways
 ;;
 
-(defn map-nosort
-  "Modify the options map to say we don't sort maps unless we are forced to
-  do so."
-  [options]
-  (if (get-in options [:map :sort?])
-    (assoc-in options [:map :sort?] nil)
-    options))
 
 ;;
 ;; Which fn-styles use :list {:indent n} instead of
@@ -1850,7 +1850,7 @@
   Lots of work to make a list look good, as that is typically code. 
   Presently all of the callers of this are :list."
   [caller l-str r-str
-   {:keys [width fn-map user-fn-map one-line? dbg? fn-style no-arg1?
+   {:keys [fn-map user-fn-map one-line? fn-style no-arg1?
            fn-force-nl],
     {:keys [indent-arg indent]} caller,
     :as options} ind zloc]
@@ -1906,7 +1906,6 @@
                "ind:" ind
                "indent:" indent
                "default-indent:" default-indent
-               "width:" width
                "one-line-ok?" one-line-ok?
                "arg-1-indent:" arg-1-indent
                "len:" len
@@ -2130,7 +2129,7 @@
 
 (defn any-zcoll?
   "Return true if there are any collections in the collection."
-  [{:keys [width], :as options} ind zloc]
+  [options ind zloc]
   (let [coll?-seq (zmap zcoll? zloc)] (reduce #(or %1 %2) nil coll?-seq)))
 
 ;;
@@ -2151,9 +2150,10 @@
     (loop [cur-seq coll-print
            cur-ind ind
            index 0
+	   ; transient here slows things down, interestingly enough
            out []]
       (if-not cur-seq
-        out
+	out
         (let [next-seq (first cur-seq)]
           (when next-seq
             (let [multi? (> (count (first cur-seq)) 1)
@@ -2205,7 +2205,7 @@
   "Print basic stuff like a vector or a set.  Several options for how to
   print them."
   [caller l-str r-str
-   {:keys [width rightcnt dbg? one-line?],
+   {:keys [rightcnt],
     {:keys [wrap-coll? wrap?]} caller,
     :as options} ind zloc]
   (let [l-str-vec [[l-str (zcolor-map options l-str) :left]]
@@ -2213,8 +2213,7 @@
         new-ind (+ (count l-str) ind)
         _ (dbg-pr options
                   "fzprint-vec*:" (zstring zloc)
-                  "new-ind:" new-ind
-                  "width:" width)
+                  "new-ind:" new-ind)
         coll-print (if (zero? (zcount zloc))
                      [[["" :none :whitespace]]]
                      (fzprint-seq options new-ind (zmap identity zloc)))
@@ -2264,22 +2263,24 @@
   [options ind zloc]
   (fzprint-vec* :set "#{" "}" (rightmost options) ind zloc))
 
+; not clear transient helps here
 (defn interpose-either
   "Do the same as interpose, but different seps depending on pred?."
   [sep-true sep-nil pred? coll]
   (loop [coll coll
-         out []
+         out (transient [])
          interpose? nil]
     (if (empty? coll)
-      out
+      (persistent! out)
       (recur (next coll)
              (if interpose?
-               (conj out sep-true (first coll))
-               (if (empty? out)
-                 (conj out (first coll))
-                 (conj out sep-nil (first coll))))
+               (conj-it! out sep-true (first coll))
+               (if (zero? (count out))
+                 (conj! out (first coll))
+                 (conj-it! out sep-nil (first coll))))
              (pred? (first coll))))))
 
+; transient helped  lot here
 (defn interpose-either-nl-hf
   "Do the same as interpose, but different seps depending on pred-fn
   return and nl-separator?."
@@ -2287,18 +2288,20 @@
    {:keys [nl-separator? nl-separator-flow?], :as suboptions} ;nl-separator?
    pred-fn coll]
   (loop [coll coll
-         out []
+         out (transient [])
          interpose? nil
          add-nl? nil]
     (if (empty? coll)
-      (apply concat-no-nil out)
+      (apply concat-no-nil (persistent! out))
       (let [[hangflow style-vec] (first coll)]
         (recur (next coll)
                (if interpose?
-                 (conj out (if add-nl? sep-true-nl sep-true) style-vec)
-                 (if (empty? out)
-                   (conj out style-vec)
-                   (conj out (if add-nl? sep-nil-nl sep-nil) style-vec)))
+                 (conj-it! out (if add-nl? sep-true-nl sep-true) style-vec)
+                 (if (zero? (count out))
+                   ;(empty? out)
+                   (conj! out style-vec)
+                   (conj-it! out (if add-nl? sep-nil-nl sep-nil)
+                          style-vec)))
                (when pred-fn (pred-fn style-vec))
                ; should we put an extra new-line before the next element?
                ; Two styles here:
@@ -2329,7 +2332,7 @@
 
 (defn fzprint-map*
   [caller l-str r-str
-   {:keys [width dbg? one-line? ztype map-depth],
+   {:keys [one-line? ztype map-depth],
     {:keys [sort? comma? key-ignore key-ignore-silent nl-separator? force-nl?]}
       caller,
     :as options} ind zloc]
@@ -2347,7 +2350,6 @@
                    "fzprint-map*:" (zstring zloc)
                    "ind:" ind
                    "comma?" comma?
-                   "width:" width
                    "rightcnt:" (:rightcnt options))
             ; A possible one line representation of this map, but this is
             ; optimistic and needs to be validated.
@@ -2412,14 +2414,14 @@
 (defn fzprint-object
   "Print something that looks like #object[...] in a way
   that will acknowledge the structure inside of the [...]"
-  ([{:keys [width dbg? one-line?], :as options} ind zloc zloc-value]
+  ([options ind zloc zloc-value]
    (fzprint-vec* :object
                  "#object["
                  "]"
                  options
                  ind
                  (zobj-to-vec zloc zloc-value)))
-  ([{:keys [width dbg? one-line?], :as options} ind zloc]
+  ([options ind zloc]
    (fzprint-vec* :object "#object[" "]" options ind (zobj-to-vec zloc))))
 
 (defn hash-identity-str
@@ -2432,7 +2434,7 @@
 ;    (printf "%08x" (System/identityHashCode obj))))
 
 (defn fzprint-atom
-  [{:keys [width dbg? one-line?], {:keys [object?]} :atom, :as options} ind
+  [{{:keys [object?]} :atom, :as options} ind
    zloc]
   (if (and object? (object-str? (zstring zloc)))
     (fzprint-object options ind zloc (zderef zloc))
@@ -2460,7 +2462,7 @@
   sexpressions, since they don't exist in a textual representation 
   of code (or data for that matter).  That means that we can use 
   regular sexpression operations on zloc."
-  [{:keys [width dbg? one-line?], :as options} ind zloc]
+  [options ind zloc]
   (let [zloc-type (cond (zfuture? zloc) :future
                         (zpromise? zloc) :promise
                         (zdelay? zloc) :delay
@@ -2515,7 +2517,7 @@
   "Print a function object, what you get when you put a function in
   a collection, for instance.  This doesn't do macros, you will notice.
   It also can't be invoked when zloc is a zipper."
-  [{:keys [width dbg? one-line?], {:keys [object?]} :fn-obj, :as options} ind
+  [{{:keys [object?]} :fn-obj, :as options} ind
    zloc]
   (if (and object? (object-str? (zstring zloc)))
     (fzprint-object options ind zloc)
@@ -2562,7 +2564,7 @@
                      r-str-vec))))
 
 (defn fzprint-ns
-  [{:keys [width dbg? one-line?], :as options} ind zloc]
+  [options ind zloc]
   (let [l-str "#<"
         r-str ">"
         indent (count l-str)
@@ -2583,8 +2585,7 @@
                    r-str-vec)))
 
 (defn fzprint-record
-  [{:keys [width dbg? one-line?],
-    {:keys [record-type? to-string?]} :record,
+  [{{:keys [record-type? to-string?]} :record,
     :as options} ind zloc]
   (if to-string?
     (fzprint* options ind (. zloc toString))
@@ -2622,7 +2623,7 @@
 
 (defn fzprint-uneval
   "Trim the #_ off the front of the uneval, and try to print it."
-  [{:keys [width dbg? one-line?], :as options} ind zloc]
+  [options ind zloc]
   (let [l-str "#_"
         r-str ""
         indent (count l-str)
@@ -2646,7 +2647,7 @@
   a single collection, so it doesn't do any indent or rightmost.  It also
   uses a different approach to calling fzprint-flow-seq with the
   results zmap, so that it prints all of the seq, not just the rightmost."
-  [{:keys [width dbg? one-line?], :as options} ind zloc]
+  [options ind zloc]
   (let [l-str "^"
         r-str ""
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
@@ -2669,7 +2670,7 @@
 (defn fzprint-reader-macro
   "Print a reader-macro, often a reader-conditional. Adapted for differences
   in parsing #?@ between rewrite-clj and rewrite-cljs."
-  [{:keys [width dbg? one-line?], :as options} ind zloc]
+  [options ind zloc]
   (let [zstr (zstring (zfirst zloc))
         ; rewrite-cljs parses #?@ differently from rewrite-clj.  In
         ; rewrite-cljs zfirst is ?@, not ?, so deal with that.
@@ -2710,47 +2711,9 @@
         (fzprint-flow-seq options (+ indent ind) (zmap identity zloc)))
       r-str-vec)))
 
-(defn fzprint-reader-macro-alt
-  "Print a reader-macro, often a reader-conditional.  Works for rewrite-clj
-  and not for rewrite-cljs."
-  [{:keys [width dbg? one-line?], :as options} ind zloc]
-  (let [reader-cond? (= (zstring (zfirst zloc)) "?")
-        at? (= (ztag (zsecond zloc)) :deref)
-        l-str (cond (and reader-cond? at?) "#?@"
-                    (and reader-cond? (zcoll? (zsecond zloc))) "#?"
-                    reader-cond?
-                      (throw (#?(:clj Exception.
-                                 :cljs js/Error.)
-                              (str "Unknown reader macro: '" (zstring zloc)
-                                   "' zfirst zloc: " (zstring (zfirst zloc)))))
-                    :else "#")
-        r-str ""
-        indent (count l-str)
-        ; we may want to color this based on something other than
-        ; its actual character string
-        l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
-        floc (if at? (zfirst (zsecond zloc)) (zsecond zloc))]
-    (dbg-pr options
-            "fzprint-reader-macro: zloc:" (zstring zloc)
-            "floc:" (zstring floc))
-    (concat-no-nil
-      l-str-vec
-      (if reader-cond?
-        ; yes rightmost, this is a collection
-        (fzprint-map* :reader-cond
-                      "("
-                      ")"
-                      (rightmost options)
-                      (+ indent ind)
-                      floc)
-        ; not reader-cond?
-        (fzprint-flow-seq options (+ indent ind) (zmap identity zloc)))
-      r-str-vec)))
-
 (defn fzprint-prefix*
   "Print the single item after a variety of prefix characters."
-  [{:keys [width dbg? one-line?], :as options} ind zloc l-str]
+  [options ind zloc l-str]
   (let [r-str ""
         indent (count l-str)
         ; Since this is a single item, no point in figure an indent
@@ -2936,6 +2899,7 @@
             space-index (+ from-index (count seq-after-space))]
         (if (>= space-index (count s)) nil space-index)))))
 
+; transient may have made this worse
 (defn wrap-comment
   "If this is a comment, and it is too long, word wrap it to the right width.
   Note that top level comments may well end with a newline, so remove it
@@ -2955,14 +2919,16 @@
                      "space-str:" space-str
                      "rest-str:" rest-str)]
       (loop [comment-str rest-str
-             out []]
+             out (transient [])]
         #_(prn "comment-str:" comment-str)
         (if (empty? comment-str)
-          (if (empty? out)
+          (if (zero? (count out))
+            ;(empty? out)
             (if newline?
               [[semi-str color stype] ["\n" :none :whitespace]]
               [[semi-str color stype]])
-            (if newline? (conj out ["\n" :none :whitespace]) out))
+            (persistent!
+              (if newline? (conj! out ["\n" :none :whitespace]) out)))
           (let [last-space-index (if (<= (count comment-str) comment-width)
                                    (dec (count comment-str))
                                    (if (<= comment-width 0)
@@ -2971,19 +2937,18 @@
                                      (or (last-space comment-str comment-width)
                                          (next-space comment-str comment-width)
                                          (dec (count comment-str)))))
-                ;        (dec comment-width)))
                 next-comment (clojure.string/trimr
                                (subs comment-str 0 (inc last-space-index)))]
             #_(prn "last-space-index:" last-space-index
                    "next-comment:" next-comment)
             (recur
               (subs comment-str (inc last-space-index))
-              (if (empty? out)
-                (conj out [(str semi-str space-str next-comment) color stype])
-                (conj out
-                      [(str "\n" (blanks start)) :none :whitespace]
-                      [(str semi-str space-str next-comment) color
-                       stype])))))))))
+              (if (zero? (count out))
+                ;(empty? out)
+                (conj! out [(str semi-str space-str next-comment) color stype])
+                (conj! (conj! out [(str "\n" (blanks start)) :none :whitespace])
+                       [(str semi-str space-str next-comment) color
+                        stype])))))))))
 
 (defn loc-vec
   "Takes the start of this vector and the vector itself."
@@ -2997,8 +2962,10 @@
   [style-vec]
   (butlast (reductions loc-vec 0 style-vec)))
 
+; Transient didn't help here, rather it hurt a bit.
+
 (defn lift-vec
-  "Take a output vector and a vector and lift any style-vec elements
+  "Take a transient output vector and a vector and lift any style-vec elements
   out of the input vector."
   [out-vec element]
   (if (string? (first element))
@@ -3018,7 +2985,7 @@
 (defn fzprint-wrap-comments
   "Take the final output style-vec, and wrap any comments which run over
   the width. Looking for "
-  [{:keys [width dbg?], :as options} style-vec]
+  [{:keys [width], :as options} style-vec]
   #_(def wcsv style-vec)
   (let [start-col (style-loc-vec style-vec)
         #_(def stc start-col)
@@ -3088,20 +3055,20 @@
    (apply str
      (loop [char-seq (seq s)
             cur-len 0
-            out []]
+            out (transient [])]
        (if (empty? char-seq)
-         out
+         (persistent! out)
          (let [this-char (first char-seq)
                tab-expansion (if (= this-char \tab)
                                (- tab-size (mod cur-len tab-size))
                                nil)]
            (recur (rest char-seq)
-                  (cond (= char \newline) 0
-                        tab-expansion (+ cur-len tab-expansion)
-                        :else (inc cur-len))
+                  (if (= this-char \newline)
+                    0
+                    (+ cur-len (long (or tab-expansion 1))))
                   (if tab-expansion
-                    (apply conj out (seq (blanks tab-expansion)))
-                    (conj out this-char))))))))
+                    (apply conj-it! out (seq (blanks tab-expansion)))
+                    (conj! out this-char))))))))
   ([s] (expand-tabs 8 s)))
 
 ;;

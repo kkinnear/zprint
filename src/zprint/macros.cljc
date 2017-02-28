@@ -24,3 +24,19 @@
   [options & rest]
   `(when (or (:dbg? ~options) (:dbg-print? ~options))
      (println (:dbg-indent ~options) ~@rest)))
+
+(defmacro zfuture
+  "Takes an option map and a body of expressions.  If it
+  is possible to use futures (i.e., we are in Clojure)
+  then examine the options map for :parallel? and if true
+  use futures.  If not, just return the value.  Note well
+  that the returns from this are wildly different if a future
+  is used or if a future is not used, but there is no way
+  around that.  Of which I'm aware, anyway."
+  [options & body]
+  #?(:clj `(if (:parallel? ~options) (future ~@body) (do ~@body))
+     :cljs `(do ~@body)))
+
+
+
+

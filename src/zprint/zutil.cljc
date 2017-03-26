@@ -301,10 +301,14 @@
   [zloc]
   (and zloc (not= :fn (tag zloc)) (not (n/printable-only? (z/node zloc)))))
 
-(defn zkeyword?-alt
-  "Returns true if this is a keyword."
-  [zloc]
-  (and zloc (zsexpr? zloc) (keyword? (sexpr zloc))))
+;
+; This doesn't work, because there are situations where (zsexpr? zloc)
+; will fail but it is still a keyword.
+;
+#_(defn zkeyword?-alt
+    "Returns true if this is a keyword."
+    [zloc]
+    (and zloc (zsexpr? zloc) (keyword? (sexpr zloc))))
 
 (defn zkeyword?
   "Returns true if this is a keyword."

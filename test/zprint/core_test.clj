@@ -24,10 +24,20 @@
     (symbol (re-find #".*__" (name x)))
     x))
 
-(defn trim-gensym
+(defn clean-regex
+  "Removes the unique numbers off of the end of a gensym. p1__3456# becomes 
+  p1__"
+  [x]
+  (if (instance? java.util.regex.Pattern x)
+    "regex"
+    x))
+
+(defn trim-gensym-regex
   "Fix up all of the gensyms in a structure so that they compare correctly."
   [x]
-  (clojure.walk/postwalk clean-gensym x))
+  (->> x
+  (clojure.walk/postwalk clean-gensym)
+  (clojure.walk/postwalk clean-regex)))
 
 (defn testfn
   "This fn is designed to see if reader macros, specifically the
@@ -36,8 +46,8 @@
   (map #(println %) b))
 
 (def x (source-fn 'testfn))
-(expect (trim-gensym (read-string x))
-        (trim-gensym (read-string (zprint-str x {:parse-string? true}))))
+(expect (trim-gensym-regex (read-string x))
+        (trim-gensym-regex (read-string (zprint-str x {:parse-string? true}))))
 
 (defn testfn1
   "This fn is designed to see if reader macros, specifically the
@@ -46,8 +56,8 @@
   (let [d a e b f c] (map #(println %) b)))
 
 (def x1 (source-fn 'testfn1))
-(expect (trim-gensym (read-string x1))
-        (trim-gensym (read-string (zprint-str x1 {:parse-string? true}))))
+(expect (trim-gensym-regex (read-string x1))
+        (trim-gensym-regex (read-string (zprint-str x1 {:parse-string? true}))))
 
 (defn testfn2
   "This fn is designed to see if reader macros, specifically the

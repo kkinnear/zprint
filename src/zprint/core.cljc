@@ -201,9 +201,9 @@
   may short circuit the other options processing. 
   Returns [special-option rest-options]"
   [internal-options [width-or-options options]]
-  #(println "process-rest-options: internal-options:" internal-options
-            "width-or-options:" width-or-options
-            "options:" options)
+  #_(println "process-rest-options: internal-options:" internal-options
+             "width-or-options:" width-or-options
+             "options:" options)
   #_(def prio internal-options)
   #_(def prwoo width-or-options)
   #_(def pro options)
@@ -222,15 +222,17 @@
                                (map? width-or-options) width-or-options)
             width-map (if width {:width width} {})
             new-options (merge-deep rest-options width-map internal-options)
-            auto-width (when (and (not width)
-                                  ; check both new-options and already
-                                  ; configured ones
-                                  (:auto-width? new-options
-                                                (:auto-width? (get-options))))
-                         (let [actual-width
-                                 #?(:clj (#'table.width/detect-terminal-width)
-                                    :cljs nil)]
-                           (when (number? actual-width) {:width actual-width})))
+            auto-width
+              (when (and (not width)
+                         ; check both new-options and already
+                         ; configured ones
+                         (:auto-width? new-options
+                                       (:auto-width? (get-options))))
+                (let [terminal-width-fn
+                        #?(:clj (resolve 'table.width/detect-terminal-width)
+                           :cljs nil)
+                      actual-width (when terminal-width-fn (terminal-width-fn))]
+                  (when (number? actual-width) {:width actual-width})))
             new-options
               (if auto-width (merge-deep new-options auto-width) new-options)
             #_(def nopt new-options)]

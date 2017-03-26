@@ -1,16 +1,28 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.2.17 - 2017-3-26
+## 0.3.0 - 2017-4-9
 
 ### Changed
+
+* __DEPRECATED__ configuration from environment variables and Java system
+  properties.  Still available by adding a library to your dependencies.
+  File an issue if you care about this!
+
+* __DEPRECATED__ :auto-width capability.  Still available by adding a library to your dependencies.  File an issue if you care about this!
+
+* Added zprint-filter uberjar and documentation.  Uberjar is available as
+  a "release" on Github.
+
+* Moved to clojure.spec for all versions, requiring a single additional
+  library when using Clojure 1.8.
 
 * Added futures to fzprint-hang-remaining, helped a lot.
 
 * Used pmap to handle two-up generation, helped a lot.
 
 * Added transient to some vectors being built.  Sometimes it helped, somtimes
-  it didn't.  Kept the one where it helped. 
+  it didn't.  Kept the ones where it helped. 
 
 ### Fixed
 

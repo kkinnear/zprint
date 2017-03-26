@@ -36,7 +36,3 @@
   [options & body]
   #?(:clj `(if (:parallel? ~options) (future ~@body) (do ~@body))
      :cljs `(do ~@body)))
-
-
-
-

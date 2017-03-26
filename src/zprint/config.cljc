@@ -1,19 +1,13 @@
 (ns zprint.config
-  ;  #?(:cljs [:require-macros [schema.core :refer [defschema]]])
   #?(:clj [:refer-clojure :exclude [read-string]])
   (:require clojure.string
             [zprint.sutil]
             [clojure.set :refer [difference]]
             [zprint.zprint :refer [merge-deep]]
             [clojure.data :as d]
-            #?(:clj [zprint.schema :refer [validate-basic]]
-               :cljs [zprint.spec :refer [validate-basic]])
+            [zprint.spec :refer [validate-basic]]
             #?(:clj [clojure.edn :refer [read-string]]
-               :cljs [cljs.reader :refer [read-string]])
-            #?@(:clj [[cprop.source :as cs :refer
-                       [from-file from-resource from-system-props from-env
-                        read-system-env read-system-props merge*]]
-                      [trptcolin.versioneer.core :as version] [table.width]]))
+               :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
 
 ;;
@@ -27,12 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about
-  "Return version of this program."
-  []
-  (str "zprint-"
-       #?(:clj (version/get-version "zprint" "zprint")
-          :cljs "0.2.17")))
+(defn about "Return version of this program." [] (str "zprint-0.3.0"))
 
 ;;
 ;; # External Configuration
@@ -319,6 +308,7 @@
    "if-some" :binding,
    "interpose" :arg1,
    "let" :binding,
+   "letfn" :binding,
    "loop" :binding,
    "map" :arg1,
    "mapcat" :arg1,
@@ -441,7 +431,8 @@
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
    :max-depth 1000,
-   :parallel? true,
+   :parallel? false,
+   :additional-libraries? true,
    :max-hang-count 4,
    :max-hang-depth 3,
    :max-hang-span 4,
@@ -504,7 +495,10 @@
                            :map {:justify? true},
                            :pair {:justify? true}},
                :map-nl {:map {:indent 0, :nl-separator? true}},
-               :pair-nl {:pair {:indent 0, :nl-separator? true}}},
+               :pair-nl {:pair {:indent 0, :nl-separator? true}},
+               :spec {:list {:constant-pair-min 2},
+                      :vector {:wrap? false},
+                      :pair {:indent 0}}},
    :tab {:expand? true, :size 8},
    :trim-comments? nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
@@ -750,36 +744,67 @@
 ;; # Configure Everything
 ;;
 
+(defn internal-set-options!
+  "Validate the new options, and update both the saved options
+  and the doc-map as well.  Will throw an exceptino for errors."
+  [doc-string doc-map existing-options new-options]
+  (let [[updated-map new-doc-map error-vec]
+          (config-and-validate doc-string doc-map existing-options new-options)]
+    (if error-vec
+      (throw (#?(:clj Exception.
+                 :cljs js/Error.)
+              (apply str
+                "set-options! for " doc-string
+                " found these errors: " error-vec)))
+      (do (reset-options! updated-map new-doc-map) nil))))
+
 (defn config-configure-all!
-  "Do external configuration if it has not already been done, 
-  replacing any internal configuration.  Returns nil if successful, 
-  a vector of errors if not."
-  []
-  (let [[zprint-options doc-map errors] (config-and-validate-all nil nil)]
-    (if errors
-      errors
-      (do (reset-options! zprint-options doc-map)
-          (config-set-options! {:configured? true} "internal")
-          nil))))
+  "Do external configuration regardless of whether or not it has
+  already been done, replacing any internal configuration.  Returns
+  nil if successful, a vector of errors if not.  Argument, if it
+  exists, says whether or not to try to load additional libraries.
+  Defaults to true, unusually enough."
+  ([additional-libraries?]
+   (when additional-libraries?
+     #?(:clj (try #_(println "requiring cprop.source")
+                  (require 'cprop.source)
+                  (catch Exception e nil)))
+     #?(:clj (try #_(println "requiring table.width")
+                  (require 'table.width)
+                  (catch Exception e nil))))
+   ; If we are running in a repl, then turn on :parallel? the first time we
+   ; run
+   (when (find-ns 'clojure.repl)
+     (internal-set-options! "REPL execution default"
+                            (get-explained-all-options)
+                            (get-options)
+                            {:parallel? true}))
+   (let [[zprint-options doc-map errors] (config-and-validate-all nil nil)]
+     (if errors
+       errors
+       (do (reset-options! zprint-options doc-map)
+           (config-set-options! {:configured? true} "internal")
+           nil))))
+  ([] (config-configure-all! (:additional-libraries? (get-options)))))
 
 (defn config-set-options!
   "Add some options to the current options, checking to make
   sure that they are correct."
   ([new-options doc-str]
-   ; avoid infinity recursion, while still getting the doc-map updated
+   ; avoid infinite recursion, while still getting the doc-map updated
    (when (and (not (:configured? (get-options)))
               (not (:configured? new-options)))
-     (config-configure-all!))
-   (let [[updated-map new-doc-map error-vec] (config-and-validate
-                                               doc-str
-                                               (get-explained-all-options)
-                                               (get-options)
-                                               new-options)]
-     (if error-vec
-       (throw (#?(:clj Exception.
-                  :cljs js/Error.)
-               (apply str "set-options! found these errors: " error-vec)))
-       (do (reset-options! updated-map new-doc-map) updated-map))))
+     (let [additional-libraries-existing? (:additional-libraries? (get-options))
+           additional-libraries-new?
+             (get new-options :additional-libraries? :not-found)
+           additional-libraries? (if (not= additional-libraries-new? :not-found)
+                                   additional-libraries-new?
+                                   additional-libraries-existing?)]
+       (config-configure-all! additional-libraries?)))
+   (internal-set-options! doc-str
+                          (get-explained-all-options)
+                          (get-options)
+                          new-options))
   ([new-options]
    (config-set-options! new-options
                         (str "repl or api call " (inc-explained-sequence)))))
@@ -1042,6 +1067,7 @@
   Returns [new-map doc-map errors]"
   [cli-opts cli-errors]
   (let [default-map (get-default-options)
+        default-doc-map (get-explained-all-options)
         ;
         ; $HOME/.zprintrc
         ;
@@ -1055,14 +1081,15 @@
             (get-config-from-file zprintrc-file :optional))
         [updated-map new-doc-map rc-errors] (config-and-validate
                                               (str "File: " zprintrc-file)
-                                              default-map
+                                              default-doc-map
                                               default-map
                                               opts-rcfile)
         ;
         ; environment variables -- requires zprint on front
         ;
-        env-map #?(:clj (cs/read-system-env)
-                   :cljs nil)
+        read-system-env-fn #?(:clj (resolve 'cprop.source/read-system-env)
+                              :cljs nil)
+        env-map (when read-system-env-fn (read-system-env-fn))
         env-and-default-map (merge-existing {:zprint default-map} env-map)
         new-env-map (diff-map default-map (:zprint env-and-default-map))
         new-env-map (update-fn-map new-env-map env-map)
@@ -1075,8 +1102,9 @@
         ;
         ; System properties -- requires zprint on front
         ;
-        prop-map #?(:clj (cs/read-system-props)
-                    :cljs nil)
+        read-system-props-fn #?(:clj (resolve 'cprop.source/read-system-props)
+                                :cljs nil)
+        prop-map (when read-system-props-fn (read-system-props-fn))
         prop-and-default-map (merge-existing {:zprint default-map} prop-map)
         new-prop-map (diff-map default-map (:zprint prop-and-default-map))
         new-prop-map (update-fn-map new-prop-map prop-map)

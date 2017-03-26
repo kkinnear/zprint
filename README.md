@@ -6,16 +6,17 @@ either embedded in a larger codebase, or as a useful utility at the
 repl.  It can be configured to process entire files or just take small
 sections of code and reformat them on demand.
 
-If you want to use the zprint library to format your Clojure source files, 
-you have three options:
+If you want to use the zprint library to format your Clojure source, 
+you have four options:
 
-  * Leiningen:  [lein-zprint][leinzprint]
-  * Boot: [boot-fmt][bootfmt]
-  * use `planck` or `lumo` and configure zprint as a Clojure pretty-print filter. See [lein-zprint][leinzprint] for details.
+  * Using the released [zprint-filter](doc/filter.md) uberjar, you can pretty-print functions from within many editors [__NEW__]
+  * Leiningen:  [lein-zprint][leinzprint] to format entire source files
+  * Boot: [boot-fmt][bootfmt] to format entire source files
+  * Use `planck` or `lumo` and configure zprint as a Clojure pretty-print filter. See [lein-zprint][leinzprint] for details.
 
-The pretty-print filter using `planck` or `lumo` can be used from many
-editors to format a single function defintion on demand.  This is how
-I use zprint most of the time to format code.
+__If you haven't used zprint before, check out the
+[zprint-filter](doc/filter.md) approach to use zprint directly in your
+editor!__
 
 Zprint includes support for Clojurescript, both browser based and self-hosted.
 
@@ -103,15 +104,68 @@ am aware.
 
 ## Usage
 
+__NOTE:__ As of version 0.3.0 the configuration approach has
+__changed__!  This library has moved to completely embrace clojure.spec
+and has __deprecated__ several little used configuration approachs in
+order to drastically reduce its other dependencies. This may require
+some slight extra work when using zprint as a library.
+
+### Clojure 1.8:
+
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 [![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
+
+In addition to the zprint dependency, you also need to
+include the library: 
+
+     `[clojure-future-spec "1.9.0-alpha15"]`
+
+Probably later versions would work as well, but this is what I've
+tested with.
+
+### Clojure 1.9-alpha*:
+
+__Leiningen ([via Clojars](http://clojars.org/zprint))__
+
+[![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
+
+### Reducing the library load --  __MAY REQUIRE ACTION FROM YOU__
+
+In order to reduce the dependencies that zprint drags along, I have
+removed everything that isn't absolutely essential.  That
+means that now zprint will run with just the parsing library and
+zprint itself, and nothing else.  But that also means that the
+ability to configure zprint from environment variables and Java
+system properties has been __deprecated__.  However, if you need
+these configuration capabilities, you can still use them if you add
+an additional library to the dependencies.  Zprint will look for
+and load the necessary namespaces, but not return an error if they
+are not there.
+
+Zprint can still be configured from the `$HOME/.zprintrc` file.  That
+has not changed and is not expected to change.
+
+If you need to configure zprint from environment variables or Java
+system properties, you must also add this to your list of dependencies:
+
+   `[cprop "0.1.6"]`
+
+In addition, the rarely used feature `{:auto-width true}` has also gone
+away, but can still be used if you load the library:
+
+   `[table "0.4.0" :exclusions [[org.clojure/clojure]]]`
+
+If you use either of these __deprecated__ capabilities, please raise
+an issue on Github and let me know.  Otherwise they will go away
+completely before too much longer.
 
 ## Features
 
 In addition to meeting the goals listed above, zprint has the 
 following specific features:
 
+* Runs fast enough to be used as a filter while in an editor
 * Prints function definitions at the Clojure repl (including clojure.core functions)
 * Prints s-expressions (EDN structures) at the repl
 * Processes Clojure source files through lein-zprint
@@ -361,30 +415,26 @@ the way that zprint outputs your code or data.   If you do, read on...
 The formatting done by zprint is driven off of an options map.
 Zprint is built with an internal, default, options map.  This
 internal options map is updated at the time that zprint is first
-called by examining the .zprintrc file, environment variables, and
-Java system properties.  You can update this internal options map
-at any time by calling `set-options!` with a map containing the
-parts of the options map you with to alter.  You can specify an
-options map on any individual zprint or czprint call, and it will
-only be used for the duration of that call.
+called by examining the .zprintrc file.  You can update this internal
+options map at any time by calling `set-options!` with a map
+containing the parts of the options map you with to alter.  You can
+specify an options map on any individual zprint or czprint call,
+and it will only be used for the duration of that call.
 
 When altering zprint's configuration by using a .zprintrc file,
-calling `set-options!`, or specifying an options map on an individual call,
-the things that you specify in the options map replace the current values
-in the internal options map.  Only the specific values you specify
-are changed -- you don't have to specify an entire sub-map when
-configuring zprint.  When altering zprint's configuration using
-environment variables or Java system properties, you specify a single
-options map key path and value in each environment variable or Java
-system property.
+calling `set-options!`, or specifying an options map on an individual
+call, the things that you specify in the options map replace the
+current values in the internal options map.  Only the specific
+values you specify are changed -- you don't have to specify an
+entire sub-map when configuring zprint.
 
-You can always see the current internal configuration of zprint by typing 
-`(zprint nil :explain)` or `(czprint nil :explain)`.  In addition,
-the `:explain` output will also show you how each element in the internal
-options map received its current value.  Given the number of ways that
-zprint can be configured, `(zprint nil :explain)` can be very useful
-to sort out how a particular configuration element was configured with
-its current value.  
+You can always see the current internal configuration of zprint by
+typing `(zprint nil :explain)` or `(czprint nil :explain)`.  In
+addition, the `:explain` output will also show you how each element
+in the internal options map received its current value.  Given the
+number of ways that zprint can be configured, `(zprint nil :explain)`
+can be very useful to sort out how a particular configuration element
+was configured with its current value.
 
 The options map has a few top level configuration options, but
 much of the configuration is grouped into sub-maps.  The top level
@@ -432,8 +482,8 @@ It will examine the following information in order to configure
 itself:
 
 * The file `$HOME/.zprintrc` for an options map in EDN format
-* Environment variables for individual option map values
-* Java properties for individual option map values
+* __DEPRECATED:__ Environment variables for individual option map values
+* __DEPRECATED:__ Java properties for individual option map values
 
 You can invoke the function `(configure-all!)` at any time to
 cause zprint to re-examine the above information.  It will delete
@@ -467,7 +517,7 @@ will cause all of the external forms of configuration (e.g. .zprintrc,
 environment variables, and Java system properties) to be read
 and converted again.
 
-#### Environment variables
+#### Environment variables: __DEPRECATED__
 
 You can specify an individual configuration element by specifying the
 key as the environment variable name and the value as the value of the
@@ -528,7 +578,7 @@ will cause all of the external forms of configuration (e.g. .zprintrc,
 environment variables, and Java system properties) to be read and
 converted again.  
 
-#### Java Properties
+#### Java Properties: __DEPRECATED__
 
 You can also specify individual configuration elements using Java properties.
 In Java properties, a dot is turned into a hypen (dash), and an underscore
@@ -701,6 +751,32 @@ with a new-line, or the resulting formatting will not be correct.
 
 (def c :d)
 ```
+
+#### :parallel?
+
+As of 0.3.0, on Clojure zprint will use mutiple threads in several
+ways, including `pmap`.   By default, if used as a library in a program,
+it will not use any parallel features because if it does, your program
+will not exit unless you call `(shutdown-agents)`.  When zprint is
+running at the repl, it __will__ enable parallel features as this
+doesn't turn into a problem when exiting the repl.
+
+If you want it to run more quickly when embedded in a program,
+certainly you should set :parallel? to true -- but don't forget to
+call `(shutdown-agents)` at the end of your program or your program
+won't exit!
+
+#### :additional-libraries?
+
+If the first call you make to anything to do with zprint is:
+
+```clojure
+(set-options! {:additional-libraries? false})
+```
+
+then zprint will not even try to load the libraries: cprop and table.
+And you will not be able to use :auto-width? or configure with environment
+variables or Java properties.
 
 ### Syntax coloring
 
@@ -2892,6 +2968,17 @@ between each group.  For example
 These are convenience styles which simply allow you to set `{:indent 0 :nl-separator? true}` for each of the associated format elements.  They simply exist to
 save you some typing if these styles are favorites of yours.
 
+#### :spec
+
+This style is good for formatting clojure.spec files.  The 
+`{:list {:constant-pair-min 2}}` is going to be useful for everyone, and
+probably the `{:pair {:indent 0}}` will be too.  The `{:vector {:wrap? false}}`
+is an open question.  Some people want the keys each on one line, and some
+people want them all tucked up together.  Remember, a style is applied before
+the rest of the options map, so if you want to have your specs that show up
+in a vector all tucked up together, you can do: `{:style :spec, :vector {:wrap? true}}`.
+
+
 ### Defining your own styles
 
 You can define your own styles, by adding elements to the `:style-map`.
@@ -3030,9 +3117,13 @@ in a very different way in future versions.
 _____
 #### :auto-width <text style="color:#A4A4A4;"><small>false</small></text>
 
+__DEPRECATED__
+
 This will attempt to determine the width of a terminal window and
 set the width to that value.  Seems to work on OS/X, untested on
-other platforms.
+other platforms.  As of 0.3.0, this now requires adding the
+additional library: `[table "0.4.0" :exclusions [[org.clojure/clojure]]]`
+to the dependencies.  
 
 #### :max-length <text style="color:#A4A4A4;"><small>1000</small></text>
 

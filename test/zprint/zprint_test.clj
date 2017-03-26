@@ -47,15 +47,44 @@
 (expect iftest-21-str (zprint-str iftest 21))
 
 ;;
-;; Another couple of fidelity tests of two of our actual functions
+;; Another couple of fidelity tests of two of our actual functions,
+;; first with :parallel? false (the current default, but that could 
+;; change)
 ;;
 
 (def y1 (source-fn 'fzprint-map-two-up))
-(expect (read-string y1) (read-string (zprint-str y1 {:parse-string? true})))
+(expect (read-string y1)
+        (read-string (zprint-str y1 {:parallel? false, :parse-string? true})))
 
 (def y2 (source-fn 'partition-all-2-nc))
-(expect (trim-gensym (read-string y2))
-        (trim-gensym (read-string (zprint-str y2 {:parse-string? true}))))
+(expect (trim-gensym-regex (read-string y2))
+        (trim-gensym-regex (read-string (zprint-str y2
+                                              {:parallel? false,
+                                               :parse-string? true}))))
+(def y3 (source-fn 'fzprint-list*))
+(expect (trim-gensym-regex (read-string y3))
+        (trim-gensym-regex (read-string (zprint-str y3
+                                              {:parallel? false,
+                                               :parse-string? true}))))
+
+;;
+;; and again with :parallel? true
+;;
+
+(def y1 (source-fn 'fzprint-map-two-up))
+(expect (read-string y1)
+        (read-string (zprint-str y1 {:parallel? true, :parse-string? true})))
+
+(def y2 (source-fn 'partition-all-2-nc))
+(expect (trim-gensym-regex (read-string y2))
+        (trim-gensym-regex (read-string
+                       (zprint-str y2 {:parallel? true, :parse-string? true}))))
+
+(def y3 (source-fn 'fzprint-list*))
+(expect (trim-gensym-regex (read-string y3))
+        (trim-gensym-regex (read-string (zprint-str y3
+                                              {:parallel? true,
+                                               :parse-string? true}))))
 
 ;;
 ;; Check out line count

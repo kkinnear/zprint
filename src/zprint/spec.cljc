@@ -1,7 +1,20 @@
 (ns zprint.spec
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
-  (:require #?@(:clj [[zprint.smacros :as sm] [clojure.spec :as s]]
+  (:require #?@(:clj [[zprint.smacros :refer [only-keys]] [clojure.spec :as s]]
                 :cljs [[cljs.spec :as s]])))
+
+;;
+;; # Compatibility
+;;
+;; Try to avoid loading any namespaces we don't need all the
+;; time.  These can go away when we get to just 1.9
+;;
+
+(defn zany? [x] true)
+#?(:clj (defn zboolean? [x] (instance? Boolean x))
+   :cljs (defn ^boolean zboolean?
+           [x]
+           (or (cljs.core/true? x) (cljs.core/false? x))))
 
 ;!zprint {:list {:constant-pair-min 2}}
 
@@ -36,7 +49,7 @@
 ;; # Fundamental values
 ;;
 
-(s/def ::boolean (s/nilable boolean?))
+(s/def ::boolean (s/nilable zboolean?))
 (s/def ::fn-type
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
     :arg1-extend-body :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2
@@ -58,8 +71,9 @@
                    :constant-seq ::constant-seq)
              :kind sequential?))
 (s/def ::key-value (s/nilable (s/coll-of ::constant :kind sequential?)))
-(s/def ::key-color-value (s/nilable (s/coll-of (s/nilable ::color) :kind sequential?)))
-;(s/def ::key-color-seq (s/coll-of (s/nilable 
+(s/def ::key-color-value
+  (s/nilable (s/coll-of (s/nilable ::color) :kind sequential?)))
+;(s/def ::key-color-seq (s/coll-of (s/nilable
 (s/def ::boolean-or-string
   (s/or :boolean ::boolean
         :string string?))
@@ -95,7 +109,7 @@
 (s/def ::justify-tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
                       ::general-hang-adjust]))
-(s/def ::key-color (s/nilable (s/map-of any? ::color)))
+(s/def ::key-color (s/nilable (s/map-of zany? ::color)))
 (s/def ::key-depth-color ::key-color-value)
 (s/def ::key-ignore (s/nilable ::key-or-ks-seq))
 (s/def ::key-ignore-silent (s/nilable ::key-or-ks-seq))
@@ -105,12 +119,14 @@
 (s/def ::nl-separator? ::boolean)
 (s/def ::object? ::boolean)
 (s/def ::pair-hang? ::boolean)
+(s/def ::parallel? ::boolean)
+(s/def ::additional-libraries? ::boolean)
 (s/def ::record-type? ::boolean)
 (s/def ::size number?)
 (s/def ::sort? ::boolean)
 (s/def ::sort-in-code? ::boolean)
 (s/def ::to-string? ::boolean)
-(s/def ::value any?)
+(s/def ::value zany?)
 (s/def ::wrap? ::boolean)
 (s/def ::wrap-after-multi? ::boolean)
 (s/def ::wrap-coll? ::boolean)
@@ -136,7 +152,7 @@
 (s/def ::configured? ::boolean)
 (s/def ::dbg? ::boolean)
 (s/def ::dbg-print? ::boolean)
-(s/def ::dbg-ge any?)
+(s/def ::dbg-ge zany?)
 (s/def ::delay (only-keys :opt-un [::object?]))
 (s/def ::drop? ::boolean)
 (s/def ::do-in-hang? ::boolean)
@@ -149,7 +165,7 @@
 (s/def ::fn-gt2-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
 (s/def ::fn-gt3-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
 (s/def ::fn-map ::fn-map-value)
-(s/def ::fn-name any?)
+(s/def ::fn-name zany?)
 (s/def ::fn-obj (only-keys :opt-un [::object?]))
 (s/def ::format ::format-value)
 (s/def ::future (only-keys :opt-un [::object?]))
@@ -215,17 +231,73 @@
 
 (s/def ::options
   (only-keys
-    :opt-un [::agent ::array ::atom ::auto-width? ::binding ::color-map
-             :alt/comment ::configured? ::dbg? ::dbg-print? ::dbg-ge ::delay
-             ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
-             ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
-             ::format ::future ::indent ::list ::map ::max-depth
-             ::max-hang-count ::max-hang-depth ::max-hang-span ::max-length
-             ::object ::old? ::pair ::pair-fn ::parse ::parse-string-all?
-             ::parse-string? ::process-bang-zprint? ::promise ::reader-cond
-             ::record ::remove ::return-cvec? ::set ::spaces? ::spec ::style
-             ::style-map ::tab ::trim-comments? ::tuning :alt/uneval
-             ::user-fn-map ::vector ::version ::width ::zipper?]))
+    :opt-un [::additional-libraries? ::agent ::array ::atom ::auto-width?
+             ::binding ::color-map :alt/comment ::configured? ::dbg?
+             ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend
+             ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map
+             ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
+             ::max-depth ::max-hang-count ::max-hang-depth ::max-hang-span
+             ::max-length ::object ::old? ::pair ::pair-fn ::parallel? ::parse
+             ::parse-string-all? ::parse-string? ::process-bang-zprint?
+             ::promise ::reader-cond ::record ::remove ::return-cvec? ::set
+             ::spaces? ::spec ::style ::style-map ::tab ::trim-comments?
+             ::tuning :alt/uneval ::user-fn-map ::vector ::version ::width
+             ::zipper?]))
+
+(defn problem-ks
+  "Return the key sequence for this problem.  This is totally empiric,
+  and not based on any real understanding of what explain-data is returning
+  as the problem."
+  [problem]
+  (let [last-path (last (:path problem))
+        last-num (and (number? last-path) last-path)
+        ks (:in problem)
+        last-ks (last ks)]
+    (if (and (number? last-ks)
+             (or (= last-ks last-num)
+                 (= last-path
+                    #?(:clj :clojure.spec/pred
+                       :cljs :cljs.spec/pred))))
+      (into [] (butlast ks))
+      ks)))
+
+(defn ks-phrase
+  "Take a key-sequence and a value, and decide if we want to 
+  call it a value or a key."
+  [problem]
+  (let [val (:val problem)
+        ks (:in problem)
+        ks (problem-ks problem)]
+    (if ((set ks) val)
+      (str "In the key-sequence " ks " the key " (pr-str val))
+      (str "The value of the key-sequence " ks " -> " (pr-str val)))))
+
+(defn map-pred
+  "Turn some predicates into something more understandable."
+  [pred]
+  (case pred
+    'zboolean? 'boolean?
+    pred))
+
+(defn explain-more
+  "Try to do a better job of explaining spec problems."
+  [explain-data-return]
+  (when explain-data-return
+    (let [problem-list (#?(:clj :clojure.spec/problems
+                           :cljs :cljs.spec/problems)
+                        explain-data-return)
+          problem-list (remove #(= "nil?" (str (:pred %))) problem-list)
+          val-map (group-by :val problem-list)
+          key-via-len-seq
+            (map (fn [[k v]] [k (apply min (map (comp count :via) v))]) val-map)
+          [key-choice min-via] (first (sort-by second key-via-len-seq))
+          problem (first (filter (comp (partial = min-via) count :via)
+                           (val-map key-choice)))]
+      (cond (clojure.string/ends-with? (str (:pred problem)) "?")
+              (str (ks-phrase problem) " was not a " (map-pred (:pred problem)))
+            (set? (:pred problem)) (str (ks-phrase problem)
+                                        " was not recognized as valid!")
+            :else (str "what?")))))
 
 (defn validate-basic
   "Using spec defined above, validate the given options map.  Return
@@ -234,11 +306,22 @@
    (try (if (s/valid? ::options options)
           nil
           (if source-str
-            (str "In " source-str ", " (s/explain-str ::options options))
-            (s/explain-str ::options options)))
-        (catch :default e
+            (str "In " source-str
+                 ", " (explain-more (s/explain-data ::options options)))
+            (explain-more (s/explain-data ::options options))))
+        (catch #?(:clj Exception
+                  :cljs :default) e
           (if source-str
             (str "In " source-str
                  ", validation failed completely because: " (.-message e))
             (str "Validation failed completely because: " (.-message e))))))
   ([options] (validate-basic options nil)))
+
+#_(defn explain
+    "Take an options map and explain the result of the spec.  This is
+  really here for testing purposes."
+    ([options show-problems?]
+     (let [problems (s/explain-data ::options options)]
+       (when show-problems? (zprint.core/czprint problems))
+       (explain-more problems)))
+    ([options] (explain options nil)))

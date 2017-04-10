@@ -152,7 +152,9 @@ The two lines you should be interested in are the zprint-filter bootclasspath
 and zprint-filter appcds lines.  As you might imagine, the bootclasspath
 is easier to set up, and the appcds runs faster for small functions.
 
-I have provided an uberjar in the releases area, which you need to
+I have provided an uberjar in the
+[releases](https://github.com/kkinnear/zprint/releases/latest)
+area, which you need to
 download.  It doesn't have a .jar extension because I find that various
 programs get all excited about .jar files.   Why upset them needlessly?
 

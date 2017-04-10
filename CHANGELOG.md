@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.3.1 - 2017-4-10
+
+### Fixed
+
+* Fixed dependencies so that `[clojure-future-spec "1.9.0-alpha15"]`
+  is actually required to use zprint on Clojure 1.8, and doesn't 
+  get brought along into usage on 1.9 by default.
+
 ## 0.3.0 - 2017-4-9
 
 ### Changed

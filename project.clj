@@ -1,5 +1,5 @@
 (defproject zprint
-  "0.3.0"
+  "0.3.1"
   :description "Pretty print zippers and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License",
@@ -13,7 +13,6 @@
                        :main zprint.main,
 		       :omit-source true
                        :uberjar-name "zprint-filter-0.3.0"}}
-
   ; Clojure 1.8 you can exclude all sources
   :uberjar-exclusions [#"\.(clj|java|cljs)"]
   ; Clojure 1.9 requires the .clj files
@@ -22,7 +21,7 @@
   :dependencies
     [#_[org.clojure/clojure "1.9.0-alpha15"] 
        [org.clojure/clojure "1.8.0"]
-       [clojure-future-spec "1.9.0-alpha15"]
+     #_[clojure-future-spec "1.9.0-alpha15"]
        [rewrite-cljs "0.4.3" :exclusions [[org.clojure/clojurescript]]]
        [rewrite-clj "0.4.13" :exclusions [[com.cemerick/austin]]]
      #_[table "0.4.0" :exclusions [[org.clojure/clojure]]] 

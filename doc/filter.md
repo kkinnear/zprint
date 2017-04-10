@@ -281,7 +281,7 @@ Here are the steps to set this version up:
   za < helloworld.clj
   ```
 
-  you should see "hello world" come out on your terminal.
+  you should see `"hello world"` come out on your terminal.
 
   9. Try it from somewhere else.  Change your directory to
   somewhere other than the directory with the za file in it
@@ -291,7 +291,7 @@ Here are the steps to set this version up:
   za < cwd/helloworld.clj
   ```
 
-  You should see the `"hello world" come out on the terminal.
+  You should see the `"hello world"` come out on the terminal.
 
   If you see this instead:
 

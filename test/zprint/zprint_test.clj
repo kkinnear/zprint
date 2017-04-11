@@ -59,13 +59,13 @@
 (def y2 (source-fn 'partition-all-2-nc))
 (expect (trim-gensym-regex (read-string y2))
         (trim-gensym-regex (read-string (zprint-str y2
-                                              {:parallel? false,
-                                               :parse-string? true}))))
+                                                    {:parallel? false,
+                                                     :parse-string? true}))))
 (def y3 (source-fn 'fzprint-list*))
 (expect (trim-gensym-regex (read-string y3))
         (trim-gensym-regex (read-string (zprint-str y3
-                                              {:parallel? false,
-                                               :parse-string? true}))))
+                                                    {:parallel? false,
+                                                     :parse-string? true}))))
 
 ;;
 ;; and again with :parallel? true
@@ -77,14 +77,37 @@
 
 (def y2 (source-fn 'partition-all-2-nc))
 (expect (trim-gensym-regex (read-string y2))
-        (trim-gensym-regex (read-string
-                       (zprint-str y2 {:parallel? true, :parse-string? true}))))
+        (trim-gensym-regex
+          (read-string (zprint-str y2 {:parallel? true, :parse-string? true}))))
+
+(def y3 (source-fn 'fzprint-list*))
+(expect (trim-gensym-regex (read-string y3))
+        (trim-gensym-regex
+          (read-string (zprint-str y3 {:parallel? true, :parse-string? true}))))
+
+;;
+;; and again with :parallel? true and {:style :justify}
+;;
+
+(def y1 (source-fn 'fzprint-map-two-up))
+(expect
+  (read-string y1)
+  (read-string
+    (zprint-str y1 {:style :justified, :parallel? true, :parse-string? true})))
+
+(def y2 (source-fn 'partition-all-2-nc))
+(expect (trim-gensym-regex (read-string y2))
+        (trim-gensym-regex (read-string (zprint-str y2
+                                                    {:style :justified,
+                                                     :parallel? true,
+                                                     :parse-string? true}))))
 
 (def y3 (source-fn 'fzprint-list*))
 (expect (trim-gensym-regex (read-string y3))
         (trim-gensym-regex (read-string (zprint-str y3
-                                              {:parallel? true,
-                                               :parse-string? true}))))
+                                                    {:style :justified,
+                                                     :parallel? true,
+                                                     :parse-string? true}))))
 
 ;;
 ;; Check out line count
@@ -770,19 +793,12 @@
         (zprint-str "(stuff {:g :h :j :k :a :b})"
                     {:parse-string? true, :map {:sort-in-code? true}}))
 
-; mapv-no-nil-too-big
+; contains-nil?
 
-(expect [[["ldfkdfj"]] [["jfkldjs"]] [["kldjlfsdj"]] [["ldslk"]]]
-        (mapv-no-nil-too-big 28
-                             identity
-                             [[["ldfkdfj"]] [["jfkldjs"]] [["kldjlfsdj"]]
-                              [["ldslk"]]]))
+(expect nil (contains-nil? [:a :b :c :d]))
+(expect 1 (contains-nil? [:a nil :b :c :d]))
+(expect 2 (contains-nil? [:a :b nil '() :c :d]))
 
-(expect nil
-        (mapv-no-nil-too-big 27
-                             identity
-                             [[["ldfkdfj"]] [["jfkldjs"]] [["kldjlfsdj"]]
-                              [["ldslk"]]]))
 (def e2 {:aaaa :bbbb, :ccc :ddddd, :ee :ffffff})
 
 (expect "{:aaaa :bbbb,\n :ccc  :ddddd,\n :ee   :ffffff}"
@@ -1472,3 +1488,14 @@
                   {:map {:key-depth-color [:blue nil :green],
                          :key-color {"def" :cyan}},
                    :return-cvec? true}))
+
+;;
+;; # Bug -- can't justify a map that has something too big
+;;
+;; Bug was added in 0.3.0 when pmap showed up
+;;
+
+(expect "{:a\n   \"this is a pretty long string\",\n :b :c}"
+        (zprint-str {:a "this is a pretty long string", :b :c}
+                    30
+                    {:map {:justify? true}, :parallel? false}))

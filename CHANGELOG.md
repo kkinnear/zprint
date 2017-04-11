@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.3.2 - 2017-4-18
+
+### Changed
+
+### Fixed
+
+* Issue #23, where (czprint-fn defn {:style :justified}) would not
+  produce any output.  This bug was added in 0.3.0.
+
+* More work on dependencies to make it easier to release.
+
 ## 0.3.1 - 2017-4-10
 
 ### Fixed

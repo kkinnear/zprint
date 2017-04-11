@@ -28,16 +28,14 @@
   "Removes the unique numbers off of the end of a gensym. p1__3456# becomes 
   p1__"
   [x]
-  (if (instance? java.util.regex.Pattern x)
-    "regex"
-    x))
+  (if (instance? java.util.regex.Pattern x) "regex" x))
 
 (defn trim-gensym-regex
   "Fix up all of the gensyms in a structure so that they compare correctly."
   [x]
   (->> x
-  (clojure.walk/postwalk clean-gensym)
-  (clojure.walk/postwalk clean-regex)))
+       (clojure.walk/postwalk clean-gensym)
+       (clojure.walk/postwalk clean-regex)))
 
 (defn testfn
   "This fn is designed to see if reader macros, specifically the

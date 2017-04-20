@@ -21,7 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.3.2"))
+(defn about "Return version of this program." [] (str "zprint-0.3.3"))
 
 ;;
 ;; # External Configuration
@@ -286,9 +286,9 @@
    "defn" :arg1-body,
    "defn-" :arg1-body,
    "defproject" :arg1,
-   "defprotocol" :arg1,
-   "defrecord" :arg1-extend,
-   "deftype" :arg1-extend,
+   "defprotocol" :arg1-force-nl,
+   "defrecord" :arg2-extend,
+   "deftype" :arg2-extend,
    "defui" :arg1-extend,
    "do" :none-body,
    "doseq" :binding,
@@ -323,6 +323,7 @@
    "s/and" :gt2-force-nl,
    "s/or" :gt2-force-nl,
    "some->" :force-nl-body,
+   "some->>" :force-nl-body,
    "try" :none-body,
    "when" :arg1-body,
    "when-first" :binding,
@@ -379,7 +380,7 @@
    :delay {:object? false},
    :do-in-hang? true,
    :drop? nil,
-   :extend {:flow? false,
+   :extend {:flow? true,
             :force-nl? true,
             :hang-diff 1,
             :hang-expand 1000.0,

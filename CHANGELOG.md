@@ -1,6 +1,21 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.3.3 - 2017-4-19
+
+### Changed
+
+* Changed default for `:extend` to `{:flow? true}`, to fix issues in 
+  `extend-protocol`, `reify`, and `extend` where things were coming out
+  on the same line when they should not.
+
+* Created `:arg2-extend` to better handle `deftype` and `defrecord`.
+
+* Changed fn-type of `defprotocol` to `:arg1-force-nl`, so that it doesn't
+  hang several small forms.
+
+### Fixed
+
 ## 0.3.2 - 2017-4-18
 
 ### Changed

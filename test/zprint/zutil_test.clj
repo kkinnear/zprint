@@ -11,24 +11,24 @@
 
 ;;
 ;; Test for ( def x :yabcdefghijklmnopqrstuvwxyz) which duplicates x because
-;; znth didn't work correctly if there was whitespace at the start of a
+;; znthnext didn't work correctly if there was whitespace at the start of a
 ;; seq.
 ;;
 
 (def zz (z/edn* (p/parse-string "( 0 1 2 3 4 )")))
 
-(expect "0" (z/string (zprint.zutil/znth zz 0)))
-(expect "1" (z/string (zprint.zutil/znth zz 1)))
-(expect "2" (z/string (zprint.zutil/znth zz 2)))
-(expect "3" (z/string (zprint.zutil/znth zz 3)))
-(expect "4" (z/string (zprint.zutil/znth zz 4)))
-(expect nil (z/string (zprint.zutil/znth zz 5)))
+(expect "0" (z/string (zprint.zutil/znthnext zz 0)))
+(expect "1" (z/string (zprint.zutil/znthnext zz 1)))
+(expect "2" (z/string (zprint.zutil/znthnext zz 2)))
+(expect "3" (z/string (zprint.zutil/znthnext zz 3)))
+(expect "4" (z/string (zprint.zutil/znthnext zz 4)))
+(expect nil (z/string (zprint.zutil/znthnext zz 5)))
 
 (def za (z/edn* (p/parse-string "(0 1 2 3 4)")))
 
-(expect "0" (z/string (zprint.zutil/znth za 0)))
-(expect "1" (z/string (zprint.zutil/znth za 1)))
-(expect "2" (z/string (zprint.zutil/znth za 2)))
-(expect "3" (z/string (zprint.zutil/znth za 3)))
-(expect "4" (z/string (zprint.zutil/znth za 4)))
-(expect nil (z/string (zprint.zutil/znth za 5)))
+(expect "0" (z/string (zprint.zutil/znthnext za 0)))
+(expect "1" (z/string (zprint.zutil/znthnext za 1)))
+(expect "2" (z/string (zprint.zutil/znthnext za 2)))
+(expect "3" (z/string (zprint.zutil/znthnext za 3)))
+(expect "4" (z/string (zprint.zutil/znthnext za 4)))
+(expect nil (z/string (zprint.zutil/znthnext za 5)))

@@ -1085,11 +1085,11 @@
   clojure.lang.IMeta (meta [_] _meta))
 
 (expect
-  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
-  (zprint-fn-str zprint.zprint-test/->Typetest))
+  "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest {:extend {:flow? false}}))
 
 (expect
-  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
   (zprint-fn-str zprint.zprint-test/->Typetest {:extend {:flow? true}}))
 
 ;;
@@ -1119,15 +1119,39 @@
         (zprint-str "(let [a b c d e f] (list a b c d e f))"
                     {:parse-string? true, :binding {:force-nl? true}}))
 
+;;
+;; Test to see if either :flow? true or :force-nl? true will force new lines
+;; in :arg2-extend functions.
+;;
+;; This tests zprint.zprint/allow-one-line? and the map associated with it,
+;; fn-style->caller.
+;;
+
 (expect
   "(deftype Typetest [cnt _meta] clojure.lang.IHashEq (hasheq [this] (list this)) clojure.lang.Counted (count [_] cnt) clojure.lang.IMeta (meta [_] _meta))"
   (zprint-fn-str zprint.zprint-test/->Typetest
                  200
-                 {:extend {:force-nl? false}}))
+                 {:extend {:flow? false, :force-nl? false}}))
 
 (expect
-  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
-  (zprint-fn-str zprint.zprint-test/->Typetest 200 {:extend {:force-nl? true}}))
+  "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest
+                 200
+                 {:extend {:flow? false, :force-nl? true}}))
+
+(expect
+  "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest
+                 200
+                 {:extend {:flow? true, :force-nl? true}}))
+
+(expect
+  "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest
+                 200
+                 {:extend {:flow? true, :force-nl? false}}))
+
+
 
 ;;
 ;; # :nl-separator? tests
@@ -1164,11 +1188,11 @@
                :binding {:flow? true, :nl-separator? true}}))
 
 (expect
-  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
   (zprint-fn-str zprint.zprint-test/->Typetest {:extend {:flow? true}}))
 
 (expect
-  "(deftype Typetest\n  [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n\n  clojure.lang.Counted\n    (count [_] cnt)\n\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n\n  clojure.lang.Counted\n    (count [_] cnt)\n\n  clojure.lang.IMeta\n    (meta [_] _meta))"
   (zprint-fn-str zprint.zprint-test/->Typetest
                  {:extend {:flow? true, :nl-separator? true}}))
 
@@ -1224,13 +1248,28 @@
   clojure.lang.IMeta (meta [_] _meta))
 
 (expect
-  "(deftype Typetest1\n  [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this]\n                         (list this)\n                         (list this this)\n                         (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
-  (zprint-fn-str zprint.zprint-test/->Typetest1 60 {:extend {:hang? true}}))
+  "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this]\n                         (list this)\n                         (list this this)\n                         (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest1
+                 60
+                 {:extend {:flow? false, :hang? true}}))
 
 (expect
-  "(deftype Typetest1\n  [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
-  (zprint-fn-str zprint.zprint-test/->Typetest1 60 {:extend {:hang? false}}))
+  "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest1
+                 60
+                 {:extend {:flow? false, :hang? false}}))
 
+(expect
+  "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest1
+                 60
+                 {:extend {:flow? true, :hang? true}}))
+
+(expect
+  "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  (zprint-fn-str zprint.zprint-test/->Typetest1
+                 60
+                 {:extend {:flow? true, :hang? false}}))
 
 ;;
 ;; # Test a variant form of cond with :nl-separator?
@@ -1313,8 +1352,12 @@
 
 
 (expect
-  "(deftype Foo\n  [a b c]\n  P (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S (baz [this] a)\n  static T (baz-it [this] b)\n  static V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R (fubar [this] it))"
-  (zprint-str zprint.zprint-test/zextend-tst1))
+  "(deftype Foo [a b c]\n  P (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S (baz [this] a)\n  static T (baz-it [this] b)\n  static V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R (fubar [this] it))"
+  (zprint-str zprint.zprint-test/zextend-tst1 {:extend {:flow? false}}))
+
+(expect
+  "(deftype Foo [a b c]\n  P\n    (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S\n    (baz [this] a)\n  static T\n    (baz-it [this] b)\n  static V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R\n    (fubar [this] it))"
+  (zprint-str zprint.zprint-test/zextend-tst1 {:extend {:flow? true}}))
 
 ;
 ; Test removal of a modifier to see both that it works and confirm that
@@ -1322,9 +1365,10 @@
 ;
 
 (expect
-  "(deftype Foo\n  [a b c]\n  P (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S (baz [this] a)\n  static\n  T (baz-it [this] b)\n  static\n  V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R (fubar [this] it))"
+  "(deftype Foo [a b c]\n  P (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S (baz [this] a)\n  static\n  T (baz-it [this] b)\n  static\n  V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R (fubar [this] it))"
   (zprint-str zprint.zprint-test/zextend-tst1
-              {:remove {:extend {:modifiers #{"static"}}}}))
+              {:remove {:extend {:modifiers #{"static"}}},
+               :extend {:flow? false}}))
 
 ;;
 ;; # Tests for key-color and key-depth-color
@@ -1490,7 +1534,7 @@
                    :return-cvec? true}))
 
 ;;
-;; # Bug -- can't justify a map that has something too big
+;; Issue #23 -- can't justify a map that has something too big
 ;;
 ;; Bug was added in 0.3.0 when pmap showed up
 ;;
@@ -1499,3 +1543,16 @@
         (zprint-str {:a "this is a pretty long string", :b :c}
                     30
                     {:map {:justify? true}, :parallel? false}))
+
+;;
+;; Test :arg2-pair, see if both data and string versions of zthird
+;; work, essentially.
+;;
+
+(expect "(defn test-condp\n  [x y]\n  (condp = 1\n    1 :pass\n    2 :fail))"
+        (zprint-str '(defn test-condp [x y] (condp = 1 1 :pass 2 :fail)) 20))
+
+(expect "(defn test-condp\n  [x y]\n  (condp = 1\n    1 :pass\n    2 :fail))"
+        (zprint-str "(defn test-condp [x y] (condp = 1 1 :pass 2 :fail))"
+                    20
+                    {:parse-string? true}))

@@ -155,6 +155,15 @@
   (if-let [first-loc (zfirst zloc)]
     (if-let [nloc (right* first-loc)] (skip right* whitespace? nloc))))
 
+(defn zthird
+  "Find the third non-whitespace zloc inside of this zloc."
+  [zloc]
+  (some->> (zfirst zloc)
+           right*
+           (skip right* whitespace?)
+           right*
+           (skip right* whitespace?)))
+
 (defn zrightnws
   "Find the next non-whitespace zloc inside of this zloc."
   [zloc]
@@ -191,7 +200,7 @@
   [zloc]
   (if-let [ploc (prev* zloc)] (skip prev* whitespace? ploc)))
 
-(defn znth
+(defn znthnext
   "Find the nth non-whitespace zloc inside of this zloc."
   [zloc n]
   (loop [nloc (skip-whitespace (down* zloc))
@@ -421,7 +430,8 @@
                 zprint.zfns/zfocus-style zfocus-style
                 zprint.zfns/zfirst zfirst
                 zprint.zfns/zsecond zsecond
-                zprint.zfns/znth znth
+                zprint.zfns/zthird zthird
+                zprint.zfns/znthnext znthnext
                 zprint.zfns/zcount zcount
                 zprint.zfns/zmap zmap
                 zprint.zfns/zanonfn? zanonfn?

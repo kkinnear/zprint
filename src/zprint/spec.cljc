@@ -52,9 +52,9 @@
 (s/def ::boolean (s/nilable zboolean?))
 (s/def ::fn-type
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
-    :arg1-extend-body :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2
-    :arg2-pair :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl
-    :gt3-force-nl :flow :flow-body :force-nl-body :force-nl :pair-fn})
+    :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair
+    :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
+    :flow-body :force-nl-body :force-nl :pair-fn})
 (s/def ::format-value #{:on :off :next :skip})
 (s/def ::nilable-number (s/nilable number?))
 (s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
@@ -266,7 +266,6 @@
   call it a value or a key."
   [problem]
   (let [val (:val problem)
-        ks (:in problem)
         ks (problem-ks problem)]
     (if ((set ks) val)
       (str "In the key-sequence " ks " the key " (pr-str val))

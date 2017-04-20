@@ -76,8 +76,8 @@
   [style _ sexpr]
   style)
 
-(defn snth
-  "Find gthe nth element inside of this sexpr."
+(defn snthnext
+  "Find the nthnext of this sexpr."
   [sexpr n]
   (when (coll? sexpr) (nthnext sexpr n)))
 
@@ -130,6 +130,11 @@
   "Do the second thing, with the right amount of arguments."
   [sexpr]
   (second sexpr))
+
+(defn sthird
+  "Define a third since we need one, and znth isn't really nth."
+  [sexpr]
+  (nth sexpr 2))
 
 (defn slist?
   "A list? that includes cons."
@@ -212,7 +217,8 @@
                 zprint.zfns/zfocus-style sfocus-style
                 zprint.zfns/zfirst sfirst
                 zprint.zfns/zsecond ssecond
-                zprint.zfns/znth snth
+                zprint.zfns/zthird sthird
+                zprint.zfns/znthnext snthnext
                 zprint.zfns/zcount scount
                 zprint.zfns/zmap smap
                 ;   zprint.zfns/zfn? sfn?

@@ -181,7 +181,7 @@ You are going to create a shell script.
   containing the following single line, where you replace
   `<path-to-zprint-filter>` below with the path you found in #3 above:
 
-  `java -Xbootclasspath/a:<path-to-zprint-filter>/zprint-filter-0.3.0 zprint.main`
+  `java -Xbootclasspath/a:<path-to-zprint-filter>/zprint-filter-0.3.3 zprint.main`
 
   Note that the switch you are using is: `-Xbootclasspath/a:`, and
   immediately after that (with no spaces) comes the fully
@@ -239,7 +239,7 @@ Here are the steps to set this version up:
   ```
   java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:off \
           -XX:DumpLoadedClassList=zprint.filter.classlist \
-	  -cp zprint-filter-0.3.0 \
+	  -cp zprint-filter-0.3.3 \
           zprint.main  < helloworld.clj > /dev/null
   ```
 
@@ -253,7 +253,7 @@ Here are the steps to set this version up:
   java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:dump \
           -XX:SharedClassListFile=zprint.filter.classlist \
           -XX:SharedArchiveFile=cwd/zprint.filter.cache \
-	  -cp cwd/zprint-filter-0.3.0 \
+	  -cp cwd/zprint-filter-0.3.3 \
           zprint.main < helloworld.clj 
   ```
 
@@ -266,7 +266,7 @@ Here are the steps to set this version up:
   ```
   java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:on \
           -XX:SharedArchiveFile=cwd/zprint.filter.cache \
-	  -cp cwd/zprint-filter-0.3.0 zprint.main
+	  -cp cwd/zprint-filter-0.3.3 zprint.main
   ```
 
   8. Make that file executable:

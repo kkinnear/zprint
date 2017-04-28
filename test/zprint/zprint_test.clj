@@ -1078,11 +1078,13 @@
   (zprint-str "(let [a b c d e f] (list a b c d e f))"
               {:parse-string? true, :binding {:flow? true}}))
 
-(deftype Typetest
-  [cnt _meta]
-  clojure.lang.IHashEq (hasheq [this] (list this))
-  clojure.lang.Counted (count [_] cnt)
-  clojure.lang.IMeta (meta [_] _meta))
+(deftype Typetest [cnt _meta]
+  clojure.lang.IHashEq
+    (hasheq [this] (list this))
+  clojure.lang.Counted
+    (count [_] cnt)
+  clojure.lang.IMeta
+    (meta [_] _meta))
 
 (expect
   "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
@@ -1240,12 +1242,13 @@
 ;;
 
 
-(deftype Typetest1
-  [cnt _meta]
+(deftype Typetest1 [cnt _meta]
   clojure.lang.IHashEq
     (hasheq [this] (list this) (list this this) (list this this this this))
-  clojure.lang.Counted (count [_] cnt)
-  clojure.lang.IMeta (meta [_] _meta))
+  clojure.lang.Counted
+    (count [_] cnt)
+  clojure.lang.IMeta
+    (meta [_] _meta))
 
 (expect
   "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this]\n                         (list this)\n                         (list this this)\n                         (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
@@ -1334,21 +1337,24 @@
 ;;
 
 (def zextend-tst1
-  '(deftype Foo
-     [a b c]
-     P (foo [this] a)
+  '(deftype Foo [a b c]
+     P
+       (foo [this] a)
      Q
        (bar-me [this] b)
        (bar-me [this y] (+ c y))
      R
-     S (baz [this] a)
-     static T (baz-it [this] b)
+     S
+       (baz [this] a)
+     static T
+       (baz-it [this] b)
      static V
        (baz-it [this] b)
        (bar-none [this] a)
      stuff
      Q
-     R (fubar [this] it)))
+     R
+       (fubar [this] it)))
 
 
 (expect
@@ -1556,3 +1562,27 @@
         (zprint-str "(defn test-condp [x y] (condp = 1 1 :pass 2 :fail))"
                     20
                     {:parse-string? true}))
+
+;;
+;; Issue #25 -- problem with printing (fn ...) when it is an s-expression
+;; but not when it is a string.  concat-no-nil contains a (fn ...) 
+;;
+
+(expect (read-string (source-fn 'zprint.zprint/concat-no-nil))
+        (read-string (zprint-str (read-string
+                                   (source-fn 'zprint.zprint/concat-no-nil)))))
+
+;;
+;; Try a large function to see if we can do code in s-expressions correctly
+;;
+
+(expect
+  (trim-gensym-regex (read-string (source-fn 'zprint.zprint/fzprint-list*)))
+  (read-string (zprint-str (trim-gensym-regex
+                             (read-string (source-fn
+                                            'zprint.zprint/fzprint-list*))))))
+
+
+
+
+

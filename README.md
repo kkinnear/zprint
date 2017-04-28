@@ -119,12 +119,17 @@ __Leiningen ([via Clojars](http://clojars.org/zprint))__
 In addition to the zprint dependency, you also need to
 include the library: 
 
-     `[clojure-future-spec "1.9.0-alpha15"]`
+```
+[clojure-future-spec "1.9.0-alpha15"]
+```
 
 Probably later versions would work as well, but this is what I've
 tested with.
 
-### Clojure 1.9-alpha*:
+### Clojure 1.9-alpha15:
+
+__NOTE:__ The changes in clojure.spec for Clojure 1.9-alpha16 make this
+the last release of zprint which will work with Clojure 1.9-alpha15.
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 

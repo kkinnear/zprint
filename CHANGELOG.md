@@ -1,9 +1,15 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.3.3 - 2017-4-19
+## 0.3.3 - 2017-5-4
 
 ### Changed
+
+* Added `appcds` script to set up zprint-filter with less opportunity
+  for errors. 
+
+* Added instructions for how to use zprint-filter with `emacs` and
+  Sublime Text 2 or 3.
 
 * Changed default for `:extend` to `{:flow? true}`, to fix issues in 
   `extend-protocol`, `reify`, and `extend` where things were coming out
@@ -15,6 +21,10 @@ All notable changes to this project will be documented in this file.
   hang several small forms.
 
 ### Fixed
+
+* Issue #25, where additional () were added when formatting a `(fn ...)`
+  when the `(fn ...)` was in a Clojure data structure.  This didn't happen
+  when formatting source in files or with the zprint-filter.
 
 ## 0.3.2 - 2017-4-18
 

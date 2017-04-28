@@ -278,41 +278,6 @@
         ; actual-options is a complete options-map
         actual-options))))
 
-(defn determine-options-alt
-  "Take some internal-options and the & rest of a zprint/czprint
-  call and figure out the options and width and all of that. Note
-  that internal-options MUST NOT be a full options map.  It needs
-  to be just the options that have been requested for this invocation.
-  Does auto-width if that is requested, and determines if there are
-  'special-options', which may short circuit the other options
-  processing. Returns [special-option actual-options]"
-  [rest-options]
-  (let [; Do what config-and-validate does, minus the doc-map
-        configure-errors (when-not (:configured? (get-options))
-                           (configure-all!))
-        errors (validate-options rest-options)
-        ; remove set elements before doing anything else
-        [internal-map rest-options _]
-          (perform-remove nil nil (get-options) rest-options)
-        ; updated-map is the holder of the actual configuration
-        ; as of this point
-        [updated-map _ style-errors]
-          (apply-style nil nil internal-map rest-options)
-        errors (if style-errors (str errors " " style-errors) errors)
-        combined-errors
-          (str (when configure-errors
-                 (str "Global configuration errors: " configure-errors))
-               (when errors (str "Option errors in this call: " errors)))
-        actual-options (if (not (empty? combined-errors))
-                         (throw (#?(:clj Exception.
-                                    :cljs js/Error.)
-                                 combined-errors))
-                         (config/add-calculated-options
-                           (merge-deep updated-map rest-options)))]
-    #_(def dout actual-options)
-    ; actual-options is a complete options-map
-    actual-options))
-
 ;;
 ;; # Fundemental interface for fzprint-style, does configuration
 ;;

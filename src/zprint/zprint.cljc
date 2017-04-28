@@ -3071,8 +3071,7 @@
 ;; Seems defrecord doesn't work in test environment, which is pretty odd.
 ;;
 
-(defrecord r
-  [left right])
+(defrecord r [left right])
 (defn make-record [l r] (new r l r))
 
 ;;

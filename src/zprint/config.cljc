@@ -285,7 +285,7 @@
    "defmulti" :arg1-body,
    "defn" :arg1-body,
    "defn-" :arg1-body,
-   "defproject" :arg1,
+   "defproject" :arg2-pair,
    "defprotocol" :arg1-force-nl,
    "defrecord" :arg2-extend,
    "deftype" :arg2-extend,

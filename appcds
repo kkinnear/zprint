@@ -1,0 +1,126 @@
+#!/bin/bash
+#
+# Create a class cache for zprint-filter to allow sub-second startup.
+#
+# The zprint-filter reads Clojure(script) code from stdin and writes 
+# pretty-printed Clojure(script) code on stdout.
+#
+# This script takes as input a zprint-filter from:
+#   https://github.com/kkinnear/zprint
+# and produces a bash shell script which will startup the zprint-filter
+# in less than one second. 
+#
+# To download the zprint-filter uberjar, look at the "Releases" tab
+# on the zprint repository, and download the latest one.  
+# This script is also available from the same place.
+#
+# Place the zprint-filter in a directory where you are willing to
+# keep it and the class cache.  Once you run this script, you can't
+# move the zprint-filter, so find some place you can leave it alone.
+#
+# Steps:
+#
+# 1. Put this script and the zprint-filter in the directory where you
+#    can leave it alone after you run the script.
+#
+# 2. Decide what you want to call the shell script (the script-name) which 
+#    will run the zprint-filter.  Probably you want the name to be short, 
+#    since you might be typing the name to run it from your editor or IDE.
+#
+# Usage:
+#
+# ./appcds zprint-filter-i.j.k script-name
+#
+# To use the script script-name produced by this script:
+#
+# script-name <yourfile.clj >yourfile.out.clj
+#
+# But the real point is to be able to pipe Clojure(script) code through
+# the filter from your favorite editor or IDE.
+#
+
+helptext="Usage: ./setup.sh zprint-filter output-command-name"
+
+if [[ -z "$1" ]]
+	then
+	echo "Missing first required argument: zprint filter file (e.g. zprint-filter-0.3.3)"
+	echo "$helptext"
+	exit 1
+fi 
+
+if [[ -z "$2" ]]
+	then
+	echo "Missing second required argument: output command name (e.g. za)"
+	echo "$helptext"
+	exit 1
+fi 
+
+filter="$1"
+output_command_name="$2"
+current_path=$(pwd)
+filter_path="$current_path/$filter"
+
+if [[ ! -e "$filter_path" ]]
+	then
+	echo "Specified file $filter_path does not exist"
+	exit 1
+fi
+
+java_version=$(java -version 2>&1 | grep "java" | grep -o -E "([0-9]+\.[0-9])+")
+
+java_update=$(java -version 2>&1 | grep "java" | grep -o -E "(\_[0-9]+)" | grep -o -E "[0-9]+")
+
+echo "Your Java version is: $java_version"
+echo "Your Java update is: $java_update"
+
+if [[ $java_version < "1.8" ]]
+then
+	echo "Java 1.8 update 40 or greater is required"
+	exit 1
+fi
+
+if [[ $java_version == "1.8" && $java_update -gt 39 ]]
+	then
+	echo "Java 1.8 update 40 or greater detected, proceeding..."
+else 
+	echo "Java 1.8 update 40 or greater is required"
+	exit 1
+fi
+
+
+echo ""
+
+echo "Creating helloworld.clj to prime the cache..."
+
+echo '"Hello World!"' > helloworld.clj
+
+
+echo "Creating loaded class list..."
+java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:off -XX:DumpLoadedClassList=zprint.filter.classlist -cp "$filter_path" zprint.main < helloworld.clj > /dev/null
+
+echo "Creating loaded class cache from list..."
+java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:dump -XX:SharedClassListFile=zprint.filter.classlist -XX:SharedArchiveFile="$current_path/zprint.filter.cache" -cp "$filter_path" zprint.main < helloworld.clj 
+
+echo "Creating output command: $output_command_name"
+echo "java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:on -XX:SharedArchiveFile="$current_path/zprint.filter.cache" -cp "$filter_path" zprint.main" > "$output_command_name"
+
+chmod +x "$output_command_name"
+
+echo "Cleaning up temporary files..."
+rm zprint.filter.classlist
+
+echo "Done"
+echo ""
+echo "Try it out with: "
+echo "./$output_command_name < helloworld.clj"
+echo "which should print Hello World!"
+echo "Afterwards, you can delete helloworld.clj"
+echo ""
+echo ""
+echo "The files:"
+echo "  $current_path/zprint.filter.cache"
+echo "  $filter_path"
+echo "must remain at their current locations with respect to"
+echo "their absolute paths.  You can, however, move $output_command_name"
+echo "anywhere you wish, for example to a location on your PATH"
+

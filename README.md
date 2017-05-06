@@ -110,6 +110,9 @@ and has __deprecated__ several little used configuration approachs in
 order to drastically reduce its other dependencies. This may require
 some slight extra work when using zprint as a library.
 
+__NOTE:__ As of version 0.4.0, zprint now uses `clojure.spec.alpha` for
+Clojure, and still used `cljs.spec` for Clojurescript.
+
 ### Clojure 1.8:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
@@ -120,16 +123,22 @@ In addition to the zprint dependency, you also need to
 include the library: 
 
 ```
-[clojure-future-spec "1.9.0-alpha15"]
+[clojure-future-spec "1.9.0-alpha16-1"]
 ```
-
-Probably later versions would work as well, but this is what I've
-tested with.
 
 ### Clojure 1.9-alpha15:
 
-__NOTE:__ The changes in clojure.spec for Clojure 1.9-alpha16 make this
-the last release of zprint which will work with Clojure 1.9-alpha15.
+__NOTE:__ Use `zprint 0.3.3` for 1.9-alpha15. `zprint 0.4.0` will not work
+with 1.9-alpha15!
+
+In addition to the zprint dependency, you also need to
+include the library: 
+
+```
+[clojure-future-spec "1.9.0-alpha15"]
+```
+
+### Clojure 1.9-alpha16:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
@@ -163,7 +172,7 @@ away, but can still be used if you load the library:
 
 If you use either of these __deprecated__ capabilities, please raise
 an issue on Github and let me know.  Otherwise they will go away
-completely before too much longer.
+very soon!
 
 ## Features
 

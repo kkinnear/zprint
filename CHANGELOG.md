@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.0 - 2017-5-5
+
+### Changed
+
+* Changed to use `clojure.spec.alpha` instead of `clojure.spec`.
+  Now, the 0.4.0 version runs in 1.9-alpha16, but not 1.9-alpha15.
+  It still runs in 1.8 as well, but requires a different supporing
+  library -- see the readme.
+
+### Fixed
+
+* Issue #26 -- now it runs in 1.9-alpha16.
+
 ## 0.3.3 - 2017-5-4
 
 ### Changed

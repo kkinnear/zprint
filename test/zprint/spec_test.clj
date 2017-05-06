@@ -6,7 +6,7 @@
             [zprint.spec :refer :all]
             [zprint.finish :refer :all]
             [clojure.repl :refer :all]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
             [rewrite-clj.node :as n]

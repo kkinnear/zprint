@@ -18,7 +18,8 @@
             [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string]]
             [zprint.sutil]
             [rewrite-clj.parser :as p]
-            #_[clojure.spec :as spec :refer [get-spec describe]]))
+            #_[clojure.spec.alpha :as s]))
+
 
 ;;
 ;; zprint
@@ -747,8 +748,8 @@
   in the doc string."
        [{:keys [width rightcnt], {:keys [indent]} :list, :as options} fn-name]
        (let [{n :ns, nm :name, :as m} (meta (resolve fn-name))
-             get-spec-fn (resolve 'clojure.spec/get-spec)
-             describe-fn (resolve 'clojure.spec/describe)]
+             get-spec-fn (resolve 's/get-spec)
+             describe-fn (resolve 's/describe)]
          (when (and get-spec-fn describe-fn)
            (when-let [fn-spec (get-spec-fn (symbol (str (ns-name n))
                                                    (name nm)))]

@@ -1,6 +1,7 @@
 (ns zprint.spec
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
-  (:require #?@(:clj [[zprint.smacros :refer [only-keys]] [clojure.spec :as s]]
+  (:require #?@(:clj [[zprint.smacros :refer [only-keys]]
+                      [clojure.spec.alpha :as s]]
                 :cljs [[cljs.spec :as s]])))
 
 ;;
@@ -256,7 +257,7 @@
     (if (and (number? last-ks)
              (or (= last-ks last-num)
                  (= last-path
-                    #?(:clj :clojure.spec/pred
+                    #?(:clj :clojure.spec.alpha/pred
                        :cljs :cljs.spec/pred))))
       (into [] (butlast ks))
       ks)))
@@ -282,7 +283,7 @@
   "Try to do a better job of explaining spec problems."
   [explain-data-return]
   (when explain-data-return
-    (let [problem-list (#?(:clj :clojure.spec/problems
+    (let [problem-list (#?(:clj :clojure.spec.alpha/problems
                            :cljs :cljs.spec/problems)
                         explain-data-return)
           problem-list (remove #(= "nil?" (str (:pred %))) problem-list)
@@ -302,6 +303,7 @@
   "Using spec defined above, validate the given options map.  Return
   nil if no errors, or a string containing errors if any."
   ([options source-str]
+   #_(println "Options:" options)
    (try (if (s/valid? ::options options)
           nil
           (if source-str
@@ -310,10 +312,18 @@
             (explain-more (s/explain-data ::options options))))
         (catch #?(:clj Exception
                   :cljs :default) e
+          #_(println "Exception:" (str e))
+          #_(println "type of exception:" (type e))
+          #_(println ":cause" (:cause e))
           (if source-str
-            (str "In " source-str
-                 ", validation failed completely because: " (.-message e))
-            (str "Validation failed completely because: " (.-message e))))))
+            (str "In "
+                 source-str
+                 ", validation failed completely because: "
+                 (str e)
+                 #_(.-message e))
+            (str "Validation failed completely because: "
+                 (str e)
+                 #_(.-message e))))))
   ([options] (validate-basic options nil)))
 
 #_(defn explain

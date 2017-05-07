@@ -111,7 +111,7 @@ order to drastically reduce its other dependencies. This may require
 some slight extra work when using zprint as a library.
 
 __NOTE:__ As of version 0.4.0, zprint now uses `clojure.spec.alpha` for
-Clojure, and still used `cljs.spec` for Clojurescript.
+Clojure, and still uses `cljs.spec` for Clojurescript.
 
 ### Clojure 1.8:
 
@@ -130,13 +130,6 @@ include the library:
 
 __NOTE:__ Use `zprint 0.3.3` for 1.9-alpha15. `zprint 0.4.0` will not work
 with 1.9-alpha15!
-
-In addition to the zprint dependency, you also need to
-include the library: 
-
-```
-[clojure-future-spec "1.9.0-alpha15"]
-```
 
 ### Clojure 1.9-alpha16:
 

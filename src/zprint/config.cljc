@@ -21,7 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.0"))
+(defn about "Return version of this program." [] (str "zprint-0.4.1"))
 
 ;;
 ;; # External Configuration
@@ -46,7 +46,7 @@
    :process-bang-zprint? :trim-comments? :zipper? :indent :remove :return-cvec?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:pair :justify-hang :justify-tuning]
-   [:binding :justify-hang :justify-tuning]
+   [:binding :justify-hang :justify-tuning] [:spec :value]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] :tuning])
 
 
@@ -471,7 +471,12 @@
             :fn-gt3-force-nl nil,
             :extend {:modifiers nil}},
    :return-cvec? false,
-   :set {:indent 1, :wrap-after-multi? true, :wrap-coll? true, :wrap? true},
+   :set {:indent 1,
+         :sort? true,
+         :sort-in-code? false,
+         :wrap-after-multi? true,
+         :wrap-coll? true,
+         :wrap? true},
    :spaces? nil,
    :spec {:docstring? true, :value nil},
    :style nil,
@@ -499,7 +504,8 @@
                :pair-nl {:pair {:indent 0, :nl-separator? true}},
                :spec {:list {:constant-pair-min 2},
                       :vector {:wrap? false},
-                      :pair {:indent 0}}},
+                      ;:pair {:indent 0} removed in 0.4.1
+                      }},
    :tab {:expand? true, :size 8},
    :trim-comments? nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)

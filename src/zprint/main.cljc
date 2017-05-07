@@ -25,7 +25,7 @@
   [& args]
   (set-options! {:additional-libraries? false, :parallel? true})
   (let [options (first args)
-        _ (when options
+        _ (when (and options (not (clojure.string/blank? options)))
             (try (set-options! (read-string options))
                  (catch Exception e
                    (println "Failed to use command line options: '"

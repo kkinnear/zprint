@@ -392,6 +392,15 @@
 ;; find the docstring in the meta data (so that, defn might
 ;; work, for instance).
 
+(defn find-doc-in-map
+  "Given a zloc zipper of a map, find the :doc element."
+  [zloc]
+  (loop [nloc (z/down zloc)]
+    (when nloc
+      (if (and (zkeyword? nloc) (= (z/string nloc) ":doc"))
+        (when (string? (sexpr (z/right nloc))) (z/right nloc))
+        (recur (z/right (z/right nloc)))))))
+
 (defn find-docstring
   "Find a docstring in a zipper of a function."
   [zloc]
@@ -399,11 +408,16 @@
     (cond (or (= fn-name "defn") (= fn-name "defmacro"))
             (let [docloc (z/right (z/right (z/down zloc)))]
               (when (string? (sexpr docloc)) docloc))
+          (= fn-name "def") (let [maploc (z/down (z/right (z/down zloc)))]
+                              (when (z/map? maploc) (find-doc-in-map maploc)))
           :else nil)))
 
 (defn add-spec-to-docstring
-  "Given a zipper of a function definition, add the spec info
-  to the docstring."
+  "Given a zipper of a function definition, add the spec info to
+  the docstring. Works for docstring with (def ...) functions, but
+  the left-indent isn't optimal.  But to fix that, we'd have to do
+  the zprinting here, where we know the indent of the existing
+  docstring."
   [zloc spec-str]
   #_(println "spec-str:" spec-str)
   (if-let [doc-zloc (find-docstring zloc)]

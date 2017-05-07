@@ -32,7 +32,7 @@
   use futures.  If not, just return the value.  Note well
   that the returns from this are wildly different if a future
   is used or if a future is not used, but there is no way
-  around that.  Of which I'm aware, anyway."
+  around that.  Of which I'm aware, anyway.  Note, this is
+  only called with :clj, not :cljs."
   [options & body]
-  #?(:clj `(if (:parallel? ~options) (future ~@body) (do ~@body))
-     :cljs `(do ~@body)))
+  `(if (:parallel? ~options) (future ~@body) (do ~@body)))

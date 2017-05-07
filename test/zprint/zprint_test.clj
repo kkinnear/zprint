@@ -793,6 +793,33 @@
         (zprint-str "(stuff {:g :h :j :k :a :b})"
                     {:parse-string? true, :map {:sort-in-code? true}}))
 
+;;
+;; # Sorting sets in code
+;;
+
+; Regular sort
+
+(expect "#{:a :b :g :h :j :k}"
+        (zprint-str "#{:g :h :j :k :a :b}" {:parse-string? true}))
+
+; Still sorts in a list, not code 
+
+(expect "(#{:a :b :g :h :j :k})"
+        (zprint-str "(#{:g :h :j :k :a :b})" {:parse-string? true}))
+
+; Doesn't sort in code (where stuff might be a function)
+
+(expect "(stuff #{:g :h :j :k :a :b})"
+        (zprint-str "(stuff #{:g :h :j :k :a :b})" {:parse-string? true}))
+
+; Will sort in code if you tell it to
+
+(expect "(stuff #{:a :b :g :h :j :k})"
+        (zprint-str "(stuff #{:g :h :j :k :a :b})"
+                    {:parse-string? true, :set {:sort-in-code? true}}))
+
+
+
 ; contains-nil?
 
 (expect nil (contains-nil? [:a :b :c :d]))
@@ -825,8 +852,8 @@
 
 (def svba1 (set vba1))
 
-(expect 47 (max-width (zprint-str svba1 48)))
-(expect 4 (line-count (zprint-str svba1 48)))
+(expect 47 (max-width (zprint-str svba1 48 {:set {:sort? false}})))
+(expect 4 (line-count (zprint-str svba1 48 {:set {:sort? false}})))
 
 (expect 5 (max-width (zprint-str svba1 48 {:set {:wrap? nil}})))
 (expect 50 (line-count (zprint-str svba1 48 {:set {:wrap? nil}})))
@@ -1581,3 +1608,66 @@
   (read-string (zprint-str (trim-gensym-regex
                              (read-string (source-fn
                                             'zprint.zprint/fzprint-list*))))))
+
+;;
+;; # key-value-color
+;;
+;; When you find this key, use the color map associated with it when formatting
+;; the value.
+;;
+
+(expect
+  [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
+   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :whitespace] [";stuff" :green :comment]
+   ["\n     " :none :whitespace] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
+   [", " :none :whitespace] [":deeper" :magenta :element]
+   [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
+   [" " :none :whitespace] [":is" :magenta :element] [", " :none :whitespace]
+   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
+   [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
+   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["5" :purple :element] [" " :none :whitespace]
+   ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :blue :element]
+   ["}" :red :right] [")" :green :right]]
+  (czprint-fn-str zprint.zprint-test/key-color-tst
+                  {:map {:key-value-color {["hi"] {:string :blue}}},
+                   :return-cvec? true}))
+
+(expect
+  [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
+   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :whitespace] [";stuff" :green :comment]
+   ["\n     " :none :whitespace] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
+   [", " :none :whitespace] [":deeper" :magenta :element]
+   [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
+   [" " :none :whitespace] [":is" :blue :element] [", " :none :whitespace]
+   [":just" :blue :element] [" " :none :whitespace] ["\"the\"" :red :element]
+   [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [":it-is" :blue :element] ["}" :red :right] ["}" :red :right]
+   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["5" :purple :element] [" " :none :whitespace]
+   ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
+   ["}" :red :right] [")" :green :right]]
+  (czprint-fn-str zprint.zprint-test/key-color-tst
+                  {:map {:key-value-color {:deeper {:keyword :blue}}},
+                   :return-cvec? true}))
+
+

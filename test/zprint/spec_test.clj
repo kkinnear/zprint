@@ -354,3 +354,27 @@
   "The value of the key-sequence [:extend :modifiers] -> 5 was not a string?"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers #{5}}})))
+
+;;
+;; # Deeper feature
+;;
+
+(expect
+  "The value of the key-sequence [:map :key-value-color :deeper :keyword] -> :bluex was not recognized as valid!"
+  (explain-more
+    (s/explain-data :zprint.spec/options
+                    {:map {:key-value-color {:deeper {:string :yellow,
+                                                      :keyword :bluex}}}})))
+(expect
+  "In the key-sequence [:map :key-value-color :deeper :keywordx] the key :keywordx was not recognized as valid!"
+  (explain-more
+    (s/explain-data :zprint.spec/options
+                    {:map {:key-value-color {:deeper {:string :yellow,
+                                                      :keywordx :blue}}}})))
+
+
+(expect nil
+        (explain-more (s/explain-data :zprint.spec/options
+                                      {:map {:key-value-color
+                                               {:deeper {:string :yellow,
+                                                         :keyword :blue}}}})))

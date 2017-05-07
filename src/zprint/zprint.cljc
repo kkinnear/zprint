@@ -572,7 +572,7 @@
   [caller
    {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],
     {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color
-            key-depth-color]}
+            key-depth-color key-value-color]}
       caller,
     :as options} ind commas? justify-width rightmost-pair?
    [lloc rloc xloc :as pair]]
@@ -602,6 +602,20 @@
         roptions (c-r-pair commas? rightmost-pair? :rightmost options)
         local-roptions
           (c-r-pair commas? rightmost-pair? :rightmost local-options)
+        ; If we have a key-value-color map, and the key we have matches any
+        ; of the keys in the map, then merge the resulting color-map elements
+        ; into the current color-map.  Could be problematic if lloc is a
+        ; modifier, but at present modifiers are only for extend and
+        ; key-value-color is only for maps, so they can't both show up
+        ; at once.
+        value-color-map (and key-value-color (key-value-color (zsexpr lloc)))
+        local-roptions (if value-color-map
+                         (merge-deep local-roptions
+                                     {:color-map value-color-map})
+                         local-roptions)
+        roptions (if value-color-map
+                   (merge-deep roptions {:color-map value-color-map})
+                   roptions)
         ; It is possible that lloc is a modifier, and if we have exactly
         ; three things, we will pull rloc in with it, and move xloc to rloc.
         ; If it is just two, we'll leave it to be handled normally.
@@ -971,13 +985,12 @@
   but if the caller has a key-order vector, it will extract
   any keys in that vector and place them first (in order) before
   sorting the other keys."
-  [caller {{:keys [sort? key-order key-value]} caller, :as options} out]
+  [caller {{:keys [sort? key-order key-value]} caller, :as options} access out]
   (cond (or sort? key-order)
           (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
-                   (zsexpr (first %1))
-                   (zsexpr (first %2)))
+                   (zsexpr (access %1))
+                   (zsexpr (access %2)))
                 out)
-        sort? (sort #(compare-keys (zsexpr (first %1)) (zsexpr (first %2))) out)
         :else (throw (#?(:clj Exception.
                          :cljs js/Error.)
                       "Unknown options to order-out"))))
@@ -1068,7 +1081,7 @@
        (if-not remaining
          (if no-sort?
            (persistent! out)
-           (order-out caller options (persistent! out)))
+           (order-out caller options first (persistent! out)))
          (let [[new-remaining pair-vec new-no-sort?]
                  (cond
                    (pair-element? (first remaining)) [(next remaining)
@@ -1609,33 +1622,42 @@
         _ (dbg options
                "fzprint-hang-remaining count pair-seq:"
                (count pair-seq))
-        flow
-          (zfuture
-            options
-            (let [flow-result
-                    (if-not pair-seq
-                      ; We don't have any constant pairs
-                      (apply concat-no-nil
-                        (interpose [[(str "\n" (blanks findent)) :none
-                                     :whitespace]]
-                          (fzprint-seq options findent seq-right)))
-                      (if (not (zero? non-paired-item-count))
-                        ; We have constant pairs, ; but they follow
-                        ; some stuff that isn't paired.
-                        (concat-no-nil
-                          ; The elements that are not pairs
-                          (apply concat-no-nil
-                            (interpose [[(str "\n" (blanks findent)) :none
-                                         :whitespace]]
-                              (zpmap options
-                                     (partial fzprint*
-                                              (not-rightmost options)
-                                              findent)
-                                     (take non-paired-item-count seq-right))))
-                          ; Got to separate them since we are doing them in two
-                          ; pieces
-                          [[(str "\n" (blanks findent)) :none :whitespace]]
-                          ; The elements that are constant pairs
+        flow (#?@(:clj [zfuture options]
+                  :cljs [do])
+              (let [flow-result
+                      (if-not pair-seq
+                        ; We don't have any constant pairs
+                        (apply concat-no-nil
+                          (interpose [[(str "\n" (blanks findent)) :none
+                                       :whitespace]]
+                            (fzprint-seq options findent seq-right)))
+                        (if (not (zero? non-paired-item-count))
+                          ; We have constant pairs, ; but they follow
+                          ; some stuff that isn't paired.
+                          (concat-no-nil
+                            ; The elements that are not pairs
+                            (apply concat-no-nil
+                              (interpose [[(str "\n" (blanks findent)) :none
+                                           :whitespace]]
+                                (zpmap options
+                                       (partial fzprint*
+                                                (not-rightmost options)
+                                                findent)
+                                       (take non-paired-item-count seq-right))))
+                            ; Got to separate them since we are doing them in
+                            ; two
+                            ; pieces
+                            [[(str "\n" (blanks findent)) :none :whitespace]]
+                            ; The elements that are constant pairs
+                            (interpose-nl-hf (:pair options)
+                                             findent
+                                             (fzprint-map-two-up :pair
+                                                                 ;caller
+                                                                 options
+                                                                 findent
+                                                                 nil
+                                                                 pair-seq)))
+                          ; This code path is where we have all constant pairs.
                           (interpose-nl-hf (:pair options)
                                            findent
                                            (fzprint-map-two-up :pair
@@ -1643,17 +1665,8 @@
                                                                options
                                                                findent
                                                                nil
-                                                               pair-seq)))
-                        ; This code path is where we have all constant pairs.
-                        (interpose-nl-hf (:pair options)
-                                         findent
-                                         (fzprint-map-two-up :pair
-                                                             ;caller
-                                                             options
-                                                             findent
-                                                             nil
-                                                             pair-seq))))]
-              [flow-result (style-lines options findent flow-result)]))
+                                                               pair-seq))))]
+                [flow-result (style-lines options findent flow-result)]))
         #_(options (let [[_ _ _ b-what] flow-lines]
                      (if b-what (assoc options :dbg? true) options)))
         #_(dbg options
@@ -1695,56 +1708,56 @@
                          (<= (/ (dec (first flow-lines)) (count seq-right))
                              hang-expand)))
         hanging
-          (zfuture
-            options
-            (let [hang-result
-                    (when hang?
-                      (if-not pair-seq
-                        ; There are no paired elements
-                        (apply concat-no-nil
-                          (interpose [[(str "\n" (blanks hindent)) :none
-                                       :whitespace]]
-                            (fzprint-seq (in-hang options) hindent seq-right)))
-                        (if (not (zero? non-paired-item-count))
-                          (concat-no-nil
-                            ; The elements that are not paired
-                            (dbg-form
-                              options
-                              "fzprint-hang-remaining: mapv:"
-                              (apply concat-no-nil
-                                (interpose [[(str "\n" (blanks hindent)) :none
-                                             :whitespace]]
-                                  (zpmap
-                                    options
-                                    (partial fzprint*
-                                             (not-rightmost (in-hang options))
-                                             hindent)
-                                    (take non-paired-item-count seq-right)))))
-                            ; Got to separate them because they were done in two
-                            ; pieces
-                            [[(str "\n" (blanks hindent)) :none :whitespace]]
-                            ; The elements that are paired
-                            (dbg-form options
-                                      "fzprint-hang-remaining: fzprint-hang:"
-                                      (interpose-nl-hf
-                                        (:pair options)
-                                        hindent
-                                        (fzprint-map-two-up :pair
-                                                            ;caller
-                                                            (in-hang options)
-                                                            hindent
-                                                            nil
-                                                            pair-seq))))
-                          ; All elements are paired
-                          (interpose-nl-hf (:pair options)
-                                           hindent
-                                           (fzprint-map-two-up :pair
-                                                               ;caller
-                                                               (in-hang options)
-                                                               hindent
-                                                               nil
-                                                               pair-seq)))))]
-              [hang-result (style-lines options hindent hang-result)]))
+          (#?@(:clj [zfuture options]
+               :cljs [do])
+           (let [hang-result
+                   (when hang?
+                     (if-not pair-seq
+                       ; There are no paired elements
+                       (apply concat-no-nil
+                         (interpose [[(str "\n" (blanks hindent)) :none
+                                      :whitespace]]
+                           (fzprint-seq (in-hang options) hindent seq-right)))
+                       (if (not (zero? non-paired-item-count))
+                         (concat-no-nil
+                           ; The elements that are not paired
+                           (dbg-form
+                             options
+                             "fzprint-hang-remaining: mapv:"
+                             (apply concat-no-nil
+                               (interpose [[(str "\n" (blanks hindent)) :none
+                                            :whitespace]]
+                                 (zpmap
+                                   options
+                                   (partial fzprint*
+                                            (not-rightmost (in-hang options))
+                                            hindent)
+                                   (take non-paired-item-count seq-right)))))
+                           ; Got to separate them because they were done in two
+                           ; pieces
+                           [[(str "\n" (blanks hindent)) :none :whitespace]]
+                           ; The elements that are paired
+                           (dbg-form options
+                                     "fzprint-hang-remaining: fzprint-hang:"
+                                     (interpose-nl-hf
+                                       (:pair options)
+                                       hindent
+                                       (fzprint-map-two-up :pair
+                                                           ;caller
+                                                           (in-hang options)
+                                                           hindent
+                                                           nil
+                                                           pair-seq))))
+                         ; All elements are paired
+                         (interpose-nl-hf (:pair options)
+                                          hindent
+                                          (fzprint-map-two-up :pair
+                                                              ;caller
+                                                              (in-hang options)
+                                                              hindent
+                                                              nil
+                                                              pair-seq)))))]
+             [hang-result (style-lines options hindent hang-result)]))
         ; We used to calculate hang-count by doing the hang an then counting
         ; the output.  But ultimately this is simple a series of map calls
         ; to the elements of seq-right, so we go right to the source for this
@@ -2202,14 +2215,20 @@
   "Print basic stuff like a vector or a set.  Several options for how to
   print them."
   [caller l-str r-str
-   {:keys [rightcnt], {:keys [wrap-coll? wrap?]} caller, :as options} ind zloc]
+   {:keys [rightcnt in-code?],
+    {:keys [wrap-coll? wrap? sort? sort-in-code?]} caller,
+    :as options} ind zloc]
   (let [l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options ind zloc r-str)
         new-ind (+ (count l-str) ind)
         _ (dbg-pr options "fzprint-vec*:" (zstring zloc) "new-ind:" new-ind)
+        zloc-seq (zmap identity zloc)
+        zloc-seq (if (and sort? (if in-code? sort-in-code? true))
+                   (order-out caller options identity zloc-seq)
+                   zloc-seq)
         coll-print (if (zero? (zcount zloc))
                      [[["" :none :whitespace]]]
-                     (fzprint-seq options new-ind (zmap identity zloc)))
+                     (fzprint-seq options new-ind zloc-seq))
         _ (dbg-pr options "fzprint-vec*: coll-print:" coll-print)
         ; If we got any nils from fzprint-seq and we were in :one-line mode
         ; then give up -- it didn't fit on one line.

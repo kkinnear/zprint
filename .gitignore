@@ -4,6 +4,13 @@
 /src/zprint/repl.clj
 /src/zprint/repl.cljc
 /src/zprint/log.txt
+/planck_cache
+/lumo_cache
+/node_modules
+/cljsbuild
+/out
+/tmp
+helloworld.clj
 pom.xml
 pom.xml.asc
 *.jar

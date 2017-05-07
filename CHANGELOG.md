@@ -1,6 +1,44 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.1 - 2017-5-18
+
+### Changed
+
+* Moved to `cljs.spec.alpha` for Clojurescript too.  Zprint now requires
+  Clojurescript 1.9.542 or later.
+
+* It is now not even accept to set `:parallel?` to `true` in Clojurescript,
+  as the spec has been changed to consider this an error when you try it.
+
+* Added new capability: sorting for sets.  Similar to maps, now
+  {:set {:sort? true :sort-in-code? false}} is the default.  When
+  you have sets with a lot in them, it is nice to see them sorted.
+
+* Added new capability: key-value-color for maps.  Where key-color colors a
+  particular key that matches the color that you specify, key-value-color
+  will also match a key, but instead of affecting the color of that key,
+  it merges in a color-map which is the value of that key into the current
+  color-map, affecting the printing of everything in the value.  Which
+  may be a constant like a string or a keyword, but might be an entire
+  complex expression.  This only works for maps.
+
+* Removed `{:pair {:indent 0}}` from the `:spec` style.  If you like your
+  pairs non-indented, feel free to add it to the style yourself.
+  Put this: `{:style-map {:spec {:pair {:indent 0}}}}` in your
+  `~/.zprintrc`.
+
+### Fixed
+
+* Fixed Issue #27, where missing function errors came up when using
+  zprint in non-self-hosted Clojurescript.
+
+* `czprint-fn` will now print specs for any function that has them.
+  It will add them to the end of the doc-string (much like `doc`
+  will do, but it will also pretty print them).
+  In particular, try `let` or `ns` or even `defn`.  The `defn` ones
+  are a little funky, as the indent isn't all that lovely.
+
 ## 0.4.0 - 2017-5-5
 
 ### Changed

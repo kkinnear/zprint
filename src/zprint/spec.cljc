@@ -2,7 +2,7 @@
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
   (:require #?@(:clj [[zprint.smacros :refer [only-keys]]
                       [clojure.spec.alpha :as s]]
-                :cljs [[cljs.spec :as s]])))
+                :cljs [[cljs.spec.alpha :as s]])))
 
 ;;
 ;; # Compatibility
@@ -111,6 +111,7 @@
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
                       ::general-hang-adjust]))
 (s/def ::key-color (s/nilable (s/map-of zany? ::color)))
+(s/def ::key-value-color (s/nilable (s/map-of zany? ::color-map)))
 (s/def ::key-depth-color ::key-color-value)
 (s/def ::key-ignore (s/nilable ::key-or-ks-seq))
 (s/def ::key-ignore-silent (s/nilable ::key-or-ks-seq))
@@ -120,7 +121,9 @@
 (s/def ::nl-separator? ::boolean)
 (s/def ::object? ::boolean)
 (s/def ::pair-hang? ::boolean)
-(s/def ::parallel? ::boolean)
+(s/def ::parallel?
+  #?(:clj ::boolean
+     :cljs false?))
 (s/def ::additional-libraries? ::boolean)
 (s/def ::record-type? ::boolean)
 (s/def ::size number?)
@@ -178,9 +181,9 @@
 (s/def ::map
   (only-keys :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
                       ::hang-expand ::hang? ::indent ::justify? ::justify-hang
-                      ::justify-tuning ::key-color ::key-depth-color
-                      ::key-ignore ::key-ignore-silent ::key-order
-                      ::nl-separator? ::sort-in-code? ::sort?]))
+                      ::justify-tuning ::key-color ::key-value-color
+                      ::key-depth-color ::key-ignore ::key-ignore-silent
+                      ::key-order ::nl-separator? ::sort-in-code? ::sort?]))
 (s/def ::max-depth number?)
 (s/def ::max-hang-count number?)
 (s/def ::max-hang-dept number?)
@@ -208,7 +211,8 @@
                       :alt/extend]))
 (s/def ::return-cvec? ::boolean)
 (s/def ::set
-  (only-keys :opt-un [::indent ::wrap-after-multi? ::wrap-coll? ::wrap?]))
+  (only-keys :opt-un [::indent ::sort? ::sort-in-code? ::wrap-after-multi?
+                      ::wrap-coll? ::wrap?]))
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::style ::style-value)
@@ -245,22 +249,55 @@
              ::tuning :alt/uneval ::user-fn-map ::vector ::version ::width
              ::zipper?]))
 
+(defn numbers-or-number-pred?
+  "If they are both numbers and are equal, or the first is a number 
+  and the second one is a pred."
+  [x y]
+  (and (number? x)
+       (or (= x y)
+           (= y
+              #?(:clj :clojure.spec.alpha/pred
+                 :cljs :cljs.spec.alpha/pred)))))
+
 (defn problem-ks
-  "Return the key sequence for this problem.  This is totally empiric,
-  and not based on any real understanding of what explain-data is returning
-  as the problem."
+  "Return the key sequence for this problem.  This is totally empiric, and
+  not based on any real understanding of what explain-data is returning as
+  the problem.  It seems to stick integers into the :in for no obvious reason.
+  This version has three heuristics, described in the comments in the code."
   [problem]
-  (let [last-path (last (:path problem))
+  (let [path (:path problem)
+        last-path (last path)
         last-num (and (number? last-path) last-path)
         ks (:in problem)
-        last-ks (last ks)]
-    (if (and (number? last-ks)
-             (or (= last-ks last-num)
-                 (= last-path
-                    #?(:clj :clojure.spec.alpha/pred
-                       :cljs :cljs.spec/pred))))
-      (into [] (butlast ks))
-      ks)))
+        #_(println ":in" ks)
+        #_(println ":path" path)
+        ; First heuristic: trim ks to be no longer than path
+        ks (into [] (take (count path) ks))
+        ; Second heuristic: If the last thing in ks is a number and
+        ; the last thing in the path is a pred, then trim the number
+        last-ks (last ks)
+        #_(println "ks na:" ks)
+        ks (if (and (number? last-ks)
+                    (= last-path
+                       #?(:clj :clojure.spec.alpha/pred
+                          :cljs :cljs.spec.alpha/pred)))
+             (into [] (butlast ks))
+             ks)
+        ; Third heuristic: Remove the first number in ks that is at
+        ; the same index as a matching number in the path, if it is not
+        ; equal to the val.
+        ks-equal (map #(when (numbers-or-number-pred? %1 %2) %1) ks path)
+        matching-index (reduce
+                         #(if (number? %2) (reduced %1) (inc %1) #_(dec %1))
+                         0 ks-equal)
+        matching-index (when (< matching-index (count ks)) matching-index)
+        #_(println "ks mi:" ks "matching-index:" matching-index)
+        ks (if (and matching-index
+                    (not= (nth ks matching-index) (:val problem)))
+             (let [[begin end] (split-at matching-index ks)]
+               (into [] (concat begin (drop 1 end))))
+             ks)]
+    ks))
 
 (defn ks-phrase
   "Take a key-sequence and a value, and decide if we want to 
@@ -284,7 +321,7 @@
   [explain-data-return]
   (when explain-data-return
     (let [problem-list (#?(:clj :clojure.spec.alpha/problems
-                           :cljs :cljs.spec/problems)
+                           :cljs :cljs.spec.alpha/problems)
                         explain-data-return)
           problem-list (remove #(= "nil?" (str (:pred %))) problem-list)
           val-map (group-by :val problem-list)

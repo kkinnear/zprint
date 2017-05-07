@@ -735,7 +735,7 @@
           ; leave room for double-quote at the end
           width (dec (- (:width options) total-indent))
           key-spec-data (describe-fn key-spec)
-          spec-str (zprint-str key-spec-data width)
+          spec-str (zprint-str key-spec-data width {:style :spec})
           spec-no-nl (clojure.string/split spec-str #"\n")
           spec-shift-right
             (apply str (interpose (str "\n" (blanks total-indent)) spec-no-nl))]
@@ -748,8 +748,8 @@
   in the doc string."
        [{:keys [width rightcnt], {:keys [indent]} :list, :as options} fn-name]
        (let [{n :ns, nm :name, :as m} (meta (resolve fn-name))
-             get-spec-fn (resolve 's/get-spec)
-             describe-fn (resolve 's/describe)]
+             get-spec-fn (resolve 'clojure.spec.alpha/get-spec)
+             describe-fn (resolve 'clojure.spec.alpha/describe)]
          (when (and get-spec-fn describe-fn)
            (when-let [fn-spec (get-spec-fn (symbol (str (ns-name n))
                                                    (name nm)))]

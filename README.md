@@ -94,11 +94,6 @@ when pretty printing source code.
 
 * Do all of this with excellent (and competitive) performance.
 
-Zprint itself doesn't have anything terribly high-tech in it, and isn't
-itself either short or particularly beautiful.  But it will bring out the beauty
-in __your__ code and data structures better than anything else of which I
-am aware.
-
 [leinzprint]: https://github.com/kkinnear/lein-zprint
 [bootfmt]: https://github.com/pesterhazy/boot-fmt
 
@@ -113,6 +108,18 @@ some slight extra work when using zprint as a library.
 __NOTE:__ As of version 0.4.0, zprint now uses `clojure.spec.alpha` for
 Clojure, and still uses `cljs.spec` for Clojurescript.
 
+__NOTE:__ As of version 0.4.1, zprint now uses `clojure.spec.alpha` for
+both Clojure and Clojurescript.
+
+### Clojurescript:
+
+zprint uses `clojure.spec.alpha`, and has been tested in each of the
+following environments:
+
+  * Clojurescript 1.9.542 
+  * `lumo` 1.5.0
+  * `planck` 2.4.0
+
 ### Clojure 1.8:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
@@ -126,16 +133,18 @@ include the library:
 [clojure-future-spec "1.9.0-alpha16-1"]
 ```
 
-### Clojure 1.9-alpha15:
-
-__NOTE:__ Use `zprint 0.3.3` for 1.9-alpha15. `zprint 0.4.0` will not work
-with 1.9-alpha15!
-
 ### Clojure 1.9-alpha16:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 [![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
+
+#### Clojure 1.9-alpha15:
+
+__NOTE:__ Use `zprint 0.3.3` for 1.9-alpha15. `zprint 0.4.x` will not work
+with 1.9-alpha15 due to the change to `clojure.spec.alpha`!
+
+
 
 ### Reducing the library load --  __MAY REQUIRE ACTION FROM YOU__
 
@@ -2643,13 +2652,23 @@ zprint.core=> (czprint sort-demo {:map {:key-ignore [[:detail :code]]}})
 
 ####  :key-color  <text style="color:#A4A4A4;"><small>nil</small></text>
 
-The value of `:key-color` is a map which relates keys that are 'constants'
-to a color in which to print that key.  A constant is a keyword, string,
-or number.  This way you can have some keys print in a color that is different
-from the color in which they would normally be printed based on their type.
-It can go well with `:key-order [:key1 :key2 ...]` which is another way
-to distinguish a special key.  You can place some keys at the front of the
-map and you can also adjust their colors to meet your needs.
+The value of `:key-color` is a map which relates keys that are
+'constants' to a color in which to print that key.  A constant is
+a keyword, string, or number.  This way you can have some keys
+formatted in a color that is different from the color in which they
+would normally be formatted based on their type.  It can go well
+with `:key-order [:key1 :key2 ...]` which is another way to distinguish
+a special key.  You can place some keys at the front of the map and
+you can also adjust their colors to meet your needs.
+
+####  :key-value-color  <text style="color:#A4A4A4;"><small>nil</small></text>
+
+The value of `:key-value-color` is a map which relates keys (that
+don't have to be constants) to a color-map which is merged into the
+current color-map, and is used when formatting the __value__ of that key.
+This way you can have the values of some keys formatted in a color that
+is different from the color in which they would normally be formatted
+based on their type.
 
 ####  :key-depth-color  <text style="color:#A4A4A4;"><small>nil</small></text>
 
@@ -2882,12 +2901,22 @@ An example of `:hang?`, `:record-type?`, and `:to-string?`
 _____
 ## :set
 
-`:set` supports exactly the same keys as does vector.
+`:set` supports the same keys as does vector and a few more.
 
 ##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
 ##### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :wrap-after-multi? <text style="color:#A4A4A4;"><small>true</small></text>
+
+#### :sort? <text style="color:#A4A4A4;"><small>true</small></text>
+
+Sort the elements in a set prior to output.  Alternatively, simply output
+them in the order in which they come out of the set.
+
+#### :sort-in-code? <text style="color:#A4A4A4;"><small>false</small></text>
+
+If the set appears inside of a list that seems to be code, should it
+be sorted.  
 
 _____
 ## :spec

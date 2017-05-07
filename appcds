@@ -43,7 +43,7 @@ helptext="Usage: ./setup.sh zprint-filter output-command-name"
 
 if [[ -z "$1" ]]
 	then
-	echo "Missing first required argument: zprint filter file (e.g. zprint-filter-0.4.0)"
+	echo "Missing first required argument: zprint filter file (e.g. zprint-filter-0.4.1)"
 	echo "$helptext"
 	exit 1
 fi 
@@ -102,7 +102,8 @@ echo "Creating loaded class cache from list..."
 java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:dump -XX:SharedClassListFile=zprint.filter.classlist -XX:SharedArchiveFile="$current_path/zprint.filter.cache" -cp "$filter_path" zprint.main < helloworld.clj 
 
 echo "Creating output command: $output_command_name"
-echo "java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:on -XX:SharedArchiveFile="$current_path/zprint.filter.cache" -cp "$filter_path" zprint.main" > "$output_command_name"
+echo "#!/bin/bash" > "$output_command_name"
+echo "java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:on -XX:SharedArchiveFile="$current_path/zprint.filter.cache" -cp "$filter_path" zprint.main " '"${1//\\}"' >> "$output_command_name"
 
 chmod +x "$output_command_name"
 

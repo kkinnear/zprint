@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+* Added capability to pass options map to zprint-filter by changing
+  the zprint.main namespace to handle a null string, and changing
+  appcds script to create a slightly different script.
+
 * Moved to `cljs.spec.alpha` for Clojurescript too.  Zprint now requires
   Clojurescript 1.9.542 or later.
 

@@ -410,6 +410,11 @@ right parenthesis through `za`, formatting the entire function.
 There are other ways to mark all of the text between parentheses
 in vim.
 
+You can also pass an options map to the zprint-filter, though
+you have to enclose it in single quotes.  For instance, you
+could type this: `!a(za '{:vector {:wrap? false}}'` and have
+the zprint-filter no pack things into vectors.
+
 ### emacs
 
 Emacs seems to have several ways to move to the top of a function

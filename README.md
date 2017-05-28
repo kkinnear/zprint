@@ -1171,7 +1171,7 @@ If function `foo` has a function style of `:gt2-force-nl`, then
 This is for things like special forms that need to be in this
 map to show up as functions for syntax coloring, but don't actually 
 trigger the function recognition logic to represent them as such.
-Also, `:none` used to remove the default classification for functions
+Also, `:none` is used to remove the default classification for functions
 by specifying it in an option map.  The indent for arguments that
 don't hang or fit on the same line is `:list {:indent-arg n}`
 if it is specified, and `:list {:indent n}` if it is not.
@@ -2682,6 +2682,28 @@ be used.  If you also have defined a `:key-color` map, any colors speciied
 in that map for specific keys will override the color that they would be
 given by the `:key-depth-color` vector.
 
+####  :lift-ns?  <text style="color:#A4A4A4;"><small>true</small></text>
+
+When all of the keys in a map are namespaced, and they all have the same
+key, "lift" that namespace out of the keys and make it a namespaced map.
+
+For example:
+```clojure
+(zprint {:x/a :b :x/c :d} {:map {:lift-ns? true}})
+#:x{:a :b, :c :d}
+
+(zprint {::a :b ::c :d} {:map {:lift-ns? true}})
+#:zprint.core{:a :b, :c :d}
+```
+This generally works for strings that are parsed as well, with one significant
+exception.  If you have an implicitly namespaced keyword, like `::a`, then
+this cannot be "lifted" when encountered in a string because there is no
+way to reliably infer the implicit namespace.  Thus, the entire map
+will not be lifted if it contains a single `::a` type key in it.
+
+####  :lift-ns-in-code?  <text style="color:#A4A4A4;"><small>false</small></text>
+
+Controls whether to actually lift the namespace if the map is in code.
 _____
 ## :object
 

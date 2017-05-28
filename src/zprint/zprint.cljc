@@ -12,7 +12,7 @@
       zobj-to-vec zexpandarray znewline? zwhitespaceorcomment? zmap-all
       zpromise? zfuture? zdelay? zkeyword? zconstant? zagent? zreader-macro?
       zarray-to-shift-seq zdotdotdot zsymbol? znil? zreader-cond-w-symbol?
-      zreader-cond-w-coll?]]
+      zreader-cond-w-coll? zlift-ns]]
     [zprint.ansi :refer [color-str]]
     [zprint.zutil :refer [add-spec-to-docstring]]
     [rewrite-clj.parser :as p]
@@ -559,6 +559,7 @@
     style-vec))
 
 (declare fzprint-binding-vec)
+(declare middle-element?)
 
 (defn fzprint-two-up
   "Print a single pair of things (though it might not be exactly a
@@ -622,8 +623,10 @@
         ; Which might need to be re-thought due to justification, but since
         ; we are really only talking :extend here, maybe not.
         modifier-set (:modifiers (options caller))
-        modifier?
-          (and modifier-set (modifier-set (zstring lloc)) (> (count pair) 2))
+        modifier? (or (and modifier-set
+                           (modifier-set (zstring lloc))
+                           (> (count pair) 2))
+                      (middle-element? options rloc))
         ; Figure out if we want to color keys based on their depth, and if so,
         ; figure out the color for this one.
         local-color (get key-depth-color (dec map-depth))
@@ -638,15 +641,41 @@
                 :else nil)
         arg-1 (fzprint* loptions ind lloc)
         arg-1 (if local-color (replace-color local-color arg-1) arg-1)
-        arg-1 (if modifier?
-                (concat-no-nil arg-1
-                               [[(str " ") :none :whitespace]]
-                               (fzprint* loptions ind rloc))
-                arg-1)
-        mloc (if modifier? lloc nil)
+        ; If we are going to print the second thing on the line, we need
+        ; to know how big the first thing is, so we can see if the second
+        ; thing fits on the line.
+        [arg-1-line-count arg-1-max-width :as arg-1-lines]
+          (style-lines options ind arg-1)
+        ; If arg-1 already takes multiple lines, we aren't going to do
+        ; anything interesting with a modifier.
+        _ (dbg options
+               "fzprint-two-up before modifier: arg-1-line-count:"
+                 arg-1-line-count
+               "arg-1-max-width:" arg-1-max-width)
+        modifier?
+          (if (and arg-1-line-count (> arg-1-line-count 1)) nil modifier?)
+        ; See if we can merge the first and second things and have them
+        ; stay on the same line?
+        combined-arg-1 (if modifier?
+                         (concat-no-nil arg-1
+                                        [[(str " ") :none :whitespace]]
+                                        (fzprint* (in-hang loptions)
+                                                  (+ ind arg-1-max-width)
+                                                  rloc))
+                         arg-1)
+        ; If they fit, then they are the new arg-1
+        arg-1 (if combined-arg-1 combined-arg-1 arg-1)
+        ; If they fit, then we are still doing modifier if we are already
+        modifier? (if combined-arg-1 modifier? nil)
+        ; If they fit, we need to recalculate the size of arg-1
+        [arg-1-line-count arg-1-max-width :as arg-1-lines]
+          (if combined-arg-1 (style-lines options ind arg-1) arg-1-lines)
+        _ (dbg options
+               "fzprint-two-up after modifier: arg-1-line-count:"
+                 arg-1-line-count
+               "arg-1-max-width:" arg-1-max-width)
         lloc (if modifier? rloc lloc)
         rloc (if modifier? xloc rloc)
-        [_ arg-1-max-width :as arg-1-lines] (style-lines options ind arg-1)
         ;     arg-1-fit-oneline? (and (not force-nl?)
         ;                             (fzfit-one-line loptions arg-1-lines))
         arg-1-fit-oneline? (and (not flow?)
@@ -656,14 +685,14 @@
         ; sometimes arg-1-max-width is nil because fzprint* returned nil,
         ; but we need to have something for later code to use as a number
         arg-1-width (- (or arg-1-max-width 0) ind)]
-    ; If we don't *have* an arg1, no point in continuing...
+    ; If we don't *have* an arg-1, no point in continuing...
     ;  If arg-1 doesn't fit, maybe that's just how it is!
     ;  If we are in-hang, then we can bail, but otherwise, not.
     (when (and arg-1 (or arg-1-fit? (not in-hang?)))
       (cond
         (= (count pair) 1) [:hang (fzprint* roptions ind lloc)]
         (or (= (count pair) 2) (and modifier? (= (count pair) 3)))
-          ;(concat-no-nil
+          ;concat-no-nil
           ;  arg-1
           ; We used to think:
           ; We will always do hanging, either fully or with one-line? true,
@@ -793,7 +822,6 @@
                                         [[(str "\n" (blanks (+ indent ind)))
                                           :none :whitespace]]
                                         flow)])))))))
-        ; )
         :else [:flow ; The following always flows things of 3 or more
                ; (absent modifers).  If the lloc is a single char,
                ; then that can look kind of poor.  But that case
@@ -940,7 +968,8 @@
                                                           :rightmost-pair
                                                           (first end-coll))]
                       [end-result]))
-              result (cond (= len 1) end :else (concat-no-nil beginning end))]
+              result (cond (= len 1) end
+                           :else (concat-no-nil beginning end))]
           (dbg options
                "fzprint-map-two-up: len:" len
                "(nil? end):" (nil? end)
@@ -980,27 +1009,38 @@
         :else (compare-keys x y)))
 
 (defn order-out
-  "A variety of sorting and ordering options for the output
-  of partition-all-2-nc.  It can sort, which is the default,
-  but if the caller has a key-order vector, it will extract
-  any keys in that vector and place them first (in order) before
-  sorting the other keys."
-  [caller {{:keys [sort? key-order key-value]} caller, :as options} access out]
-  (cond (or sort? key-order)
-          (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
-                   (zsexpr (access %1))
-                   (zsexpr (access %2)))
-                out)
-        :else (throw (#?(:clj Exception.
-                         :cljs js/Error.)
-                      "Unknown options to order-out"))))
+  "A variety of sorting and ordering options for the output of
+  partition-all-2-nc.  It can sort, which is the default, but if
+  the caller has a key-order vector, it will extract any keys in
+  that vector and place them first (in order) before sorting the
+  other keys.  If sorting is not called for, does nothing."
+  [caller
+   {{:keys [sort? sort-in-code? key-order key-value]} caller,
+    :keys [in-code?],
+    :as options} access out]
+  (if (and sort? (if in-code? sort-in-code? true))
+    (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
+             (zsexpr (access %1))
+             (zsexpr (access %2)))
+          out)
+    out))
 
 (defn pair-element?
-  "This checks to see if an element should be considered part of a pair.
-  Mostly this will trigger on comments, but a #_(...) element will also
+  "This checks to see if an element should be considered part of a
+  pair if it comes between other elements, and a single element on
+  its own if it would otherwise be the first part of a pair.  Mostly
+  this will trigger on comments, but a #_(...) element will also
   trigger this."
   [zloc]
   (or (zcomment? zloc) (zuneval? zloc)))
+
+(defn middle-element?
+  "This checks to see if an element should be considered the middle element
+  of a pair.  At some point, we can expand this, but for now there is only
+  one middle element."
+  [{:keys [in-code?], :as options} zloc]
+  ;  nil)
+  (when (= in-code? "condp") (= (zstring zloc) ":>>")))
 
 ;;
 ;; # Ignore keys in maps
@@ -1062,47 +1102,49 @@
 ;;
 
 (defn partition-all-2-nc
-  "Just like partition-all 2, but doesn't pair up comments or
-  #_(...) unevaled sexpressions.  The ones before the first part of a 
-  pair come as a single element in a pair, and the ones between the 
-  first and second parts of a pair come inside the pair.  
-  There may be an arbitrary number between the first and second elements 
-  of the pair (one per line).  If there are any comments or unevaled
-  sexpressions, don't sort the keys, as we might lose track of where 
-  the comments go."
-  ([{:as options, :keys [in-code? max-length]} coll caller]
-   (dbg options "partition-all-2-nc: caller:" caller)
-   (when-not (empty? coll)
-     (loop [remaining coll
-            no-sort? (or (not (:sort? (options caller)))
-                         (and in-code? (not (:sort-in-code? (options caller)))))
-            index 0
-            out (transient [])]
-       (if-not remaining
-         (if no-sort?
-           (persistent! out)
-           (order-out caller options first (persistent! out)))
-         (let [[new-remaining pair-vec new-no-sort?]
-                 (cond
-                   (pair-element? (first remaining)) [(next remaining)
-                                                      [(first remaining)] true]
-                   (pair-element? (second remaining))
-                     (let [[comment-seq rest-seq] (split-with pair-element?
-                                                              (next remaining))]
-                       [(next rest-seq)
-                        (into []
-                              (concat [(first remaining)]
-                                      comment-seq
-                                      [(first rest-seq)])) true])
-                   (= (count remaining) 1) [(next remaining) [(first remaining)]
-                                            nil]
-                   :else [(next (next remaining))
-                          [(first remaining) (second remaining)] nil])]
-           (recur (if (not= index max-length) new-remaining (list (zdotdotdot)))
-                  (or no-sort? new-no-sort?)
-                  (inc index)
-                  (conj! out pair-vec)))))))
-  ([options coll] (partition-all-2-nc options coll nil)))
+  "Input is (zseqnws zloc) where one assumes that these are pairs.
+  Thus, a seq of zlocs.  Output is a sequence of seqs, where the
+  seqs are usually pairs, but might be single things.  Doesn't pair
+  up comments or #_(...) unevaled sexpressions.  The ones before
+  the first part of a pair come as a single element in what would
+  usually be a pair, and the ones between the first and second parts
+  of a pair come inside the pair.  There may be an arbitrary number
+  of elements between the first and second elements of the pair
+  (one per line).  If there are any comments or unevaled sexpressions,
+  don't sort the keys, as we might lose track of where the comments
+  or unevaled s-expressions go."
+  [{:as options, :keys [max-length]} coll]
+  (when-not (empty? coll)
+    (loop [remaining coll
+           no-sort? nil
+           index 0
+           out (transient [])]
+      (if-not remaining
+        [no-sort? (persistent! out)]
+        (let [[new-remaining pair-vec new-no-sort?]
+                (cond
+                  (pair-element? (first remaining)) [(next remaining)
+                                                     [(first remaining)] true]
+                  (or (pair-element? (second remaining))
+                      (middle-element? options (second remaining)))
+                    (let [[comment-seq rest-seq]
+                            ;(split-with pair-element? (next remaining))
+                            (split-with #(or (pair-element? %)
+                                             (middle-element? options %))
+                                        (next remaining))]
+                      [(next rest-seq)
+                       (into []
+                             (concat [(first remaining)]
+                                     comment-seq
+                                     [(first rest-seq)])) true])
+                  (= (count remaining) 1) [(next remaining) [(first remaining)]
+                                           nil]
+                  :else [(next (next remaining))
+                         [(first remaining) (second remaining)] nil])]
+          (recur (if (not= index max-length) new-remaining (list (zdotdotdot)))
+                 (or no-sort? new-no-sort?)
+                 (inc index)
+                 (conj! out pair-vec)))))))
 
 ;;
 ;; ## Multi-up printing pre-processing
@@ -1245,17 +1287,18 @@
               "fzprint-binding-vec exit:"
               (if (= (zcount zloc) 0)
                 (concat-no-nil l-str-vec r-str-vec)
-                (concat-no-nil l-str-vec
-                               (interpose-nl-hf
-                                 (:binding options)
-                                 (inc ind)
-                                 (fzprint-map-two-up
-                                   :binding
-                                   options
-                                   (inc ind)
-                                   false
-                                   (partition-all-2-nc options (zseqnws zloc))))
-                               r-str-vec)))))
+                (concat-no-nil
+                  l-str-vec
+                  (interpose-nl-hf
+                    (:binding options)
+                    (inc ind)
+                    (fzprint-map-two-up
+                      :binding
+                      options
+                      (inc ind)
+                      false
+                      (second (partition-all-2-nc options (zseqnws zloc)))))
+                  r-str-vec)))))
 
 (defn fzprint-hang
   "Try to hang something and try to flow it, and then see which is
@@ -1306,7 +1349,7 @@
         options
         ind
         false
-        (let [part (partition-all-2-nc options (zmap-right identity zloc))]
+        (let [[_ part] (partition-all-2-nc options (zmap-right identity zloc))]
           #_(def fp part)
           (dbg options
                "fzprint-pairs: partition:"
@@ -1416,7 +1459,8 @@
             right [(fzprint* options
                              (if (coll? ind) (last ind) ind)
                              (last zloc-seq))]]
-        (cond (= len 1) right :else (concat-no-nil left right))))))
+        (cond (= len 1) right
+              :else (concat-no-nil left right))))))
 
 (defn fzprint-flow-seq
   "Take a seq of a zloc, created by (zmap identity zloc) or
@@ -1577,9 +1621,9 @@
                  "constant-pair: non-paired-items:"
                  non-paired-item-count)
           pair-seq (when (>= paired-item-count constant-pair-min)
-                     (partition-all-2-nc options
-                                         (drop non-paired-item-count
-                                               seq-right)))]
+                     (second (partition-all-2-nc options
+                                                 (drop non-paired-item-count
+                                                       seq-right))))]
       [pair-seq non-paired-item-count])
     [nil (count seq-right)]))
 
@@ -1884,14 +1928,25 @@
         ; for anonymous functions, which otherwise would have their own
         ; :anon config to parallel :list, which would be just too much
         indent-adj (dec l-str-len)
+        ; The default indent is keyed off of whether or not the first thing
+        ; in the list is itself a list, since that list could evaluate to a
+        ; fn.  You can't replace the zlist? with arg-1-coll?, since if you do
+        ; multi-arity functions aren't done right, since the argument vector
+        ; is a coll?, and so arg-1-coll? is set, and then you get a two space
+        ; indent for multi-arity functions, which is wrong.
+        ; We could, conceivably, use zvector? here to specifically handle
+        ; multi-arity functions.  Or we could remember we are in a defn and
+        ; do something special there, or we could at least decide that we
+        ; were in code when we did this zlist? thing, since that is all about
+        ; code.  That wouldn't work if it was the top-level form, but would
+        ; otherwise.
         default-indent (if (zlist? (zfirst zloc)) indent l-str-len)
-        isfn? (not arg-1-coll?)
         arg-1-indent (if-not (or arg-1-coll? (zcomment? (zfirst zloc)))
                        (+ ind (inc l-str-len) (count fn-str)))
         ; Tell people inside that we are in code.
         ; We don't catch places where the first thing in a list is
-        ; a collection which yields a function.
-        options (if isfn? (assoc options :in-code? true) options)
+        ; a collection or a seq which yields a function.
+        options (if (not arg-1-coll?) (assoc options :in-code? fn-str) options)
         options (assoc options :pdepth (inc (or (:pdepth options) 0)))
         _ (when (:dbg-hang options)
             (println (dots (:pdepth options)) "fzs" fn-str))
@@ -1910,7 +1965,10 @@
                "indent:" indent
                "default-indent:" default-indent
                "one-line-ok?" one-line-ok?
+               "arg-1-coll?" arg-1-coll?
                "arg-1-indent:" arg-1-indent
+               "l-str:" (str "'" l-str "'")
+               "indent-adj:" indent-adj
                "len:" len
                "one-line?:" one-line?
                "rightcnt:" (:rightcnt options))
@@ -2343,15 +2401,23 @@
 
 (defn fzprint-map*
   [caller l-str r-str
-   {:keys [one-line? ztype map-depth],
-    {:keys [sort? comma? key-ignore key-ignore-silent nl-separator? force-nl?]}
+   {:keys [one-line? ztype map-depth in-code?],
+    {:keys [comma? key-ignore key-ignore-silent nl-separator? force-nl? lift-ns?
+            lift-ns-in-code?]}
       caller,
     :as options} ind zloc]
   (let [options (assoc options :map-depth (inc map-depth))
         zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
                (map-ignore caller options zloc)
                zloc)
-        pair-seq (partition-all-2-nc options (zseqnws zloc) caller)
+        [no-sort? pair-seq] (partition-all-2-nc options (zseqnws zloc))
+        [ns lift-pair-seq] (when (and lift-ns?
+                                      (if in-code? lift-ns-in-code? true))
+                             (zlift-ns pair-seq))
+        l-str (if ns (str "#:" ns l-str) l-str)
+        pair-seq (or lift-pair-seq pair-seq)
+        pair-seq
+          (if no-sort? pair-seq (order-out caller options first pair-seq))
         indent (count l-str)
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options (+ indent ind) zloc r-str)]
@@ -2418,9 +2484,18 @@
                 r-str-vec))))))))
 
 (defn fzprint-map
-  "Format a real map."
+  "Format a real map. ONLY WORKES ON STRUCTURES AT PRESENT"
   [options ind zloc]
-  (fzprint-map* :map "{" "}" (rightmost options) ind zloc))
+  (let [[ns lifted-map] nil]
+    ;(zlift-ns zloc)]
+    (if ns
+      (fzprint-map* :map
+                    (str "#:" ns "{")
+                    "}"
+                    (rightmost options)
+                    ind
+                    lifted-map)
+      (fzprint-map* :map "{" "}" (rightmost options) ind zloc))))
 
 (defn object-str?
   "Return true if the string starts with #object["
@@ -2682,7 +2757,9 @@
 
 (defn fzprint-reader-macro
   "Print a reader-macro, often a reader-conditional. Adapted for differences
-  in parsing #?@ between rewrite-clj and rewrite-cljs."
+  in parsing #?@ between rewrite-clj and rewrite-cljs.  Also adapted for
+  the rewrite-clj not parsing namespaced maps in the version presently
+  used."
   [options ind zloc]
   (let [zstr (zstring (zfirst zloc))
         ; rewrite-cljs parses #?@ differently from rewrite-clj.  In
@@ -2690,6 +2767,8 @@
         ; Not clear which is correct, I could see it go either way.
         alt-at? (and (= (count zstr) 2) (= (subs zstr 1 2) "@"))
         reader-cond? (= (subs zstr 0 1) "?")
+        ; are we dealing with a namespaced map?
+        namespaced? (= (subs zstr 0 1) ":")
         at? (or (= (ztag (zsecond zloc)) :deref) alt-at?)
         l-str (cond (and reader-cond? at?) "#?@"
                     (and reader-cond? (zcoll? (zsecond zloc))) "#?"
@@ -2698,6 +2777,7 @@
                                  :cljs js/Error.)
                               (str "Unknown reader macro: '" (zstring zloc)
                                    "' zfirst zloc: " (zstring (zfirst zloc)))))
+                    namespaced? (str "#" zstr)
                     :else "#")
         r-str ""
         indent (count l-str)
@@ -2709,7 +2789,8 @@
           (if (and at? (not alt-at?)) (zfirst (zsecond zloc)) (zsecond zloc))]
     (dbg-pr options
             "fzprint-reader-macro: zloc:" (zstring zloc)
-            "floc:" (zstring floc))
+            "floc:" (zstring floc)
+            "l-str:" l-str)
     (concat-no-nil
       l-str-vec
       (if reader-cond?
@@ -2721,7 +2802,10 @@
                       (+ indent ind)
                       floc)
         ; not reader-cond?
-        (fzprint-flow-seq options (+ indent ind) (zmap identity zloc)))
+        (fzprint-flow-seq options
+                          (+ indent ind)
+                          (let [zloc-seq (zmap identity zloc)]
+                            (if namespaced? (next zloc-seq) zloc-seq))))
       r-str-vec)))
 
 (defn fzprint-prefix*
@@ -2784,9 +2868,10 @@
         options (assoc options :depth (inc depth))
         options (if (or dbg? dbg-print?)
                   (assoc options
-                    :dbg-indent (str
-                                  (get options :dbg-indent "")
-                                  (cond one-line? "o" in-hang? "h" :else ".")))
+                    :dbg-indent (str (get options :dbg-indent "")
+                                     (cond one-line? "o"
+                                           in-hang? "h"
+                                           :else ".")))
                   options)
         _ (dbg options
                "fzprint* **** rightcnt:"

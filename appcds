@@ -39,11 +39,11 @@
 # the filter from your favorite editor or IDE.
 #
 
-helptext="Usage: ./setup.sh zprint-filter output-command-name"
+helptext="Usage: ./appcds zprint-filter output-command-name"
 
 if [[ -z "$1" ]]
 	then
-	echo "Missing first required argument: zprint filter file (e.g. zprint-filter-0.4.1)"
+	echo "Missing first required argument: zprint-filter-file (e.g. zprint-filter-0.4.2)"
 	echo "$helptext"
 	exit 1
 fi 

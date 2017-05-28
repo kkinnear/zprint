@@ -40,7 +40,7 @@
         (explain-more (s/explain-data :zprint.spec/options
                                       {:map {:hang? true, :x :y}})))
 
-(expect "The value of the key-sequence [:map :hang?] -> 0 was not a boolean?"
+(expect "The value of the key-sequence [:map :hang?] -> 0 was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options {:map {:hang? 0}})))
 
 ;;
@@ -68,77 +68,77 @@
 ;; ## Should be an integer
 ;;
 
-(expect "The value of the key-sequence [:width] -> :a was not a number?"
+(expect "The value of the key-sequence [:width] -> :a was not a number"
         (explain-more (s/explain-data :zprint.spec/options {:width :a})))
-(expect "The value of the key-sequence [:width] -> \"a\" was not a number?"
+(expect "The value of the key-sequence [:width] -> \"a\" was not a number"
         (explain-more (s/explain-data :zprint.spec/options {:width "a"})))
-(expect "The value of the key-sequence [:width] -> [:a] was not a number?"
+(expect "The value of the key-sequence [:width] -> [:a] was not a number"
         (explain-more (s/explain-data :zprint.spec/options {:width [:a]})))
-(expect "The value of the key-sequence [:width] -> {:a :b} was not a number?"
+(expect "The value of the key-sequence [:width] -> {:a :b} was not a number"
         (explain-more (s/explain-data :zprint.spec/options {:width {:a :b}})))
-(expect "The value of the key-sequence [:width] -> a was not a number?"
+(expect "The value of the key-sequence [:width] -> a was not a number"
         (explain-more (s/explain-data :zprint.spec/options {:width 'a})))
-(expect "The value of the key-sequence [:width] -> #{:a} was not a number?"
+(expect "The value of the key-sequence [:width] -> #{:a} was not a number"
         (explain-more (s/explain-data :zprint.spec/options {:width #{:a}})))
 ;;
 ;; ## Should be a map
 ;;
 
-(expect "The value of the key-sequence [:map] -> :a was not a map?"
+(expect "The value of the key-sequence [:map] -> :a was not a map"
         (explain-more (s/explain-data :zprint.spec/options {:map :a})))
-(expect "The value of the key-sequence [:map] -> 5 was not a map?"
+(expect "The value of the key-sequence [:map] -> 5 was not a map"
         (explain-more (s/explain-data :zprint.spec/options {:map 5})))
-(expect "The value of the key-sequence [:map] -> \"a\" was not a map?"
+(expect "The value of the key-sequence [:map] -> \"a\" was not a map"
         (explain-more (s/explain-data :zprint.spec/options {:map "a"})))
-(expect "The value of the key-sequence [:map] -> [:a] was not a map?"
+(expect "The value of the key-sequence [:map] -> [:a] was not a map"
         (explain-more (s/explain-data :zprint.spec/options {:map [:a]})))
-(expect "The value of the key-sequence [:map] -> a was not a map?"
+(expect "The value of the key-sequence [:map] -> a was not a map"
         (explain-more (s/explain-data :zprint.spec/options {:map 'a})))
-(expect "The value of the key-sequence [:map] -> #{:a} was not a map?"
+(expect "The value of the key-sequence [:map] -> #{:a} was not a map"
         (explain-more (s/explain-data :zprint.spec/options {:map #{:a}})))
 
 ;;
 ;; ## Should be a boolean
 ;;
 
-(expect "The value of the key-sequence [:parse-string?] -> 0 was not a boolean?"
+(expect "The value of the key-sequence [:parse-string?] -> 0 was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options {:parse-string? 0})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> :a was not a boolean?"
+  "The value of the key-sequence [:parse-string?] -> :a was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? :a})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> \"a\" was not a boolean?"
+  "The value of the key-sequence [:parse-string?] -> \"a\" was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? "a"})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> [:a] was not a boolean?"
+  "The value of the key-sequence [:parse-string?] -> [:a] was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? [:a]})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> {:a :b} was not a boolean?"
+  "The value of the key-sequence [:parse-string?] -> {:a :b} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? {:a :b}})))
-(expect "The value of the key-sequence [:parse-string?] -> a was not a boolean?"
+(expect "The value of the key-sequence [:parse-string?] -> a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:parse-string? 'a})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> #{:a} was not a boolean?"
+  "The value of the key-sequence [:parse-string?] -> #{:a} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? #{:a}})))
 
 ;;
 ;; ## Should be a set
 ;;
 
-(expect "The value of the key-sequence [:fn-force-nl] -> :a was not a set?"
+(expect "The value of the key-sequence [:fn-force-nl] -> :a was not a set"
         (explain-more (s/explain-data :zprint.spec/options {:fn-force-nl :a})))
-(expect "The value of the key-sequence [:fn-force-nl] -> 0 was not a set?"
+(expect "The value of the key-sequence [:fn-force-nl] -> 0 was not a set"
         (explain-more (s/explain-data :zprint.spec/options {:fn-force-nl 0})))
-(expect "The value of the key-sequence [:fn-force-nl] -> \"a\" was not a set?"
+(expect "The value of the key-sequence [:fn-force-nl] -> \"a\" was not a set"
         (explain-more (s/explain-data :zprint.spec/options {:fn-force-nl "a"})))
-(expect "The value of the key-sequence [:fn-force-nl] -> [:a] was not a set?"
+(expect "The value of the key-sequence [:fn-force-nl] -> [:a] was not a set"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:fn-force-nl [:a]})))
-(expect "The value of the key-sequence [:fn-force-nl] -> {:a :b} was not a set?"
+(expect "The value of the key-sequence [:fn-force-nl] -> {:a :b} was not a set"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:fn-force-nl {:a :b}})))
-(expect "The value of the key-sequence [:fn-force-nl] -> a was not a set?"
+(expect "The value of the key-sequence [:fn-force-nl] -> a was not a set"
         (explain-more (s/explain-data :zprint.spec/options {:fn-force-nl 'a})))
 
 ;;
@@ -195,21 +195,21 @@
 ;;
 
 (expect
-  "The value of the key-sequence [:map :indent] -> \"a\" was not a number?"
+  "The value of the key-sequence [:map :indent] -> \"a\" was not a number"
   (explain-more (s/explain-data :zprint.spec/options {:map {:indent "a"}})))
-(expect "The value of the key-sequence [:map :indent] -> :a was not a number?"
+(expect "The value of the key-sequence [:map :indent] -> :a was not a number"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:map {:indent :a}})))
-(expect "The value of the key-sequence [:map :indent] -> [:a] was not a number?"
+(expect "The value of the key-sequence [:map :indent] -> [:a] was not a number"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:map {:indent [:a]}})))
 (expect
-  "The value of the key-sequence [:map :indent] -> {:a :b} was not a number?"
+  "The value of the key-sequence [:map :indent] -> {:a :b} was not a number"
   (explain-more (s/explain-data :zprint.spec/options {:map {:indent {:a :b}}})))
 (expect
-  "The value of the key-sequence [:map :indent] -> #{:a} was not a number?"
+  "The value of the key-sequence [:map :indent] -> #{:a} was not a number"
   (explain-more (s/explain-data :zprint.spec/options {:map {:indent #{:a}}})))
-(expect "The value of the key-sequence [:map :indent] -> a was not a number?"
+(expect "The value of the key-sequence [:map :indent] -> a was not a number"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:map {:indent 'a}})))
 
@@ -218,21 +218,21 @@
 ;;
 
 (expect
-  "The value of the key-sequence [:list :hang?] -> \"a\" was not a boolean?"
+  "The value of the key-sequence [:list :hang?] -> \"a\" was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? "a"}})))
-(expect "The value of the key-sequence [:list :hang?] -> :a was not a boolean?"
+(expect "The value of the key-sequence [:list :hang?] -> :a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:list {:hang? :a}})))
 (expect
-  "The value of the key-sequence [:list :hang?] -> [:a] was not a boolean?"
+  "The value of the key-sequence [:list :hang?] -> [:a] was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? [:a]}})))
 (expect
-  "The value of the key-sequence [:list :hang?] -> {:a :b} was not a boolean?"
+  "The value of the key-sequence [:list :hang?] -> {:a :b} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? {:a :b}}})))
 (expect
-  "The value of the key-sequence [:list :hang?] -> #{:a} was not a boolean?"
+  "The value of the key-sequence [:list :hang?] -> #{:a} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? #{:a}}})))
-(expect "The value of the key-sequence [:list :hang?] -> a was not a boolean?"
+(expect "The value of the key-sequence [:list :hang?] -> a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:list {:hang? 'a}})))
 
@@ -242,24 +242,24 @@
 
 
 (expect
-  "The value of the key-sequence [:uneval :color-map] -> \"a\" was not a map?"
+  "The value of the key-sequence [:uneval :color-map] -> \"a\" was not a map"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:uneval {:color-map "a"}})))
 
 (expect
-  "The value of the key-sequence [:uneval :color-map] -> :a was not a map?"
+  "The value of the key-sequence [:uneval :color-map] -> :a was not a map"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:uneval {:color-map :a}})))
 (expect
-  "The value of the key-sequence [:uneval :color-map] -> [:a] was not a map?"
+  "The value of the key-sequence [:uneval :color-map] -> [:a] was not a map"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:uneval {:color-map [:a]}})))
 (expect
-  "The value of the key-sequence [:uneval :color-map] -> #{:a} was not a map?"
+  "The value of the key-sequence [:uneval :color-map] -> #{:a} was not a map"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:uneval {:color-map #{:a}}})))
 
-(expect "The value of the key-sequence [:uneval :color-map] -> a was not a map?"
+(expect "The value of the key-sequence [:uneval :color-map] -> a was not a map"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:uneval {:color-map 'a}})))
 
@@ -275,24 +275,24 @@
 ;;
 
 (expect
-  "The value of the key-sequence [:map :key-order] -> :a was not a sequential?"
+  "The value of the key-sequence [:map :key-order] -> :a was not a sequential"
   (explain-more (s/explain-data :zprint.spec/options {:map {:key-order :a}})))
 (expect
-  "The value of the key-sequence [:map :key-order] -> \"a\" was not a sequential?"
+  "The value of the key-sequence [:map :key-order] -> \"a\" was not a sequential"
   (explain-more (s/explain-data :zprint.spec/options {:map {:key-order "a"}})))
 (expect
-  "The value of the key-sequence [:map :key-order] -> {:a :b} was not a sequential?"
+  "The value of the key-sequence [:map :key-order] -> {:a :b} was not a sequential"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:map {:key-order {:a :b}}})))
 (expect
-  "The value of the key-sequence [:map :key-order] -> #{:a} was not a sequential?"
+  "The value of the key-sequence [:map :key-order] -> #{:a} was not a sequential"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:map {:key-order #{:a}}})))
 (expect
-  "The value of the key-sequence [:map :key-order] -> a was not a sequential?"
+  "The value of the key-sequence [:map :key-order] -> a was not a sequential"
   (explain-more (s/explain-data :zprint.spec/options {:map {:key-order 'a}})))
 (expect
-  "The value of the key-sequence [:map :key-order] -> 5 was not a sequential?"
+  "The value of the key-sequence [:map :key-order] -> 5 was not a sequential"
   (explain-more (s/explain-data :zprint.spec/options {:map {:key-order 5}})))
 
 ;;
@@ -300,33 +300,33 @@
 ;;
 
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> :a was not a set?"
+  "The value of the key-sequence [:extend :modifiers] -> :a was not a set"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers :a}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> \"a\" was not a set?"
+  "The value of the key-sequence [:extend :modifiers] -> \"a\" was not a set"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers "a"}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> {:a :b} was not a set?"
+  "The value of the key-sequence [:extend :modifiers] -> {:a :b} was not a set"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers {:a :b}}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> {:a :b} was not a set?"
+  "The value of the key-sequence [:extend :modifiers] -> {:a :b} was not a set"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers {:a :b}}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> {:a :b} was not a set?"
+  "The value of the key-sequence [:extend :modifiers] -> {:a :b} was not a set"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers {:a :b}}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> [:a] was not a set?"
+  "The value of the key-sequence [:extend :modifiers] -> [:a] was not a set"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers [:a]}})))
-(expect "The value of the key-sequence [:extend :modifiers] -> a was not a set?"
+(expect "The value of the key-sequence [:extend :modifiers] -> a was not a set"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:extend {:modifiers 'a}})))
-(expect "The value of the key-sequence [:extend :modifiers] -> 5 was not a set?"
+(expect "The value of the key-sequence [:extend :modifiers] -> 5 was not a set"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:extend {:modifiers 5}})))
 
@@ -335,23 +335,23 @@
 ;;
 
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> :a was not a string?"
+  "The value of the key-sequence [:extend :modifiers] -> :a was not a string"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers #{:a}}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> {:a :b} was not a string?"
+  "The value of the key-sequence [:extend :modifiers] -> {:a :b} was not a string"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers #{{:a :b}}}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> [:a] was not a string?"
+  "The value of the key-sequence [:extend :modifiers] -> [:a] was not a string"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers #{[:a]}}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> a was not a string?"
+  "The value of the key-sequence [:extend :modifiers] -> a was not a string"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers #{'a}}})))
 (expect
-  "The value of the key-sequence [:extend :modifiers] -> 5 was not a string?"
+  "The value of the key-sequence [:extend :modifiers] -> 5 was not a string"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:extend {:modifiers #{5}}})))
 

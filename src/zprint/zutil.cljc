@@ -430,6 +430,52 @@
       (edn* (z/root new-doc-zloc)))
     zloc))
 
+(defn zlift-ns
+  "Perform a lift-ns on a pair-seq that is returned from
+  partition-2-all-nc, which is a seq of pairs of zlocs that may or
+  may not have been sorted and which may or may not have had things
+  removed from it and may or may not actually be pairs.  Could be
+  single things, could be multiple things.  If contains multiple
+  things, the first thing is the key, but if it is just a single
+  thing, the first thing is *not* a key. So we only need to work
+  on the first of each seq which has more than one element in it,
+  and possibly replace it. This will only lift out a ns if all keys
+  in seqs with more than one element have the same namespace. Returns
+  the [namespace pair-seq] or nil."
+  [pair-seq]
+  (let [strip-ns (fn [named]
+                   (if (symbol? named)
+                     (symbol nil (name named))
+                     (keyword nil (name named))))]
+    (loop [ns nil
+           pair-seq pair-seq
+           out []]
+      (let [[k & rest-of-pair :as pair] (first pair-seq)
+            #_(println "k:" k "rest-of-x-pair:" rest-of-pair)
+            current-ns (when (and ; This is at least a pair
+                                  rest-of-pair
+                                  ; It does not include an implicit ns
+                                  (not= (subs (z/string k) 0 2) "::")
+                                  (or (zkeyword? k) (zsymbol? k)))
+                         (namespace (z/sexpr k)))]
+        (if-not k
+          (when ns [ns out])
+          (if current-ns
+            (if ns
+              (when (= ns current-ns)
+                (recur ns
+                       (next pair-seq)
+                       (conj out
+                             (cons (edn* (n/token-node (strip-ns (z/sexpr k))))
+                                   rest-of-pair))))
+              (recur current-ns
+                     (next pair-seq)
+                     (conj out
+                           (cons (edn* (n/token-node (strip-ns (z/sexpr k))))
+                                 rest-of-pair))))
+            (when (= (count pair) 1)
+              (recur ns (next pair-seq) (conj out pair)))))))))
+
 (defn zredef-call
   "Redefine all of the traversal functions for zippers, then
   call the function of no arguments passed in."
@@ -485,5 +531,6 @@
                 zprint.zfns/zsymbol? zsymbol?
                 zprint.zfns/znil? znil?
                 zprint.zfns/zreader-cond-w-symbol? zreader-cond-w-symbol?
-                zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?]
+                zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?
+                zprint.zfns/zlift-ns zlift-ns]
     (body-fn)))

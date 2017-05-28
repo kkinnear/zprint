@@ -58,3 +58,4 @@
 (def znil? nil)
 (def zreader-cond-w-symbol? nil)
 (def zreader-cond-w-coll? nil)
+(def zlift-ns nil)

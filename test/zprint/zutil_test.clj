@@ -6,7 +6,7 @@
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z :only [edn*]]))
 
-;; Keep some of the test on wrapping so they still work
+;; Keep some of the test from wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
 
 ;;

@@ -21,7 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.1"))
+(defn about "Return version of this program." [] (str "zprint-0.4.2"))
 
 ;;
 ;; # External Configuration
@@ -391,7 +391,7 @@
    :file? false,
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
                   :arg1-force-nl :flow-body},
-   :fn-gt2-force-nl #{:gt2-force-nl :binding},
+   :fn-gt2-force-nl #{:gt2-force-nl :binding :pair-fn},
    :fn-gt3-force-nl #{:gt3-force-nl :arg1-pair :arg1-pair-body},
    :fn-map zfnstyle,
    :fn-name nil,
@@ -425,6 +425,9 @@
          :key-ignore-silent nil,
          :key-color nil,
          :key-depth-color nil,
+         :key-value-color nil,
+         :lift-ns? true,
+         :lift-ns-in-code? false,
          :force-nl? nil,
          :nl-separator? false,
          :flow? false,

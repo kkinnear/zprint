@@ -204,6 +204,44 @@
   [x]
   (or (keyword? x) (string? x) (number? x)))
 
+(defn slift-ns
+  "Perform a lift-ns on a pair-seq that is returned from
+  partition-2-all-nc, which is a seq of pairs of zlocs that may or
+  may not have been sorted and which may or may not have had things
+  removed from it and may or may not actually be pairs.  Could be
+  single things, could be multiple things.  If contains multiple
+  things, the first thing is the key, but if it is just a single
+  thing, the first thing is *not* a key. So we only need to work
+  on the first of each seq which has more than one element in it,
+  and possibly replace it. This will only lift out a ns if all keys
+  in seqs with more than one element have the same namespace. Returns
+  the [namespace pair-seq] or nil."
+  [pair-seq]
+  (let [strip-ns (fn [named]
+                   (if (symbol? named)
+                     (symbol nil (name named))
+                     (keyword nil (name named))))]
+    (loop [ns nil
+           pair-seq pair-seq
+           out []]
+      (let [[k & rest-of-pair :as pair] (first pair-seq)
+            #_(println "k:" k "rest-of-pair:" rest-of-pair)
+            current-ns (when (and rest-of-pair (or (keyword? k) (symbol? k)))
+                         (namespace k))]
+        (if-not k
+          (when ns [ns out])
+          (if current-ns
+            (if ns
+              (when (= ns current-ns)
+                (recur ns
+                       (next pair-seq)
+                       (conj out (cons (strip-ns k) rest-of-pair))))
+              (recur current-ns
+                     (next pair-seq)
+                     (conj out (cons (strip-ns k) rest-of-pair))))
+            (when (= (count pair) 1)
+              (recur ns (next pair-seq) (conj out pair)))))))))
+
 (defn sredef-call
   "Redefine all of the traversal functions for s-expressions, then
   call the function of no arguments passed in."
@@ -264,5 +302,6 @@
                 zprint.zfns/zsymbol? symbol?
                 zprint.zfns/znil? nil?
                 zprint.zfns/zreader-cond-w-symbol? (constantly false)
-                zprint.zfns/zreader-cond-w-coll? (constantly false)]
+                zprint.zfns/zreader-cond-w-coll? (constantly false)
+                zprint.zfns/zlift-ns slift-ns]
     (body-fn)))

@@ -1,6 +1,34 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.2 - 2017-6-22
+
+### Changed
+
+* Changed printing of `:pair-fn` functions (i.e. `cond`) so that if
+  there is more than one pair (and if there weren't, why would you
+  use a cond), it won't print it all on one line.  If you don't
+  like this, `{:remove {:fn-gt2-force-nl #{:pair-fn}}}` will turn
+  it off.
+
+* Added ability to lift namespaces out of maps with namespaced keys.
+  Controlled by `:lift-ns?` and `:lift-ns-in-code?` in `:map`.  Will
+  not lift namespaces when specified implicitly in strings.  That is,
+  will not try to figure out correct namespace for `::a`, since when
+  parsing a file this can't reliably be known.  Note that `#::{}` maps
+  are not currently supported, and cannot be handled when using the
+  `:parse-string? true` input approach.
+
+### Fixed
+
+* A `:>>` in a `condp` wasn't handled correctly (i.e., at all).  This
+  made the pairing up of `condp` clauses all wrong after that.
+
+* A problem when using a "modifier" in an `:extend` (e.g., "static" in
+  `defui`) -- the modifier and the thing after it were always formatted
+  onto the same line, even if they didn't fit.  Now, if they don't fit
+  together, they don't end up on the same line. 
+
 ## 0.4.1 - 2017-5-18
 
 ### Changed

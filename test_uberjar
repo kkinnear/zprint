@@ -1,3 +1,3 @@
-java -jar target/zprint-filter-0.4.1 <src/zprint/zprint.cljc >z.cljc
+java -jar target/zprint-filter-0.4.2 <src/zprint/zprint.cljc >z.cljc
 diff z.cljc src/zprint/zprint.cljc
 rm z.cljc

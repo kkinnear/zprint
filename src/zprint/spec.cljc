@@ -129,6 +129,8 @@
 (s/def ::size number?)
 (s/def ::sort? ::boolean)
 (s/def ::sort-in-code? ::boolean)
+(s/def ::lift-ns? ::boolean)
+(s/def ::lift-ns-in-code? ::boolean)
 (s/def ::to-string? ::boolean)
 (s/def ::value zany?)
 (s/def ::wrap? ::boolean)
@@ -179,11 +181,12 @@
                       ::hang-expand ::hang-size ::hang? ::indent ::indent-arg
                       ::pair-hang?]))
 (s/def ::map
-  (only-keys :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
-                      ::hang-expand ::hang? ::indent ::justify? ::justify-hang
-                      ::justify-tuning ::key-color ::key-value-color
-                      ::key-depth-color ::key-ignore ::key-ignore-silent
-                      ::key-order ::nl-separator? ::sort-in-code? ::sort?]))
+  (only-keys
+    :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
+             ::hang-expand ::hang? ::indent ::justify? ::justify-hang
+             ::justify-tuning ::key-color ::key-value-color ::key-depth-color
+             ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
+             ::lift-ns-in-code? ::nl-separator? ::sort-in-code? ::sort?]))
 (s/def ::max-depth number?)
 (s/def ::max-hang-count number?)
 (s/def ::max-hang-dept number?)
@@ -313,6 +316,20 @@
   "Turn some predicates into something more understandable."
   [pred]
   (case pred
+    "zboolean?" "boolean"
+    "zprint.spec/zboolean?" "boolean"
+    "clojure.core/set?" "set"
+    "clojure.core/sequential?" "sequential"
+    "clojure.core/number?" "number"
+    "clojure.core/map?" "map"
+    "map?" "map"
+    "string?" "string"
+    pred))
+
+(defn map-pred-alt
+  "Turn some predicates into something more understandable."
+  [pred]
+  (case pred
     'zboolean? 'boolean?
     pred))
 
@@ -331,7 +348,8 @@
           problem (first (filter (comp (partial = min-via) count :via)
                            (val-map key-choice)))]
       (cond (clojure.string/ends-with? (str (:pred problem)) "?")
-              (str (ks-phrase problem) " was not a " (map-pred (:pred problem)))
+              (str (ks-phrase problem)
+                   " was not a " (map-pred (str (:pred problem))))
             (set? (:pred problem)) (str (ks-phrase problem)
                                         " was not recognized as valid!")
             :else (str "what?")))))

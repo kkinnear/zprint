@@ -1080,7 +1080,15 @@
 
 (expect "(cond a b c d)"
         (zprint-str "(cond a b c d)"
-                    {:parse-string? true, :pair {:flow? false}}))
+                    {:parse-string? true,
+                     :pair {:flow? false},
+                     :remove {:fn-gt2-force-nl #{:pair-fn}}}))
+
+(expect "(cond a b\n      c d)"
+        (zprint-str "(cond a b c d)"
+                    {:parse-string? true,
+                     :pair {:flow? false}}))
+
 
 ; Note that this also tests that :flow? overrides the indent checks in
 ; fzprint-two-up, which would otherwise prevent the flow because the keys
@@ -1127,6 +1135,12 @@
 
 
 (expect "(cond a b c d)"
+        (zprint-str "(cond a b c d)"
+                    {:parse-string? true,
+                     :pair {:force-nl? false},
+                     :remove {:fn-gt2-force-nl #{:pair-fn}}}))
+
+(expect "(cond a b\n      c d)"
         (zprint-str "(cond a b c d)"
                     {:parse-string? true, :pair {:force-nl? false}}))
 
@@ -1391,6 +1405,23 @@
 (expect
   "(deftype Foo [a b c]\n  P\n    (foo [this] a)\n  Q\n    (bar-me [this] b)\n    (bar-me [this y] (+ c y))\n  R\n  S\n    (baz [this] a)\n  static T\n    (baz-it [this] b)\n  static V\n    (baz-it [this] b)\n    (bar-none [this] a)\n  stuff\n  Q\n  R\n    (fubar [this] it))"
   (zprint-str zprint.zprint-test/zextend-tst1 {:extend {:flow? true}}))
+
+;
+; What happens if the modifier and the first element don't fit on the same line?
+;
+
+(expect
+  "(deftype bax [a b c]\n  static this-is-very-long-and-should-not-work\n    (baz-it [this] b))"
+  (zprint-str
+    "(deftype bax [a b c] static this-is-very-long-and-should-not-work (baz-it [this] b))"
+    {:parse-string? true}))
+
+(expect
+  "(deftype bax [a b c]\n  static\n    this-is-very-long-and-should-not-work\n    (baz-it [this] b))"
+  (zprint-str
+    "(deftype bax [a b c] static this-is-very-long-and-should-not-work (baz-it [this] b))"
+    45
+    {:parse-string? true}))
 
 ;
 ; Test removal of a modifier to see both that it works and confirm that
@@ -1670,4 +1701,89 @@
                   {:map {:key-value-color {:deeper {:keyword :blue}}},
                    :return-cvec? true}))
 
+;;
+;; # Namespaced key tests
+;;
+
+;;
+;; First, the parse-string tests
+;;
+
+(expect "(list #:x{:a :b, :c :d})"
+        (zprint-str "(list {:x/a :b :x/c :d})"
+                    {:parse-string? true,
+                     :map {:lift-ns? true, :lift-ns-in-code? true}}))
+
+(expect "(list {:x/a :b, :x/c :d})"
+        (zprint-str "(list {:x/a :b :x/c :d})"
+                    {:parse-string? true,
+                     :map {:lift-ns? true, :lift-ns-in-code? false}}))
+
+(expect "(list {::a :b, ::c :d})"
+        (zprint-str "(list {::a :b ::c :d})"
+                    {:parse-string? true,
+                     :map {:lift-ns? true, :lift-ns-in-code? true}}))
+
+(expect "(list {::a :b, ::c :d})"
+        (zprint-str "(list {::a :b ::c :d})"
+                    {:parse-string? true,
+                     :map {:lift-ns? true, :lift-ns-in-code? false}}))
+
+(expect "{::a :b, ::c :d}"
+        (zprint-str "{::a :b ::c :d}"
+                    {:parse-string? true, :map {:lift-ns? true}}))
+
+(expect "{:x/a :b, :y/c :d}"
+        (zprint-str "{:x/a :b :y/c :d}"
+                    {:parse-string? true, :map {:lift-ns? true}}))
+
+(expect "#:x{:a :b, :c :d}"
+        (zprint-str "{:x/a :b :x/c :d}"
+                    {:parse-string? true, :map {:lift-ns? true}}))
+
+;;
+;; Second, the repl s-expression tests
+;;
+
+(expect "#:zprint.zprint-test{:a :b, :c :d}"
+        (zprint-str {::a :b, ::c :d} {:map {:lift-ns? true}}))
+
+(expect "{:zprint.zprint-test/a :b, :zprint.zprint-test/c :d}"
+        (zprint-str {::a :b, ::c :d} {:map {:lift-ns? false}}))
+
+(expect "#:zprint.zprint-test{:a :b, :c :d}"
+        (zprint-str {::a :b, ::c :d} {:map {:lift-ns? true}}))
+
+(expect "{:x/a :b, :zprint.zprint-test/c :d}"
+        (zprint-str {:x/a :b, ::c :d} {:map {:lift-ns? true}}))
+
+(expect "#:x{:a :b, :c :d}"
+        (zprint-str {:x/a :b, :x/c :d} {:map {:lift-ns? true}}))
+
+(expect "{:x/a :b, :x/c :d}"
+        (zprint-str {:x/a :b, :x/c :d} {:map {:lift-ns? false}}))
+
+(expect "{:c :d, :x/a :b}"
+        (zprint-str {:x/a :b, :c :d} {:map {:lift-ns? true}}))
+
+;;
+;; # condp
+;;
+;; Handling :>> in condp
+;;
+
+(expect "(condp a b\n  cdkjdfksjkdf :>> djkdsjfdlsjkl\n  e)"
+        (zprint-str "(condp a b cdkjdfksjkdf :>> djkdsjfdlsjkl e)"
+                    40
+                    {:parse-string? true}))
+
+(expect "(condp a b\n  cdkjdfksjkdf :>>\n    djkdsjfdlsjkl\n  e)"
+        (zprint-str "(condp a b cdkjdfksjkdf :>> djkdsjfdlsjkl e)"
+                    30
+                    {:parse-string? true}))
+
+(expect "(condp a b\n  cdkjdfksjkdf\n    :>>\n    djkdsjfdlsjkl\n  e)"
+        (zprint-str "(condp a b cdkjdfksjkdf :>> djkdsjfdlsjkl e)"
+                    15
+                    {:parse-string? true}))
 

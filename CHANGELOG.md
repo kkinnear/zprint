@@ -1,6 +1,55 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.3 - 2017-10-10
+
+### Changed
+
+* Added support for focus on output.  This allows you to input
+  an expression parsed with rewrite-clj and point at some expression
+  down inside of the overall expression, and get that printed with
+  "focus" (currently a rather garish reverse-video, but that will
+  probably become configurable in the fullness of time).
+
+* Added support for outputing only some lines from printing an
+  expression, and replacing them with a configurable string to
+  indicate an elision.  Documentation on this is coming but not
+  here yet.
+
+* Upgraded support to Clojure 1.9-beta2 and Clojurescript 1.9.946.
+
+* Upgraded rewrite-clj to 0.6.0.
+
+* Added `:syntax-quote-paren` to the `:color-map` and the `:uneval` 
+  `:color-map`.  By default this turns the parens `:red` inside of
+  syntax-quoted expressions.
+
+* Made `assoc-in` and `doto` both be `:arg1` functions.
+
+### Fixed
+
+* Fixed a bug where an `:arg2*` function which wasn't able to
+  hang-one threw an exception.  Pretty rare, needs a very deeply
+  nested function.  `cgrand/poucet` did manage to expose this
+  problem.
+
+* Map with long keys and `:justify?` true does not become justified.
+  It is worth noting that `:justify?` also has a heuristic aspect,
+  where if the justification takes more width than is available it
+  will fall back to unjustified.  But this also exposed a bug where
+  the handling of the width didn't work in situations were you
+  turned off commas.  This is now fixed.  Issue #31.
+
+* zprint nil prints a blank line, not nil.  Issue #32.
+
+* The latest versions of lumo and planck both have upgraded to
+  tools.reader 1.0.5.  Unfortunately, rewrite-cljs 0.4.3 depended
+  on an internal API for tools.reader that changed from the alpha
+  version used by rewrite-cljs 0.4.3, but we've gotten a new version,
+  rewrite-cljs 0.4.4, which now works with tools.reader 1.0.5, so
+  both planck 2.8.1 and lumo 1.8-beta now work again with zprint.
+  Issue #30.
+
 ## 0.4.2 - 2017-6-22
 
 ### Changed

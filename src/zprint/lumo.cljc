@@ -1,5 +1,5 @@
 (ns zprint.lumo
-  (:require [lumo.core :refer [*command-line-args*]]
+  (:require [cljs.core :refer [*command-line-args*]]
             [cljs.nodejs :as nodejs]
             [clojure.string :as str]
             [cljs.reader :refer [read-string]]

@@ -99,26 +99,17 @@ when pretty printing source code.
 
 ## Usage
 
-__NOTE:__ As of version 0.3.0 the configuration approach has
-__changed__!  This library has moved to completely embrace clojure.spec
-and has __deprecated__ several little used configuration approachs in
-order to drastically reduce its other dependencies. This may require
-some slight extra work when using zprint as a library.
-
-__NOTE:__ As of version 0.4.0, zprint now uses `clojure.spec.alpha` for
-Clojure, and still uses `cljs.spec` for Clojurescript.
-
-__NOTE:__ As of version 0.4.1, zprint now uses `clojure.spec.alpha` for
-both Clojure and Clojurescript.
-
 ### Clojurescript:
 
 zprint uses `clojure.spec.alpha`, and has been tested in each of the
 following environments:
 
-  * Clojurescript 1.9.542 
-  * `lumo` 1.5.0
-  * `planck` 2.4.0
+  * Clojurescript 1.9.946
+  * `lumo` 1.8.0-beta 
+  * `planck` 2.8.1
+
+It requires `tools.reader` at least 1.0.5, which all of the environments
+above contain.
 
 ### Clojure 1.8:
 
@@ -133,31 +124,30 @@ include the library:
 [clojure-future-spec "1.9.0-alpha17"]
 ```
 
-### Clojure 1.9-alpha17:
+### Clojure 1.9-beta2:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 [![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
 
-#### Clojure 1.9-alpha15:
-
-__NOTE:__ Use `zprint 0.3.3` for 1.9-alpha15. `zprint 0.4.x` will not work
-with 1.9-alpha15 due to the change to `clojure.spec.alpha`!
-
-
-
-### Reducing the library load --  __MAY REQUIRE ACTION FROM YOU__
+#### Reducing the library footprint
 
 In order to reduce the dependencies that zprint drags along, I have
 removed everything that isn't absolutely essential.  That
 means that now zprint will run with just the parsing library and
-zprint itself, and nothing else.  But that also means that the
-ability to configure zprint from environment variables and Java
-system properties has been __deprecated__.  However, if you need
-these configuration capabilities, you can still use them if you add
-an additional library to the dependencies.  Zprint will look for
-and load the necessary namespaces, but not return an error if they
-are not there.
+zprint itself, and nothing else.  
+
+But that also means that the ability to configure zprint from
+environment variables and Java system properties has been __deprecated__.
+As nobody has raised any issues in the past 6 months or so, I will
+be completely removing these capabilities in the near future, when
+we go to 0.5.0.  If you need these capabilites, now is the last
+change to raise an issue on Github!
+
+However, if you need these configuration capabilities, you can still
+use them if you add an additional library to the dependencies.
+Zprint will look for and load the necessary namespaces, but not
+return an error if they are not there.
 
 Zprint can still be configured from the `$HOME/.zprintrc` file.  That
 has not changed and is not expected to change.
@@ -171,10 +161,6 @@ In addition, the rarely used feature `{:auto-width true}` has also gone
 away, but can still be used if you load the library:
 
    `[table "0.4.0" :exclusions [[org.clojure/clojure]]]`
-
-If you use either of these __deprecated__ capabilities, please raise
-an issue on Github and let me know.  Otherwise they will go away
-very soon!
 
 ## Features
 
@@ -803,20 +789,22 @@ The key :color-map contains by default:
 
 ```clojure
  :color-map {:brace :red,
-             :bracket :purple,
-             :comment :green,
-             :fn :blue,
-             :hash-brace :red,
-             :hash-paren :green,
-             :keyword :magenta,
-             :nil :yellow,
-             :none :black,
-             :number :purple,
-             :paren :green,
-             :quote :red,
-             :string :red,
-             :uneval :magenta,
-             :user-fn :black},
+ 	    :bracket :purple,
+	    :comment :green,
+	    :deref :red,
+	    :fn :blue,
+	    :hash-brace :red,
+	    :hash-paren :green,
+	    :keyword :magenta,
+	    :nil :yellow,
+	    :none :black,
+	    :number :purple,
+	    :paren :green,
+	    :syntax-quote-paren :red
+	    :quote :red,
+	    :string :red,
+	    :uneval :magenta,
+	    :user-fn :black},
 ```
 You can change any of these to any other available value.  The
 available values are:
@@ -834,20 +822,23 @@ i.e. those prefaced with #_ and ignored by the Clojure reader.
 This is the default :uneval color map:
 
 ```clojure
- :uneval {:color-map {:brace :yellow,
-                      :bracket :yellow,
-                      :comment :green,
-                      :fn :cyan,
-                      :hash-brace :yellow,
-                      :hash-paren :yellow,
-                      :keyword :yellow,
-                      :nil :yellow,
-                      :none :yellow,
-                      :number :yellow,
-                      :paren :yellow,
-                      :quote :yellow,
-                      :string :red,
-                      :user-fn :cyan}},
+:uneval {:color-map {:brace :yellow,
+		    :bracket :yellow,
+		    :comment :green, 
+		    :deref :yellow,
+		    :fn :cyan,
+		    :hash-brace :yellow,
+		    :hash-paren :yellow,
+		    :keyword :yellow,
+		    :nil :yellow,
+		    :none :yellow,
+		    :number :yellow,
+		    :paren :yellow,
+		    :syntax-quote-paren :yellow
+		    :quote :yellow,
+		    :string :yellow,
+		    :uneval :magenta,
+		    :user-fn :cyan}},
 ```
 
 You can also change these to any of the colors specified above.
@@ -2712,7 +2703,31 @@ if formatted using the information specified in the `:object`
 information.  :object supports __indent__ as described above.  
 
 ##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+_____
+## :output
 
+This controls the overall output that is produced.  
+
+#### :focus 
+Determines whether to highlight a part of the structure, and which
+part to highlight. Only one of `:zloc?` or `:path` can have a value.
+
+Contains a map with the following possible keys.
+##### :zloc? <text style="color:#A4A4A4;"><small>false</small></text>
+If true, indicates that the first argument is a zipper, and the zipper
+currently "points at" the expression at which to focus.  zprint will
+print the entire zipper, and highlight the expression at which the
+zipper is currently pointing.
+##### :path <text style="color:#A4A4A4;"><small>nil</small></text>
+The path is a vector of integers, which indicates where the focus
+should be placed.  Each number in the vector indicates moving into
+a structure, and the value of the number indicates the element within
+that structure on which the focus rests.  Presently, the error
+handling for bad paths is some sort of exception.
+
+If you have a structure like this: `[:a [:b [:c :d] :e :f]]`
+then the path `[1 1 0]` would highlight the `:c`.  The path `[1 1]` would
+highlight the `[:c :d]`.  The path `[0]` would highlight the `:a`.
 ______
 ## :pair
 

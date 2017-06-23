@@ -1,5 +1,6 @@
 (ns zprint.planck
-  (:require [planck.core :refer [slurp spit *command-line-args*]]
+  (:require [planck.core :refer [slurp spit]]
+            [cljs.core :refer [*command-line-args*]]
             [planck.shell :refer [sh]]
             [clojure.string :as str]
             [cljs.reader :refer [read-string]]

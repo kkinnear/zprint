@@ -7,16 +7,18 @@
             #?@(:clj [[clojure.repl :refer [source-fn]]])
             [zprint.zprint :as zprint :refer
              [fzprint blanks line-count max-width line-widths expand-tabs
-              merge-deep]]
+              merge-deep zcolor-map]]
             [zprint.finish :refer
              [cvec-to-style-vec compress-style no-style-map color-comp-vec
-              cursor-style]]
+              handle-lines]]
             [zprint.config :as config :refer
              [config-set-options! get-options config-configure-all! help-str
               get-explained-options get-explained-all-options
               get-default-options validate-options apply-style perform-remove]]
-            [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string]]
+            [zprint.zutil :refer
+             [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
             [zprint.sutil]
+            [zprint.focus :refer [range-ssv]]
             [rewrite-clj.parser :as p]
             #_[clojure.spec.alpha :as s]))
 
@@ -145,49 +147,59 @@
   "Do a basic zprint and output the style vector and the options used for
   further processing: [<style-vec> options]"
   [coll options]
-  (let [input (cond
-                (:zipper? options)
-                  #?(:clj (if (zipper? coll)
-                            coll
-                            (throw (#?(:clj Exception.
-                                       :cljs js/Error.)
-                                    (str "Collection is not a zipper"
-                                         " yet :zipper? specified!"))))
-                     :cljs coll)
-                (:parse-string? options)
-                  (if (string? coll)
-                    (get-zipper options coll)
-                    (throw (#?(:clj Exception.
-                               :cljs js/Error.)
-                            (str "Collection is not a string yet"
-                                 " :parse-string? specified!")))))
+  (let [[input options]
+          (cond
+            (:zipper? options)
+              #?(:clj (if (zipper? coll)
+                        [coll options]
+                        (throw (#?(:clj Exception.
+                                   :cljs js/Error.)
+                                (str "Collection is not a zipper"
+                                     " yet :zipper? specified!"))))
+                 :cljs [coll options])
+            (:parse-string? options) (if (string? coll)
+                                       [(get-zipper options coll) options]
+                                       (throw
+                                         (#?(:clj Exception.
+                                             :cljs js/Error.)
+                                          (str "Collection is not a string yet"
+                                               " :parse-string? specified!"))))
+            (:zloc? (:focus (:output options)))
+              ; We have a zloc which we want to display with
+              ; focus.  First, we have to find the root and path
+              ; of the zloc.
+              (let [[root path] (find-root-and-path-nw coll)]
+                [root (assoc-in options [:output :focus :path] path)])
+            :else [nil options])
         z-type (if input :zipper :sexpr)
         input (or input coll)]
-    (if (or (nil? input) (:drop? options))
-      ;  (and (:spaces? options)
-      ;       (:file? options)
-      ;        (or
-      ;          ; we ar getting rid of just spaces between expr
-      ;          (= (:left-space (:parse options)) :drop)
-      ;          ; we are getting rid of all whitespace between expr
-      ;          (:interpose (:parse options)))))
-      [[["" :b]] options]
-      (let [options (assoc options :ztype z-type)
-            fzprint-fn (partial fzprint
-                                options
-                                (if (and (:file? options)
-                                         (= (:left-space (:parse options))
-                                            :keep))
-                                  (or (:indent options) 0)
-                                  0)
-                                input)]
-        #_(def coreopt options)
-        ;REMOVE
-        ;(println "fzprint-style: (:indent options)" (:indent options))
-        [(if (= z-type :zipper)
-           (zprint.zutil/zredef-call fzprint-fn)
-           (zprint.sutil/sredef-call fzprint-fn))
-         options]))))
+    (cond (nil? input) [[["nil" (zcolor-map options :nil) :element]] options]
+          (:drop? options) [[["" :none]] options]
+          ;(if (or (nil? input) (:drop? options))
+          ;  (and (:spaces? options)
+          ;       (:file? options)
+          ;        (or
+          ;          ; we ar getting rid of just spaces between expr
+          ;          (= (:left-space (:parse options)) :drop)
+          ;          ; we are getting rid of all whitespace between expr
+          ;          (:interpose (:parse options)))))
+          ;
+          ;[[["nil" (zcolor-map options :nil) :element]] options]
+          :else
+            (let [options (assoc options :ztype z-type)
+                  fzprint-fn (partial fzprint
+                                      options
+                                      (if (and (:file? options)
+                                               (= (:left-space (:parse options))
+                                                  :keep))
+                                        (or (:indent options) 0)
+                                        0)
+                                      input)]
+              #_(def coreopt options)
+              [(if (= z-type :zipper)
+                 (zprint.zutil/zredef-call fzprint-fn)
+                 (zprint.sutil/sredef-call fzprint-fn))
+               options]))))
 
 (declare get-docstring-spec)
 
@@ -286,12 +298,10 @@
 (defn zprint*
   "Basic setup for fzprint call, used by all top level fns. Third
   argument can be either a number or a map, and if the third is a
-  number, the fourth (if any) must be a map.  If there is a fifth
-  argument, it is the focus (which must be a zipper), but for now
-  that isn't implemented.  The internal-options is either an empty
-  map or {:parse-string? true} for the -fn functions, and cannot
-  be overridden by an options argument. Returns a vector with
-  the style-vec and the options used: [<style-vec> options]"
+  number, the fourth (if any) must be a map.  The internal-options
+  is either an empty map or {:parse-string? true} for the -fn
+  functions, and cannot be overridden by an options argument. Returns
+  a vector with the style-vec and the options used: [<style-vec> options]"
   [coll special-option actual-options]
   (if special-option
     (case special-option
@@ -302,16 +312,15 @@
       :support (fzprint-style (get-explained-all-options) (get-default-options))
       :help (println help-str)
       (println (str "Unknown keyword option: " special-option)))
-    (fzprint-style
-      coll
-      (if-let [fn-name (:fn-name actual-options)]
-        (if (:docstring? (:spec actual-options))
-          #?(:clj (assoc-in actual-options
-                            [:spec :value]
-                            (get-docstring-spec actual-options fn-name))
-             :cljs actual-options)
-          actual-options)
-        actual-options))))
+    (fzprint-style coll
+                   (if-let [fn-name (:fn-name actual-options)]
+                     (if (:docstring? (:spec actual-options))
+                       #?(:clj (assoc-in actual-options
+                                 [:spec :value]
+                                 (get-docstring-spec actual-options fn-name))
+                          :cljs actual-options)
+                       actual-options)
+                     actual-options))))
 
 (declare process-multiple-forms)
 
@@ -363,6 +372,11 @@
         (apply str
           (map first (first (zprint* coll special-option actual-options))))))))
 
+(defn range-vec
+  "Select the elements from start to end from a vector."
+  [v [start end]]
+  (take (- end start) (drop start v)))
+
 (defn czprint-str-internal
   "Take a zipper or string and pretty print with color with fzprint, 
   output a str. Special processing for :parse-string-all?, with
@@ -382,9 +396,22 @@
                 (str ":parse-string-all? requires a string!"))))
       (let [actual-options (determine-options rest-options)
             [cvec options] (zprint* coll special-option actual-options)
-            cvec-wo-empty (remove #(empty? (first %)) cvec)
-            str-style-vec (cvec-to-style-vec {:style-map no-style-map}
-                                             cvec-wo-empty)
+            cvec-wo-empty cvec
+            ; (remove #(empty? (first %)) cvec)
+            focus-vec (if-let [path (:path (:focus (:output options)))]
+                        (range-ssv cvec-wo-empty path))
+            #_(def pa (:path (:focus options)))
+            #_(def cvwoe cvec-wo-empty)
+            #_(println "focus-vec:" focus-vec)
+            accept-vec (handle-lines options cvec-wo-empty focus-vec)
+            #_(println "accept-vec:" accept-vec)
+            #_(def av accept-vec)
+            #_(println "elide:" (:elide (:output options)))
+            str-style-vec (cvec-to-style-vec {:style-map no-style-map,
+                                              :elide (:elide (:output options))}
+                                             cvec-wo-empty
+                                             focus-vec
+                                             accept-vec)
             #_(def ssv str-style-vec)
             comp-style (compress-style str-style-vec)
             #_(def cps comp-style)
@@ -615,7 +642,7 @@
 ;;
 ;; In order to properly process a file, sometimes you want to alter
 ;; the value of the zprint options map for a single function definition,
-;; or turn it off completely and the on again later.  Or, possibly,
+;; or turn it off completely and then on again later.  Or, possibly,
 ;; set some defaults which hold while formatting only this file.
 ;;
 ;; This is all possible because of the zprint comment API.

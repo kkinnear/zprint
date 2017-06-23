@@ -21,7 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.2"))
+(defn about "Return version of this program." [] (str "zprint-0.4.3"))
 
 ;;
 ;; # External Configuration
@@ -272,6 +272,7 @@
    "apply" :arg1,
    "as->" :arg2,
    "assoc" :arg1-pair,
+   "assoc-in" :arg1,
    "binding" :binding,
    "case" :arg1-pair-body,
    "cat" :force-nl,
@@ -293,6 +294,7 @@
    "do" :none-body,
    "doseq" :binding,
    "dotimes" :binding,
+   "doto" :arg1,
    "extend" :arg1-extend,
    "extend-protocol" :arg1-extend,
    "extend-type" :arg1-extend,
@@ -368,6 +370,7 @@
                :none :black,
                :number :purple,
                :paren :green,
+               :syntax-quote-paren :red,
                :quote :red,
                :string :red,
                :uneval :magenta,
@@ -443,6 +446,7 @@
    :max-length 1000,
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
+   :output {:focus {:zloc? false, :surround nil}, :lines nil, :elide nil},
    :pair {:flow? false,
           :force-nl? nil,
           :hang-diff 1,
@@ -537,12 +541,17 @@
                         :none :yellow,
                         :number :yellow,
                         :paren :yellow,
+                        :syntax-quote-paren :yellow,
                         :quote :yellow,
                         :string :yellow,
                         :uneval :magenta,
                         :user-fn :cyan}},
    :user-fn-map {},
-   :vector {:indent 1, :wrap-after-multi? true, :wrap-coll? true, :wrap? true},
+   :vector {:indent 1,
+            :binding? false,
+            :wrap-after-multi? true,
+            :wrap-coll? true,
+            :wrap? true},
    :width 80,
    :zipper? false})
 
@@ -691,16 +700,16 @@
   it, being smart about things that were set to nil."
   [updated-map]
   (cond-> updated-map
-    (:key-order (:map updated-map))
-      (assoc-in [:map :key-value]
-                (zipmap (:key-order (:map updated-map)) (range)))
+    (:key-order (:map updated-map)) (assoc-in [:map :key-value]
+                                      (zipmap (:key-order (:map updated-map))
+                                              (range)))
     ; is :key-order now nil and :key-value is not?
     (and (nil? (:key-order (:map updated-map)))
          (not (nil? (:key-value (:map updated-map)))))
       (dissoc-two [:map :key-value])
     (:key-order (:reader-cond updated-map))
       (assoc-in [:reader-cond :key-value]
-                (zipmap (:key-order (:reader-cond updated-map)) (range)))
+        (zipmap (:key-order (:reader-cond updated-map)) (range)))
     ; is :key-order now nil and :key-value is not?
     (and (nil? (:key-order (:reader-cond updated-map)))
          (not (nil? (:key-value (:reader-cond updated-map)))))

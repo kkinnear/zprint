@@ -41,6 +41,7 @@
 (s/def ::none ::color)
 (s/def ::number ::color)
 (s/def ::paren ::color)
+(s/def ::syntax-quote-paren ::color)
 (s/def ::quote ::color)
 (s/def ::string ::color)
 (s/def ::uneval ::color)
@@ -67,6 +68,13 @@
         :number number?
         :keyword keyword?))
 (s/def ::constant-seq (s/coll-of ::constant :kind sequential?))
+(s/def ::line-seq
+  (s/nilable (s/coll-of (s/or :number number?
+                              :range (s/coll-of number? :kind sequential?))
+                        :kind sequential?)))
+(s/def ::path-seq
+  (s/nilable (s/coll-of (s/coll-of number? :kind sequential?)
+                        :kind sequential?)))
 (s/def ::key-or-ks-seq
   (s/coll-of (s/or :constant ::constant
                    :constant-seq ::constant-seq)
@@ -89,9 +97,12 @@
 (s/def ::constant-pair? ::boolean)
 (s/def ::constant-pair-min number?)
 (s/def ::count? ::boolean)
+(s/def ::binding? ::boolean)
 (s/def ::docstring? ::boolean)
+(s/def ::elide (s/nilable string?))
 (s/def ::expand? ::boolean)
 (s/def ::flow? ::boolean)
+(s/def ::focus (only-keys :opt-un [::zloc? ::path ::surround]))
 (s/def ::force-nl? ::boolean)
 (s/def ::general-hang-adjust number?)
 (s/def ::hang? ::boolean)
@@ -117,6 +128,7 @@
 (s/def ::key-ignore-silent (s/nilable ::key-or-ks-seq))
 (s/def ::key-order (s/nilable ::key-value))
 (s/def ::left-space ::keep-or-drop)
+(s/def ::lines ::line-seq)
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::nl-separator? ::boolean)
 (s/def ::object? ::boolean)
@@ -124,6 +136,9 @@
 (s/def ::parallel?
   #?(:clj ::boolean
      :cljs false?))
+(s/def ::path (s/coll-of number? :kind sequential?))
+(s/def ::paths ::path-seq)
+(s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::additional-libraries? ::boolean)
 (s/def ::record-type? ::boolean)
 (s/def ::size number?)
@@ -136,6 +151,7 @@
 (s/def ::wrap? ::boolean)
 (s/def ::wrap-after-multi? ::boolean)
 (s/def ::wrap-coll? ::boolean)
+(s/def ::zloc? ::boolean)
 
 
 ;;
@@ -153,12 +169,17 @@
 (s/def ::color-map
   (only-keys :opt-un [::brace ::bracket ::comment ::deref ::fn ::hash-brace
                       ::hash-paren ::keyword ::nil ::none ::number ::paren
-                      ::quote ::string ::uneval ::user-fn]))
+                      ::quote ::string ::syntax-quote-paren ::uneval
+                      ::user-fn]))
 (s/def :alt/comment (only-keys :opt-un [::count? ::wrap?]))
 (s/def ::configured? ::boolean)
 (s/def ::dbg? ::boolean)
 (s/def ::dbg-print? ::boolean)
 (s/def ::dbg-ge zany?)
+
+(s/def ::dbg-bug? ::boolean)
+
+
 (s/def ::delay (only-keys :opt-un [::object?]))
 (s/def ::drop? ::boolean)
 (s/def ::do-in-hang? ::boolean)
@@ -194,6 +215,7 @@
 (s/def ::max-length number?)
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
+(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::indent ::justify? ::justify-hang ::justify-tuning
@@ -228,7 +250,8 @@
 (s/def :alt/uneval (only-keys :opt-un [::color-map]))
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
-  (only-keys :opt-un [::indent ::wrap-after-multi? ::wrap-coll? ::wrap?]))
+  (only-keys :opt-un [::indent ::binding? ::wrap-after-multi? ::wrap-coll?
+                      ::wrap?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::zipper? ::boolean)
@@ -240,13 +263,13 @@
 (s/def ::options
   (only-keys
     :opt-un [::additional-libraries? ::agent ::array ::atom ::auto-width?
-             ::binding ::color-map :alt/comment ::configured? ::dbg?
+             ::binding ::color-map :alt/comment ::configured? ::dbg? ::dbg-bug?
              ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend
              ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map
              ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
              ::max-depth ::max-hang-count ::max-hang-depth ::max-hang-span
-             ::max-length ::object ::old? ::pair ::pair-fn ::parallel? ::parse
-             ::parse-string-all? ::parse-string? ::process-bang-zprint?
+             ::max-length ::object ::old? ::output ::pair ::pair-fn ::parallel?
+             ::parse ::parse-string-all? ::parse-string? ::process-bang-zprint?
              ::promise ::reader-cond ::record ::remove ::return-cvec? ::set
              ::spaces? ::spec ::style ::style-map ::tab ::trim-comments?
              ::tuning :alt/uneval ::user-fn-map ::vector ::version ::width

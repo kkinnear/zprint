@@ -497,7 +497,7 @@
                 zprint.zfns/zanonfn? zanonfn?
                 zprint.zfns/zfn-obj? (constantly false)
                 zprint.zfns/zfocus zfocus
-                zprint.zfns/zfind-path find-root-and-path
+                zprint.zfns/zfind-path find-root-and-path-nw
                 zprint.zfns/zwhitespace? whitespace?
                 zprint.zfns/zlist? z/list?
                 zprint.zfns/zvector? z/vector?

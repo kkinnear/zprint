@@ -1455,12 +1455,12 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :indent]
    ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :whitespace] [";stuff" :green :comment]
-   ["\n     " :none :whitespace] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1469,11 +1469,11 @@
    [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
    [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["5" :purple :element] [" " :none :whitespace]
+   ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
    ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
    ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
    ["}" :red :right] [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
@@ -1483,12 +1483,12 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :indent]
    ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :blue :element]
-   ["\n     " :none :whitespace] [";stuff" :green :comment]
-   ["\n     " :none :whitespace] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\n  " :none :indent] ["{" :red :left] [":abc" :blue :element]
+   ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :blue :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :yellow :element] [" " :none :whitespace]
    ["\"even\"" :red :element] [", " :none :whitespace]
@@ -1498,11 +1498,11 @@
    [" " :none :whitespace] ["\"the\"" :red :element] [", " :none :whitespace]
    ["\"way\"" :green :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"def\"" :blue :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace] ["5" :blue :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["5" :blue :element]
    [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
    ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
    ["}" :red :right] [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
@@ -1513,12 +1513,12 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :indent]
    ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :whitespace] [";stuff" :green :comment]
-   ["\n     " :none :whitespace] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1527,11 +1527,11 @@
    [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
    [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["5" :purple :element] [" " :none :whitespace]
+   ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
    ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
    ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
    ["}" :red :right] [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
@@ -1541,12 +1541,12 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :indent]
    ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :blue :element]
-   ["\n     " :none :whitespace] [";stuff" :green :comment]
-   ["\n     " :none :whitespace] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\n  " :none :indent] ["{" :red :left] [":abc" :blue :element]
+   ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :cyan :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1555,11 +1555,11 @@
    [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
    [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["5" :green :element] [" " :none :whitespace]
+   ["\n   " :none :indent] ["5" :green :element] [" " :none :whitespace]
    ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
    ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
    ["}" :red :right] [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
@@ -1571,12 +1571,12 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :indent]
    ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :whitespace] [";stuff" :green :comment]
-   ["\n     " :none :whitespace] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1585,11 +1585,11 @@
    [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
    [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"def\"" :cyan :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace] ["5" :purple :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["5" :purple :element]
    [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
    ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
    ["}" :red :right] [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
@@ -1649,12 +1649,12 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :indent]
    ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :whitespace] [";stuff" :green :comment]
-   ["\n     " :none :whitespace] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1663,11 +1663,11 @@
    [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
    [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["5" :purple :element] [" " :none :whitespace]
+   ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
    ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
    ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :blue :element]
    ["}" :red :right] [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
@@ -1676,12 +1676,12 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :whitespace]
+   ["key-color-tst" :black :element] ["\n  " :none :indent]
    ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :whitespace] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :whitespace] [";stuff" :green :comment]
-   ["\n     " :none :whitespace] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :whitespace]
+   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
+   ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1690,11 +1690,11 @@
    [":just" :blue :element] [" " :none :whitespace] ["\"the\"" :red :element]
    [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :blue :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :whitespace] ["\"def\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["5" :purple :element] [" " :none :whitespace]
+   ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
    ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :whitespace] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
    ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
    ["}" :red :right] [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
@@ -1786,4 +1786,26 @@
         (zprint-str "(condp a b cdkjdfksjkdf :>> djkdsjfdlsjkl e)"
                     15
                     {:parse-string? true}))
+
+;;
+;; # Commas (Issue #31)
+;;
+;; Even though commas were turned off, it still needed space for the comma.
+;;
+
+(expect 20 (max-width (zprint-str {:abcdefg :hijklmnop :edc :kkk} 20 {:map {:comma? false}})))
+(expect 2 (line-count (zprint-str {:abcdefg :hijklmnop :edc :kkk} 20 {:map {:comma? false}})))
+
+(expect 21 (max-width (zprint-str {:abcdefg :hijklmnop :edc :kkk} 21 {:map {:comma? true}})))
+(expect 2 (line-count (zprint-str {:abcdefg :hijklmnop :edc :kkk} 21 {:map {:comma? true}})))
+
+(expect 14 (max-width (zprint-str {:abcdefg :hijklmnop :edc :kkk} 20 {:map {:comma? true}})))
+(expect 3 (line-count (zprint-str {:abcdefg :hijklmnop :edc :kkk} 20 {:map {:comma? true}})))
+
+;;
+;; # (czprint nil) doesn't print "nil" (Issue #32)
+;;
+
+(expect "nil" (zprint-str nil))
+(expect [["nil" :yellow :element]] (czprint-str nil {:return-cvec? true}))
 

@@ -130,10 +130,10 @@ In addition to the zprint dependency, you also need to
 include the library: 
 
 ```
-[clojure-future-spec "1.9.0-alpha16-1"]
+[clojure-future-spec "1.9.0-alpha17"]
 ```
 
-### Clojure 1.9-alpha16:
+### Clojure 1.9-alpha17:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 

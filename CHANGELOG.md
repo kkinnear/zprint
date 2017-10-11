@@ -1,6 +1,27 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.4 - 2017-10-26
+
+### Changed
+
+ * Added :color? boolean to options map, which will allow you to select
+   color (or not) regardless of whether or not you use czprint or zprint.
+
+ * Added `deftest` and `defexpect` as `:arg1-body` functions in the 
+   `fn-map`.
+
+
+### Fixed
+
+ * Added inline-comment support, on by default.  Controlled by {:comment
+   {:inline? true}}.  They will also be wrapped. Issue #33.
+
+ * Fixed problem with focus interacting badly with comment wrapping,
+   where a wrapped comment would change the path for later elements
+   if it wrapped.  Now wrapping is performed after all focus operations
+   are completed.
+
 ## 0.4.3 - 2017-10-10
 
 ### Changed

@@ -21,7 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.3"))
+(defn about "Return version of this program." [] (str "zprint-0.4.4"))
 
 ;;
 ;; # External Configuration
@@ -282,6 +282,7 @@
    "condp" :arg2-pair,
    "def" :arg1-body,
    "defmacro" :arg1-body,
+   "defexpect" :arg1-body,
    "defmethod" :arg2,
    "defmulti" :arg1-body,
    "defn" :arg1-body,
@@ -289,6 +290,7 @@
    "defproject" :arg2-pair,
    "defprotocol" :arg1-force-nl,
    "defrecord" :arg2-extend,
+   "deftest" :arg1-body,
    "deftype" :arg2-extend,
    "defui" :arg1-extend,
    "do" :none-body,
@@ -358,6 +360,7 @@
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
              :justify? false,
              :nl-separator? false},
+   :color? true,
    :color-map {:brace :red,
                :bracket :purple,
                :comment :green,
@@ -375,7 +378,7 @@
                :string :red,
                :uneval :magenta,
                :user-fn :black},
-   :comment {:count? false, :wrap? true},
+   :comment {:count? false, :wrap? true, :inline? true},
    :configured? false,
    :dbg-ge nil,
    :dbg-print? nil,
@@ -555,6 +558,26 @@
    :width 80,
    :zipper? false})
 
+;; Returns nil for all of the colors
+(def no-color-map
+  {:brace :red,
+   :bracket :none,
+   :comment :none,
+   :deref :none,
+   :fn :none,
+   :hash-brace :none,
+   :hash-paren :none,
+   :keyword :none,
+   :nil :none,
+   :none :none,
+   :number :none,
+   :paren :none,
+   :syntax-quote-paren :none,
+   :quote :none,
+   :string :none,
+   :uneval :none,
+   :user-fn :none})
+
 ;;
 ;; # Mutable Options storage
 ;;
@@ -713,7 +736,9 @@
     ; is :key-order now nil and :key-value is not?
     (and (nil? (:key-order (:reader-cond updated-map)))
          (not (nil? (:key-value (:reader-cond updated-map)))))
-      (dissoc-two [:reader-cond :key-value])))
+      (dissoc-two [:reader-cond :key-value])
+    (not (:color? updated-map)) (assoc :color-map no-color-map)
+    (not (:color? updated-map)) (assoc-in [:uneval :color-map] no-color-map)))
 
 (defn reset-options!
   "Replace options to be used on every call.  You must have validated

@@ -12,7 +12,7 @@
       zobj-to-vec zexpandarray znewline? zwhitespaceorcomment? zmap-all
       zpromise? zfuture? zdelay? zkeyword? zconstant? zagent? zreader-macro?
       zarray-to-shift-seq zdotdotdot zsymbol? znil? zreader-cond-w-symbol?
-      zreader-cond-w-coll? zlift-ns]]
+      zreader-cond-w-coll? zlift-ns zinlinecomment?]]
     [zprint.ansi :refer [color-str]]
     [zprint.zutil :refer [add-spec-to-docstring]]
     [rewrite-clj.parser :as p]
@@ -327,7 +327,7 @@
   tag - element type of string (comment's don't count in length)
   eol? - should we terminate line after adding count of s"
   [count-comment? [out cur-len just-eol? just-comment? :as in] s tag eol?]
-  (let [comment? (= tag :comment)
+  (let [comment? (or (= tag :comment) (= tag :comment-inline))
         count-s (if (and comment? (not count-comment?)) 0 (count s))]
     (cond
       #_((and comment? (not just-eol?))
@@ -1277,15 +1277,6 @@
      (concat nl
              [[r-str (zcolor-map options (or r-type r-str))
                (or r-type :right)]])))
-  ([options ind zloc r-str] (rstr-vec options ind zloc r-str nil)))
-
-(defn rstr-vec-alt
-  "Create an r-str-vec with, possibly, a newline at the beginning if
-  the last thing before it is a comment."
-  ([options ind zloc r-str r-type]
-   (let [nl (when (zcomment? (zlast zloc))
-              [[(str "\n" (blanks ind)) :none :indent]])]
-     (concat nl [[r-str (zcolor-map options (or r-type r-str)) :right]])))
   ([options ind zloc r-str] (rstr-vec options ind zloc r-str nil)))
 
 (defn fzprint-binding-vec
@@ -2265,7 +2256,9 @@
               ; it is really not clear what multi? does in this routine
               (recur
                 (next cur-seq)
-                (cond (= (nth (first this-seq) 2) :comment) (inc width)
+                (cond (or (= (nth (first this-seq) 2) :comment)
+                          (= (nth (first this-seq) 2) :comment-inline))
+                        (inc width)
                       (and multi? (> linecnt 1) (not wrap-after-multi?)) width
                       fit? (+ cur-ind len 1)
                       :else (+ ind len 1))
@@ -2490,7 +2483,9 @@
                                 [(str "\n" (blanks (inc ind))) :none :indent]]
                                (:map options)
                                ;nl-separator?
-                               #(and comma? (not= (nth (first %) 2) :comment))
+                               #(and comma?
+                                     (not= (nth (first %) 2) :comment)
+                                     (not= (nth (first %) 2) :comment-inline))
                                pair-print)
                              ; )
                              r-str-vec))))))))
@@ -2742,29 +2737,6 @@
                              uloc)
                    r-str-vec)))
 
-(defn fzprint-meta-alt
-  "Print the two items in a meta node.  Different because it doesn't print
-  a single collection, so it doesn't do any indent or rightmost.  It also
-  uses a different approach to calling fzprint-flow-seq with the
-  results zmap, so that it prints all of the seq, not just the rightmost."
-  [options ind zloc]
-  (let [l-str "^"
-        r-str ""
-        l-str-vec [[l-str (zcolor-map options l-str) :element]]]
-    (dbg-pr options "fzprint-meta: zloc:" (zstring zloc))
-    (concat-no-nil
-      l-str-vec
-      (fzprint-flow-seq
-        ; No rightmost, because this isn't a collection.
-        ; This is essentially two separate things.
-        options
-        ; no indent for second line, as the leading ^ is
-        ; not a normal collection beginning
-        ; TODO: change this to (+ (count l-str) ind)
-        (apply vector (+ (count l-str) ind) (repeat (dec (zcount zloc)) ind))
-        ;[(inc ind) ind]
-        (zmap identity zloc)))))
-
 (defn fzprint-meta
   "Print the two items in a meta node.  Different because it doesn't print
   a single collection, so it doesn't do any indent or rightmost.  It also
@@ -2977,14 +2949,24 @@
               (cond
                 (zcomment? zloc)
                   (let [zcomment
-                          ; Do we have a file-level comment?
+                          ; Do we have a file-level comment that is way too
+                          ; long??
                           (if (and (zero? depth) (not trim-comments?))
                             zstr
-                            (clojure.string/replace zstr "\n" ""))]
+                            (clojure.string/replace zstr "\n" ""))
+                        ; Only check for inline comments if we are doing them
+                        ; otherwise we get left with :comment-inline element
+                        ; types that don't go away
+                        inline-spaces (when (:inline? (:comment options))
+                                        (zinlinecomment? zloc))]
                     (if (and (:count? (:comment options)) overflow-in-hang?)
                       (do (dbg options "fzprint*: overflow comment ========")
                           nil)
-                      [[zcomment (zcolor-map options :comment) :comment]]))
+                      #_[[zcomment (zcolor-map options :comment) :comment]]
+                      (if inline-spaces
+                        [[zcomment (zcolor-map options :comment) :comment-inline
+                          inline-spaces]]
+                        [[zcomment (zcolor-map options :comment) :comment]])))
                 ; Really just testing for whitespace, comments filtered above
                 (zwhitespaceorcomment? zloc) [[zstr :none :whitespace]]
                 ; At this point, having filtered out whitespace and
@@ -3091,7 +3073,7 @@
                 (conj! out [(str semi-str space-str next-comment) color stype])
                 (conj! (conj! out [(str "\n" (blanks start)) :none :indent])
                        [(str semi-str space-str next-comment) color
-                        stype])))))))))
+                        :comment-wrap])))))))))
 
 (defn loc-vec
   "Takes the start of this vector and the vector itself."
@@ -3132,15 +3114,29 @@
   #_(def wcsv style-vec)
   (let [start-col (style-loc-vec style-vec)
         #_(def stc start-col)
-        sv (pr-str style-vec)
-        _ (dbg options "fzprint-wrap-comments: style-vec:" sv)
+        _ (dbg options "fzprint-wrap-comments: style-vec:" (pr-str style-vec))
         _ (dbg options "fzprint-wrap-comments: start-col:" start-col)
         wrap-style-vec (mapv (partial wrap-comment width) style-vec start-col)
         #_(def wsv wrap-style-vec)
-        sv (pr-str wrap-style-vec)
-        _ (dbg options "fzprint-wrap-comments: wrap:" sv)
+        _ (dbg options "fzprint-wrap-comments: wrap:" (pr-str style-vec))
         out-style-vec (lift-style-vec wrap-style-vec)]
     out-style-vec))
+
+(defn fzprint-inline-comments
+  "Try to bring inline comments back onto the line on which they belong."
+  [{:keys [width], :as options} style-vec]
+  #_(def fic style-vec)
+  (loop [cvec style-vec
+         out []]
+    (if-not cvec
+      out
+      (let [[s c e :as element] (first cvec)
+            [_ _ ne nn :as next-element] (second cvec)
+            new-element (cond (and (= e :indent) (= ne :comment-inline))
+                                [(blanks nn) c :whitespace]
+                              (= e :comment-inline) [s c :comment]
+                              :else element)]
+        (recur (next cvec) (conj out new-element))))))
 
 ;;
 ;; # External interface to all fzprint functions
@@ -3163,13 +3159,13 @@
                               :map-depth 0)
                             indent
                             zloc)]
-    (if (= (:ztype options) :sexpr)
-      style-vec
-      (if (:wrap? (:comment options))
-        (fzprint-wrap-comments options style-vec)
-        style-vec))))
+    style-vec))
 
-
+;    (if (= (:ztype options) :sexpr)
+;      style-vec
+;      (if (:wrap? (:comment options))
+;        (fzprint-wrap-comments options style-vec)
+;        style-vec))))
 
 ;;
 ;; # Basic functions for testing results

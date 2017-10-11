@@ -1,26 +1,27 @@
 (ns zprint.core
   ;#?@(:cljs [[:require-macros [zprint.macros :refer [dbg dbg-pr dbg-form
   ;dbg-print]]]])
-  (:require #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
-            clojure.string
-            #?@(:cljs [[cljs.reader :refer [read-string]]])
-            #?@(:clj [[clojure.repl :refer [source-fn]]])
-            [zprint.zprint :as zprint :refer
-             [fzprint blanks line-count max-width line-widths expand-tabs
-              merge-deep zcolor-map]]
-            [zprint.finish :refer
-             [cvec-to-style-vec compress-style no-style-map color-comp-vec
-              handle-lines]]
-            [zprint.config :as config :refer
-             [config-set-options! get-options config-configure-all! help-str
-              get-explained-options get-explained-all-options
-              get-default-options validate-options apply-style perform-remove]]
-            [zprint.zutil :refer
-             [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
-            [zprint.sutil]
-            [zprint.focus :refer [range-ssv]]
-            [rewrite-clj.parser :as p]
-            #_[clojure.spec.alpha :as s]))
+  (:require
+    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
+    clojure.string
+    #?@(:cljs [[cljs.reader :refer [read-string]]])
+    #?@(:clj [[clojure.repl :refer [source-fn]]])
+    [zprint.zprint :as zprint :refer
+     [fzprint blanks line-count max-width line-widths expand-tabs merge-deep
+      zcolor-map fzprint-wrap-comments fzprint-inline-comments]]
+    [zprint.finish :refer
+     [cvec-to-style-vec compress-style no-style-map color-comp-vec
+      handle-lines]]
+    [zprint.config :as config :refer
+     [config-set-options! get-options config-configure-all! help-str
+      get-explained-options get-explained-all-options get-default-options
+      validate-options apply-style perform-remove no-color-map]]
+    [zprint.zutil :refer
+     [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
+    [zprint.sutil]
+    [zprint.focus :refer [range-ssv]]
+    [rewrite-clj.parser :as p]
+    #_[clojure.spec.alpha :as s]))
 
 
 ;;
@@ -234,7 +235,9 @@
             rest-options (cond (and width (map? options)) options
                                (map? width-or-options) width-or-options)
             width-map (if width {:width width} {})
-            new-options (merge-deep rest-options width-map internal-options)
+            ;      new-options (merge-deep rest-options width-map
+            ;      internal-options)
+            new-options (merge-deep internal-options rest-options width-map)
             auto-width
               (when (and (not width)
                          ; check both new-options and already
@@ -351,37 +354,18 @@
 ;; That said, they both go through the process-multiple-forms
 ;; function, so that we now have a nice way to test that support.
 
-(defn zprint-str-internal
-  "Take a zipper or string and pretty print it with fzprint, 
-  output a str. Special processing for :parse-string-all?, with
-  not only a different code path, but a different default for 
-  :parse {:interpose nil} to :interpose true"
-  [internal-options coll & rest]
-  (let [[special-option rest-options] (process-rest-options internal-options
-                                                            rest)]
-    (if (:parse-string-all? rest-options)
-      (if (string? coll)
-        (process-multiple-forms (parse-string-all-options rest-options)
-                                zprint-str-internal
-                                ":parse-string-all? call"
-                                (edn* (p/parse-string-all coll)))
-        (throw (#?(:clj Exception.
-                   :cljs js/Error.)
-                (str ":parse-string-all? requires a string!"))))
-      (let [actual-options (determine-options rest-options)]
-        (apply str
-          (map first (first (zprint* coll special-option actual-options))))))))
-
 (defn range-vec
   "Select the elements from start to end from a vector."
   [v [start end]]
   (take (- end start) (drop start v)))
 
 (defn czprint-str-internal
-  "Take a zipper or string and pretty print with color with fzprint, 
-  output a str. Special processing for :parse-string-all?, with
+  "Take a zipper or string and pretty print with fzprint, 
+  output a str.  Key :color? is true by default, and should
+  be set to false in internal-options to make this non-colored.
+  Special processing for :parse-string-all?, with
   not only a different code path, but a different default for 
-  :parse {:interpose nil} to :interpose true"
+  :parse {:interpose nil} to {:interpose true}"
   [internal-options coll & rest]
   (let [[special-option rest-options] (process-rest-options internal-options
                                                             rest)]
@@ -397,25 +381,38 @@
       (let [actual-options (determine-options rest-options)
             [cvec options] (zprint* coll special-option actual-options)
             cvec-wo-empty cvec
+            #_(def cvwoe cvec-wo-empty)
             ; (remove #(empty? (first %)) cvec)
             focus-vec (if-let [path (:path (:focus (:output options)))]
                         (range-ssv cvec-wo-empty path))
             #_(def pa (:path (:focus options)))
-            #_(def cvwoe cvec-wo-empty)
             #_(println "focus-vec:" focus-vec)
             accept-vec (handle-lines options cvec-wo-empty focus-vec)
             #_(println "accept-vec:" accept-vec)
             #_(def av accept-vec)
             #_(println "elide:" (:elide (:output options)))
+            inline-style-vec (if (:inline? (:comment options))
+                               (fzprint-inline-comments options cvec-wo-empty)
+                               cvec-wo-empty)
+            #_(def ssvi inline-style-vec)
             str-style-vec (cvec-to-style-vec {:style-map no-style-map,
                                               :elide (:elide (:output options))}
-                                             cvec-wo-empty
+                                             inline-style-vec
+                                             #_cvec-wo-empty
                                              focus-vec
                                              accept-vec)
-            #_(def ssv str-style-vec)
-            comp-style (compress-style str-style-vec)
+            #_(def ssvx str-style-vec)
+            wrapped-style-vec (if (:wrap? (:comment options))
+                                (fzprint-wrap-comments options str-style-vec)
+                                str-style-vec)
+            #_(def ssvy wrapped-style-vec)
+            comp-style (compress-style wrapped-style-vec)
             #_(def cps comp-style)
-            color-style (color-comp-vec comp-style)]
+            ; don't do extra processing unless we really need it
+            color-style (if (or accept-vec focus-vec (:color? options))
+                          (color-comp-vec comp-style)
+                          (apply str (mapv first comp-style)))
+            #_(def cs color-style)]
         (if (:return-cvec? options) cvec color-style)))))
 
 (defn get-fn-source
@@ -449,7 +446,7 @@
   "Take a strutcure or a string and  pretty print it, and
   output a str. (zprint-str nil :help) for more information."
   [coll & rest]
-  (apply zprint-str-internal {} coll rest))
+  (apply czprint-str-internal {:color? false} coll rest))
 
 (defn czprint-str
   "Take a structure or string and pretty print it, and output 
@@ -462,7 +459,7 @@
   "Take a structure or string and pretty print it. 
   (zprint nil :help) for more information."
   [coll & rest]
-  (println (apply zprint-str-internal {} coll rest)))
+  (println (apply czprint-str-internal {:color? false} coll rest)))
 
 (defn czprint
   "Take a zipper or string and pretty print it.
@@ -473,8 +470,8 @@
 #?(:clj (defmacro zprint-fn-str
           "Take a fn name, and pretty print it, output a string."
           [fn-name & rest]
-          `(apply zprint-str-internal
-             {:parse-string? true}
+          `(apply czprint-str-internal
+             {:parse-string? true, :color? false}
              (get-fn-source '~fn-name)
              ~@rest
              [])))
@@ -493,8 +490,8 @@
 #?(:clj (defmacro zprint-fn
           "Take a fn name, and pretty print it."
           [fn-name & rest]
-          `(println (apply zprint-str-internal
-                      {:parse-string? true}
+          `(println (apply czprint-str-internal
+                      {:parse-string? true, :color? false, :fn-name '~fn-name}
                       (get-fn-source '~fn-name)
                       ~@rest
                       []))))
@@ -621,7 +618,7 @@
                        ; they are in internal-options
                        (= :skip (:format internal-options))))
             (string form)
-            ; call zprint-str-internal or czprint-str-internal
+            ; call zprint-str-internal or an alternative if one exists
             (zprint-fn internal-options form))
         local? (or (= :skip (:format new-options))
                    (= :next (:format new-options)))]
@@ -731,8 +728,8 @@
           (if (= (last file-str) \newline) (str filestring "\n") filestring)
         forms (edn* (p/parse-string-all filestring))]
     #_(def fileforms (zmap-all identity forms))
-    (process-multiple-forms {:process-bang-zprint? true}
-                            zprint-str-internal
+    (process-multiple-forms {:process-bang-zprint? true, :color? false}
+                            czprint-str-internal
                             zprint-specifier
                             forms)))
 

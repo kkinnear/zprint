@@ -8,7 +8,11 @@
 ;;
 
 #_(def no-style-map {:f identity, :b identity, :c identity})
-(def no-style-map {:f (partial conj [:reverse]), :b identity, :c identity})
+#_(def no-style-map {:f (partial conj [:reverse]), :b identity, :c identity})
+(def no-style-map
+  {:f #(if (not= %1 :none) (conj [:reverse] %1) [:reverse]),
+   :b identity,
+   :c identity})
 
 (defn within?
   "Is n within the closed range of low to high?"
@@ -33,40 +37,18 @@
   [{:keys [style-map focus select]} s color element idx]
   (let [output? (if select (within-vec? idx select) true)]
     (when output?
-      (if color
-        ((style-map (if (= element :cursor-element)
-                      (do (println "cursor-element:" s) :c)
-                      #_(if (or (not focus) (within? idx focus)) :f :b)
-                      (if
-                        ; this is the right solution
-                        (and focus (within? idx focus) (not= element :indent))
-                        ;(and focus (within? idx focus))
-                        ; this is the hack solution
-                        ;(not (clojure.string/starts-with? s "\n"))
-                        :f
-                        :b)))
-          color)
-        :b))))
-
-(defn ground-color-to-style-alt
-  "Ignore any foreground/background designation, and use the
-  focus and the color to figure out a style.  Intimately 
-  associated with build-styles.
-  You don't have to have a color, but you do need a ground.
-  If the ground is :c, it is used, otherwise the ground is
-  determined from the focus.  In focus gets :f, otherwise :b.
-  If you don't have a color, the style you get
-  is the same as the key for the ground you get from the
-;  focus.  If you don't have a focus, everything is in focus.
-  focus.  If you don't have a focus, you get the background."
-  [{:keys [style-map focus select]} s color element idx]
-  (if color
-    ((style-map (if (= element :cursor-element)
-                  (do (println "cursor-element:" s) :c)
-                  #_(if (or (not focus) (within? idx focus)) :f :b)
-                  (if (and focus (within? idx focus)) :f :b)))
-      color)
-    :b))
+      ((style-map (if (= element :cursor-element)
+                    (do (println "cursor-element:" s) :c)
+                    #_(if (or (not focus) (within? idx focus)) :f :b)
+                    (if
+                      ; this is the right solution
+                      (and focus (within? idx focus) (not= element :indent))
+                      ;(and focus (within? idx focus))
+                      ; this is the hack solution
+                      ;(not (clojure.string/starts-with? s "\n"))
+                      :f
+                      :b)))
+        (or color :none)))))
 
 (defn add-length
   "Given [string :style <start>] turn it into
@@ -75,8 +57,8 @@
   [s style start (count s)])
 
 (defn gc-vec-to-style-vec
-  "Take an index and a [string :color] produce a
-  [string :style] with the correct elements (i.e., the
+  "Take an index and a [string :color element] and produce a
+  [string :style element] with the correct elements (i.e., the
   elements with the correct idx) having a different 
   background for focus output. The ctx is a map which
   must have a :style-map and may have a :focus.  The
@@ -84,18 +66,8 @@
   which are in focus."
   [ctx idx [s keyword-color element]]
   (let [style (ground-color-to-style ctx s keyword-color element idx)]
-    (when style [s style])))
-
-(defn gc-vec-to-style-vec-alt
-  "Take an index and a [string :color] produce a
-  [string :style] with the correct elements (i.e., the
-  elements with the correct idx) having a different 
-  background for focus output. The ctx is a map which
-  must have a :style-map and may have a :focus.  The
-  :focus is a two element vector of start and end elements
-  which are in focus."
-  [ctx idx [s keyword-color element]]
-  [s (ground-color-to-style ctx s keyword-color element idx)])
+    #_(prn "s:" s "keyword-color:" keyword-color "style:" style)
+    (when style [s (when (not= style :none) style) element])))
 
 (defn trim-vec
   "Take a vector of any length, and trim it to be
@@ -147,20 +119,23 @@
                        (nil? this-ssv) out
                        :else (conj out this-ssv))))))))
 
-(defn replace-nil-seq-alt
-  "Replace all sequences of nil in the sequence with elide"
-  [ssv-in elide]
-  (loop [ssv ssv-in
-         doing-nil? false
+; presently unused
+(defn index-vec
+  "Given a cvec, generate an index vector which can be input to map
+  and will make map work like map-indexed -- unless there are
+  :comment-wrap elements, in which case the :comment-wrap element
+  will have the same element idx as the previous :comment element."
+  [cvec]
+  (loop [remaining-cvec cvec
+         idx 0
          out []]
-    (if (empty? ssv)
+    (if-not remaining-cvec
       out
-      (let [this-ssv (first ssv)]
-        (recur (next ssv)
-               (nil? this-ssv)
-               (cond (and doing-nil? (nil? this-ssv)) out
-                     (and (not doing-nil?) (nil? this-ssv)) (conj out elide)
-                     :else (conj out this-ssv)))))))
+      (let [[_ _ element-type] (first remaining-cvec)
+            new-idx (if (= (nth (first remaining-cvec) 2) :comment-wrap)
+                      idx
+                      (inc idx))]
+        (recur (next remaining-cvec) new-idx (conj out new-idx))))))
 
 (defn cvec-to-style-vec
   "Take a [[string :color <anything>] 
@@ -184,6 +159,12 @@
                                                      :focus focus-vec
                                                      :select select-vec))
                                           cvec)
+         #_(map (partial gc-vec-to-style-vec
+                         (assoc ctx
+                           :focus focus-vec
+                           :select select-vec))
+             (index-vec cvec)
+             cvec)
          count-w-nil (count str-style-vec-w-nil)
          str-style-vec (remove nil? str-style-vec-w-nil)
          elide-vec (when (:elide ctx) [(:elide ctx) :none])
@@ -196,29 +177,6 @@
      str-style-vec))
   ([ctx cvec] (cvec-to-style-vec ctx cvec nil))
   ([ctx cvec focus-vec] (cvec-to-style-vec ctx cvec focus-vec nil)))
-
-(defn cvec-to-style-vec-alt
-  "Take a [[string :color <anything>] 
-           [string :color <anything>] ...] input.
-  The focus is a vector of [start-focus end-focus] which are the 
-  inclusive values for the focus.  The end is inclusive because it 
-  gets a bit dicey if it was 'beyond', since how much beyond would 
-  be interesting given the amount of whitespace in the input.
-  Not clear at this point just what the counts in the focus-vec count,
-  possibly things with <anything> == :element, possibly just any
-  [string color <anything>] vector.
-  From this, build of: [[string :style] [string :style] ...], where
-  :style might be a color, like :blue or :none, or it might be a 
-  java-text-pane style (which would have a color encoded in it).  This
-  is based on the :style-map in the ctx map."
-  ([ctx cvec focus-vec]
-   (let [;gc-vec (mapv (partial trim-vec 3) cvec)
-         gc-vec cvec
-         str-style-vec (map-indexed (partial gc-vec-to-style-vec
-                                             (assoc ctx :focus focus-vec))
-                                    gc-vec)]
-     str-style-vec))
-  ([ctx cvec] (cvec-to-style-vec ctx cvec nil)))
 
 (defn compress-style
   "Take a [[string :style] [string :style] ...] vector and
@@ -370,41 +328,6 @@
                             start
                             (apply conj out (repeat n [start idx]))))))))
 
-(defn cvec-lines-alt
-  "Return a vector containing vectors each with the cvec elements 
-  for the start and end of each line."
-  [cvec]
-  (loop [cvec-nl (map (comp newline-vec first) cvec)
-         idx 0
-         start 0
-         out []]
-    (if (zero? idx) (println "cvec-nl:" cvec-nl))
-    (if (empty? cvec-nl)
-      (conj out [start (dec idx)])
-      (let [[n where :as cvec-element] (first cvec-nl)]
-        (println "idx:" idx
-                 "cvec-element:" cvec-element
-                 "start:" start
-                 "out:" out)
-        (cond
-          (nil? cvec-element) (recur (next cvec-nl) (inc idx) start out)
-          (and (= n 1) (:b where))
-            (recur (next cvec-nl) (inc idx) idx (conj out [start (dec idx)]))
-          (and (= n 1) (:e where))
-            (recur (next cvec-nl) (inc idx) (inc idx) (conj out [start idx]))
-          (and (> n 1) (:m where)) (recur
-                                     (next cvec-nl)
-                                     (inc idx)
-                                     start
-                                     (apply conj out (repeat n [start idx])))
-          (and (> n 1) (:b where) (:m where)) (recur
-                                                (next cvec-nl)
-                                                (inc idx)
-                                                idx
-                                                (apply conj
-                                                  (conj out [start (dec idx)])
-                                                  (repeat n [idx idx]))))))))
-
 (defn find-line
   "Given a cvec index, return the line that it is in."
   [lines idx]
@@ -427,30 +350,6 @@
         surround-vec [(first (nth lines-to-cvec before-line))
                       (second (nth lines-to-cvec after-line))]]
     surround-vec))
-
-(defn surround-focus-alt
-  "Given a cvec and a focus-vec, and the number of line before and after
-  the focus, output a vector of vectors of cvec indicies that cover the 
-  desired lines. [[start end] [start end] ...]"
-  ([cvec [focus-begin focus-end] [before after] first-line?]
-   (let [lines (cvec-lines cvec)
-         #_(def linesd lines)
-         #_(println "lines:" lines)
-         line-count (count lines)
-         focus-begin-line (find-line lines focus-begin)
-         focus-end-line (find-line lines focus-end)
-         #_(println "focus-begin-line:" focus-begin-line
-                    "focus-end-line:" focus-end-line)
-         before-line (- focus-begin-line before)
-         before-line (if (pos? before-line) before-line 0)
-         after-line (+ focus-end-line after)
-         after-line (if (>= after-line line-count) (dec line-count) after-line)
-         surround-vec [(first (nth lines before-line))
-                       (second (nth lines after-line))]]
-     (if first-line? [(first lines) surround-vec] [surround-vec])))
-  ([cvec focus-vec before-after-vec]
-   (surround-focus-alt cvec focus-vec before-after-vec nil)))
-
 
 (defn find-range
   "If given a single integer, return the range from lines.  If given

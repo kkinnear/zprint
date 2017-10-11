@@ -45,6 +45,7 @@
   #?(:clj z/replace*
      :cljs clojure.zip/replace))
 
+
 ;;
 ;; ### Routines with different namespaces
 ;;
@@ -80,6 +81,10 @@
 (def whitespace-or-comment?
   #?(:clj z/whitespace-or-comment?
      :cljs zw/whitespace-or-comment?))
+
+(def length
+  #?(:clj z/length
+     :cljs zb/length))
 
 ;;
 ;; Check to see if we are at the focus by checking the
@@ -385,6 +390,21 @@
                  (let [sexpr (sexpr zloc)]
                    (or (string? sexpr) (number? sexpr)))))))))
 
+(defn zinlinecomment?
+  "If this is an inline comment, returns the amount of space that
+  was between this and the previous element.  That means that if
+  we go left, we get something other than whitespace before a
+  newline.  Assumes zloc is a comment."
+  [zloc]
+  (loop [nloc (left* zloc)
+         spaces 0]
+    (let [tnloc (tag nloc)]
+      (cond (nil? tnloc) nil
+            (= tnloc :newline) nil
+            (= tnloc :comment) nil
+            (not= tnloc :whitespace) spaces
+            :else (recur (left* nloc) (+ (length nloc) spaces))))))
+
 ;;
 ;; # Integrate specs with doc-string
 ;;
@@ -532,5 +552,6 @@
                 zprint.zfns/znil? znil?
                 zprint.zfns/zreader-cond-w-symbol? zreader-cond-w-symbol?
                 zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?
-                zprint.zfns/zlift-ns zlift-ns]
+                zprint.zfns/zlift-ns zlift-ns
+                zprint.zfns/zinlinecomment? zinlinecomment?]
     (body-fn)))

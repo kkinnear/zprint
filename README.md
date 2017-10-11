@@ -729,7 +729,7 @@ before and after that single expression.
 By default, zprint expects an s-expression and will format it.  If
 you specify `:parse-string-all? true` in an options map, then the
 first argument must be a string, and zprint will parse the string
-and format the output.  It will accept multiple expression in the
+and format the output.  It will accept multiple expressions in the
 string, and will parse and format each expression independently.
 It will drop all whitespace between the expressions (and before the
 first expression), and will by default separate each expression
@@ -1886,10 +1886,18 @@ Wrap a comment if it doesn't fit within the width.  Works hard to preserve
 the initial part of the line and word wraps the end.  Does not pull 
 subsequent lines up on to a wrapped line.  
 
+#### :inline? <text style="color:#A4A4A4;"><small>true</small></text>
+
+If the a comment is on the same line as some code, keep the comment
+on that same line.  The distance from the code is preserved (since we
+don't really have any better idea yet).  If the comment extends beyond the
+width, it will be wrapped just like a comment which is on its own line.
+
 #### :count? <text style="color:#A4A4A4;"><small>false</small></text>
 
 Count the length of the comment when ensuring that things fit within the
-width.  Tends to mess up the code more than helping, in my view.  
+width. Doesn't play well with inline comments.  With any kinds of comments,
+this tends to mess up the code more than helping, in my view.  
 
 An example (using :parse-string? true to include the comment):
 

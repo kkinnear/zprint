@@ -51,45 +51,55 @@
     [")" :green :right]))
 
 (def xssv
-  '(["(" :green]
-    ["defnp" :blue]
-    [" " :none]
-    ["trim-vec" :none]
-    ["\n  " :none]
+  '(["(" :green :left]
+    ["defnp" :blue :element]
+    [" " nil :whitespace]
+    ["trim-vec" nil :element]
+    ["\n  " nil :whitespace]
     ["\"Take a vector of any length, and trim it to be\n  only n elements in length.\""
-     :red]
-    ["\n  " :none]
-    ["[" :purple]
-    ["n" :none]
-    [" " :none]
-    ["v" :none]
-    ["]" :purple]
-    ["\n  " :none]
-    ["(" :green]
-    ["into" :blue]
-    [" " :none]
-    ["[" :purple]
-    ["" :b]
-    ["]" :purple]
-    [" " :none]
-    ["(" :green]
-    ["take" :blue]
-    [" " :none]
-    ["n" :none]
-    [" " :none]
-    ["v" :none]
-    [")" :green]
-    [")" :green]
-    [")" :green]))
+     :red :element]
+    ["\n  " nil :whitespace]
+    ["[" :purple :left]
+    ["n" nil :element]
+    [" " nil :whitespace]
+    ["v" nil :element]
+    ["]" :purple :right]
+    ["\n  " nil :whitespace]
+    ["(" :green :left]
+    ["into" :blue :element]
+    [" " nil :whitespace]
+    ["[" :purple :left]
+    ["" nil nil]
+    ["]" :purple :right]
+    [" " nil :whitespace]
+    ["(" :green :left]
+    ["take" :blue :element]
+    [" " nil :whitespace]
+    ["n" nil :element]
+    [" " nil :whitespace]
+    ["v" nil :element]
+    [")" :green :right]
+    [")" :green :right]
+    [")" :green :right]))
 
 (def xcps
-  [["(" :green 0 1] ["defnp" :blue 1 5] [" trim-vec\n  " :none 6 12]
+  [["(" :green 0 1] ["defnp" :blue 1 5] [" trim-vec\n  " nil 6 12]
    ["\"Take a vector of any length, and trim it to be\n  only n elements in length.\""
-    :red 18 77] ["\n  " :none 95 3] ["[" :purple 98 1] ["n v" :none 99 3]
-   ["]" :purple 102 1] ["\n  " :none 103 3] ["(" :green 106 1]
-   ["into" :blue 107 4] [" " :none 111 1] ["[" :purple 112 1] ["" :b 113 0]
-   ["]" :purple 113 1] [" " :none 114 1] ["(" :green 115 1] ["take" :blue 116 4]
-   [" n v" :none 120 4] [")))" :green 124 3]])
+    :red 18 77] ["\n  " nil 95 3] ["[" :purple 98 1] ["n v" nil 99 3]
+   ["]" :purple 102 1] ["\n  " nil 103 3] ["(" :green 106 1]
+   ["into" :blue 107 4] [" " nil 111 1] ["[" :purple 112 1] ["" nil 113 0]
+   ["]" :purple 113 1] [" " nil 114 1] ["(" :green 115 1] ["take" :blue 116 4]
+   [" n v" nil 120 4] [")))" :green 124 3]])
 
 (expect xssv (cvec-to-style-vec {:style-map no-style-map} xcv))
 (expect xcps (compress-style xssv))
+
+;; Ensure that we only get escape sequences when we actually do colors
+
+(expect 181 (count (czprint-str [:a :b {:c :d 'e 'f} '(x y z) "bother"])))
+(expect 181 (count (zprint-str [:a :b {:c :d 'e 'f} '(x y z) "bother"] {:color? true})))
+
+(expect 37 (count (zprint-str [:a :b {:c :d 'e 'f} '(x y z) "bother"])))
+(expect 37 (count (czprint-str [:a :b {:c :d 'e 'f} '(x y z) "bother"] {:color? false})))
+
+(expect 15 (count (czprint-str "(a b c)\n {:a :b}" {:parse-string-all? true :color? false})))

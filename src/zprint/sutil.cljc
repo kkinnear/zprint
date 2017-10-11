@@ -303,5 +303,6 @@
                 zprint.zfns/znil? nil?
                 zprint.zfns/zreader-cond-w-symbol? (constantly false)
                 zprint.zfns/zreader-cond-w-coll? (constantly false)
-                zprint.zfns/zlift-ns slift-ns]
+                zprint.zfns/zlift-ns slift-ns
+                zprint.zfns/zinlinecomment? (constantly false)]
     (body-fn)))

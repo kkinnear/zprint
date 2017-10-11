@@ -25,6 +25,7 @@
 ; with and without do
 ;
 
+
 (def iftestdo
   '(if (and :abcd :efbg) (do (list xxx yyy zzz) (list ccc ddd eee))))
 
@@ -481,7 +482,7 @@
      ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
 
 (expect "(;a\n list\n :b\n :c\n ;def\n  )"
-        (zprint-str "(;a\nlist\n:b\n:c ;def\n)" {:parse-string? true}))
+        (zprint-str "(;a\nlist\n:b\n:c ;def\n)" {:parse-string? true :comment {:inline? false}}))
 
 (expect [6 1 8 1 9 1 11]
         (zprint.zprint/line-lengths
@@ -521,7 +522,7 @@
 
 (expect
   "(defn testfn8\n  \"Test two comment lines after a cond test.\"\n  [x]\n  (cond\n    ; one\n    ; two\n    :stuff\n      ; middle\n      ; second middle\n      :bother\n    ; three\n    ; four\n    :else nil))"
-  (zprint-fn-str zprint.core-test/testfn8 {:pair-fn {:hang? nil}}))
+  (zprint-fn-str zprint.core-test/testfn8 {:pair-fn {:hang? nil} :comment {:inline? false}}))
 
 (defn zctest3
   "Test comment forcing things"
@@ -600,7 +601,7 @@
 ;;
 
 (expect ["\n\n" ";;stuff\n" "(list :a :b)" "\n\n"]
-        (zprint.zutil/zmap-all (partial zprint-str-internal {:zipper? true})
+        (zprint.zutil/zmap-all (partial czprint-str-internal {:zipper? true :color? false})
                                (z/edn* (p/parse-string-all
                                          "\n\n;;stuff\n(list :a :b)\n\n"))))
 
@@ -718,7 +719,7 @@
   "(let\n  [:a\n     ;x\n     ;y\n     :b\n   :c :d]\n  (println\n    :a))"
   (zprint-str "(let [:a ;x\n;y\n :b :c :d] (println :a))"
               10
-              {:parse-string? true}))
+              {:parse-string? true :comment {:inline? false}}))
 
 ;;
 ;; # Promise, Future, Delay
@@ -1808,4 +1809,63 @@
 
 (expect "nil" (zprint-str nil))
 (expect [["nil" :yellow :element]] (czprint-str nil {:return-cvec? true}))
+
+;;
+;; # Inline Comments
+;;
+
+(defn zctest9
+  "Test inline comments"
+  []
+  (let [a (list 'with 'arguments)
+        foo nil ; end of line comment
+        bar true
+        baz "stuff"
+        other 1
+        bother 2 ; a really long inline comment that should wrap about here
+        stuff 3
+        ; a non-inline comment
+        now ;a middle inline comment
+          4
+        ; Not an inline comment
+        output 5
+        b 3
+        c 5
+        this "is"]
+    (cond (or foo bar baz) (format output now)  ;test this
+          :let [stuff (and bother foo bar) ;test that
+                bother (or other output foo)] ;and maybe the other
+          (and a b c (bother this)) (format other stuff))
+    (list a :b :c "d")))
+
+(expect
+"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap about\n                 ; here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)  ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+(zprint-fn-str zprint.zprint-test/zctest9 70 {:comment {:inline? true}}))
+
+(expect
+"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil\n        ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2\n        ; a really long inline comment that should wrap about here\n        stuff 3\n        ; a non-inline comment\n        now\n          ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)\n          ;test this\n          :let [stuff (and bother foo bar)\n                ;test that\n                bother (or other output foo)]\n          ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+(zprint-fn-str zprint.zprint-test/zctest9 70 {:comment {:inline? false}}))
+
+;
+; Maps too
+;
+
+(defn zctest10
+  "Test maps with inline comments."
+  []
+  {:a :b,
+   ; single line comment
+   :d :e, ; stuff
+   :f :g, ; bother
+   :i ;middle
+     :j})
+
+
+(expect
+"(defn zctest10\n  \"Test maps with inline comments.\"\n  []\n  {:a :b,\n   ; single line comment\n   :d :e,\n   ; stuff\n   :f :g,\n   ; bother\n   :i\n     ;middle\n     :j})"
+(zprint-fn-str zprint.zprint-test/zctest10 {:comment {:inline? false}}))
+
+(expect
+"(defn zctest10\n  \"Test maps with inline comments.\"\n  []\n  {:a :b,\n   ; single line comment\n   :d :e, ; stuff\n   :f :g, ; bother\n   :i ;middle\n     :j})"
+(zprint-fn-str zprint.zprint-test/zctest10 {:comment {:inline? true}})) 
 

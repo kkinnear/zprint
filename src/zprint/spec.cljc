@@ -115,6 +115,7 @@
 (s/def ::hex? ::boolean)
 (s/def ::indent number?)
 (s/def ::indent-arg ::nilable-number)
+(s/def ::inline? ::boolean)
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
@@ -171,7 +172,8 @@
                       ::hash-paren ::keyword ::nil ::none ::number ::paren
                       ::quote ::string ::syntax-quote-paren ::uneval
                       ::user-fn]))
-(s/def :alt/comment (only-keys :opt-un [::count? ::wrap?]))
+(s/def :alt/comment (only-keys :opt-un [::count? ::wrap? ::inline?]))
+(s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
 (s/def ::dbg? ::boolean)
 (s/def ::dbg-print? ::boolean)
@@ -263,10 +265,10 @@
 (s/def ::options
   (only-keys
     :opt-un [::additional-libraries? ::agent ::array ::atom ::auto-width?
-             ::binding ::color-map :alt/comment ::configured? ::dbg? ::dbg-bug?
-             ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend
-             ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map
-             ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
+             ::binding ::color? ::color-map :alt/comment ::configured? ::dbg?
+             ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
+             ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
+             ::fn-map ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
              ::max-depth ::max-hang-count ::max-hang-depth ::max-hang-span
              ::max-length ::object ::old? ::output ::pair ::pair-fn ::parallel?
              ::parse ::parse-string-all? ::parse-string? ::process-bang-zprint?

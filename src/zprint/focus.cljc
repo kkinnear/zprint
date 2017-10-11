@@ -74,13 +74,6 @@
         (when index (skip-whitespace-ssv ssv index))
         (recur (next-ssv ssv index) (dec moves))))))
 
-(defn right-ssv-alt
-  "Given a str-style-vec, move right nr elements."
-  [nr ssv n]
-  (loop [index n
-         moves nr]
-    (if (zero? moves) index (recur (next-ssv ssv index) (dec moves)))))
-
 (defn path-ssv
   "Given a non-whitespace path from a zipper, find that same
   collection or element in a str-style-vec."

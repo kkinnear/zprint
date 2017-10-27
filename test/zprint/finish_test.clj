@@ -96,10 +96,16 @@
 
 ;; Ensure that we only get escape sequences when we actually do colors
 
-(expect 181 (count (czprint-str [:a :b {:c :d 'e 'f} '(x y z) "bother"])))
-(expect 181 (count (zprint-str [:a :b {:c :d 'e 'f} '(x y z) "bother"] {:color? true})))
+(expect 181 (count (czprint-str [:a :b {:c :d, 'e 'f} '(x y z) "bother"])))
+(expect 181
+        (count (zprint-str [:a :b {:c :d, 'e 'f} '(x y z) "bother"]
+                           {:color? true})))
 
-(expect 37 (count (zprint-str [:a :b {:c :d 'e 'f} '(x y z) "bother"])))
-(expect 37 (count (czprint-str [:a :b {:c :d 'e 'f} '(x y z) "bother"] {:color? false})))
+(expect 37 (count (zprint-str [:a :b {:c :d, 'e 'f} '(x y z) "bother"])))
+(expect 37
+        (count (czprint-str [:a :b {:c :d, 'e 'f} '(x y z) "bother"]
+                            {:color? false})))
 
-(expect 15 (count (czprint-str "(a b c)\n {:a :b}" {:parse-string-all? true :color? false})))
+(expect 15
+        (count (czprint-str "(a b c)\n {:a :b}"
+                            {:parse-string-all? true, :color? false})))

@@ -81,6 +81,15 @@
   [sexpr n]
   (when (coll? sexpr) (nthnext sexpr n)))
 
+(defn sfind
+  "Find the locations (counting from zero, and only counting non-whitespace
+  elements) of the first zthing?.  Return its index if it is found, nil if not."
+  [zthing? sexpr]
+  (when (coll? sexpr)
+    (loop [sloc sexpr
+           i 0]
+      (when sloc (if (zthing? (first sloc)) i (recur (next sloc) (inc i)))))))
+
 (defn scount
   "How many children does sexpr have?"
   [sexpr]
@@ -135,6 +144,11 @@
   "Define a third since we need one, and znth isn't really nth."
   [sexpr]
   (nth sexpr 2))
+
+(defn sfourth
+  "Define a fourth since we need one, and znth isn't really nth."
+  [sexpr]
+  (nth sexpr 3))
 
 (defn slist?
   "A list? that includes cons."
@@ -256,6 +270,7 @@
                 zprint.zfns/zfirst sfirst
                 zprint.zfns/zsecond ssecond
                 zprint.zfns/zthird sthird
+                zprint.zfns/zfourth sfourth
                 zprint.zfns/znthnext snthnext
                 zprint.zfns/zcount scount
                 zprint.zfns/zmap smap
@@ -304,5 +319,6 @@
                 zprint.zfns/zreader-cond-w-symbol? (constantly false)
                 zprint.zfns/zreader-cond-w-coll? (constantly false)
                 zprint.zfns/zlift-ns slift-ns
-                zprint.zfns/zinlinecomment? (constantly false)]
+                zprint.zfns/zinlinecomment? (constantly false)
+                zprint.zfns/zfind sfind]
     (body-fn)))

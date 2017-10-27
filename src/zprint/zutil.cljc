@@ -169,6 +169,17 @@
            right*
            (skip right* whitespace?)))
 
+(defn zfourth
+  "Find the fourth non-whitespace zloc inside of this zloc."
+  [zloc]
+  (some->> (zfirst zloc)
+           right*
+           (skip right* whitespace?)
+           right*
+           (skip right* whitespace?)
+           right*
+           (skip right* whitespace?)))
+
 (defn zrightnws
   "Find the next non-whitespace zloc inside of this zloc."
   [zloc]
@@ -211,6 +222,15 @@
   (loop [nloc (skip-whitespace (down* zloc))
          i n]
     (if (or (nil? nloc) (= i 0)) nloc (recur (zrightnws nloc) (dec i)))))
+
+(defn zfind
+  "Find the locations (counting from zero, and only counting non-whitespace
+  elements) of the first zthing?.  Return its index if it is found, nil if not."
+  [zthing? zloc]
+  (loop [nloc (skip-whitespace (down* zloc))
+         i 0]
+    (when (not (nil? nloc))
+      (if (zthing? nloc) i (recur (zrightnws nloc) (inc i))))))
 
 (defn zmap
   "Return a vector containing the return of applying a function to 
@@ -511,6 +531,7 @@
                 zprint.zfns/zfirst zfirst
                 zprint.zfns/zsecond zsecond
                 zprint.zfns/zthird zthird
+                zprint.zfns/zfourth zfourth
                 zprint.zfns/znthnext znthnext
                 zprint.zfns/zcount zcount
                 zprint.zfns/zmap zmap
@@ -553,5 +574,6 @@
                 zprint.zfns/zreader-cond-w-symbol? zreader-cond-w-symbol?
                 zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?
                 zprint.zfns/zlift-ns zlift-ns
-                zprint.zfns/zinlinecomment? zinlinecomment?]
+                zprint.zfns/zinlinecomment? zinlinecomment?
+                zprint.zfns/zfind zfind]
     (body-fn)))

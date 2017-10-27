@@ -21,7 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.4"))
+(defn about "Return version of this program." [] (str "zprint-0.4.5"))
 
 ;;
 ;; # External Configuration
@@ -78,6 +78,20 @@
 ;; (if (= a 1)
 ;;   (map inc coll)
 ;;   (map dec coll))
+;;
+;; :arg1-mixin
+;;
+;; Print Rum defc, defcc, and defcs macros in a standard
+;; way.  Puts the mixins under the first line, and above the
+;; argument vector.  Also allows a docstring.
+;;
+;; (rum/defcs component
+;;   < rum/static
+;;     rum/reactive
+;;     (rum/local 0 ::count)
+;;     (rum/local "" ::text)
+;;   [state label]
+;;   (let [count-atom (::count state) text-atom (::text state)] [:div]))
 ;;
 ;; :binding
 ;;
@@ -281,6 +295,9 @@
    "cond->" :arg1-pair-body,
    "condp" :arg2-pair,
    "def" :arg1-body,
+   "defc" :arg1-mixin,
+   "defcc" :arg1-mixin,
+   "defcs" :arg1-mixin,
    "defmacro" :arg1-body,
    "defexpect" :arg1-body,
    "defmethod" :arg2,
@@ -328,6 +345,7 @@
    "s/or" :gt2-force-nl,
    "some->" :force-nl-body,
    "some->>" :force-nl-body,
+   "swap!" :arg2,
    "try" :none-body,
    "when" :arg1-body,
    "when-first" :binding,
@@ -339,7 +357,8 @@
    "with-local-vars" :binding,
    "with-meta" :arg1-body,
    "with-open" :binding,
-   "with-redefs" :binding})
+   "with-redefs" :binding,
+   "with-redefs-fn" :arg1-body})
 
 ;;
 ;; ## The global defaults

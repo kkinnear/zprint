@@ -1,15 +1,18 @@
 ;!zprint {:vector {:wrap? false}}
-(defproject zprint "0.4.4"
+(defproject zprint "0.4.5"
   :description "Pretty print zippers and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License",
             :url "https://opensource.org/licenses/MIT",
             :key "mit",
             :year 2015}
-  :plugins [[lein-expectations "0.0.8"] [lein-zprint "0.3.3"]]
+  :plugins [[lein-expectations "0.0.8"] [lein-zprint "0.3.6"]]
   :profiles {:dev {:dependencies [#_[expectations "2.0.16"]
                                   [expectations "2.2.0-rc1"]
                                   [com.taoensso/tufte "1.1.1"]
+                                  [org.clojure/clojurescript "1.9.946"]
+				  [rum "0.10.8"]; 
+                                  [better-cond "1.0.1"]
                                   [clojure-future-spec "1.9.0-alpha17"]
 				  ]},
              :uberjar {:aot [zprint.core zprint.main],
@@ -18,11 +21,12 @@
                        :main zprint.main,
                        :dependencies [[clojure-future-spec "1.9.0-alpha17"]],
                        :omit-source true,
-                       :uberjar-name "zprint-filter-0.4.4"}}
+                       :uberjar-name "zprint-filter-%s"}}
   ; Clojure 1.8 you can exclude all sources in the uberjar
-   :uberjar-exclusions [#"\.(clj|java|cljs)"]
+   :uberjar-exclusions [#"\.(clj|java|cljs|txt)"]
   ; Clojure 1.9 requires the .clj files in the uberjar
   ; :uberjar-exclusions [#"\.(java|cljs)"]
+  :jar-exclusions [#"\.(clj$|clj\.|java|cljs|txt)"]
   :zprint {:old? false}
   :dependencies
     [#_[org.clojure/clojure "1.9.0-beta3"] 

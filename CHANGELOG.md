@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.5 - 2017-12-9
+
+### Changed
+
+ * Added support for `rum` macros `defc`, `defcc`, and `defcs`,
+   using `:arg1-mixin` function tag.  See the readme for details
+   of what this looks like.  Issue #41.
+
+ * Add `swap!` as `:arg2`, and `with-redefs-fn` as `:arg1-body`.
+
+### Fixed
+
 ## 0.4.4 - 2017-10-26
 
 ### Changed
@@ -10,7 +22,6 @@ All notable changes to this project will be documented in this file.
 
  * Added `deftest` and `defexpect` as `:arg1-body` functions in the 
    `fn-map`.
-
 
 ### Fixed
 

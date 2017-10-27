@@ -17,6 +17,7 @@
 (def zfirst nil)
 (def zsecond nil)
 (def zthird nil)
+(def zfourth nil)
 (def znthnext nil)
 (def zcount nil)
 (def zmap nil)
@@ -60,3 +61,4 @@
 (def zreader-cond-w-coll? nil)
 (def zlift-ns nil)
 (def zinlinecomment? nil)
+(def zfind nil)

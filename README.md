@@ -936,6 +936,27 @@ by the amount specified by `:list {:indent n}`.
 This is like `:arg`, but since it appears in `:fn-force-nl`, it will
 never print on one line even if it would otherwise fit.
 
+#### :arg1-mixin
+
+Print Rum `defc`, `defcc`, and `defcs` macros in a standard
+way.  Puts the mixins under the first line, and above the
+argument vector.  Does not require `<`, will operate properly
+with any element in that position. Allows but does not require
+a docstring.
+
+ ```clojure
+(rum/defcs component
+  "This is a docstring for the component."
+  < rum/static
+    rum/reactive
+    (rum/local 0 ::count)
+    (rum/local "" ::text)
+  [state label]
+  (let [count-atom (::count state)
+        text-atom (::text state)]
+    [:div]))
+```
+
 #### :arg2
  
 Print the first argument on the same line as the function name if it will

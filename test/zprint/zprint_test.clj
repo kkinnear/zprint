@@ -482,7 +482,8 @@
      ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
 
 (expect "(;a\n list\n :b\n :c\n ;def\n  )"
-        (zprint-str "(;a\nlist\n:b\n:c ;def\n)" {:parse-string? true :comment {:inline? false}}))
+        (zprint-str "(;a\nlist\n:b\n:c ;def\n)"
+                    {:parse-string? true, :comment {:inline? false}}))
 
 (expect [6 1 8 1 9 1 11]
         (zprint.zprint/line-lengths
@@ -522,7 +523,8 @@
 
 (expect
   "(defn testfn8\n  \"Test two comment lines after a cond test.\"\n  [x]\n  (cond\n    ; one\n    ; two\n    :stuff\n      ; middle\n      ; second middle\n      :bother\n    ; three\n    ; four\n    :else nil))"
-  (zprint-fn-str zprint.core-test/testfn8 {:pair-fn {:hang? nil} :comment {:inline? false}}))
+  (zprint-fn-str zprint.core-test/testfn8
+                 {:pair-fn {:hang? nil}, :comment {:inline? false}}))
 
 (defn zctest3
   "Test comment forcing things"
@@ -536,7 +538,8 @@
 (defn zctest4
   "Test comment forcing things"
   [x]
-  (cond (and (list :c (identity "stuff") "bother")) x :else (or :a :b :c)))
+  (cond (and (list :c (identity "stuff") "bother")) x
+        :else (or :a :b :c)))
 
 (defn zctest5
   "Model defn issue."
@@ -601,9 +604,9 @@
 ;;
 
 (expect ["\n\n" ";;stuff\n" "(list :a :b)" "\n\n"]
-        (zprint.zutil/zmap-all (partial czprint-str-internal {:zipper? true :color? false})
-                               (z/edn* (p/parse-string-all
-                                         "\n\n;;stuff\n(list :a :b)\n\n"))))
+        (zprint.zutil/zmap-all
+          (partial czprint-str-internal {:zipper? true, :color? false})
+          (z/edn* (p/parse-string-all "\n\n;;stuff\n(list :a :b)\n\n"))))
 
 ;;
 ;; #Deref
@@ -719,7 +722,7 @@
   "(let\n  [:a\n     ;x\n     ;y\n     :b\n   :c :d]\n  (println\n    :a))"
   (zprint-str "(let [:a ;x\n;y\n :b :c :d] (println :a))"
               10
-              {:parse-string? true :comment {:inline? false}}))
+              {:parse-string? true, :comment {:inline? false}}))
 
 ;;
 ;; # Promise, Future, Delay
@@ -1087,8 +1090,7 @@
 
 (expect "(cond a b\n      c d)"
         (zprint-str "(cond a b c d)"
-                    {:parse-string? true,
-                     :pair {:flow? false}}))
+                    {:parse-string? true, :pair {:flow? false}}))
 
 
 ; Note that this also tests that :flow? overrides the indent checks in
@@ -1456,12 +1458,11 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :indent]
-   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :indent]
+   ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
+   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :indent]
+   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1473,10 +1474,10 @@
    ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
    ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
-   ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
-   ["}" :red :right] [")" :green :right]]
+   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
+   [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
+   [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
                   {:map {:key-depth-color []}, :return-cvec? true}))
 
@@ -1484,12 +1485,11 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :indent]
-   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :indent] ["{" :red :left] [":abc" :blue :element]
-   ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :indent]
+   ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
+   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["{" :red :left] [":abc" :blue :element] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :indent]
+   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :blue :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :yellow :element] [" " :none :whitespace]
    ["\"even\"" :red :element] [", " :none :whitespace]
@@ -1499,13 +1499,13 @@
    [" " :none :whitespace] ["\"the\"" :red :element] [", " :none :whitespace]
    ["\"way\"" :green :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :indent]
-   ["\"def\"" :blue :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
-   ["," :none :whitespace] ["\n   " :none :indent] ["5" :blue :element]
-   [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
-   ["}" :red :right] [")" :green :right]]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :blue :element]
+   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :indent] ["5" :blue :element] [" " :none :whitespace]
+   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
+   [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
+   [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
                   {:map {:key-depth-color [:blue :yellow :green]},
                    :return-cvec? true}))
@@ -1514,12 +1514,11 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :indent]
-   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :indent]
+   ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
+   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :indent]
+   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1531,10 +1530,10 @@
    ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
    ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
-   ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
-   ["}" :red :right] [")" :green :right]]
+   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
+   [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
+   [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
                   {:map {:key-color {}}, :return-cvec? true}))
 
@@ -1542,12 +1541,11 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :indent]
-   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :indent] ["{" :red :left] [":abc" :blue :element]
-   ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :indent]
+   ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
+   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["{" :red :left] [":abc" :blue :element] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :indent]
+   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :cyan :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1559,10 +1557,10 @@
    ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
    ["\n   " :none :indent] ["5" :green :element] [" " :none :whitespace]
-   ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
-   ["}" :red :right] [")" :green :right]]
+   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
+   [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
+   [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
                   {:map {:key-color {:abc :blue, "deep" :cyan, 5 :green}},
                    :return-cvec? true}))
@@ -1572,12 +1570,11 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :indent]
-   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :indent]
+   ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
+   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :indent]
+   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1586,13 +1583,13 @@
    [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
    [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :indent]
-   ["\"def\"" :cyan :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
-   ["," :none :whitespace] ["\n   " :none :indent] ["5" :purple :element]
-   [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
-   ["}" :red :right] [")" :green :right]]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :cyan :element]
+   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
+   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
+   [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
+   [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
                   {:map {:key-depth-color [:blue nil :green],
                          :key-color {"def" :cyan}},
@@ -1650,12 +1647,11 @@
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :indent]
-   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :indent]
+   ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
+   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :indent]
+   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1667,22 +1663,21 @@
    ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
    ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
-   ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :blue :element]
-   ["}" :red :right] [")" :green :right]]
+   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
+   [" " :none :whitespace] ["\"there\"" :blue :element] ["}" :red :right]
+   [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
                   {:map {:key-value-color {["hi"] {:string :blue}}},
                    :return-cvec? true}))
 
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
-   ["key-color-tst" :black :element] ["\n  " :none :indent]
-   ["[" :purple :left] ["" :none :whitespace] ["]" :purple :right]
-   ["\n  " :none :indent] ["{" :red :left] [":abc" :magenta :element]
-   ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
-   ["," :none :whitespace] ["\n   " :none :indent]
+   ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
+   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :indent]
+   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
    [", " :none :whitespace] [":deeper" :magenta :element]
@@ -1694,10 +1689,10 @@
    ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
    ["\n   " :none :indent] ["5" :purple :element] [" " :none :whitespace]
-   ["\"five\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
-   ["}" :red :right] [")" :green :right]]
+   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
+   [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
+   [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
                   {:map {:key-value-color {:deeper {:keyword :blue}}},
                    :return-cvec? true}))
@@ -1794,14 +1789,32 @@
 ;; Even though commas were turned off, it still needed space for the comma.
 ;;
 
-(expect 20 (max-width (zprint-str {:abcdefg :hijklmnop :edc :kkk} 20 {:map {:comma? false}})))
-(expect 2 (line-count (zprint-str {:abcdefg :hijklmnop :edc :kkk} 20 {:map {:comma? false}})))
+(expect 20
+        (max-width (zprint-str {:abcdefg :hijklmnop, :edc :kkk}
+                               20
+                               {:map {:comma? false}})))
+(expect 2
+        (line-count (zprint-str {:abcdefg :hijklmnop, :edc :kkk}
+                                20
+                                {:map {:comma? false}})))
 
-(expect 21 (max-width (zprint-str {:abcdefg :hijklmnop :edc :kkk} 21 {:map {:comma? true}})))
-(expect 2 (line-count (zprint-str {:abcdefg :hijklmnop :edc :kkk} 21 {:map {:comma? true}})))
+(expect 21
+        (max-width (zprint-str {:abcdefg :hijklmnop, :edc :kkk}
+                               21
+                               {:map {:comma? true}})))
+(expect 2
+        (line-count (zprint-str {:abcdefg :hijklmnop, :edc :kkk}
+                                21
+                                {:map {:comma? true}})))
 
-(expect 14 (max-width (zprint-str {:abcdefg :hijklmnop :edc :kkk} 20 {:map {:comma? true}})))
-(expect 3 (line-count (zprint-str {:abcdefg :hijklmnop :edc :kkk} 20 {:map {:comma? true}})))
+(expect 14
+        (max-width (zprint-str {:abcdefg :hijklmnop, :edc :kkk}
+                               20
+                               {:map {:comma? true}})))
+(expect 3
+        (line-count (zprint-str {:abcdefg :hijklmnop, :edc :kkk}
+                                20
+                                {:map {:comma? true}})))
 
 ;;
 ;; # (czprint nil) doesn't print "nil" (Issue #32)
@@ -1839,12 +1852,12 @@
     (list a :b :c "d")))
 
 (expect
-"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap about\n                 ; here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)  ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
-(zprint-fn-str zprint.zprint-test/zctest9 70 {:comment {:inline? true}}))
+  "(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap about\n                 ; here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)  ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+  (zprint-fn-str zprint.zprint-test/zctest9 70 {:comment {:inline? true}}))
 
 (expect
-"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil\n        ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2\n        ; a really long inline comment that should wrap about here\n        stuff 3\n        ; a non-inline comment\n        now\n          ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)\n          ;test this\n          :let [stuff (and bother foo bar)\n                ;test that\n                bother (or other output foo)]\n          ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
-(zprint-fn-str zprint.zprint-test/zctest9 70 {:comment {:inline? false}}))
+  "(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil\n        ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2\n        ; a really long inline comment that should wrap about here\n        stuff 3\n        ; a non-inline comment\n        now\n          ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)\n          ;test this\n          :let [stuff (and bother foo bar)\n                ;test that\n                bother (or other output foo)]\n          ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+  (zprint-fn-str zprint.zprint-test/zctest9 70 {:comment {:inline? false}}))
 
 ;
 ; Maps too
@@ -1862,10 +1875,193 @@
 
 
 (expect
-"(defn zctest10\n  \"Test maps with inline comments.\"\n  []\n  {:a :b,\n   ; single line comment\n   :d :e,\n   ; stuff\n   :f :g,\n   ; bother\n   :i\n     ;middle\n     :j})"
-(zprint-fn-str zprint.zprint-test/zctest10 {:comment {:inline? false}}))
+  "(defn zctest10\n  \"Test maps with inline comments.\"\n  []\n  {:a :b,\n   ; single line comment\n   :d :e,\n   ; stuff\n   :f :g,\n   ; bother\n   :i\n     ;middle\n     :j})"
+  (zprint-fn-str zprint.zprint-test/zctest10 {:comment {:inline? false}}))
 
 (expect
-"(defn zctest10\n  \"Test maps with inline comments.\"\n  []\n  {:a :b,\n   ; single line comment\n   :d :e, ; stuff\n   :f :g, ; bother\n   :i ;middle\n     :j})"
-(zprint-fn-str zprint.zprint-test/zctest10 {:comment {:inline? true}})) 
+  "(defn zctest10\n  \"Test maps with inline comments.\"\n  []\n  {:a :b,\n   ; single line comment\n   :d :e, ; stuff\n   :f :g, ; bother\n   :i ;middle\n     :j})"
+  (zprint-fn-str zprint.zprint-test/zctest10 {:comment {:inline? true}}))
 
+;;
+;; Rum :arg1-mixin tests
+;;
+
+;; Define things to test (note that these are all
+;; structures, not zipper tests, but we also do zipper
+;; tests by specifying the strings to zprint-str after
+;; the tests with structures).
+
+(def cz1
+  '(rum/defcs component
+     "This is a component with a doc-string!  How unusual..."
+     < rum/static
+       rum/reactive
+       (rum/local 0 :count)
+       (rum/local "" :text)
+     [state label]
+     (let [count-atom (:count state) text-atom (:text state)] [:div])))
+
+(def cz2
+  '(rum/defcs component
+     < rum/static
+       rum/reactive
+       (rum/local 0 :count)
+       (rum/local "" :text)
+     [state label]
+     (let [count-atom (:count state) text-atom (:text state)] [:div])))
+
+(def cz3
+  '(rum/defcs component
+     "This is a component with a doc-string!  How unusual..."
+     [state label]
+     (let [count-atom (:count state) text-atom (:text state)] [:div])))
+
+(def cz4
+  '(rum/defcs component
+     [state label]
+     (let [count-atom (:count state) text-atom (:text state)] [:div])))
+
+(def cz5
+  '(rum/defcs component
+     "This is a component with a doc-string!  How unusual..."
+     <
+     rum/static
+     rum/reactive
+     (rum/local 0 :count)
+     (rum/local "" :text)
+     (let [count-atom (:count state) text-atom (:text state)] [:div])))
+
+(def cz6
+  '(rum/defcs component
+     <
+     rum/static
+     rum/reactive
+     (rum/local 0 :count)
+     (rum/local "" :text)
+     (let [count-atom (:count state) text-atom (:text state)] [:div])))
+
+(def cz7
+  '(rum/defcs component
+              (let [count-atom (:count state) text-atom (:text state)] [:div])))
+
+(def cz8
+  '(rum/defcs component
+     "This is a component with a doc-string!  How unusual..."
+     < rum/static
+       rum/reactive
+       (rum/local 0 :count)
+       (rum/local "" :text)
+     ([state label]
+      (let [count-atom (:count state) text-atom (:text state)] [:div]))
+     ([state] (component state nil))))
+
+(def cz9
+  '(rum/defcs component
+     "This is a component with a doc-string!  How unusual..."
+     {:a :b,
+      "this" [is a test],
+      :c [this is a very long vector how do you suppose it will work]}
+      rum/static
+      rum/reactive
+      (rum/local 0 :count)
+      (rum/local "" :text)
+     [state label]
+     (let [count-atom (:count state) text-atom (:text state)] [:div])))
+
+;;
+;; Does it work with structures
+;;
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz1))
+
+(expect
+  "(rum/defcs component\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz2))
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz3))
+
+(expect
+  "(rum/defcs component\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz4))
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  <\n  rum/static\n  rum/reactive\n  (rum/local 0 :count)\n  (rum/local \"\" :text)\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz5))
+
+(expect
+  "(rum/defcs component\n  <\n  rum/static\n  rum/reactive\n  (rum/local 0 :count)\n  (rum/local \"\" :text)\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz6))
+
+(expect
+  "(rum/defcs component\n           (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz7))
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ([state label]\n   (let [count-atom (:count state) text-atom (:text state)] [:div]))\n  ([state] (component state nil)))"
+  (zprint-str cz8))
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   \"this\" [is a test],\n   :c [this is a very long vector how do you suppose it will work]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz9))
+
+;;
+;; Does it all work with zippers?
+;;
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str
+    "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    {:parse-string? true}))
+
+(expect
+  "(rum/defcs component\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str
+    "(rum/defcs component\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    {:parse-string? true}))
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str
+    "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    {:parse-string? true}))
+
+(expect
+  "(rum/defcs component\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str
+    "(rum/defcs component\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    {:parse-string? true}))
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  <\n  rum/static\n  rum/reactive\n  (rum/local 0 :count)\n  (rum/local \"\" :text)\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str
+    "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  <\n  rum/static\n  rum/reactive\n  (rum/local 0 :count)\n  (rum/local \"\" :text)\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    {:parse-string? true}))
+
+(expect
+  "(rum/defcs component\n  <\n  rum/static\n  rum/reactive\n  (rum/local 0 :count)\n  (rum/local \"\" :text)\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str
+    "(rum/defcs component\n  <\n  rum/static\n  rum/reactive\n  (rum/local 0 :count)\n  (rum/local \"\" :text)\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    {:parse-string? true}))
+
+(expect
+  "(rum/defcs component\n           (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str
+    "(rum/defcs component\n           (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    {:parse-string? true}))
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ([state label]\n   (let [count-atom (:count state) text-atom (:text state)] [:div]))\n  ([state] (component state nil)))"
+  (zprint-str
+    "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  < rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ([state label]\n   (let [count-atom (:count state) text-atom (:text state)] [:div]))\n  ([state] (component state nil)))"
+    {:parse-string? true}))
+
+(expect
+  "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   \"this\" [is a test],\n   :c [this is a very long vector how do you suppose it will work]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str
+    "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   \"this\" [is a test],\n   :c [this is a very long vector how do you suppose it will work]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    {:parse-string? true}))

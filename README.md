@@ -124,7 +124,7 @@ include the library:
 [clojure-future-spec "1.9.0-alpha17"]
 ```
 
-### Clojure 1.9-beta2:
+### Clojure 1.9-beta3:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 

@@ -99,18 +99,6 @@ when pretty printing source code.
 
 ## Usage
 
-### Clojurescript:
-
-zprint uses `clojure.spec.alpha`, and has been tested in each of the
-following environments:
-
-  * Clojurescript 1.9.946
-  * `lumo` 1.8.0-beta 
-  * `planck` 2.8.1
-
-It requires `tools.reader` at least 1.0.5, which all of the environments
-above contain.
-
 ### Clojure 1.8:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
@@ -130,6 +118,18 @@ __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 [![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
 
+### Clojurescript:
+
+zprint uses `clojure.spec.alpha`, and has been tested in each of the
+following environments:
+
+  * Clojurescript 1.9.946
+  * `lumo` 1.8.0-beta 
+  * `planck` 2.8.1
+
+It requires `tools.reader` at least 1.0.5, which all of the environments
+above contain.
+
 #### Reducing the library footprint
 
 In order to reduce the dependencies that zprint drags along, I have
@@ -142,7 +142,7 @@ environment variables and Java system properties has been __deprecated__.
 As nobody has raised any issues in the past 6 months or so, I will
 be completely removing these capabilities in the near future, when
 we go to 0.5.0.  If you need these capabilites, now is the last
-change to raise an issue on Github!
+chance to raise an issue on Github!
 
 However, if you need these configuration capabilities, you can still
 use them if you add an additional library to the dependencies.
@@ -185,6 +185,7 @@ following specific features:
 * Does a great job printing spec files
 * Justify paired output (maps, binding forms, cond clauses, etc.) if desired
 * Syntax coloring at the terminal
+* Preserve most hand-formatting of selected vectors (for hiccup or rum HTML)
 
 All of this is just so many words, of course.  Give zprint a try on
 your code or data structures, and see what you think!
@@ -243,11 +244,20 @@ In addition to the above API, you can access zprint's file processing
 capabilities (as does lein-zprint), by calling:
 
 ```clojure
-(zprint-file-str <file-string> "file: <file-name>")
+(zprint-file infile file-name outfile options)
 ```
-See the doc-string for `zprint-file-str` for details of how to use it.
+or format strings containing multiple "top level" forms by calling:
 
-NOTE:  The only supported API is what is documented in this readme!
+```clojure
+(zprint-file-str file-str zprint-specifier new-options doc-str)
+```
+Both of these functions support the `;!zprint` 
+[file comment API](doc/bang.md), which supports changes to the
+formatting to be stored in a source file as specially formatted
+comments.  See [here](doc/bang.md) for full documentation on
+this capability.
+
+__NOTE: The only supported API is what is documented in this readme!__
 
 If you need to refresh your memory for the API while at the repl, try:
 
@@ -1396,7 +1406,7 @@ Zprint will optionally justify `:map`, `:binding`, and `:pair` elements.
 There are several detailed configuration parameters used to control the
 justification.  Obviously this works best if the keys in a map are
 all about the same length (and relatively short), and the test expressions
-in a code are about the same length, and the locals in a binding are
+in a cond are about the same length, and the locals in a binding are
 about the same length.
 
 I don't personally find the justified approach my favorite in code,
@@ -1414,7 +1424,7 @@ have nice locals.
 For functions where this looks great, you can always turn it on
 just for that function (if you are using lein-zprint), like so:
 
-```clojure
+```
 ;!zprint {:format :next {:style :justified}}
 ```
 
@@ -1675,7 +1685,7 @@ was formatted with a flow. Some examples:
  :m :n,
  :o {:p {:q :r, :s :t}}}
 
-; With a narrower width, one of them take more than one line
+; With a narrower width, one of them takes more than one line
 
 (czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? false}})
 
@@ -2283,7 +2293,7 @@ the key/value pair formats with the value as a flow.
  :m :n,
  :o {:p {:q :r, :s :t}}}
 
-; and even now :nl-separator? will not have any effect because non of tghe
+; and even now :nl-separator? will not have any effect because none of the
 ; right hand pairs are formatted with a flow -- that is, none of the right
 ; hand parts of the pairs start all of the way to the left.  They are still
 ; formatted as a hang
@@ -3080,6 +3090,71 @@ people want them all tucked up together.  Remember, a style is applied before
 the rest of the options map, so if you want to have your specs that show up
 in a vector all tucked up together, you can do: `{:style :spec, :vector {:wrap? true}}`.
 
+#### :keyword-respect-nl
+
+This style is used to preserve most of the existing formatting for
+vectors with keywords as the first element.  The typical example is
+hiccup or rum data inside of a function or in a source file.  If
+you specify this style, every vector with a keyword as the first element
+will preserve the newlines present in the input to zprint.  zprint will
+still handle the indenting, and none of the existing newlines will cause
+zprint to violate its basic formatting rules (e.g., lines will still
+fit in the width, etc.).  But the existing hand-formatting will typically
+be preserved if it makes any sense at all.
+
+This is usually only useful formatting source.  Here is an example using
+a `rum` macro (taken from GitHub rum/examples/rum/examples/inputs.cljc):
+
+```clojure
+; The original way it was defined:
+
+(print re1)
+
+(rum/defc inputs []
+  (let [*ref (atom nil)]
+    [:dl
+      [:dt "Input"]  [:dd (reactive-input *ref)]
+      [:dt "Checks"] [:dd (checkboxes *ref)]
+      [:dt "Radio"]  [:dd (radio *ref)]
+      [:dt "Select"] [:dd (select *ref)]
+      [:dt (value *ref)] [:dd (shuffle-button *ref)]]))nil
+
+; An unlovely transformation:
+
+(zprint re1 {:parse-string? true})
+
+(rum/defc inputs
+  []
+  (let [*ref (atom nil)]
+    [:dl [:dt "Input"] [:dd (reactive-input *ref)] [:dt "Checks"]
+     [:dd (checkboxes *ref)] [:dt "Radio"] [:dd (radio *ref)] [:dt "Select"]
+     [:dd (select *ref)] [:dt (value *ref)] [:dd (shuffle-button *ref)]]))
+
+; A much better approach (close, though not identical, to the input):
+
+(zprint re1 {:parse-string? true :style :keyword-respect-nl})
+
+(rum/defc inputs
+  []
+  (let [*ref (atom nil)]
+    [:dl
+     [:dt "Input"] [:dd (reactive-input *ref)]
+     [:dt "Checks"] [:dd (checkboxes *ref)]
+     [:dt "Radio"] [:dd (radio *ref)]
+     [:dt "Select"] [:dd (select *ref)]
+     [:dt (value *ref)] [:dd (shuffle-button *ref)]]))
+```
+The implementation of this style is as follows:
+
+```clojure
+:keyword-respect-nl
+  {:vector {:option-fn-first #(let [k? (keyword? %2)]
+                               (when (not= k? (:respect-nl? (:vector %1)))
+                                 {:vector {:respect-nl? k?}}))}},
+```
+which serves as an example of how to implement an :option-fn-first
+function for vectors.
+
 
 ### Defining your own styles
 
@@ -3122,6 +3197,136 @@ Supports __indent__ as described above.
 
 #### :indent <text style="color:#A4A4A4;"><small>1</small></text>
 
+#### :option-fn-first <text style="color:#A4A4A4;"><small>false</small></text>
+
+Vectors often come with data that needs different formatting than the
+default or than the code around them needs.  To support this capability,
+you can configure an function as the `:option-fn-first` which will be
+given the first element of a vector and may return an options map to be
+used to format this vector (and all of the data inside of it).  If this
+function returns nil, no change is made.  The function must be a function
+of two arguments, the first being the current options map, and the second
+being the first element of the vector.
+
+The `:style :keyword-respect-nl` is implemented as an `:option-fn-first`
+as follows:
+
+```clojure
+:keyword-respect-nl
+  {:vector {:option-fn-first #(let [k? (keyword? %2)]
+                               (when (not= k? (:respect-nl? (:vector %1)))
+                                 {:vector {:respect-nl? k?}}))}},
+```
+
+This function will decide whether or not the vector should 
+have `:respect-nl? true` used, and then change the options map to have
+that value only if necessary.  The "only if necessary" is important,
+as every vector will call this function, almost certainly multiple times.
+Every time this function returns a non-nil value, that value will be validated
+using spec as a valid options map.  Thus, only returning a value when necessary
+will mitigate the performance impact of using this capability.
+
+If the options map returned by the function is not valid, an exception will
+be thrown.  For example:
+
+```clojure
+(zprint-str "[:g :f :d :e :e \n :t :r :a :b]" 
+            {:parse-string? true 
+             :vector {:option-fn-first 
+                       #(do %1 %2 {:vector {:sort? true}})}})
+
+Exception Options resulting from :vector :option-fn-first called with :g 
+had these errors: In the key-sequence [:vector :sort?] the key :sort? was 
+not recognized as valid!  zprint.zprint/internal-validate (zprint.cljc:2381)
+```
+
+#### :respect-nl? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Normally, zprint ignores all newlines when formatting.  However, sometimes
+people will hand-format vectors to make them more understandable.  This
+shows up with hiccup and rum html data, for instance.  If you enable
+`:respect-nl?`, then newlines in a vector will be triggers to move to the
+next line instead of filling out the current line because the vector is
+wrapping the contents.  The newline will come with the proper indent.
+
+```clojure
+(require '[zprint.core :as zp])
+
+(zp/zprint "[:a :b :c :d \n :e :f :g :h]" {:parse-string? true})
+
+[:a :b :c :d :e :f :g :h]
+
+(zp/zprint "[:a :b :c :d \n :e :f :g :h]" {:parse-string? true :vector {:respect-nl? true}})
+
+[:a :b :c :d
+ :e :f :g :h]
+
+(zp/zprint "[:a :b [:c :d \n :e] :f :g :h]" {:parse-string? true :vector {:respect-nl? true}})
+
+[:a :b
+ [:c :d
+  :e] :f :g :h]
+
+(zp/zprint "[:a :b [:c :d \n :e] :f :g :h]" {:parse-string? true :vector {:respect-nl? true :wrap-after-multi? false}})
+
+[:a :b
+ [:c :d
+  :e]
+ :f :g :h]
+```
+This is usually only useful formatting source.  Here is an example using
+a `rum` macro (taken from GitHub rum/examples/rum/examples/inputs.cljc):
+
+```clojure
+
+; This is how it looked originally:
+
+(def re1        
+"(rum/defc inputs []  
+  (let [*ref (atom nil)] 
+    [:dl 
+      [:dt \"Input\"]  [:dd (reactive-input *ref)] 
+      [:dt \"Checks\"] [:dd (checkboxes *ref)] 
+      [:dt \"Radio\"]  [:dd (radio *ref)] 
+      [:dt \"Select\"] [:dd (select *ref)] 
+      [:dt (value *ref)] [:dd (shuffle-button *ref)]]))")
+
+; A rather unlovely transformation...
+
+(zprint re1 {:parse-string? true})
+(rum/defc inputs
+  []
+  (let [*ref (atom nil)]
+    [:dl [:dt "Input"] [:dd (reactive-input *ref)] [:dt "Checks"]
+     [:dd (checkboxes *ref)] [:dt "Radio"] [:dd (radio *ref)] [:dt "Select"]
+     [:dd (select *ref)] [:dt (value *ref)] [:dd (shuffle-button *ref)]]))
+
+; With :respect-nl? true, this is a lot better
+
+(zprint re1 {:parse-string? true :vector {:respect-nl? true}})
+(rum/defc inputs
+  []
+  (let [*ref (atom nil)]
+    [:dl
+     [:dt "Input"] [:dd (reactive-input *ref)]
+     [:dt "Checks"] [:dd (checkboxes *ref)]
+     [:dt "Radio"] [:dd (radio *ref)]
+     [:dt "Select"] [:dd (select *ref)]
+     [:dt (value *ref)] [:dd (shuffle-button *ref)]]))
+```
+
+Enabling this globally may cause argument vectors to become strangely
+formatted.  The simple answer is to use `:style :keyword-respect-nl` which
+will cause only vectors whose first element is a keyword to be formatted with
+`:respect-nl? true`. The
+more complex answer is to employ `:option-fn-first`, above (which is what
+`:style :keyword-respect-nl` does).
+
+#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
+
+Should it wrap its contents, or just list each on a separate line
+if they don't all fit on one line?
+
 Vectors wrap their contents, as distinct from maps and lists,
 which use hang or flow.  Wrapping means that they will fill out
 a line and then continue on the next line.
@@ -3136,10 +3341,6 @@ a line and then continue on the next line.
  49 50 51 52 53 54 55 56 57 58 59]
 ```
 
-#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
-
-Should it wrap its contents, or just list each on a separate line
-if they don't all fit on one line?
 
 #### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
 
@@ -3304,7 +3505,7 @@ approaches.
 
 ## License
 
-Copyright © 2016-2017 Kim Kinnear
+Copyright © 2016-2018 Kim Kinnear
 
 Distributed under the MIT License.  See the file LICENSE for details.
 

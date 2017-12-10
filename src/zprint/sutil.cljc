@@ -268,12 +268,14 @@
                 zprint.zfns/zmap-right smap-right
                 zprint.zfns/zfocus-style sfocus-style
                 zprint.zfns/zfirst sfirst
+                zprint.zfns/zfirst-no-comment sfirst
                 zprint.zfns/zsecond ssecond
                 zprint.zfns/zthird sthird
                 zprint.zfns/zfourth sfourth
                 zprint.zfns/znthnext snthnext
                 zprint.zfns/zcount scount
                 zprint.zfns/zmap smap
+                zprint.zfns/zmap-w-nl smap
                 ;   zprint.zfns/zfn? sfn?
                 zprint.zfns/zanonfn? (constantly false)
                 ; this only works because lists, anon-fn's, etc. are checked

@@ -2065,3 +2065,168 @@
   (zprint-str
     "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   \"this\" [is a test],\n   :c [this is a very long vector how do you suppose it will work]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
     {:parse-string? true}))
+
+;;
+;; # Respect newline in vectors
+;;
+
+(expect
+  "[:dev.very.top\n [:dev.top\n  [:dev.bmi\n   [:div [:div :e (int 5)] [:div \"height\" (int 6)] [:div \"weight\" (int 7)]]\n   [:div :a :b :c]]]]"
+  (zprint-str
+    "[:dev.very.top [:dev.top [:dev.bmi \n [:div \n  [:div :e (int 5)] \n  [:div  \n\"height\" (int 6)] \n  [:div  \n\"weight\" (int 7)] \n] \n[:div :a :b :c]]]]"
+    {:parse-string? true}))
+
+(expect
+  "[:dev.very.top\n [:dev.top\n  [:dev.bmi\n   [:div\n    [:div :e (int 5)]\n    [:div\n     \"height\" (int 6)]\n    [:div\n     \"weight\" (int 7)]\n   ]\n   [:div :a :b :c]]]]"
+  (zprint-str
+    "[:dev.very.top [:dev.top [:dev.bmi \n [:div \n  [:div :e (int 5)] \n  [:div  \n\"height\" (int 6)] \n  [:div  \n\"weight\" (int 7)] \n] \n[:div :a :b :c]]]]"
+    {:parse-string? true, :vector {:respect-nl? true}}))
+
+;;[:dev.very.top
+;; [:dev.top
+;;  [:dev.bmi
+;;   [:div [:div :e (int 5)] [:div "height" (int 6)] [:div "weight" (int 7)]]
+;;   [:div :a :b :c]]]]
+
+(expect
+  "[:dev.very.top\n [:dev.top\n  [:dev.bmi\n   [:div [:div :e (int 5)] [:div \"height\" (int 6)] [:div \"weight\" (int 7)]]\n   [:div :a :b :c]]]]"
+  (zprint-str
+    "[:dev.very.top [:dev.top [:dev.bmi [:div [:div :e (int 5)] [:div  \n\"height\" (int 6)] [:div \"weight\" (int 7)] ] [:div :a :b :c]]]]"
+    {:parse-string? true}))
+
+;;[:dev.very.top
+;; [:dev.top
+;;  [:dev.bmi
+;;   [:div [:div :e (int 5)]
+;;    [:div
+;;     "height" (int 6)] [:div "weight" (int 7)]] [:div :a :b :c]]]]
+
+(expect
+  "[:dev.very.top\n [:dev.top\n  [:dev.bmi\n   [:div [:div :e (int 5)]\n    [:div\n     \"height\" (int 6)] [:div \"weight\" (int 7)]] [:div :a :b :c]]]]"
+  (zprint-str
+    "[:dev.very.top [:dev.top [:dev.bmi [:div [:div :e (int 5)] [:div  \n\"height\" (int 6)] [:div \"weight\" (int 7)] ] [:div :a :b :c]]]]"
+    {:parse-string? true, :vector {:respect-nl? true}}))
+
+;;[:dev.very.top
+;; [:dev.top
+;;  [:dev.bmi
+;;   [:div [:div :e (int 5)]
+;;    [:div
+;;     "height" (int 6)]
+;;    [:div "weight" (int 7)]]
+;;   [:div :a :b :c]]]]
+
+(expect
+  "[:dev.very.top\n [:dev.top\n  [:dev.bmi\n   [:div [:div :e (int 5)]\n    [:div\n     \"height\" (int 6)]\n    [:div \"weight\" (int 7)]]\n   [:div :a :b :c]]]]"
+  (zprint-str
+    "[:dev.very.top [:dev.top [:dev.bmi [:div [:div :e (int 5)] [:div  \n\"height\" (int 6)] [:div \"weight\" (int 7)] ] [:div :a :b :c]]]]"
+    {:parse-string? true,
+     :vector {:respect-nl? true, :wrap-after-multi? false}}))
+
+;;
+;; option-fn-first, embedded in :style :keyword-respect-nl
+;;
+
+(expect
+  "[:dev.very.top\n [:dev.top\n  [:dev.bmi\n   [:div [:div :e (int 5)]\n    [:div\n     \"height\" (int 6)] [:div \"weight\" (int 7)]] [:div :a :b :c]]]]"
+  (zprint-str
+    "[:dev.very.top [:dev.top [:dev.bmi [:div [:div :e (int 5)] [:div  \n\"height\" (int 6)] [:div \"weight\" (int 7)] ] [:div :a :b :c]]]]"
+    {:parse-string? true, :style :keyword-respect-nl}))
+
+;;
+;; almost the same as above, but explicitly with :repect-nl? enabled
+;;
+
+(expect
+  "[:dev.v.top\n [:dev.top\n  [:dev.bmi\n   [:div [:div :e (int 5)]\n    [:div\n     \"height\" (int 6)] [:div \"weight\" (int 7)]] [:div :a :b :c]]]]"
+  (zprint-str
+    "[:dev.v.top [:dev.top [:dev.bmi [:div [:div :e (int 5)] [:div  \n\"height\" (int 6)] [:div \"weight\" (int 7)] ] [:div :a :b :c]]]]"
+    {:parse-string? true, :vector {:respect-nl? true}}))
+
+;;
+;; validation for option-fn-first return
+;;
+
+(expect
+  "java.lang.Exception: Options resulting from :vector :option-fn-first called with :g had these errors: In the key-sequence [:vector :sort?] the key :sort? was not recognized as valid!"
+  (try (zprint-str "[:g :f :d :e :e \n :t :r :a :b]"
+                   {:parse-string? true,
+                    :vector {:respect-nl? true,
+                             :option-fn-first
+                               #(do %1 %2 (identity {:vector {:sort? true}}))}})
+       (catch Exception e (str e))))
+
+
+;;
+;; # zprint-file-str tests
+;;
+
+(expect
+  ";!zprint {:format :next :vector {:wrap? false}}\n\n(def help-str-readable\n  (vec-str-to-str [(about)\n                   \"\"\n                   \" The basic call uses defaults, prints to stdout\"\n                   \"\"\n                   \"   (zprint x)\"\n                   \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\"\n                   \"   (zprint x <width>)\"\n                   \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n"
+  (zprint-file-str
+    ";!zprint {:format :next :vector {:wrap? false}}\n\n(def help-str-readable\n  (vec-str-to-str [(about)\n                   \"\"\n                   \" The basic call uses defaults, prints to stdout\"\n                   \"\"\n                   \"   (zprint x)\"\n                   \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\"\n                   \"   (zprint x <width>)\"\n                   \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n"
+    "test"))
+
+;;
+;; :format :next
+;;
+
+(expect
+  "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n                   \"\" \"   (zprint x)\" \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :next :vector {:wrap? false}}\n\n(def h2\n  (vec-str-to-str [(about)\n                   \"\"\n                   \" The basic call uses defaults, prints to stdout\"\n                   \"\"\n                   \"   (zprint x)\"\n                   \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\"\n                   \"   (zprint x <width>)\"\n                   \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n                   \"\" \"   (zprint x)\" \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n"
+  (zprint-file-str
+    "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :next :vector {:wrap? false}}\n\n(def h2\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n"
+    "test"))
+
+;;
+;; :format :off
+;;
+
+(expect
+  "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n                   \"\" \"   (zprint x)\" \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :off}\n\n(def h2\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n"
+  (zprint-file-str
+    "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :off}\n\n(def h2\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n"
+    "test"))
+
+;;
+;; :format :on
+;;
+
+(expect
+  "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n                   \"\" \"   (zprint x)\" \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :off}\n\n(def h2\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :on}\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n                   \"\" \"   (zprint x)\" \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n"
+  (zprint-file-str
+    "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :off}\n\n(def h2\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :on}\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n"
+    "test"))
+
+;;
+;; :format :skip
+;;
+
+(expect
+  "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n                   \"\" \"   (zprint x)\" \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :skip}\n\n(def h2\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n                   \"\" \"   (zprint x)\" \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n"
+  (zprint-file-str
+    "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n;!zprint {:format :skip}\n\n(def h2\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n"
+    "test"))
+
+;;
+;; Change format for the rest of the file (or rest of the string)
+;;
+;; Note that the next test depends on this one (where the next one ensures that
+;; the values set into the options map in this test don't bleed out into the
+;; the environment beyond this call to zprint-file-str).
+;;
+
+(expect
+  "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n                   \"\" \"   (zprint x)\" \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n\n;!zprint {:vector {:wrap? false}}\n\n(def h2\n  (vec-str-to-str [(about)\n                   \"\"\n                   \" The basic call uses defaults, prints to stdout\"\n                   \"\"\n                   \"   (zprint x)\"\n                   \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\"\n                   \"   (zprint x <width>)\"\n                   \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n\n(def h3\n  (vec-str-to-str [(about)\n                   \"\"\n                   \" The basic call uses defaults, prints to stdout\"\n                   \"\"\n                   \"   (zprint x)\"\n                   \"\"\n                   \" All zprint functions also allow the following arguments:\"\n                   \"\"\n                   \"   (zprint x <width>)\"\n                   \"   (zprint x <width> <options>)\"\n                   \"   (zprint x <options>)\"]))\n"
+  (zprint-file-str
+    "(def h1\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n;!zprint {:vector {:wrap? false}}\n\n(def h2\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n(def h3\n  (vec-str-to-str [(about) \"\" \" The basic call uses defaults, prints to stdout\"\n   \"\" \"   (zprint x)\" \"\"\n   \" All zprint functions also allow the following arguments:\"\n   \"\" \"   (zprint x <width>)\" \"   (zprint x <width> <options>)\"\n   \"   (zprint x <options>)\"]))\n\n"
+    "test"))
+
+;;
+;; See if removing wrap in the previous test bleeds out into the environment.
+;;
+;; If I change the code to cause {:vector {:wrap? false}} to bleen out from 
+;; the previous test, this next test *does* fail, so we can be sure that it
+;; will verify this.
+;;
+
+(expect true (:wrap? (:vector (zprint.config/get-options))))

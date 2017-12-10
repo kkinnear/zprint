@@ -154,6 +154,11 @@
   [zloc]
   (let [nloc (down* zloc)] (if nloc (skip right* whitespace? nloc))))
 
+(defn zfirst-no-comment
+  "Find the first non-whitespace and non-comment zloc inside of this zloc."
+  [zloc]
+  (let [nloc (down* zloc)] (if nloc (skip right* whitespace-or-comment? nloc))))
+
 (defn zsecond
   "Find the second non-whitespace zloc inside of this zloc."
   [zloc]
@@ -231,6 +236,21 @@
          i 0]
     (when (not (nil? nloc))
       (if (zthing? nloc) i (recur (zrightnws nloc) (inc i))))))
+
+(defn zmap-w-nl
+  "Return a vector containing the return of applying a function to 
+  every non-whitespace zloc inside of zloc."
+  [zfn zloc]
+  (loop [nloc (down* zloc)
+         out []]
+    (if-not nloc
+      out
+      (recur (right* nloc)
+             (if-let [result (when (not (and (whitespace? nloc)
+                                             (not (= (z/tag nloc) :newline))))
+                               (zfn nloc))]
+               (conj out result)
+               out)))))
 
 (defn zmap
   "Return a vector containing the return of applying a function to 
@@ -529,12 +549,14 @@
                 zprint.zfns/zmap-right zmap-right
                 zprint.zfns/zfocus-style zfocus-style
                 zprint.zfns/zfirst zfirst
+                zprint.zfns/zfirst-no-comment zfirst-no-comment
                 zprint.zfns/zsecond zsecond
                 zprint.zfns/zthird zthird
                 zprint.zfns/zfourth zfourth
                 zprint.zfns/znthnext znthnext
                 zprint.zfns/zcount zcount
                 zprint.zfns/zmap zmap
+                zprint.zfns/zmap-w-nl zmap-w-nl
                 zprint.zfns/zanonfn? zanonfn?
                 zprint.zfns/zfn-obj? (constantly false)
                 zprint.zfns/zfocus zfocus

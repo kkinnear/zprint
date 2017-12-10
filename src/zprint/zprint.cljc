@@ -6,14 +6,16 @@
     [clojure.string :as s]
     [zprint.zfns :refer
      [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zmap-right
-      zfocus-style zfirst zsecond zthird zfourth znthnext zcount zmap zanonfn?
-      zfn-obj? zfocus zfind-path zwhitespace? zlist? zvector? zmap? zset? zcoll?
-      zuneval? zmeta? ztag zparseuneval zlast zarray? zatom? zderef zrecord?
-      zns? zobj-to-vec zexpandarray znewline? zwhitespaceorcomment? zmap-all
-      zpromise? zfuture? zdelay? zkeyword? zconstant? zagent? zreader-macro?
-      zarray-to-shift-seq zdotdotdot zsymbol? znil? zreader-cond-w-symbol?
-      zreader-cond-w-coll? zlift-ns zinlinecomment? zfind]]
+      zfocus-style zfirst zfirst-no-comment zsecond zthird zfourth znthnext
+      zcount zmap zanonfn? zfn-obj? zfocus zfind-path zwhitespace? zlist?
+      zvector? zmap? zset? zcoll? zuneval? zmeta? ztag zparseuneval zlast
+      zarray? zatom? zderef zrecord? zns? zobj-to-vec zexpandarray znewline?
+      zwhitespaceorcomment? zmap-all zpromise? zfuture? zdelay? zkeyword?
+      zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot zsymbol?
+      znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zinlinecomment?
+      zfind zmap-w-nl]]
     [zprint.ansi :refer [color-str]]
+    [zprint.config :refer [validate-options merge-deep]]
     [zprint.zutil :refer [add-spec-to-docstring]]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip :as z]
@@ -68,25 +70,6 @@
   [options value]
   #?(:clj (if (:parallel? options) (deref value) value)
      :cljs value))
-
-;;
-;; # Utility functions for manipulating option maps
-;;
-
-(defn merge-with-fn
-  "Take two arguments of things to merge and figure it out.
-  Works for sets too."
-  [val-in-result val-in-latter]
-  (cond (and (map? val-in-result) (map? val-in-latter))
-          (merge-with merge-with-fn val-in-result val-in-latter)
-        (and (set? val-in-result) (set? val-in-latter))
-          (apply conj val-in-result (seq val-in-latter))
-        :else val-in-latter))
-
-(defn merge-deep
-  "Do a merge of maps all the way down."
-  [& maps]
-  (apply merge-with merge-with-fn maps))
 
 ;;
 ;; # Debugging Assistance
@@ -352,7 +335,7 @@
 (defn generate-ll
   [count-comment? [out cur-len just-eol? just-comment? :as in]
    [s _ tag :as element]]
-  (let [[l r] (if (or (= tag :whitespace) (= tag :indent))
+  (let [[l r] (if (or (= tag :whitespace) (= tag :indent) (= tag :newline))
                 (clojure.string/split s #"\n" 2)
                 (list s))
         ; if tag = :comment, shouldn't have \n and
@@ -420,7 +403,7 @@
   and the maximum width that it reaches. Returns 
   [<line-count> <max-width> [line-lengths]].
   Doesn't require any max-width inside the style-vec. Also returns the
-  lines lengths in case that is helpful (since we have them anyway).
+  line lengths in case that is helpful (since we have them anyway).
   If (:dbg-ge options) has value, then uses find-what to see if what it
   finds matches the value, and if it does, place the value in the
   resulting vector."
@@ -1514,7 +1497,7 @@
   (let [local-options (if (and (not one-line?) (not (:hang? (caller options))))
                         (assoc options :one-line? true)
                         options)
-        hanging (if (not= hindent findent)
+        hanging (when (not= hindent findent)
                   (fzprint* (in-hang local-options) hindent zloc))
         hang-count (zcount zloc)
         hanging (concat-no-nil [[" " :none :whitespace]] hanging)
@@ -2175,39 +2158,6 @@
                         (if mixins? (dec arg-vec-index) (if doc-string? 2 1)))
               fn-style)
             r-str-vec))
-      #_(let [second-element (fzprint-hang-one caller
-                                               (if (= len 2) options loptions)
-                                               arg-1-indent
-                                               (+ indent ind)
-                                               (zsecond zloc))
-              [line-count max-width]
-                (style-lines loptions arg-1-indent second-element)
-              third-element (fzprint-hang-one caller
-                                              (if (= len 3) options loptions)
-                                              max-width
-                                              (+ indent ind)
-                                              (zthird zloc))
-              [line-count3 max-width3]
-                (style-lines loptions max-width third-element)]
-          (concat-no-nil
-            l-str-vec
-            (fzprint* loptions (+ indent ind) (zfirst zloc))
-            second-element
-            third-element
-            (fzprint-hang-remaining caller
-                                    loptions
-                                    max-width3
-                                    (+ indent indent ind)
-                                    (znthnext zloc 2)
-                                    fn-style
-                                    (- arg-vec-index 3))
-            (fzprint-hang-remaining caller
-                                    loptions
-                                    (+ indent ind)
-                                    (+ indent ind)
-                                    (znthnext zloc (dec arg-vec-index))
-                                    fn-style)
-            r-str-vec))
       (or (= fn-style :arg1-pair)
           (= fn-style :arg1)
           (= fn-style :arg1-force-nl)
@@ -2329,6 +2279,7 @@
     (loop [cur-seq coll-print
            cur-ind ind
            index 0
+           previous-newline? false
            ; transient here slows things down, interestingly enough
            out []]
       (if-not cur-seq
@@ -2343,20 +2294,34 @@
                   last-width (last lines)
                   len (- last-width ind)
                   len (max 0 len)
+                  newline? (= (nth (first this-seq) 2) :newline)
                   width (if (= index last-index) (- width rightcnt) width)
                   ; need to check size, and if one line and fits, should fit
-                  fit? (or (zero? index)
-                           (and (if multi? (= linecnt 1) true)
-                                (<= (+ cur-ind len) width)))]
-              #_(prn "this-seq:" this-seq
+                  fit? (and (not newline?)
+                            (or (zero? index)
+                                (and (if multi? (= linecnt 1) true)
+                                     (<= (+ cur-ind len) width))))
+                  new-ind (cond
+                            (or (= (nth (first this-seq) 2) :comment)
+                                (= (nth (first this-seq) 2) :comment-inline))
+                              (inc width)
+                            (and multi? (> linecnt 1) (not wrap-after-multi?))
+                              width
+                            fit? (+ cur-ind len 1)
+                            newline? ind
+                            :else (+ ind len 1))]
+              #_(prn "------ this-seq:" this-seq
                      "lines:" lines
                      "linecnt:" linecnt
                      "multi?" multi?
+                     "newline?:" newline?
+                     "previous-newline?:" previous-newline?
                      "linecnt:" linecnt
                      "max-width:" max-width
                      "last-width:" last-width
                      "len:" len
                      "cur-ind:" cur-ind
+                     "new-ind:" new-ind
                      "width:" width
                      "fit?" fit?)
               ; need to figure out what to do with a comment,
@@ -2365,13 +2330,9 @@
               ; it is really not clear what multi? does in this routine
               (recur
                 (next cur-seq)
-                (cond (or (= (nth (first this-seq) 2) :comment)
-                          (= (nth (first this-seq) 2) :comment-inline))
-                        (inc width)
-                      (and multi? (> linecnt 1) (not wrap-after-multi?)) width
-                      fit? (+ cur-ind len 1)
-                      :else (+ ind len 1))
+                new-ind
                 (inc index)
+                newline?
                 ; TODO: concat-no-nil fails here, why?
                 (concat
                   out
@@ -2379,23 +2340,66 @@
                     (if (not (zero? index))
                       (concat-no-nil [[" " :none :whitespace]] this-seq)
                       this-seq)
-                    (concat-no-nil [[(str "\n" (blanks ind)) :none :indent]]
-                                   this-seq)))))))))))
+                    (if newline?
+                      [[(str "\n" (blanks (dec new-ind))) :none :indent]]
+                      (if previous-newline?
+                        (concat-no-nil [[" " :none :indent]] this-seq)
+                        (concat-no-nil [[(str "\n" (blanks ind)) :none :indent]]
+                                       this-seq)))))))))))))
+(defn remove-nl
+  "Remove any [_ _ :newline] from the seq."
+  [coll]
+  (remove #(= (nth (first %) 2) :newline) coll))
+
+(defn internal-validate
+  "Validate an options map that was returned from some internal configuration
+  expression or configuration.  Either returns the options map or throws
+  an error."
+  [options error-str]
+  (let [errors (validate-options options)
+        errors (when errors
+                 (str "Options resulting from " error-str
+                      " had these errors: " errors))]
+    (if (not (empty? errors))
+      (throw (#?(:clj Exception.
+                 :cljs js/Error.)
+              errors))
+      options)))
 
 (defn fzprint-vec*
   "Print basic stuff like a vector or a set.  Several options for how to
   print them."
   [caller l-str r-str
    {:keys [rightcnt in-code?],
-    {:keys [wrap-coll? wrap? binding? sort? sort-in-code?]} caller,
+    {:keys [wrap-coll? wrap? binding? option-fn-first respect-nl? sort?
+            sort-in-code?]}
+      caller,
     :as options} ind zloc]
   (if (and binding? (= (:depth options) 1))
     (fzprint-binding-vec options ind zloc)
     (let [l-str-vec [[l-str (zcolor-map options l-str) :left]]
           r-str-vec (rstr-vec options ind zloc r-str)
+          new-options (when option-fn-first
+                        (let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
+                          (internal-validate
+                            (option-fn-first options first-sexpr)
+                            (str ":vector :option-fn-first called with "
+                                 first-sexpr))))
+          #_(prn "new-options:" new-options)
+          {{:keys [wrap-coll? wrap? binding? option-fn-first respect-nl? sort?
+                   sort-in-code?]}
+             caller,
+           :as options}
+            (merge-deep options new-options)
+          ; If sort? is true, then respect-nl? makes no sense.  At present,
+          ; sort? and respect-nl? are not both supported for the same structure,
+          ; so this doesn't really matter, but if in the future they were, this
+          ; would help.
+          respect-nl? (and respect-nl? (not sort?))
           new-ind (+ (count l-str) ind)
           _ (dbg-pr options "fzprint-vec*:" (zstring zloc) "new-ind:" new-ind)
-          zloc-seq (zmap identity zloc)
+          zloc-seq
+            (if respect-nl? (zmap-w-nl identity zloc) (zmap identity zloc))
           zloc-seq (if (and sort? (if in-code? sort-in-code? true))
                      (order-out caller options identity zloc-seq)
                      zloc-seq)
@@ -2409,7 +2413,11 @@
           one-line (when coll-print
                      ; should not be necessary with contains-nil? above
                      (apply concat-no-nil
-                       (interpose [[" " :none :whitespace]] coll-print)))
+                       (interpose [[" " :none :whitespace]]
+                         ; This causes single line things to also respect-nl
+                         ; when it is enabled.  Could be separately controlled
+                         ; instead of with :respect-nl? if desired.
+                         (if respect-nl? coll-print (remove-nl coll-print)))))
           _ (log-lines options "fzprint-vec*:" new-ind one-line)
           one-line-lines (style-lines options new-ind one-line)]
       (when one-line-lines
@@ -2421,14 +2429,13 @@
                            (apply concat-no-nil
                              (interpose [[(str "\n" (blanks new-ind)) :none
                                           :indent]]
-                               coll-print))
+                               (remove-nl coll-print)))
                            r-str-vec)
-            ;
-            ; Since there are no collections in this vector or set or
-            ; whatever, print it wrapped on the same line as much as
-            ; possible: [a b c d e f
+            ; Since there are either no collections in this vector or set or
+            ; whatever, or if there are, it is ok to wrap them, print it
+            ; wrapped on the same line as much as possible:
+            ;           [a b c d e f
             ;            g h i j]
-            ;
             (concat-no-nil
               l-str-vec
               (do (dbg options "fzprint-vec*: wrap coll-print:" coll-print)
@@ -3050,6 +3057,9 @@
           (or (zpromise? zloc) (zfuture? zloc) (zdelay? zloc) (zagent? zloc))
             (fzprint-future-promise-delay-agent options indent zloc)
           (zreader-macro? zloc) (fzprint-reader-macro options indent zloc)
+          ; This is needed to not be there for newlines in parse-string-all,
+          ; but is needed for respect-nl? support.
+          (and (= (ztag zloc) :newline) (> depth 0)) [["\n" :none :newline]]
           :else
             (let [zstr (zstring zloc)
                   overflow-in-hang?

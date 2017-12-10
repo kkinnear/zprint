@@ -1,27 +1,27 @@
 (ns zprint.core
   ;#?@(:cljs [[:require-macros [zprint.macros :refer [dbg dbg-pr dbg-form
   ;dbg-print]]]])
-  (:require
-    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
-    clojure.string
-    #?@(:cljs [[cljs.reader :refer [read-string]]])
-    #?@(:clj [[clojure.repl :refer [source-fn]]])
-    [zprint.zprint :as zprint :refer
-     [fzprint blanks line-count max-width line-widths expand-tabs merge-deep
-      zcolor-map fzprint-wrap-comments fzprint-inline-comments]]
-    [zprint.finish :refer
-     [cvec-to-style-vec compress-style no-style-map color-comp-vec
-      handle-lines]]
-    [zprint.config :as config :refer
-     [config-set-options! get-options config-configure-all! help-str
-      get-explained-options get-explained-all-options get-default-options
-      validate-options apply-style perform-remove no-color-map]]
-    [zprint.zutil :refer
-     [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
-    [zprint.sutil]
-    [zprint.focus :refer [range-ssv]]
-    [rewrite-clj.parser :as p]
-    #_[clojure.spec.alpha :as s]))
+  (:require #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
+            clojure.string
+            #?@(:cljs [[cljs.reader :refer [read-string]]])
+            #?@(:clj [[clojure.repl :refer [source-fn]]])
+            [zprint.zprint :as zprint :refer
+             [fzprint blanks line-count max-width line-widths expand-tabs
+              zcolor-map fzprint-wrap-comments fzprint-inline-comments]]
+            [zprint.finish :refer
+             [cvec-to-style-vec compress-style no-style-map color-comp-vec
+              handle-lines]]
+            [zprint.config :as config :refer
+             [config-set-options! get-options config-configure-all!
+              reset-options! help-str get-explained-options
+              get-explained-all-options get-default-options validate-options
+              apply-style perform-remove no-color-map merge-deep]]
+            [zprint.zutil :refer
+             [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
+            [zprint.sutil]
+            [zprint.focus :refer [range-ssv]]
+            [rewrite-clj.parser :as p]
+            #_[clojure.spec.alpha :as s]))
 
 
 ;;
@@ -707,43 +707,68 @@
 ;;
 
 (defn zprint-file-str
-  "Take a string, which typically represents file but doesn't have
-  to, and format the entire string, outputing a formatted string.
-  It respects white space at the top level, while completely ignoring
-  it within all top level forms (typically defs and function
-  definitions).  It allows comments at the top level, as well as
-  in function definitions, and also supports ;!zprint directives
-  at the top level.  zprint-specifier is the thing that will be
-  used in messages if errors detected in ;!zprint directives,
-  so it should identify the file (or other element) to allow the 
-  user to find the problem."
-  [file-str zprint-specifier]
-  (let [lines (clojure.string/split file-str #"\n")
-        lines (if (:expand? (:tab (get-options)))
-                (map (partial expand-tabs (:size (:tab (get-options)))) lines)
-                lines)
-        filestring (clojure.string/join "\n" lines)
-        ; If file ended with a \newline, make sure it still does
-        filestring
-          (if (= (last file-str) \newline) (str filestring "\n") filestring)
-        forms (edn* (p/parse-string-all filestring))]
-    #_(def fileforms (zmap-all identity forms))
-    (process-multiple-forms {:process-bang-zprint? true, :color? false}
-                            czprint-str-internal
-                            zprint-specifier
-                            forms)))
+  "Take a string, which typically holds the contents of an entire
+  file, but doesn't have to, and format the entire string, outputing
+  a formatted string.  It respects white space at the top level,
+  while completely ignoring it within all top level forms (typically
+  defs and function definitions).  It allows comments at the top
+  level, as well as in function definitions, and also supports
+  ;!zprint directives at the top level.  zprint-specifier is the
+  thing that will be used in messages if errors are detected in
+  ;!zprint directives, so it should identify the file (or other
+  element) to allow the user to find the problem. new-options are
+  optional options to be used when doing the formatting (and will
+  be overriddden any options in ;!zprint directives).  doc-str is
+  an optional string to be used when setting the new-options into
+  the configuration."
+  ([file-str zprint-specifier new-options doc-str]
+   (let [original-options (get-options)
+         original-doc-map (get-explained-all-options)]
+     (when new-options (set-options! new-options doc-str))
+     (try (let [lines (clojure.string/split file-str #"\n")
+                lines (if (:expand? (:tab (get-options)))
+                        (map (partial expand-tabs (:size (:tab (get-options))))
+                          lines)
+                        lines)
+                filestring (clojure.string/join "\n" lines)
+                ; If file ended with a \newline, make sure it still does
+                filestring (if (= (last file-str) \newline)
+                             (str filestring "\n")
+                             filestring)
+                forms (edn* (p/parse-string-all filestring))]
+            #_(def fileforms (zmap-all identity forms))
+            (process-multiple-forms {:process-bang-zprint? true, :color? false}
+                                    czprint-str-internal
+                                    zprint-specifier
+                                    forms))
+          (finally (reset-options! original-options original-doc-map)))))
+  ([file-str zprint-specifier new-options]
+   (zprint-file-str file-str
+                    zprint-specifier
+                    new-options
+                    "zprint-file-str input"))
+  ([file-str zprint-specifier]
+   (zprint-file-str file-str zprint-specifier nil nil)))
 
 #?(:clj
      (defn zprint-file
-       "Take an input filename and an output filename, and do a zprint
-  on every form in the input file and write it to the output file.
-  Note that this uses whatever comes from (get-options).  If you
-  want to have each file be separate, you should call (configure-all!)
-  before calling this function."
-       [infile file-name outfile]
-       (let [file-str (slurp infile)
-             outputstr (zprint-file-str file-str (str "file: " file-name))]
-         (spit outfile outputstr))))
+       "Take an input file infile and an output file outfile, and format
+  every form in the input file with zprint and write it to the
+  output file. infile and outfile are input to slurp and spit,
+  repspectively. file-name is a string, and is usually the name of
+  the input file but could be anything to help identify the input
+  file when errors in ;!zprint directives are reported.  options
+  are any additional options to be used for this operation, and
+  will be overridden by any options in ;!zprint directives."
+       ([infile file-name outfile options]
+        (let [file-str (slurp infile)
+              outputstr (zprint-file-str file-str
+                                         (str "file: " file-name)
+                                         options
+                                         (str "zprint-file input for file: "
+                                              file-name))]
+          (spit outfile outputstr)))
+       ([infile file-name outfile] (zprint-file infile file-name outfile nil))))
 
 ;;
 ;; # Process specs to go into a doc-string

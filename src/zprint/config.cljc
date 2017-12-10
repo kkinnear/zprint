@@ -3,7 +3,6 @@
   (:require clojure.string
             [zprint.sutil]
             [clojure.set :refer [difference]]
-            [zprint.zprint :refer [merge-deep]]
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic]]
             #?(:clj [clojure.edn :refer [read-string]]
@@ -21,7 +20,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.5"))
+(defn about "Return version of this program." [] (str "zprint-0.4.6"))
 
 ;;
 ;; # External Configuration
@@ -509,32 +508,36 @@
    :spaces? nil,
    :spec {:docstring? true, :value nil},
    :style nil,
-   :style-map {:binding-nl {:binding {:indent 0, :nl-separator? true}},
-               :community {:binding {:indent 0},
-                           :fn-map {"apply" :none,
-                                    "assoc" :none,
-                                    "cond->" :none-body,
-                                    "filter" :none,
-                                    "filterv" :none,
-                                    "map" :none,
-                                    "mapv" :none,
-                                    "reduce" :none,
-                                    "remove" :none,
-                                    "with-meta" :none-body},
-                           :list {:indent-arg 1},
-                           :map {:indent 0},
-                           :pair {:indent 0}},
-               :extend-nl {:extend
-                             {:flow? true, :indent 0, :nl-separator? true}},
-               :justified {:binding {:justify? true},
-                           :map {:justify? true},
-                           :pair {:justify? true}},
-               :map-nl {:map {:indent 0, :nl-separator? true}},
-               :pair-nl {:pair {:indent 0, :nl-separator? true}},
-               :spec {:list {:constant-pair-min 2},
-                      :vector {:wrap? false},
-                      ;:pair {:indent 0} removed in 0.4.1
-                      }},
+   :style-map
+     {:binding-nl {:binding {:indent 0, :nl-separator? true}},
+      :community {:binding {:indent 0},
+                  :fn-map {"apply" :none,
+                           "assoc" :none,
+                           "cond->" :none-body,
+                           "filter" :none,
+                           "filterv" :none,
+                           "map" :none,
+                           "mapv" :none,
+                           "reduce" :none,
+                           "remove" :none,
+                           "with-meta" :none-body},
+                  :list {:indent-arg 1},
+                  :map {:indent 0},
+                  :pair {:indent 0}},
+      :extend-nl {:extend {:flow? true, :indent 0, :nl-separator? true}},
+      :justified {:binding {:justify? true},
+                  :map {:justify? true},
+                  :pair {:justify? true}},
+      :keyword-respect-nl
+        {:vector {:option-fn-first #(let [k? (keyword? %2)]
+                                     (when (not= k? (:respect-nl? (:vector %1)))
+                                       {:vector {:respect-nl? k?}}))}},
+      :map-nl {:map {:indent 0, :nl-separator? true}},
+      :pair-nl {:pair {:indent 0, :nl-separator? true}},
+      :spec {:list {:constant-pair-min 2},
+             :vector {:wrap? false},
+             ;:pair {:indent 0} removed in 0.4.1
+             }},
    :tab {:expand? true, :size 8},
    :trim-comments? nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
@@ -571,6 +574,8 @@
    :user-fn-map {},
    :vector {:indent 1,
             :binding? false,
+            :option-fn-first nil,
+            :respect-nl? false,
             :wrap-after-multi? true,
             :wrap-coll? true,
             :wrap? true},
@@ -610,6 +615,21 @@
 ;;
 ;; # Utility functions for manipulating option maps
 ;;
+
+(defn merge-with-fn
+  "Take two arguments of things to merge and figure it out.
+  Works for sets too."
+  [val-in-result val-in-latter]
+  (cond (and (map? val-in-result) (map? val-in-latter))
+          (merge-with merge-with-fn val-in-result val-in-latter)
+        (and (set? val-in-result) (set? val-in-latter))
+          (apply conj val-in-result (seq val-in-latter))
+        :else val-in-latter))
+
+(defn merge-deep
+  "Do a merge of maps all the way down."
+  [& maps]
+  (apply merge-with merge-with-fn maps))
 
 (defn merge-with-fn-doc
   "Take two arguments of things to merge and figure it out."
@@ -781,7 +801,7 @@
   default-zprint-options)
 
 ;;
-;; ## Explained options
+;; ## Explained options, also known as the doc-map
 ;;
 
 (defn set-explained-options!
@@ -1277,6 +1297,15 @@
      " Change current configuration from running code:"
      ""
      "   (set-options! <options>)"
+     ""
+     " Format a complete file (recognizing ;!zprint directives):"
+     ""
+     "   (zprint-file infile file-name outfile <options>)"
+     ""
+     " Format a string containing multiple \"top level\" forms"
+     " (recognizing ;!zprint directives):"
+     ""
+     "   (zprint-file-str file-str zprint-specifier <options> <doc-str>)"
      ""
      " Output information to include when submitting an issue:"
      ""

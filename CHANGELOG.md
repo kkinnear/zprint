@@ -1,6 +1,40 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.6 - 2018-1-10
+
+### Changed
+
+ * Added `{:vector {:respect-nl? true}}` support, so that hand-formatted
+   vectors can be preserved on ouput.
+
+ * Added `{:vector {:option-fn-first #()}}`, which allows definition
+   of a function to be called with the first element of every vector,
+   and returns an options map to be used to format that vector and
+   all that it contains.  Added primarily to allow targetted use
+   of `:respect-nl?`, but is fully general and can certainly be used
+   to enable other capabilities.
+
+ * Added new style `:keyword-respect-nl`, which will use the two new
+   capabilities above to preserve existing newlines in vectors that
+   start with a keyword (as hiccup and rum HTML data do).
+
+ * Extended `zprint-file-str` to accept an options map.  
+ 
+ * Added `zprint-file` and `zprint-file-str` to the external API, and
+   documented the use of `;!zprint` directives in the zprint readme.
+   (It was already documented in the lein-zprint readme.)
+
+ * Added tests for `zprint-file-str`, which previously was only tested
+   by lein-zprint.
+
+### Fixed
+
+ * Additionally, changed `zprint-file-str` to leave the configured options 
+   unchanged after processing.  It used to leave them around after processing
+   to be retrieved with `(get-options)`, possibly distorting the next call
+   to any zprint function. 
+
 ## 0.4.5 - 2017-12-9
 
 ### Changed
@@ -10,8 +44,6 @@ All notable changes to this project will be documented in this file.
    of what this looks like.  Issue #41.
 
  * Add `swap!` as `:arg2`, and `with-redefs-fn` as `:arg1-body`.
-
-### Fixed
 
 ## 0.4.4 - 2017-10-26
 

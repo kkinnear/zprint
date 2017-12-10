@@ -141,7 +141,9 @@
 (s/def ::paths ::path-seq)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::additional-libraries? ::boolean)
+(s/def ::option-fn-first fn?)
 (s/def ::record-type? ::boolean)
+(s/def ::respect-nl? ::boolean)
 (s/def ::size number?)
 (s/def ::sort? ::boolean)
 (s/def ::sort-in-code? ::boolean)
@@ -252,8 +254,8 @@
 (s/def :alt/uneval (only-keys :opt-un [::color-map]))
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
-  (only-keys :opt-un [::indent ::binding? ::wrap-after-multi? ::wrap-coll?
-                      ::wrap?]))
+  (only-keys :opt-un [::indent ::binding? ::respect-nl? ::option-fn-first
+                      ::wrap-after-multi? ::wrap-coll? ::wrap?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::zipper? ::boolean)

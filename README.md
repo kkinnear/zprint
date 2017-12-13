@@ -1415,7 +1415,7 @@ For functions where this looks great, you can always turn it on
 just for that function (if you are using lein-zprint), like so:
 
 ```clojure
-;!zprint {:format :next {:style :justified}}
+;!zprint {:format :next :style :justified}
 ```
 
 As you might gather, there is a `:style :justified` which you can use

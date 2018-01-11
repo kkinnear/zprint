@@ -1,6 +1,34 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.7 - 2018-2-19
+
+### Changed
+
+ * Rewrote line-lengths to use iterative instead of really complicated
+   functional approach.  Saved maybe 5% on time.  Still complex, but 
+   more understandable and slightly faster.
+
+ * Added performance optimization `:hang-avoid` in `:list` which will
+   not even bother to try a hang if lots left to do and very close to
+   the right margin.  Didn't change output of anything tested or 
+   zprint code itself, but saved up to 30% on very pessimal functions.
+   Not so much on normal functions, but still a win for those tough
+   ones.
+
+ * Added two new styles: `:no-hang` and `:all-hang`, to allow configuring
+   zprint without hangs or with hangs.  While I think that code formatted
+   without hangs is looks rather unlovely, some folks find the way it looks
+   to be a worthwhile tradeoff for speedier performance without hangs,
+   particularly in Clojurescript.  So, now, you can configure that easily
+   one way or the other.
+
+### Fixed
+
+ * Fixed bug in configuration where `:parallel?` wasn't being set to
+   true even for repl use (or in lein zprint).  Saved up to 20% in
+   lein zprint, which is actually quite a bit.
+
 ## 0.4.6 - 2018-1-10
 
 ### Changed

@@ -20,7 +20,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.6"))
+(defn about "Return version of this program." [] (str "zprint-0.4.7"))
 
 ;;
 ;; # External Configuration
@@ -46,7 +46,8 @@
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
-   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] :tuning])
+   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] :tuning
+   :perf-vs-format])
 
 
 ;;
@@ -426,6 +427,7 @@
    :indent 0,
    :list {:constant-pair-min 4,
           :constant-pair? true,
+          :hang-avoid 0.5,
           :hang-diff 1,
           :hang-expand 2.0,
           :hang-size 100,
@@ -482,6 +484,7 @@
    :parse {:interpose nil, :left-space :drop},
    :parse-string-all? false,
    :parse-string? false,
+   :perf-vs-format nil,
    :process-bang-zprint? nil,
    :promise {:object? false},
    :reader-cond {:comma? nil,
@@ -509,7 +512,14 @@
    :spec {:docstring? true, :value nil},
    :style nil,
    :style-map
-     {:binding-nl {:binding {:indent 0, :nl-separator? true}},
+     {:all-hang {:map {:hang? true},
+                 :list {:hang? true},
+                 :extend {:hang? true},
+                 :pair {:hang? true},
+                 :pair-fn {:hang? true},
+                 :reader-cond {:hang? true},
+                 :record {:hang? true}},
+      :binding-nl {:binding {:indent 0, :nl-separator? true}},
       :community {:binding {:indent 0},
                   :fn-map {"apply" :none,
                            "assoc" :none,
@@ -533,6 +543,13 @@
                                      (when (not= k? (:respect-nl? (:vector %1)))
                                        {:vector {:respect-nl? k?}}))}},
       :map-nl {:map {:indent 0, :nl-separator? true}},
+      :no-hang {:map {:hang? false},
+                :list {:hang? false},
+                :extend {:hang? false},
+                :pair {:hang? false},
+                :pair-fn {:hang? false},
+                :reader-cond {:hang? false},
+                :record {:hang? false}},
       :pair-nl {:pair {:indent 0, :nl-separator? true}},
       :spec {:list {:constant-pair-min 2},
              :vector {:wrap? false},
@@ -819,6 +836,11 @@
   []
   (assoc @explained-options :version (about)))
 
+(defn get-default-explained-all-options
+  "Return the base explained options, matches get-default-options"
+  []
+  default-zprint-options)
+
 (declare config-and-validate)
 (declare config-and-validate-all)
 (declare config-set-options!)
@@ -855,18 +877,20 @@
      #?(:clj (try #_(println "requiring table.width")
                   (require 'table.width)
                   (catch Exception e nil))))
-   ; If we are running in a repl, then turn on :parallel? the first time we
-   ; run
-   (when (find-ns 'clojure.repl)
-     (internal-set-options! "REPL execution default"
-                            (get-explained-all-options)
-                            (get-options)
-                            {:parallel? true}))
+   ; Any config changes prior to this will be lost, as
+   ; config-and-validate-all works from the default options!
    (let [[zprint-options doc-map errors] (config-and-validate-all nil nil)]
      (if errors
        errors
        (do (reset-options! zprint-options doc-map)
            (config-set-options! {:configured? true} "internal")
+           ; If we are running in a repl, then turn on :parallel?
+           ; the first time we run
+           (when (find-ns 'clojure.repl)
+             (internal-set-options! "REPL execution default"
+                                    (get-explained-all-options)
+                                    (get-options)
+                                    {:parallel? true}))
            nil))))
   ([] (config-configure-all! (:additional-libraries? (get-options)))))
 
@@ -1015,7 +1039,7 @@
        "Turn the lines in a file from the filesystem    
    into a seq of lines."
        [filename]
-       (line-seq (BufferedReader. (FileReader. filename)))))
+       (line-seq (BufferedReader. (FileReader. ^String filename)))))
 
 ;;
 ;; # Configuration Utilities
@@ -1150,7 +1174,7 @@
   Returns [new-map doc-map errors]"
   [cli-opts cli-errors]
   (let [default-map (get-default-options)
-        default-doc-map (get-explained-all-options)
+        default-doc-map (get-default-explained-all-options)
         ;
         ; $HOME/.zprintrc
         ;

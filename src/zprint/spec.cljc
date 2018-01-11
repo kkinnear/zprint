@@ -107,6 +107,7 @@
 (s/def ::general-hang-adjust number?)
 (s/def ::hang? ::boolean)
 (s/def ::hang-diff number?)
+(s/def ::hang-avoid ::nilable-number)
 (s/def ::hang-expand number?)
 (s/def ::hang-flow number?)
 (s/def ::hang-flow-limit number?)
@@ -203,8 +204,8 @@
 (s/def ::indent number?)
 (s/def ::list
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
-                      ::hang-expand ::hang-size ::hang? ::indent ::indent-arg
-                      ::pair-hang?]))
+                      ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
+                      ::indent-arg ::pair-hang?]))
 (s/def ::map
   (only-keys
     :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
@@ -229,6 +230,7 @@
 (s/def ::parse (only-keys :opt-un [::interpose ::left-space]))
 (s/def ::parse-string-all? ::boolean)
 (s/def ::parse-string? ::boolean)
+(s/def ::perf-vs-format ::nilable-number)
 (s/def ::process-bang-zprint? ::boolean)
 (s/def ::promise (only-keys :opt-un [::object?]))
 (s/def ::reader-cond
@@ -273,11 +275,11 @@
              ::fn-map ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
              ::max-depth ::max-hang-count ::max-hang-depth ::max-hang-span
              ::max-length ::object ::old? ::output ::pair ::pair-fn ::parallel?
-             ::parse ::parse-string-all? ::parse-string? ::process-bang-zprint?
-             ::promise ::reader-cond ::record ::remove ::return-cvec? ::set
-             ::spaces? ::spec ::style ::style-map ::tab ::trim-comments?
-             ::tuning :alt/uneval ::user-fn-map ::vector ::version ::width
-             ::zipper?]))
+             ::parse ::parse-string-all? ::parse-string? ::perf-vs-format
+             ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
+             ::return-cvec? ::set ::spaces? ::spec ::style ::style-map ::tab
+             ::trim-comments? ::tuning :alt/uneval ::user-fn-map ::vector
+             ::version ::width ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

@@ -225,7 +225,7 @@
   "Find the nth non-whitespace zloc inside of this zloc."
   [zloc n]
   (loop [nloc (skip-whitespace (down* zloc))
-         i n]
+         i ^long n]
     (if (or (nil? nloc) (= i 0)) nloc (recur (zrightnws nloc) (dec i)))))
 
 (defn zfind
@@ -327,7 +327,7 @@
 
 (defn move-down-and-right
   "Move one down and then right a certain number of steps."
-  [zloc right-count]
+  [zloc ^long right-count]
   (loop [nloc (down* zloc)
          remaining-right right-count]
     (if (zero? remaining-right)
@@ -443,7 +443,7 @@
             (= tnloc :newline) nil
             (= tnloc :comment) nil
             (not= tnloc :whitespace) spaces
-            :else (recur (left* nloc) (+ (length nloc) spaces))))))
+            :else (recur (left* nloc) ^long (+ ^long (length nloc) spaces))))))
 
 ;;
 ;; # Integrate specs with doc-string

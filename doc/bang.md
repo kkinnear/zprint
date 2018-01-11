@@ -33,13 +33,23 @@ until the end of the file (or another `;!zprint` comment alters it).
 
 ## ;!zprint API
 
-There are two functions that you can call which support the `;!zprint`
-directives.  In addition, note that you can format entire source
-files from the command line without calling any functions by using 
-[lein-zprint][leinzprint], which also supports `;!zprint` directives
-in source files.
+You can format entire source files from the command line 
+without calling any functions by using:
+
+  * [lein-zprint][leinzprint] leiningen plugin
+  * [boot-fmt][bootfmt] boot
+  * [zprint-filter][zprintfilter] JVM based uberjar, starts in <1s
+  * [zprint-clj][zprintclj] zprint for node npm 
+
+each of which supports `;!zprint` directives in source files.
 
 [leinzprint]: https://github.com/kkinnear/lein-zprint
+[bootfmt]: https://github.com/pesterhazy/boot-fmt
+[zprintfilter]: doc/filter.md
+[zprintclj]: https://github.com/roman01la/zprint-clj
+
+There are two functions that you can call which support the `;!zprint`
+directives.  
 
 #### zprint-file
 

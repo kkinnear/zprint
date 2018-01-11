@@ -7,11 +7,14 @@ repl.  It can be configured to process entire files or just take small
 sections of code and reformat them on demand.
 
 If you want to use the zprint library to format your Clojure source, 
-you have four options:
+you have many options:
 
-  * Using the released [zprint-filter](doc/filter.md) uberjar, you can pretty-print functions from within many editors [__NEW__]
+  * Using the released [zprint-filter](doc/filter.md) uberjar, you can 
+    pretty-print functions from within many editors
   * Leiningen:  [lein-zprint][leinzprint] to format entire source files
   * Boot: [boot-fmt][bootfmt] to format entire source files
+  * Node: [zprint-clj][zprintclj] npm module 
+  * Atom: [zprint-atom][zprintatom] Atom plugin 
   * Use `planck` or `lumo` and configure zprint as a Clojure pretty-print filter. See [lein-zprint][leinzprint] for details.
 
 __If you haven't used zprint before, check out the
@@ -96,6 +99,8 @@ when pretty printing source code.
 
 [leinzprint]: https://github.com/kkinnear/lein-zprint
 [bootfmt]: https://github.com/pesterhazy/boot-fmt
+[zprintclj]: https://github.com/roman01la/zprint-clj
+[zprintatom]: https://github.com/roman01la/zprint-atom
 
 ## Usage
 
@@ -130,38 +135,6 @@ following environments:
 It requires `tools.reader` at least 1.0.5, which all of the environments
 above contain.
 
-#### Reducing the library footprint
-
-In order to reduce the dependencies that zprint drags along, I have
-removed everything that isn't absolutely essential.  That
-means that now zprint will run with just the parsing library and
-zprint itself, and nothing else.  
-
-But that also means that the ability to configure zprint from
-environment variables and Java system properties has been __deprecated__.
-As nobody has raised any issues in the past 6 months or so, I will
-be completely removing these capabilities in the near future, when
-we go to 0.5.0.  If you need these capabilites, now is the last
-chance to raise an issue on Github!
-
-However, if you need these configuration capabilities, you can still
-use them if you add an additional library to the dependencies.
-Zprint will look for and load the necessary namespaces, but not
-return an error if they are not there.
-
-Zprint can still be configured from the `$HOME/.zprintrc` file.  That
-has not changed and is not expected to change.
-
-If you need to configure zprint from environment variables or Java
-system properties, you must also add this to your list of dependencies:
-
-   `[cprop "0.1.6"]`
-
-In addition, the rarely used feature `{:auto-width true}` has also gone
-away, but can still be used if you load the library:
-
-   `[table "0.4.0" :exclusions [[org.clojure/clojure]]]`
-
 ## Features
 
 In addition to meeting the goals listed above, zprint has the 
@@ -171,7 +144,7 @@ following specific features:
 * Prints function definitions at the Clojure repl (including clojure.core functions)
 * Prints s-expressions (EDN structures) at the repl
 * Processes Clojure source files through lein-zprint
-* Support Clojure and Clojurescript
+* Supports Clojure and Clojurescript
 * Competitive performance
 * Highly configurable, with an intuitive function classification scheme
 * Respects the right margin specification
@@ -1492,13 +1465,29 @@ hang and flow.
 
 #### :hang?
 
-If :hang? is true, zprint will attempt to hang if all of the elements in
+If `:hang?` is true, zprint will attempt to hang if all of the elements in
 the collection don't fit on one line. If it is false, it won't
 even try.
 
+#### :hang-avoid
+
+If `:hang-avoid` is non-nil, then it is used to decide if the formatting
+is close enough to the right margin to probably not be worth doing. This
+is a performance optimization for functions that are very deeply nested
+and take a considerable time to format.  For normal functions, this has
+no effect, but for a few functions that take a long time to format, it
+can cut that time by 30%.  If the value is non-nil, then avoid even
+trying to do a hang if the number of top-level elements in the rest
+of the collection is greater than the remaining columns times the
+hang-avoid value.  The hang-avoid value defaults to 0.5, which changes
+only a tiny amount of output visually, but provides useful performance
+gains in functions which take a long time to format.  At present this
+ony affects lists, but may be implemented for other collections in
+the future.
+
 #### :hang-expand
 
-`:hang-expand` one control used to decide whether or not to do a hang.  It
+`:hang-expand` is one control used to decide whether or not to do a hang.  It
 relates the number of lines in the hang to the number of elements
 in the hang thus: `(/ (dec hang-lines) hang-element-count)`.  If every
 element in the hang fits on one line, then this ratio will be < 1.
@@ -1813,8 +1802,7 @@ _____
 
 Controls the formatting of the first argument of
 any function which has `:binding` as its function type.  `let` is, of
-course, the canonical example.  :binding supports __indent__ and
-__hang__ described above.
+course, the canonical example. 
 
 ##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
@@ -1974,7 +1962,6 @@ _____
 ## :extend
 
 When formatting functions which have extend in their function types.
-Supports __indent__ as described above.  
 
 ##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
@@ -2064,10 +2051,9 @@ Lists show up in lots of places, but mostly they are code.  So
 in addition to the various function types described above, the `:list`
 configuration affects the look of formatted code.
 
-`:list` supports __indent__ and __hang__ described above.
-
 ##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
+##### :hang-avoid <text style="color:#A4A4A4;"><small>0.5</small></text>
 ##### :hang-expand <text style="color:#A4A4A4;"><small>2.0</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
 
@@ -2739,7 +2725,7 @@ _____
 
 When elements are formatted with `:object?` `true`, then the output
 if formatted using the information specified in the `:object` 
-information.  :object supports __indent__ as described above.  
+information.  
 
 ##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
 _____
@@ -2771,8 +2757,8 @@ ______
 ## :pair
 
 The :pair key controls the printing of the arguments of a function
-which has -pair in its function type (e.g. `:arg1-pair`, `:pair-fn`, `:arg2-pair`).  `:pair` 
-supports __indent__ and __hang__ described above. 
+which has -pair in its function type (e.g. `:arg1-pair`, `:pair-fn`,
+`:arg2-pair`).  `:pair`
 
 ##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
@@ -2876,8 +2862,7 @@ _____
 ## :pair-fn
 
 The :pair-fn key controls the printing of the arguments of a function
-which has :pair-fn as its function type (e.g. `cond`).  `:pair-fn` 
-supports __hang__ described above. 
+which has :pair-fn as its function type (e.g. `cond`). 
 
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
@@ -3155,6 +3140,16 @@ The implementation of this style is as follows:
 which serves as an example of how to implement an :option-fn-first
 function for vectors.
 
+#### :all-hang, :no-hang
+
+These two styles will turn on or off all of the `:hang?` booleans
+in `:map`, `:list`, `:extend`, `:pair`, `:pair-fn`, `:reader-cond`,
+and `:record`.  The `:hang?` capability almost always produces
+clearly better results, but can take more time (particularly in
+Clojurescript, as it is single-threaded).  `:all-hang` is the
+effective default, but `:no-hang` can be used to turn it all off
+if you wish.  If `:hang?` is off for some reason, you can use
+`:all-hang` to turn it back on.
 
 ### Defining your own styles
 
@@ -3193,9 +3188,7 @@ An integer for the tab size for tab expansion.
 _____
 ## :vector
 
-Supports __indent__ as described above.  
-
-#### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
 
 #### :option-fn-first <text style="color:#A4A4A4;"><small>false</small></text>
 

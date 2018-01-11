@@ -15,6 +15,7 @@ pom.xml
 pom.xml.asc
 *.jar
 *.class
+build.cljs
 /.lein-*
 /.nrepl-port
 .hgignore

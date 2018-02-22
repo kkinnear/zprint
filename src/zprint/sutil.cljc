@@ -70,6 +70,13 @@
   [zfn sexpr]
   (if (coll? sexpr) (mapv zfn (next sexpr)) nil))
 
+(defn stake-append
+  "Considering the current sexpr a collection, move down into it and
+  take n non-whitespace elements, dropping the rest.  Then append the
+  given element to the end."
+  [n sexpr end-sexpr]
+  (concat (take n sexpr) (list end-sexpr)))
+
 (defn sfocus-style
   "Take the various inputs and come up with a style.  But we
   don't do focus, so that's easy."
@@ -322,5 +329,6 @@
                 zprint.zfns/zreader-cond-w-coll? (constantly false)
                 zprint.zfns/zlift-ns slift-ns
                 zprint.zfns/zinlinecomment? (constantly false)
-                zprint.zfns/zfind sfind]
+                zprint.zfns/zfind sfind
+                zprint.zfns/ztake-append stake-append]
     (body-fn)))

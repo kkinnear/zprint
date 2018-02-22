@@ -2230,3 +2230,473 @@
 ;;
 
 (expect true (:wrap? (:vector (zprint.config/get-options))))
+
+;;
+;; # Tests for max length as a single number
+;;
+
+;; List with constant pair
+
+(expect
+  "(abc sdfjsksdfjdskl\n     jkfjdsljdlfjldskfjklsjfjd\n     :a (quote b)\n     :c (quote d)\n     :e (quote f)\n     :g (quote h)\n     :i (quote j))"
+  (zprint-str '(abc sdfjsksdfjdskl
+                    jkfjdsljdlfjldskfjklsjfjd
+                    :a 'b
+                    :c 'd
+                    :e 'f
+                    :g 'h
+                    :i 'j)
+              {:max-length 13}))
+
+(expect
+  "(abc sdfjsksdfjdskl\n     jkfjdsljdlfjldskfjklsjfjd\n     :a (quote b)\n     :c (quote d)\n     :e (quote f)\n     :g (quote h)\n     :i ...)"
+  (zprint-str '(abc sdfjsksdfjdskl
+                    jkfjdsljdlfjldskfjklsjfjd
+                    :a 'b
+                    :c 'd
+                    :e 'f
+                    :g 'h
+                    :i 'j)
+              {:max-length 12}))
+
+;; Map
+
+(expect "{:a 1, :b 2, :c 3, :d 4, ...}"
+        (zprint-str {:a 1, :b 2, :c 3, :d 4, :e 5, :f 6, :g 7, :h 8, :i 9}
+                    {:max-length 4}))
+
+(expect "{:a 1, :b 2, :c 3, :d 4, :e 5, :f 6, :g 7, :h 8, ...}"
+        (zprint-str {:a 1, :b 2, :c 3, :d 4, :e 5, :f 6, :g 7, :h 8, :i 9}
+                    {:max-length 8}))
+
+(expect "{:a 1, :b 2, :c 3, :d 4, :e 5, :f 6, :g 7, :h 8, :i 9}"
+        (zprint-str {:a 1, :b 2, :c 3, :d 4, :e 5, :f 6, :g 7, :h 8, :i 9}
+                    {:max-length 9}))
+
+;; Set
+
+(expect "#{:a :b :c :d ...}"
+        (zprint-str #{:a :b :c :d :e :f :g :h :i :j :k :l :m :n :o}
+                    {:max-length 4}))
+
+(expect "#{:a :b :c :d :e :f :g :h :i :j :k :l :m :n ...}"
+        (zprint-str #{:a :b :c :d :e :f :g :h :i :j :k :l :m :n :o}
+                    {:max-length 14}))
+
+(expect "#{:a :b :c :d :e :f :g :h :i :j :k :l :m :n :o}"
+        (zprint-str #{:a :b :c :d :e :f :g :h :i :j :k :l :m :n :o}
+                    {:max-length 15}))
+
+;; Vector
+
+(expect "[:a :b :c :d :e ...]"
+        (zprint-str [:a :b :c :d :e :f :g :h :i :j :k] {:max-length 5}))
+
+(expect "[:a :b :c :d :e :f :g :h :i :j ...]"
+        (zprint-str [:a :b :c :d :e :f :g :h :i :j :k] {:max-length 10}))
+
+(expect "[:a :b :c :d :e :f :g :h :i :j :k]"
+        (zprint-str [:a :b :c :d :e :f :g :h :i :j :k] {:max-length 11}))
+
+;; List, multi-level, zipper (i.e. :parse-string? true)
+
+(expect "(a b (c ...) i j ...)"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [5 1 0]}))
+
+(expect "(a b (c ...) i j (k ...))"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [6 1 0]}))
+
+(expect "(a b (c d ...) i j (k l))"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [6 2 0]}))
+
+(expect "(a b (c d ##) i j (k l))"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [6 3 0]}))
+
+(expect "(a b (c d (e ...)) i j (k l))"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [6 3 1 0]}))
+
+(expect "(a b (c d (e f ##)) i j (k l))"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [6 3 3 0]}))
+
+(expect "(a b (c d (e f (g h))) i j (k l))"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [6 3 3]}))
+
+(expect "(a b (c d (e f (g ...))) i j (k l))"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [6 3 3 1 0]}))
+
+(expect "(a b (c d (e f (g h))) i j (k l))"
+        (zprint-str "(a b (c d (e f (g h))) i j (k l))"
+                    {:parse-string? true, :max-length [6 3 3 2 0]}))
+
+;; set, multi-level
+
+(expect "#{#{#{## ...} :c} :a :j ...}"
+        (zprint-str #{#{:c #{:e #{:f :g :h} :i}} :a :j :k :l :m :n :o :p :q :r
+                      :s :t :u :v :w :x :y}
+                    {:max-length [3 2 1 0]}))
+
+(expect "#{#{## :c} :a :j ...}"
+        (zprint-str #{#{:c #{:e #{:f :g :h} :i}} :a :j :k :l :m :n :o :p :q :r
+                      :s :t :u :v :w :x :y}
+                    {:max-length [3 2 0]}))
+
+(expect "#{#{## ...} :a :j ...}"
+        (zprint-str #{#{:c #{:e #{:f :g :h} :i}} :a :j :k :l :m :n :o :p :q :r
+                      :s :t :u :v :w :x :y}
+                    {:max-length [3 1 0]}))
+
+(expect "#{## :a :j ...}"
+        (zprint-str #{#{:c #{:e #{:f :g :h} :i}} :a :j :k :l :m :n :o :p :q :r
+                      :s :t :u :v :w :x :y}
+                    {:max-length [3 0]}))
+
+(expect "#{## ...}"
+        (zprint-str #{#{:c #{:e #{:f :g :h} :i}} :a :j :k :l :m :n :o :p :q :r
+                      :s :t :u :v :w :x :y}
+                    {:max-length [1 0]}))
+
+(expect "##"
+        (zprint-str #{#{:c #{:e #{:f :g :h} :i}} :a :j :k :l :m :n :o :p :q :r
+                      :s :t :u :v :w :x :y}
+                    {:max-length [0]}))
+
+
+;; map, multi-level
+
+
+(expect "{#{#{## ...} :c} :a, :j :k, :l :m, ...}"
+        (zprint-str {#{:c #{:e #{:f :g :h} :i}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [3 2 1 0]}))
+
+(expect "{#{## :c} :a, :j :k, :l :m, ...}"
+        (zprint-str {#{:c #{:e #{:f :g :h} :i}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [3 2 0]}))
+
+(expect "{#{## ...} :a, :j :k, :l :m, ...}"
+        (zprint-str {#{:c #{:e #{:f :g :h} :i}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [3 1 0]}))
+
+(expect "{## :a, :j :k, :l :m, ...}"
+        (zprint-str {#{:c #{:e #{:f :g :h} :i}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [3 0]}))
+
+(expect "{## :a, ...}"
+        (zprint-str {#{:c #{:e #{:f :g :h} :i}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [1 0]}))
+
+(expect "##"
+        (zprint-str {#{:c #{:e #{:f :g :h} :i}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [0]}))
+
+
+(expect
+  "{:j :k,\n :l :m,\n :n :o,\n :p :q,\n :r :s,\n :t :u,\n :v :w,\n :x :y,\n {:c {:e {:f :g, :h :i}, :i :j}} :a}"
+  (zprint-str {{:c {:e {:f :g, :h :i}, :i :j}} :a,
+               :j :k,
+               :l :m,
+               :n :o,
+               :p :q,
+               :r :s,
+               :t :u,
+               :v :w,
+               :x :y}
+              {:max-length [10 3 2]}))
+
+(expect
+  "{:j :k,\n :l :m,\n :n :o,\n :p :q,\n :r :s,\n :t :u,\n :v :w,\n :x :y,\n {:c {:e {:f :g, ...}, :i :j}} :a}"
+  (zprint-str {{:c {:e {:f :g, :h :i}, :i :j}} :a,
+               :j :k,
+               :l :m,
+               :n :o,
+               :p :q,
+               :r :s,
+               :t :u,
+               :v :w,
+               :x :y}
+              {:max-length [10 3 2 1]}))
+
+(expect
+  "{:j :k,\n :l :m,\n :n :o,\n :p :q,\n :r :s,\n :t :u,\n :v :w,\n :x :y,\n {:c {:e {:f :g, ...}, :i :j}} :a}"
+  (zprint-str {{:c {:e {:f :g, :h :i}, :i :j}} :a,
+               :j :k,
+               :l :m,
+               :n :o,
+               :p :q,
+               :r :s,
+               :t :u,
+               :v :w,
+               :x :y}
+              {:max-length [10 3 2 1 0]}))
+
+(expect
+  "{:j :k, :l :m, :n :o, :p :q, :r :s, :t :u, :v :w, :x :y, {:c {:e ##, :i :j}} :a}"
+  (zprint-str {{:c {:e {:f :g, :h :i}, :i :j}} :a,
+               :j :k,
+               :l :m,
+               :n :o,
+               :p :q,
+               :r :s,
+               :t :u,
+               :v :w,
+               :x :y}
+              {:max-length [10 3 2 0]}))
+
+(expect "{:j :k, :l :m, :n :o, :p :q, :r :s, :t :u, :v :w, :x :y, {:c ##} :a}"
+        (zprint-str {{:c {:e {:f :g, :h :i}, :i :j}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [10 3 0]}))
+
+(expect "{:j :k, :l :m, :n :o, :p :q, :r :s, :t :u, :v :w, :x :y, ## :a}"
+        (zprint-str {{:c {:e {:f :g, :h :i}, :i :j}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [10 0]}))
+
+(expect "{:j :k, :l :m, :n :o, :p :q, :r :s, ...}"
+        (zprint-str {{:c {:e {:f :g, :h :i}, :i :j}} :a,
+                     :j :k,
+                     :l :m,
+                     :n :o,
+                     :p :q,
+                     :r :s,
+                     :t :u,
+                     :v :w,
+                     :x :y}
+                    {:max-length [5 0]}))
+
+;; vector, multi-level
+
+(expect "[:a [:b [:c ...] ...] :o ...]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [3 2 1 0]}))
+
+(expect "[:a [:b [:c ...] ...] :o ...]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [3 2 1]}))
+
+(expect "[:a [:b [:c [:d [:e :f :g] :h ...] :j ...] :l ...] :o ...]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [3]}))
+
+(expect "[:a [:b ...] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [4 1 0]}))
+
+(expect "[:a ## :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [4 0]}))
+
+(expect "[:a [:b ## :l ...] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [4 3 0]}))
+
+(expect "[:a [:b ...] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [4 1 3 0]}))
+
+(expect "[:a [:b [:c ## :j :k] :l :m ...] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [4 4 4 0]}))
+
+(expect "[:a [:b [:c ## :j :k] ...] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [4 2 4 0]}))
+
+(expect "[:a [:b [:c [:d ...] :j :k] ...] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-length [4 2 4 1 0]}))
+
+;; record, multi-level
+
+(def rml (make-record :reallylongleft {:r :s, [[:t] :u :v] :x}))
+
+(expect "#zprint.zprint/r {:left :reallylongleft, ...}"
+        (zprint-str rml {:max-length 1}))
+
+(expect
+  "#zprint.zprint/r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}"
+  (zprint-str rml))
+
+(expect
+  "#zprint.zprint/r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
+  (zprint-str rml {:max-length 2}))
+
+(expect "#zprint.zprint/r {:left :reallylongleft, :right {:r :s, ...}}"
+        (zprint-str rml {:max-length [2 1 0]}))
+
+(expect "#zprint.zprint/r {:left :reallylongleft, :right ##}"
+        (zprint-str rml {:max-length [2 0]}))
+
+(expect "#zprint.zprint/r {:left :reallylongleft, :right ##}"
+        (zprint-str rml {:max-length [3 0]}))
+
+;; depth
+
+;; set
+
+(expect "##" (zprint-str #{:a #{:b #{:c #{:d}}}} {:max-depth 0}))
+
+(expect "#{## :a}" (zprint-str #{:a #{:b #{:c #{:d}}}} {:max-depth 1}))
+
+(expect "#{#{## :b} :a}" (zprint-str #{:a #{:b #{:c #{:d}}}} {:max-depth 2}))
+
+(expect "#{#{#{## :c} :b} :a}"
+        (zprint-str #{:a #{:b #{:c #{:d}}}} {:max-depth 3}))
+
+(expect "#{#{#{#{:d} :c} :b} :a}"
+        (zprint-str #{:a #{:b #{:c #{:d}}}} {:max-depth 4}))
+
+(expect "#{#{#{#{:d} :c} :b} :a}"
+        (zprint-str #{:a #{:b #{:c #{:d}}}} {:max-depth 5}))
+
+;; vector
+
+(expect "[:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-depth 5}))
+
+(expect "[:a [:b [:c [:d ## :h :i] :j :k] :l :m :n] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-depth 4}))
+
+(expect "[:a [:b [:c ## :j :k] :l :m :n] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-depth 3}))
+
+(expect "[:a [:b ## :l :m :n] :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-depth 2}))
+
+(expect "[:a ## :o :p]"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-depth 1}))
+
+(expect "##"
+        (zprint-str [:a [:b [:c [:d [:e :f :g] :h :i] :j :k] :l :m :n] :o :p]
+                    {:max-depth 0}))
+
+;; list
+
+(expect "##"
+        (zprint-str '(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)
+                    {:max-depth 0}))
+
+(expect "(:a ## :o :p)"
+        (zprint-str '(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)
+                    {:max-depth 1}))
+
+(expect "(:a (:b ## :l :m :n) :o :p)"
+        (zprint-str '(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)
+                    {:max-depth 2}))
+
+(expect "(:a (:b (:c ## :j :k) :l :m :n) :o :p)"
+        (zprint-str '(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)
+                    {:max-depth 3}))
+
+(expect "(:a (:b (:c (:d ## :h :i) :j :k) :l :m :n) :o :p)"
+        (zprint-str '(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)
+                    {:max-depth 4}))
+
+(expect "(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)"
+        (zprint-str '(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)
+                    {:max-depth 5}))
+
+(expect "(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)"
+        (zprint-str '(:a (:b (:c (:d (:e :f :g) :h :i) :j :k) :l :m :n) :o :p)
+                    {:max-depth 6}))
+
+;; map
+
+(expect "{:a {:b {:c {:d :e}}}}"
+        (zprint-str {:a {:b {:c {:d :e}}}} {:max-depth 5}))
+
+(expect "{:a {:b {:c {:d :e}}}}"
+        (zprint-str {:a {:b {:c {:d :e}}}} {:max-depth 4}))
+
+(expect "{:a {:b {:c ##}}}" (zprint-str {:a {:b {:c {:d :e}}}} {:max-depth 3}))
+
+(expect "{:a {:b ##}}" (zprint-str {:a {:b {:c {:d :e}}}} {:max-depth 2}))
+
+(expect "{:a ##}" (zprint-str {:a {:b {:c {:d :e}}}} {:max-depth 1}))
+
+(expect "##" (zprint-str {:a {:b {:c {:d :e}}}} {:max-depth 0}))
+
+;;
+;; # Bug in ztake-append.
+;;
+
+(expect
+  "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] ...)\n  clojure.lang.Counted\n    (count [_] ...)\n  clojure.lang.IMeta\n    (meta [_] ...))"
+  (zprint-fn-str zprint.zprint-test/->Typetest1 {:max-length [100 2 10 0]}))
+
+(expect "(deftype Typetest1\n  ...)"
+        (zprint-fn-str zprint.zprint-test/->Typetest1 {:max-length 2}))

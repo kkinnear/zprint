@@ -1,0 +1,1 @@
+docker run --rm -it -v `pwd`:/app/ danny02/graalvm bash /app/zprintl.sh $1

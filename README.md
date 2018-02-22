@@ -9,6 +9,7 @@ sections of code and reformat them on demand.
 If you want to use the zprint library to format your Clojure source, 
 you have many options:
 
+  * A super-fast [native-image](doc/graalvm.md) for MacOS or Linux. 
   * Using the released [zprint-filter](doc/filter.md) uberjar, you can 
     pretty-print functions from within many editors
   * Leiningen:  [lein-zprint][leinzprint] to format entire source files
@@ -17,9 +18,8 @@ you have many options:
   * Atom: [zprint-atom][zprintatom] Atom plugin 
   * Use `planck` or `lumo` and configure zprint as a Clojure pretty-print filter. See [lein-zprint][leinzprint] for details.
 
-__If you haven't used zprint before, check out the
-[zprint-filter](doc/filter.md) approach to use zprint directly in your
-editor!__
+__If you haven't used zprint before and are running on MacOS or Linux, 
+check out the [native-image](doc/graalvm.md) approach.__
 
 Zprint includes support for Clojurescript, both browser based and self-hosted.
 
@@ -1422,6 +1422,142 @@ this capability, as I have no idea how interesting it is to people in
 general.  If you are using it and like it, and you have situations where
 it seems to be particularly slow for you, please enter an issue to let
 me know.
+
+### Formatting Large or Deep Collections
+
+Sometimes you end up with a collection which is very large or very
+deep -- or both.  You want to get an overview of it, but don't
+want to output the entire collection because it will take too much
+space or too much time.  At one time, these were experimental
+capabilities, but they are now fully supported.
+
+There are two limits that can be helpful.
+
+#### :max-length <text style="color:#A4A4A4;"><small>1000</small></text>
+
+Will limit the length of a sequence on output -- more than this many
+will yield a `...`.
+
+```clojure
+
+(czprint [1 2 3 4 5] {:max-length 3})
+
+[1 2 3 ...]
+```
+
+That's nice, but sometimes you want to see different amounts of
+a collection at different levels.  Perhaps you want to see all of
+the keys in a map, but not much of the information lower down in
+the values of the map.  
+
+In this situation, the `:max-length` can be a vector, where the
+value at each level is the max-length for that level in the collection.
+The rightmost value in the vector is used for all of the levels below
+the one specified.
+
+So, `{:max-length [3 2 1 0]}` would output 3 things at the top level
+of the collection, 2 for everything at the next level down, one for
+every collection at the next level, and `##` for any collections
+below that.  Since the rightmost value is used for any level beyond
+that explicitly specified, `{:max-length n}` and `{:max-length [n]}` 
+are equivalent.  Also `{:max-depth 3}` and `{:max-length [1000 1000 1000 0]}`
+are also equivalent.
+
+```clojure
+(czprint [:a [:b [:c [:d [:e [:f]]]]]] {:max-length [1000 1000 1000 0]})
+
+[:a [:b [:c ##]]]
+
+
+(czprint [:a [:b [:c [:d [:e [:f]]]]]] {:max-depth 3})
+
+[:a [:b [:c ##]]]
+```
+
+
+Here are some examples with the zprint
+options map (where we aren't going to examine all of the keys, but
+a few at the beginning):
+
+```clojure
+(czprint x {:max-length [10 0]})
+
+{:additional-libraries? true,
+ :agent ##,
+ :array ##,
+ :atom ##,
+ :auto-width? false,
+ :binding ##,
+ :color-map ##,
+ :color? true,
+ :comment ##,
+ :configured? true,
+ ...}
+
+(czprint x {:max-length [10 1 0]})
+
+{:additional-libraries? true,
+ :agent {:object? false},
+ :array {:hex? false, ...},
+ :atom {:object? false},
+ :auto-width? false,
+ :binding {:flow? false, ...},
+ :color-map {:brace :red, ...},
+ :color? true,
+ :comment {:count? false, ...},
+ :configured? true,
+ ...}
+```
+
+If you have a complex structure, a little experimentation with
+`:max-length` and a vector can often allow you to generate a useful
+overview of the structure without much effort. 
+
+While you might not think this would be useful for looking at code,
+for code that has a very regular structure, it can be helpful.  For
+instance, if you want an overview of a `deftype`, you could use
+`{:max-length [100 2 10 0]}`, as below:
+
+```clojure
+(czprint-fn clojure.core.match/->PatternRow {:max-length [100 2 10 0]})
+
+(deftype PatternRow [ps action ...]
+  Object
+    (equals [_ other] ...)
+  IVecMod
+    (drop-nth [_ n] ...)
+    (prepend [_ x] ...)
+    (swap [_ n] ...)
+  clojure.lang.Associative
+    (assoc [this k v] ...)
+  clojure.lang.Indexed
+    (nth [_ i] ...)
+    (nth [_ i x] ...)
+  clojure.lang.ISeq
+    (first [_] ...)
+    (next [_] ...)
+    (more [_] ...)
+    (seq [this] ...)
+    (count [_] ...)
+  clojure.lang.ILookup
+    (valAt [this k] ...)
+    (valAt [this k not-found] ...)
+  clojure.lang.IFn
+    (invoke [_ n] ...)
+  clojure.lang.IPersistentCollection
+    (cons [_ x] ...)
+    (equiv [this other] ...))
+```
+
+#### :max-depth <text style="color:#A4A4A4;"><small>1000</small></text>
+
+Will limit depth of a collection.  
+
+```clojure
+(czprint {:a {:b {:c :d}}} {:max-depth 1})
+
+{:a {:b ##}}
+```
 
 ## Widely Used Configuration Parameters
 
@@ -3421,25 +3557,6 @@ other platforms.  As of 0.3.0, this now requires adding the
 additional library: `[table "0.4.0" :exclusions [[org.clojure/clojure]]]`
 to the dependencies.  
 
-#### :max-length <text style="color:#A4A4A4;"><small>1000</small></text>
-
-Will limit the length of a sequence on output -- more than this many
-will yield a `...`.
-
-```clojure
-(czprint [1 2 3 4 5] {:max-length 3})
-
-[1 2 3 ...]
-```
-#### :max-depth <text style="color:#A4A4A4;"><small>1000</small></text>
-
-Will limit depth of a collection.  
-
-```clojure
-(czprint {:a {:b {:c :d}}} {:max-depth 1})
-
-{:a {:b ##}}
-```
 ______
 ______
 ## Debugging the configuration

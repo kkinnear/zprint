@@ -2,8 +2,7 @@
   (:require ;[clojure.string :as str]
             [zprint.core :refer
              [zprint-str czprint zprint-file-str set-options!]])
-  (:gen-class))
-
+  #?(:clj (:gen-class)))
 
 ;;
 ;; This is the root namespace to run zprint as an uberjar

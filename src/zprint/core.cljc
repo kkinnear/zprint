@@ -308,11 +308,14 @@
   [coll special-option actual-options]
   (if special-option
     (case special-option
-      :explain (fzprint-style (get-explained-options) (get-default-options))
+      :explain (fzprint-style (get-explained-options)
+                              (merge-deep (get-default-options) actual-options))
       :explain-justified (fzprint-style (get-explained-options)
                                         (merge-deep (get-default-options)
+                                                    actual-options
                                                     {:map {:justify? true}}))
-      :support (fzprint-style (get-explained-all-options) (get-default-options))
+      :support (fzprint-style (get-explained-all-options)
+                              (merge-deep (get-default-options) actual-options))
       :help (println help-str)
       (println (str "Unknown keyword option: " special-option)))
     (fzprint-style coll
@@ -793,7 +796,7 @@
 #?(:clj
      (defn get-docstring-spec
        "Given a function name (which, if used directly, needs to be quoted)
-  return a string which is contains the spec information that could go
+  return a string which contains the spec information that could go
   in the doc string."
        [{:keys [width rightcnt], {:keys [indent]} :list, :as options} fn-name]
        (let [{n :ns, nm :name, :as m} (meta (resolve fn-name))

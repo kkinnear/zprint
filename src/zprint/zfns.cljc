@@ -64,3 +64,4 @@
 (def zlift-ns nil)
 (def zinlinecomment? nil)
 (def zfind nil)
+(def ztake-append nil)

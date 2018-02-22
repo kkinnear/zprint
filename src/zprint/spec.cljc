@@ -88,6 +88,9 @@
         :string string?))
 (s/def ::keep-or-drop #{:keep :drop})
 (s/def ::fn-map-value (s/nilable (s/map-of string? ::fn-type)))
+(s/def ::number-or-vector-of-numbers
+  (s/or :length number?
+        :length-by-depth (s/coll-of number? :kind vector?)))
 
 ;;
 ;; # Leaf map keys
@@ -214,10 +217,11 @@
              ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
              ::lift-ns-in-code? ::nl-separator? ::sort-in-code? ::sort?]))
 (s/def ::max-depth number?)
+(s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
 (s/def ::max-hang-dept number?)
 (s/def ::max-hang-span number?)
-(s/def ::max-length number?)
+(s/def ::max-length ::number-or-vector-of-numbers)
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
 (s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
@@ -273,13 +277,13 @@
              ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
              ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
              ::fn-map ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
-             ::max-depth ::max-hang-count ::max-hang-depth ::max-hang-span
-             ::max-length ::object ::old? ::output ::pair ::pair-fn ::parallel?
-             ::parse ::parse-string-all? ::parse-string? ::perf-vs-format
-             ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
-             ::return-cvec? ::set ::spaces? ::spec ::style ::style-map ::tab
-             ::trim-comments? ::tuning :alt/uneval ::user-fn-map ::vector
-             ::version ::width ::zipper?]))
+             ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
+             ::max-hang-span ::max-length ::object ::old? ::output ::pair
+             ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
+             ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
+             ::record ::remove ::return-cvec? ::set ::spaces? ::spec ::style
+             ::style-map ::tab ::trim-comments? ::tuning :alt/uneval
+             ::user-fn-map ::vector ::version ::width ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 
@@ -353,13 +357,6 @@
     "clojure.core/map?" "map"
     "map?" "map"
     "string?" "string"
-    pred))
-
-(defn map-pred-alt
-  "Turn some predicates into something more understandable."
-  [pred]
-  (case pred
-    'zboolean? 'boolean?
     pred))
 
 (defn explain-more

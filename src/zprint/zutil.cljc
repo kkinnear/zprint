@@ -1,11 +1,13 @@
 (ns zprint.zutil
-  (:require clojure.string
-            zprint.zfns
-            [rewrite-clj.parser :as p]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z]
-            #?@(:cljs [[rewrite-clj.zip.base :as zb]
-                       [rewrite-clj.zip.whitespace :as zw] clojure.zip])))
+  (:require
+    clojure.string
+    zprint.zfns
+    [rewrite-clj.parser :as p]
+    [rewrite-clj.node :as n]
+    [rewrite-clj.zip :as z]
+    #?@(:cljs [[rewrite-clj.zip.base :as zb] [rewrite-clj.zip.whitespace :as zw]
+               [rewrite-clj.zip.move :as zm] [rewrite-clj.zip.removez :as zr]
+               [rewrite-clj.zip.editz :as ze] clojure.zip])))
 
 ;;
 ;; # Zipper oriented style printers
@@ -85,6 +87,20 @@
 (def length
   #?(:clj z/length
      :cljs zb/length))
+
+(def rightmost?
+  #?(:clj z/rightmost?
+     :cljs zm/rightmost?))
+
+; conflicts with clojure.core:
+
+(def zremove
+  #?(:clj z/remove
+     :cljs zr/remove))
+
+(def zreplace
+  #?(:clj z/replace
+     :cljs ze/replace))
 
 ;;
 ;; Check to see if we are at the focus by checking the
@@ -286,6 +302,26 @@
   "Return a seq of all of the non-whitespace children of zloc."
   [zloc]
   (zmap identity zloc))
+
+(defn zremove-right
+  "Remove everything to the right of the current zloc. In other words,
+  make the current zloc the rightmost."
+  [zloc]
+  (loop [nloc zloc]
+    (if (rightmost? nloc) nloc (recur (zremove (right* nloc))))))
+
+(defn ztake-append
+  "Considering the current zloc a collection, move down into it and
+  take n non-whitespace elements, dropping the rest.  Then append the
+  given element to the end, coercing it into a node/zloc.  Note, this 
+  is not quite implemented that way, as it uses replace."
+  [n zloc end-struct]
+  (loop [nloc (down* zloc)
+         index 0]
+    (if (>= index n)
+      (up* (zremove-right (zreplace nloc end-struct)))
+      (let [xloc (right* nloc)]
+        (recur xloc (if (whitespace? xloc) index (inc index)))))))
 
 (defn zcount
   "How many non-whitespace children does zloc have?"
@@ -597,5 +633,6 @@
                 zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?
                 zprint.zfns/zlift-ns zlift-ns
                 zprint.zfns/zinlinecomment? zinlinecomment?
-                zprint.zfns/zfind zfind]
+                zprint.zfns/zfind zfind
+                zprint.zfns/ztake-append ztake-append]
     (body-fn)))

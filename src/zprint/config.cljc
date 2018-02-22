@@ -20,7 +20,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.7"))
+(defn about "Return version of this program." [] (str "zprint-0.4.8"))
 
 ;;
 ;; # External Configuration
@@ -333,6 +333,8 @@
    "loop" :binding,
    "map" :arg1,
    "mapcat" :arg1,
+   "match" :arg1-pair-body,
+   "matchm" :arg1-pair-body,
    "mapv" :arg1,
    "not=" :hang,
    "ns" :arg1-body,
@@ -461,10 +463,16 @@
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
    :max-depth 1000,
+   :max-depth-string "##",
    :parallel? false,
    :additional-libraries? true,
    :max-hang-count 4,
-   :max-hang-depth 3,
+   ; :max-hang-depth used to be 3, but while it helped a bit, there was
+   ; at least one bug filed where this caused a problem.  Since we now
+   ; support :parallel? true at the repl automatically, we will disable
+   ; this performance speedup as less necessary and with unpleasanet
+   ; unintended consequences.
+   :max-hang-depth 300,
    :max-hang-span 4,
    :max-length 1000,
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
@@ -523,7 +531,6 @@
       :community {:binding {:indent 0},
                   :fn-map {"apply" :none,
                            "assoc" :none,
-                           "cond->" :none-body,
                            "filter" :none,
                            "filterv" :none,
                            "map" :none,
@@ -601,7 +608,7 @@
 
 ;; Returns nil for all of the colors
 (def no-color-map
-  {:brace :red,
+  {:brace :none,
    :bracket :none,
    :comment :none,
    :deref :none,
@@ -1145,7 +1152,7 @@
   (if new-map
     (let [errors (validate-options new-map doc-string)
           ; remove set elements, and then remove the :remove key too
-          [existing-map new-ap new-doc-map]
+          [existing-map new-map new-doc-map]
             (perform-remove doc-string doc-map existing-map new-map)
           ; do style early, so other things in new-map can override it
           [updated-map new-doc-map style-errors]
@@ -1311,8 +1318,7 @@
      "   (czprint-fn-str <fn-name>)"
      ""
      " The first time you call a zprint printing function, it configures"
-     " itself from $HOME/.zprintrc, as well as environment variables and"
-     " system properties."
+     " itself from $HOME/.zprintrc."
      ""
      " Explain current configuration, shows source of non-default values:"
      ""

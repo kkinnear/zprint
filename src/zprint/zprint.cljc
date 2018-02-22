@@ -13,7 +13,7 @@
       zwhitespaceorcomment? zmap-all zpromise? zfuture? zdelay? zkeyword?
       zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot zsymbol?
       znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zinlinecomment?
-      zfind zmap-w-nl]]
+      zfind zmap-w-nl ztake-append]]
     [zprint.ansi :refer [color-str]]
     [zprint.config :refer [validate-options merge-deep]]
     [zprint.zutil :refer [add-spec-to-docstring]]
@@ -311,6 +311,24 @@
   [options s]
   (let [[left right] (clojure.string/split s #"^:")]
     (when right ((:fn-map options) right))))
+
+(defn get-max-length
+  "Given the options map, return the max length.  This might be
+  a constant number, but it might be based on the depth as well.
+  Returns nil of there is no max-length set."
+  [{:as options, :keys [max-length depth]}]
+  (when max-length
+    (if (vector? max-length)
+      (nth max-length (min (dec depth) (dec (count max-length))))
+      max-length)))
+
+(defn no-max-length
+  "Given an options map, return another options map with no
+  :max-length key.  This is to that you can call a routine that
+  normally deals with :max-length and get it to do the normal
+  thing."
+  [options]
+  (assoc options :max-length 10000))
 
 ;;
 ;; # Work with style-vecs and analyze results
@@ -1206,38 +1224,44 @@
   (one per line).  If there are any comments or unevaled sexpressions,
   don't sort the keys, as we might lose track of where the comments
   or unevaled s-expressions go."
-  [{:as options, :keys [max-length]} coll]
+  [options coll]
   (when-not (empty? coll)
-    (loop [remaining coll
-           no-sort? nil
-           index 0
-           out (transient [])]
-      (if-not remaining
-        [no-sort? (persistent! out)]
-        (let [[new-remaining pair-vec new-no-sort?]
-                (cond
-                  (pair-element? (first remaining)) [(next remaining)
-                                                     [(first remaining)] true]
-                  (or (pair-element? (second remaining))
-                      (middle-element? options (second remaining)))
-                    (let [[comment-seq rest-seq]
-                            ;(split-with pair-element? (next remaining))
-                            (split-with #(or (pair-element? %)
-                                             (middle-element? options %))
-                                        (next remaining))]
-                      [(next rest-seq)
-                       (into []
-                             (concat [(first remaining)]
-                                     comment-seq
-                                     [(first rest-seq)])) true])
-                  (= (count remaining) 1) [(next remaining) [(first remaining)]
-                                           nil]
-                  :else [(next (next remaining))
-                         [(first remaining) (second remaining)] nil])]
-          (recur (if (not= index max-length) new-remaining (list (zdotdotdot)))
-                 (or no-sort? new-no-sort?)
-                 (inc index)
-                 (conj! out pair-vec)))))))
+    (let [max-length (get-max-length options)]
+      (loop [remaining coll
+             no-sort? nil
+             index 0
+             out (transient [])]
+        (if-not remaining
+          [no-sort? (persistent! out)]
+          (let [[new-remaining pair-vec new-no-sort?]
+                  (cond
+                    (pair-element? (first remaining)) [(next remaining)
+                                                       [(first remaining)] true]
+                    (or (pair-element? (second remaining))
+                        (middle-element? options (second remaining)))
+                      (let [[comment-seq rest-seq]
+                              ;(split-with pair-element? (next remaining))
+                              (split-with #(or (pair-element? %)
+                                               (middle-element? options %))
+                                          (next remaining))]
+                        [(next rest-seq)
+                         (into []
+                               (concat [(first remaining)]
+                                       comment-seq
+                                       [(first rest-seq)])) true])
+                    (= (count remaining) 1) [(next remaining)
+                                             [(first remaining)] nil]
+                    :else [(next (next remaining))
+                           [(first remaining) (second remaining)] nil])]
+            #_(println "partition-all-2-nc: count new-remaining:"
+                       (count new-remaining))
+            (recur (cond (< (inc index) max-length) new-remaining
+                         (and (= (inc index) max-length) new-remaining)
+                           (list (zdotdotdot))
+                         :else nil)
+                   (or no-sort? new-no-sort?)
+                   (inc index)
+                   (conj! out pair-vec))))))))
 
 ;;
 ;; ## Multi-up printing pre-processing
@@ -1542,22 +1566,26 @@
   These would need to be concatenated together to become a style-vec.
   ind is either a constant or a seq of indents, one for each element in
   zloc-seq."
-  [{:keys [max-length], :as options} ind zloc-seq]
-  (let [len (count zloc-seq)
+  [options ind zloc-seq]
+  (let [max-length (get-max-length options)
+        len (count zloc-seq)
         zloc-seq (if (> len max-length)
                    (concat (take max-length zloc-seq) (list (zdotdotdot)))
-                   zloc-seq)]
-    (dbg options "fzprint-seq: (count zloc-seq):" len)
-    (when-not (empty? zloc-seq)
-      (let [left (zpmap options
-                        #(fzprint* (not-rightmost options) %1 %2)
-                        (if (coll? ind) ind (repeat ind))
-                        (butlast zloc-seq))
-            right [(fzprint* options
-                             (if (coll? ind) (last ind) ind)
-                             (last zloc-seq))]]
-        (cond (= len 1) right
-              :else (concat-no-nil left right))))))
+                   zloc-seq)
+        len (count zloc-seq)]
+    (dbg options "fzprint-seq: (count zloc-seq):" len "max-length:" max-length)
+    (cond
+      (empty? zloc-seq) nil
+      (zero? max-length) [[["#?#" (zcolor-map options :keyword) :element]]]
+      :else (let [left (zpmap options
+                              #(fzprint* (not-rightmost options) %1 %2)
+                              (if (coll? ind) ind (repeat ind))
+                              (butlast zloc-seq))
+                  right [(fzprint* options
+                                   (if (coll? ind) (last ind) ind)
+                                   (last zloc-seq))]]
+              (cond (= len 1) right
+                    :else (concat-no-nil left right))))))
 
 (defn fzprint-flow-seq
   "Take a seq of a zloc, created by (zmap identity zloc) or
@@ -2471,7 +2499,10 @@
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl],
     {:keys [indent-arg indent]} caller,
     :as options} ind zloc]
-  (let [len (zcount zloc)
+  (let [max-length (get-max-length options)
+        len (zcount zloc)
+        zloc (if (> len max-length) (ztake-append max-length zloc '...) zloc)
+        len (zcount zloc)
         l-str-len (count l-str)
         arg-1-coll? (not (or (zkeyword? (zfirst zloc))
                              (zsymbol? (zfirst zloc))))
@@ -2848,9 +2879,8 @@
   the making without spacing, but with extra [] around the elements,
   wrap the elements to the right margin."
   [caller
-   {:keys [width rightcnt max-length],
-    {:keys [wrap-after-multi?]} caller,
-    :as options} ind coll-print]
+   {:keys [width rightcnt], {:keys [wrap-after-multi?]} caller, :as options} ind
+   coll-print]
   #_(prn "wz:" coll-print)
   (let [last-index (dec (count coll-print))
         rightcnt (fix-rightcnt rightcnt)]
@@ -3110,7 +3140,8 @@
         zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
                (map-ignore caller options zloc)
                zloc)
-        [no-sort? pair-seq] (partition-all-2-nc options (zseqnws zloc))
+        [no-sort? pair-seq] (partition-all-2-nc (no-max-length options)
+                                                (zseqnws zloc))
         [ns lift-pair-seq] (when (and lift-ns?
                                       (if in-code? lift-ns-in-code? true))
                              (zlift-ns pair-seq))
@@ -3118,6 +3149,13 @@
         pair-seq (or lift-pair-seq pair-seq)
         pair-seq
           (if no-sort? pair-seq (order-out caller options first pair-seq))
+        ; This is where you might put max-length
+        max-length (get-max-length options)
+        pair-count (count pair-seq)
+        pair-seq (if (> pair-count max-length)
+                   (concat (take max-length pair-seq)
+                           (list (list (zdotdotdot))))
+                   pair-seq)
         indent (count l-str)
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options (+ indent ind) zloc r-str)]
@@ -3374,6 +3412,11 @@
                                      (ns-name zloc))
                    r-str-vec)))
 
+(defn dec-depth
+  "Given an options map, decrement the :depth value and return the result."
+  [options]
+  (when options (assoc options :depth (dec (or (:depth options) 1)))))
+
 (defn fzprint-record
   [{{:keys [record-type? to-string?]} :record, :as options} ind zloc]
   (if to-string?
@@ -3400,7 +3443,7 @@
         (concat-no-nil l-str-vec
                        [[arg-1 (zcolor-map options :none) :element]]
                        (fzprint-hang-one :record
-                                         options
+                                         (dec-depth options)
                                          ;(rightmost options)
                                          arg-1-indent
                                          (+ indent ind)
@@ -3483,7 +3526,9 @@
                     :else "#")
         r-str ""
         ; Error to debug zpst
-        #_(when (:dbg-bug? options) (+ "a" "b"))
+        _ (when (:dbg-bug? options)
+            #?(:clj (+ "a" "b")
+               :cljs nil))
         indent (count l-str)
         ; we may want to color this based on something other than
         ; its actual character string
@@ -3588,16 +3633,23 @@
         _ (dbg options
                "fzprint* **** rightcnt:"
                rightcnt
+               "depth:"
+               depth
                (pr-str (zstring zloc)))
         dbg-data @fzprint-dbg
         dbg-focus? (and dbg? (= dbg-data (second (zfind-path zloc))))
         options (if dbg-focus? (assoc options :dbg :on) options)
         _ (if dbg-focus? (println "fzprint dbg-data:" dbg-data))]
     #_(def zlocx zloc)
-    (cond (and (> depth max-depth) (zcoll? zloc))
+    ; We don't check depth if it is not a collection.  We might have
+    ; just not incremented depth if it wasn't a collection, but this
+    ; may be equivalent.
+    (cond (and (zcoll? zloc)
+               (or (>= depth max-depth) (zero? (get-max-length options))))
             (if (= zloc (zdotdotdot))
               [["..." (zcolor-map options :none) :element]]
-              [["##" (zcolor-map options :keyword) :element]])
+              [[(:max-depth-string options) (zcolor-map options :keyword)
+                :element]])
           (and in-hang?
                (not in-code?)
                ;(> (/ indent width) 0.3)
@@ -3857,6 +3909,7 @@
                               :map-depth 0)
                             indent
                             zloc)]
+    #_(def fsv style-vec)
     style-vec))
 
 ;    (if (= (:ztype options) :sexpr)

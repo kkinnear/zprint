@@ -1,6 +1,47 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.8 - 2018-5-13
+
+### Changed
+
+ * Both `:max-length` and `:max-depth` are now offical parts of zprint.
+   They are not experimental anymore.
+
+ * Added `{:max-length [n m]}` capability -- different length boundaries
+   for different levels.  Sometimes you want to see all of the top
+   level keys in a map, and just a little of the complex values.
+
+ * Added ability to set the character for max-depth: `:max-depth-string`
+   is default to "##", but could be anything (e.g., "#").
+
+ * Added `match` and `matchm` to the `:fn-map` as `:arg1-pair-body`.  These 
+   are from `core.match`.  Issue #50.
+
+### Fixed
+
+ * Removed (:gen-class) from the .cljs version.  Issue #51.
+
+ * `{:max-hang-depth n}` works along with `{:max-hang-count m}` to decide
+   to even try to do a hang.  Having these be 3 and 4, respectively,
+   makes some maps format faster, but also messes up perfectly reasonable
+   maps to the point that they are really just wrong.  So, set
+   `:max-hang-depth` to 300 as a default to disable this optimization.
+   Issue #48.
+
+ * {:max-length n} didn't work for lists, and had a number of other
+   problems that are now fixed.
+
+ * {:max-depth n} also had issues.  In particular, 0 and 1 were
+   the same.  Now 0 will print non-collections, but all collections
+   are ##.
+
+ * Changed `:community` style to leave `cond->` as `:arg1-pair-body`,
+   instead of moving it to `:none-body`.  Issue #49.
+
+ * (zprint nil :explain) would output the options map in color, even
+   though it was zprint and not czprint.  Now it doesn't.
+
 ## 0.4.7 - 2018-2-19
 
 ### Changed
@@ -18,7 +59,7 @@ All notable changes to this project will be documented in this file.
 
  * Added two new styles: `:no-hang` and `:all-hang`, to allow configuring
    zprint without hangs or with hangs.  While I think that code formatted
-   without hangs is looks rather unlovely, some folks find the way it looks
+   without hangs looks rather unlovely, some folks find the way it looks
    to be a worthwhile tradeoff for speedier performance without hangs,
    particularly in Clojurescript.  So, now, you can configure that easily
    one way or the other.

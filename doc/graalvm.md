@@ -13,7 +13,7 @@ __55ms to startup the full application!__
 These numbers are approximate, and are from a mid-2012 MacBook Air.
 Your numbers will almost certainly be better:
 
-| Version of zprint-filter-0.4.8 | Startup (format "hello world") | Format 129 loc | Format 3978 loc |
+| Version of zprint-filter-0.4.9 | Startup (format "hello world") | Format 129 loc | Format 3978 loc |
 |---------|--------------------------------|----------------|-----------------|
 | graalvm native-image | 0.055s | 0.330s  | 3.425s|
 | JVM 1.8 appcds | 1.111s | 2s | 6.981s |
@@ -26,7 +26,7 @@ news is that we are back to a different version for each platform.
 
 ### Linux
 
-You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.4.8`
+You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.4.9`
 (or the appropriate version) in the latest zprint release.
 
 ### MacOS
@@ -42,7 +42,7 @@ steps:
   then I could download graalvm.  Kind of a pain, but then -- what
   is 55ms startup worth?  
   2. Unpack it into a directory, remember the path and version of graalvm for later.  
-  3. Download the latest `zprint-filter-0.4.8` and the `build.zprintm` script from the
+  3. Download the latest `zprint-filter-0.4.9` and the `build.zprintm` script from the
   releases area of zprint on GitHub.  
   4. Run the `build.zprintm` script:
 
@@ -57,7 +57,7 @@ path would have this at the end.
 An example:
 
 ```
-build.zprintm /Users/kkinnear/graalvm/graalvm-1.0.0-rc1 zprint-filter-0.4.8 zprintm-0.4.8
+build.zprintm /Users/kkinnear/graalvm/graalvm-1.0.0-rc1 zprint-filter-0.4.9 zprintm-0.4.9
 ```
 
 This will run for a good long time (several minutes).   It will
@@ -81,25 +81,25 @@ Build on Server(pid: 90495, port: 26681)*
 The first few lines should come out pretty quickly.  It takes
 minutes to run after that.
 
-When it completes, you will have `zprintm-0.4.8` (or whatever you
+When it completes, you will have `zprintm-0.4.9` (or whatever you
 chose to call it), and this is a native image which will run on
 MacOS __without__ any JVM involved.
 
 ## Usage
 
-The `zprintl-0.4.8` or `zprintm-0.4.8` It is a regular "unix-like" filter which will
+The `zprintl-0.4.9` or `zprintm-0.4.9` It is a regular "unix-like" filter which will
 run on Linux or MacOS respectively -- __without any JVM__ involed!.  You
 use it like:
 
 ```
-./zprintm-0.4.8 < core.clj > core.new.clj
+./zprintm-0.4.9 < core.clj > core.new.clj
 ```
 It reads the source code and spits out formatted source code.  It will accept an options
 map as on the command line.  Don't forget to put "'" around the options map, or the results
 won't be what you expect.  An example:
 
 ```
-./zprintm-0.4.8 '{:style :community}' < core.clj > core.new.clj
+./zprintm-0.4.9 '{:style :community}' < core.clj > core.new.clj
 ```
 If you put it on your path, you can just run it from anywhere.  I use it in my editor,
 to format a function while I'm editing it.  For most functions, it runs fast enough I don't even notice it.

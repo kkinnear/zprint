@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.9 - 2018-5-14
+
+### Changed
+
+### Fixed
+
+ * Back off to Clojure 1.8, since 1.9 and lein zprint don't agree with
+   each other.
+
 ## 0.4.8 - 2018-5-13
 
 ### Changed

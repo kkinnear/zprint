@@ -19,6 +19,12 @@ Your numbers will almost certainly be better:
 | JVM 1.8 appcds | 1.111s | 2s | 6.981s |
 | node | 0.260s | 2s | 18s |
 
+The Linux version (running on docker on the same Mac) takes something 
+like 250ms to startup, 722ms for 129 loc, and 4.7s for 3978 loc, which 
+is still as fast for startup as node, and about three times faster
+to process than node and moderately faster than the JVM. 
+
+
 ## Installation
 
 The good news about the graalvm zprint-filter -- it is fast!  The bad

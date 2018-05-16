@@ -14,17 +14,17 @@
                                   [better-cond "1.0.1"]
                                   [org.clojure/core.match "0.3.0-alpha5"]
                                   [clojure-future-spec "1.9.0-alpha17"]]},
-             :uberjar {;:aot [zprint.core zprint.main],
+             :uberjar {:aot [zprint.core zprint.main],
                        ; For 1.9.0-alpha17, use this for the :aot value
-                       :aot [zprint.core zprint.main clojure.core.specs.alpha],
+                       ;:aot [zprint.core zprint.main clojure.core.specs.alpha],
                        :main zprint.main,
-                       :dependencies [#_[clojure-future-spec "1.9.0-alpha17"]],
+                       :dependencies [[clojure-future-spec "1.9.0-alpha17"]],
                        :omit-source true,
                        :uberjar-name "zprint-filter-%s"}}
   ; Clojure 1.8 you can exclude all sources in the uberjar
-  ; :uberjar-exclusions [#"\.(clj|java|cljs|txt)"]
+  :uberjar-exclusions [#"\.(clj|java|cljs|txt)"]
   ; Clojure 1.9 requires the .clj files in the uberjar
-  :uberjar-exclusions [#"\.(clj\.|java|cljs|txt)"]
+  ; :uberjar-exclusions [#"\.(clj\.|java|cljs|txt)"]
   :jar-exclusions [#"\.(clj$|clj\.|java|cljs|txt)"]
   :zprint {:old? false}
   :jvm-opts ^:replace ["-server" "-Xms2048m" "-Xmx2048m" "-Xss500m"]

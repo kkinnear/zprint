@@ -1,4 +1,4 @@
-(ns zprint.main
+(ns ^:no-doc zprint.main
   (:require ;[clojure.string :as str]
             [zprint.core :refer
              [zprint-str czprint zprint-file-str set-options!]])

@@ -1,4 +1,4 @@
-(ns zprint.smacros)
+(ns ^:no-doc zprint.smacros)
 
 ;;
 ;; # Macros to help with using Clojure Spec

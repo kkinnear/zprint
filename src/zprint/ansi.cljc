@@ -1,4 +1,4 @@
-(ns zprint.ansi
+(ns ^:no-doc zprint.ansi
   (:require clojure.string))
 
 ;;

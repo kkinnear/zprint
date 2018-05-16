@@ -1,4 +1,4 @@
-(ns zprint.sutil
+(ns ^:no-doc zprint.sutil
   (:require clojure.string
             zprint.zfns
             #?@(:cljs [[cljs.reader :refer [read-string]]])))

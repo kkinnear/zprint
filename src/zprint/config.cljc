@@ -1,4 +1,4 @@
-(ns zprint.config
+(ns ^:no-doc zprint.config
   #?(:clj [:refer-clojure :exclude [read-string]])
   (:require clojure.string
             [zprint.sutil]
@@ -20,7 +20,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.9"))
+(defn about "Return version of this program." [] (str "zprint-0.4.10"))
 
 ;;
 ;; # External Configuration

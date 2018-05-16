@@ -1,4 +1,4 @@
-(ns zprint.macros
+(ns ^:no-doc zprint.macros
   (:require [clojure.string :as s]))
 
 (defmacro dbg-pr

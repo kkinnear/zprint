@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.10 - 2018-5-15
+
+### Changed
+
+ * Put `^:no-doc` in various places to prepare for codox.  Put codox
+   configuration in project.clj.
+
+### Fixed
+
+ * Fixed some instructions for graalvm -- set script executable, added
+   #!/bin/bash to build.zprintm.
+
 ## 0.4.9 - 2018-5-14
 
 ### Changed

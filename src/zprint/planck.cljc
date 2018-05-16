@@ -1,4 +1,4 @@
-(ns zprint.planck
+(ns ^:no-doc zprint.planck
   (:require [planck.core :refer [slurp spit]]
             [cljs.core :refer [*command-line-args*]]
             [planck.shell :refer [sh]]

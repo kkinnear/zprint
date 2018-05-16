@@ -112,7 +112,7 @@
 ;; # Zipper determination and handling
 ;;
 
-(defn rewrite-clj-zipper?
+(defn ^:no-doc rewrite-clj-zipper?
   "Is this a rewrite-clj zipper node? A surprisingly hard thing to 
   determine, actually."
   [z]
@@ -123,12 +123,12 @@
     ;  (= "rewrite_clj.node" (subs (pr-str (type (first z))) 0 16)))
     z))
 
-(defn zipper?
+(defn ^:no-doc zipper?
   "Is this a zipper?"
   [z]
   (when (coll? z) (or (rewrite-clj-zipper? z) (:tag (first z)))))
 
-(defn get-zipper
+(defn ^:no-doc get-zipper
   "If it is a zipper or a string, return a zipper, else return nil."
   [options x]
   (if (string? x)
@@ -144,7 +144,7 @@
 ;;
 ;!zprint {:format :next :vector {:wrap? false}}
 
-(defn fzprint-style
+(defn ^:no-doc fzprint-style
   "Do a basic zprint and output the style vector and the options used for
   further processing: [<style-vec> options]"
   [coll options]
@@ -204,7 +204,7 @@
 
 (declare get-docstring-spec)
 
-(defn process-rest-options
+(defn ^:no-doc process-rest-options
   "Take some internal-options and the & rest of a zprint/czprint
   call and figure out the options and width and all of that, but
   stop short of integrating these values into the existing options
@@ -254,7 +254,7 @@
             #_(def nopt new-options)]
         [special-option new-options])))
 
-(defn determine-options
+(defn ^:no-doc determine-options
   "Take some internal-options and the & rest of a zprint/czprint
   call and figure out the options and width and all of that. Note
   that internal-options MUST NOT be a full options map.  It needs
@@ -298,7 +298,7 @@
 ;; # Fundemental interface for fzprint-style, does configuration
 ;;
 
-(defn zprint*
+(defn ^:no-doc zprint*
   "Basic setup for fzprint call, used by all top level fns. Third
   argument can be either a number or a map, and if the third is a
   number, the fourth (if any) must be a map.  The internal-options
@@ -330,7 +330,7 @@
 
 (declare process-multiple-forms)
 
-(defn parse-string-all-options
+(defn ^:no-doc parse-string-all-options
   "Handle options for :parse-string-all?, by removing
   :parse-string-all? and changing the default for 
   :parse {:interpose } to be true instead of nil."
@@ -357,12 +357,12 @@
 ;; That said, they both go through the process-multiple-forms
 ;; function, so that we now have a nice way to test that support.
 
-(defn range-vec
+(defn ^:no-doc range-vec
   "Select the elements from start to end from a vector."
   [v [start end]]
   (take (- end start) (drop start v)))
 
-(defn czprint-str-internal
+(defn ^:no-doc czprint-str-internal
   "Take a zipper or string and pretty print with fzprint, 
   output a str.  Key :color? is true by default, and should
   be set to false in internal-options to make this non-colored.
@@ -418,7 +418,7 @@
             #_(def cs color-style)]
         (if (:return-cvec? options) cvec color-style)))))
 
-(defn get-fn-source
+(defn ^:no-doc get-fn-source
   "Call source-fn, and if it isn't there throw an exception."
   [fn-name]
   (or (try #?(:clj (source-fn fn-name))
@@ -453,7 +453,7 @@
 
 (defn czprint-str
   "Take a structure or string and pretty print it, and output 
-  a str that has ansi color in it.  (czprint nil :help) for 
+  a str that has ansi color in it.  (czprint-str nil :help) for 
   more information."
   [coll & rest]
   (apply czprint-str-internal {} coll rest))
@@ -516,7 +516,7 @@
 ;; ## Parse a comment to see if it has an options map in it
 ;;
 
-(defn get-options-from-comment
+(defn ^:no-doc get-options-from-comment
   "s is string containing a comment.  See if it starts out ;!zprint, 
   and if it does, attempt to parse it as an options map.  
   Return [options error-str] with only one of the two populated 
@@ -537,7 +537,7 @@
 ;; ## Process the sequences of forms in a file
 ;;
 
-(defn spaces?
+(defn ^:no-doc spaces?
   "If a string is all spaces and has at least one space, 
   returns the count of the spaces, otherwise nil."
   [s]
@@ -546,7 +546,7 @@
 
 ;!zprint {:format :next :vector {:wrap? false}}
 
-(defn process-form
+(defn ^:no-doc process-form
   "Take one form from a file and process it.  The primary goal is
   of course to produce a string to put into the output file.  In
   addition, see if that string starts with ;!zprint and if it does,
@@ -676,7 +676,7 @@
 ;;                                          specified <other-options>
 ;;
 
-(defn process-multiple-forms
+(defn ^:no-doc process-multiple-forms
   "Take a sequence of forms (which are zippers of the elements of
   a file or a string containing multiple forms somewhere), and not 
   only format them for output but also handle comments containing 
@@ -716,14 +716,14 @@
   while completely ignoring it within all top level forms (typically
   defs and function definitions).  It allows comments at the top
   level, as well as in function definitions, and also supports
-  ;!zprint directives at the top level.  zprint-specifier is the
-  thing that will be used in messages if errors are detected in
-  ;!zprint directives, so it should identify the file (or other
-  element) to allow the user to find the problem. new-options are
-  optional options to be used when doing the formatting (and will
-  be overriddden any options in ;!zprint directives).  doc-str is
-  an optional string to be used when setting the new-options into
-  the configuration."
+  ;!zprint directives at the top level. See File Comment API for
+  information on ;!zprint directives. zprint-specifier is the thing
+  that will be used in messages if errors are detected in ;!zprint
+  directives, so it should identify the file (or other element) to
+  allow the user to find the problem. new-options are optional
+  options to be used when doing the formatting (and will be overriddden
+  by any options in ;!zprint directives).  doc-str is an optional
+  string to be used when setting the new-options into the configuration."
   ([file-str zprint-specifier new-options doc-str]
    (let [original-options (get-options)
          original-doc-map (get-explained-all-options)]
@@ -758,11 +758,13 @@
        "Take an input file infile and an output file outfile, and format
   every form in the input file with zprint and write it to the
   output file. infile and outfile are input to slurp and spit,
-  repspectively. file-name is a string, and is usually the name of
-  the input file but could be anything to help identify the input
-  file when errors in ;!zprint directives are reported.  options
-  are any additional options to be used for this operation, and
-  will be overridden by any options in ;!zprint directives."
+  repspectively. ;!zprint directives are recognized in the file.
+  See the File Comment API for information on ;!zprint directives.
+  file-name is a string, and is usually the name of the input file
+  but could be anything to help identify the input file when errors
+  in ;!zprint directives are reported.  options are any additional
+  options to be used for this operation, and will be overridden by
+  any options in ;!zprint directives."
        ([infile file-name outfile options]
         (let [file-str (slurp infile)
               outputstr (zprint-file-str file-str
@@ -777,7 +779,7 @@
 ;; # Process specs to go into a doc-string
 ;;
 
-(defn format-spec
+(defn ^:no-doc format-spec
   "Take a spec and a key, and format the output as a string. Width is
   because the width isn't really (:width options)."
   [options describe-fn fn-spec indent key]
@@ -794,7 +796,7 @@
       (str (blanks indent) key-str spec-shift-right))))
 
 #?(:clj
-     (defn get-docstring-spec
+     (defn ^:no-doc get-docstring-spec
        "Given a function name (which, if used directly, needs to be quoted)
   return a string which contains the spec information that could go
   in the doc string."

@@ -1,4 +1,4 @@
-(ns zprint.focus
+(ns ^:no-doc zprint.focus
   (:require [clojure.string :as s]
             [zprint.ansi :refer [color-str]]))
 

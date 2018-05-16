@@ -1,4 +1,4 @@
-(ns zprint.zutil
+(ns ^:no-doc zprint.zutil
   (:require
     clojure.string
     zprint.zfns

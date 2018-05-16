@@ -1,4 +1,4 @@
-(ns zprint.zprint
+(ns ^:no-doc zprint.zprint
   #?@(:cljs [[:require-macros
               [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])
   (:require

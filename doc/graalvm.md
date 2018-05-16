@@ -32,7 +32,7 @@ news is that we are back to a different version for each platform.
 
 ### Linux
 
-You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.4.9`
+You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.4.10`
 (or the appropriate version) in the latest zprint release.
 
 ### MacOS
@@ -48,9 +48,10 @@ steps:
   then I could download graalvm.  Kind of a pain, but then -- what
   is 55ms startup worth?  
   2. Unpack it into a directory, remember the path and version of graalvm for later.  
-  3. Download the latest `zprint-filter-0.4.9` and the `build.zprintm` script from the
+  3. Download the latest `zprint-filter-0.4.10` and the `build.zprintm` script from the
   releases area of zprint on GitHub.  
-  4. Run the `build.zprintm` script:
+  4. Make the `build.zprintm` script executable: `chmod +x build.zprintm`
+  5. Run the `build.zprintm` script:
 
 ```
 ./build.zprintm  path-to-graalvm path-to-zprint-filter name-of-output 
@@ -63,7 +64,7 @@ path would have this at the end.
 An example:
 
 ```
-build.zprintm /Users/kkinnear/graalvm/graalvm-1.0.0-rc1 zprint-filter-0.4.9 zprintm-0.4.9
+build.zprintm /Users/kkinnear/graalvm/graalvm-1.0.0-rc1 zprint-filter-0.4.10 zprintm-0.4.10
 ```
 
 This will run for a good long time (several minutes).   It will
@@ -87,25 +88,25 @@ Build on Server(pid: 90495, port: 26681)*
 The first few lines should come out pretty quickly.  It takes
 minutes to run after that.
 
-When it completes, you will have `zprintm-0.4.9` (or whatever you
+When it completes, you will have `zprintm-0.4.10` (or whatever you
 chose to call it), and this is a native image which will run on
 MacOS __without__ any JVM involved.
 
 ## Usage
 
-The `zprintl-0.4.9` or `zprintm-0.4.9` It is a regular "unix-like" filter which will
+The `zprintl-0.4.10` or `zprintm-0.4.10` It is a regular "unix-like" filter which will
 run on Linux or MacOS respectively -- __without any JVM__ involed!.  You
 use it like:
 
 ```
-./zprintm-0.4.9 < core.clj > core.new.clj
+./zprintm-0.4.10 < core.clj > core.new.clj
 ```
 It reads the source code and spits out formatted source code.  It will accept an options
 map as on the command line.  Don't forget to put "'" around the options map, or the results
 won't be what you expect.  An example:
 
 ```
-./zprintm-0.4.9 '{:style :community}' < core.clj > core.new.clj
+./zprintm-0.4.10 '{:style :community}' < core.clj > core.new.clj
 ```
 If you put it on your path, you can just run it from anywhere.  I use it in my editor,
 to format a function while I'm editing it.  For most functions, it runs fast enough I don't even notice it.

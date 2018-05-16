@@ -1,4 +1,4 @@
-(ns zprint.zfns)
+(ns ^:no-doc zprint.zfns)
 
 ;;
 ;; # Functions for traversal of either zippers or s-expressions

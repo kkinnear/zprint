@@ -1,4 +1,4 @@
-(ns zprint.lumo
+(ns ^:no-doc zprint.lumo
   (:require [cljs.core :refer [*command-line-args*]]
             [cljs.nodejs :as nodejs]
             [clojure.string :as str]

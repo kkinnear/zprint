@@ -1,3 +1,4 @@
+#!/bin/bash
 export PATH=$PATH:$1/Contents/Home/bin
 export JAVA_HOME=$1/Contents/Home
 native-image -jar $2 -H:Name="$3" -H:+ReportUnsupportedElementsAtRuntime

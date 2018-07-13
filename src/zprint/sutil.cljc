@@ -300,7 +300,6 @@
                 zprint.zfns/zmeta? (constantly false)
                 zprint.zfns/zuneval? (constantly false)
                 zprint.zfns/ztag (constantly nil)
-                zprint.zfns/zparseuneval (constantly nil)
                 zprint.zfns/zlast slast
                 zprint.zfns/zarray? sarray?
                 zprint.zfns/zatom? satom?

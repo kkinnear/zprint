@@ -135,18 +135,6 @@
 
 (defn ztag "Return the tag for this zloc" [zloc] (tag zloc))
 
-(defn zparseuneval
-  "Turn an uneval zloc with #_ starting it into a zipper."
-  [zloc]
-  (edn* (p/parse-string
-          (clojure.string/triml
-            (clojure.string/replace-first (string zloc) #"#_" "")))))
-
-(defn zcreateuneval
-  "Turn a zloc into an #_ uneval zipper."
-  [zloc]
-  (edn* (p/parse-string (clojure.string/triml (str "#_" (string zloc))))))
-
 (defn zcomment?
   "Returns true if this is a comment."
   [zloc]
@@ -606,7 +594,6 @@
                 zprint.zfns/zuneval? zuneval?
                 zprint.zfns/zmeta? zmeta?
                 zprint.zfns/ztag ztag
-                zprint.zfns/zparseuneval zparseuneval
                 zprint.zfns/zlast zlast
                 zprint.zfns/zarray? (constantly false)
                 zprint.zfns/zatom? (constantly false)

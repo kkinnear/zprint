@@ -8,7 +8,7 @@
      [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zmap-right
       zfocus-style zfirst zfirst-no-comment zsecond zthird zfourth znthnext
       zcount zmap zanonfn? zfn-obj? zfocus zfind-path zwhitespace? zlist?
-      zvector? zmap? zset? zcoll? zuneval? zmeta? ztag zparseuneval zlast
+      zvector? zmap? zset? zcoll? zuneval? zmeta? ztag zlast
       zarray? zatom? zderef zrecord? zns? zobj-to-vec zexpandarray znewline?
       zwhitespaceorcomment? zmap-all zpromise? zfuture? zdelay? zkeyword?
       zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot zsymbol?
@@ -3453,27 +3453,6 @@
                                          (into {} zloc))
                        r-str-vec)))))
 
-(defn fzprint-uneval
-  "Trim the #_ off the front of the uneval, and try to print it."
-  [options ind zloc]
-  (let [l-str "#_"
-        r-str ""
-        indent (count l-str)
-        l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
-        uloc (zparseuneval zloc)
-        #_(def zs (zstring zloc))
-        #_(def un uloc)]
-    (dbg-pr options
-            "fzprint-uneval: zloc:" (zstring zloc)
-            "uloc:" (zstring uloc))
-    (concat-no-nil l-str-vec
-                   (fzprint* (assoc options
-                               :color-map (:color-map (:uneval options)))
-                             (+ indent ind)
-                             uloc)
-                   r-str-vec)))
-
 (defn fzprint-meta
   "Print the two items in a meta node.  Different because it doesn't print
   a single collection, so it doesn't do any indent or rightmost.  It also
@@ -3498,7 +3477,6 @@
         ;[(inc ind) ind]
         (zmap identity zloc))
       r-str-vec)))
-
 
 (defn fzprint-reader-macro
   "Print a reader-macro, often a reader-conditional. Adapted for differences
@@ -3559,28 +3537,6 @@
                           (let [zloc-seq (zmap identity zloc)]
                             (if namespaced? (next zloc-seq) zloc-seq))))
       r-str-vec)))
-
-(defn fzprint-prefix*
-  "Print the single item after a variety of prefix characters."
-  [options ind zloc l-str]
-  (let [r-str ""
-        indent (count l-str)
-        ; Since this is a single item, no point in figure an indent
-        ; based on the l-str length."
-        l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        ; Either these both have to be :element, or :left and :right
-        r-str-vec (rstr-vec options (+ indent ind) zloc r-str :right)
-        floc (zfirst zloc)
-        #_(def zqs (zstring zloc))
-        #_(def qun floc)]
-    (dbg-pr options
-            "fzprint-prefix*: zloc:" (zstring zloc)
-            "floc:" (zstring floc))
-    (concat-no-nil l-str-vec
-                   ; no rightmost, as we don't know if this is a collection
-                   (fzprint* options (+ indent ind) floc)
-                   r-str-vec)))
-
 
 (def prefix-tags
   {:quote "'",
@@ -3678,11 +3634,13 @@
                              (zexpandarray zloc)))
           (zatom? zloc) (fzprint-atom options indent zloc)
           (zmeta? zloc) (fzprint-meta options indent zloc)
-          (prefix-tags (ztag zloc)) (fzprint-prefix*
-                                      (prefix-options options (ztag zloc))
-                                      indent
-                                      zloc
-                                      (prefix-tags (ztag zloc)))
+          (prefix-tags (ztag zloc)) (fzprint-vec* :none
+                                                  (prefix-tags (ztag zloc))
+                                                  ""
+                                                  (prefix-options options
+                                                                  (ztag zloc))
+                                                  indent
+                                                  zloc)
           (zns? zloc) (fzprint-ns options indent zloc)
           (or (zpromise? zloc) (zfuture? zloc) (zdelay? zloc) (zagent? zloc))
             (fzprint-future-promise-delay-agent options indent zloc)

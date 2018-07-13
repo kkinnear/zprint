@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+ * Fixed problem with `#_#_` syntax, where it was missing the second element.
+   Issue #58.
+
  * Fixed some instructions for graalvm -- set script executable, added
    #!/bin/bash to build.zprintm.
 

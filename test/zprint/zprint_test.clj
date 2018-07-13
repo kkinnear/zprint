@@ -2700,3 +2700,86 @@
 
 (expect "(deftype Typetest1\n  ...)"
         (zprint-fn-str zprint.zprint-test/->Typetest1 {:max-length 2}))
+
+;;
+;; # Bug in printing multiple uneval things -- Issues #58
+;;
+;; Using this crazy syntax:  (a b c (d #_#_(e f g) h))
+;;
+;; Instead of: (a b c (d #_(e f g) #_h))
+;;
+;; Who knew?
+;;
+
+(expect "(a b c (d #_#_(e f g) h))"
+  (zprint-str "(a b c (d #_#_(e f g) h))" {:parse-string? true}))
+
+;;
+;; # prefix-tags tests.  
+;;
+;; We already have a lot of these, but might as well gather them all
+;; together here.
+;;
+;; These show that the basics works
+
+(expect "'(a b c)" (zprint-str "'(a b c)" {:parse-string? true}))
+(expect "`(a b c)" (zprint-str "`(a b c)" {:parse-string? true}))
+(expect "~(a b c)" (zprint-str "~(a b c)" {:parse-string? true}))
+(expect "~@(a b c)" (zprint-str "~@(a b c)" {:parse-string? true}))
+(expect "@(a b c)" (zprint-str "@(a b c)" {:parse-string? true}))
+(expect "#'thisisatest" (zprint-str "#'thisisatest" {:parse-string? true}))
+(expect "#_(a b c)" (zprint-str "#_(a b c)" {:parse-string? true}))
+(expect "#_#_(a b c) d" (zprint-str "#_#_(a b c) d" {:parse-string? true}))
+
+;;
+;; These try for the indents
+;;
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test\n      '[aaaaaaa bbbbbbbb\n        cccccccccc])"
+  (zprint-str
+    "(this is a test this is only a test '[aaaaaaa bbbbbbbb cccccccccc])"
+    30
+    {:parse-string? true}))
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test\n      `[aaaaaaa bbbbbbbb\n        cccccccccc])"
+  (zprint-str
+    "(this is a test this is only a test `[aaaaaaa bbbbbbbb cccccccccc])"
+    30
+    {:parse-string? true}))
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test\n      ~[aaaaaaa bbbbbbbb\n        cccccccccc])"
+  (zprint-str
+    "(this is a test this is only a test ~[aaaaaaa bbbbbbbb cccccccccc])"
+    30
+    {:parse-string? true}))
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test\n      ~@[aaaaaaa bbbbbbbb\n         cccccccccc])"
+  (zprint-str
+    "(this is a test this is only a test ~@[aaaaaaa bbbbbbbb cccccccccc])"
+    30
+    {:parse-string? true}))
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test\n      #'thisisalsoatest)"
+  (zprint-str "(this is a test this is only a test #'thisisalsoatest)"
+              30
+              {:parse-string? true}))
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test\n      #_[aaaaaaa bbbbbbbb\n         cccccccccc])"
+  (zprint-str
+    "(this is a test this is only a test #_[aaaaaaa bbbbbbbb cccccccccc])"
+    30
+    {:parse-string? true}))
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test\n      #_#_[aaaaaaa bbbbbbbb\n           cccccccccc]\n        [ddddddddd eeeeeeeeee\n         fffffffffff])"
+  (zprint-str
+    "(this is a test this is only a test #_#_[aaaaaaa bbbbbbbb cccccccccc][ddddddddd eeeeeeeeee fffffffffff])"
+    30
+    {:parse-string? true}))
+

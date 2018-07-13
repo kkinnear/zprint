@@ -28,6 +28,7 @@
   :jar-exclusions [#"\.(clj$|clj\.|java|cljs|txt)"]
   :zprint {:old? false}
   :jvm-opts ^:replace ["-server" "-Xms2048m" "-Xmx2048m" "-Xss500m"]
+  :codox {:namespaces [zprint.core] :doc-files ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"] :metadata {:doc/format :markdown}}
   :dependencies
     [[org.clojure/clojure "1.9.0"]
      #_[org.clojure/clojure "1.8.0"]

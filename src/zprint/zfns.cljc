@@ -36,7 +36,6 @@
 (def zuneval? nil)
 (def zmeta? nil)
 (def ztag nil)
-(def zparseuneval nil)
 (def zlast nil)
 (def zarray? nil)
 (def zatom? nil)

@@ -37,7 +37,20 @@
         fmt-str (try (zprint-file-str in-str "<stdin>")
                      (catch Exception e
                        (str "Failed to zprint: " e "\n" in-str)))]
-    (spit *out* fmt-str)
+    ;
+    ; We used to do this: (spit *out* fmt-str) and it worked fine
+    ; in the uberjar, presumably because the JVM eats any errors on
+    ; close when it is exiting.  But when using clj, apparently it
+    ; will close stdout, and if there is an error, it won't eat it
+    ; but will let it bubble up to the top level.
+    ;
+    ; Now, we write and flush explicitly, sidestepping that particular
+    ; problem. In part because there are plenty of folks that say that
+    ; closing stdout is a bad idea.
+    ;
+    (.write *out* fmt-str)
+    (.flush *out*)
+    ;
     ; Since we did :parallel? we need to shut down the pmap threadpool
     ; so the process will end!
     (shutdown-agents)))

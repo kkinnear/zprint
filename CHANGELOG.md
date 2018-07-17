@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.10 - 2018-5-15
+## 0.4.10 - 2018-7-18
 
 ### Changed
 
@@ -9,6 +9,15 @@ All notable changes to this project will be documented in this file.
    configuration in project.clj.
 
 ### Fixed
+
+ * Don't close stdout when zprint.main/-main exits, flush instead.
+   Issue #57.
+
+ * Fixed appcds checking for java version, now it doesn't.
+   Issue #54.
+
+ * Fixed extra spaces between newlines when using `(:style :map-nl}`.
+   Issue #59.
 
  * Fixed problem with `#_#_` syntax, where it was missing the second element.
    Issue #58.

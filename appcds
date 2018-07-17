@@ -66,27 +66,31 @@ if [[ ! -e "$filter_path" ]]
 	exit 1
 fi
 
-java_version=$(java -version 2>&1 | grep "java" | grep -o -E "([0-9]+\.[0-9])+")
-
-java_update=$(java -version 2>&1 | grep "java" | grep -o -E "(\_[0-9]+)" | grep -o -E "[0-9]+")
-
-echo "Your Java version is: $java_version"
-echo "Your Java update is: $java_update"
-
-if [[ $java_version < "1.8" ]]
-then
-	echo "Java 1.8 update 40 or greater is required"
-	exit 1
-fi
-
-if [[ $java_version == "1.8" && $java_update -gt 39 ]]
-	then
-	echo "Java 1.8 update 40 or greater detected, proceeding..."
-else 
-	echo "Java 1.8 update 40 or greater is required"
-	exit 1
-fi
-
+#
+# We used to check for the java version, but the simple minded Java
+# version check code below fails on some newer versions, and also
+# on graalvm, so we don't do it anymore.
+#
+# java_version=$(java -version 2>&1 | grep "java" | grep -o -E "([0-9]+\.[0-9])+")
+# 
+# java_update=$(java -version 2>&1 | grep "java" | grep -o -E "(\_[0-9]+)" | grep -o -E "[0-9]+")
+# 
+# echo "Your Java version is: $java_version"
+# echo "Your Java update is: $java_update"
+# 
+# if [[ $java_version < "1.8" ]]
+# then
+# 	echo "Java 1.8 update 40 or greater is required"
+# 	exit 1
+# fi
+# 
+# if [[ $java_version == "1.8" && $java_update -gt 39 ]]
+# 	then
+# 	echo "Java 1.8 update 40 or greater detected, proceeding..."
+# else 
+# 	echo "Java 1.8 update 40 or greater is required"
+# 	exit 1
+# fi
 
 echo ""
 

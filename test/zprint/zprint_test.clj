@@ -1020,7 +1020,7 @@
 ;
 
 (expect
-  "{:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,\n                    :sjlkfjdlf :sdlkfjdsl,\n                    :slkfjdlskf :slfjdsfkldsljfk},\n :djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n \n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
+  "{:adsfjdslfdfjdlsk {:jlsfjdlslfdk :jdslfdjlsdfk,\n                    :sjlkfjdlf :sdlkfjdsl,\n                    :slkfjdlskf :slfjdsfkldsljfk},\n :djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n\n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
   (zprint-str my
               {:map {:hang? true,
                      :force-nl? false,
@@ -1060,7 +1060,7 @@
                      :nl-separator? false}}))
 
 (expect
-  "{:djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n \n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
+  "{:djlsfdjfkld\n {:jlsdfjsdlk :kjsldkfjdslk, :jsldfjdlsd :ksdfjldsjkf, :jslfjdsfkl :jslkdfjsld},\n\n :jsdlfjskdlfjldsk :jlksdfdlkfsdj,\n :lsafjsdlfj :ljsdfjsdlk}"
   (zprint-str mx
               {:map {:hang? true,
                      :force-nl? false,
@@ -1069,7 +1069,7 @@
                      :nl-separator? true}}))
 
 (expect
-  "{:djlsfdjfkld\n {:jlsdfjsdlk\n  :kjsldkfjdslk,\n  \n  :jsldfjdlsd\n  :ksdfjldsjkf,\n  \n  :jslfjdsfkl\n  :jslkdfjsld},\n \n :jsdlfjskdlfjldsk\n :jlksdfdlkfsdj,\n \n :lsafjsdlfj\n :ljsdfjsdlk}"
+  "{:djlsfdjfkld\n {:jlsdfjsdlk\n  :kjsldkfjdslk,\n\n  :jsldfjdlsd\n  :ksdfjldsjkf,\n\n  :jslfjdsfkl\n  :jslkdfjsld},\n\n :jsdlfjskdlfjldsk\n :jlksdfdlkfsdj,\n\n :lsafjsdlfj\n :ljsdfjsdlk}"
   (zprint-str mx
               {:map {:hang? true,
                      :force-nl? false,
@@ -1217,7 +1217,7 @@
         (zprint-str {:abc :def, :ghi :ijk}
                     {:map {:flow? true, :nl-separator? false}}))
 
-(expect "{:abc\n   :def,\n \n :ghi\n   :ijk}"
+(expect "{:abc\n   :def,\n\n :ghi\n   :ijk}"
         (zprint-str {:abc :def, :ghi :ijk}
                     {:map {:flow? true, :nl-separator? true}}))
 

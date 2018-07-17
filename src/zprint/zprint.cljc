@@ -3207,8 +3207,10 @@
                                  :none :whitespace]
                                 [(str "\n" (blanks (inc ind))) :none :indent]]
                                [["," ;(str "," (blanks (inc ind)))
-                                 :none :whitespace]
-                                [(str "\n" (blanks (inc ind))) :none :indent]
+                                 :none :whitespace] 
+				; Fix issue #59 -- don't put
+                                ; blanks to indent before the next \n
+                                ["\n" :none :indent]
                                 [(str "\n" (blanks (inc ind))) :none :indent]]
                                [[(str "\n" (blanks (inc ind))) :none :indent]]
                                [[(str "\n" (blanks (inc ind))) :none :indent]

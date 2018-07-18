@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
  * Put `^:no-doc` in various places to prepare for codox.  Put codox
    configuration in project.clj.
 
+ * Added capability to have a per-project `.zprintrc` file.  If your
+   `$HOME/.zprintrc` file has `{:cwd-zprintrc? true}` in its options map,
+   then zprint will also look for a `.zprintrc` file in the current working
+   directory.
+
 ### Fixed
 
  * Don't close stdout when zprint.main/-main exits, flush instead.

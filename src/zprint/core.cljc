@@ -102,8 +102,8 @@
   ([new-options] (do (config-set-options! new-options) nil)))
 
 (defn configure-all!
-  "Do external configuration if it has not already been done, 
-  replacing any internal configuration.  Returns nil if successful, 
+  "Do external configuration regardless of whether or not it already
+  been done, replacing any existing configuration.  Returns nil if successful,
   a vector of errors if not."
   []
   (config-configure-all!))

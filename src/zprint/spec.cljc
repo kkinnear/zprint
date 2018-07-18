@@ -181,6 +181,7 @@
 (s/def :alt/comment (only-keys :opt-un [::count? ::wrap? ::inline?]))
 (s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
+(s/def ::cwd-zprintrc? ::boolean)
 (s/def ::dbg? ::boolean)
 (s/def ::dbg-print? ::boolean)
 (s/def ::dbg-ge zany?)
@@ -274,6 +275,7 @@
   (only-keys
     :opt-un [::additional-libraries? ::agent ::array ::atom ::auto-width?
              ::binding ::color? ::color-map :alt/comment ::configured? ::dbg?
+	     ::cwd-zprintrc?
              ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
              ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
              ::fn-map ::fn-name ::fn-obj ::format ::future ::indent ::list ::map

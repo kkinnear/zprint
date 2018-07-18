@@ -467,6 +467,9 @@ It will examine the following information in order to configure
 itself:
 
 * The file `$HOME/.zprintrc` for an options map in EDN format
+* The file `.zprintrc` in the current working directory for an options 
+  map in EDN format if the file `$HOME/.zprintrc` 
+  has `{:cwd-zprintrc? true}` in its options map.
 * __DEPRECATED:__ Environment variables for individual option map values
 * __DEPRECATED:__ Java properties for individual option map values
 
@@ -486,16 +489,22 @@ to `zprint` or `czprint`
 
 ### .zprintrc
 
-The `.zprintrc` file is simply a sparse options map in EDN format (see below).
+The `.zprintrc` file contain a sparse options map in EDN format (see below).
 That is to say, you only specify the elements that you wish to alter in
-the `.zprintrc` file.  Thus, to change the indent for a map to be 0, you
+a `.zprintrc` file.  Thus, to change the indent for a map to be 0, you
 would have a `.zprintrc` file as follows:
 
 ```clojure
 {:map {:indent 0}}
 ```
 
-Note that this map is only read and converted when zprint initially
+There are two possible `.zprintrc` files:
+
+  * `$HOME/.zprintrc` which is always read
+  * `.zprintrc` in the current working directory, which is only read
+     if `$HOME/.zprintrc` has `{:cwd-zprintrc? true}` in its options map
+
+Note that these files are only read and converted when zprint initially
 configures itself, which is at the first use of a zprint or czprint
 function.  You can invoke `configure-all!` at any later time which
 will cause all of the external forms of configuration (e.g. .zprintrc,

@@ -401,6 +401,7 @@
                :user-fn :black},
    :comment {:count? false, :wrap? true, :inline? true},
    :configured? false,
+   :cwd-zprintrc? false,
    :dbg-ge nil,
    :dbg-print? nil,
    :dbg? nil,
@@ -1053,7 +1054,7 @@
 ;;
 
 (defn get-config-from-file
-  "If there is a :config key in the opts, read in a map from that file."
+  "Read in an options map from a file."
   ([filename optional?]
    #?(:clj (when filename
              (try (let [lines (file-line-seq-file filename)
@@ -1071,7 +1072,7 @@
 
 
 (defn get-config-from-map
-  "If there is a :config-map key in the opts, read in a map from that string."
+  "Read in an options map from a string."
   [map-string]
   (when map-string
     (try (let [opts-map (read-string map-string)] [opts-map nil])
@@ -1199,6 +1200,18 @@
                                               default-map
                                               opts-rcfile)
         ;
+        ; .zprintrc in current working directory if enabled by
+        ; {:cwd-zprintrc? true}
+        ;
+        cwd-filename (when (:cwd-zprintrc? updated-map) zprintrc)
+        [cwd-rcfile cwd-errors-rcfile cwd-filename]
+          (when cwd-filename (get-config-from-file cwd-filename :optional))
+        [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
+          (config-and-validate (str "Current working dir file: " cwd-filename)
+                               new-doc-map
+                               updated-map
+                               cwd-rcfile)
+        ;
         ; environment variables -- requires zprint on front
         ;
         read-system-env-fn #?(:clj (resolve 'cprop.source/read-system-env)
@@ -1210,8 +1223,8 @@
         new-env-map (map-leaves strtf->boolean new-env-map)
         [updated-map new-doc-map env-errors] (config-and-validate
                                                (str "Environment variable")
-                                               new-doc-map
-                                               updated-map
+                                               cwd-new-doc-map
+                                               cwd-updated-map
                                                new-env-map)
         ;
         ; System properties -- requires zprint on front
@@ -1267,6 +1280,8 @@
                        (filter identity
                          (list errors-rcfile
                                rc-errors
+                               cwd-errors-rcfile
+                               cwd-rc-errors
                                env-errors
                                prop-errors
                                errors-configfile

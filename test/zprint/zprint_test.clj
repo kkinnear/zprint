@@ -2783,3 +2783,31 @@
     30
     {:parse-string? true}))
 
+;
+; When the fn-type (fn-style) is not a keyword, like :arg1, but a vector
+; like [:arg1 {:vector {:wrap? false}}], does it actually do anything?  
+;
+; Configuration of this in tested in config_test.clj, but this is to test
+; the functionality.
+;
+
+(def dp "(defproject name version :test :this :stuff [:aaaaa :bbbbbbb  
+:ccccccccc :ddddddd :eeeeeee ])")
+
+; Does defproject inhibit the wrapping of elements of a vector (which it is
+; configured to do)?
+
+(expect
+  "(defproject name version\n  :test :this\n  :stuff [:aaaaa\n          :bbbbbbb\n          :ccccccccc\n          :ddddddd\n          :eeeeeee])"
+  (redef-state [zprint.config] (zprint-str dp 50 {:parse-string? true})))
+
+; If we remove that configuration, will it stop inhibiting the wrapping of vector
+; elements?
+
+(expect
+  "(defproject name version\n  :test :this\n  :stuff [:aaaaa :bbbbbbb :ccccccccc :ddddddd\n          :eeeeeee])"
+  (redef-state
+    [zprint.config]
+    (zprint-str dp 50 {:parse-string? true :fn-map {"defproject" :arg2-pair}})))
+
+

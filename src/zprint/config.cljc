@@ -304,7 +304,7 @@
    "defmulti" :arg1-body,
    "defn" :arg1-body,
    "defn-" :arg1-body,
-   "defproject" :arg2-pair,
+   "defproject" [:arg2-pair {:vector {:wrap? false}}]
    "defprotocol" :arg1-force-nl,
    "defrecord" :arg2-extend,
    "deftest" :arg1-body,
@@ -343,6 +343,8 @@
    "reduce" :arg1,
    "reify" :extend,
    "remove" :arg1,
+   "s/def" [:arg1-body {:list {:constant-pair-min 2}}]
+   "s/fdef" [:arg1-body {:list {:constant-pair-min 2}}]
    "s/and" :gt2-force-nl,
    "s/or" :gt2-force-nl,
    "some->" :force-nl-body,
@@ -543,6 +545,8 @@
                   :map {:indent 0},
                   :pair {:indent 0}},
       :extend-nl {:extend {:flow? true, :indent 0, :nl-separator? true}},
+      :how-to-ns {:fn-map {"ns" [:arg1-body
+                                 {:list {:wrap? false, :indent-arg 1}}]}},
       :justified {:binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
@@ -963,21 +967,64 @@
 
 (declare validate-style-map)
 
+(defn separate-fn-map-options
+  "Take an options map, and return a vector containing an options map 
+  with all of the option-maps removed from the fn-map, and a seq of 
+  pairs of function names and the option-maps associated with them."
+  [options]
+  (let [fn-map (:fn-map options)
+        fns-w-options (filter #(vector? (second %)) fn-map)]
+    #_(println "fns-w-options:" fns-w-options "\n")
+    (if (empty? fns-w-options)
+      [options nil]
+      (let [new-fn-map (apply assoc
+                         fn-map
+                         (mapcat #(vector (first %) (first (second %)))
+                           fns-w-options))
+            fn-option-pairs (map #(vector (first %) (second (second %)))
+                              fns-w-options)]
+	[(assoc options :fn-map new-fn-map) fn-option-pairs]))))
+
+(declare validate-options) 
+
+(defn validate-fn-option-pairs
+  "Given a seq of fn-option pairs, validate the options maps in the
+  pairs.  Returns nil for success and an error string with any errors."
+  [fn-option-pairs]
+  (when (not (empty? fn-option-pairs))
+    (let [error-seq
+            (mapv
+              #(validate-options
+                 (second %)
+                 (str
+                   ":fn-map, in the options map assocated with the function: "
+                   (first %)))
+              fn-option-pairs)
+          error-seq (remove nil? error-seq)
+          error-string (apply str (interpose ", " error-seq))]
+      (if (empty? error-string) nil error-string))))
+
 (defn validate-options
   "Validate an options map, source-str is a descriptive phrase 
   which will be included in the errors (if any). Returns nil 
   for success, a string with error(s) if not."
   ([options source-str]
-   #_(println "validate-options:" options)
-   (when options
-     (empty-to-nil
-       (apply str
-         (interpose ", "
-           (remove #(or (nil? %) (empty? %))
-             (conj []
-                   (validate-basic (dissoc options :style-map) source-str)
-                   (when (:style-map options)
-                     (validate-style-map options)))))))))
+   (let [[options fn-option-pairs] (separate-fn-map-options options)]
+     #_(println "validate-options:" options)
+     (when options
+       (empty-to-nil
+         (apply str
+           (interpose ", "
+             (remove #(or (nil? %) (empty? %))
+               (conj []
+                     (validate-basic (dissoc options :style-map) source-str)
+                     ; Check before you call validate-fn-option-pairs or
+                     ; validate-style-map, because they call validate-options
+                     ; too!
+                     (when fn-option-pairs
+                       (validate-fn-option-pairs fn-option-pairs))
+                     (when (:style-map options)
+                       (validate-style-map options))))))))))
   ([options] (validate-options options nil)))
 
 ;;

@@ -1209,6 +1209,56 @@ map is shown below:
 Note that the function names are strings.  You can add any function
 you wish to the :fn-map, and it will be interpreted as described above.
 
+#### Altering the formatting inside of certain functions
+
+You can associate an options map with a function classification, and
+that options map will be used when formatting inside of that function.
+This association is made by using a vector for the function classification,
+with the classification first and the options map second.  For example:
+
+```clojure
+:fn-map {"!=" :hang,
+          "->" :noarg1-body,
+          "->>" :force-nl-body,
+          "=" :hang,
+          "and" :hang,
+          "apply" :arg1,
+          "assoc" :arg1-pair,
+          "binding" :binding,
+          "case" :arg1-pair,
+          "catch" :none,
+          "cond" :pair,
+	  ...
+	  "defproject" [:arg2-pair {:vector {:wrap? false}}]
+	  "defprotocol" :arg1-force-nl
+	  ...}
+```
+
+This will cause vectors inside of `defproject` to not wrap the elements
+in the vector, instead of this (which is what you would get with
+just `:arg2-pair`):
+
+```clojure
+(defproject name version
+  :test :this
+  :stuff [:aaaaa :bbbbbbb :ccccccccc :ddddddd
+          :eeeeeee])
+```
+
+you will get this by default:
+
+```clojure
+(defproject name version
+  :test :this
+  :stuff [:aaaaa
+          :bbbbbbb
+          :ccccccccc
+          :ddddddd
+          :eeeeeee])
+```
+
+### Configuring the `:fn-map`
+
 Often the :fn-map is configured by changing the `.zprintrc` file so 
 that functions are formattted the way you prefer.  You can change the
 default formatting of functions as well as configure formatting for
@@ -3204,6 +3254,11 @@ between each group.  For example
   (meta [_] _meta))
 
 ```
+#### :how-to-ns
+
+This will format `ns` declarations as in Stewart Sierra's "How to ns".
+Specifically, it will indent the list by 1 instead of 2, and not wrap
+lists.
 
 #### :map-nl, :pair-nl, :binding-nl
 

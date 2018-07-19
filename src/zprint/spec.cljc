@@ -56,7 +56,7 @@
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
     :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair
     :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
-    :flow-body :force-nl-body :force-nl :pair-fn :arg2-mixin})
+    :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin})
 (s/def ::format-value #{:on :off :next :skip})
 (s/def ::nilable-number (s/nilable number?))
 (s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
@@ -145,7 +145,7 @@
 (s/def ::paths ::path-seq)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::additional-libraries? ::boolean)
-(s/def ::option-fn-first fn?)
+(s/def ::option-fn-first (s/nilable fn?))
 (s/def ::record-type? ::boolean)
 (s/def ::respect-nl? ::boolean)
 (s/def ::size number?)

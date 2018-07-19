@@ -452,7 +452,10 @@
                             "\n z-coll?" (z-coll? zloc)
                             "z/tag:" (z/tag zloc))
                  (let [sexpr (sexpr zloc)]
-                   (or (string? sexpr) (number? sexpr)))))))))
+                   (or (string? sexpr)
+                       (number? sexpr)
+                       (= "true" (str sexpr))
+                       (= "false" (str sexpr))))))))))
 
 (defn zinlinecomment?
   "If this is an inline comment, returns the amount of space that

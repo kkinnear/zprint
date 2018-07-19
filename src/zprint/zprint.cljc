@@ -2513,6 +2513,10 @@
         fn-style (if (and (not fn-style) fn-str)
                    (fn-map (last (clojure.string/split fn-str #"/")))
                    fn-style)
+	; Do we have a [fn-style options] vector?
+	options (if (vector? fn-style) (merge-deep options (second fn-style))
+	                                options)
+	fn-style (if (vector? fn-style) (first fn-style) fn-style)
         ; set indent based on fn-style
         indent (if (body-set fn-style) indent (or indent-arg indent))
         one-line-ok? (allow-one-line? options len fn-style)

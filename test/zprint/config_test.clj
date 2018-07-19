@@ -232,3 +232,33 @@
         (redef-state [zprint.config]
                      (set-options! {:fn-force-nl #{:binding}})
                      (get-explained-all-options)))
+;
+; Tests for argument types that include options maps 
+; in :fn-map --> [<arg-type> <options-map>]
+;
+
+; Does defproject have an options map, and is it correct?
+
+(expect (more-of options
+          true (vector? ((:fn-map options) "defproject"))
+	  {:vector {:wrap? false}} (second ((:fn-map options) "defproject")))
+        (redef-state [zprint.config]
+		     (get-options)))
+
+; Can we set an options map on let?
+
+(expect (more-of options
+          true (vector? ((:fn-map options) "let"))
+	  {:width 99} (second ((:fn-map options) "let")))
+        (redef-state [zprint.config]
+	             (set-options! {:fn-map {"let" [:binding {:width 99}]}})
+		     (get-options)))
+
+; Will we get an exception when setting an invalid options map?
+
+(expect Exception
+        (redef-state [zprint.config]
+	             (set-options! {:fn-map {"let" [:binding {:width "a"}]}})
+		     (get-options)))
+
+

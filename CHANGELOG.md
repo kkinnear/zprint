@@ -13,6 +13,15 @@ All notable changes to this project will be documented in this file.
    then zprint will also look for a `.zprintrc` file in the current working
    directory.
 
+ * Added capability to have an options map associated with a function
+   classification.  Support for Issue #46, as well as changes to the
+   classification of `defproject`, `s/def`, and `s/fdef`.  The changes
+   to `s/def` and `s/fdef` now let specs format correctly by default,
+   and the `:spec` style is no longer necessary.
+
+ * Added new style `:how-to-ns`, to print `ns` declarations as in
+   Stewart Sierra's "How to ns".  Issue #46.
+
 ### Fixed
 
  * Don't close stdout when zprint.main/-main exits, flush instead.

@@ -223,7 +223,11 @@
 (defn sconstant?
   "Is this a constant?"
   [x]
-  (or (keyword? x) (string? x) (number? x)))
+  (or (keyword? x)
+      (string? x)
+      (number? x)
+      (= "true" (str x))
+      (= "false" (str x))))
 
 (defn slift-ns
   "Perform a lift-ns on a pair-seq that is returned from

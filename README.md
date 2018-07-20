@@ -3256,9 +3256,12 @@ between each group.  For example
 ```
 #### :how-to-ns
 
-This will format `ns` declarations as in Stewart Sierra's "How to ns".
-Specifically, it will indent the list by 1 instead of 2, and not wrap
-lists.
+This will format `ns` declarations regarding newlines and indentation
+as in Stewart Sierra's "How to ns".  Specifically, it will indent the 
+list by 1 instead of 2, and not wrap lists.  It will not reorganize
+the `ns` declaration or change lists to vectors or otherwise change
+the order or syntax of what you have entered -- that's still your 
+responsibility. 
 
 #### :map-nl, :pair-nl, :binding-nl
 

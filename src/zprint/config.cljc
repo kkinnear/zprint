@@ -304,7 +304,7 @@
    "defmulti" :arg1-body,
    "defn" :arg1-body,
    "defn-" :arg1-body,
-   "defproject" [:arg2-pair {:vector {:wrap? false}}]
+   "defproject" [:arg2-pair {:vector {:wrap? false}}],
    "defprotocol" :arg1-force-nl,
    "defrecord" :arg2-extend,
    "deftest" :arg1-body,
@@ -343,8 +343,8 @@
    "reduce" :arg1,
    "reify" :extend,
    "remove" :arg1,
-   "s/def" [:arg1-body {:list {:constant-pair-min 2}}]
-   "s/fdef" [:arg1-body {:list {:constant-pair-min 2}}]
+   "s/def" [:arg1-body {:list {:constant-pair-min 2}}],
+   "s/fdef" [:arg1-body {:list {:constant-pair-min 2}}],
    "s/and" :gt2-force-nl,
    "s/or" :gt2-force-nl,
    "some->" :force-nl-body,
@@ -986,9 +986,9 @@
                            fns-w-options))
             fn-option-pairs (map #(vector (first %) (second (second %)))
                               fns-w-options)]
-	[(assoc options :fn-map new-fn-map) fn-option-pairs]))))
+        [(assoc options :fn-map new-fn-map) fn-option-pairs]))))
 
-(declare validate-options) 
+(declare validate-options)
 
 (defn validate-fn-option-pairs
   "Given a seq of fn-option pairs, validate the options maps in the

@@ -8,8 +8,8 @@
      [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zmap-right
       zfocus-style zfirst zfirst-no-comment zsecond zthird zfourth znthnext
       zcount zmap zanonfn? zfn-obj? zfocus zfind-path zwhitespace? zlist?
-      zvector? zmap? zset? zcoll? zuneval? zmeta? ztag zlast
-      zarray? zatom? zderef zrecord? zns? zobj-to-vec zexpandarray znewline?
+      zvector? zmap? zset? zcoll? zuneval? zmeta? ztag zlast zarray? zatom?
+      zderef zrecord? zns? zobj-to-vec zexpandarray znewline?
       zwhitespaceorcomment? zmap-all zpromise? zfuture? zdelay? zkeyword?
       zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot zsymbol?
       znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zinlinecomment?
@@ -187,56 +187,57 @@
         result
           (if (not b-lines)
             true
-            (and p-lines
-                 ; Does the last line fit, including the collection ending
-                 ; stuff?
-                 ; Do we really need this anymore?
-                 (<= p-last-maxwidth (- width (fix-rightcnt rightcnt)))
-                 ; Does it widest line fit?
-                 ; Do we have a problem if the widest line has a rightcnt?
-                 (<= p-maxwidth width)
-                 ;      (<= p-maxwidth (- width (fix-rightcnt rightcnt)))
-                 (or (zero? p-lines)
-                     (and ; do we have lines to operate on?
-                          (> b-lines 0)
-                          (> p-count 0)
-                          ; if the hang and the flow are the same size, why not
-                          ; hang?
-                          (if (and (= p-lines b-lines) hang-if-equal-flow?)
-                            true
-                            ; is the difference between the indents so small
-                            ; that
-                            ; we don't care?
-                            (and (if (<= indent-diff hang-diff)
-                                   true
-                                   ; Do the number of lines in the hang exceed
-                                   ; the number
-                                   ; of elements in the hang?
-                                   (<= (/ (dec p-lines) p-count) hang-expand))
-                                 (if hang-size (< p-lines hang-size) true)
-                                 (let [factor (if (= fn-style :hang)
-                                                hang-type-flow
-                                                hang-flow)]
-                                   ; if we have more than n lines, take the
-                                   ; shortest
-                                   (if (> p-lines hang-flow-limit)
-                                     (<= (dec p-lines) b-lines)
-                                     ; if we have less then n lines, we don't
-                                     ; necessarily
-                                     ; take the shortest
-                                     ; once we did (dec p-lines) here, fwiw
-                                     ; then we tried it w/out the dec, now we
-                                     ; let you
-                                     ; set it in :tuning.  The whole point of
-                                     ; having a
-                                     ; hang-adjust of -1 is to allow hangs when
-                                     ; the
-                                     ; number of lines in a hang is the same as
-                                     ; the
-                                     ; number of lines in a flow.
-                                     ;(< (/ p-lines b-lines) factor)))))))]
-                                     (< (/ (+ p-lines hang-adjust) b-lines)
-                                        factor)))))))))]
+            (and
+              p-lines
+              ; Does the last line fit, including the collection ending
+              ; stuff?
+              ; Do we really need this anymore?
+              (<= p-last-maxwidth (- width (fix-rightcnt rightcnt)))
+              ; Does it widest line fit?
+              ; Do we have a problem if the widest line has a rightcnt?
+              (<= p-maxwidth width)
+              ;      (<= p-maxwidth (- width (fix-rightcnt rightcnt)))
+              (or (zero? p-lines)
+                  (and ; do we have lines to operate on?
+                       (> b-lines 0)
+                       (> p-count 0)
+                       ; if the hang and the flow are the same size, why not
+                       ; hang?
+                       (if (and (= p-lines b-lines) hang-if-equal-flow?)
+                         true
+                           ; is the difference between the indents so small
+                           ; that
+                           ; we don't care?
+                           (and (if (<= indent-diff hang-diff)
+                                  true
+                                    ; Do the number of lines in the hang exceed
+                                    ; the number
+                                    ; of elements in the hang?
+                                    (<= (/ (dec p-lines) p-count) hang-expand))
+                                (if hang-size (< p-lines hang-size) true)
+                                (let [factor (if (= fn-style :hang)
+                                               hang-type-flow
+                                               hang-flow)]
+                                  ; if we have more than n lines, take the
+                                  ; shortest
+                                  (if (> p-lines hang-flow-limit)
+                                    (<= (dec p-lines) b-lines)
+                                    ; if we have less then n lines, we don't
+                                    ; necessarily
+                                    ; take the shortest
+                                    ; once we did (dec p-lines) here, fwiw
+                                    ; then we tried it w/out the dec, now we
+                                    ; let you
+                                    ; set it in :tuning.  The whole point of
+                                    ; having a
+                                    ; hang-adjust of -1 is to allow hangs when
+                                    ; the
+                                    ; number of lines in a hang is the same as
+                                    ; the
+                                    ; number of lines in a flow.
+                                    ;(< (/ p-lines b-lines) factor)))))))]
+                                    (< (/ (+ p-lines hang-adjust) b-lines)
+                                       factor)))))))))]
     (dbg options
          (if result "++++++" "XXXXXX")
          "p-what" p-what
@@ -3222,8 +3223,7 @@
                                  :none :whitespace]
                                 [(str "\n" (blanks (inc ind))) :none :indent]]
                                [["," ;(str "," (blanks (inc ind)))
-                                 :none :whitespace] 
-				; Fix issue #59 -- don't put
+                                 :none :whitespace] ; Fix issue #59 -- don't put
                                 ; blanks to indent before the next \n
                                 ["\n" :none :indent]
                                 [(str "\n" (blanks (inc ind))) :none :indent]]

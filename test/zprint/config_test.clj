@@ -13,6 +13,12 @@
 ;; Keep some of the test from wrapping so they still work
 ;!zprint {:comment {:wrap? false} :fn-map {"more-of" :arg1}}
 
+;
+; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
+;
+
+(set-options! {:configured? true})
+
 ;;
 ;; # :fn-*-force-nl tests
 ;;

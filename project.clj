@@ -1,4 +1,3 @@
-;!zprint {:vector {:wrap? false}}
 (defproject zprint "0.4.10"
   :description "Pretty print zippers and s-expressions"
   :url "https://github.com/kkinnear/zprint"
@@ -6,7 +5,8 @@
             :url "https://opensource.org/licenses/MIT",
             :key "mit",
             :year 2015}
-  :plugins [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.3.9"]]
+  :plugins
+    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.3.10"]]
   :profiles {:dev {:dependencies [[expectations "2.2.0-rc1"]
                                   [com.taoensso/tufte "1.1.1"]
                                   #_[org.clojure/clojurescript "1.9.946"]
@@ -28,10 +28,13 @@
   :jar-exclusions [#"\.(clj$|clj\.|java|cljs|txt)"]
   :zprint {:old? false}
   :jvm-opts ^:replace ["-server" "-Xms2048m" "-Xmx2048m" "-Xss500m"]
-  :codox {:namespaces [zprint.core] :doc-files ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"] :metadata {:doc/format :markdown}}
+  :codox {:namespaces [zprint.core],
+          :doc-files
+            ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],
+          :metadata {:doc/format :markdown}}
   :dependencies
     [#_[org.clojure/clojure "1.10.0-alpha6"]
-    #_[org.clojure/clojure "1.9.0"]
+     #_[org.clojure/clojure "1.9.0"]
      [org.clojure/clojure "1.8.0"]
      [rewrite-cljs "0.4.4" :exclusions [[org.clojure/clojurescript]]]
      [rewrite-clj "0.6.0" :exclusions [[com.cemerick/austin]]]

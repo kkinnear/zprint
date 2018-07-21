@@ -10,6 +10,12 @@
 ;; # Anonymous Function Tests
 ;;
 
+;
+; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
+;
+
+(set-options! {:configured? true})
+
 ;; 
 ;; Helper functions for gensyms
 ;;

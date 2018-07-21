@@ -10,6 +10,13 @@
             [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z :only [edn*]]))
+
+;
+; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
+;
+
+(set-options! {:configured? true})
+
 ;;
 ;;
 ;; # str-style-vec Tests

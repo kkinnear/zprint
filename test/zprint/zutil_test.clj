@@ -1,5 +1,6 @@
 (ns zprint.zutil-test
   (:require [expectations :refer :all]
+            [zprint.core :refer :all]
             [clojure.repl :refer :all]
             [clojure.string :as str]
             [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
@@ -8,6 +9,12 @@
 
 ;; Keep some of the test from wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
+
+;
+; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
+;
+
+(set-options! {:configured? true})
 
 ;;
 ;; Test for ( def x :yabcdefghijklmnopqrstuvwxyz) which duplicates x because

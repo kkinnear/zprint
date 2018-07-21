@@ -275,11 +275,11 @@
   (only-keys
     :opt-un [::additional-libraries? ::agent ::array ::atom ::auto-width?
              ::binding ::color? ::color-map :alt/comment ::configured? ::dbg?
-	     ::cwd-zprintrc?
-             ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
-             ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-             ::fn-map ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
-             ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
+             ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge ::delay
+             ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
+             ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
+             ::format ::future ::indent ::list ::map ::max-depth
+             ::max-depth-string ::max-hang-count ::max-hang-depth
              ::max-hang-span ::max-length ::object ::old? ::output ::pair
              ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
              ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond

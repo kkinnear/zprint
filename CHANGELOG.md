@@ -22,7 +22,15 @@ All notable changes to this project will be documented in this file.
  * Added new style `:how-to-ns`, to format `ns` declarations as in
    Stewart Sierra's "How to ns".  Issue #46.
 
+ * Documented how to keep zprint from configuring from a `.zprintrc` 
+   file, for those uses where the options should not be affected by
+   any local variations: `(set-options! {:configured? true})` must
+   be the first use of zprint.
+
 ### Fixed
+
+ * Tests now are independent of any `$HOME/.zprintrc` or local
+   `.zprintrc`.  
 
  * Don't close stdout when zprint.main/-main exits, flush instead.
    Issue #57.

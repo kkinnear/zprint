@@ -13,6 +13,13 @@
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
 
+;
+; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
+;
+
+(set-options! {:configured? true})
+
+
 ;;
 ;; # Pretty Tests
 ;;

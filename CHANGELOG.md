@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file.
    to `s/def` and `s/fdef` now let specs format correctly by default,
    and the `:spec` style is no longer necessary.
 
- * Added new style `:how-to-ns`, to print `ns` declarations as in
+ * Added new style `:how-to-ns`, to format `ns` declarations as in
    Stewart Sierra's "How to ns".  Issue #46.
 
 ### Fixed

@@ -261,4 +261,12 @@
 	             (set-options! {:fn-map {"let" [:binding {:width "a"}]}})
 		     (get-options)))
 
+; Will we get an exception when setting an invalid options map inside of an otherwise
+; valid options map?
+
+(expect Exception
+        (redef-state [zprint.config]
+	(set-options! {:fn-map {"xx" [:arg1-body {:fn-map {":export" [:flow {:list {:hang true}}]}}]}})
+	(get-options)))
+
 

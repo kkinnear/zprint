@@ -546,7 +546,10 @@
                   :pair {:indent 0}},
       :extend-nl {:extend {:flow? true, :indent 0, :nl-separator? true}},
       :how-to-ns {:fn-map {"ns" [:arg1-body
-                                 {:list {:wrap? false, :indent-arg 1}}]}},
+                                 {:fn-map {":import" [:flow
+                                                      {:list {:hang? true}}],
+                                           ":require" :flow},
+                                  :list {:hang? false, :indent-arg 1}}]}},
       :justified {:binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},

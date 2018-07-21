@@ -478,6 +478,17 @@ cause zprint to re-examine the above information.  It will delete
 any current configuration and rebuild it from the information
 available at that time.
 
+If you __do not__ want to have zprint configured with the above
+external information, your first use of the zprint library should be
+the call:
+
+```clojure
+(set-options! {:configured? true})
+```
+
+This will cause zprint to use the default options map regardless of
+what appears in any of the external configuration areas.
+
 You can add configuration information by:
 
 * Calling `set-options!` with an options map, which is saved in the internal 
@@ -674,10 +685,6 @@ whichs says that "true" is not an instance of java.lang.Number, and tells
 you that any value for `{:map {:indent <value>}}` needs to be a number.
 
 All option validation errors must be fixed, or zprint will not operate.
-
-You can sidestep configuration issues by specifying `:default` as an
-options map, which will cause zprint to use the built-in default options
-map and not attempt any configuration.
 
 ## What is Configurable
 
@@ -925,7 +932,7 @@ by the amount specified by `:list {:indent n}`.
 
 #### :arg1-force-nl
 
-This is like `:arg`, but since it appears in `:fn-force-nl`, it will
+This is like `:arg1`, but since it appears in `:fn-force-nl`, it will
 never print on one line even if it would otherwise fit.
 
 #### :arg1-mixin
@@ -1094,7 +1101,7 @@ are no `:arg1->` functions.
 
 #### :noarg1-body
 
-Print the in whatever way is possible without
+Print the function in whatever way is possible without
 special handling.  However, top level fns become
 different based on the lack of their first argument.
 Thus, `:arg1` becomes `:none`, `:arg1-pair` becomes `:pair`,
@@ -1109,7 +1116,7 @@ etc.
 
 #### :force-nl and :force-nl-body
 
-Tag a function which should not with all of its arguments
+Tag a function which should not format with all of its arguments
 on the same line even if they fit.  Note that this function
 type has to show up in the set that is the value of :fn-force-nl
 to have any effect.
@@ -3256,12 +3263,17 @@ between each group.  For example
 ```
 #### :how-to-ns
 
+__Experimental:__ Still working out some of the details, so the
+specifics may change.
+
 This will format `ns` declarations regarding newlines and indentation
-as in Stewart Sierra's "How to ns".  Specifically, it will indent the 
-list by 1 instead of 2, and not wrap lists.  It will not reorganize
+as in Stewart Sierra's "How to ns".  Specifically, it will indent
+lists by 1 instead of 2, and not hang lists except for `:import`.
+If you follow the instructions in the "How to ns" blog post, the
+new lines and indentation will be correct.  zprint will not reorganize
 the `ns` declaration or change lists to vectors or otherwise change
-the order or syntax of what you have entered -- that's still your 
-responsibility. 
+the order or syntax of what you have entered -- that's still your
+responsibility.
 
 #### :map-nl, :pair-nl, :binding-nl
 

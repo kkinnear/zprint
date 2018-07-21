@@ -2497,8 +2497,9 @@
   Presently all of the callers of this are :list."
   [caller l-str r-str
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl],
-    {:keys [indent-arg indent]} caller,
     :as options} ind zloc]
+  ; The options map can get re-written down a bit below, so don't get
+  ; anything with destructuring that might change with a rewritten  options map!
   (let [max-length (get-max-length options)
         len (zcount zloc)
         zloc (if (> len max-length) (ztake-append max-length zloc '...) zloc)
@@ -2513,19 +2514,29 @@
         fn-style (if (and (not fn-style) fn-str)
                    (fn-map (last (clojure.string/split fn-str #"/")))
                    fn-style)
-	; Do we have a [fn-style options] vector?
-	options (if (vector? fn-style) (merge-deep options (second fn-style))
-	                                options)
-	fn-style (if (vector? fn-style) (first fn-style) fn-style)
+        ; Do we have a [fn-style options] vector?
+        ; **** NOTE: The options map can change here, and if it does,
+        ; some of the things found in it above would have to change too!
+        options
+          (if (vector? fn-style) (merge-deep options (second fn-style)) options)
+        fn-style (if (vector? fn-style) (first fn-style) fn-style)
+        ; Get indents which might have changed if the options map was
+        ; re-written by the function style being a vector.
+        indent (:indent (options caller))
+        indent-arg (:indent-arg (options caller))
         ; set indent based on fn-style
         indent (if (body-set fn-style) indent (or indent-arg indent))
         one-line-ok? (allow-one-line? options len fn-style)
         ; remove -body from fn-style if it was there
         fn-style (or (body-map fn-style) fn-style)
-        ; All styles except :hang need three elements minimum.
-        ; We could put this in the fn-map, but until there is more
-        ; than one exception, seems like too much mechanism.
-        fn-style (if (= fn-style :hang) fn-style (if (< len 3) nil fn-style))
+        ; All styles except :hang, :flow, and :flow-body need three
+        ; elements minimum. We could put this in the fn-map,
+        ; but until there are more than three exceptions, seems
+        ; like too much mechanism.
+        fn-style (if (#{:hang :flow :flow-body} fn-style)
+                   fn-style
+                   (if (< len 3) nil fn-style))
+        ;fn-style (if (= fn-style :hang) fn-style (if (< len 3) nil fn-style))
         fn-style (if no-arg1? (or (noarg1-map fn-style) fn-style) fn-style)
         ; no-arg? only affect one level down...
         options (if no-arg1? (dissoc options :no-arg1?) options)

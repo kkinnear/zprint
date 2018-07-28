@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.10 - 2018-7-18
+## 0.4.10 - 2018-7-28
 
 ### Changed
 
@@ -17,7 +17,8 @@ All notable changes to this project will be documented in this file.
    classification.  Support for Issue #46, as well as changes to the
    classification of `defproject`, `s/def`, and `s/fdef`.  The changes
    to `s/def` and `s/fdef` now let specs format correctly by default,
-   and the `:spec` style is no longer necessary.
+   and the `:spec` style is no longer necessary (but still there for
+   compatibility).
 
  * Added new style `:how-to-ns`, to format `ns` declarations as in
    Stewart Sierra's "How to ns".  Issue #46.
@@ -33,7 +34,7 @@ All notable changes to this project will be documented in this file.
    `.zprintrc`.  
 
  * Don't close stdout when zprint.main/-main exits, flush instead.
-   Issue #57.
+   Fixes use of zprint.main by clj command.  Issue #57.
 
  * Fixed appcds checking for java version, now it doesn't.
    Issue #54.

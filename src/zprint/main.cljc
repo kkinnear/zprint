@@ -40,16 +40,25 @@
     ;
     ; We used to do this: (spit *out* fmt-str) and it worked fine
     ; in the uberjar, presumably because the JVM eats any errors on
-    ; close when it is exiting.  But when using clj, apparently it
-    ; will close stdout, and if there is an error, it won't eat it
-    ; but will let it bubble up to the top level.
+    ; close when it is exiting.  But when using clj, spit will close
+    ; stdout, and when clj closes stdout there is an error and it will
+    ; bubble up to the top level.
     ;
     ; Now, we write and flush explicitly, sidestepping that particular
     ; problem. In part because there are plenty of folks that say that
     ; closing stdout is a bad idea.
     ;
-    (.write *out* fmt-str)
-    (.flush *out*)
+    ; Getting this to work with graalvm was a pain.  In particular,
+    ; w/out the (str ...) around fmt-str, graalvm would error out
+    ; with an "unable to find a write function" error.  You could
+    ; get around this by offering graalvm a reflectconfig file, but
+    ; that is just one more file that someone needs to have to be
+    ; able to make this work.  You could also get around this (probably)
+    ; by type hinting fmt-str, though I didn't try that.
+    ;
+    (let [^java.io.Writer w (clojure.java.io/writer *out*)]
+      (.write w (str fmt-str))
+      (.flush w))
     ;
     ; Since we did :parallel? we need to shut down the pmap threadpool
     ; so the process will end!

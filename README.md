@@ -117,18 +117,19 @@ include the library:
 [clojure-future-spec "1.9.0-alpha17"]
 ```
 
-### Clojure 1.9:
+### Clojure 1.9, 1.10.0-alpha6:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 [![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
+
 
 ### Clojurescript:
 
 zprint uses `clojure.spec.alpha`, and has been tested in each of the
 following environments:
 
-  * Clojurescript 1.9.946
+  * Clojurescript 1.10.339
   * `lumo` 1.8.0-beta 
   * `planck` 2.8.1
 

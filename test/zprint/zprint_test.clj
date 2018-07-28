@@ -2719,7 +2719,7 @@
 ;;
 
 (expect "(a b c (d #_#_(e f g) h))"
-  (zprint-str "(a b c (d #_#_(e f g) h))" {:parse-string? true}))
+        (zprint-str "(a b c (d #_#_(e f g) h))" {:parse-string? true}))
 
 ;;
 ;; # prefix-tags tests.  
@@ -2798,7 +2798,8 @@
 ; the functionality.
 ;
 
-(def dp "(defproject name version :test :this :stuff [:aaaaa :bbbbbbb  
+(def dp
+  "(defproject name version :test :this :stuff [:aaaaa :bbbbbbb  
 :ccccccccc :ddddddd :eeeeeee ])")
 
 ; Does defproject inhibit the wrapping of elements of a vector (which it is
@@ -2813,8 +2814,8 @@
 
 (expect
   "(defproject name version\n  :test :this\n  :stuff [:aaaaa :bbbbbbb :ccccccccc :ddddddd\n          :eeeeeee])"
-  (redef-state
-    [zprint.config]
-    (zprint-str dp 50 {:parse-string? true :fn-map {"defproject" :arg2-pair}})))
-
-
+  (redef-state [zprint.config]
+               (zprint-str dp
+                           50
+                           {:parse-string? true,
+                            :fn-map {"defproject" :arg2-pair}})))

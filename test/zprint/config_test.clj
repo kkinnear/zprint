@@ -92,12 +92,9 @@
 ;;
 
 (expect (more-of options
-          true
-          (:justify? (:binding options))
-          true
-          (:justify? (:map options))
-          true
-          (:justify? (:pair options)))
+          true (:justify? (:binding options))
+          true (:justify? (:map options))
+          true (:justify? (:pair options)))
         (redef-state [zprint.config]
                      (set-options! {:style :justified})
                      (get-options)))
@@ -121,12 +118,9 @@
                      (get-options)))
 
 (expect (more-of options
-          true
-          (:justify? (:binding options))
-          true
-          (:justify? (:map options))
-          true
-          (:justify? (:pair options))
+          true (:justify? (:binding options))
+          true (:justify? (:map options))
+          true (:justify? (:pair options))
           0 (:indent (:binding options))
           1 (:indent-arg (:list options))
           0 (:indent (:map options))
@@ -145,37 +139,28 @@
                      (get-options)))
 
 (expect (more-of options
-          true
-          (:nl-separator? (:extend options))
-          true
-          (:flow? (:extend options))
-          0
-          (:indent (:extend options)))
+          true (:nl-separator? (:extend options))
+          true (:flow? (:extend options))
+          0 (:indent (:extend options)))
         (redef-state [zprint.config]
                      (set-options! {:style :extend-nl})
                      (get-options)))
 
 (expect
   (more-of options
-    true
-    (:nl-separator? (:map options))
-    0
-    (:indent (:map options)))
+    true (:nl-separator? (:map options))
+    0 (:indent (:map options)))
   (redef-state [zprint.config] (set-options! {:style :map-nl}) (get-options)))
 
 (expect
   (more-of options
-    true
-    (:nl-separator? (:pair options))
-    0
-    (:indent (:pair options)))
+    true (:nl-separator? (:pair options))
+    0 (:indent (:pair options)))
   (redef-state [zprint.config] (set-options! {:style :pair-nl}) (get-options)))
 
 (expect (more-of options
-          true
-          (:nl-separator? (:binding options))
-          0
-          (:indent (:binding options)))
+          true (:nl-separator? (:binding options))
+          0 (:indent (:binding options)))
         (redef-state [zprint.config]
                      (set-options! {:style :binding-nl})
                      (get-options)))
@@ -246,33 +231,38 @@
 ; Does defproject have an options map, and is it correct?
 
 (expect (more-of options
-          true (vector? ((:fn-map options) "defproject"))
-	  {:vector {:wrap? false}} (second ((:fn-map options) "defproject")))
-        (redef-state [zprint.config]
-		     (get-options)))
+          true
+          (vector? ((:fn-map options) "defproject"))
+          {:vector {:wrap? false}}
+          (second ((:fn-map options) "defproject")))
+        (redef-state [zprint.config] (get-options)))
 
 ; Can we set an options map on let?
 
 (expect (more-of options
-          true (vector? ((:fn-map options) "let"))
-	  {:width 99} (second ((:fn-map options) "let")))
+          true
+          (vector? ((:fn-map options) "let"))
+          {:width 99}
+          (second ((:fn-map options) "let")))
         (redef-state [zprint.config]
-	             (set-options! {:fn-map {"let" [:binding {:width 99}]}})
-		     (get-options)))
+                     (set-options! {:fn-map {"let" [:binding {:width 99}]}})
+                     (get-options)))
 
 ; Will we get an exception when setting an invalid options map?
 
 (expect Exception
         (redef-state [zprint.config]
-	             (set-options! {:fn-map {"let" [:binding {:width "a"}]}})
-		     (get-options)))
+                     (set-options! {:fn-map {"let" [:binding {:width "a"}]}})
+                     (get-options)))
 
 ; Will we get an exception when setting an invalid options map inside of an otherwise
 ; valid options map?
 
-(expect Exception
-        (redef-state [zprint.config]
-	(set-options! {:fn-map {"xx" [:arg1-body {:fn-map {":export" [:flow {:list {:hang true}}]}}]}})
-	(get-options)))
-
-
+(expect
+  Exception
+  (redef-state [zprint.config]
+               (set-options!
+                 {:fn-map {"xx" [:arg1-body
+                                 {:fn-map {":export"
+                                             [:flow {:list {:hang true}}]}}]}})
+               (get-options)))

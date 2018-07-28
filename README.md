@@ -492,7 +492,7 @@ the `.zprintrc` file.  Thus, to change the indent for a map to be 0, you
 would have a `.zprintrc` file as follows:
 
 ```clojure
-{:map {:ident 0}}
+{:map {:indent 0}}
 ```
 
 Note that this map is only read and converted when zprint initially

@@ -1,4 +1,3 @@
 {:cljdoc.doc/tree [["Documentation" {:file "README.md"}]
                    ["Guides" {}
-                    ["Fast zprint Filter" {:file "doc/graalvm.md"}]]]
-:cljdoc/include-namespaces [zprint.core]}
+                    ["Fast zprint Filter" {:file "doc/graalvm.md"}]]]}

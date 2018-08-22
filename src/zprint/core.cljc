@@ -202,7 +202,7 @@
                  (zprint.sutil/sredef-call fzprint-fn))
                options]))))
 
-(declare get-docstring-spec)
+#?(:clj (declare get-docstring-spec))
 
 (defn ^:no-doc process-rest-options
   "Take some internal-options and the & rest of a zprint/czprint

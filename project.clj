@@ -22,10 +22,10 @@
                        :omit-source true,
                        :uberjar-name "zprint-filter-%s"}}
   ; Clojure 1.8 you can exclude all sources in the uberjar
-  :uberjar-exclusions [#"\.(clj|java|cljs|txt)"]
+  :uberjar-exclusions [#"\.(clj|java|txt)"]
   ; Clojure 1.9 requires the .clj files in the uberjar
   ; :uberjar-exclusions [#"\.(clj\.|java|cljs|txt)"]
-  :jar-exclusions [#"\.(clj$|clj\.|java|cljs|txt)"]
+  :jar-exclusions [#"\.(clj$|clj\.|java|txt)"]
   :zprint {:old? false}
   :jvm-opts ^:replace ["-server" "-Xms2048m" "-Xmx2048m" "-Xss500m"]
   :codox {:namespaces [zprint.core],

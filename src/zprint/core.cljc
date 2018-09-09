@@ -384,7 +384,7 @@
       (let [actual-options (determine-options rest-options)
             [cvec options] (zprint* coll special-option actual-options)
             cvec-wo-empty cvec
-            #_(def cvwoe cvec-wo-empty)
+            _ (def cvwoe cvec-wo-empty)
             ; (remove #(empty? (first %)) cvec)
             focus-vec (if-let [path (:path (:focus (:output options)))]
                         (range-ssv cvec-wo-empty path))

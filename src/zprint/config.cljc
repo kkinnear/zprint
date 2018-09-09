@@ -1,7 +1,6 @@
 (ns ^:no-doc zprint.config
   #?(:clj [:refer-clojure :exclude [read-string]])
   (:require clojure.string
-            [zprint.sutil]
             [clojure.set :refer [difference]]
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic]]
@@ -31,6 +30,76 @@
 
 (def zprintrc ".zprintrc")
 
+;;
+;; # Function switch support
+;;
+;; ztype is an atom containing a vector with two elements:
+;;
+;; A keyword:
+;;
+;;   :zipper
+;;   :structure
+;;   :none
+;;
+;; An integer, representing the number of invocations of zprint
+;; running at one time.
+;;
+;; All of this is to manage the zfns without using the binding
+;; function, and it requires ^:dyanmic, which costs performance.
+;;
+
+#?(:clj
+(def ztype (atom [:none 0])))
+
+#?(:clj
+(defn bind-vars
+  "Change the root binding of all of the vars in the binding-map."
+  [binding-map]
+  (doseq [[the-var var-value] binding-map]
+     (.bindRoot ^clojure.lang.Var the-var var-value))))
+
+#?(:clj
+     (defn redef-vars
+       "Redefine all of the traversal functions for zippers or structures, then
+  call the function of no arguments passed in."
+       [the-type binding-map body-fn]
+       (locking
+         ztype
+         (let [[current-type the-count] @ztype]
+           (if (= current-type the-type)
+             ; We are already using the right functions, indicate
+             ; that another zprint is using them.
+             (reset! ztype [current-type (inc the-count)])
+             ; We are not currently using the right functions, see
+             ; if we can change to use them?
+             (if (zero? the-count)
+               ; Nobody else is using them, so we can change them.
+               (do (bind-vars binding-map) (reset! ztype [the-type 1]))
+               ; Somebody else is using them, we cannot use them
+               (throw
+                 (Exception. (str "Attempted to run zprint with type: "
+                                  the-type
+                                  " when "
+                                  the-count
+                                  " invocations were already running with type "
+                                  current-type
+                                  " ! ")))))))
+       (try (body-fn)
+            (finally
+              (locking
+                ztype
+                (let [[current-type the-count] @ztype]
+                  (if (= current-type the-type)
+                    ; Note that we never put the original values back, as they
+                    ; might be fine for the next call, saving us the trouble
+                    ; of setting them again.  We do, of course, decrement the
+                    ; count.
+                    (reset! ztype [current-type (dec the-count)])
+                    (throw
+                      (Exception.
+                        (str "Internal Error: when attempting to reduce count "
+                             "of invocations using: " the-type
+                             ", the type was: " current-type))))))))))
 ;;
 ;; # Internal Storage
 ;;

@@ -1,6 +1,8 @@
 (ns ^:no-doc zprint.sutil
   (:require clojure.string
+	    #?@(:clj [[zprint.macros :refer [do-redef-vars]]])
             zprint.zfns
+	    #?@(:clj [[zprint.config :refer [redef-vars]]])
             #?@(:cljs [[cljs.reader :refer [read-string]]])))
 
 ;;
@@ -271,7 +273,8 @@
   "Redefine all of the traversal functions for s-expressions, then
   call the function of no arguments passed in."
   [body-fn]
-  (with-redefs [zprint.zfns/zstring sstring
+  (#?@(:clj [do-redef-vars :structure] :cljs [with-redefs])
+               [zprint.zfns/zstring sstring
                 zprint.zfns/znumstr snumstr
                 zprint.zfns/zcomment? (constantly false)
                 zprint.zfns/zsexpr identity

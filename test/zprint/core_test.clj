@@ -390,3 +390,76 @@
   (zprint-str
     "(defn x [] (println x))\n    (defn y [] (println y) (println z) (println a) (println b) (println c) (println f) (println g) (println h))"
     {:parse-string-all? true, :parse {:left-space :keep, :interpose false}}))
+
+;;
+;; # Test to see if multiple copies of zprint can be run at the same time.
+;;
+;; This is a bit probabalistic, in that it doesn't always fail.
+;;
+
+;; These functions let us clean up after a failure.`
+
+#_(defn bind-var
+  "Change the root binding of a single var."
+  [the-var var-value]
+  (.bindRoot ^clojure.lang.Var the-var var-value))    
+   
+#_(defn clear-bindings
+  "Set to null all of vars in a binding-map."
+  [binding-map]
+  (mapv #(bind-var % nil) (keys binding-map))
+  (reset! zprint.config/ztype [:none 0]))
+
+(def fs
+  (mapv slurp
+    ["src/zprint/core.cljc" "src/zprint/zutil.cljc" "src/zprint/ansi.cljc"]))
+
+(expect
+  nil
+  (redef-state [zprint.zfns zprint.config]
+               (reset! zprint.config/ztype [:none 0])
+               #_(clear-bindings zprint.zutil/zipper-binding-map)
+               (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
+                    (catch Exception e
+                      (do #_(clear-bindings zprint.zutil/zipper-binding-map)
+                          (reset! zprint.config/ztype [:none 0])
+                          (str "Failed to pass test to run multiple zprints "
+                               "in the same JVM simultaneouls!")))
+                    (finally (redef-state [zprint.zfns zprint.config] nil)))))
+(expect
+  nil
+  (redef-state [zprint.zfns zprint.config]
+               (reset! zprint.config/ztype [:none 0])
+               #_(clear-bindings zprint.zutil/zipper-binding-map)
+               (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
+                    (catch Exception e
+                      (do #_(clear-bindings zprint.zutil/zipper-binding-map)
+                          (reset! zprint.config/ztype [:none 0])
+                          (str "Failed to pass test to run multiple zprints "
+                               "in the same JVM simultaneouls!")))
+                    (finally (redef-state [zprint.zfns zprint.config] nil)))))
+(expect
+  nil
+  (redef-state [zprint.zfns zprint.config]
+               (reset! zprint.config/ztype [:none 0])
+               #_(clear-bindings zprint.zutil/zipper-binding-map)
+               (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
+                    (catch Exception e
+                      (do #_(clear-bindings zprint.zutil/zipper-binding-map)
+                          (reset! zprint.config/ztype [:none 0])
+                          (str "Failed to pass test to run multiple zprints "
+                               "in the same JVM simultaneouls!")))
+                    (finally (redef-state [zprint.zfns zprint.config] nil)))))
+;;
+;; Make sure next tests don't have a problem with the bindings
+;;
+;; Try *really* hard to clean things up after failure so that it doesn't
+;; cascade into other tests.
+;;
+
+(expect nil
+        (redef-state [zprint.zfns zprint.config]
+                     (Thread/sleep 1000)
+                     (reset! zprint.config/ztype [:none 0])
+                     #_(clear-bindings zprint.zutil/zipper-binding-map)
+                     nil))

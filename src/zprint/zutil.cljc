@@ -1,7 +1,9 @@
 (ns ^:no-doc zprint.zutil
   (:require
+    #?@(:clj [[zprint.macros :refer [do-redef-vars]]])
     clojure.string
     zprint.zfns
+    #?@(:clj [[zprint.config :refer [redef-vars]]])
     [rewrite-clj.parser :as p]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]
@@ -567,7 +569,8 @@
   "Redefine all of the traversal functions for zippers, then
   call the function of no arguments passed in."
   [body-fn]
-  (with-redefs [zprint.zfns/zstring z/string
+  (#?@(:clj [do-redef-vars :zipper] :cljs [with-redefs])
+               [zprint.zfns/zstring z/string
                 zprint.zfns/znumstr znumstr
                 zprint.zfns/zbyte-array? (constantly false)
                 zprint.zfns/zcomment? zcomment?

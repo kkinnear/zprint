@@ -36,3 +36,15 @@
   only called with :clj, not :cljs."
   [options & body]
   `(if (:parallel? ~options) (future ~@body) (do ~@body)))
+
+
+#?(:clj
+(defmacro do-redef-vars
+  "Using the syntax of with-redefs (in order to make it easier
+  to use similar code in Clojurescript), call redef-vars with
+  a binding-map and other necessary informaiton."
+  [the-type binding-vec & body]
+  `(zprint.config/redef-vars ~the-type
+               ~(zipmap (map #(list `var %) (take-nth 2 binding-vec))
+                        (take-nth 2 (next binding-vec)))
+               (fn [] ~@body))))

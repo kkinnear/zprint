@@ -1,11 +1,26 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.11 - 2018-8-2
+## 0.4.11 - 2018-9-7
 
 ### Changed
 
+ * Added a bunch of bettrr doc-string, getting ready for clj-doc.
+
+ * Moved lumo and planck into .cljs files so that they work with clj-doc.
+
 ### Fixed
+
+ * Major bug fix, (or enhancement, depending on your viewpoint).  You 
+   can now run multiple zprints in the same JVM at the same time, with
+   the restriction that they all need to be doing the same 'kind' of zprint,
+   either all parsing strings (typically formatting code), or all operating
+   on Clojure(script) structures.  Can't mix them.  But you can use
+   `pmap` to get zprint-file to operate on a bunch of files at the same
+   time (which was the use case that prompted this change).
+
+ * Minor bug where `#(` stayed green inside of syntax-quoted structure, 
+   instead of turning red like all other parens to.
 
 ## 0.4.10 - 2018-7-28
 

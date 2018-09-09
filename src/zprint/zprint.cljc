@@ -3569,10 +3569,12 @@
   [options prefix-tag]
   (cond (= prefix-tag :uneval) (assoc options
                                  :color-map (:color-map (:uneval options)))
-        (= prefix-tag :syntax-quote) (assoc-in options
-                                       [:color-map :paren]
-                                       (:syntax-quote-paren (:color-map
-                                                              options)))
+        (= prefix-tag :syntax-quote)
+          (-> options
+              (assoc-in [:color-map :paren]
+                        (:syntax-quote-paren (:color-map options)))
+              (assoc-in [:color-map :hash-paren]
+                        (:syntax-quote-paren (:color-map options))))
         :else options))
 
 ;; Fix fzprint* to look at cursor to see if there is one, and

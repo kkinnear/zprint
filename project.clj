@@ -13,7 +13,7 @@
                                   ;[rum "0.10.8"];
                                   [better-cond "1.0.1"]
                                   [org.clojure/core.match "0.3.0-alpha5"]
-                                  [clojure-future-spec "1.9.0-alpha17"]]},
+                                  #_[clojure-future-spec "1.9.0-alpha17"]]},
              :uberjar {:aot [zprint.core zprint.main],
                        ; For 1.9.0-alpha17, use this for the :aot value
                        ;:aot [zprint.core zprint.main clojure.core.specs.alpha],
@@ -33,9 +33,9 @@
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],
           :metadata {:doc/format :markdown}}
   :dependencies
-    [#_[org.clojure/clojure "1.10.0-alpha6"]
+    [[org.clojure/clojure "1.10.0-alpha7"]
      #_[org.clojure/clojure "1.9.0"]
-     [org.clojure/clojure "1.8.0"]
+     #_[org.clojure/clojure "1.8.0"]
      [rewrite-cljs "0.4.4" :exclusions [[org.clojure/clojurescript]]]
      [rewrite-clj "0.6.0" :exclusions [[com.cemerick/austin]]]
      #_[table "0.4.0" :exclusions [[org.clojure/clojure]]]

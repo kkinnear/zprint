@@ -48,24 +48,27 @@
 ;; function, and it requires ^:dyanmic, which costs performance.
 ;;
 
-#?(:clj
-(def ztype (atom [:none 0])))
+#?(:clj (def ztype (atom [:none 0])))
 
-#?(:clj
-(defn bind-vars
-  "Change the root binding of all of the vars in the binding-map."
-  [binding-map]
-  (doseq [[the-var var-value] binding-map]
-     (.bindRoot ^clojure.lang.Var the-var var-value))))
+;#?(:clj (def ztype-history (atom [])))
 
+#?(:clj (defn bind-vars
+          "Change the root binding of all of the vars in the binding-map."
+          [binding-map]
+          (doseq [[the-var var-value] binding-map]
+            (.bindRoot ^clojure.lang.Var the-var var-value))))
+
+; Note that this is always and only called by do-redef-vars,
+; a macro in macros.cljc
 #?(:clj
      (defn redef-vars
-       "Redefine all of the traversal functions for zippers or structures, then
-  call the function of no arguments passed in."
+       "Redefine all of the traversal functions for zippers or structures, 
+       then call the function of no arguments passed in."
        [the-type binding-map body-fn]
        (locking
          ztype
-         (let [[current-type the-count] @ztype]
+         (let [[current-type the-count :as current-ztype] @ztype]
+           #_(swap! ztype-history conj [:in the-type current-type the-count])
            (if (= current-type the-type)
              ; We are already using the right functions, indicate
              ; that another zprint is using them.
@@ -74,7 +77,10 @@
              ; if we can change to use them?
              (if (zero? the-count)
                ; Nobody else is using them, so we can change them.
-               (do (bind-vars binding-map) (reset! ztype [the-type 1]))
+               (do #_(swap! ztype-history conj
+                       [:change current-type the-type the-count])
+                   (bind-vars binding-map)
+                   (reset! ztype [the-type 1]))
                ; Somebody else is using them, we cannot use them
                (throw
                  (Exception. (str "Attempted to run zprint with type: "
@@ -84,22 +90,32 @@
                                   " invocations were already running with type "
                                   current-type
                                   " ! ")))))))
-       (try (body-fn)
+       ;
+       ; There is a doall below because we must ensure that all of the
+       ; calls to any of the redefed vars take place before we reduce the
+       ; reference count of the number of users of those redefed vars.
+       ; Otherwise the redefed vars could get reset to some other value,
+       ; which would then not work well if you then evaluated the lazy
+       ; sequence expecting the previous fn mappings to be in place.
+       ;
+       (try (doall (body-fn))
             (finally
               (locking
                 ztype
                 (let [[current-type the-count] @ztype]
+                  #_(swap! ztype-history conj
+                      [:out the-type current-type the-count])
                   (if (= current-type the-type)
                     ; Note that we never put the original values back, as they
                     ; might be fine for the next call, saving us the trouble
                     ; of setting them again.  We do, of course, decrement the
                     ; count.
                     (reset! ztype [current-type (dec the-count)])
-                    (throw
-                      (Exception.
-                        (str "Internal Error: when attempting to reduce count "
-                             "of invocations using: " the-type
-                             ", the type was: " current-type))))))))))
+                    (throw (Exception.
+                             (str "Internal Error: when attempting to reduce"
+                                  " count of invocations using: " the-type
+                                  ", the type was: " current-type))))))))))
+
 ;;
 ;; # Internal Storage
 ;;
@@ -117,7 +133,6 @@
    [:binding :justify-hang :justify-tuning] [:spec :value]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] :tuning
    :perf-vs-format])
-
 
 ;;
 ;; ## Function style database
@@ -361,6 +376,7 @@
    "cat" :force-nl,
    "catch" :arg2,
    "cond" :pair-fn,
+   "cond-let" :pair-fn,
    "cond->" :arg1-pair-body,
    "condp" :arg2-pair,
    "def" :arg1-body,
@@ -1444,7 +1460,7 @@
      "   (zprint-str x)"
      "   (zprint-fn-str <fn-name>)"
      ""
-     " Colorize output for an ANSI terminal:"
+     " Syntax color output for an ANSI terminal:"
      ""
      "   (czprint x)"
      "   (czprint-fn <fn-name>)"
@@ -1454,7 +1470,8 @@
      " The first time you call a zprint printing function, it configures"
      " itself from $HOME/.zprintrc."
      ""
-     " Explain current configuration, shows source of non-default values:"
+     " Explain current configuration, shows all possible configurable"
+     " values as well as source of non-default values:"
      ""
      "   (zprint nil :explain)"
      ""
@@ -1466,8 +1483,8 @@
      ""
      "   (zprint-file infile file-name outfile <options>)"
      ""
-     " Format a string containing multiple \"top level\" forms"
-     " (recognizing ;!zprint directives):"
+     " Format a string containing multiple \"top level\" forms, essentially"
+     " a file contained in a string, (recognizing ;!zprint directives):"
      ""
      "   (zprint-file-str file-str zprint-specifier <options> <doc-str>)"
      ""

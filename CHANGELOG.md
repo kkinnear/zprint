@@ -1,13 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.11 - 2018-9-7
+## 0.4.11 - 2018-10-17
 
 ### Changed
 
- * Added a bunch of bettrr doc-string, getting ready for clj-doc.
+ * Moved to rewrite-clj 0.6.1.
 
- * Moved lumo and planck into .cljs files so that they work with clj-doc.
+ * Added `cond-let` as a `:pair-fn`.
+
+ * Added a bunch of better doc-strings, doc/cljdoc.edn to make doc
+   work better with cljdoc.
+
+ * Moved lumo and planck into .cljs files so that they work with cljdoc.
 
 ### Fixed
 
@@ -18,6 +23,7 @@ All notable changes to this project will be documented in this file.
    on Clojure(script) structures.  Can't mix them.  But you can use
    `pmap` to get zprint-file to operate on a bunch of files at the same
    time (which was the use case that prompted this change).
+   Issue #63.
 
  * Minor bug where `#(` stayed green inside of syntax-quoted structure, 
    instead of turning red like all other parens to.

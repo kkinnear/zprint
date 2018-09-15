@@ -96,8 +96,10 @@
 ;;
 
 (defn set-options!
-  "Add some options to the current options, checking to make
-  sure that they are correct."
+  "There is an internal options-map containing default values which is 
+  configured from ~/.zprintrc when zprint is first used.  set-options! 
+  is used to alter the internal options-map by specifying individual
+  options-map values that will be merged into the internal options-map."
   ([new-options doc-str] (do (config-set-options! new-options doc-str) nil))
   ([new-options] (do (config-set-options! new-options) nil)))
 
@@ -209,7 +211,7 @@
   call and figure out the options and width and all of that, but
   stop short of integrating these values into the existing options
   that show up with (get-options). Note that internal-options MUST
-  NOT be a full options map.  It needs to be just the options that
+  NOT be a full options-map.  It needs to be just the options that
   have been requested for this invocation.  Does auto-width if that
   is requested, and determines if there are 'special-options', which
   may short circuit the other options processing. 
@@ -257,7 +259,7 @@
 (defn ^:no-doc determine-options
   "Take some internal-options and the & rest of a zprint/czprint
   call and figure out the options and width and all of that. Note
-  that internal-options MUST NOT be a full options map.  It needs
+  that internal-options MUST NOT be a full options-map.  It needs
   to be just the options that have been requested for this invocation.
   Does auto-width if that is requested, and determines if there are
   'special-options', which may short circuit the other options
@@ -384,7 +386,7 @@
       (let [actual-options (determine-options rest-options)
             [cvec options] (zprint* coll special-option actual-options)
             cvec-wo-empty cvec
-            _ (def cvwoe cvec-wo-empty)
+            #_(def cvwoe cvec-wo-empty)
             ; (remove #(empty? (first %)) cvec)
             focus-vec (if-let [path (:path (:focus (:output options)))]
                         (range-ssv cvec-wo-empty path))
@@ -446,43 +448,116 @@
 ;;
 
 (defn zprint-str
-  "Take a strutcure or a string and  pretty print it, and
-  output a str. (zprint-str nil :help) for more information."
+  "Take coll, a Clojure data structure or a string containing Clojure code or
+  data, format it readably, and output a str. Additional optional arguments: 
+
+      (zprint-str coll <numeric-width>)
+      (zprint-str coll <numeric-width> <options-map>)
+      (zprint-str coll <options-map>)
+
+  If coll is a string containing Clojure source:
+
+        (zprint-str coll {:parse-string? true})
+
+      (zprint nil :help)    ; for more information
+      (zprint nil :explain) ; to see the current options-map"
+  {:doc/format :markdown}
   [coll & rest]
   (apply czprint-str-internal {:color? false} coll rest))
 
 (defn czprint-str
-  "Take a structure or string and pretty print it, and output 
-  a str that has ansi color in it.  (czprint-str nil :help) for 
-  more information."
+  "Take coll, a Clojure data structure or a string containing Clojure code or
+  data, format it readably, and output a str containing ANSI escapes to 
+  syntax color the output. Additional optional arguments: 
+
+      (czprint-str coll <numeric-width>)
+      (czprint-str coll <numeric-width> <options-map>)
+      (czprint-str coll <options-map>)
+
+  If coll is a string containing Clojure source:
+
+        (czprint-str coll {:parse-string? true})
+
+      (czprint nil :help)    ; for more information
+      (czprint nil :explain) ; to see the current options-map"
+  {:doc/format :markdown}
   [coll & rest]
   (apply czprint-str-internal {} coll rest))
 
 (defn zprint
-  "Take a structure or string and pretty print it. 
-  (zprint nil :help) for more information."
+  "Take coll, a Clojure data structure or a string containing Clojure code or
+  data, format it readably, and output to stdout. Additional optional 
+  arguments: 
+
+      (zprint coll <numeric-width>)
+      (zprint coll <numeric-width> <options-map>)
+      (zprint coll <options-map>)
+
+  If coll is a string containing Clojure source::
+
+        (zprint coll {:parse-string? true})
+
+      (zprint nil :help)    ; for more information
+      (zprint nil :explain) ; to see the current options-map"
+  {:doc/format :markdown}
   [coll & rest]
   (println (apply czprint-str-internal {:color? false} coll rest)))
 
 (defn czprint
-  "Take a zipper or string and pretty print it.
-  (czprint nil :help) for more information."
+  "Take coll, a Clojure data structure or a string containing Clojure code or
+  data, format it readably, and produce output to stdout containing ANSI 
+  escapes to syntax color the output. Optional arguments: 
+
+      (czprint coll <numeric-width>)
+      (czprint coll <numeric-width> <options-map>)
+      (czprint coll <options-map>)
+
+  If coll is a string containing Clojure source:
+
+        (czprint coll {:parse-string? true})
+
+      (czprint nil :help)    ; for more information
+      (czprint nil :explain) ; to see the current options-map"
+  {:doc/format :markdown}
   [coll & rest]
   (println (apply czprint-str-internal {} coll rest)))
 
-#?(:clj (defmacro zprint-fn-str
-          "Take a fn name, and pretty print it, output a string."
-          [fn-name & rest]
-          `(apply czprint-str-internal
-             {:parse-string? true, :color? false}
-             (get-fn-source '~fn-name)
-             ~@rest
-             [])))
+#?(:clj
+     (defmacro zprint-fn-str
+       "Given a function name, fn-name, retrieve the source for it,
+  and return a string with the source formatted in a highly readable
+  manner. Appends any available specs to the end of the docstring. 
+  Optional arguments:
+
+      (zprint-fn-str fn-name <numeric-width>)
+      (zprint-fn-str fn-name <numeric-width> <options-map>)
+      (zprint-fn-str fn-name <options-map>)
+
+      (zprint nil :help)    ; for more information
+      (zprint nil :explain) ; to see the current options-map "
+       {:doc/format :markdown}
+       [fn-name & rest]
+       `(apply czprint-str-internal
+          {:parse-string? true, :color? false}
+          (get-fn-source '~fn-name)
+          ~@rest
+          [])))
 
 #?(:clj
      (defmacro czprint-fn-str
-       "Take a fn name, and pretty print it with syntax highlighting
-  into a string."
+       "Given a function name, fn-name, retrieve the source for it,
+  and return a string with the source formatted in a highly readable
+  manner, including ANSI escape sequences to syntax color the output.
+  Appends any available specs to the end of the docstring. 
+  Optional arguments:
+
+      (czprint-fn-str fn-name <numeric-width>)
+      (czprint-fn-str fn-name <numeric-width> <options-map>)
+      (czprint-fn-str fn-name <options-map>)
+
+      (czprint nil :help)    ; for more information
+      (czprint nil :explain) ; to see the current options-map"
+       {:doc/format :markdown}
        [fn-name & rest]
        `(apply czprint-str-internal
           {:parse-string? true}
@@ -490,23 +565,48 @@
           ~@rest
           [])))
 
-#?(:clj (defmacro zprint-fn
-          "Take a fn name, and pretty print it."
-          [fn-name & rest]
-          `(println (apply czprint-str-internal
-                      {:parse-string? true, :color? false, :fn-name '~fn-name}
-                      (get-fn-source '~fn-name)
-                      ~@rest
-                      []))))
+#?(:clj
+     (defmacro zprint-fn
+       "Given a function name, fn-name, retrieve the source for it,
+  and output to stdout the source formatted in a highly readable
+  manner. Appends any available specs to the end of the docstring.
+  Optional arguments:
 
-#?(:clj (defmacro czprint-fn
-          "Take a fn name, and pretty print it with syntax highlighting."
-          [fn-name & rest]
-          `(println (apply czprint-str-internal
-                      {:parse-string? true, :fn-name '~fn-name}
-                      (get-fn-source '~fn-name)
-                      ~@rest
-                      []))))
+      (zprint-fn fn-name <numeric-width>)
+      (zprint-fn fn-name <numeric-width> <options-map>)
+      (zprint-fn fn-name <options-map>)
+
+      (zprint nil :help)    ; for more information
+      (zprint nil :explain) ; to see the current options-map"
+       {:doc/format :markdown}
+       [fn-name & rest]
+       `(println (apply czprint-str-internal
+                   {:parse-string? true, :color? false, :fn-name '~fn-name}
+                   (get-fn-source '~fn-name)
+                   ~@rest
+                   []))))
+
+#?(:clj
+     (defmacro czprint-fn
+       "Given a function name, fn-name, retrieve the source for it,
+  and output to stdout the source formatted in a highly readable
+  manner. Includes ANSI escape sequences to provide syntax coloring,
+  and appends any available specs to the end of the docstring.
+  Optional arguments:
+
+      (czprint-fn fn-name <numeric-width>)
+      (czprint-fn fn-name <numeric-width> <options-map>)
+      (czprint-fn fn-name <options-map>)
+
+      (czprint nil :help)    ; for more information
+      (czprint nil :explain) ; to see the current options-map"
+       {:doc/format :markdown}
+       [fn-name & rest]
+       `(println (apply czprint-str-internal
+                   {:parse-string? true, :fn-name '~fn-name}
+                   (get-fn-source '~fn-name)
+                   ~@rest
+                   []))))
 
 ;;
 ;; # File operations
@@ -518,7 +618,7 @@
 
 (defn ^:no-doc get-options-from-comment
   "s is string containing a comment.  See if it starts out ;!zprint, 
-  and if it does, attempt to parse it as an options map.  
+  and if it does, attempt to parse it as an options-map.  
   Return [options error-str] with only one of the two populated 
   if it started with ;!zprint, and nil otherwise."
   [zprint-num s]
@@ -529,7 +629,7 @@
         (catch #?(:clj Exception
                   :cljs :default) e
           [nil
-           (str "Unable to create zprint options map from: '" possible-options
+           (str "Unable to create zprint options-map from: '" possible-options
                 "' found in !zprint directive number: " zprint-num
                 " because: " e)])))))
 
@@ -680,7 +780,7 @@
   "Take a sequence of forms (which are zippers of the elements of
   a file or a string containing multiple forms somewhere), and not 
   only format them for output but also handle comments containing 
-  ;!zprint that affect the options map throughout the processing."
+  ;!zprint that affect the options-map throughout the processing."
   [rest-options zprint-fn zprint-specifier forms]
   (let [interpose-option (or (:interpose (:parse rest-options))
                              (:interpose (:parse (get-options))))
@@ -720,10 +820,11 @@
   information on ;!zprint directives. zprint-specifier is the thing
   that will be used in messages if errors are detected in ;!zprint
   directives, so it should identify the file (or other element) to
-  allow the user to find the problem. new-options are optional
-  options to be used when doing the formatting (and will be overriddden
-  by any options in ;!zprint directives).  doc-str is an optional
-  string to be used when setting the new-options into the configuration."
+  allow the user to find the problem. new-options is an options-map 
+  containing options to be used when doing the formatting (and will 
+  be overriddden by any options in ;!zprint directives).  doc-str is 
+  an optional string to be used when setting the new-options into the 
+  configuration."
   ([file-str zprint-specifier new-options doc-str]
    (let [original-options (get-options)
          original-doc-map (get-explained-all-options)]
@@ -762,9 +863,9 @@
   See the File Comment API for information on ;!zprint directives.
   file-name is a string, and is usually the name of the input file
   but could be anything to help identify the input file when errors
-  in ;!zprint directives are reported.  options are any additional
-  options to be used for this operation, and will be overridden by
-  any options in ;!zprint directives."
+  in ;!zprint directives are reported.  options is an options-map
+  containing any additional options to be used for this operation, 
+  and will be overridden by any options specified in ;!zprint directives."
        ([infile file-name outfile options]
         (let [file-str (slurp infile)
               outputstr (zprint-file-str file-str

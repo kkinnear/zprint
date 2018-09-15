@@ -463,3 +463,64 @@
                      (reset! zprint.config/ztype [:none 0])
                      #_(clear-bindings zprint.zutil/zipper-binding-map)
                      nil))
+
+;;
+;; Test to see if we get exception when trying to use zprint on either a zipper
+;; or a structure when we are already using it on the other thing.
+;;
+
+(defn multi-test-fail
+  "Test the multithreaded capabilities and that they fail when they are  
+  supposed to.  This *should* fail!!!."
+  []
+  (reset! zprint.config/ztype [:none 0])
+  #_(reset! zprint.config/ztype-history [])
+  (doall (let [fs (map slurp
+                    ["src/zprint/core.cljc" "src/zprint/zutil.cljc"
+                     "src/zprint/ansi.cljc"])
+               fss (concat (butlast fs)
+                           (list (zprint.config/get-options))
+                           (vector (last fs)))]
+           (pmap #(if (string? %)
+                   (doall (zprint.core/zprint-file-str % "x"))
+                   (doall (zprint-str %)))
+                 fss))))
+
+;
+; These two tests are from finish_test.clj, and both should work before
+; the next test.  They are here just to ensure that things are working
+; now.
+;
+
+(expect 37
+        (count (czprint-str [:x :b {:c :d, 'e 'f} '(x y z) "bother"]
+                            {:color? false})))
+
+(expect 15
+        (count (czprint-str "(x b c)\n {:a :b}"
+                            {:parse-string-all? true, :color? false})))
+
+
+(expect "multi-test-fail got an exception as it was supposed to do"
+        (try (multi-test-fail)
+             (catch Exception e
+	       ; This is to keep the threads that were still running from messing
+	       ; up the next tests!
+               (do (Thread/sleep 2000)
+                   (reset! zprint.config/ztype [:none 0])
+                   "multi-test-fail got an exception as it was supposed to do"
+		   ))))
+
+;
+; And there they are again, just to ensure the same thing.
+;
+
+(expect 37
+        (count (czprint-str [:y :b {:c :d, 'e 'f} '(x y z) "bother"]
+                            {:color? false})))
+
+(expect 15
+        (count (czprint-str "(y b c)\n {:a :b}"
+                            {:parse-string-all? true, :color? false})))
+
+

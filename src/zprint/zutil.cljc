@@ -569,63 +569,35 @@
   "Redefine all of the traversal functions for zippers, then
   call the function of no arguments passed in."
   [body-fn]
-  (#?@(:clj [do-redef-vars :zipper] :cljs [with-redefs])
-               [zprint.zfns/zstring z/string
-                zprint.zfns/znumstr znumstr
-                zprint.zfns/zbyte-array? (constantly false)
-                zprint.zfns/zcomment? zcomment?
-                zprint.zfns/zsexpr sexpr
-                zprint.zfns/zseqnws zseqnws
-                zprint.zfns/zmap-right zmap-right
-                zprint.zfns/zfocus-style zfocus-style
-                zprint.zfns/zfirst zfirst
-                zprint.zfns/zfirst-no-comment zfirst-no-comment
-                zprint.zfns/zsecond zsecond
-                zprint.zfns/zthird zthird
-                zprint.zfns/zfourth zfourth
-                zprint.zfns/znthnext znthnext
-                zprint.zfns/zcount zcount
-                zprint.zfns/zmap zmap
-                zprint.zfns/zmap-w-nl zmap-w-nl
-                zprint.zfns/zanonfn? zanonfn?
-                zprint.zfns/zfn-obj? (constantly false)
-                zprint.zfns/zfocus zfocus
-                zprint.zfns/zfind-path find-root-and-path-nw
-                zprint.zfns/zwhitespace? whitespace?
-                zprint.zfns/zlist? z/list?
-                zprint.zfns/zvector? z/vector?
-                zprint.zfns/zmap? z/map?
-                zprint.zfns/zset? z/set?
-                zprint.zfns/zcoll? z-coll?
-                zprint.zfns/zuneval? zuneval?
-                zprint.zfns/zmeta? zmeta?
-                zprint.zfns/ztag ztag
-                zprint.zfns/zlast zlast
-                zprint.zfns/zarray? (constantly false)
-                zprint.zfns/zatom? (constantly false)
-                zprint.zfns/zderef (constantly false)
-                zprint.zfns/zrecord? (constantly false)
-                zprint.zfns/zns? (constantly false)
-                zprint.zfns/zobj-to-vec (constantly nil)
-                zprint.zfns/zexpandarray (constantly nil)
-                zprint.zfns/znewline? znewline?
-                zprint.zfns/zwhitespaceorcomment? whitespace-or-comment?
-                zprint.zfns/zmap-all zmap-all
-                zprint.zfns/zpromise? (constantly false)
-                zprint.zfns/zfuture? (constantly false)
-                zprint.zfns/zdelay? (constantly false)
-                zprint.zfns/zkeyword? zkeyword?
-                zprint.zfns/zconstant? zconstant?
-                zprint.zfns/zagent? (constantly false)
-                zprint.zfns/zreader-macro? zreader-macro?
-                zprint.zfns/zarray-to-shift-seq (constantly nil)
-                zprint.zfns/zdotdotdot zdotdotdot
-                zprint.zfns/zsymbol? zsymbol?
-                zprint.zfns/znil? znil?
-                zprint.zfns/zreader-cond-w-symbol? zreader-cond-w-symbol?
-                zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?
-                zprint.zfns/zlift-ns zlift-ns
-                zprint.zfns/zinlinecomment? zinlinecomment?
-                zprint.zfns/zfind zfind
-                zprint.zfns/ztake-append ztake-append]
-    (body-fn)))
+  (#?@(:clj [do-redef-vars :zipper]
+       :cljs [with-redefs])
+   [zprint.zfns/zstring z/string zprint.zfns/znumstr znumstr
+    zprint.zfns/zbyte-array? (constantly false) zprint.zfns/zcomment? zcomment?
+    zprint.zfns/zsexpr sexpr zprint.zfns/zseqnws zseqnws zprint.zfns/zmap-right
+    zmap-right zprint.zfns/zfocus-style zfocus-style zprint.zfns/zfirst zfirst
+    zprint.zfns/zfirst-no-comment zfirst-no-comment zprint.zfns/zsecond zsecond
+    zprint.zfns/zthird zthird zprint.zfns/zfourth zfourth zprint.zfns/znthnext
+    znthnext zprint.zfns/zcount zcount zprint.zfns/zmap zmap
+    zprint.zfns/zmap-w-nl zmap-w-nl zprint.zfns/zanonfn? zanonfn?
+    zprint.zfns/zfn-obj? (constantly false) zprint.zfns/zfocus zfocus
+    zprint.zfns/zfind-path find-root-and-path-nw zprint.zfns/zwhitespace?
+    whitespace? zprint.zfns/zlist? z/list? zprint.zfns/zvector? z/vector?
+    zprint.zfns/zmap? z/map? zprint.zfns/zset? z/set? zprint.zfns/zcoll? z-coll?
+    zprint.zfns/zuneval? zuneval? zprint.zfns/zmeta? zmeta? zprint.zfns/ztag
+    ztag zprint.zfns/zlast zlast zprint.zfns/zarray? (constantly false)
+    zprint.zfns/zatom? (constantly false) zprint.zfns/zderef (constantly false)
+    zprint.zfns/zrecord? (constantly false) zprint.zfns/zns? (constantly false)
+    zprint.zfns/zobj-to-vec (constantly nil) zprint.zfns/zexpandarray
+    (constantly nil) zprint.zfns/znewline? znewline?
+    zprint.zfns/zwhitespaceorcomment? whitespace-or-comment?
+    zprint.zfns/zmap-all zmap-all zprint.zfns/zpromise? (constantly false)
+    zprint.zfns/zfuture? (constantly false) zprint.zfns/zdelay?
+    (constantly false) zprint.zfns/zkeyword? zkeyword? zprint.zfns/zconstant?
+    zconstant? zprint.zfns/zagent? (constantly false) zprint.zfns/zreader-macro?
+    zreader-macro? zprint.zfns/zarray-to-shift-seq (constantly nil)
+    zprint.zfns/zdotdotdot zdotdotdot zprint.zfns/zsymbol? zsymbol?
+    zprint.zfns/znil? znil? zprint.zfns/zreader-cond-w-symbol?
+    zreader-cond-w-symbol? zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?
+    zprint.zfns/zlift-ns zlift-ns zprint.zfns/zinlinecomment? zinlinecomment?
+    zprint.zfns/zfind zfind zprint.zfns/ztake-append ztake-append]
+   (body-fn)))

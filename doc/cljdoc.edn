@@ -1,3 +1,6 @@
-{:cljdoc.doc/tree [["Documentation" {:file "README.md"}]
-                   ["Guides" {}
-                    ["Fast zprint Filter" {:file "doc/graalvm.md"}]]]}
+#:cljdoc.doc{:tree [["Documentation" {:file "README.md"}]
+                    ["Guides" {} 
+		     ["Fast zprint Filter" {:file "doc/graalvm.md"}]
+                     ["Zprint filter" {:file "doc/filter.md"}]
+                     ["File comment formatting control"
+                      {:file "doc/bang.md"}]]]}

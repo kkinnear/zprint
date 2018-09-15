@@ -114,7 +114,7 @@ to format a function while I'm editing it.  For most functions, it runs fast eno
 #### Caveat
 
 Zprint will not build directly with `native-image`, as there are 5 "unsupported"
-exceptions.  I haven't done any analysis of what thiese might be,
+exceptions.  I haven't done any analysis of what these might be,
 since they aren't obvious.  However, it will build with
 
 ```-H:+ReportUnsupportedElementsAtRuntime```

@@ -1,5 +1,9 @@
 # Installing a zprint filter
 
+__If you haven't used zprint before and are running on MacOS or Linux, 
+check out the [native-image](graalvm.md) approach.__
+Continue with this article if that doesn't work for you.
+
 Would you be interested in a capability where you could
 type a few keystrokes, wait about 1.5 seconds, and have 
 a Clojure(script) function pretty-printed from scratch 

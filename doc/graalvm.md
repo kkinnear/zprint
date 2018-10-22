@@ -40,13 +40,20 @@ You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0
 You have to build this one yourself, but it is trivial to do.  Four
 steps:
 
-  1. Download the Oracle GraalVM EE distribution from
+  1. Download the Oracle GraalVM EE distribution for MacOS from
   [here](http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html).
   This isn't hard, but you have to create an account by giving them
   your email to get in.  Once I created the account, I had to go
   back to the download link and try again, and then log-in, and
   then I could download graalvm.  Kind of a pain, but then -- what
   is 55ms startup worth?  
+  
+  I have tried this with these versions of graalvm.  All had similar
+  (stellar) performance:
+
+    - graalvm-1.0.0-rc1
+    - graalvm-ee-1.0.0-rc8
+
   2. Unpack it into a directory, remember the path and version of graalvm for later.  
   3. Download the latest `zprint-filter-0.4.11` and the `build.zprintm` script from the
   releases area of zprint on GitHub.  
@@ -58,7 +65,7 @@ steps:
 ```
 Note that the `path-to-graalvm` should include directory which is
 the version of the distribution.  For instance, the version that
-was current when this was written was `graalvm-1.0.0-rc1`, so the
+was current when this was first written was `graalvm-1.0.0-rc1`, so the
 path would have this at the end.
 
 An example:
@@ -89,8 +96,8 @@ The first few lines should come out pretty quickly.  It takes
 minutes to run after that.
 
 When it completes, you will have `zprintm-0.4.11` (or whatever you
-chose to call it), and this is a native image which will run on
-MacOS __without__ any JVM involved.
+chose to call it), and this is a native image which will run super
+fast on MacOS __without__ any JVM involved.
 
 ## Usage
 

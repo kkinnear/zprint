@@ -34,7 +34,7 @@
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],
           :metadata {:doc/format :markdown}}
   :dependencies
-    [#_[org.clojure/clojure "1.10.0-RC1"]
+    [#_[org.clojure/clojure "1.10.0-beta3"]
      #_[org.clojure/clojure "1.9.0"]
      [org.clojure/clojure "1.8.0"]
      [rewrite-cljs "0.4.4" :exclusions [[org.clojure/clojurescript]]]

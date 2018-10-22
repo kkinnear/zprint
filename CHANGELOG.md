@@ -1,9 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.11 - 2018-10-17
+## 0.4.11 - 2018-10-23
 
 ### Changed
+
+ * Verified correct operation in Clojure 1.10.0-beta3.
 
  * Moved to rewrite-clj 0.6.1.
 

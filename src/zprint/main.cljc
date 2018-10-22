@@ -23,6 +23,9 @@
   as fast as we can using :parallel?"
   [& args]
   (set-options! {:additional-libraries? false, :parallel? true})
+  ; Turn off multi-zprint locking since graalvm can't handle it, and
+  ; we only done one zprint at a time here in the uberjar.
+  (zprint.config/remove-locking)
   (let [options (first args)
         _ (when (and options (not (clojure.string/blank? options)))
             (try (set-options! (read-string options))

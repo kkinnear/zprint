@@ -6,7 +6,8 @@
             [zprint.spec :refer [validate-basic]]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
-  #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
+  #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader)
+                     (java.util.concurrent.locks ReentrantLock))]))
 
 ;;
 ;; # Configuration
@@ -49,6 +50,30 @@
 ;;
 
 #?(:clj (def ztype (atom [:none 0])))
+#?(:clj (def ztype-lock (ReentrantLock.)))
+#?(:clj (def zlock-enable (atom true)))
+
+#?(:clj
+     (defmacro zlocking
+       "Emulates locking macro, but doesn't use synchronized block because that
+  interacts badly with graalvm. Executes exprs in an implicit do, while locking x.
+  Will release the lock on x in all circumstances.  Only does locking if the
+  global zlock-enable is true, because graalvm will compile with the following 
+  code, but will throw an exception since it is unable to find the unlock method."
+       [^ReentrantLock x & body]
+       `(let [lockee# ~x]
+          (try (if @zlock-enable  (. lockee# (lock)))
+               ~@body
+               (if @zlock-enable (. lockee# (unlock)))
+               (catch Exception e#
+                 (if @zlock-enable (. lockee# (unlock)))
+                 (throw e#))))))
+#?(:clj
+     (defn remove-locking
+       "Removes the locking on the ztype-lock because graalvm doesn't seem
+       to be able to figure out how it works and operate correctly."
+       []
+       (reset! zlock-enable false)))
 
 ;#?(:clj (def ztype-history (atom [])))
 
@@ -65,8 +90,8 @@
        "Redefine all of the traversal functions for zippers or structures, 
        then call the function of no arguments passed in."
        [the-type binding-map body-fn]
-       (locking
-         ztype
+       (zlocking
+         ztype-lock
          (let [[current-type the-count :as current-ztype] @ztype]
            #_(swap! ztype-history conj [:in the-type current-type the-count])
            (if (= current-type the-type)
@@ -100,8 +125,8 @@
        ;
        (try (doall (body-fn))
             (finally
-              (locking
-                ztype
+              (zlocking
+                ztype-lock
                 (let [[current-type the-count] @ztype]
                   #_(swap! ztype-history conj
                       [:out the-type current-type the-count])
@@ -112,9 +137,9 @@
                     ; count.
                     (reset! ztype [current-type (dec the-count)])
                     (throw (Exception.
-                             (str "Internal Error: when attempting to reduce"
-                                  " count of invocations using: " the-type
-                                  ", the type was: " current-type))))))))))
+                               (str "Internal Error: when attempting to reduce"
+                                    " count of invocations using: " the-type
+                                    ", the type was: " current-type))))))))))
 
 ;;
 ;; # Internal Storage

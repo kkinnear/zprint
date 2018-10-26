@@ -9,7 +9,8 @@ sections of code and reformat them on demand.
 If you want to use the zprint library to format your Clojure source, 
 you have many options:
 
-  * A super-fast [native-image](doc/graalvm.md) for MacOS or Linux. 
+  * A super-fast [native-image](doc/graalvm.md) __prebuilt__ for MacOS or 
+    Linux. 
   * Using the released [zprint-filter](doc/filter.md) uberjar, you can 
     pretty-print functions from within many editors
   * Leiningen:  [lein-zprint][leinzprint] to format entire source files
@@ -19,7 +20,8 @@ you have many options:
   * Use `planck` or `lumo` and configure zprint as a Clojure pretty-print filter. See [lein-zprint][leinzprint] for details.
 
 __If you haven't used zprint before and are running on MacOS or Linux, 
-check out the [native-image](doc/graalvm.md) approach.__
+check out the [native-image](doc/graalvm.md) approach.__  Now prebuilt
+binaries are available for both Linux and MacOS!
 
 Zprint includes support for Clojurescript, both browser based and self-hosted.
 

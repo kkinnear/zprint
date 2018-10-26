@@ -1,9 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.11 - 2018-10-23
+## 0.4.11 - 2018-10-28
 
 ### Changed
+
+ * Added zprintm-0.4.11 MacOS zprint filter to release.  Thanks to
+   Martin Klepsch for pointing out a "ce" version of graalvm exists
+   for MacOS.  Issue #66.
 
  * Verified correct operation in Clojure 1.10.0-beta3.
 

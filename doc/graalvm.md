@@ -19,11 +19,9 @@ Your numbers will almost certainly be better:
 | JVM 1.8 appcds | 1.111s | 2s | 6.981s |
 | node | 0.260s | 2s | 18s |
 
-The Linux version (running on docker on the same Mac) takes something 
-like 250ms to startup, 722ms for 129 loc, and 4.7s for 3978 loc, which 
-is still as fast for startup as node, and about three times faster
-to process than node and moderately faster than the JVM. 
-
+The Linux version is about the same as the MacOS version.
+I don't have a directly comparable Linux box to measure
+it on.
 
 ## Installation
 
@@ -37,72 +35,13 @@ You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0
 
 ### MacOS
 
-You have to build this one yourself, but it is trivial to do.  Four
-steps:
-
-  1. Download the Oracle GraalVM EE distribution for MacOS from
-  [here](http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html).
-  This isn't hard, but you have to create an account by giving them
-  your email to get in.  Once I created the account, I had to go
-  back to the download link and try again, and then log-in, and
-  then I could download graalvm.  Kind of a pain, but then -- what
-  is 55ms startup worth?  
-  
-  I have tried this with these versions of graalvm.  All had similar
-  (stellar) performance:
-
-    - graalvm-1.0.0-rc1
-    - graalvm-ee-1.0.0-rc8
-
-  2. Unpack it into a directory, remember the path and version of graalvm for later.  
-  3. Download the latest `zprint-filter-0.4.11` and the `build.zprintm` script from the
-  releases area of zprint on GitHub.  
-  4. Make the `build.zprintm` script executable: `chmod +x build.zprintm`
-  5. Run the `build.zprintm` script:
-
-```
-./build.zprintm  path-to-graalvm path-to-zprint-filter name-of-output 
-```
-Note that the `path-to-graalvm` should include directory which is
-the version of the distribution.  For instance, the version that
-was current when this was first written was `graalvm-1.0.0-rc1`, so the
-path would have this at the end.
-
-An example:
-
-```
-build.zprintm /Users/kkinnear/graalvm/graalvm-1.0.0-rc1 zprint-filter-0.4.11 zprintm-0.4.11
-```
-
-This will run for a good long time (several minutes).   It will
-periodically generate ouput.  The entire build looks like this:
-
-``` 
-Build on Server(pid: 90495, port: 26681)*
-   classlist:   2,287.99 ms
-       (cap):   2,376.12 ms setup:   4,154.84 ms
-  (typeflow): 165,810.81 ms
-   (objects):  43,478.36 ms
-  (features):     142.56 ms
-    analysis: 228,611.48 ms universe:   8,236.15 ms
-     (parse):   8,447.98 ms
-    (inline):   7,312.73 ms
-   (compile):  69,974.27 ms
-     compile:  87,621.25 ms
-       image:  14,406.50 ms write:  20,466.15 ms
-     [total]: 365,910.00 ms
-``` 
-The first few lines should come out pretty quickly.  It takes
-minutes to run after that.
-
-When it completes, you will have `zprintm-0.4.11` (or whatever you
-chose to call it), and this is a native image which will run super
-fast on MacOS __without__ any JVM involved.
+You can now download a pre-build MacOS image from zprint GitHub, look for `zprintm-0.4.11`
+(or the appropriate version) in the latest zprint release.
 
 ## Usage
 
 The `zprintl-0.4.11` or `zprintm-0.4.11` It is a regular "unix-like" filter which will
-run on Linux or MacOS respectively -- __without any JVM__ involed!.  You
+run on Linux or MacOS respectively -- __without any JVM__ involved!.  You
 use it like:
 
 ```

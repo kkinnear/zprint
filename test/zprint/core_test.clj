@@ -400,15 +400,15 @@
 ;; These functions let us clean up after a failure.`
 
 #_(defn bind-var
-  "Change the root binding of a single var."
-  [the-var var-value]
-  (.bindRoot ^clojure.lang.Var the-var var-value))    
-   
+    "Change the root binding of a single var."
+    [the-var var-value]
+    (.bindRoot ^clojure.lang.Var the-var var-value))
+
 #_(defn clear-bindings
-  "Set to null all of vars in a binding-map."
-  [binding-map]
-  (mapv #(bind-var % nil) (keys binding-map))
-  (reset! zprint.config/ztype [:none 0]))
+    "Set to null all of vars in a binding-map."
+    [binding-map]
+    (mapv #(bind-var % nil) (keys binding-map))
+    (reset! zprint.config/ztype [:none 0]))
 
 (def fs
   (mapv slurp
@@ -501,15 +501,15 @@
                             {:parse-string-all? true, :color? false})))
 
 
-(expect "multi-test-fail got an exception as it was supposed to do"
-        (try (multi-test-fail)
-             (catch Exception e
-	       ; This is to keep the threads that were still running from messing
-	       ; up the next tests!
-               (do (Thread/sleep 2000)
-                   (reset! zprint.config/ztype [:none 0])
-                   "multi-test-fail got an exception as it was supposed to do"
-		   ))))
+(expect
+  "multi-test-fail got an exception as it was supposed to do"
+  (try (multi-test-fail)
+       (catch Exception e
+         ; This is to keep the threads that were still running from messing
+         ; up the next tests!
+         (do (Thread/sleep 2000)
+             (reset! zprint.config/ztype [:none 0])
+             "multi-test-fail got an exception as it was supposed to do"))))
 
 ;
 ; And there they are again, just to ensure the same thing.
@@ -522,5 +522,3 @@
 (expect 15
         (count (czprint-str "(y b c)\n {:a :b}"
                             {:parse-string-all? true, :color? false})))
-
-

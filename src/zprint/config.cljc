@@ -62,7 +62,7 @@
   code, but will throw an exception since it is unable to find the unlock method."
        [^ReentrantLock x & body]
        `(let [lockee# ~x]
-          (try (if @zlock-enable  (. lockee# (lock)))
+          (try (if @zlock-enable (. lockee# (lock)))
                ~@body
                (if @zlock-enable (. lockee# (unlock)))
                (catch Exception e#
@@ -137,9 +137,9 @@
                     ; count.
                     (reset! ztype [current-type (dec the-count)])
                     (throw (Exception.
-                               (str "Internal Error: when attempting to reduce"
-                                    " count of invocations using: " the-type
-                                    ", the type was: " current-type))))))))))
+                             (str "Internal Error: when attempting to reduce"
+                                  " count of invocations using: " the-type
+                                  ", the type was: " current-type))))))))))
 
 ;;
 ;; # Internal Storage

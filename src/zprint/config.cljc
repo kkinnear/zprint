@@ -20,7 +20,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.11"))
+(defn about "Return version of this program." [] (str "zprint-0.4.12"))
 
 ;;
 ;; # External Configuration

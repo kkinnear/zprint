@@ -28,7 +28,7 @@
   :jar-exclusions [#"\.(clj$|clj\.|java|txt)"]
   :zprint {:old? false}
   :jvm-opts ^:replace ["-server" "-Xms2048m" "-Xmx2048m" "-Xss500m"]
-  :scm {:name "git" :url "http//github.com/kkinnear/zprint"}
+  :scm {:name "git" :url "https://github.com/kkinnear/zprint"}
   :codox {:namespaces [zprint.core],
           :doc-files
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],

@@ -27,19 +27,27 @@
   ; we only done one zprint at a time here in the uberjar.
   (zprint.config/remove-locking)
   (let [options (first args)
-        _ (when (and options (not (clojure.string/blank? options)))
-            (try (set-options! (read-string options))
+        [option-status option-stderr]
+          (if (and options (not (clojure.string/blank? options)))
+            (try [0 (set-options! (read-string options))]
                  (catch Exception e
-                   (println "Failed to use command line options: '"
-                            options
-                            "' because: "
-                            e
-                            "."))))
+                   [1
+                    (str "Failed to use command line options: '"
+                         options
+                         "' because: "
+                         e
+                         ".")]))
+            [0 nil])
         in-str (slurp *in*)
         ; _ (println "-main:" in-str)
-        fmt-str (try (zprint-file-str in-str "<stdin>")
-                     (catch Exception e
-                       (str "Failed to zprint: " e "\n" in-str)))]
+        [format-status stdout-str format-stderr]
+          (try [0 (zprint-file-str in-str "<stdin>") nil]
+               (catch Exception e [1 in-str (str "Failed to zprint: " e)]))
+        exit-status (+ option-status format-status)
+        stderr-str (cond (and option-stderr format-stderr)
+                           (str option-stderr ", " format-stderr)
+                         (not (or option-stderr format-stderr)) nil
+                         :else (str option-stderr format-stderr))]
     ;
     ; We used to do this: (spit *out* fmt-str) and it worked fine
     ; in the uberjar, presumably because the JVM eats any errors on
@@ -59,10 +67,16 @@
     ; able to make this work.  You could also get around this (probably)
     ; by type hinting fmt-str, though I didn't try that.
     ;
+    ; Write whatever is supposed to go to stdout
     (let [^java.io.Writer w (clojure.java.io/writer *out*)]
-      (.write w (str fmt-str))
+      (.write w (str stdout-str))
       (.flush w))
-    ;
+    ; Write whatever is supposed to go to stderr, if any
+    (when stderr-str
+      (let [^java.io.Writer w (clojure.java.io/writer *err*)]
+        (.write w (str stderr-str "\n"))
+        (.flush w)))
     ; Since we did :parallel? we need to shut down the pmap threadpool
     ; so the process will end!
-    (shutdown-agents)))
+    (shutdown-agents)
+    (System/exit exit-status)))

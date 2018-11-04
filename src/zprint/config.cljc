@@ -983,9 +983,8 @@
     (if error-vec
       (throw (#?(:clj Exception.
                  :cljs js/Error.)
-              (apply str
-                "set-options! for " doc-string
-                " found these errors: " error-vec)))
+              (str "set-options! for " doc-string
+                   " found these errors: " error-vec)))
       (do (reset-options! updated-map new-doc-map) nil))))
 
 (defn config-configure-all!

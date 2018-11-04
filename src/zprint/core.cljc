@@ -617,12 +617,13 @@
 ;;
 
 (defn ^:no-doc get-options-from-comment
-  "s is string containing a comment.  See if it starts out ;!zprint, 
-  and if it does, attempt to parse it as an options-map.  
-  Return [options error-str] with only one of the two populated 
-  if it started with ;!zprint, and nil otherwise."
+  "s is string containing a comment.  See if it starts out ;!zprint
+  (with any number of ';' allowed), and if it does, attempt to parse
+  it as an options-map.  Return [options error-str] with only one
+  of the two populated if it started with ;!zprint, and nil otherwise."
   [zprint-num s]
-  (let [comment-split (clojure.string/split s #"^;!zprint ")]
+  (let [s-onesemi (clojure.string/replace s #"^;+" ";")
+        comment-split (clojure.string/split s-onesemi #"^;!zprint ")]
     (when-let [possible-options (second comment-split)]
       (try
         [(read-string possible-options) nil]

@@ -1,11 +1,21 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.12 - 2018-10-31
+## 0.4.12 - 2018-11-5
 
 ### Changed
 
+  * Allow any number of semicolons when checking for `;!zprint`.
+    Thus, `;;!zprint` and `;;;!zprint` also work.
+
 ### Fixed
+
+  * Return non-zero exit status from uberjar (and graalvm binaries) if
+    it doesn't format correctly or the options map on the command line
+    is bad.
+
+  * Place all exception information for the uberjar (and graalvm binaries)
+    on stderr, not stdout.
 
 ## 0.4.11 - 2018-10-28
 

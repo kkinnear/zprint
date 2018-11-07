@@ -203,7 +203,7 @@ You can use a script released along with the zprint-filter uberjar
 to create another script which will run the zprint-filter in a way
 that it will startup in less than a second.
 
-  1. Download `zprint-filter-0.4.12` from [releases](https://github.com/kkinnear/zprint/releases/latest)
+  1. Download `zprint-filter-0.4.13` from [releases](https://github.com/kkinnear/zprint/releases/latest)
 
   2. Download the install script `appcds` from [releases](https://github.com/kkinnear/zprint/releases/latest)
 
@@ -226,7 +226,7 @@ that it will startup in less than a second.
   6. Run the install script:
 
   ```
-  ./appcds zprint-filter-0.4.12 za
+  ./appcds zprint-filter-0.4.13 za
   ```
   It will run pretty quickly when it works, and will spit out
   less than a page of status and statistics.  When it completes,
@@ -260,13 +260,13 @@ Here are the steps to set this version up manually:
   ```
   java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:off \
           -XX:DumpLoadedClassList=zprint.filter.classlist \
-	  -cp zprint-filter-0.4.12 \
+	  -cp zprint-filter-0.4.13 \
           zprint.main  < helloworld.clj > /dev/null
   ```
   or, for easier copying and pasting: 
 
   ```
-  java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:off -XX:DumpLoadedClassList=zprint.filter.classlist -cp zprint-filter-0.4.12 zprint.main < helloworld.clj > /dev/null
+  java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:off -XX:DumpLoadedClassList=zprint.filter.classlist -cp zprint-filter-0.4.13 zprint.main < helloworld.clj > /dev/null
   ```  
 
   5. Build the cache now that you have the list of classes used -- type this 
@@ -277,14 +277,14 @@ Here are the steps to set this version up manually:
   java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:dump \
           -XX:SharedClassListFile=zprint.filter.classlist \
           -XX:SharedArchiveFile=`pwd`/zprint.filter.cache \
-	  -cp `pwd`/zprint-filter-0.4.12 \
+	  -cp `pwd`/zprint-filter-0.4.13 \
           zprint.main < helloworld.clj 
   ```
 
   or, for easier copying and pasting: 
 
   ```
-  java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:dump -XX:SharedClassListFile=zprint.filter.classlist -XX:SharedArchiveFile=`pwd`/zprint.filter.cache -cp `pwd`/zprint-filter-0.4.12 zprint.main < helloworld.clj 
+  java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:dump -XX:SharedClassListFile=zprint.filter.classlist -XX:SharedArchiveFile=`pwd`/zprint.filter.cache -cp `pwd`/zprint-filter-0.4.13 zprint.main < helloworld.clj 
   ```  
 
   This will output a bunch of statistics about building the cache.
@@ -295,12 +295,12 @@ Here are the steps to set this version up manually:
   ```
   java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:on \
           -XX:SharedArchiveFile=`pwd`/zprint.filter.cache \
-	  -cp `pwd`/zprint-filter-0.4.12 zprint.main
+	  -cp `pwd`/zprint-filter-0.4.13 zprint.main
   ```
   or, for easier copying and pasting:
 
   ```
-  java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:on -XX:SharedArchiveFile=`pwd`/zprint.filter.cache -cp `pwd`/zprint-filter-0.4.12 zprint.main
+  java -XX:+UnlockCommercialFeatures -XX:+UseAppCDS -Xshare:on -XX:SharedArchiveFile=`pwd`/zprint.filter.cache -cp `pwd`/zprint-filter-0.4.13 zprint.main
   ```  
 
   7. Make that file executable:
@@ -362,7 +362,7 @@ and about 10% faster than the bootclasspath approach, described above.
   containing the following single line:
 
   ```
-  java -Xbootclasspath/a:`pwd`/zprint-filter-0.4.12 zprint.main
+  java -Xbootclasspath/a:`pwd`/zprint-filter-0.4.13 zprint.main
   ```
 
   Note that the switch you are using is: `-Xbootclasspath/a:`, and

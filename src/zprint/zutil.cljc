@@ -541,12 +541,13 @@
            out []]
       (let [[k & rest-of-pair :as pair] (first pair-seq)
             #_(println "k:" k "rest-of-x-pair:" rest-of-pair)
-            current-ns (when (and ; This is at least a pair
-                                  rest-of-pair
-                                  ; It does not include an implicit ns
-                                  (not= (subs (z/string k) 0 2) "::")
-                                  (or (zkeyword? k) (zsymbol? k)))
-                         (namespace (z/sexpr k)))]
+            current-ns
+              (when (and ; This is at least a pair
+                         rest-of-pair
+                         ; It does not include an implicit ns
+                         (not (clojure.string/starts-with? (z/string k) "::"))
+                         (or (zkeyword? k) (zsymbol? k)))
+                (namespace (z/sexpr k)))]
         (if-not k
           (when ns [ns out])
           (if current-ns

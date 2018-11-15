@@ -12,6 +12,7 @@
                                   #_[org.clojure/clojurescript "1.9.946"]
                                   ;[rum "0.10.8"];
                                   [better-cond "1.0.1"]
+				  [zpst "0.1.6"]
                                   [org.clojure/core.match "0.3.0-alpha5"]
                                   [clojure-future-spec "1.9.0-alpha17"]]},
              :uberjar {:aot [zprint.core zprint.main],
@@ -27,8 +28,13 @@
   ; :uberjar-exclusions [#"\.(clj\.|java|cljs|txt)"]
   :jar-exclusions [#"\.(clj$|clj\.|java|txt)"]
   :zprint {:old? false}
-  :jvm-opts ^:replace ["-server" "-Xms2048m" "-Xmx2048m" "-Xss500m"]
-  :scm {:name "git" :url "https://github.com/kkinnear/zprint"}
+  :jvm-opts ^:replace
+            ["-server"
+             "-Xms2048m"
+             "-Xmx2048m"
+             "-Xss500m"
+             "-XX:-OmitStackTraceInFastThrow"]
+  :scm {:name "git", :url "https://github.com/kkinnear/zprint"}
   :codox {:namespaces [zprint.core],
           :doc-files
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],

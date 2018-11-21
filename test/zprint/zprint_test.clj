@@ -2819,3 +2819,12 @@
                            50
                            {:parse-string? true,
                             :fn-map {"defproject" :arg2-pair}})))
+
+(expect "{a 1}" (zprint-str "{a 1}" {:parse-string? true}))
+
+(expect
+  "(defrecord ~tagname\n  ~fields\n  (~-collect-vars\n    [acc]\n    (reduce #(list datascript.par ser/collect-vars-acc %1 %2))))"
+  (zprint-str
+    "(defrecord ~tagname ~fields (~-collect-vars [acc] (reduce #(list datascript.par
+ser/collect-vars-acc %1 %2) )))"
+    {:parse-string? true}))

@@ -29,10 +29,7 @@
   :jar-exclusions [#"\.(clj$|clj\.|java|txt)"]
   :zprint {:old? false}
   :jvm-opts ^:replace
-            ["-server"
-             "-Xms2048m"
-             "-Xmx2048m"
-             "-Xss500m"
+            ["-server" "-Xms2048m" "-Xmx2048m" "-Xss500m"
              "-XX:-OmitStackTraceInFastThrow"]
   :scm {:name "git", :url "https://github.com/kkinnear/zprint"}
   :codox {:namespaces [zprint.core],

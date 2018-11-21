@@ -1,11 +1,16 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.13 - 2018-11-6
+## 0.4.13 - 2018-11-14
 
 ### Changed
 
 ### Fixed
+
+  * Fixed exception when formatting a parsed map with keys shorter than 2 
+    characters.  Doesn't affect structure formatting, just maps that
+    show up in strings that we parse (as in formatting source).
+    Issue #74.
 
 ## 0.4.12 - 2018-11-6
 

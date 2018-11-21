@@ -1637,6 +1637,9 @@
   (let [local-options (if (and (not one-line?) (not (:hang? (caller options))))
                         (assoc options :one-line? true)
                         options)
+        ; If we don't have an hindent, we better not be trying to hang
+        ; things -- in this case, we'll just flow.
+        hindent (or hindent findent)
         hanging (when (not= hindent findent)
                   (fzprint* (in-hang local-options) hindent zloc))
         hang-count (zcount zloc)
@@ -2508,6 +2511,12 @@
         l-str-len (count l-str)
         arg-1-coll? (not (or (zkeyword? (zfirst zloc))
                              (zsymbol? (zfirst zloc))))
+        ; Use an alternative arg-1-indent if the fn-style is forced on input
+        ; and we don't actually have an arg-1 from which we can get an indent.
+        ; Now, we might want to allow arg-1-coll? to give us an arg-1-indent,
+        ; maybe, someday, so we could hang next to it.
+        ; But for now, this will do.
+        arg-1-indent-alt? (and arg-1-coll? fn-style)
         fn-str (if-not arg-1-coll? (zstring (zfirst zloc)))
         fn-style (or fn-style (fn-map fn-str) (user-fn-map fn-str))
         ; if we don't have a function style, let's see if we can get
@@ -2560,6 +2569,9 @@
         default-indent (if (zlist? (zfirst zloc)) indent l-str-len)
         arg-1-indent (if-not (or arg-1-coll? (zcomment? (zfirst zloc)))
                        (+ ind (inc l-str-len) (count fn-str)))
+        ; If we don't have an arg-1-indent, and we noticed that the inputs
+        ; justify using an alternative, then use the alternative.
+        arg-1-indent (or arg-1-indent (when arg-1-indent-alt? (+ indent ind)))
         ; Tell people inside that we are in code.
         ; We don't catch places where the first thing in a list is
         ; a collection or a seq which yields a function.
@@ -2660,10 +2672,12 @@
           (= fn-style :arg2-extend))
         (let [second-element (fzprint-hang-one caller
                                                (if (= len 2) options loptions)
+                                               ; This better not be nil
                                                arg-1-indent
                                                (+ indent ind)
                                                (zsecond zloc))
               [line-count max-width]
+                ; arg-1-indent better not be nil here either
                 (style-lines loptions arg-1-indent second-element)
               third (zthird zloc)
               first-three

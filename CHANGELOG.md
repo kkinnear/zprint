@@ -1,11 +1,15 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.13 - 2018-11-14
+## 0.4.13 - 2018-11-21
 
 ### Changed
 
 ### Fixed
+
+  * Fixed exception when formatting complex `:arg2-extend` functions,
+    like `defrecord`, which have functions that don't start with simple
+    symbols or keywords.  Issue #72.
 
   * Fixed exception when formatting a parsed map with keys shorter than 2 
     characters.  Doesn't affect structure formatting, just maps that

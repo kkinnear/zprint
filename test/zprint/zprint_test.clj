@@ -2828,3 +2828,16 @@
     "(defrecord ~tagname ~fields (~-collect-vars [acc] (reduce #(list datascript.par
 ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true}))
+
+;;
+;; Issue 84
+;;
+
+(expect
+"(a)\n;a\n\n(b)\n;b\n(c)"
+(zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)" "stuff"))
+
+(expect
+"(a)\n\n;a\n\n(b)\n\n;b\n\n(c)"
+ (zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)" "stuff" 
+   {:parse {:interpose "\n\n"}}))

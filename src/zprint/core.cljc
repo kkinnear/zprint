@@ -840,9 +840,13 @@
                 filestring (if (= (last file-str) \newline)
                              (str filestring "\n")
                              filestring)
-                forms (edn* (p/parse-string-all filestring))]
+                forms (edn* (p/parse-string-all filestring))
+                pmf-options {:process-bang-zprint? true, :color? false}
+                pmf-options (if (:interpose (:parse (get-options)))
+                              (assoc pmf-options :trim-comments? true)
+                              pmf-options)]
             #_(def fileforms (zmap-all identity forms))
-            (process-multiple-forms {:process-bang-zprint? true, :color? false}
+            (process-multiple-forms pmf-options
                                     czprint-str-internal
                                     zprint-specifier
                                     forms))

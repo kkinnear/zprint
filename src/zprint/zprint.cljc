@@ -3699,6 +3699,7 @@
                         ; types that don't go away
                         inline-spaces (when (:inline? (:comment options))
                                         (zinlinecomment? zloc))]
+		    (dbg options "fzprint* trim-comments?:" trim-comments?)
                     (if (and (:count? (:comment options)) overflow-in-hang?)
                       (do (dbg options "fzprint*: overflow comment ========")
                           nil)

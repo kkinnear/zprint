@@ -1,11 +1,16 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.14 - 2018-11-21
+## 0.4.14 - 2018-12-14
 
 ### Changed
 
 ### Fixed
+
+  * Fixed `zprint-file-str` and `{:parse {:interpose "\n\n"}}` which
+  interacted badly.  Comments (including ;!zprint comments) would have 
+  an extra blank line.  Issue #84.
+
 
 
 ## 0.4.13 - 2018-11-21

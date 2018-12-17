@@ -2543,7 +2543,7 @@
         ; elements minimum. We could put this in the fn-map,
         ; but until there are more than three exceptions, seems
         ; like too much mechanism.
-        fn-style (if (#{:hang :flow :flow-body} fn-style)
+        fn-style (if (#{:hang :flow :flow-body :binding} fn-style)
                    fn-style
                    (if (< len 3) nil fn-style))
         ;fn-style (if (= fn-style :hang) fn-style (if (< len 3) nil fn-style))
@@ -2619,8 +2619,8 @@
       (= len 1) (concat-no-nil l-str-vec
                                (fzprint* roptions one-line-ind (zfirst zloc))
                                r-str-vec)
-      ; needs (> len 2) but we already checked for that above in fn-style
-      (and (= fn-style :binding) (zvector? (zsecond zloc)))
+      ; Must have at least two elements, third thru n are optional
+      (and (= fn-style :binding) (> len 1) (zvector? (zsecond zloc)))
         (let [[hang-or-flow binding-style-vec] (fzprint-hang-unless-fail
                                                  loptions
                                                  arg-1-indent
@@ -2631,18 +2631,22 @@
                                   (concat-no-nil [[" " :none :whitespace]]
                                                  binding-style-vec)
                                   binding-style-vec)]
-          (concat-no-nil l-str-vec
-                         ; TODO: get rid of inc ind
-                         (fzprint* loptions (inc ind) (zfirst zloc))
-                         binding-style-vec
-                         [[(str "\n" (blanks (+ indent ind))) :none :indent]]
-                         ; here we use options, because fzprint-flow-seq
-                         ; will sort it out
-                         (fzprint-flow-seq options
-                                           (+ indent ind)
-                                           (nthnext (zmap identity zloc) 2)
-                                           :force-nl)
-                         r-str-vec))
+          (concat-no-nil
+            l-str-vec
+            ; TODO: get rid of inc ind
+            (fzprint* loptions (inc ind) (zfirst zloc))
+            binding-style-vec
+            (if (> len 2)
+              (concat-no-nil [[(str "\n" (blanks (+ indent ind))) :none
+                               :indent]]
+                             ; here we use options, because fzprint-flow-seq
+                             ; will sort it out
+                             (fzprint-flow-seq options
+                                               (+ indent ind)
+                                               (nthnext (zmap identity zloc) 2)
+                                               :force-nl)
+                             r-str-vec)
+              r-str-vec)))
       (= fn-style :pair-fn) (concat-no-nil
                               l-str-vec
                               (fzprint* loptions (inc ind) (zfirst zloc))

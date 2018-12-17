@@ -2841,3 +2841,23 @@ ser/collect-vars-acc %1 %2) )))"
 "(a)\n\n;a\n\n(b)\n\n;b\n\n(c)"
  (zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)" "stuff" 
    {:parse {:interpose "\n\n"}}))
+
+;;
+;; Issue ??
+;;
+
+(expect "(let [a b\n      c d\n      e f])"
+        (zprint-str "(let [a b c d e f])"
+                    {:parse-string? true, :binding {:force-nl? true}}))
+
+(expect "(let [a b\n      c d\n      e f]\n  (list a c e))"
+        (zprint-str "(let [a b c d e f] (list a c e))"
+                    {:parse-string? true, :binding {:force-nl? true}}))
+
+(expect "(let [a b c d e f])"
+        (zprint-str "(let [a b c d e f])" {:parse-string? true}))
+
+
+
+
+

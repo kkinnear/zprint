@@ -1,11 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.14 - 2018-12-14
+## 0.4.14 - 2018-12-16
 
 ### Changed
 
+  * Enhanced formattng of `:binding` functions by allowing empty
+  body form: `(let [a b c d])`.  This will successfully format as a
+  `:binding` form.  Issue #??
+
 ### Fixed
+
+  * Added build parameter to graalvm binary builds which helps in
+  handling a broader character set. Uberjar with JVM worked anyway.
 
   * Fixed `zprint-file-str` and `{:parse {:interpose "\n\n"}}` which
   interacted badly.  Comments (including ;!zprint comments) would have 

@@ -1296,7 +1296,7 @@ This is a set that specifies which function types will always format with
 a hang or a flow, and never be printed on the same line if they have more
 than 2 arguments.
 
-#### :fn-gt3-force-nl <text style="color:#A4A4A4;"><small>#{:gt3-force-nl :arg1-pair :arg1-pair-body)</small></text>
+#### :fn-gt3-force-nl <text style="color:#A4A4A4;"><small>#{:gt3-force-nl :arg1-pair :arg1-pair-body}</small></text>
 
 This is a set that specifies which function types will always format with
 a hang or a flow, and never be printed on the same line if they have more

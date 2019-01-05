@@ -143,6 +143,7 @@
      :cljs false?))
 (s/def ::path (s/coll-of number? :kind sequential?))
 (s/def ::paths ::path-seq)
+(s/def ::return-altered-zipper vector?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::additional-libraries? ::boolean)
 (s/def ::option-fn-first (s/nilable fn?))
@@ -209,7 +210,7 @@
 (s/def ::list
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
-                      ::indent-arg ::pair-hang?]))
+                      ::indent-arg ::pair-hang? ::return-altered-zipper]))
 (s/def ::map
   (only-keys
     :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff

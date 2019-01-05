@@ -44,8 +44,8 @@
   to use similar code in Clojurescript), call redef-vars with
   a binding-map and other necessary informaiton."
        [the-type binding-vec & body]
-       `(zprint.config/redef-vars ~the-type
-                                  ~(zipmap (map #(list `var %)
-                                             (take-nth 2 binding-vec))
-                                           (take-nth 2 (next binding-vec)))
-                                  (fn [] ~@body))))
+       `(zprint.redef/redef-vars ~the-type
+                                 ~(zipmap (map #(list `var %)
+                                            (take-nth 2 binding-vec))
+                                          (take-nth 2 (next binding-vec)))
+                                 (fn [] ~@body))))

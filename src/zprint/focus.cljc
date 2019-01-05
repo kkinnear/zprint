@@ -97,6 +97,8 @@
         #_(println "range-ssv: start:" start "nwpath:" nwpath)
         start (skip-whitespace-ssv ssv start)
         ssv-next (next-ssv ssv start)
-        end (if (and ssv-next (not= start 0)) (dec ssv-next) (dec (count ssv)))]
+        end (if (and ssv-next (not= start 0))
+              ((fnil dec 1) ssv-next)
+              (dec (count ssv)))]
     #_(println "range-ssv:" [start end])
     [start end]))

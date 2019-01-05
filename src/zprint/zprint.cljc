@@ -2495,6 +2495,32 @@
              (let [caller-map (future-caller options)]
                (or (:flow? caller-map) (:force-nl? caller-map)))))))
 
+(defn modify-zloc
+  "If the (caller options) has a value for :return-altered-zipper, then
+  examine the value.  It should be [<depth> <symbol> <fn>]. 
+  If the <depth> is nil, any depth will do. If the
+  <symbol> is nil, any symbol will do.  If the <depth> and <symbol>
+  match, then the <fn> is called as (fn caller options zloc), and must
+  return a new zloc."
+  [caller options zloc]
+  (let [[depth trigger-symbol modify-fn :as return-altered-zipper-value]
+          (:return-altered-zipper (caller options))]
+    (dbg options
+         "modify-zloc caller:" caller
+         "return-altered-zipper-value:" return-altered-zipper-value)
+    (if (nil? return-altered-zipper-value)
+      zloc
+      (let [call-fn? (and (or (nil? depth) (= (:depth options) depth))
+                          (or (not trigger-symbol)
+                              (= trigger-symbol (zsexpr (zfirst zloc))))
+                          modify-fn)]
+        (dbg options "modify-zloc: zloc" (zstring zloc) "call-fn?" call-fn?)
+        (if call-fn?
+          (let [return (modify-fn caller options zloc)]
+            (dbg options "modify-zloc return:" (zstring return))
+	    return)
+          zloc)))))
+
 (defn fzprint-list*
   "Print a list, which might be a list or an anon fn.  
   Lots of work to make a list look good, as that is typically code. 
@@ -2505,6 +2531,7 @@
   ; The options map can get re-written down a bit below, so don't get
   ; anything with destructuring that might change with a rewritten  options map!
   (let [max-length (get-max-length options)
+        zloc (modify-zloc caller options zloc)
         len (zcount zloc)
         zloc (if (> len max-length) (ztake-append max-length zloc '...) zloc)
         len (zcount zloc)

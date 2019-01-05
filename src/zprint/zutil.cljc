@@ -3,7 +3,7 @@
     #?@(:clj [[zprint.macros :refer [do-redef-vars]]])
     clojure.string
     zprint.zfns
-    #?@(:clj [[zprint.config :refer [redef-vars]]])
+    #?@(:clj [[zprint.redef]])
     [rewrite-clj.parser :as p]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]
@@ -13,6 +13,17 @@
 
 ;;
 ;; # Zipper oriented style printers
+;;
+
+;;
+;; Note that both rewrite-clj and rewrite-cljs use the following namespaces:
+;;
+;; rewrite-clj.parse
+;; rewrite-clj.node
+;; rewrite-clj.zip
+;;
+;; and have many common routines.  So it is fine to use z/<fn> as long as
+;; that <fn> shows up in both libraries.
 ;;
 
 ;;

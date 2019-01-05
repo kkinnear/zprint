@@ -408,7 +408,7 @@
     "Set to null all of vars in a binding-map."
     [binding-map]
     (mapv #(bind-var % nil) (keys binding-map))
-    (reset! zprint.config/ztype [:none 0]))
+    (reset! zprint.redef/ztype [:none 0]))
 
 (def fs
   (mapv slurp
@@ -417,36 +417,36 @@
 (expect
   nil
   (redef-state [zprint.zfns zprint.config]
-               (reset! zprint.config/ztype [:none 0])
+               (reset! zprint.redef/ztype [:none 0])
                #_(clear-bindings zprint.zutil/zipper-binding-map)
                (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
                     (catch Exception e
                       (do #_(clear-bindings zprint.zutil/zipper-binding-map)
-                          (reset! zprint.config/ztype [:none 0])
+                          (reset! zprint.redef/ztype [:none 0])
                           (str "Failed to pass test to run multiple zprints "
                                "in the same JVM simultaneouls!")))
                     (finally (redef-state [zprint.zfns zprint.config] nil)))))
 (expect
   nil
   (redef-state [zprint.zfns zprint.config]
-               (reset! zprint.config/ztype [:none 0])
+               (reset! zprint.redef/ztype [:none 0])
                #_(clear-bindings zprint.zutil/zipper-binding-map)
                (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
                     (catch Exception e
                       (do #_(clear-bindings zprint.zutil/zipper-binding-map)
-                          (reset! zprint.config/ztype [:none 0])
+                          (reset! zprint.redef/ztype [:none 0])
                           (str "Failed to pass test to run multiple zprints "
                                "in the same JVM simultaneouls!")))
                     (finally (redef-state [zprint.zfns zprint.config] nil)))))
 (expect
   nil
   (redef-state [zprint.zfns zprint.config]
-               (reset! zprint.config/ztype [:none 0])
+               (reset! zprint.redef/ztype [:none 0])
                #_(clear-bindings zprint.zutil/zipper-binding-map)
                (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
                     (catch Exception e
                       (do #_(clear-bindings zprint.zutil/zipper-binding-map)
-                          (reset! zprint.config/ztype [:none 0])
+                          (reset! zprint.redef/ztype [:none 0])
                           (str "Failed to pass test to run multiple zprints "
                                "in the same JVM simultaneouls!")))
                     (finally (redef-state [zprint.zfns zprint.config] nil)))))
@@ -460,7 +460,7 @@
 (expect nil
         (redef-state [zprint.zfns zprint.config]
                      (Thread/sleep 1000)
-                     (reset! zprint.config/ztype [:none 0])
+                     (reset! zprint.redef/ztype [:none 0])
                      #_(clear-bindings zprint.zutil/zipper-binding-map)
                      nil))
 
@@ -473,8 +473,8 @@
   "Test the multithreaded capabilities and that they fail when they are  
   supposed to.  This *should* fail!!!."
   []
-  (reset! zprint.config/ztype [:none 0])
-  #_(reset! zprint.config/ztype-history [])
+  (reset! zprint.redef/ztype [:none 0])
+  #_(reset! zprint.redef/ztype-history [])
   (doall (let [fs (map slurp
                     ["src/zprint/core.cljc" "src/zprint/zutil.cljc"
                      "src/zprint/ansi.cljc"])
@@ -508,7 +508,7 @@
          ; This is to keep the threads that were still running from messing
          ; up the next tests!
          (do (Thread/sleep 2000)
-             (reset! zprint.config/ztype [:none 0])
+             (reset! zprint.redef/ztype [:none 0])
              "multi-test-fail got an exception as it was supposed to do"))))
 
 ;

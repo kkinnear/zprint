@@ -1,15 +1,28 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.14 - 2018-12-16
+## 0.4.14 - 2019-01-6
+
+### Added
+  
+  * Major new capability to rewrite zippers during formatting to
+  do things like sort dependencies.  This is alpha/experimental,
+  which is to say, the capability may go away or change significantly.
+  It has had less testing than usual, but has been tested in both
+  Clojure and Clojurescript.  You can access this capabiity for
+  Leiningen `project.clj` files by using `{:style :sort-dependencies}`.
+  Issue #76
 
 ### Changed
 
   * Enhanced formattng of `:binding` functions by allowing empty
   body form: `(let [a b c d])`.  This will successfully format as a
-  `:binding` form.  Issue #??
+  `:binding` form.  Issue #73
 
 ### Fixed
+
+  * Wrapped a `dec` function in an `fnil` to avoid an overly enthusiatic
+  Clojurescript warning in Clojurescript 1.10.439.  Issue #91.
 
   * Added build parameter to graalvm binary builds which helps in
   handling a broader character set. Uberjar with JVM worked anyway.

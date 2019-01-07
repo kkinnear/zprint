@@ -183,6 +183,7 @@
 (s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
 (s/def ::cwd-zprintrc? ::boolean)
+(s/def ::search-config? ::boolean)
 (s/def ::dbg? ::boolean)
 (s/def ::dbg-print? ::boolean)
 (s/def ::dbg-ge zany?)
@@ -284,9 +285,9 @@
              ::max-hang-span ::max-length ::object ::old? ::output ::pair
              ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
              ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
-             ::record ::remove ::return-cvec? ::set ::spaces? ::spec ::style
-             ::style-map ::tab ::trim-comments? ::tuning :alt/uneval
-             ::user-fn-map ::vector ::version ::width ::zipper?]))
+             ::record ::remove ::return-cvec? ::search-config? ::set ::spaces?
+             ::spec ::style ::style-map ::tab ::trim-comments? ::tuning
+             :alt/uneval ::user-fn-map ::vector ::version ::width ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

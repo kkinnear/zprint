@@ -2507,8 +2507,9 @@
           (:return-altered-zipper (caller options))]
     (dbg options
          "modify-zloc caller:" caller
+	 "ztype" (:ztype options)
          "return-altered-zipper-value:" return-altered-zipper-value)
-    (if (nil? return-altered-zipper-value)
+    (if (or (not= (:ztype options) :zipper) (nil? return-altered-zipper-value))
       zloc
       (let [call-fn? (and (or (nil? depth) (= (:depth options) depth))
                           (or (not trigger-symbol)

@@ -1,9 +1,21 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.14 - 2019-01-6
+## 0.4.14 - 2019-01-13
 
 ### Added
+
+  * New configuration capabilities.  Everywhere zprint looks for
+  a `.zprintrc` file, it will also look for a `.zprint.edn` file
+  if it does not find a `.zprintrc` file. Issue #83
+
+  * If the `.zprintrc` or `.zprint.edn` file in the `$HOME` directory
+  has `:search-config?` set to `true`, zprint will look for a
+  `.zprintrc` or `.zprint.edn` file in the current directory, and
+  if does not find one there, in that directory's parent, and will
+  continue to look in directories up the tree until it either finds
+  a configuration file or runs into the root directory.  If
+  `:search-confing?` is true, `:cwd-zprintrc` is ignored.
   
   * Major new capability to rewrite zippers during formatting to
   do things like sort dependencies.  This is alpha/experimental,
@@ -30,7 +42,6 @@ All notable changes to this project will be documented in this file.
   * Fixed `zprint-file-str` and `{:parse {:interpose "\n\n"}}` which
   interacted badly.  Comments (including ;!zprint comments) would have 
   an extra blank line.  Issue #84.
-
 
 
 ## 0.4.13 - 2018-11-21

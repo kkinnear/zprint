@@ -452,6 +452,7 @@ of the options map looks like this:
  :binding {...},
  :color-map {...},
  :comment {...},
+ :cwd-zprintrc? false,
  :delay {...},
  :extend {...},
  :fn-map {...},
@@ -468,6 +469,7 @@ of the options map looks like this:
  :promise {...},
  :reader-cond {...},
  :record {...},
+ :search-config? false,
  :set {...},
  :style nil,
  :style-map {...},
@@ -480,17 +482,33 @@ of the options map looks like this:
 
 ## How to Configure zprint 
 
-When zprint is called for the first time it will configure itself
-from all of the information that it has available at that time.
-It will examine the following information in order to configure
-itself:
+When zprint (or one of the zprint-filters) is called for the first
+time it will configure itself from all of the information that it
+has available at that time.  It will examine the following information
+in order to configure itself:
 
-* The file `$HOME/.zprintrc` for an options map in EDN format
-* The file `.zprintrc` in the current working directory for an options 
-  map in EDN format if the file `$HOME/.zprintrc` 
-  has `{:cwd-zprintrc? true}` in its options map.
+* The file `$HOME/.zprintrc` or that file does not exist, the  file 
+  `$HOME/.zprint.edn` for an options map in EDN format.
+* If the file found above has `:search-config?` true, it will look
+  in the current directory for a file `.zprintrc` and if it doesn't find
+  one, it will look for `.zprint.edn`.l  If it doesn't find either of them,
+  it will look in the parent of the current directory for the same two files,
+  in the same order.  This process will stop when it finds a file or it
+  reaches the root of the file system.  If the file it finds is in the
+  home directory (that is, it is the same file found in the first step
+  in this process, above), it will read the file but it will not use the
+  results (because it has already done so).
+* If the file found in the home directory has `:cwd-zprintrc?` set to true,
+  and did not have `:search-config?` set to true, then it will search
+  the current directory for `.zprintrc` and `.zprint.edn` in that order,
+  and use the information from the first file it finds.
 * __DEPRECATED:__ Environment variables for individual option map values
 * __DEPRECATED:__ Java properties for individual option map values
+
+The `{:search-config? true}` capability is designed to allow projects
+to have zprint configuration files in various places in the project
+structure.  There might be a zprint configuration file at the root
+of a project, which would be used for every source file in the project.
 
 You can invoke the function `(configure-all!)` at any time to
 cause zprint to re-examine the above information.  It will delete
@@ -506,7 +524,10 @@ the call:
 ```
 
 This will cause zprint to use the default options map regardless of
-what appears in any of the external configuration areas.
+what appears in any of the external configuration areas.  This would be
+of value to anyone using the zprint library to format something a particular
+way which they didn't want to be affected by an individual's personal
+configuration.
 
 You can add configuration information by:
 
@@ -517,7 +538,7 @@ to `zprint` or `czprint`
 
 ## Configuration Interface
 
-### .zprintrc
+### .zprintrc or .zprint.edn
 
 The `.zprintrc` file contain a sparse options map in EDN format (see below).
 That is to say, you only specify the elements that you wish to alter in
@@ -528,11 +549,17 @@ would have a `.zprintrc` file as follows:
 {:map {:indent 0}}
 ```
 
-There are two possible `.zprintrc` files:
+zprint will configure itself from at most two EDN files containing an options
+map:
 
-  * `$HOME/.zprintrc` which is always read
-  * `.zprintrc` in the current working directory, which is only read
-     if `$HOME/.zprintrc` has `{:cwd-zprintrc? true}` in its options map
+  * `$HOME/.zprintrc` or `$HOME/.zprint.edn` which is always read
+  * `.zprintrc` or `.zprint.edn` in the current working directory or its
+  parents, up to the root of the file system if the configuration file in
+  `$HOME` has `:search-config?` set to `true`.
+  * `.zprintrc` or `.zprint.edn` in the current working directory, 
+  which is only read if the configuration file in `$HOME` has 
+  `{:cwd-zprintrc? true}` and does not have `{:search-config? true}`
+  in its options map
 
 Note that these files are only read and converted when zprint initially
 configures itself, which is at the first use of a zprint or czprint
@@ -2412,6 +2439,47 @@ Using our previous example again:
         (s/and #(>= (:ret %) (-> % :args :start))
                #(< (:ret %) (-> % :args :end))))
 ```
+
+#### :return-altered-zipper <text style="color:#A4A4A4;"><small>nil</small></text>
+
+__EXPERIMENTAL__
+
+This capability will let you rewrite any list that zprint encounters.  It only
+works when zprint is formatting source code -- where `:parse-string?` is 
+`true`.  When a structure is being formatted, none of this is invoked.
+
+This will call a function that you supply with the zipper of the list
+and the function should return a zipper with an altered list.  Zprint will
+then format the altered list.
+
+General caveats -- you can really screw things up very easily, as I'm sure
+is obvious.  Less obvious is the relative difficulty of actually writing a
+function to rewrite the code.  Implementing this feature was very easy,
+writng the first example, the style `:sort-dependencies` was a significant
+piece of work.  It is hard to rewrite code using rewrite-clj (not that
+I have a better approach), it is hard to debug, the Clojure and Clojurescript 
+implementations of rewrite-clj are very slightly different.  
+
+The configuration for `:return-altered-zipper` is a vector: `[<depth> <symbol> <fn>]`, where `<depth>` is the depth to call the function (if the `<symbol>`
+matches).  A `<depth>` of `nil` will call at any depth.  The `<symbol>` is the
+first element of the list that is passed to the `<fn>`.  If `<symbol>` is
+`nil`, then every list is passed to the `<fn>`.   The goal here is to not
+severely impact the performance by calling the function to rewrite the zipper
+too frequently.  I would recommend against configuring `[nil nil <fn>]`.
+See the configuration for the style `:sort-dependencies` for an example.
+
+The `<fn>` requires a signature of `[caller options zloc]`, where
+`caller` is the keyword that indicates who called called `fzprint-list*`
+(which would be useful only to check values in the option map),
+`options` is the current options map, and `zloc` is the zipper that
+can be modified.  The `<fn>` should return a zipper which is an
+alteration of `zloc`.  See the file `rewrite.cljc` for the current
+implementation of `:sort-dependencies` as an example.
+
+This whole capability is experimental until further notice.  There may be
+a better way of accomplishing this, or the API may change in important
+ways.  In the event you write a function that works, let me know!
+
 _____
 ## :map
 
@@ -3299,7 +3367,23 @@ responsibility.
 These are convenience styles which simply allow you to set `{:indent 0 :nl-separator? true}` for each of the associated format elements.  They simply exist to
 save you some typing if these styles are favorites of yours.
 
+#### :sort-dependencies
+
+__EXPERIMENTAL__
+
+Sort the dependencies in a leiningen project.clj file in alphabetical
+order.  Technically, it will sort the vectors in the value of any key 
+named `:dependencies` inside any function (macro) named `defproject`. 
+Has no effect when formatting a structure (as opposed to parsing a
+string and formatting code).
+
 #### :spec
+
+__DEPRECATED__
+
+This should be largely unnecessary with enhancements to the `:fn-map` for
+spec definitions functions.  I believe that spec files format correctly
+with no additional configuration required.  
 
 This style is good for formatting clojure.spec files.  The 
 `{:list {:constant-pair-min 2}}` is going to be useful for everyone, and
@@ -3307,7 +3391,8 @@ probably the `{:pair {:indent 0}}` will be too.  The `{:vector {:wrap? false}}`
 is an open question.  Some people want the keys each on one line, and some
 people want them all tucked up together.  Remember, a style is applied before
 the rest of the options map, so if you want to have your specs that show up
-in a vector all tucked up together, you can do: `{:style :spec, :vector {:wrap? true}}`.
+in a vector all tucked up together, you can do: 
+`{:style :spec, :vector {:wrap? true}}`.
 
 #### :keyword-respect-nl
 

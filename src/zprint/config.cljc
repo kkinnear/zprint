@@ -31,6 +31,7 @@
 ;;
 
 (def zprintrc ".zprintrc")
+(def zprintedn ".zprint.edn")
 
 ;;
 ;; # Internal Storage
@@ -514,6 +515,7 @@
             :fn-gt3-force-nl nil,
             :extend {:modifiers nil}},
    :return-cvec? false,
+   :search-config? false,
    :set {:indent 1,
          :sort? true,
          :sort-in-code? false,
@@ -1105,23 +1107,66 @@
 ;; # Configuration Utilities
 ;;
 
+;; Remove two files from this, make it one file at a time.`
+;; Do the whole file here.
 (defn get-config-from-file
-  "Read in an options map from a file."
+  "Read in an options map from one file or another file. Possibly neither of
+  them exist, which is fine if optional? is truthy."
   ([filename optional?]
    #?(:clj (when filename
-             (try (let [lines (file-line-seq-file filename)
-                        opts-file (clojure.edn/read-string (apply str lines))]
-                    [opts-file nil filename])
-                  (catch #?(:clj Exception
-                            :cljs :default) e
-                    (if optional?
-                      nil
-                      [nil
-                       (str "Unable to read configuration from file " filename
-                            " because " e) filename]))))
+             (let [full-path (.getCanonicalPath (java.io.File. filename))]
+               #_(println "get-config-from-file: filename:" filename
+                          "full-path:" full-path)
+               (try (let [lines (file-line-seq-file filename)
+                          opts-file (clojure.edn/read-string (apply str lines))]
+                      [opts-file nil full-path])
+                    (catch Exception e
+                      (if optional?
+                        nil
+                        [nil
+                         (str "Unable to read configuration from file " filename
+                              " because " e) full-path])))))
       :cljs nil))
   ([filename] (get-config-from-file filename nil)))
 
+(defn get-config-from-path
+  "Take a vector of filenames, and look in exactly one directory for
+  all of the filenames.  Return the [option-map error-str full-file-path]
+  from get-config-from-file for the first one found, or nil if none found."
+  [filename-vec file-sep dir-vec]
+  (let [dirspec (apply str (interpose file-sep dir-vec))
+        config-vec (some #(get-config-from-file % :optional)
+                         (map (partial str dirspec file-sep) filename-vec))]
+    config-vec))
+
+(defn get-config-from-dirs
+  "Take a vector of directories dir-vec and check for all of the
+  filenames in filename-vec in the directory specified by dir-vec.
+  When one is found, return (using reduced) the [option-map error-str
+  full-file-path] from get-config-from-file, or nil if none are
+  found."
+  [filename-vec file-sep dir-vec _]
+  (let [config-vec (get-config-from-path filename-vec file-sep dir-vec)]
+    (if config-vec
+      (reduced config-vec)
+      (if (= ["."] dir-vec) [".."] (concat [".."] dir-vec)))))
+
+(defn scan-up-dir-tree
+  "Take a vector of filenames and scan up the directory tree from
+  the current directory to the root, looking for any of the files
+  in each directory.  Look for them in the order given in the vector.
+  Return nil or a vector from get-config-from-file: [option-map
+  error-str full-file-path]."
+  [filename-vec file-sep]
+  (let [; Fix file-sep for Windows file separator regex-file-sep
+        regex-file-sep (if (= file-sep "\\") "\\\\" file-sep)
+        file-sep-pattern (re-pattern regex-file-sep)
+        cwd (java.io.File. ".")
+        path-to-root (.getCanonicalPath cwd)
+        dirs-to-root (clojure.string/split path-to-root file-sep-pattern)]
+    (reduce (partial get-config-from-dirs filename-vec file-sep)
+      ["."]
+      dirs-to-root)))
 
 (defn get-config-from-map
   "Read in an options map from a string."
@@ -1243,25 +1288,46 @@
         file-separator #?(:clj (System/getProperty "file.separator")
                           :cljs nil)
         zprintrc-file (str home file-separator zprintrc)
-        [opts-rcfile errors-rcfile rc-filename]
+        [opts-rcfile errors-rcfile rc-filename :as home-config]
           (when (and home file-separator)
-            (get-config-from-file zprintrc-file :optional))
-        [updated-map new-doc-map rc-errors] (config-and-validate
-                                              (str "File: " zprintrc-file)
-                                              default-doc-map
-                                              default-map
-                                              opts-rcfile)
+            (get-config-from-path [zprintrc zprintedn] file-separator [home]))
+        [updated-map new-doc-map rc-errors]
+          (config-and-validate (str "Home directory file: " rc-filename)
+                               default-doc-map
+                               default-map
+                               opts-rcfile)
         ;
-        ; .zprintrc in current working directory if enabled by
-        ; {:cwd-zprintrc? true}
+        ; Search for .zprintrc or .zprint.edn in the current working
+        ; directory, and all directories above that, if enabled by:
+        ; {:search-config? true}.  If we ended up with the same info
+        ; as we got above for the HOME config, ignore it.
         ;
-        cwd-filename (when (:cwd-zprintrc? updated-map) zprintrc)
-        [cwd-rcfile cwd-errors-rcfile cwd-filename]
-          (when cwd-filename (get-config-from-file cwd-filename :optional))
-        [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
-          (config-and-validate (str "Current working dir file: " cwd-filename)
+        [search-rcfile search-errors-rcfile search-filename :as search-config]
+          (when (and (:search-config? updated-map) file-separator)
+            (scan-up-dir-tree [zprintrc zprintedn] file-separator))
+        [search-rcfile search-errors-rcfile search-filename]
+          (when (not= home-config search-config)
+            [search-rcfile search-errors-rcfile search-filename])
+        [search-map search-doc-map search-rc-errors]
+          (config-and-validate (str ":search-config? file: " search-filename)
                                new-doc-map
                                updated-map
+                               search-rcfile)
+        ;
+        ; Look for .zprintrc in current working directory if:
+        ;   o we didn't search this directory already, above
+        ;   o {:cwd-zprintrc? true}
+        ;   o we have a file-separator
+        ;
+        [cwd-rcfile cwd-errors-rcfile cwd-filename]
+          (when (and (not (:search-config? updated-map))
+                     (:cwd-zprintrc? search-map)
+                     file-separator)
+            (get-config-from-path [zprintrc zprintedn] file-separator ["."]))
+        [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
+          (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
+                               search-doc-map
+                               search-map
                                cwd-rcfile)
         ;
         ; environment variables -- requires zprint on front
@@ -1299,7 +1365,7 @@
         config-filename #?(:clj (:config cli-opts)
                            :cljs nil)
         [opts-configfile errors-configfile config-filename]
-          (when config-filename (get-config-from-file zprintrc-file))
+          (when config-filename (get-config-from-file config-filename))
         [updated-map new-doc-map config-errors]
           (config-and-validate (str "Config file: " config-filename)
                                new-doc-map

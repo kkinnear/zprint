@@ -51,7 +51,6 @@
              (if (= (z/tag next-element) :token) (z/string next-element) "")))
       (recur (z/down nloc)))))
 
-; TODO: Make get-sortable an argument to this function
 (defn sort-val
   "Sort the everything in the vector to the right of zloc."
   [zloc]

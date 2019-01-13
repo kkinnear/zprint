@@ -2507,7 +2507,7 @@
           (:return-altered-zipper (caller options))]
     (dbg options
          "modify-zloc caller:" caller
-	 "ztype" (:ztype options)
+         "ztype" (:ztype options)
          "return-altered-zipper-value:" return-altered-zipper-value)
     (if (or (not= (:ztype options) :zipper) (nil? return-altered-zipper-value))
       zloc
@@ -2519,7 +2519,7 @@
         (if call-fn?
           (let [return (modify-fn caller options zloc)]
             (dbg options "modify-zloc return:" (zstring return))
-	    return)
+            return)
           zloc)))))
 
 (defn fzprint-list*
@@ -3731,7 +3731,7 @@
                         ; types that don't go away
                         inline-spaces (when (:inline? (:comment options))
                                         (zinlinecomment? zloc))]
-		    (dbg options "fzprint* trim-comments?:" trim-comments?)
+                    (dbg options "fzprint* trim-comments?:" trim-comments?)
                     (if (and (:count? (:comment options)) overflow-in-hang?)
                       (do (dbg options "fzprint*: overflow comment ========")
                           nil)

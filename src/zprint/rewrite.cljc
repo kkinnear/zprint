@@ -69,21 +69,21 @@
       #_(println "sort-val: loop: before:" (z/string nloc))
       #_(when nloc (println "sort-val: loop: n/tag:" (n/tag (z/node nloc))))
       #_(when new-loc
-        (println "sort-val: loop: after:" (n/string (z/node (first new-loc))))
-        (println "sort-val: loop: n/tag:" (n/tag (z/node (first new-loc)))))
+          (println "sort-val: loop: after:" (n/string (z/node (first new-loc))))
+          (println "sort-val: loop: n/tag:" (n/tag (z/node (first new-loc)))))
       (if new-loc
         (let [new-z (first new-loc)
-	      ; rewrite-cljs doesn't handle z/node for :uneval
-	      ; so we will get an :uneval node a different way
+              ; rewrite-cljs doesn't handle z/node for :uneval
+              ; so we will get an :uneval node a different way
               new-node (if (= (z/tag new-z) :uneval)
                          (p/parse-string (z/string new-z))
                          (z/node new-z))
-	      ; use clojure.zip for cljs, since the z/replace has
-	      ; a built-in coerce, which doesn't work for an :uneval
+              ; use clojure.zip for cljs, since the z/replace has
+              ; a built-in coerce, which doesn't work for an :uneval
               replaced-loc #?(:clj (z/replace nloc new-node)
                               :cljs (clojure.zip/replace nloc new-node))]
           #_(println "sort-val: loop: replaced-loc n/tag:"
-                   (n/tag (z/node replaced-loc)))
+                     (n/tag (z/node replaced-loc)))
           (recur (z/right replaced-loc) (next new-loc) replaced-loc))
         (z/up last-loc)))))
 
@@ -100,4 +100,3 @@
                                (= (z/sexpr %1) :dependencies))
                          sort-down)]
     new-dep))
-

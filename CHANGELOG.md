@@ -25,6 +25,8 @@ All notable changes to this project will be documented in this file.
   Leiningen `project.clj` files by using `{:style :sort-dependencies}`.
   Issue #76
 
+  * Information on using Clojure CLI.  Thanks for pull request #82
+
 ### Changed
 
   * Enhanced formattng of `:binding` functions by allowing empty

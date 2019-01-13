@@ -131,7 +131,9 @@ __Leiningen ([via Clojars](http://clojars.org/zprint))__
 zprint uses `clojure.spec.alpha`, and has been tested in each of the
 following environments:
 
-  * Clojurescript 1.10.339
+  * Clojurescript 1.10.439
+    - figwheel
+    - shadow-cljs
   * `lumo` 1.8.0-beta 
   * `planck` 2.8.1
 

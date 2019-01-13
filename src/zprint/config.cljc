@@ -4,7 +4,7 @@
             [clojure.set :refer [difference]]
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic]]
-	    [zprint.rewrite :refer [sort-dependencies]]
+            [zprint.rewrite :refer [sort-dependencies]]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader)
@@ -1114,7 +1114,9 @@
   them exist, which is fine if optional? is truthy."
   ([filename optional?]
    #?(:clj (when filename
-             (let [full-path (.getCanonicalPath (java.io.File. filename))]
+             (let [filestr (str filename)
+                   the-file (java.io.File. filestr)
+                   full-path (.getCanonicalPath the-file)]
                #_(println "get-config-from-file: filename:" filename
                           "full-path:" full-path)
                (try (let [lines (file-line-seq-file filename)

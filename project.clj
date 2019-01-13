@@ -6,7 +6,7 @@
             :key "mit",
             :year 2015}
   :plugins
-    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.3.12"]]
+    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.3.14"]]
   :profiles {:dev {:dependencies [[expectations "2.2.0-rc1"]
                                   [com.taoensso/tufte "1.1.1"]
                                   #_[org.clojure/clojurescript "1.9.946"]

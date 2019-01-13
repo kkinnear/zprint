@@ -2833,14 +2833,13 @@ ser/collect-vars-acc %1 %2) )))"
 ;; Issue 84
 ;;
 
-(expect
-"(a)\n;a\n\n(b)\n;b\n(c)"
-(zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)" "stuff"))
+(expect "(a)\n;a\n\n(b)\n;b\n(c)"
+        (zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)" "stuff"))
 
-(expect
-"(a)\n\n;a\n\n(b)\n\n;b\n\n(c)"
- (zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)" "stuff" 
-   {:parse {:interpose "\n\n"}}))
+(expect "(a)\n\n;a\n\n(b)\n\n;b\n\n(c)"
+        (zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)"
+                         "stuff"
+                         {:parse {:interpose "\n\n"}}))
 
 ;;
 ;; Issue ??
@@ -2856,8 +2855,3 @@ ser/collect-vars-acc %1 %2) )))"
 
 (expect "(let [a b c d e f])"
         (zprint-str "(let [a b c d e f])" {:parse-string? true}))
-
-
-
-
-

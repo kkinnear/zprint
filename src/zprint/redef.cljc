@@ -25,11 +25,13 @@
 
 #?(:clj
      (defmacro zlocking
-       "Emulates locking macro, but doesn't use synchronized block because that
-  interacts badly with graalvm. Executes exprs in an implicit do, while locking x.
-  Will release the lock on x in all circumstances.  Only does locking if the
-  global zlock-enable is true, because graalvm will compile with the following 
-  code, but will throw an exception since it is unable to find the unlock method."
+       "Emulates locking macro, but doesn't use synchronized block
+       because that interacts badly with graalvm. Executes exprs
+       in an implicit do, while locking x.  Will release the lock
+       on x in all circumstances.  Only does locking if the global
+       zlock-enable is true, because graalvm will compile with the
+       following code, but will throw an exception since it is
+       unable to find the unlock method."
        [^ReentrantLock x & body]
        `(let [lockee# ~x]
           (try (if @zlock-enable (. lockee# (lock)))
@@ -110,4 +112,3 @@
                              (str "Internal Error: when attempting to reduce"
                                   " count of invocations using: " the-type
                                   ", the type was: " current-type))))))))))
-

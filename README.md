@@ -138,6 +138,22 @@ following environments:
 It requires `tools.reader` at least 1.0.5, which all of the environments
 above contain.
 
+### Clojure CLI
+
+Add the following either to the `$HOME/.clojure/deps.edn` file or to a project `deps.edn`:
+
+```clojure
+:zprint {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}
+                      zprint              {:mvn/version "0.4.13"}}
+         :main-opts  ["-m" "zprint.main"]}
+```	    
+
+Then you can use the following as filter and pretty printer:
+
+```shell
+cat /path/to/file.clj | clojure -A:zprint
+```
+
 ## Features
 
 In addition to meeting the goals listed above, zprint has the 

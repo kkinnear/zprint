@@ -30,29 +30,29 @@ news is that we are back to a different version for each platform.
 
 ### Linux
 
-You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.4.15`
+You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.4.16`
 (or the appropriate version) in the latest zprint release.
 
 ### MacOS
 
-You can now download a pre-build MacOS image from zprint GitHub, look for `zprintm-0.4.15`
+You can now download a pre-build MacOS image from zprint GitHub, look for `zprintm-0.4.16`
 (or the appropriate version) in the latest zprint release.
 
 ## Usage
 
-The `zprintl-0.4.15` or `zprintm-0.4.15` It is a regular "unix-like" filter which will
+The `zprintl-0.4.16` or `zprintm-0.4.16` It is a regular "unix-like" filter which will
 run on Linux or MacOS respectively -- __without any JVM__ involved!.  You
 use it like:
 
 ```
-./zprintm-0.4.15 < core.clj > core.new.clj
+./zprintm-0.4.16 < core.clj > core.new.clj
 ```
 It reads the source code and spits out formatted source code.  It will accept an options
 map as on the command line.  Don't forget to put "'" around the options map, or the results
 won't be what you expect.  An example:
 
 ```
-./zprintm-0.4.15 '{:style :community}' < core.clj > core.new.clj
+./zprintm-0.4.16 '{:style :community}' < core.clj > core.new.clj
 ```
 If you put it on your path, you can just run it from anywhere.  I use it in my editor,
 to format a function while I'm editing it.  For most functions, it runs fast enough I don't even notice it.

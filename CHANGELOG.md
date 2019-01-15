@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.15 - 2019-01-14
+
+### Fixed
+
+  * Fixed cljs build warning.
+
 ## 0.4.14 - 2019-01-13
 
 ### Added

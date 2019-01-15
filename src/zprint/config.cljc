@@ -21,7 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.14"))
+(defn about "Return version of this program." [] (str "zprint-0.4.15"))
 
 ;;
 ;; # External Configuration
@@ -1160,15 +1160,17 @@
   Return nil or a vector from get-config-from-file: [option-map
   error-str full-file-path]."
   [filename-vec file-sep]
-  (let [; Fix file-sep for Windows file separator regex-file-sep
-        regex-file-sep (if (= file-sep "\\") "\\\\" file-sep)
-        file-sep-pattern (re-pattern regex-file-sep)
-        cwd (java.io.File. ".")
-        path-to-root (.getCanonicalPath cwd)
-        dirs-to-root (clojure.string/split path-to-root file-sep-pattern)]
-    (reduce (partial get-config-from-dirs filename-vec file-sep)
-      ["."]
-      dirs-to-root)))
+  #?(:clj (let [; Fix file-sep for Windows file separator regex-file-sep
+                regex-file-sep (if (= file-sep "\\") "\\\\" file-sep)
+                file-sep-pattern (re-pattern regex-file-sep)
+                cwd (java.io.File. ".")
+                path-to-root (.getCanonicalPath cwd)
+                dirs-to-root (clojure.string/split path-to-root
+                                                   file-sep-pattern)]
+            (reduce (partial get-config-from-dirs filename-vec file-sep)
+              ["."]
+              dirs-to-root))
+     :cljs nil))
 
 (defn get-config-from-map
   "Read in an options map from a string."

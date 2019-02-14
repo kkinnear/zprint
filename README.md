@@ -1060,7 +1060,7 @@ executed after the binding is `:list {:indent n}`.
 
 The function has a series of clauses which are paired.  Whether or
 not the paired clauses use hang or flow with respect to the function
-name is controlled by `:pair-fn {:hang? boolen}` and the indent of
+name is controlled by `:pair-fn {:hang? boolean}` and the indent of
 the leftmost element is controlled by `:pair-fn {:indent n}`.
 
 The actual formatting of the pairs themselves is controlled by

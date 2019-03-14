@@ -188,6 +188,7 @@
 (s/def ::cwd-zprintrc? ::boolean)
 (s/def ::search-config? ::boolean)
 (s/def ::dbg? ::boolean)
+(s/def ::dbg-local? ::boolean)
 (s/def ::dbg-print? ::boolean)
 (s/def ::dbg-ge zany?)
 
@@ -215,6 +216,7 @@
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
                       ::indent-arg ::pair-hang? ::return-altered-zipper
+		      ::respect-nl?
 		      ::indent-only?]))
 (s/def ::map
   (only-keys
@@ -252,6 +254,7 @@
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
                       :alt/extend]))
+(s/def ::reset zany?)
 (s/def ::return-cvec? ::boolean)
 (s/def ::set
   (only-keys :opt-un [::indent ::indent-only? ::respect-nl? ::sort?
@@ -284,6 +287,7 @@
   (only-keys
     :opt-un [::additional-libraries? ::agent ::array ::atom ::auto-width?
              ::binding ::color? ::color-map :alt/comment ::configured? ::dbg?
+	     ::dbg-local?
              ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge ::delay
              ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
              ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
@@ -292,7 +296,7 @@
              ::max-hang-span ::max-length ::object ::old? ::output ::pair
              ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
              ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
-             ::record ::remove ::return-cvec? ::search-config? ::set ::spaces?
+             ::record ::remove ::reset ::return-cvec? ::search-config? ::set ::spaces?
              ::spec ::style ::style-map ::tab ::trim-comments? ::tuning
              :alt/uneval ::user-fn-map ::vector ::version ::width ::zipper?]))
 

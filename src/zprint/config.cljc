@@ -147,8 +147,8 @@
 ;;
 ;; :arg1-extend
 ;;
-;; For the several functions which have an single argument
-;; prior to the :extend syntax.  The must have one argument,
+;; For the several functions which have a single argument
+;; prior to the :extend syntax.  They must have one argument,
 ;; and if the second argument is a vector, it is also handled
 ;; separately from the :extend syntax.
 ;;
@@ -442,7 +442,8 @@
           :indent 2,
           :indent-arg nil,
 	  :indent-only? nil,
-          :pair-hang? true},
+          :pair-hang? true
+	  :respect-nl? false},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -469,7 +470,7 @@
          :justify? false,
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	 :repsect-nl? false,
+	 :respect-nl? false,
          :unlift-ns? false},
    :max-depth 1000,
    :max-depth-string "##",
@@ -520,7 +521,7 @@
             :extend {:modifiers nil}},
    :return-cvec? false,
    :search-config? false,
-   :set {:indent 1,
+   :set {:indent 2,
 	 :indent-only? false
 	 :respect-nl? false
          :sort? true,
@@ -560,7 +561,7 @@
                                            ":require" :flow},
                                   :list {:hang? false, :indent-arg 1}}]}},
       :indent-only {:list {:indent-only? true}
-                    :map {:indent-only? true}
+                    :map {:indent-only? true :indent 1}
 		    :set {:indent-only? true}
 		    :vector {:indent-only? true}}
       :justified {:binding {:justify? true},
@@ -580,6 +581,10 @@
                 :reader-cond {:hang? false},
                 :record {:hang? false}},
       :pair-nl {:pair {:indent 0, :nl-separator? true}},
+      :respect-nl {:list {:respect-nl? true}
+                   :map {:respect-nl? true}
+		   :vector {:respect-nl? true}
+		   :set {:respect-nl? true}}
       :spec {:list {:constant-pair-min 2},
              :vector {:wrap? false},
              ;:pair {:indent 0} removed in 0.4.1

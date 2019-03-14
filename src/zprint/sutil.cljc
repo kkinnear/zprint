@@ -284,15 +284,22 @@
     zprint.zfns/zcomment? (constantly false)
     zprint.zfns/zsexpr identity
     zprint.zfns/zseqnws sseqnws
+    zprint.zfns/zseqnws-w-nl sseqnws
     zprint.zfns/zmap-right smap-right
     zprint.zfns/zfocus-style sfocus-style
+    zprint.zfns/zstart sfirst
     zprint.zfns/zfirst sfirst
     zprint.zfns/zfirst-no-comment sfirst
     zprint.zfns/zsecond ssecond
+    zprint.zfns/zsecond-no-comment ssecond
     zprint.zfns/zthird sthird
+    zprint.zfns/zthird-no-comment sthird
     zprint.zfns/zfourth sfourth
+    zprint.zfns/znextnws next
+    zprint.zfns/znextnws-w-nl next
     zprint.zfns/znthnext snthnext
     zprint.zfns/zcount scount
+    zprint.zfns/zcount-zloc-seq-nc-nws scount
     zprint.zfns/zmap smap
     zprint.zfns/zmap-w-nl smap
     ; zprint.zfns/zfn? sfn?

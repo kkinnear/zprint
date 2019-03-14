@@ -103,17 +103,17 @@
   #?(:clj z/skip
      :cljs zw/skip))
 
-(def skip-whitespace
+#_(def skip-whitespace
   #?(:clj z/skip-whitespace
      :cljs zw/skip-whitespace))
 
-(def whitespace?
+#_(def whitespace?
   #?(:clj z/whitespace?
      :cljs zw/whitespace?))
 
 ;; FIX THIS
 ; indent-only
-#_(defn whitespace?
+(defn whitespace?
   [zloc]
   (if @nl-to-comment?
     (or (= (tag zloc) :whitespace) (= (tag zloc) :comma))
@@ -122,9 +122,13 @@
         (= (tag zloc) :comma))))
 
 ; indent-only
-#_(defn skip-whitespace
+(defn skip-whitespace
   ([zloc] (skip-whitespace z/right zloc))
   ([f zloc] (skip f whitespace? zloc)))
+
+(defn whitespace-not-newline?
+  [zloc]
+  (or (= (tag zloc) :whitespace) (= (tag zloc) :comma)))
 
 (def whitespace-or-comment?
   #?(:clj z/whitespace-or-comment?
@@ -216,6 +220,11 @@
   [zloc _ _]
   (string zloc))
 
+(defn zstart
+  "Find the zloc inside of this zloc."
+  [zloc]
+  (down* zloc))
+
 (defn zfirst
   "Find the first non-whitespace zloc inside of this zloc, or
   the first whitespace zloc that is the focus."
@@ -233,6 +242,13 @@
   (if-let [first-loc (zfirst zloc)]
     (if-let [nloc (right* first-loc)] (skip right* whitespace? nloc))))
 
+(defn zsecond-no-comment
+  "Find the second non-whitespace zloc inside of this zloc."
+  [zloc]
+  (if-let [first-loc (zfirst-no-comment zloc)]
+    (if-let [nloc (right* first-loc)]
+      (skip right* whitespace-or-comment? nloc))))
+
 (defn zthird
   "Find the third non-whitespace zloc inside of this zloc."
   [zloc]
@@ -241,6 +257,15 @@
            (skip right* whitespace?)
            right*
            (skip right* whitespace?)))
+
+(defn zthird-no-comment
+  "Find the third non-whitespace zloc inside of this zloc."
+  [zloc]
+  (some->> (zfirst-no-comment zloc)
+           right*
+           (skip right* whitespace-or-comment?)
+           right*
+           (skip right* whitespace-or-comment?)))
 
 (defn zfourth
   "Find the fourth non-whitespace zloc inside of this zloc."
@@ -254,9 +279,18 @@
            (skip right* whitespace?)))
 
 (defn zrightnws
-  "Find the next non-whitespace zloc inside of this zloc."
+  "Find the next non-whitespace zloc inside of this zloc. Returns nil
+  if nothing left."
   [zloc]
   (if zloc (if-let [nloc (right* zloc)] (skip right* whitespace? nloc))))
+
+(defn znextnws-w-nl
+  "Find the next non-whitespace zloc inside of this zloc considering 
+  newlines to not be whitespace. Returns nil if nothing left. Which is
+  why this is nextnws and not rightnws, since it is exposed in zfns."
+  [zloc]
+  (if zloc
+    (if-let [nloc (right* zloc)] (skip right* whitespace-not-newline? nloc))))
 
 (defn zrightmost
   "Find the rightmost non-whitespace zloc at this level"
@@ -277,12 +311,14 @@
          ploc zloc]
     (if-not nloc ploc (recur (zleftnws nloc) nloc))))
 
-(defn znextnws
+; This uses next*, not right*, and will step up out of a sequence.
+#_(defn znextnws
   "Find the next non-whitespace zloc."
   [zloc]
   (if (z/end? zloc)
     zloc
     (if-let [nloc (next* zloc)] (skip next* whitespace? nloc))))
+
 
 (defn zprevnws
   "Find the next non-whitespace zloc."
@@ -356,6 +392,12 @@
   [zloc]
   (zmap identity zloc))
 
+(defn zseqnws-w-nl
+  "Return a seq of all of the non-whitespace children of zloc, including
+  newlines."
+  [zloc]
+  (zmap-w-nl identity zloc))
+
 (defn zremove-right
   "Remove everything to the right of the current zloc. In other words,
   make the current zloc the rightmost."
@@ -377,9 +419,18 @@
         (recur xloc (if (whitespace? xloc) index (inc index)))))))
 
 (defn zcount
-  "How many non-whitespace children does zloc have?"
+  "How many non-whitespace children does zloc have?  Note that this will
+  include comments."
   [zloc]
   (count (zseqnws zloc)))
+
+(defn zcount-zloc-seq-nc-nws
+  "How many non-whitespace non-comment children are in zloc-seq? Note
+  that this is fundamentally different from zcount, in that it doesn't
+  take a zloc, but rather a zloc-seq (i.e., a seq of elements, each of
+  which is a zloc)."
+  [zloc-seq]
+  (reduce #(if (whitespace-or-comment? %2) %1 (inc %1)) 0 zloc-seq))
 
 (defn find-root-and-path
   "Create a vector with the root as well as another vector
@@ -682,15 +733,22 @@
     zprint.zfns/zcomment? zcomment?
     zprint.zfns/zsexpr sexpr
     zprint.zfns/zseqnws zseqnws
+    zprint.zfns/zseqnws-w-nl zseqnws-w-nl
     zprint.zfns/zmap-right zmap-right
     zprint.zfns/zfocus-style zfocus-style
+    zprint.zfns/zstart zstart
     zprint.zfns/zfirst zfirst
     zprint.zfns/zfirst-no-comment zfirst-no-comment
     zprint.zfns/zsecond zsecond
+    zprint.zfns/zsecond-no-comment zsecond-no-comment
     zprint.zfns/zthird zthird
+    zprint.zfns/zthird-no-comment zthird-no-comment
     zprint.zfns/zfourth zfourth
+    zprint.zfns/znextnws zrightnws
+    zprint.zfns/znextnws-w-nl znextnws-w-nl
     zprint.zfns/znthnext znthnext
     zprint.zfns/zcount zcount
+    zprint.zfns/zcount-zloc-seq-nc-nws zcount-zloc-seq-nc-nws
     zprint.zfns/zmap zmap
     zprint.zfns/zmap-w-nl zmap-w-nl
     zprint.zfns/zanonfn? zanonfn?

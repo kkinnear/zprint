@@ -1740,7 +1740,7 @@ of the collection is greater than the remaining columns times the
 hang-avoid value.  The hang-avoid value defaults to 0.5, which changes
 only a tiny amount of output visually, but provides useful performance
 gains in functions which take a long time to format.  At present this
-ony affects lists, but may be implemented for other collections in
+only affects lists, but may be implemented for other collections in
 the future.
 
 #### :hang-expand

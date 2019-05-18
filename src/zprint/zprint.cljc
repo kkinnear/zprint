@@ -3496,7 +3496,8 @@
                              :cljs (type zloc)))
             arg-1 (let [tokens (clojure.string/split arg-1 #"\.")]
                     (apply str
-                      (conj (into [] (interpose "." (butlast tokens)))
+                      (into [] (interpose "." tokens))
+                      #_(conj (into [] (interpose "." (butlast tokens)))
                             "/"
                             (last tokens))))
             arg-1-indent (+ ind indent 1 (count arg-1))]

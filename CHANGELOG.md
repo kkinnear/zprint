@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+  * Fixed record output to be something that can also be read back in.
+  Replace "/" in record-type with ".".  Issue #105.  
+
 ## 0.4.15 - 2019-01-14
 
 ### Fixed

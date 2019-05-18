@@ -2586,25 +2586,31 @@
 
 (def rml (make-record :reallylongleft {:r :s, [[:t] :u :v] :x}))
 
-(expect "#zprint.zprint/r {:left :reallylongleft, ...}"
+(expect "#zprint.zprint.r {:left :reallylongleft, ...}"
         (zprint-str rml {:max-length 1}))
 
 (expect
-  "#zprint.zprint/r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}"
+  "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}"
   (zprint-str rml))
 
 (expect
-  "#zprint.zprint/r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
+  "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
   (zprint-str rml {:max-length 2}))
 
-(expect "#zprint.zprint/r {:left :reallylongleft, :right {:r :s, ...}}"
+(expect "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, ...}}"
         (zprint-str rml {:max-length [2 1 0]}))
 
-(expect "#zprint.zprint/r {:left :reallylongleft, :right ##}"
+(expect "#zprint.zprint.r {:left :reallylongleft, :right ##}"
         (zprint-str rml {:max-length [2 0]}))
 
-(expect "#zprint.zprint/r {:left :reallylongleft, :right ##}"
+(expect "#zprint.zprint.r {:left :reallylongleft, :right ##}"
         (zprint-str rml {:max-length [3 0]}))
+
+;; Can we read back records that we have written out?
+;;
+;; Issue #105
+
+(expect rml (read-string (zprint-str rml)))
 
 ;; depth
 

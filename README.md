@@ -3229,13 +3229,13 @@ An example of `:hang?`, `:record-type?`, and `:to-string?`
 
 (zp/zprint x 75)
 
-#zprint.core/myrecord {:left ["a" "lot" "of" "stuff" "so" "that" "it"
+#zprint.core.myrecord {:left ["a" "lot" "of" "stuff" "so" "that" "it"
                               "doesn't" "fit" "all" "on" "one" "line"],
                       :right [:more :stuff :but :not :quite :as :much]}
 
 (zp/zprint x 75 {:record {:hang? nil}})
 
-#zprint.core/myrecord
+#zprint.core.myrecord
  {:left ["a" "lot" "of" "stuff" "so" "that" "it" "doesn't" "fit" "all" "on"
          "one" "line"],
   :right [:more :stuff :but :not :quite :as :much]}

@@ -2861,3 +2861,21 @@ ser/collect-vars-acc %1 %2) )))"
 
 (expect "(let [a b c d e f])"
         (zprint-str "(let [a b c d e f])" {:parse-string? true}))
+
+;;
+;; Issue #106
+;;
+;; Comments as last thing in sequence of pairs causes missing right parens!
+;;
+
+(expect
+"(case bar\n  :a 1\n  3\n  ;comment\n  )"
+(zprint-str "(case bar\n:a 1\n3\n;comment\n)" {:parse-string? true}))
+
+(expect
+"(cond a 1\n      b ;comment\n  )"
+(zprint-str "(cond\na 1\nb ;comment\n)" {:parse-string? true}))
+
+(expect
+"(case bar\n  :a 1\n  3 ;comment\n  )"
+(zprint-str "(case bar\n:a 1\n3 ;comment\n)" {:parse-string? true}))

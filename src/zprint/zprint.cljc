@@ -1245,11 +1245,18 @@
                               (split-with #(or (pair-element? %)
                                                (middle-element? options %))
                                           (next remaining))]
-                        [(next rest-seq)
-                         (into []
-                               (concat [(first remaining)]
-                                       comment-seq
-                                       [(first rest-seq)])) true])
+                        (if (first rest-seq)
+                          ; We have more to than just a comment, so we can
+			  ; pair it up between two things.
+                          [(next rest-seq)
+                           (into []
+                                 (concat [(first remaining)]
+                                         comment-seq
+                                         [(first rest-seq)])) true]
+                          ; This is the end, don't pair a comment up
+                          ; with something on the left if there isn't
+                          ; something on the right of it.
+                          [(next remaining) [(first remaining)] true]))
                     (= (count remaining) 1) [(next remaining)
                                              [(first remaining)] nil]
                     :else [(next (next remaining))

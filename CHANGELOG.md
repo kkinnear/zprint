@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
   * Fixed record output to be something that can also be read back in.
   Replace "/" in record-type with ".".  Issue #105.  
 
+  * Fixed serious bug in handling of pairs with comments: if a comment
+  was the last thing in a series of pairs, the following right parens
+  would be missing!  Issue #106.
+
 ## 0.4.15 - 2019-01-14
 
 ### Fixed

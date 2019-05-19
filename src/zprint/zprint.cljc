@@ -2571,6 +2571,7 @@
         indent-arg (:indent-arg (options caller))
         ; set indent based on fn-style
         indent (if (body-set fn-style) indent (or indent-arg indent))
+        indent (+ indent (dec l-str-len))
         one-line-ok? (allow-one-line? options len fn-style)
         ; remove -body from fn-style if it was there
         fn-style (or (body-map fn-style) fn-style)

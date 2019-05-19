@@ -16,6 +16,9 @@ All notable changes to this project will be documented in this file.
   was the last thing in a series of pairs, the following right parens
   would be missing!  Issue #106.
 
+  * Fixed bug in flow indentation underneath things like "#(...)".
+  Issue #103.
+
 ## 0.4.15 - 2019-01-14
 
 ### Fixed

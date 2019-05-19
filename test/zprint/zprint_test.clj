@@ -2879,3 +2879,13 @@ ser/collect-vars-acc %1 %2) )))"
 (expect
 "(case bar\n  :a 1\n  3 ;comment\n  )"
 (zprint-str "(case bar\n:a 1\n3 ;comment\n)" {:parse-string? true}))
+
+;;
+;; Issue #103
+;;
+;; Flow indent underneath things like "#(" isn't correct.
+;;
+
+(expect
+"#(assoc\n   (let\n     [askfl sdjfksd\n      dskfds\n        lkdsfjdslk\n      sdkjfds\n        skdfjdslk\n      sdkfjsk\n        sdfjdslk]\n     {4 5})\n   :a :b)"
+(zprint-str "#(assoc (let [askfl sdjfksd dskfds lkdsfjdslk sdkjfds skdfjdslk sdkfjsk sdfjdslk] {4 5}) :a :b)" {:parse-string? true :width 20}))

@@ -828,27 +828,32 @@
    (let [original-options (get-options)
          original-doc-map (get-explained-all-options)]
      (when new-options (set-options! new-options doc-str))
-     (try (let [lines (clojure.string/split file-str #"\n")
-                lines (if (:expand? (:tab (get-options)))
-                        (map (partial expand-tabs (:size (:tab (get-options))))
-                          lines)
-                        lines)
-                filestring (clojure.string/join "\n" lines)
-                ; If file ended with a \newline, make sure it still does
-                filestring (if (= (last file-str) \newline)
-                             (str filestring "\n")
-                             filestring)
-                forms (edn* (p/parse-string-all filestring))
-                pmf-options {:process-bang-zprint? true, :color? false}
-                pmf-options (if (:interpose (:parse (get-options)))
-                              (assoc pmf-options :trim-comments? true)
-                              pmf-options)]
-            #_(def fileforms (zmap-all identity forms))
-            (process-multiple-forms pmf-options
-                                    czprint-str-internal
-                                    zprint-specifier
-                                    forms))
-          (finally (reset-options! original-options original-doc-map)))))
+     (try
+       (let [lines (clojure.string/split file-str #"\n")
+             lines (if (:expand? (:tab (get-options)))
+                     (map (partial expand-tabs (:size (:tab (get-options))))
+                       lines)
+                     lines)
+             filestring (clojure.string/join "\n" lines)
+             ends-with-nl? (clojure.string/ends-with? file-str "\n")
+             ; If file ended with a \newline, make sure it still does
+             filestring (if ends-with-nl?
+                          (str filestring "\n")
+                          filestring)
+             forms (edn* (p/parse-string-all filestring))
+             pmf-options {:process-bang-zprint? true, :color? false}
+             pmf-options (if (:interpose (:parse (get-options)))
+                           (assoc pmf-options :trim-comments? true)
+                           pmf-options)
+             #_(def fileforms (zmap-all identity forms))
+             out-str (process-multiple-forms pmf-options
+                                             czprint-str-internal
+                                             zprint-specifier
+                                             forms)]
+         (if (and ends-with-nl? (not (clojure.string/ends-with? out-str "\n")))
+           (str out-str "\n")
+           out-str))
+       (finally (reset-options! original-options original-doc-map)))))
   ([file-str zprint-specifier new-options]
    (zprint-file-str file-str
                     zprint-specifier

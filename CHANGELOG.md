@@ -19,6 +19,10 @@ All notable changes to this project will be documented in this file.
   * Fixed bug in flow indentation underneath things like "#(...)".
   Issue #103.
 
+  * Fixed bug where files that ended with a newline didn't after being
+  processed with {:parse {:interpose "\n\n"}}.  Issue #100.
+
+
 ## 0.4.15 - 2019-01-14
 
 ### Fixed

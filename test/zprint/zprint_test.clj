@@ -2889,3 +2889,22 @@ ser/collect-vars-acc %1 %2) )))"
 (expect
 "#(assoc\n   (let\n     [askfl sdjfksd\n      dskfds\n        lkdsfjdslk\n      sdkjfds\n        skdfjdslk\n      sdkfjsk\n        sdfjdslk]\n     {4 5})\n   :a :b)"
 (zprint-str "#(assoc (let [askfl sdjfksd dskfds lkdsfjdslk sdkjfds skdfjdslk sdkfjsk sdfjdslk] {4 5}) :a :b)" {:parse-string? true :width 20}))
+
+;;
+;; Issue #100
+;;
+;; Files that end with a newline don't end with a newline if you use
+;; {:parse {:interpose "\n\n"}
+;;
+
+; This one ends with a newline.
+(expect
+"(ns foo)\n\n\n(defn baz [])\n"
+(zprint-file-str "(ns foo)\n\n(defn baz [])\n\n\n" "junk" {:parse {:interpose "\n\n\n"}}))
+
+; This one does not.
+
+(expect
+"(ns foo)\n\n\n(defn baz [])"
+(zprint-file-str "(ns foo)\n\n(defn baz [])" "junk" {:parse {:interpose "\n\n\n"}}))
+

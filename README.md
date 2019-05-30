@@ -106,25 +106,22 @@ when pretty printing source code.
 
 ## Usage
 
-### Clojure 1.8:
+### Clojure 1.9, 1.10, 1.10.1-RC1:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 [![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
 
+### Clojure 1.8:
+
+The last zprint release built with Clojure 1.8 was [zprint "0.4.15"].
+
 In addition to the zprint dependency, you also need to
-include the library: 
+include the library when using Clojure 1.8: 
 
 ```
 [clojure-future-spec "1.9.0-alpha17"]
 ```
-
-### Clojure 1.9, 1.10.0-beta3:
-
-__Leiningen ([via Clojars](http://clojars.org/zprint))__
-
-[![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
-
 
 ### Clojurescript:
 

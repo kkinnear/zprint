@@ -2908,3 +2908,11 @@ ser/collect-vars-acc %1 %2) )))"
 "(ns foo)\n\n\n(defn baz [])"
 (zprint-file-str "(ns foo)\n\n(defn baz [])" "junk" {:parse {:interpose "\n\n\n"}}))
 
+
+;;
+;; Issue #104
+;;
+
+(expect "{:a :b, :c #:c{:e :f, :g :h}}"
+        (zprint-str "{:a :b, :c #:c{:e :f :g        :h}}"
+                    {:parse-string? true}))

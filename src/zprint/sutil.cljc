@@ -302,6 +302,7 @@
     zprint.zfns/zlist? slist?
     zprint.zfns/zvector? vector?
     zprint.zfns/zmap? map?
+    zprint.zfns/znamespacedmap? (constantly false)
     zprint.zfns/zset? set?
     zprint.zfns/zcoll? coll?
     zprint.zfns/zmeta? (constantly false)

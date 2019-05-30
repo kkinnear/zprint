@@ -148,6 +148,11 @@
 
 (defn ztag "Return the tag for this zloc" [zloc] (tag zloc))
 
+(defn znamespacedmap?
+  "Is this a namespaced map?"
+  [zloc]
+  (= (tag zloc) :namespaced-map))
+
 (defn zcomment?
   "Returns true if this is a comment."
   [zloc]
@@ -609,6 +614,7 @@
     zprint.zfns/zlist? z/list?
     zprint.zfns/zvector? z/vector?
     zprint.zfns/zmap? z/map?
+    zprint.zfns/znamespacedmap? znamespacedmap?
     zprint.zfns/zset? z/set?
     zprint.zfns/zcoll? z-coll?
     zprint.zfns/zuneval? zuneval?

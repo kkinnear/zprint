@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.16 - 2019-01-14
+## 0.4.16 - 2019-05-30
 
 ### Added
 
@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
   * Fixed bug where files that ended with a newline didn't after being
   processed with {:parse {:interpose "\n\n"}}.  Issue #100.
 
+  * Fixed bug where namespaced maps in source code didn't format 
+  correctly. Issue #104.
 
 ## 0.4.15 - 2019-01-14
 

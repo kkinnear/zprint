@@ -31,6 +31,7 @@
 (def zlist? nil)
 (def zvector? nil)
 (def zmap? nil)
+(def znamespacedmap? nil)
 (def zset? nil)
 (def zcoll? nil)
 (def zuneval? nil)

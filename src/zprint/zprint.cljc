@@ -13,7 +13,7 @@
       zwhitespaceorcomment? zmap-all zpromise? zfuture? zdelay? zkeyword?
       zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot zsymbol?
       znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zinlinecomment?
-      zfind zmap-w-nl ztake-append]]
+      zfind zmap-w-nl ztake-append znamespacedmap?]]
     [zprint.ansi :refer [color-str]]
     [zprint.config :refer [validate-options merge-deep]]
     [zprint.zutil :refer [add-spec-to-docstring]]
@@ -1132,8 +1132,8 @@
     :as options} access out]
   (if (and sort? (if in-code? sort-in-code? true))
     (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
-             (zsexpr (access %1))
-             (zsexpr (access %2)))
+              (zsexpr (access %1))
+              (zsexpr (access %2)))
           out)
     out))
 
@@ -1247,7 +1247,7 @@
                                           (next remaining))]
                         (if (first rest-seq)
                           ; We have more to than just a comment, so we can
-			  ; pair it up between two things.
+                          ; pair it up between two things.
                           [(next rest-seq)
                            (into []
                                  (concat [(first remaining)]
@@ -3215,6 +3215,7 @@
         [ns lift-pair-seq] (when (and lift-ns?
                                       (if in-code? lift-ns-in-code? true))
                              (zlift-ns pair-seq))
+	_ (dbg-pr options "fzprint-map* zlift-ns ns:" ns)
         l-str (if ns (str "#:" ns l-str) l-str)
         pair-seq (or lift-pair-seq pair-seq)
         pair-seq
@@ -3292,12 +3293,30 @@
                                pair-print)
                              ; )
                              r-str-vec))))))))
-
 (defn fzprint-map
-  "Format a real map. ONLY WORKES ON STRUCTURES AT PRESENT"
+  "Format a real map."
+  [options ind zloc]
+  (let [[ns lifted-map] (when (znamespacedmap? zloc)
+                          ; Only true when operating on zippers
+                          (let [zloc-seq (zmap identity zloc)]
+			    (dbg-pr options "fzprint-map: zloc-seq"
+			       (map zstring zloc-seq))
+                            [(zstring (first zloc-seq)) (second zloc-seq)]))]
+    (dbg-pr options "fzprint-map: ns:" ns)
+    (if ns
+      (fzprint-map* :map
+                    (str "#" ns "{")
+                    "}"
+                    (rightmost options)
+                    ind
+                    lifted-map)
+      (fzprint-map* :map "{" "}" (rightmost options) ind zloc))))
+
+(defn fzprint-map-alt
+  "Format a real map."
   [options ind zloc]
   (let [[ns lifted-map] nil]
-    ;(zlift-ns zloc)]
+  ;(zlift-ns zloc)]
     (if ns
       (fzprint-map* :map
                     (str "#:" ns "{")
@@ -3506,8 +3525,8 @@
                     (apply str
                       (into [] (interpose "." tokens))
                       #_(conj (into [] (interpose "." (butlast tokens)))
-                            "/"
-                            (last tokens))))
+                              "/"
+                              (last tokens))))
             arg-1-indent (+ ind indent 1 (count arg-1))]
         (dbg-pr options
                 "fzprint-record: arg-1:" arg-1
@@ -3691,7 +3710,8 @@
           (zrecord? zloc) (fzprint-record options indent zloc)
           (zlist? zloc) (fzprint-list options indent zloc)
           (zvector? zloc) (fzprint-vec options indent zloc)
-          (zmap? zloc) (fzprint-map options indent zloc)
+          (or (zmap? zloc) (znamespacedmap? zloc)) 
+	    (fzprint-map options indent zloc)
           (zset? zloc) (fzprint-set options indent zloc)
           (zanonfn? zloc) (fzprint-anon-fn options indent zloc)
           (zfn-obj? zloc) (fzprint-fn-obj options indent zloc)

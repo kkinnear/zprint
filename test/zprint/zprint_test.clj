@@ -2916,3 +2916,38 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "{:a :b, :c #:c{:e :f, :g :h}}"
         (zprint-str "{:a :b, :c #:c{:e :f :g        :h}}"
                     {:parse-string? true}))
+
+;;
+;; Issue #80 -- implement unlift-ns?
+;;
+
+; Actually unlift something
+
+(expect
+"{:a :b, :c {:c/:e :f, :c/:g :h}}"
+(zprint-str "{:a :b, :c #:c{:e :f :g        :h}}" {:parse-string? true :map {:lift-ns? false :unlift-ns? true}}))
+
+; Unlift only if lift-ns? is false
+
+(expect
+"{:a :b, :c #:c{:e :f, :g :h}}"
+(zprint-str "{:a :b, :c #:c{:e :f :g        :h}}" {:parse-string? true :map {:lift-ns? true :unlift-ns? true}}))
+
+; What about an incorrect map?  Don't mess with it
+
+(expect
+"{:a :b, :c #:m{:c/e :f, :x/g :h}}"
+(zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}" {:parse-string? true :map {:lift-ns? true :unlift-ns? false}}))
+
+; Should be the same as above
+
+(expect
+"{:a :b, :c #:m{:c/e :f, :x/g :h}}"
+(zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}" {:parse-string? true :map {:lift-ns? true :unlift-ns? true}}))
+
+; Even if trying to unlift, if it already has stuff in the keys, don't mess
+; with it.
+
+(expect
+"{:a :b, :c #:m{:c/e :f, :x/g :h}}"
+(zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}" {:parse-string? true :map {:lift-ns? false :unlift-ns? true}}))

@@ -117,7 +117,7 @@ __Leiningen ([via Clojars](http://clojars.org/zprint))__
 The last zprint release built with Clojure 1.8 was [zprint "0.4.15"].
 
 In addition to the zprint dependency, you also need to
-include the library when using Clojure 1.8: 
+include the following library when using Clojure 1.8: 
 
 ```
 [clojure-future-spec "1.9.0-alpha17"]
@@ -3008,6 +3008,22 @@ will not be lifted if it contains a single `::a` type key in it.
 ####  :lift-ns-in-code?  <text style="color:#A4A4A4;"><small>false</small></text>
 
 Controls whether to actually lift the namespace if the map is in code.
+
+####  :unlift-ns?  <text style="color:#A4A4A4;"><small>false</small></text>
+
+This only applies when dealing with formatting code or strings.  When
+the map was specified with the namespace "lifted", then distribute the
+namespace across the keys.
+
+For example:
+```clojure
+(zprint ":x{a :b :c :d}" {:parse-string? true :map {:lift-ns? false :unlift-ns? true}})
+{:x/:a :b, :x/:c :d}
+```
+
+Note that `:unlift-ns? true` only works if `:lifts-ns? false` is present, 
+since otherwise zprint won't know which keyword to honor, and `:lift-ns?` was
+there first.
 _____
 ## :object
 

@@ -153,6 +153,7 @@
 (s/def ::sort? ::boolean)
 (s/def ::sort-in-code? ::boolean)
 (s/def ::lift-ns? ::boolean)
+(s/def ::unlift-ns? ::boolean)
 (s/def ::lift-ns-in-code? ::boolean)
 (s/def ::to-string? ::boolean)
 (s/def ::value zany?)
@@ -218,7 +219,8 @@
              ::hang-expand ::hang? ::indent ::justify? ::justify-hang
              ::justify-tuning ::key-color ::key-value-color ::key-depth-color
              ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
-             ::lift-ns-in-code? ::nl-separator? ::sort-in-code? ::sort?]))
+             ::lift-ns-in-code? ::nl-separator? ::sort-in-code? ::sort?
+	     ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)

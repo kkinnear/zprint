@@ -466,7 +466,8 @@
          :flow? false,
          :justify? false,
          :justify-hang {:hang-expand 5},
-         :justify-tuning {:hang-flow 4, :hang-flow-limit 30}},
+         :justify-tuning {:hang-flow 4, :hang-flow-limit 30}
+	 :unlift-ns? false},
    :max-depth 1000,
    :max-depth-string "##",
    :parallel? false,

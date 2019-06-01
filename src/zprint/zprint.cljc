@@ -3203,20 +3203,26 @@
   [caller l-str r-str
    {:keys [one-line? ztype map-depth in-code?],
     {:keys [comma? key-ignore key-ignore-silent nl-separator? force-nl? lift-ns?
-            lift-ns-in-code?]}
+            lift-ns-in-code?] :as map-options}
       caller,
-    :as options} ind zloc]
+    :as options} ind zloc ns]
   (let [options (assoc options :map-depth (inc map-depth))
         zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
                (map-ignore caller options zloc)
                zloc)
         [no-sort? pair-seq] (partition-all-2-nc (no-max-length options)
                                                 (zseqnws zloc))
-        [ns lift-pair-seq] (when (and lift-ns?
-                                      (if in-code? lift-ns-in-code? true))
-                             (zlift-ns pair-seq))
-	_ (dbg-pr options "fzprint-map* zlift-ns ns:" ns)
-        l-str (if ns (str "#:" ns l-str) l-str)
+        _ (dbg-pr options
+                  "fzprint-map* ns:" ns
+		  "lift-ns?" lift-ns?
+		  "lift-ns-in-code?" lift-ns-in-code?
+		  "in-code?" in-code?
+		  "map-options:" map-options
+                  "(first pair-seq):" (map (comp zstring first) pair-seq))
+        [ns lift-pair-seq]
+          (zlift-ns (assoc map-options :in-code? in-code?) pair-seq ns)
+        _ (dbg-pr options "fzprint-map* zlift-ns ns:" ns)
+        l-str (if ns (str "#" ns l-str) l-str)
         pair-seq (or lift-pair-seq pair-seq)
         pair-seq
           (if no-sort? pair-seq (order-out caller options first pair-seq))
@@ -3293,6 +3299,7 @@
                                pair-print)
                              ; )
                              r-str-vec))))))))
+
 (defn fzprint-map
   "Format a real map."
   [options ind zloc]
@@ -3305,26 +3312,14 @@
     (dbg-pr options "fzprint-map: ns:" ns)
     (if ns
       (fzprint-map* :map
-                    (str "#" ns "{")
+                    "{"
+                    #_(str "#" ns "{")
                     "}"
                     (rightmost options)
                     ind
-                    lifted-map)
-      (fzprint-map* :map "{" "}" (rightmost options) ind zloc))))
-
-(defn fzprint-map-alt
-  "Format a real map."
-  [options ind zloc]
-  (let [[ns lifted-map] nil]
-  ;(zlift-ns zloc)]
-    (if ns
-      (fzprint-map* :map
-                    (str "#:" ns "{")
-                    "}"
-                    (rightmost options)
-                    ind
-                    lifted-map)
-      (fzprint-map* :map "{" "}" (rightmost options) ind zloc))))
+                    lifted-map
+		    ns)
+      (fzprint-map* :map "{" "}" (rightmost options) ind zloc nil))))
 
 (defn object-str?
   "Return true if the string starts with #object["
@@ -3582,6 +3577,9 @@
         alt-at? (and (= (count zstr) 2) (= (subs zstr 1 2) "@"))
         reader-cond? (= (subs zstr 0 1) "?")
         ; are we dealing with a namespaced map?
+	; 5/30/19 I don't know if we ever encounter this anymore...
+	; Was unable to get namespaced? to be true despite running all 616
+	; tests and some repl testing as well.
         namespaced? (= (subs zstr 0 1) ":")
         at? (or (= (ztag (zsecond zloc)) :deref) alt-at?)
         l-str (cond (and reader-cond? at?) "#?@"
@@ -3621,7 +3619,8 @@
                       ")"
                       (rightmost options)
                       (+ indent ind)
-                      floc)
+                      floc
+		      nil)
         ; not reader-cond?
         (fzprint-flow-seq options
                           (+ indent ind)

@@ -243,31 +243,34 @@
   and possibly replace it. This will only lift out a ns if all keys
   in seqs with more than one element have the same namespace. Returns
   the [namespace pair-seq] or nil."
-  [pair-seq]
-  (let [strip-ns (fn [named]
-                   (if (symbol? named)
-                     (symbol nil (name named))
-                     (keyword nil (name named))))]
-    (loop [ns nil
-           pair-seq pair-seq
-           out []]
-      (let [[k & rest-of-pair :as pair] (first pair-seq)
-            #_(println "k:" k "rest-of-pair:" rest-of-pair)
-            current-ns (when (and rest-of-pair (or (keyword? k) (symbol? k)))
-                         (namespace k))]
-        (if-not k
-          (when ns [ns out])
-          (if current-ns
-            (if ns
-              (when (= ns current-ns)
-                (recur ns
+  [{:keys [in-code? lift-ns? lift-ns-in-code? unlift-ns?], :as map-options}
+   pair-seq ns]
+  (if (and lift-ns? (if in-code? lift-ns-in-code? true))
+    (let [strip-ns (fn [named]
+                     (if (symbol? named)
+                       (symbol nil (name named))
+                       (keyword nil (name named))))]
+      (loop [ns nil
+             pair-seq pair-seq
+             out []]
+        (let [[k & rest-of-pair :as pair] (first pair-seq)
+              #_(println "k:" k "rest-of-pair:" rest-of-pair)
+              current-ns (when (and rest-of-pair (or (keyword? k) (symbol? k)))
+                           (namespace k))]
+          (if-not k
+            (when ns [(str ":" ns) out])
+            (if current-ns
+              (if ns
+                (when (= ns current-ns)
+                  (recur ns
+                         (next pair-seq)
+                         (conj out (cons (strip-ns k) rest-of-pair))))
+                (recur current-ns
                        (next pair-seq)
                        (conj out (cons (strip-ns k) rest-of-pair))))
-              (recur current-ns
-                     (next pair-seq)
-                     (conj out (cons (strip-ns k) rest-of-pair))))
-            (when (= (count pair) 1)
-              (recur ns (next pair-seq) (conj out pair)))))))))
+              (when (= (count pair) 1)
+                (recur ns (next pair-seq) (conj out pair))))))))
+    [nil pair-seq]))
 
 ;!zprint {:vector {:respect-nl? true}}
 (defn sredef-call

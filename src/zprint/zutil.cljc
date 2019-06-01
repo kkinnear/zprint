@@ -547,40 +547,80 @@
   and possibly replace it. This will only lift out a ns if all keys
   in seqs with more than one element have the same namespace. Returns
   the [namespace pair-seq] or nil."
-  [pair-seq]
-  (let [strip-ns (fn [named]
-                   (if (symbol? named)
-                     (symbol nil (name named))
-                     (keyword nil (name named))))]
-    (loop [ns nil
-           pair-seq pair-seq
-           out []]
-      (let [[k & rest-of-pair :as pair] (first pair-seq)
-            #_(println "k:" k "rest-of-x-pair:" rest-of-pair)
-            current-ns (when (and ; This is at least a pair
-                                  rest-of-pair
-                                  ; It does not include an implicit ns
-                                  (not (clojure.string/starts-with? (z/string k)
-                                                                    "::"))
-                                  (or (zkeyword? k) (zsymbol? k)))
-                         (namespace (z/sexpr k)))]
-        (if-not k
-          (when ns [ns out])
-          (if current-ns
-            (if ns
-              (when (= ns current-ns)
-                (recur ns
-                       (next pair-seq)
-                       (conj out
-                             (cons (edn* (n/token-node (strip-ns (z/sexpr k))))
-                                   rest-of-pair))))
-              (recur current-ns
-                     (next pair-seq)
-                     (conj out
-                           (cons (edn* (n/token-node (strip-ns (z/sexpr k))))
-                                 rest-of-pair))))
-            (when (= (count pair) 1)
-              (recur ns (next pair-seq) (conj out pair)))))))))
+  [{:keys [in-code? lift-ns? lift-ns-in-code? unlift-ns?], :as map-options}
+   pair-seq ns]
+  #_(println "zlift-ns: lift-ns?" lift-ns?)
+  (cond
+    (and lift-ns? (if in-code? lift-ns-in-code? true))
+      (if ns
+        ; Already lifted, leave it alone
+        [ns pair-seq]
+        ; Needs a lift, if possible
+        (let [strip-ns (fn [named]
+                         (if (symbol? named)
+                           (symbol nil (name named))
+                           (keyword nil (name named))))]
+          (loop [ns nil
+                 pair-seq pair-seq
+                 out []]
+            (let [[k & rest-of-pair :as pair] (first pair-seq)
+                  #_(println "k:" k "rest-of-x-pair:" rest-of-pair)
+                  current-ns
+                    (when (and ; This is at least a pair
+                               rest-of-pair
+                               ; It does not include an implicit ns
+                               (not (clojure.string/starts-with? (z/string k)
+                                                                 "::"))
+                               (or (zkeyword? k) (zsymbol? k)))
+                      (namespace (z/sexpr k)))]
+              (if-not k
+                (when ns [(str ":" ns) out])
+                (if current-ns
+                  (if ns
+                    (when (= ns current-ns)
+                      (recur ns
+                             (next pair-seq)
+                             (conj out
+                                   (cons (edn* (n/token-node (strip-ns (z/sexpr
+                                                                         k))))
+                                         rest-of-pair))))
+                    (recur current-ns
+                           (next pair-seq)
+                           (conj out
+                                 (cons (edn* (n/token-node (strip-ns (z/sexpr
+                                                                       k))))
+                                       rest-of-pair))))
+                  (when (= (count pair) 1)
+                    (recur ns (next pair-seq) (conj out pair)))))))))
+    (and ns unlift-ns? (not lift-ns?))
+      ; We have a namespace that was already lifted, and we want to unlift
+      ; it,
+      ; and we didn't ask to have things lifted.  That last is so that
+      ; lift-ns?
+      ; has to be false for unlift-ns? to work.
+      (loop [pair-seq pair-seq
+             out []]
+        (let [[k & rest-of-pair :as pair] (first pair-seq)
+              #_(println "k:" k "rest-of-y-pair:" rest-of-pair)
+              current-ns
+                (when (and ; This is at least a pair
+                           rest-of-pair
+                           ; It does not include an implicit ns
+                           (not (clojure.string/starts-with? (z/string k) "::"))
+                           (or (zkeyword? k) (zsymbol? k)))
+                  (namespace (z/sexpr k)))]
+          (if-not k
+            [nil out]
+            (cond current-ns [ns pair-seq]
+                  (= (count pair) 1) (recur (next pair-seq) (conj out pair))
+                  :else (recur (next pair-seq)
+                               (conj out
+                                     ; put ns with k
+                                     (cons (edn* (n/token-node
+                                                   (symbol
+                                                     (str ns "/" (z/sexpr k)))))
+                                           rest-of-pair)))))))
+    :else [ns pair-seq]))
 
 ;!zprint {:vector {:respect-nl? true}}
 (defn zredef-call

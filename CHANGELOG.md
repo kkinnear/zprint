@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+  * Implemented `:unlift-ns?`.  If this is specified for a map when formatting
+  code (the only place it makes sense), a map specified with a namespace
+  at the front (e.g., `#:x{:a :b :c :d}` will be formatted with the namespace
+  distributed among the keys, as in `{:x/:a :b, :x/:c :d}`. Issue #80.
+
 ### Fixed
 
   * Fixed record output to be something that can also be read back in.

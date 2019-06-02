@@ -37,6 +37,9 @@ All notable changes to this project will be documented in this file.
   if you are in a REPL, or if you call `(set-options! {:parallel? true})`.
   Issue #107.
 
+  * Removed LC= from build.zprintm, since that apparently didn't work
+  for the macOS version of graalvm.  Issue #96.
+
 ## 0.4.15 - 2019-01-14
 
 ### Fixed

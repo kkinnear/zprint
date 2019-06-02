@@ -482,8 +482,8 @@
                            (list (zprint.config/get-options))
                            (vector (last fs)))]
            (pmap #(if (string? %)
-                   (doall (zprint.core/zprint-file-str % "x"))
-                   (doall (zprint-str %)))
+                    (doall (zprint.core/zprint-file-str % "x"))
+                    (doall (zprint-str %)))
                  fss))))
 
 ;

@@ -2868,17 +2868,14 @@ ser/collect-vars-acc %1 %2) )))"
 ;; Comments as last thing in sequence of pairs causes missing right parens!
 ;;
 
-(expect
-"(case bar\n  :a 1\n  3\n  ;comment\n  )"
-(zprint-str "(case bar\n:a 1\n3\n;comment\n)" {:parse-string? true}))
+(expect "(case bar\n  :a 1\n  3\n  ;comment\n  )"
+        (zprint-str "(case bar\n:a 1\n3\n;comment\n)" {:parse-string? true}))
 
-(expect
-"(cond a 1\n      b ;comment\n  )"
-(zprint-str "(cond\na 1\nb ;comment\n)" {:parse-string? true}))
+(expect "(cond a 1\n      b ;comment\n  )"
+        (zprint-str "(cond\na 1\nb ;comment\n)" {:parse-string? true}))
 
-(expect
-"(case bar\n  :a 1\n  3 ;comment\n  )"
-(zprint-str "(case bar\n:a 1\n3 ;comment\n)" {:parse-string? true}))
+(expect "(case bar\n  :a 1\n  3 ;comment\n  )"
+        (zprint-str "(case bar\n:a 1\n3 ;comment\n)" {:parse-string? true}))
 
 ;;
 ;; Issue #103
@@ -2887,8 +2884,10 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-"#(assoc\n   (let\n     [askfl sdjfksd\n      dskfds\n        lkdsfjdslk\n      sdkjfds\n        skdfjdslk\n      sdkfjsk\n        sdfjdslk]\n     {4 5})\n   :a :b)"
-(zprint-str "#(assoc (let [askfl sdjfksd dskfds lkdsfjdslk sdkjfds skdfjdslk sdkfjsk sdfjdslk] {4 5}) :a :b)" {:parse-string? true :width 20}))
+  "#(assoc\n   (let\n     [askfl sdjfksd\n      dskfds\n        lkdsfjdslk\n      sdkjfds\n        skdfjdslk\n      sdkfjsk\n        sdfjdslk]\n     {4 5})\n   :a :b)"
+  (zprint-str
+    "#(assoc (let [askfl sdjfksd dskfds lkdsfjdslk sdkjfds skdfjdslk sdkfjsk sdfjdslk] {4 5}) :a :b)"
+    {:parse-string? true, :width 20}))
 
 ;;
 ;; Issue #100
@@ -2898,15 +2897,17 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 ; This one ends with a newline.
-(expect
-"(ns foo)\n\n\n(defn baz [])\n"
-(zprint-file-str "(ns foo)\n\n(defn baz [])\n\n\n" "junk" {:parse {:interpose "\n\n\n"}}))
+(expect "(ns foo)\n\n\n(defn baz [])\n"
+        (zprint-file-str "(ns foo)\n\n(defn baz [])\n\n\n"
+                         "junk"
+                         {:parse {:interpose "\n\n\n"}}))
 
 ; This one does not.
 
-(expect
-"(ns foo)\n\n\n(defn baz [])"
-(zprint-file-str "(ns foo)\n\n(defn baz [])" "junk" {:parse {:interpose "\n\n\n"}}))
+(expect "(ns foo)\n\n\n(defn baz [])"
+        (zprint-file-str "(ns foo)\n\n(defn baz [])"
+                         "junk"
+                         {:parse {:interpose "\n\n\n"}}))
 
 
 ;;
@@ -2923,31 +2924,36 @@ ser/collect-vars-acc %1 %2) )))"
 
 ; Actually unlift something
 
-(expect
-"{:a :b, :c {:c/:e :f, :c/:g :h}}"
-(zprint-str "{:a :b, :c #:c{:e :f :g        :h}}" {:parse-string? true :map {:lift-ns? false :unlift-ns? true}}))
+(expect "{:a :b, :c {:c/:e :f, :c/:g :h}}"
+        (zprint-str "{:a :b, :c #:c{:e :f :g        :h}}"
+                    {:parse-string? true,
+                     :map {:lift-ns? false, :unlift-ns? true}}))
 
 ; Unlift only if lift-ns? is false
 
-(expect
-"{:a :b, :c #:c{:e :f, :g :h}}"
-(zprint-str "{:a :b, :c #:c{:e :f :g        :h}}" {:parse-string? true :map {:lift-ns? true :unlift-ns? true}}))
+(expect "{:a :b, :c #:c{:e :f, :g :h}}"
+        (zprint-str "{:a :b, :c #:c{:e :f :g        :h}}"
+                    {:parse-string? true,
+                     :map {:lift-ns? true, :unlift-ns? true}}))
 
 ; What about an incorrect map?  Don't mess with it
 
-(expect
-"{:a :b, :c #:m{:c/e :f, :x/g :h}}"
-(zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}" {:parse-string? true :map {:lift-ns? true :unlift-ns? false}}))
+(expect "{:a :b, :c #:m{:c/e :f, :x/g :h}}"
+        (zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}"
+                    {:parse-string? true,
+                     :map {:lift-ns? true, :unlift-ns? false}}))
 
 ; Should be the same as above
 
-(expect
-"{:a :b, :c #:m{:c/e :f, :x/g :h}}"
-(zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}" {:parse-string? true :map {:lift-ns? true :unlift-ns? true}}))
+(expect "{:a :b, :c #:m{:c/e :f, :x/g :h}}"
+        (zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}"
+                    {:parse-string? true,
+                     :map {:lift-ns? true, :unlift-ns? true}}))
 
 ; Even if trying to unlift, if it already has stuff in the keys, don't mess
 ; with it.
 
-(expect
-"{:a :b, :c #:m{:c/e :f, :x/g :h}}"
-(zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}" {:parse-string? true :map {:lift-ns? false :unlift-ns? true}}))
+(expect "{:a :b, :c #:m{:c/e :f, :x/g :h}}"
+        (zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}"
+                    {:parse-string? true,
+                     :map {:lift-ns? false, :unlift-ns? true}}))

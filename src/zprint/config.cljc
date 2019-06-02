@@ -466,8 +466,8 @@
          :flow? false,
          :justify? false,
          :justify-hang {:hang-expand 5},
-         :justify-tuning {:hang-flow 4, :hang-flow-limit 30}
-	 :unlift-ns? false},
+         :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+         :unlift-ns? false},
    :max-depth 1000,
    :max-depth-string "##",
    :parallel? false,
@@ -557,10 +557,11 @@
       :justified {:binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
-      :keyword-respect-nl
-        {:vector {:option-fn-first #(let [k? (keyword? %2)]
-                                     (when (not= k? (:respect-nl? (:vector %1)))
-                                       {:vector {:respect-nl? k?}}))}},
+      :keyword-respect-nl {:vector
+                             {:option-fn-first
+                                #(let [k? (keyword? %2)]
+                                   (when (not= k? (:respect-nl? (:vector %1)))
+                                     {:vector {:respect-nl? k?}}))}},
       :map-nl {:map {:indent 0, :nl-separator? true}},
       :no-hang {:map {:hang? false},
                 :list {:hang? false},
@@ -888,15 +889,14 @@
 ;; Alfred Xiao 5/23/15
 ;;
 
-(defn current-stack-trace []
-      (.getStackTrace (Thread/currentThread)))
-  
-(defn is-repl-stack-element [stack-element]
-      (and (= "clojure.main$repl" (.getClassName  stack-element))
-           (= "doInvoke"          (.getMethodName stack-element))))
-  
-(defn is-in-repl? []
-      (some is-repl-stack-element (current-stack-trace)))
+(defn current-stack-trace [] (.getStackTrace (Thread/currentThread)))
+
+(defn is-repl-stack-element
+  [stack-element]
+  (and (= "clojure.main$repl" (.getClassName stack-element))
+       (= "doInvoke" (.getMethodName stack-element))))
+
+(defn is-in-repl? [] (some is-repl-stack-element (current-stack-trace)))
 
 ;;
 ;; End "detect in a REPL" code
@@ -1021,10 +1021,10 @@
     (let [error-seq
             (mapv
               #(validate-options
-                 (second %)
-                 (str
-                   ":fn-map, in the options map assocated with the function: "
-                   (first %)))
+                  (second %)
+                  (str
+                    ":fn-map, in the options map assocated with the function: "
+                    (first %)))
               fn-option-pairs)
           error-seq (remove nil? error-seq)
           error-string (apply str (interpose ", " error-seq))]

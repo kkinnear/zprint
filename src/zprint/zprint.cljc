@@ -3203,7 +3203,8 @@
   [caller l-str r-str
    {:keys [one-line? ztype map-depth in-code?],
     {:keys [comma? key-ignore key-ignore-silent nl-separator? force-nl? lift-ns?
-            lift-ns-in-code?] :as map-options}
+            lift-ns-in-code?],
+     :as map-options}
       caller,
     :as options} ind zloc ns]
   (let [options (assoc options :map-depth (inc map-depth))
@@ -3214,10 +3215,10 @@
                                                 (zseqnws zloc))
         _ (dbg-pr options
                   "fzprint-map* ns:" ns
-		  "lift-ns?" lift-ns?
-		  "lift-ns-in-code?" lift-ns-in-code?
-		  "in-code?" in-code?
-		  "map-options:" map-options
+                  "lift-ns?" lift-ns?
+                  "lift-ns-in-code?" lift-ns-in-code?
+                  "in-code?" in-code?
+                  "map-options:" map-options
                   "(first pair-seq):" (map (comp zstring first) pair-seq))
         [ns lift-pair-seq]
           (zlift-ns (assoc map-options :in-code? in-code?) pair-seq ns)
@@ -3303,12 +3304,12 @@
 (defn fzprint-map
   "Format a real map."
   [options ind zloc]
-  (let [[ns lifted-map] (when (znamespacedmap? zloc)
-                          ; Only true when operating on zippers
-                          (let [zloc-seq (zmap identity zloc)]
-			    (dbg-pr options "fzprint-map: zloc-seq"
-			       (map zstring zloc-seq))
-                            [(zstring (first zloc-seq)) (second zloc-seq)]))]
+  (let [[ns lifted-map]
+          (when (znamespacedmap? zloc)
+            ; Only true when operating on zippers
+            (let [zloc-seq (zmap identity zloc)]
+              (dbg-pr options "fzprint-map: zloc-seq" (map zstring zloc-seq))
+              [(zstring (first zloc-seq)) (second zloc-seq)]))]
     (dbg-pr options "fzprint-map: ns:" ns)
     (if ns
       (fzprint-map* :map
@@ -3318,7 +3319,7 @@
                     (rightmost options)
                     ind
                     lifted-map
-		    ns)
+                    ns)
       (fzprint-map* :map "{" "}" (rightmost options) ind zloc nil))))
 
 (defn object-str?
@@ -3577,9 +3578,9 @@
         alt-at? (and (= (count zstr) 2) (= (subs zstr 1 2) "@"))
         reader-cond? (= (subs zstr 0 1) "?")
         ; are we dealing with a namespaced map?
-	; 5/30/19 I don't know if we ever encounter this anymore...
-	; Was unable to get namespaced? to be true despite running all 616
-	; tests and some repl testing as well.
+        ; 5/30/19 I don't know if we ever encounter this anymore...
+        ; Was unable to get namespaced? to be true despite running all 616
+        ; tests and some repl testing as well.
         namespaced? (= (subs zstr 0 1) ":")
         at? (or (= (ztag (zsecond zloc)) :deref) alt-at?)
         l-str (cond (and reader-cond? at?) "#?@"
@@ -3620,7 +3621,7 @@
                       (rightmost options)
                       (+ indent ind)
                       floc
-		      nil)
+                      nil)
         ; not reader-cond?
         (fzprint-flow-seq options
                           (+ indent ind)
@@ -3692,62 +3693,61 @@
     ; We don't check depth if it is not a collection.  We might have
     ; just not incremented depth if it wasn't a collection, but this
     ; may be equivalent.
-    (cond (and (zcoll? zloc)
-               (or (>= depth max-depth) (zero? (get-max-length options))))
-            (if (= zloc (zdotdotdot))
-              [["..." (zcolor-map options :none) :element]]
-              [[(:max-depth-string options) (zcolor-map options :keyword)
-                :element]])
-          (and in-hang?
-               (not in-code?)
-               ;(> (/ indent width) 0.3)
-               (or (> (- depth in-hang?) max-hang-span)
-                   (and (not one-line?)
-                        (> (zcount zloc) max-hang-count)
-                        (> depth max-hang-depth))))
-            nil
-          (zrecord? zloc) (fzprint-record options indent zloc)
-          (zlist? zloc) (fzprint-list options indent zloc)
-          (zvector? zloc) (fzprint-vec options indent zloc)
-          (or (zmap? zloc) (znamespacedmap? zloc)) 
-	    (fzprint-map options indent zloc)
-          (zset? zloc) (fzprint-set options indent zloc)
-          (zanonfn? zloc) (fzprint-anon-fn options indent zloc)
-          (zfn-obj? zloc) (fzprint-fn-obj options indent zloc)
-          (zarray? zloc)
-            (if (:object? (:array options))
-              (fzprint-object options indent zloc)
-              (fzprint-array #?(:clj (if (:hex? (:array options))
-                                       (assoc options
-                                         :hex? (:hex? (:array options))
-                                         :shift-seq (zarray-to-shift-seq zloc))
-                                       options)
-                                :cljs options)
-                             indent
-                             (zexpandarray zloc)))
-          (zatom? zloc) (fzprint-atom options indent zloc)
-          (zmeta? zloc) (fzprint-meta options indent zloc)
-          (prefix-tags (ztag zloc)) (fzprint-vec* :none
-                                                  (prefix-tags (ztag zloc))
-                                                  ""
-                                                  (prefix-options options
-                                                                  (ztag zloc))
-                                                  indent
-                                                  zloc)
-          (zns? zloc) (fzprint-ns options indent zloc)
-          (or (zpromise? zloc) (zfuture? zloc) (zdelay? zloc) (zagent? zloc))
-            (fzprint-future-promise-delay-agent options indent zloc)
-          (zreader-macro? zloc) (fzprint-reader-macro options indent zloc)
-          ; This is needed to not be there for newlines in parse-string-all,
-          ; but is needed for respect-nl? support.
-          (and (= (ztag zloc) :newline) (> depth 0)) [["\n" :none :newline]]
-          :else
-            (let [zstr (zstring zloc)
-                  overflow-in-hang?
-                    (and in-hang?
-                         (> (+ (count zstr) indent (or rightcnt 0)) width))]
-              (cond
-                (zcomment? zloc)
+    (cond
+      (and (zcoll? zloc)
+           (or (>= depth max-depth) (zero? (get-max-length options))))
+        (if (= zloc (zdotdotdot))
+          [["..." (zcolor-map options :none) :element]]
+          [[(:max-depth-string options) (zcolor-map options :keyword)
+            :element]])
+      (and in-hang?
+           (not in-code?)
+           ;(> (/ indent width) 0.3)
+           (or (> (- depth in-hang?) max-hang-span)
+               (and (not one-line?)
+                    (> (zcount zloc) max-hang-count)
+                    (> depth max-hang-depth))))
+        nil
+      (zrecord? zloc) (fzprint-record options indent zloc)
+      (zlist? zloc) (fzprint-list options indent zloc)
+      (zvector? zloc) (fzprint-vec options indent zloc)
+      (or (zmap? zloc) (znamespacedmap? zloc)) (fzprint-map options indent zloc)
+      (zset? zloc) (fzprint-set options indent zloc)
+      (zanonfn? zloc) (fzprint-anon-fn options indent zloc)
+      (zfn-obj? zloc) (fzprint-fn-obj options indent zloc)
+      (zarray? zloc)
+        (if (:object? (:array options))
+          (fzprint-object options indent zloc)
+          (fzprint-array #?(:clj (if (:hex? (:array options))
+                                   (assoc options
+                                     :hex? (:hex? (:array options))
+                                     :shift-seq (zarray-to-shift-seq zloc))
+                                   options)
+                            :cljs options)
+                         indent
+                         (zexpandarray zloc)))
+      (zatom? zloc) (fzprint-atom options indent zloc)
+      (zmeta? zloc) (fzprint-meta options indent zloc)
+      (prefix-tags (ztag zloc)) (fzprint-vec* :none
+                                              (prefix-tags (ztag zloc))
+                                              ""
+                                              (prefix-options options
+                                                              (ztag zloc))
+                                              indent
+                                              zloc)
+      (zns? zloc) (fzprint-ns options indent zloc)
+      (or (zpromise? zloc) (zfuture? zloc) (zdelay? zloc) (zagent? zloc))
+        (fzprint-future-promise-delay-agent options indent zloc)
+      (zreader-macro? zloc) (fzprint-reader-macro options indent zloc)
+      ; This is needed to not be there for newlines in parse-string-all,
+      ; but is needed for respect-nl? support.
+      (and (= (ztag zloc) :newline) (> depth 0)) [["\n" :none :newline]]
+      :else
+        (let [zstr (zstring zloc)
+              overflow-in-hang? (and in-hang?
+                                     (> (+ (count zstr) indent (or rightcnt 0))
+                                        width))]
+          (cond (zcomment? zloc)
                   (let [zcomment
                           ; Do we have a file-level comment that is way too
                           ; long??

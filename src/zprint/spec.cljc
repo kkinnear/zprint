@@ -214,13 +214,12 @@
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
                       ::indent-arg ::pair-hang? ::return-altered-zipper]))
 (s/def ::map
-  (only-keys
-    :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
-             ::hang-expand ::hang? ::indent ::justify? ::justify-hang
-             ::justify-tuning ::key-color ::key-value-color ::key-depth-color
-             ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
-             ::lift-ns-in-code? ::nl-separator? ::sort-in-code? ::sort?
-	     ::unlift-ns?]))
+  (only-keys :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
+                      ::hang-expand ::hang? ::indent ::justify? ::justify-hang
+                      ::justify-tuning ::key-color ::key-value-color
+                      ::key-depth-color ::key-ignore ::key-ignore-silent
+                      ::key-order ::lift-ns? ::lift-ns-in-code? ::nl-separator?
+                      ::sort-in-code? ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)

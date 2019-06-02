@@ -837,9 +837,7 @@
              filestring (clojure.string/join "\n" lines)
              ends-with-nl? (clojure.string/ends-with? file-str "\n")
              ; If file ended with a \newline, make sure it still does
-             filestring (if ends-with-nl?
-                          (str filestring "\n")
-                          filestring)
+             filestring (if ends-with-nl? (str filestring "\n") filestring)
              forms (edn* (p/parse-string-all filestring))
              pmf-options {:process-bang-zprint? true, :color? false}
              pmf-options (if (:interpose (:parse (get-options)))

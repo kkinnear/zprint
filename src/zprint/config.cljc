@@ -883,6 +883,24 @@
                    " found these errors: " error-vec)))
       (do (reset-options! updated-map new-doc-map) nil))))
 
+;;
+;; Stack Overflow code to detect if running in a REPL
+;; Alfred Xiao 5/23/15
+;;
+
+(defn current-stack-trace []
+      (.getStackTrace (Thread/currentThread)))
+  
+(defn is-repl-stack-element [stack-element]
+      (and (= "clojure.main$repl" (.getClassName  stack-element))
+           (= "doInvoke"          (.getMethodName stack-element))))
+  
+(defn is-in-repl? []
+      (some is-repl-stack-element (current-stack-trace)))
+
+;;
+;; End "detect in a REPL" code
+
 (defn config-configure-all!
   "Do external configuration regardless of whether or not it has
   already been done, replacing any internal configuration.  Returns
@@ -906,7 +924,7 @@
            (config-set-options! {:configured? true} "internal")
            ; If we are running in a repl, then turn on :parallel?
            ; the first time we run
-           (when (find-ns 'clojure.repl)
+           (when (is-in-repl?)
              (internal-set-options! "REPL execution default"
                                     (get-explained-all-options)
                                     (get-options)

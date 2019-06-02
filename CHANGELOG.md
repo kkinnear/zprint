@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.16 - 2019-05-30
+## 0.4.16 - 2019-06-04
 
 ### Added
 
@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
   was the last thing in a series of pairs, the following right parens
   would be missing!  Issue #106.
 
-  * Fixed bug in flow indentation underneath things like "#(...)".
+  * Fixed bug in flow indentation underneath things like `"#(...)"`.
   Issue #103.
 
   * Fixed bug where files that ended with a newline didn't after being
@@ -29,6 +29,13 @@ All notable changes to this project will be documented in this file.
 
   * Fixed bug where namespaced maps in source code didn't format 
   correctly. Issue #104.
+
+  * Fixed code to correctly detect when running in a REPL and enable parallel
+  operation.  It was always enabling parallel operation before, which will
+  cause a main program using zprint to not exit correctly unless you call
+  (shutdown-agents).  Now it only enables parallel operation automatically
+  if you are in a REPL, or if you call `(set-options! {:parallel? true})`.
+  Issue #107.
 
 ## 0.4.15 - 2019-01-14
 

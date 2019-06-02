@@ -139,13 +139,22 @@ above contain.
 
 ### Clojure CLI
 
-Add the following either to the `$HOME/.clojure/deps.edn` file or to a project `deps.edn`:
+Add the following to the `:aliases` section of `$HOME/.clojure/deps.edn` 
+file or to a project's `deps.edn`.
+
+For example:
 
 ```clojure
-:zprint {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}
-                      zprint              {:mvn/version "0.4.13"}}
-         :main-opts  ["-m" "zprint.main"]}
-```	    
+$ cat > deps.edn <<< $'
+{:aliases {:zprint
+             {:extra-deps
+                {org.clojure/clojure
+                   #:mvn{:version "1.9.0"},
+                 zprint #:mvn{:version "0.4.16"}},
+              :main-opts ["-m" "zprint.main"]}},
+ :deps {}}'
+$ clj -A:zprint < deps.edn
+```
 
 Then you can use the following as filter and pretty printer:
 

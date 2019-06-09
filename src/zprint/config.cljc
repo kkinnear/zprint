@@ -889,14 +889,16 @@
 ;; Alfred Xiao 5/23/15
 ;;
 
-(defn current-stack-trace [] (.getStackTrace (Thread/currentThread)))
+#?(:clj (defn current-stack-trace [] (.getStackTrace (Thread/currentThread))))
+#?(:clj (defn is-repl-stack-element
+          [^java.lang.StackTraceElement stack-element]
+          (and (= "clojure.main$repl" (.getClassName stack-element))
+               (= "doInvoke" (.getMethodName stack-element)))))
 
-(defn is-repl-stack-element
-  [^java.lang.StackTraceElement stack-element]
-  (and (= "clojure.main$repl" (.getClassName stack-element))
-       (= "doInvoke" (.getMethodName stack-element))))
-
-(defn is-in-repl? [] (some is-repl-stack-element (current-stack-trace)))
+(defn is-in-repl?
+  []
+  #?(:clj (some is-repl-stack-element (current-stack-trace))
+     :cljs nil))
 
 ;;
 ;; End "detect in a REPL" code

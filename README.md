@@ -152,8 +152,11 @@ $ cat > deps.edn <<< $'
                    #:mvn{:version "1.9.0"},
                  zprint #:mvn{:version "0.4.16"}},
               :main-opts ["-m" "zprint.main"]}},
- :deps {}}'
+ :deps {org.clojure/clojure #:mvn{:version
+                                    "1.9.0"},
+        zprint #:mvn{:version "0.4.16"}}}'
 $ clj -A:zprint < deps.edn
+$ clj -m zprint.main <deps.edn
 ```
 
 Then you can use the following as filter and pretty printer:

@@ -892,7 +892,7 @@
 (defn current-stack-trace [] (.getStackTrace (Thread/currentThread)))
 
 (defn is-repl-stack-element
-  [stack-element]
+  [^java.lang.StackTraceElement stack-element]
   (and (= "clojure.main$repl" (.getClassName stack-element))
        (= "doInvoke" (.getMethodName stack-element))))
 

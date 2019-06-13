@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.4.17 - 2019-06-12
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## 0.4.16 - 2019-06-12
 
 ### Added

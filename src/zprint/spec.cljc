@@ -56,7 +56,8 @@
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
     :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair
     :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
-    :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin})
+    :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin
+    :indent})
 (s/def ::format-value #{:on :off :next :skip})
 (s/def ::nilable-number (s/nilable number?))
 (s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
@@ -119,6 +120,7 @@
 (s/def ::hex? ::boolean)
 (s/def ::indent number?)
 (s/def ::indent-arg ::nilable-number)
+(s/def ::indent-only? ::boolean)
 (s/def ::inline? ::boolean)
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
@@ -212,14 +214,16 @@
 (s/def ::list
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
-                      ::indent-arg ::pair-hang? ::return-altered-zipper]))
+                      ::indent-arg ::pair-hang? ::return-altered-zipper
+		      ::indent-only?]))
 (s/def ::map
-  (only-keys :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
-                      ::hang-expand ::hang? ::indent ::justify? ::justify-hang
-                      ::justify-tuning ::key-color ::key-value-color
-                      ::key-depth-color ::key-ignore ::key-ignore-silent
-                      ::key-order ::lift-ns? ::lift-ns-in-code? ::nl-separator?
-                      ::sort-in-code? ::sort? ::unlift-ns?]))
+  (only-keys
+    :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
+             ::hang-expand ::hang? ::indent ::indent-only? ::justify?
+             ::justify-hang ::justify-tuning ::key-color ::key-value-color
+             ::key-depth-color ::key-ignore ::key-ignore-silent ::key-order
+             ::lift-ns? ::lift-ns-in-code? ::nl-separator? ::respect-nl?
+             ::sort-in-code? ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -250,8 +254,9 @@
                       :alt/extend]))
 (s/def ::return-cvec? ::boolean)
 (s/def ::set
-  (only-keys :opt-un [::indent ::sort? ::sort-in-code? ::wrap-after-multi?
-                      ::wrap-coll? ::wrap?]))
+  (only-keys :opt-un [::indent ::indent-only? ::respect-nl? ::sort?
+                      ::sort-in-code? ::wrap-after-multi? ::wrap-coll?
+                      ::wrap?]))
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::style ::style-value)
@@ -265,7 +270,8 @@
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-nl? ::option-fn-first
-                      ::wrap-after-multi? ::wrap-coll? ::wrap?]))
+                      ::wrap-after-multi? ::wrap-coll? ::wrap?
+		      ::indent-only?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::zipper? ::boolean)

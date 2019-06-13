@@ -16,6 +16,19 @@
 ;;
 
 ;;
+;; ### TEMPORARY PROTOTYPE CODE -- REMOVE THIS
+;;
+
+(def nl-to-comment? (atom false))
+(defn set-nl-to-comment!
+  []
+  (reset! nl-to-comment? true))
+(defn clear-nl-to-comment!
+  []
+  (reset! nl-to-comment? false))
+
+
+;;
 ;; Note that both rewrite-clj and rewrite-cljs use the following namespaces:
 ;;
 ;; rewrite-clj.parse
@@ -81,6 +94,11 @@
   #?(:clj z/tag
      :cljs zb/tag))
 
+; indent-only
+#_(defn tag
+  [zloc]
+  (let [t (z/tag zloc)] (if @nl-to-comment? (if (= t :newline) :comment t) t)))
+ 
 (def skip
   #?(:clj z/skip
      :cljs zw/skip))
@@ -93,6 +111,21 @@
   #?(:clj z/whitespace?
      :cljs zw/whitespace?))
 
+;; FIX THIS
+; indent-only
+#_(defn whitespace?
+  [zloc]
+  (if @nl-to-comment?
+    (or (= (tag zloc) :whitespace) (= (tag zloc) :comma))
+    (or (= (tag zloc) :whitespace)
+        (= (tag zloc) :newline)
+        (= (tag zloc) :comma))))
+
+; indent-only
+#_(defn skip-whitespace
+  ([zloc] (skip-whitespace z/right zloc))
+  ([f zloc] (skip f whitespace? zloc)))
+
 (def whitespace-or-comment?
   #?(:clj z/whitespace-or-comment?
      :cljs zw/whitespace-or-comment?))
@@ -104,6 +137,10 @@
 (def rightmost?
   #?(:clj z/rightmost?
      :cljs zm/rightmost?))
+
+(def leftmost?
+  #?(:clj z/leftmost?
+     :cljs zm/leftmost?))
 
 ; conflicts with clojure.core:
 
@@ -157,6 +194,15 @@
   "Returns true if this is a comment."
   [zloc]
   (when zloc (= (tag zloc) :comment)))
+
+; indent-only
+#_(defn zcomment?
+  "Returns true if this is a comment."
+  [zloc]
+  (when zloc
+    (if @nl-to-comment?
+      (or (= (tag zloc) :comment) (= (tag zloc) :newline))
+      (= (tag zloc) :comment))))
 
 (defn znewline?
   "Returns true if this is a newline."
@@ -261,7 +307,7 @@
 
 (defn zmap-w-nl
   "Return a vector containing the return of applying a function to 
-  every non-whitespace zloc inside of zloc."
+  every non-whitespace zloc inside of zloc, including newlines."
   [zfn zloc]
   (loop [nloc (down* zloc)
          out []]
@@ -287,6 +333,7 @@
                (conj out result)
                out)))))
 
+; Appears to be unused
 (defn zmap-all
   "Return a vector containing the return of applying a function to 
   every zloc inside of zloc."

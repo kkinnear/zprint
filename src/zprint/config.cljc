@@ -21,7 +21,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-0.4.16"))
+(defn about "Return version of this program." [] (str "zprint-0.4.17"))
 
 ;;
 ;; # External Configuration
@@ -441,6 +441,7 @@
           :hang? true,
           :indent 2,
           :indent-arg nil,
+	  :indent-only? nil,
           :pair-hang? true},
    :map {:indent 2,
          :sort? true,
@@ -453,6 +454,7 @@
          ; was created and set to 0.  That certainly looks better, but
          ; wider stuff seems better with -1, so for now, we will go with that.
          :hang-adjust -1,
+	 :indent-only? false
          :key-order nil,
          :key-ignore nil,
          :key-ignore-silent nil,
@@ -467,6 +469,7 @@
          :justify? false,
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+	 :repsect-nl? false,
          :unlift-ns? false},
    :max-depth 1000,
    :max-depth-string "##",
@@ -518,6 +521,8 @@
    :return-cvec? false,
    :search-config? false,
    :set {:indent 1,
+	 :indent-only? false
+	 :respect-nl? false
          :sort? true,
          :sort-in-code? false,
          :wrap-after-multi? true,
@@ -554,6 +559,10 @@
                                                       {:list {:hang? true}}],
                                            ":require" :flow},
                                   :list {:hang? false, :indent-arg 1}}]}},
+      :indent-only {:list {:indent-only? true}
+                    :map {:indent-only? true}
+		    :set {:indent-only? true}
+		    :vector {:indent-only? true}}
       :justified {:binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
@@ -617,7 +626,8 @@
             :respect-nl? false,
             :wrap-after-multi? true,
             :wrap-coll? true,
-            :wrap? true},
+            :wrap? true,
+	    :indent-only? false},
    :width 80,
    :zipper? false})
 
@@ -832,7 +842,7 @@
   (reset! configured-options default-zprint-options)
   (reset! explained-options default-zprint-options))
 
-(defn get-options "Return any prevsiouly set options." [] @configured-options)
+(defn get-options "Return any previously set options." [] @configured-options)
 
 (defn get-default-options
   "Return the base default options."

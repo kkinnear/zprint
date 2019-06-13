@@ -106,7 +106,7 @@ when pretty printing source code.
 
 ## Usage
 
-### Clojure 1.9, 1.10, 1.10.1-RC1:
+### Clojure 1.9, 1.10, 1.10.1:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 

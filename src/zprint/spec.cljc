@@ -147,6 +147,8 @@
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::additional-libraries? ::boolean)
 (s/def ::option-fn-first (s/nilable fn?))
+(s/def ::option-fn (s/nilable fn?))
+(s/def ::fn-format (s/nilable ::fn-type))
 (s/def ::record-type? ::boolean)
 (s/def ::respect-nl? ::boolean)
 (s/def ::size number?)
@@ -213,6 +215,8 @@
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
                       ::indent-arg ::pair-hang? ::return-altered-zipper]))
+(s/def ::vector-fn ::list)
+
 (s/def ::map
   (only-keys :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
                       ::hang-expand ::hang? ::indent ::justify? ::justify-hang
@@ -265,6 +269,7 @@
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-nl? ::option-fn-first
+                      ::option-fn ::fn-format
                       ::wrap-after-multi? ::wrap-coll? ::wrap?]))
 (s/def ::version string?)
 (s/def ::width number?)
@@ -288,7 +293,7 @@
              ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
              ::record ::remove ::return-cvec? ::search-config? ::set ::spaces?
              ::spec ::style ::style-map ::tab ::trim-comments? ::tuning
-             :alt/uneval ::user-fn-map ::vector ::version ::width ::zipper?]))
+             :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

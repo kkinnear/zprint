@@ -2532,7 +2532,7 @@
 (defn fzprint-list*
   "Print a list, which might be a list or an anon fn.  
   Lots of work to make a list look good, as that is typically code. 
-  Presently all of the callers of this are :list."
+  Presently all of the callers of this are :list or :vector-fn."
   [caller l-str r-str
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl],
     :as options} ind zloc]
@@ -3044,13 +3044,18 @@
               errors))
       options)))
 
+(defn lazy-sexpr-seq [nws-seq]
+  (if (seq nws-seq)
+    (lazy-cat [(zsexpr (first nws-seq))] (lazy-sexpr-seq (rest nws-seq)))
+    []))
+
 (defn fzprint-vec*
   "Print basic stuff like a vector or a set.  Several options for how to
   print them."
   [caller l-str r-str
    {:keys [rightcnt in-code?],
-    {:keys [wrap-coll? wrap? binding? option-fn-first respect-nl? sort?
-            sort-in-code?]}
+    {:keys [wrap-coll? wrap? binding? option-fn-first option-fn respect-nl? sort?
+            fn-format sort-in-code?]}
       caller,
     :as options} ind zloc]
   (if (and binding? (= (:depth options) 1))
@@ -3063,62 +3068,75 @@
                             (option-fn-first options first-sexpr)
                             (str ":vector :option-fn-first called with "
                                  first-sexpr))))
+          new-options (if option-fn
+                        (let [nws-seq   (remove zwhitespaceorcomment? (zseqnws zloc))
+                              nws-count (count nws-seq)
+                              sexpr-seq (lazy-sexpr-seq nws-seq)]
+                          (internal-validate
+                            (option-fn new-options nws-count sexpr-seq)
+                            (str ":vector :option-fn called with sexpr count "
+                                 nws-count)))
+                        new-options)
           #_(prn "new-options:" new-options)
           {{:keys [wrap-coll? wrap? binding? option-fn-first respect-nl? sort?
-                   sort-in-code?]}
+                   fn-format sort-in-code?]}
              caller,
            :as options}
-            (merge-deep options new-options)
-          ; If sort? is true, then respect-nl? makes no sense.  At present,
-          ; sort? and respect-nl? are not both supported for the same structure,
-          ; so this doesn't really matter, but if in the future they were, this
-          ; would help.
-          respect-nl? (and respect-nl? (not sort?))
-          new-ind (+ (count l-str) ind)
-          _ (dbg-pr options "fzprint-vec*:" (zstring zloc) "new-ind:" new-ind)
-          zloc-seq
-            (if respect-nl? (zmap-w-nl identity zloc) (zmap identity zloc))
-          zloc-seq (if (and sort? (if in-code? sort-in-code? true))
-                     (order-out caller options identity zloc-seq)
-                     zloc-seq)
-          coll-print (if (zero? (zcount zloc))
-                       [[["" :none :whitespace]]]
-                       (fzprint-seq options new-ind zloc-seq))
-          _ (dbg-pr options "fzprint-vec*: coll-print:" coll-print)
-          ; If we got any nils from fzprint-seq and we were in :one-line mode
-          ; then give up -- it didn't fit on one line.
-          coll-print (if-not (contains-nil? coll-print) coll-print)
-          one-line (when coll-print
-                     ; should not be necessary with contains-nil? above
-                     (apply concat-no-nil
-                       (interpose [[" " :none :whitespace]]
-                         ; This causes single line things to also respect-nl
-                         ; when it is enabled.  Could be separately controlled
-                         ; instead of with :respect-nl? if desired.
-                         (if respect-nl? coll-print (remove-nl coll-print)))))
-          _ (log-lines options "fzprint-vec*:" new-ind one-line)
-          one-line-lines (style-lines options new-ind one-line)]
-      (when one-line-lines
-        (if (fzfit-one-line options one-line-lines)
-          (concat-no-nil l-str-vec one-line r-str-vec)
-          (if (or (and (not wrap-coll?) (any-zcoll? options new-ind zloc))
-                  (not wrap?))
-            (concat-no-nil l-str-vec
-                           (apply concat-no-nil
-                             (interpose [[(str "\n" (blanks new-ind)) :none
-                                          :indent]]
-                               (remove-nl coll-print)))
-                           r-str-vec)
-            ; Since there are either no collections in this vector or set or
-            ; whatever, or if there are, it is ok to wrap them, print it
-            ; wrapped on the same line as much as possible:
-            ;           [a b c d e f
-            ;            g h i j]
-            (concat-no-nil
-              l-str-vec
-              (do (dbg options "fzprint-vec*: wrap coll-print:" coll-print)
-                  (wrap-zmap caller options new-ind coll-print))
-              r-str-vec)))))))
+            (merge-deep options new-options)]
+      (if fn-format
+        ; Formatting entire vector as function, use list formatting
+        ; with the given fn-style and ignore all other vector settings
+        (fzprint-list* :vector-fn "[" "]" (assoc options :fn-style fn-format) ind zloc)
+        (let [; If sort? is true, then respect-nl? makes no sense.  At present,
+              ; sort? and respect-nl? are not both supported for the same structure,
+              ; so this doesn't really matter, but if in the future they were, this
+              ; would help.
+              respect-nl?    (and respect-nl? (not sort?))
+              new-ind        (+ (count l-str) ind)
+              _              (dbg-pr options "fzprint-vec*:" (zstring zloc) "new-ind:" new-ind)
+              zloc-seq
+                             (if respect-nl? (zmap-w-nl identity zloc) (zmap identity zloc))
+              zloc-seq       (if (and sort? (if in-code? sort-in-code? true))
+                               (order-out caller options identity zloc-seq)
+                               zloc-seq)
+              coll-print     (if (zero? (zcount zloc))
+                               [[["" :none :whitespace]]]
+                               (fzprint-seq options new-ind zloc-seq))
+              _              (dbg-pr options "fzprint-vec*: coll-print:" coll-print)
+              ; If we got any nils from fzprint-seq and we were in :one-line mode
+              ; then give up -- it didn't fit on one line.
+              coll-print     (if-not (contains-nil? coll-print) coll-print)
+              one-line       (when coll-print
+                               ; should not be necessary with contains-nil? above
+                               (apply concat-no-nil
+                                      (interpose [[" " :none :whitespace]]
+                                                 ; This causes single line things to also respect-nl
+                                                 ; when it is enabled.  Could be separately controlled
+                                                 ; instead of with :respect-nl? if desired.
+                                                 (if respect-nl? coll-print (remove-nl coll-print)))))
+              _              (log-lines options "fzprint-vec*:" new-ind one-line)
+              one-line-lines (style-lines options new-ind one-line)]
+          (when one-line-lines
+            (if (fzfit-one-line options one-line-lines)
+              (concat-no-nil l-str-vec one-line r-str-vec)
+              (if (or (and (not wrap-coll?) (any-zcoll? options new-ind zloc))
+                      (not wrap?))
+                (concat-no-nil l-str-vec
+                               (apply concat-no-nil
+                                      (interpose [[(str "\n" (blanks new-ind)) :none
+                                                   :indent]]
+                                                 (remove-nl coll-print)))
+                               r-str-vec)
+                ; Since there are either no collections in this vector or set or
+                ; whatever, or if there are, it is ok to wrap them, print it
+                ; wrapped on the same line as much as possible:
+                ;           [a b c d e f
+                ;            g h i j]
+                (concat-no-nil
+                  l-str-vec
+                  (do (dbg options "fzprint-vec*: wrap coll-print:" coll-print)
+                      (wrap-zmap caller options new-ind coll-print))
+                  r-str-vec)))))))))
 
 (defn fzprint-vec
   [options ind zloc]

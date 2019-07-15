@@ -614,10 +614,22 @@
    :vector {:indent 1,
             :binding? false,
             :option-fn-first nil,
+            :option-fn nil,
+            :fn-format nil
             :respect-nl? false,
             :wrap-after-multi? true,
             :wrap-coll? true,
             :wrap? true},
+   :vector-fn {:constant-pair-min 4,
+               :constant-pair? true,
+               :hang-avoid 0.5,
+               :hang-diff 1,
+               :hang-expand 2.0,
+               :hang-size 100,
+               :hang? true,
+               :indent 2,
+               :indent-arg nil,
+               :pair-hang? true}
    :width 80,
    :zipper? false})
 

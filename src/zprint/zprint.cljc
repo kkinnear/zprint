@@ -4969,7 +4969,7 @@
 (defn fzprint-list*
   "Print a list, which might be a list or an anon fn.  
   Lots of work to make a list look good, as that is typically code. 
-  Presently all of the callers of this are :list."
+  Presently all of the callers of this are :list or :vector-fn."
   [caller l-str r-str
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl],
     :as options} ind zloc]
@@ -5984,13 +5984,18 @@
               errors))
       options)))
 
+(defn lazy-sexpr-seq [nws-seq]
+  (if (seq nws-seq)
+    (lazy-cat [(zsexpr (first nws-seq))] (lazy-sexpr-seq (rest nws-seq)))
+    []))
+
 (defn fzprint-vec*
   "Print basic stuff like a vector or a set.  Several options for how to
   print them."
   [caller l-str r-str
    {:keys [rightcnt in-code?],
-    {:keys [wrap-coll? wrap? binding? option-fn-first respect-nl? sort?
-            sort-in-code? indent]}
+    {:keys [wrap-coll? wrap? binding? option-fn-first option-fn respect-nl?
+            sort? sort-in-code? fn-format indent]}
       caller,
     :as options} ind zloc]
   (dbg options "fzprint-vec* ind:" ind "indent:" indent "caller:" caller)
@@ -6006,9 +6011,19 @@
                             (option-fn-first options first-sexpr)
                             (str ":vector :option-fn-first called with "
                                  first-sexpr))))
+          new-options
+            (if option-fn
+              (let [nws-seq (remove zwhitespaceorcomment? (zseqnws zloc))
+                    nws-count (count nws-seq)
+                    sexpr-seq (lazy-sexpr-seq nws-seq)]
+                (internal-validate
+                  (option-fn new-options nws-count sexpr-seq)
+                  (str ":vector :option-fn called with sexpr count "
+                       nws-count)))
+              new-options)
           #_(prn "new-options:" new-options)
           {{:keys [wrap-coll? wrap? binding? option-fn-first respect-nl? sort?
-                   sort-in-code? indent indent-only?]}
+                   <<<<<<< HEAD fn-format sort-in-code? indent indent-only?]}
              caller,
            :as options}
             (merge-deep options new-options)
@@ -6056,34 +6071,43 @@
         (when one-line-lines
           (if (fzfit-one-line options one-line-lines)
             (concat-no-nil l-str-vec one-line r-str-vec)
-            (if indent-only?
-	      (concat-no-nil l-str-vec
-			     (indent-zmap caller
-					  options
-					  ind
-					  ; actual-ind
-					  (+ ind l-str-len)
-					  coll-print
-					  indent)
-			     r-str-vec)
-              (if (or (and (not wrap-coll?) (any-zcoll? options new-ind zloc))
-                      (not wrap?))
-                (concat-no-nil l-str-vec
-                               (apply concat-no-nil
-                                 (interpose [[(str "\n" (blanks new-ind)) :none
-                                              :indent]]
-                                   (remove-nl coll-print)))
-                               r-str-vec)
-                ; Since there are either no collections in this vector or set or
-                ; whatever, or if there are, it is ok to wrap them, print it
-                ; wrapped on the same line as much as possible:
-                ;           [a b c d e f
-                ;            g h i j]
-                (concat-no-nil
-                  l-str-vec
-                  (do (dbg options "fzprint-vec*: wrap coll-print:" coll-print)
+            (cond
+              indent-only? (concat-no-nil l-str-vec
+                                          (indent-zmap caller
+                                                       options
+                                                       ind
+                                                       ; actual-ind
+                                                       (+ ind l-str-len)
+                                                       coll-print
+                                                       indent)
+                                          r-str-vec)
+              fn-format (fzprint-list* :vector-fn
+                                       "["
+                                       "]"
+                                       (assoc options :fn-style fn-format)
+                                       ind
+                                       zloc)
+              :else
+                (if (or (and (not wrap-coll?) (any-zcoll? options new-ind zloc))
+                        (not wrap?))
+                  (concat-no-nil l-str-vec
+                                 (apply concat-no-nil
+                                   (interpose [[(str "\n" (blanks new-ind))
+                                                :none :indent]]
+                                     (remove-nl coll-print)))
+                                 r-str-vec)
+                  ; Since there are either no collections in this vector or set
+                  ; or
+                  ; whatever, or if there are, it is ok to wrap them, print it
+                  ; wrapped on the same line as much as possible:
+                  ;           [a b c d e f
+                  ;            g h i j]
+                  (concat-no-nil
+                    l-str-vec
+                    (do
+                      (dbg options "fzprint-vec*: wrap coll-print:" coll-print)
                       (wrap-zmap caller options new-ind coll-print))
-                  r-str-vec)))))))))
+                    r-str-vec)))))))))
 
 (defn fzprint-vec
   [options ind zloc]

@@ -615,7 +615,7 @@
             :binding? false,
             :option-fn-first nil,
             :option-fn nil,
-            :fn-format nil
+            :fn-format nil,
             :respect-nl? false,
             :wrap-after-multi? true,
             :wrap-coll? true,
@@ -629,7 +629,7 @@
                :hang? true,
                :indent 2,
                :indent-arg nil,
-               :pair-hang? true}
+               :pair-hang? true},
    :width 80,
    :zipper? false})
 

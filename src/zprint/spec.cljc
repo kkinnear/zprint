@@ -269,8 +269,8 @@
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-nl? ::option-fn-first
-                      ::option-fn ::fn-format
-                      ::wrap-after-multi? ::wrap-coll? ::wrap?]))
+                      ::option-fn ::fn-format ::wrap-after-multi? ::wrap-coll?
+                      ::wrap?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::zipper? ::boolean)
@@ -281,19 +281,19 @@
 
 (s/def ::options
   (only-keys
-    :opt-un [::additional-libraries? ::agent ::array ::atom ::auto-width?
-             ::binding ::color? ::color-map :alt/comment ::configured? ::dbg?
-             ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge ::delay
-             ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
-             ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
-             ::format ::future ::indent ::list ::map ::max-depth
-             ::max-depth-string ::max-hang-count ::max-hang-depth
-             ::max-hang-span ::max-length ::object ::old? ::output ::pair
-             ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
-             ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
-             ::record ::remove ::return-cvec? ::search-config? ::set ::spaces?
-             ::spec ::style ::style-map ::tab ::trim-comments? ::tuning
-             :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width ::zipper?]))
+    :opt-un
+      [::additional-libraries? ::agent ::array ::atom ::auto-width? ::binding
+       ::color? ::color-map :alt/comment ::configured? ::dbg? ::cwd-zprintrc?
+       ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend
+       ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map
+       ::fn-name ::fn-obj ::format ::future ::indent ::list ::map ::max-depth
+       ::max-depth-string ::max-hang-count ::max-hang-depth ::max-hang-span
+       ::max-length ::object ::old? ::output ::pair ::pair-fn ::parallel?
+       ::parse ::parse-string-all? ::parse-string? ::perf-vs-format
+       ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
+       ::return-cvec? ::search-config? ::set ::spaces? ::spec ::style
+       ::style-map ::tab ::trim-comments? ::tuning :alt/uneval ::user-fn-map
+       ::vector ::vector-fn ::version ::width ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

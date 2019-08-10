@@ -92,6 +92,7 @@
 (s/def ::number-or-vector-of-numbers
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))
+(s/def ::indent-only-style-value #{:input-hang :none})
 
 ;;
 ;; # Leaf map keys
@@ -121,6 +122,7 @@
 (s/def ::indent number?)
 (s/def ::indent-arg ::nilable-number)
 (s/def ::indent-only? ::boolean)
+(s/def ::indent-only-style ::indent-only-style-value)
 (s/def ::inline? ::boolean)
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
@@ -217,7 +219,7 @@
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
                       ::indent-arg ::pair-hang? ::return-altered-zipper
 		      ::respect-nl?
-		      ::indent-only?]))
+		      ::indent-only? ::indent-only-style]))
 (s/def ::map
   (only-keys
     :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff

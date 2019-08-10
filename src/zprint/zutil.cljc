@@ -356,6 +356,22 @@
                (conj out result)
                out)))))
 
+(defn zmap-w-nl-comma
+  "Return a vector containing the return of applying a function to 
+  every non-whitespace zloc inside of zloc, including newlines and commas."
+  [zfn zloc]
+  (loop [nloc (down* zloc)
+         out []]
+    (if-not nloc
+      out
+      (recur (right* nloc)
+             (if-let [result (when (not (and (whitespace? nloc)
+                                             (not (= (z/tag nloc) :newline))
+                                             (not (= (z/tag nloc) :comma))))
+                               (zfn nloc))]
+               (conj out result)
+               out)))))
+
 (defn zmap
   "Return a vector containing the return of applying a function to 
   every non-whitespace zloc inside of zloc."
@@ -751,6 +767,7 @@
     zprint.zfns/zcount-zloc-seq-nc-nws zcount-zloc-seq-nc-nws
     zprint.zfns/zmap zmap
     zprint.zfns/zmap-w-nl zmap-w-nl
+    zprint.zfns/zmap-w-nl-comma zmap-w-nl-comma
     zprint.zfns/zanonfn? zanonfn?
     zprint.zfns/zfn-obj? (constantly false)
     zprint.zfns/zfocus zfocus

@@ -28,7 +28,41 @@ Zprint includes support for Clojurescript, both browser based and self-hosted.
 Zprint is designed to be a single pretty printer to use for code
 and data structures.  It doesn't just re-indent code, it moves
 it around from line to line trying to find a good visual representation
-for your code.
+for your code.  Though it will just re-indent your code if that is
+what you want.
+
+## Major Additions to Formatting Clojure(script) Source
+
+Some people want a formatting tool to enforce a particular style, regardless
+of the input.  That is what classic zprint does -- it enforces the style
+configured in the options map, largely ignoring how the input was formatted.  
+
+However, some people want
+a source formatting tool to take into account some amount of the formatting that
+is already present in the input file.  Two capabilities for this are now
+available in zprint:
+
+* Respect Newlines - `:style :respect-nl`
+
+  This approach to source formatting is similar to classic zprint, but it will
+  not remove any newlines.  It will add them as necessary based on the 
+  formatting configuration given to zprint.  It is effective when you want
+  zprint to "pretty up" your source, but not entirely ignore the newlines
+  that you sent in.
+
+* Indent Only - `:style :indent-only`
+
+  This approach to source formatting will not remove nor add any newlines.
+  Every line stays as it is -- the only changes zprint will make is to 
+  indent each line and to regularize whitespace on the remainder of the
+  line.  It bears little relationship to classic zprint, and 
+  doesn't format functions based on the `:fn-map` styles configured. It
+  decides whether to hang or flow a list based on the locations of the first
+  three elements in a list -- if the first two are on the same line, and the
+  third is on the next line aligned with the second on the line above, it
+  will flow the list.  The indent-only approach is for people who want 
+  the code they put on each line to stay on that line!
+
 
 #### What, really?  Another pretty printer?
 
@@ -187,7 +221,8 @@ following specific features:
 * Does a great job printing spec files
 * Justify paired output (maps, binding forms, cond clauses, etc.) if desired
 * Syntax coloring at the terminal
-* Preserve most hand-formatting of selected vectors (for hiccup or rum HTML)
+* Optionally preserve all incoming newlines in source
+* Optionally only indent each line, and don't add or remove any newlines
 
 All of this is just so many words, of course.  Give zprint a try on
 your code or data structures, and see what you think!
@@ -277,6 +312,39 @@ Zprint has two fundemental regimes -- formatting s-expressions, or parsing
 a string and formatting the results of the parsing.  When the `-fn` versions
 of the API are used, zprint acquires the source of the function, parses it,
 and formats the result at the repl.  
+
+When parsing a string and formatting the results, zprint has three regimes:
+
+* Classic zprint: ignore all white space, and format based entirely on
+algorithms driven by the current configuration.  This regime will detect
+end-of-line comments and keep them with the line they ended (which is the
+only time it examines the incoming whitespace).  This regimes enforces
+a particular format on the incoming source.
+
+* Respect Newline: This regime will ensure that any newlines in the
+incoming source are replicated in the formatted output. It is
+available as `:style :respect-nl`.  It will not remove any newlines,
+but will add newlines in order to format the source.   This will not enforce
+a particular format, since the output is based, in part, on the format of
+the input.  If you format
+something with classic zprint and then send that output through
+zprint with `:style :respect-nl`, it will not change.
+You can turn this on and off for lists, maps, sets, and vectors individually.
+This regime uses the `:fn-map` to determine the kind of formatting to use for
+each function, and will format them as appropriate (subject to the constraint
+to not remove any newlines).
+
+* Indent Only: This regime will not remove or add any newlines.  It will take
+what it is given and indent each line the best it can.  This regime doesn't
+know about function type as configured in the `:fn-map`, and it doesn't know
+about pairs of things in maps and `cond` and binding vectors.  It simply does
+the best it can to indent the major data types: lists, maps, sets, and vectors.
+When formatting lists, it will (configurably) examine the incoming characters
+and will format lists as a hang instead of a flow if the first two elements
+of a list are on the same line and the third element of the
+list was left-aligned with the second element of the list.  Obviously this 
+regime doesn't enforce anything other than indentation.
+
 
 ### Support
 
@@ -497,7 +565,7 @@ time it will configure itself from all of the information that it
 has available at that time.  It will examine the following information
 in order to configure itself:
 
-* The file `$HOME/.zprintrc` or that file does not exist, the  file 
+* The file `$HOME/.zprintrc` or if that file does not exist, the  file 
   `$HOME/.zprint.edn` for an options map in EDN format.
 * If the file found above has `:search-config?` true, it will look
   in the current directory for a file `.zprintrc` and if it doesn't find
@@ -1692,6 +1760,29 @@ The value for indent is how far to indent the second through nth of
 something if it doesn't all fit on one line (and becomes a flow, see
 immediately below).
 
+Note that the indent values for things with pairs (i.e., `:map`, `:binding`,
+`:pair`) are counted differently from other things.  For these things,
+an `:indent 2` will leave two blanks to the right of the left "bracket"
+(e.g. "{" for maps).  For other things an `:indent 2` will leave one blank
+to the right of the left bracket.
+
+### :indent-only?
+
+This is configurable for the major data structures: lists, maps, sets, and 
+vectors.  When enabled, zprint will not add or remove newlines from the
+incoming source, but will otherwise regularize whitespace.  
+Most of the other configuration parameters will be ignored when `:indent-only?`
+is enabled.
+
+### :respect-nl?
+
+This will cause zprint to respect incoming newlines. If this is enabled,
+zprint will add newlines, but will not remove any existing newlines from
+incoming source.  Existing formatting configuration will be followed, of
+course with the constraint that existing newlines will be included wherever
+they appear.
+
+
 ### hang and flow
 
 zprint uses two concepts: hang and flow, to describe how something is
@@ -1909,7 +2000,6 @@ Also works with `:pair` functions
 (cond abcd b
       cdef d)
 ```
-
 
 #### :nl-separator?
 
@@ -2325,6 +2415,24 @@ configured for `:indent` is used for the arguments of functions that
 are not "body" functions.  You would configure this value only if
 you wanted "arg" type functions to have a different indent from
 "body" type functions.  It is configured by `:style :community`.
+
+#### :indent-only? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Do not add or remove newlines.  Just indent the lines that are there and
+regularize whitespace.  The `:fn-map` which gives formatting and indentation
+information about different functions is ignored.  The default indentation is
+flow, however based on the value of the `:indent-only-style`, a hang will
+be used in some situations.  See `:indent-only-style` below for details.
+
+#### :indent-only-style <text style="color:#A4A4A4;"><small>:input-hang</small></text>
+
+Controls how `:indent-only` indents a list. If the value is
+`:input-hang`, then if the input is formatted as a hang, it will
+indent the list as a hang.  The input is considered to be formatted
+as a hang if the first two elements of the list are on the same
+line, and the third element of the list is on the second line aligned
+with the second element.  The determination of alignment is not
+affected by the appearance of comments.
 
 #### :hang-size <text style="color:#A4A4A4;"><small>100</small></text>
 
@@ -3035,6 +3143,16 @@ For example:
 Note that `:unlift-ns? true` only works if `:lifts-ns? false` is present, 
 since otherwise zprint won't know which keyword to honor, and `:lift-ns?` was
 there first.
+
+#### :indent-only? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Do not add or remove newlines.  Just indent the lines that are there and
+regularize whitespace.
+This forces the indent for maps to be zero, which means that every key
+is indented identically since there is no assumption that key-value pairs
+are placed on lines in any particular way.   Note that commas are not
+added, but existing commas will be included if `:comma?` flag is true.
+
 _____
 ## :object
 
@@ -3284,6 +3402,11 @@ _____
 ##### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :wrap-after-multi? <text style="color:#A4A4A4;"><small>true</small></text>
 
+#### :indent-only? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Do not add or remove newlines.  Just indent the lines that are there and
+regularize whitespace.
+
 #### :sort? <text style="color:#A4A4A4;"><small>true</small></text>
 
 Sort the elements in a set prior to output.  Alternatively, simply output
@@ -3340,6 +3463,114 @@ please create an issue explaining the difference.
 
 This sets `:justify? true` in each of `:binding`, `:pair`, and `:map`.
 It is useful to see what you think about justfied output.
+
+#### :indent-only
+
+This is __very different__ from classic zprint!
+
+When configured, zprint will not add or remove newlines from the
+incoming source, but will otherwise regularize whitespace.  Lists
+will be formatted as a hang if the incoming list was fomatted as a
+hang (controlled by `{:list {:indent-only-style :input-hang}}`.
+The indent for maps goes to 0.  Most of the other configuration
+parameters will be ignored when `:indent-only` is enabled.
+
+See `:respect-nl` below for a comparison of `:indent-only`, `:respect-nl`,
+and classic zprint.
+
+#### :respect-nl
+
+This will cause zprint to respect incoming newlines. If this is enabled,
+zprint will add newlines, but will not remove any existing newlines from
+incoming source.  Existing formatting configuration will be followed, of
+course with the constraint that existing newlines will be included wherever
+they appear.  You can configure this style for just a particular function,
+if you have one that doesn't format well with classic zprint. See 
+[Altering the formatting inside of certain functions](#altering-the-formatting-inside-of-certain-functions) for details.
+
+
+Some examples of classic zprint, `:respect-nl`, and `:indent-only`:
+
+```clojure
+
+(def io2
+"
+(let 
+ [stuff 
+   (bother in 
+           addition 
+		    to more)
+      foo (bar 
+          with 
+	  baz)]
+  (if output 
+         stuff foo))")
+
+; Classic zprint
+;
+; Attemps to format the source clearly, while also trying to get the maximum
+; amount of code possible into a vertical space.  Ignores incoming whitespace
+; and formats entirely based on zprint configuration.  This will regularize
+; the entire format, effectively enforcing a particular format regardless
+; of the input.
+
+(zprint io2 {:parse-string? true})
+(let [stuff (bother in addition to more)
+      foo (bar with baz)]
+  (if output stuff foo))
+
+; :style :respect-nl
+;
+; Does the same thing as classic zprint, but if there is a newline, it
+; will not remove it.  Based on incoming newlines, it will try to make 
+; the output look as much like classic zprint as possible.  
+;
+; Note that you can configure this style for just a particular function,
+; if there is a function that doesn't format well with classic zprint.
+; 
+
+(czprint io2 {:parse-string? true :style :respect-nl})
+(let
+  [stuff (bother in
+                 addition
+                 to
+                 more)
+   foo (bar
+         with
+         baz)]
+  (if output
+    stuff
+    foo))
+
+; Notice that `:respect-nl` still knows the kinds of functions -- so
+; the two clauses of the `if` won't ever be on the same line unless the
+; entire `if` is on the same line. Since this `if` had a newline, that
+; forced both clauses to be on separate lines.
+
+; :style :indent-only
+;
+; This style doesn't add or remove newlines, and doesn't know anything
+; about which functions are which.  If you put to things on the same
+; line, they stay on the same line (see `to more)` and `stuff foo)`
+; below).  If you hang something (see `in addition to more)`), it will
+; keep the hang for you.  Compare this with the input `io2` above.
+; If `addition` were one character either left or right in the input,
+; `:indent-only` would not have aligned it with `in` on output, but
+; would have indented it from bother (i.e., made it a flow).
+
+(zprint io2 {:parse-string? true :style :indent-only})
+(let
+  [stuff
+   (bother in
+           addition
+           to more)
+   foo (bar
+         with
+         baz)]
+  (if output
+    stuff foo))
+
+```
 
 #### :extend-nl
 
@@ -3534,6 +3765,11 @@ _____
 ## :vector
 
 ##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+
+#### :indent-only? <text style="color:#A4A4A4;"><small>false</small></text>
+
+Do not add or remove newlines.  Just indent the lines that are there and
+regularize other whitespace.
 
 #### :option-fn-first <text style="color:#A4A4A4;"><small>false</small></text>
 

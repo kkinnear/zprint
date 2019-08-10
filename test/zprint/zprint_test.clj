@@ -3627,3 +3627,16 @@ ser/collect-vars-acc %1 %2) )))"
   (zprint-str
     "#{:binding :arg1 \n  :arg1-body :arg1-pair-body \n  :arg1-pair :pair \n  :hang :extend\n    :arg1-extend :fn \n    :arg1-> :noarg1-body \n    :noarg1 :arg2 \n    :arg2-extend :arg2-pair\n    :arg2-fn :none \n    :none-body :arg1-force-nl \n    :gt2-force-nl :gt3-force-nl \n    :flow :flow-body \n    :force-nl-body \n    :force-nl :pair-fn}"
     {:parse-string? true, :set {:respect-nl? true}}))
+
+;;
+;; fzprint-meta, :meta, with :respect-nl.
+;;
+
+(expect "(.getName ^clojure.lang.Symbol name)"
+        (zprint-str "(.getName ^clojure.lang.Symbol\n name)"
+                    {:parse-string? true}))
+
+(expect "(.getName ^clojure.lang.Symbol\n          name)"
+        (zprint-str "(.getName ^clojure.lang.Symbol\n name)"
+                    {:parse-string? true, :style :respect-nl}))
+

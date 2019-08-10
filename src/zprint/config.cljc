@@ -442,6 +442,7 @@
           :indent 2,
           :indent-arg nil,
 	  :indent-only? nil,
+	  :indent-only-style :input-hang,
           :pair-hang? true
 	  :respect-nl? false},
    :map {:indent 2,
@@ -561,7 +562,7 @@
                                            ":require" :flow},
                                   :list {:hang? false, :indent-arg 1}}]}},
       :indent-only {:list {:indent-only? true}
-                    :map {:indent-only? true :indent 1}
+                    :map {:indent-only? true}
 		    :set {:indent-only? true}
 		    :vector {:indent-only? true}}
       :justified {:binding {:justify? true},

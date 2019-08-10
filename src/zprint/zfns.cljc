@@ -30,6 +30,7 @@
 (def zcount-zloc-seq-nc-nws nil)
 (def zmap nil)
 (def zmap-w-nl nil)
+(def zmap-w-nl-comma nil)
 (def zanonfn? nil)
 (def zfn-obj? nil)
 (def zfocus nil)

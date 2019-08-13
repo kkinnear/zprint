@@ -1,11 +1,46 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.4.17 - 2019-06-12
+## 0.5.0 - 2019-08-30
 
 ### Added
 
+  * Standard mode.  Some people wanted a zprint that was not configurable.
+    If you give the uberjar (or graalVM binaries) "-s" or "-standard" on
+    the command line, it will run zprint with no external configuration.  
+    The default configuration is what you get, and no other options are 
+    read from anywhere.  In particular, the `$HOME/.zprintrc` file is
+    __not__ examined, nor is any other external configuration file.
+    No matter who runs it, running zprint with "-s" will produce the same
+    output from the same input file. 
+
+  * Respect New Lines.  `:respect-nl?` has been implemented for lists, maps,
+    sets, and vectors.  Also as a style for all of them: `:style :respect-nl`.
+    This will ensure that all newlines in the input also appear in the 
+    formatted output.  Additional lines may also be added to format more
+    correctly or because lines are too long.  Can be used both as a style
+    for everything, or more frequently as a style to be used when formatting
+    a particular function where one of the existing formatting styles isn't
+    quite right.
+
+  * Indent Only.  Will not remove or add newlines -- will only regularize
+    white space while preserving the content of each line.  This is very
+    different from classic zprint, and even from `:style :respect-nl`, above.
+    It is available individually for lists, maps, sets, and vectors.  It is
+    also available as style: `:style :indent-only`, which is the recommended
+    way to use it (if you want this capability).  See the documentation for
+    details.  It will clean up the indenting and white space, while doing
+    little else. 
+
 ### Changed
+
+  * If there was an error on the command line, either in the new switches
+    (see above), or the options map, the uberjar and graalVM binaries used
+    to format the input and report the error after formatting.  Now they
+    do not format at all, and just report the error.
+
+  * Configuring zprint with environment variables or Java properties has
+    been deprecated for a good while, and is now no longer supported.
 
 ### Fixed
 

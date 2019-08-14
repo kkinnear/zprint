@@ -1,7 +1,8 @@
 (ns ^:no-doc zprint.main
   (:require ;[clojure.string :as str]
             [zprint.core :refer
-             [zprint-str czprint zprint-file-str set-options!]])
+             [zprint-str czprint zprint-file-str set-options!]]
+            [zprint.config :refer [get-options get-explained-options]])
   #?(:clj (:gen-class)))
 
 ;;
@@ -11,6 +12,47 @@
 ;;
 ;; java -jar zprint-filter {<options-map-if-any>} <infile >outfile
 ;;
+
+;!zprint {:vector {:wrap? false}}
+
+(defn vec-str-to-str
+  "Take a vector of strings and concatenate them into one string with
+  newlines between them."
+  [vec-str]
+  (apply str (interpose "\n" vec-str)))
+
+(def help-str
+  (vec-str-to-str
+    [(:version (get-options))
+     ""
+     " zprint <options-map> <input-file >output-file"
+     " zprint <switches <input-file >output-file"
+     ""
+     " Where zprint is any of:"
+     ""
+     (str "  " (clojure.string/replace (:version (get-options)) "-" "m-"))
+     (str "  " (clojure.string/replace (:version (get-options)) "-" "l-"))
+     (str "  " "java -jar zprint-filter-" 
+          (second (clojure.string/split (:version (get-options)) #"-")))
+     ""
+     " <options-map> is a Clojure map containing zprint options."
+     "               Note that since it contains spaces, it must be"
+     "               wrapped in quotes, for example:"
+     "               '{:width 120}'"   
+     ""
+     "               Use the -e switch to see the total options"
+     "               map, which will show you what is configurable."
+     ""
+     " <switches> may be any single one of:"
+     ""
+     "  -s       --standard     Accept no configuration input."
+     "  -h       --help         Output this help text."
+     "  -v       --version      Output the version of zprint."
+     "  -e       --explain      Output configuration, showing where"
+     "                          non-default values (if any) came from."
+     ""
+     " You can have either an <options-map> or <switches>, but not both!"
+     ""]))
 
 
 ;;
@@ -26,19 +68,31 @@
   ; we only do one zprint at a time here in the uberjar.
   (zprint.redef/remove-locking)
   (let [options (first args)
-	; Some people wanted a zprint that didn't take configuration.
-	; If you say "-standard" or "-s", that is what you get.
-	; -standard or -s means that you get no configuration read from
-	; $HOME/.zprintrc or anywhere else.  You get the defaults 
-	; (or whatever is set in the (if standard? ...) below)
-        standard? (or (= options "-standard") (= options "-s"))
+        ; Some people wanted a zprint that didn't take configuration.
+        ; If you say "-standard" or "-s", that is what you get.
+        ; -standard or -s means that you get no configuration read from
+        ; $HOME/.zprintrc or anywhere else.  You get the defaults
+        ; (or whatever is set in the (if standard? ...) below)
+        version? (or (= options "--version") (= options "-v"))
+        help? (or (= options "--help") (= options "-h"))
+	explain? (or (= options "--explain") (= options "-e"))
+        format? (not (or version? help? explain?))
+        standard? (or (= options "--standard") (= options "-s"))
+        [option-status option-stderr switch?]
+          (if (and (not (clojure.string/blank? options))
+                   (clojure.string/starts-with? options "-"))
+            (if (or version? help? standard? explain?)
+              [0 nil true]
+              [1 (str "Unrecognized switch: '" options "'" "\n" help-str) true])
+            [0 nil false])
         _ (if standard?
             (set-options! {:configured? true,
                            :additional-libraries? false,
                            :parallel? true})
             (set-options! {:additional-libraries? false, :parallel? true}))
         [option-status option-stderr]
-          (if (and (not standard?)
+          (if (and (not switch?)
+                   format?
                    options
                    (not (clojure.string/blank? options)))
             (try [0 (set-options! (read-string options))]
@@ -47,18 +101,19 @@
                     (str "Failed to use command line options: '"
                          options
                          "' because: "
-                         (if (clojure.string/starts-with? options "-")
-                           "it is not a recognized command line switch."
-                           e)
+                         e
                          ".")]))
-            [0 nil])
-        in-str (slurp *in*)
-        ; _ (println "-main:" in-str)
+            [option-status option-stderr])
+        in-str (when (and (= option-status 0) format?) (slurp *in*))
         [format-status stdout-str format-stderr]
-          (if (= option-status 0)
+          (if (and (= option-status 0) format?)
             (try [0 (zprint-file-str in-str "<stdin>") nil]
                  (catch Exception e [1 in-str (str "Failed to zprint: " e)]))
             [0 nil])
+        option-stderr (cond version? (:version (get-options))
+                            help? help-str
+			    explain? (zprint-str (get-explained-options))
+                            :else option-stderr)
         exit-status (+ option-status format-status)
         stderr-str (cond (and option-stderr format-stderr)
                            (str option-stderr ", " format-stderr)
@@ -96,3 +151,5 @@
     ; so the process will end!
     (shutdown-agents)
     (System/exit exit-status)))
+
+

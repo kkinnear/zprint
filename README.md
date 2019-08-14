@@ -87,7 +87,7 @@ everyone can live with it".
 Now you have:
 
   * __Standard mode__  
-    If you give the uberjar (or graalVM binaries) `-s` or `-standard` on
+    If you give the uberjar (or graalVM binaries) `-s` or `--standard` on
     the command line, they will run zprint with no external configuration.
     The default configuration is what you get, and no other options are 
     read from anywhere.  In particular, the `$HOME/.zprintrc` file is

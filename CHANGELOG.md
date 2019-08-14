@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
   * Standard mode.  Some people wanted a zprint that was not configurable.
-    If you give the uberjar (or graalVM binaries) "-s" or "-standard" on
+    If you give the uberjar (or graalVM binaries) "-s" or "--standard" on
     the command line, it will run zprint with no external configuration.  
     The default configuration is what you get, and no other options are 
     read from anywhere.  In particular, the `$HOME/.zprintrc` file is
@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
     quite right.  If you have a function "func" which would be better 
     handled with `:style :respect-nl`, then an options map of
     `{:fn-map {"func" [:none {:style :respect-nl}]}}` will do that for you.
+    Issue #75, and probably #71.
 
   * Indent Only.  Will not remove or add newlines -- will only regularize
     white space while preserving the content of each line.  This is very
@@ -36,6 +37,13 @@ All notable changes to this project will be documented in this file.
     map `{:style :indent-only}`, or for a single function (say "func") by
     giving this options map: 
     `{:fn-map {"func" [:none {:style :indent-only}]}}`.
+
+  * `-v` and `--version` switches.  Issue #94.
+
+  * `-h`, `--help` switches.
+
+  * `-e`, `--explain` switches to output configuration and show where
+    any non-default values came from.
 
 ### Changed
 

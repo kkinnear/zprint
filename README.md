@@ -35,14 +35,15 @@ what you want.
 
 Some people want a formatting tool to enforce a particular style, regardless
 of the input.  That is what classic zprint does -- it enforces the style
-configured in the options map, largely ignoring how the input was formatted.  
+configured in the options map, almost completely ignoring how the input was 
+formatted.  
 
-However, some people want
-a source formatting tool to take into account some amount of the formatting that
-is already present in the input file.  Two capabilities for this are now
-available in zprint:
+However, some people want a source formatting tool that will take
+into account some amount of the formatting that is already present
+in the input file.  Two capabilities for this are now available in
+zprint:
 
-* Respect Newlines - `:style :respect-nl`
+* __Respect Newlines__ - `:style :respect-nl`
 
   This approach to source formatting is similar to classic zprint, but it will
   not remove any newlines.  It will add them as necessary based on the 
@@ -50,10 +51,17 @@ available in zprint:
   zprint to "pretty up" your source, but not entirely ignore the newlines
   that you sent in.
 
-* Indent Only - `:style :indent-only`
+  In many cases, the classic zprint formatting works fine, but sometimes
+  there are one or two functions that would be better handled with 
+  `:style :respect-nl`.
+  If you have a function "func" which would be better 
+  handled with `:style :respect-nl`, then an options map of
+  `{:fn-map {"func" [:none {:style :respect-nl}]}}` will do that for you.
+
+* __Indent Only__ - `:style :indent-only`
 
   This approach to source formatting will not remove nor add any newlines.
-  Every line stays as it is -- the only changes zprint will make is to 
+  Every line stays as it is -- the only change zprint will make is to 
   indent each line and to regularize whitespace on the remainder of the
   line.  It bears little relationship to classic zprint, and 
   doesn't format functions based on the `:fn-map` styles configured. It
@@ -63,11 +71,31 @@ available in zprint:
   will flow the list.  The indent-only approach is for people who want 
   the code they put on each line to stay on that line!
 
+  You can do this for a whole file by specifying the options
+  map `{:style :indent-only}`, or for a single function (say "func") by
+  giving this options map: `{:fn-map {"func" [:none {:style :indent-only}]}}`.
 
-#### What, really?  Another pretty printer?
+  If all you ever want is for zprint to do `{:style :indent-only}`, put
+  `{:style :indent-only}` in your `$HOME/.zprintrc` file.
 
-Yes, I know we already have several.  See [here](#another-pretty-printer)
-for an explanation.
+In addition, some people want a source formatter that enforces a
+particular configuration approach, and does it without need for or
+any option to change its configuration.  This is in line with the
+"nobody loves the format produced by xxx, but since it is standard,
+everyone can live with it".
+
+Now you have:
+
+  * __Standard mode__  
+    If you give the uberjar (or graalVM binaries) `-s` or `-standard` on
+    the command line, they will run zprint with no external configuration.
+    The default configuration is what you get, and no other options are 
+    read from anywhere.  In particular, the `$HOME/.zprintrc` file is
+    __not__ examined, nor is any other external configuration file.
+    No matter who runs it, running zprint with "-s" will produce the same
+    output from the same input file. 
+
+#### What does zprint do?
 
 One of the things I like the most about Clojure (and any Lisp) is that 
 the logical structure of a function has a visual representation -- if

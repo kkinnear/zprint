@@ -3640,3 +3640,228 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "(.getName ^clojure.lang.Symbol\n name)"
                     {:parse-string? true, :style :respect-nl}))
 
+;;
+;; # Fidelity tests :respect-nl and :indent-only
+;;
+
+(expect
+  (trim-gensym-regex (read-string (source-fn 'zprint.zprint/fzprint-list*)))
+  (trim-gensym-regex (read-string (zprint-fn-str zprint.zprint/fzprint-list*
+                                                 {:style :respect-nl}))))
+(expect
+  (trim-gensym-regex (read-string (source-fn 'zprint.zprint/fzprint-list*)))
+  (trim-gensym-regex (read-string (zprint-fn-str zprint.zprint/fzprint-list*
+                                                 {:style :indent-only}))))
+
+;;
+;; # INDENT ONLY TESTS
+;;
+
+(expect "(;this is\n fn arg1\n  arg2\n  arg3)"
+        (zprint-str "(;this is\nfn arg1 arg2 arg3)" {:parse-string? true}))
+
+(expect "(;this is\n fn arg1 arg2 arg3)"
+        (zprint-str "(;this is\nfn arg1 arg2 arg3)"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "(;this is\n fn arg1\n  ;comment2\n  arg2\n  arg3)"
+        (zprint-str "(;this is\nfn arg1 \n;comment2\narg2 arg3)"
+                    {:parse-string? true}))
+
+(expect "(;this is\n fn arg1\n  ;comment2\n  arg2 arg3)"
+        (zprint-str "(;this is\nfn arg1 \n;comment2\narg2 arg3)"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "(this is a test)"
+        (zprint-str "\n(this is\n      a\n   test)" {:parse-string? true}))
+
+(expect "(this is\n      a\n      test)"
+        (zprint-str "\n(this is\n      a\n   test)"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "(;comment 1\n this is\n      a\n      test)"
+        (zprint-str "\n(;comment 1\n this is\n      a\n   test)"
+                    {:parse-string? true}))
+
+(expect "(;comment 1\n this is\n      a\n      test)"
+        (zprint-str "\n(;comment 1\n this is\n      a\n   test)"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      a\n      test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n      a\n   test)"
+    {:parse-string? true}))
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n \n this is\n      a\n      test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n      a\n   test)"
+    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n a this\n   is\n   a\n   test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n a\n this is\n      a\n   test)"
+    {:parse-string? true}))
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n \n a\n  this is\n  a\n  test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n a\n this is\n      a\n   test)"
+    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      a\n      test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n\n      a\n   test)"
+    {:parse-string? true}))
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n \n this is\n      \n      a\n      test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n\n      a\n   test)"
+    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      ; comment 4\n      a\n      test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n ; comment 4\n      a\n   test)"
+    {:parse-string? true}))
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n \n this is\n      ; comment 4\n      a\n      test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n ; comment 4\n      a\n   test)"
+    {:parse-string? true, :style :indent-only}))
+
+(expect "(\n this is\n      a\n      test)"
+        (zprint-str "\n(\n this is\n      a\n   test)"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "(\n this is\n  a\n  test)"
+        (zprint-str "\n(\n this is\n     a\n   test)"
+                    {:parse-string? true, :style :indent-only}))
+
+;;
+;; Can we turn off hang detection in the input?
+;;
+
+(expect
+  "(;comment 1\n ;comment 2\n ;comment 3\n \n this is\n  ; comment 4\n  a\n  test)"
+  (zprint-str
+    "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n ; comment 4\n      a\n   test)"
+    {:parse-string? true,
+     :style :indent-only,
+     :list {:indent-only-style :none}}))
+
+;;
+;; # Vectors and indent-only
+;;
+
+(expect "[this is\n a\n test]"
+        (zprint-str "\n[this is\n      a\n   test]"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "[this is\n a\n test]"
+        (zprint-str "\n[this is\n     a\n   test]"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "[[[\"(\" :none :left]] [[\"a\" :none :element]] [[\"b\" :none :element]]\n [[\"x\" :none :newline]]\n [[\"c\" :none :element]]\n [[\"x\" :none :newline] [\"x\" :none :newline]]\n [[\")\" :none :right]]]"
+  (zprint-str
+    "[[[\"(\" :none :left]] [[\"a\" :none :element]] [[\"b\" :none :element]]\n           [[\"x\" :none :newline]]\n\t   [[\"c\" :none :element]]\n           [[\"x\" :none :newline] [\"x\" :none :newline]]\n\t   [[\")\" :none :right]]])"
+    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "[\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n \n \"Second string\" [\"this\" is the\n                  third thing\n                  fourth thing\n                  [even deeper\n                   and deeper\n                   with depth]]\n \"Third string\"]"
+  (zprint-str
+    "[\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n\n\"Second string\" [\"this\" is the\nthird thing\nfourth thing\n[even deeper\nand deeper\nwith depth]]\n\"Third string\"]"
+    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "(defstuff stuff\n  [a b]\n  {:stuff\n   [_another_symbol\n    [:1\n     \"This is the first string and it is very long and if it is that long then it seems they are together?\"\n     \"This is the second string and it is very long and if it is that long then it seems they are together?\"]\n    \n    _this_is_also_a_symbol\n    [\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n     _this_is_a_symbol\n     \"This is the second string and it is very long and if it is that long then it seems they are together?\"\n     \"Third string\"]\n    ]})"
+  (zprint-str
+    "(defstuff stuff\n[a b]\n{:stuff\n[_another_symbol\n[:1\n\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n\"This is the second string and it is very long and if it is that long then it seems they are together?\"]\n\n_this_is_also_a_symbol\n[\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n_this_is_a_symbol\n\"This is the second string and it is very long and if it is that long then it seems they are together?\"\n\"Third string\"]\n]})"
+    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "[jfkdsfkl jfdljfks sdkfjdslk\n [dlkfdks sdjklfds jsdfsldk\n  [jdskfdls dskjlfsd lksfjlsdk\n   [jkdlf sdfjkds sdfksk\n    [jfdklsdjf jsdkfsdj lkjsdjfsj]\n    lkdfjsdk slfjkldfj]\n   jfkldjlskf jsldkjfl]\n  jdlfjdsklsjkldfjs jdlsfjsld]\n jsldkfjsdkl fsjdkljsld]"
+  (zprint-str
+    " [jfkdsfkl jfdljfks sdkfjdslk \n   [dlkfdks sdjklfds jsdfsldk\n     [jdskfdls dskjlfsd lksfjlsdk \n       [jkdlf sdfjkds sdfksk\n         [jfdklsdjf jsdkfsdj lkjsdjfsj]\n\t lkdfjsdk slfjkldfj]\n\t jfkldjlskf jsldkjfl]\n\t jdlfjdsklsjkldfjs jdlsfjsld]\n\t jsldkfjsdkl fsjdkljsld]"
+    {:parse-string? true, :style :indent-only}))
+
+;;
+;; # Indent Only for Maps
+;;
+
+(expect "{:a\n :b :c :d :e :f}"
+        (zprint-str "{:a \n :b :c :d :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "{:a :b\n :c :d :e :f}"
+        (zprint-str "{:a :b \n :c :d :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "{:a :b\n \n :c :d :e :f}"
+        (zprint-str "{:a :b \n\n :c :d :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "{:a\n \n :b\n :c :d\n :e :f}"
+        (zprint-str "{:a \n\n :b \n :c :d \n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+(expect "{;stuff\n :a :b ;bother\n :c :d\n :e :f}"
+        (zprint-str "{;stuff\n :a :b ;bother\n :c :d \n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "{;stuff\n \n :a :b ;bother\n :c\n \n :d\n :e :f}"
+        (zprint-str "{;stuff\n\n :a :b ;bother\n :c \n\n :d \n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "{;stuff\n \n :a :b :c ;bother\n \n :d ;foo\n \n :e :f}"
+        (zprint-str "{;stuff\n\n :a :b :c ;bother\n\n :d ;foo\n\n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "{:a\n \n :b\n :c {:a :b\n     \n     :c\n     :d :e :f}\n :e :f}"
+        (zprint-str "{:a \n\n :b \n :c {:a :b \n\n :c \n :d :e :f} \n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+;;
+;; # Indent Only for Sets
+;;
+
+(expect "#{:a\n  :b :c :d :e :f}"
+        (zprint-str "#{:a \n :b :c :d :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "#{:a :b\n  :c :d :e :f}"
+        (zprint-str "#{:a :b \n :c :d :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "#{:a :b\n  \n  :c :d :e :f}"
+        (zprint-str "#{:a :b \n\n :c :d :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "#{:a\n  \n  :b\n  :c :d\n  :e :f}"
+        (zprint-str "#{:a \n\n :b \n :c :d \n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "#{;stuff\n  :a :b ;bother\n  :c :d\n  :e :f}"
+        (zprint-str "#{;stuff\n :a :b ;bother\n :c :d \n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "#{;stuff\n  \n  :a :b ;bother\n  :c\n  \n  :d\n  :e :f}"
+        (zprint-str "#{;stuff\n\n :a :b ;bother\n :c \n\n :d \n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "#{;stuff\n  \n  :a :b :c ;bother\n  \n  :d ;foo\n  \n  :e :f}"
+        (zprint-str "#{;stuff\n\n :a :b :c ;bother\n\n :d ;foo\n\n :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "#{:a\n  \n  :b\n  :c #{:a :b\n       \n       :c\n       :d :e :f}\n  :e :f}"
+  (zprint-str "#{:a \n\n :b \n :c #{:a :b \n\n :c \n :d :e :f} \n :e :f}"
+              {:parse-string? true, :style :indent-only}))
+
+
+

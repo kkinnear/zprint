@@ -7,7 +7,8 @@
             #?@(:clj [[clojure.repl :refer [source-fn]]])
             [zprint.zprint :as zprint :refer
              [fzprint blanks line-count max-width line-widths expand-tabs
-              zcolor-map fzprint-wrap-comments fzprint-inline-comments]]
+              zcolor-map fzprint-wrap-comments fzprint-inline-comments
+	      fzprint-align-inline-comments]]
             [zprint.finish :refer
              [cvec-to-style-vec compress-style no-style-map color-comp-vec
               handle-lines]]
@@ -397,7 +398,13 @@
             inline-style-vec (if (:inline? (:comment options))
                                (fzprint-inline-comments options cvec-wo-empty)
                                cvec-wo-empty)
-            #_(def ssvi inline-style-vec)
+            _ (def ssvi inline-style-vec)
+	    inline-style-vec (if true 
+			       (fzprint-align-inline-comments
+				  options
+				  inline-style-vec)
+				inline-style-vec)
+            _ (def ssvia inline-style-vec)
             str-style-vec (cvec-to-style-vec {:style-map no-style-map,
                                               :elide (:elide (:output options))}
                                              inline-style-vec
@@ -408,7 +415,7 @@
             wrapped-style-vec (if (:wrap? (:comment options))
                                 (fzprint-wrap-comments options str-style-vec)
                                 str-style-vec)
-            #_(def ssvy wrapped-style-vec)
+            _ (def ssvy wrapped-style-vec)
             comp-style (compress-style wrapped-style-vec)
             #_(def cps comp-style)
             ; don't do extra processing unless we really need it

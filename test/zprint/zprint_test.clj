@@ -650,6 +650,24 @@
                  {:comment {:wrap? nil, :count? nil}}))
 
 ;;
+;; # wrapping inline comments, and how they are handled the second time.
+;;
+;; Issue #67
+;;
+
+(expect
+  "(def x\n  zprint.zfns/zstart\n  sfirst\n  zprint.zfns/zanonfn?\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
+  (zprint-str
+    "\n(def x\n  zprint.zfns/zstart sfirst\n  zprint.zfns/zanonfn? (constantly false) ; this only works because lists, anon-fn's, etc. are checked before this is used.\n  zprint.zfns/zfn-obj? fn?)"
+    {:parse-string? true}))
+
+(expect
+  "(def x\n  zprint.zfns/zstart\n  sfirst\n  zprint.zfns/zanonfn?\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
+  (zprint-str
+    "(def x\n  zprint.zfns/zstart\n  sfirst\n  zprint.zfns/zanonfn?\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
+    {:parse-string? true}))
+
+;;
 ;; # Tab Expansion
 ;;
 

@@ -47,10 +47,11 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-  * If there was an error on the command line, either in the new switches
-    (see above), or the options map, the uberjar and graalVM binaries used
-    to format the input and report the error after formatting.  Now they
-    do not format at all, and just report the error.
+  * If there was an error on the command line, either in the new
+    switches (see above), or the options map, the uberjar and graalVM
+    binaries used to format the input and report the error after
+    formatting.  Now they do not format at all, and just report the
+    error.
 
   * Configuring zprint with environment variables or Java properties has
     been deprecated for a good while, and is now no longer supported.
@@ -62,11 +63,20 @@ All notable changes to this project will be documented in this file.
 (;comment
  function this that and the other)
 ```
-   then `function` would not previously have been recognized if it
-   was defined in the `:fn-map`.  The "thing" in the first part of the
-   list was what was looked up, and if it was a comment, that was too
-   bad.  Now zprint will look up only actual symbols, not comments
-   (or newlines).
+    then `function` would not previously have been recognized if
+    it was defined in the `:fn-map`.  The "thing" in the first part
+    of the list was what was looked up, and if it was a comment,
+    that was too bad.  Now zprint will look up only actual symbols,
+    not comments (or newlines).
+
+  * If an inline comment wrapped, it would be on a line by itself.
+    It would be aligned with the actual inline comment above it.
+    But the next time you ran zprint on the file, the wrapped inline
+    comment would be seen a a full line comment, and moved (probably
+    left) to be where a full line comment should be.  Fixed this,
+    so that a comment with nothing else on the line that is aligned
+    with an existing inline comment will stay aligned with that
+    inline comment.  Issue #67.
 
 ## 0.4.16 - 2019-06-12
 

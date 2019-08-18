@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
     quite right.  If you have a function "func" which would be better 
     handled with `:style :respect-nl`, then an options map of
     `{:fn-map {"func" [:none {:style :respect-nl}]}}` will do that for you.
-    Issue #75, and probably #71.
+    Issue #75, and partially #71.
 
   * Indent Only.  Will not remove or add newlines -- will only regularize
     white space while preserving the content of each line.  This is very
@@ -51,6 +51,11 @@ All notable changes to this project will be documented in this file.
     as long as they aren't separated by more than 5 non-comment lines.
     `:consecutive` aligns inline comments that appear on consecutive lines.
     `:none` doesn't align inline comments beyond what naturally happens.
+
+  * `:reset` in the options map of a `:fn-map` vector.  This allows you
+    to set some configuration for only one level of processing.  See
+    the readme section "Altering the formatting inside of certain functions"
+    for details.  Implemented to resolve Issue #71.
 
 ### Changed
 

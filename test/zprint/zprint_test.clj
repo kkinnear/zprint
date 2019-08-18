@@ -3916,4 +3916,35 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true, :comment {:inline-align-style :consecutive}}))
 
 
+;;
+;; # can you change :respect-nl? in a fn-map?
+;;
 
+(expect
+  "(comment (defn x [y] (println y))\n         (this is a thing that is interesting)\n         (def z [:this-is-a-test :with-3-blanks-above?])\n         (def a :more stuff)\n         (def b :3-blanks-above))"
+  (zprint-str
+    "(comment\n(defn x\n  [y]\n  (println y))\n\n(this \n  is \n  a\n         thing that is interesting)\n\n(def z \n\n\n[:this-is-a-test :with-3-blanks-above?])\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
+    {:parse-string? true}))
+
+;;
+;; Can we turn on :respect-nl for a function?
+
+(expect
+  "(comment\n  (defn x\n    [y]\n    (println y))\n  \n  (this\n    is\n    a\n    thing\n    that\n    is\n    interesting)\n  \n  (def z\n    \n    \n    [:this-is-a-test :with-3-blanks-above?])\n  \n  (def a :more stuff)\n  \n  \n  \n  (def b :3-blanks-above))"
+  (zprint-str
+    "(comment\n(defn x\n  [y]\n  (println y))\n\n(this \n  is \n  a\n         thing that is interesting)\n\n(def z \n\n\n[:this-is-a-test :with-3-blanks-above?])\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
+    {:parse-string? true,
+     :fn-map {"comment" [:none {:list {:respect-nl? true}}]}}))
+
+;;
+;; Can we turn it off so it only operates at the top level?
+;;
+
+(expect
+  "(comment\n  (defn x [y] (println y))\n  \n  (this is a thing that is interesting)\n  \n  (def z [:this-is-a-test :with-3-blanks-above?])\n  \n  (def a :more stuff)\n  \n  \n  \n  (def b :3-blanks-above))"
+  (zprint-str
+    "(comment\n(defn x\n  [y]\n  (println y))\n\n(this \n  is \n  a\n         thing that is interesting)\n\n(def z \n\n\n[:this-is-a-test :with-3-blanks-above?])\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
+    {:parse-string? true,
+     :fn-map {"comment" [:none
+                         {:list {:respect-nl? true},
+                          :reset {:list {:respect-nl? false}}}]}}))

@@ -4973,59 +4973,17 @@
         len (zcount zloc)
         l-str-len (count l-str)
         indent (:indent (options caller))
-        #_#_[[pre-arg-1-style-vec pre-arg-2-style-vec] [arg-1-zloc arg-2-zloc]
-             [arg-1-count arg-2-count] zloc-seq :as up-to-second-data]
-          (fzprint-up-to-second-zloc caller options (+ ind l-str-len) zloc)
-        ;; TODO: Change (zfirst-no-comment zloc) to arg-1-zloc below
         [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
           (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
-        [pre-arg-2-style-vec arg-2-zloc arg-2-count _ :as second-data]
-          ; The ind is wrong, need arg-1-indent, but we don't have it yet.
-          (fzprint-up-to-next-zloc caller
-                                   options
-                                   ;(+ ind l-str-len)
-                                   (+ ind indent)
-                                   first-data)
-        ; This len doesn't include newlines or other whitespace or
-        len (zcount-zloc-seq-nc-nws zloc-seq)
-        #_;(dbg-pr options
-          (prn "fzprint-list* pre-arg-1-style-vec:" pre-arg-1-style-vec
-               "pre-arg-2-style-vec:" pre-arg-2-style-vec
-               "arg-1-zloc:" (zstring arg-1-zloc)
-               "arg-2-zloc:" (zstring arg-2-zloc)
-               "arg-1-count:" arg-1-count
-               "arg-2-count:" arg-2-count)
-        ; TODO: TAKE THIS OUT!
-        #_(when-not (and (= pre-arg-1-style-vec pre-first-style-vec)
-                         (= pre-arg-2-style-vec pre-second-style-vec)
-                         (= arg-1-zloc first-zloc)
-                         (= arg-1-count first-count)
-                         (= arg-2-zloc second-zloc)
-                         (= arg-2-count second-count))
-            (prn "fzprint-list* zloc:" (zstring zloc)
-                 "pre-arg-1-style-vec:" pre-arg-1-style-vec
-                 "pre-first-style-vec:" pre-first-style-vec
-                 "= pre-first?" (= pre-arg-1-style-vec pre-first-style-vec)
-                 "pre-arg-2-style-vec:" pre-arg-2-style-vec
-                 "pre-second-style-vec:" pre-second-style-vec
-                 "= pre-second?" (= pre-arg-2-style-vec pre-second-style-vec)
-                 "arg-1-zloc:" (zstring arg-1-zloc)
-                 "first-zloc:" (zstring first-zloc)
-                 "arg-2-zloc:" (zstring arg-2-zloc)
-                 "second-zloc:" (zstring second-zloc)
-                 "arg-1-count:" arg-1-count
-                 "first-count:" first-count
-                 "arg-2-count:" arg-2-count
-                 "second-count:" second-count))
-        arg-1-coll? (not (or (zkeyword? (zfirst-no-comment zloc))
-                             (zsymbol? (zfirst-no-comment zloc))))
+        arg-1-coll? (not (or (zkeyword? arg-1-zloc)
+                             (zsymbol? arg-1-zloc )))
         ; Use an alternative arg-1-indent if the fn-style is forced on input
         ; and we don't actually have an arg-1 from which we can get an indent.
         ; Now, we might want to allow arg-1-coll? to give us an arg-1-indent,
         ; maybe, someday, so we could hang next to it.
         ; But for now, this will do.
         arg-1-indent-alt? (and arg-1-coll? fn-style)
-        fn-str (if-not arg-1-coll? (zstring (zfirst-no-comment zloc)))
+        fn-str (if-not arg-1-coll? (zstring arg-1-zloc ))
         fn-style (or fn-style (fn-map fn-str) (user-fn-map fn-str))
         ; if we don't have a function style, let's see if we can get
         ; one by removing the namespacing
@@ -5044,7 +5002,33 @@
                                                       options
                                                       (second fn-style)))
             options)
+        ; If we messed with the options, then find new stuff.  This will
+        ; probably change only zloc-seq because of :respect-nl? or :indent-only?
+        [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
+          (if (vector? fn-style)
+            (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
+            first-data)
+        ; Don't do this too soon, as multiple things are driven off of
+        ; (vector? fn-style), above
         fn-style (if (vector? fn-style) (first fn-style) fn-style)
+        ; Finish finding all of the interesting stuff in the first two
+        ; elements
+        [pre-arg-2-style-vec arg-2-zloc arg-2-count _ :as second-data]
+          ; The ind is wrong, need arg-1-indent, but we don't have it yet.
+          (fzprint-up-to-next-zloc caller
+                                   options
+                                   ;(+ ind l-str-len)
+                                   (+ ind indent)
+                                   first-data)
+        ; This len doesn't include newlines or other whitespace or
+        len (zcount-zloc-seq-nc-nws zloc-seq)
+        #_;(dbg-pr options
+          (prn "fzprint-list* pre-arg-1-style-vec:" pre-arg-1-style-vec
+               "pre-arg-2-style-vec:" pre-arg-2-style-vec
+               "arg-1-zloc:" (zstring arg-1-zloc)
+               "arg-2-zloc:" (zstring arg-2-zloc)
+               "arg-1-count:" arg-1-count
+               "arg-2-count:" arg-2-count)
         ; Get indents which might have changed if the options map was
         ; re-written by the function style being a vector.
         indent (:indent (options caller))
@@ -5085,7 +5069,7 @@
         ; were in code when we did this zlist? thing, since that is all about
         ; code.  That wouldn't work if it was the top-level form, but would
         ; otherwise.
-        default-indent (if (zlist? (zfirst-no-comment zloc)) indent l-str-len)
+        default-indent (if (zlist? arg-1-zloc) indent l-str-len)
         arg-1-indent (if-not arg-1-coll? (+ ind (inc l-str-len) (count fn-str)))
         ; If we don't have an arg-1-indent, and we noticed that the inputs
         ; justify using an alternative, then use the alternative.
@@ -5162,9 +5146,9 @@
                   pre-arg-2-style-vec
                   r-str-vec)
       ; In general, we don't have a fn-style if we have less than 3 elements.
-      ; However, :binding is allowed with any number up to this point, so we 
+      ; However, :binding is allowed with any number up to this point, so we
       ; have to check here.  :binding is actually allowed with at least two
-      ; elements, the third through n are optional. 
+      ; elements, the third through n are optional.
       (and (= fn-style :binding) (> len 1) (zvector? arg-2-zloc))
         (let [[hang-or-flow binding-style-vec]
                 (fzprint-hang-unless-fail loptions
@@ -5981,17 +5965,17 @@
           (if (fzfit-one-line options one-line-lines)
             (concat-no-nil l-str-vec one-line r-str-vec)
             (if indent-only?
-	      (if (zero? len)
-		(concat-no-nil l-str-vec r-str-vec)
-		(concat-no-nil l-str-vec
-			       (indent-zmap caller
-					    options
-					    ind
-					    ; actual-ind
-					    (+ ind l-str-len)
-					    coll-print
-					    indent)
-			       r-str-vec))
+              (if (zero? len)
+                (concat-no-nil l-str-vec r-str-vec)
+                (concat-no-nil l-str-vec
+                               (indent-zmap caller
+                                            options
+                                            ind
+                                            ; actual-ind
+                                            (+ ind l-str-len)
+                                            coll-print
+                                            indent)
+                               r-str-vec))
               (if (or (and (not wrap-coll?) (any-zcoll? options new-ind zloc))
                       (not wrap?))
                 (concat-no-nil l-str-vec
@@ -6071,7 +6055,7 @@
   newline before the first element."
   [ind coll not-first?]
   (loop [coll coll
-	 ind-seq (if (coll? ind) ind (vector ind))
+         ind-seq (if (coll? ind) ind (vector ind))
          out (transient [])
          added-nl? not-first?
          previous-comment? nil]
@@ -6088,7 +6072,7 @@
             ; them here, I suppose.  But these have to come from
             ; fzprint-newline, to the best of my knowledge, and that is
             ; how it works.
-	    indent (first ind-seq)
+            indent (first ind-seq)
             newline? (= what :newline)
             ; Let's make sure about the last
             last-what (nth (last element) 2)
@@ -6098,9 +6082,11 @@
                "comment?:" comment?
                "element:" element)
         (recur (next coll)
-	       ; Move along ind-seq until we reach the last one, then just
-	       ; keep using the last one.
-	       (if-let [next-ind (next ind-seq)] next-ind ind-seq)
+               ; Move along ind-seq until we reach the last one, then just
+               ; keep using the last one.
+               (if-let [next-ind (next ind-seq)]
+                 next-ind
+                 ind-seq)
                (if newline?
                  ; It is a :newline, and possibly more, so just use it as
                  ; it is.

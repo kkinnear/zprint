@@ -1416,6 +1416,108 @@ you will get this by default:
           :eeeeeee])
 ```
 
+You can alter the formatting of just the top level of a function by 
+resetting some of the configuration when zprint decends one level from
+the function in the function map.  
+
+For example, say that you wanted to enable `{:list {:respect-nl? true}}`
+for the `comment` function, but didn't want that to be in force while the
+expressions inside of the comment function were formatted.
+
+Here is the input:
+
+```clojure
+(def rnl2x
+"(comment
+(defn x
+  [y]
+  (println y))
+
+(this 
+  is 
+  a
+         thing that is interesting)
+
+(def z 
+
+
+[:this-is-a-test :with-3-blanks-above?])
+
+(def a :more stuff)
+
+
+
+(def b :3-blanks-above))")
+```
+Here is the output when you do nothing special:
+
+```clojure
+(zprint rnl2x {:parse-string? true})
+(comment (defn x [y] (println y))
+         (this is a thing that is interesting)
+         (def z [:this-is-a-test :with-3-blanks-above?])
+         (def a :more stuff)
+         (def b :3-blanks-above))
+```
+Here is the output when you enable `:list {:respect-nl? true}` for
+`comment`:
+
+```clojure
+(zprint rnl2x {:parse-string? true :fn-map {"comment" [:none {:list {:respect-nl? true}}]}})
+(comment
+  (defn x
+    [y]
+    (println y))
+  
+  (this
+    is
+    a
+    thing
+    that
+    is
+    interesting)
+  
+  (def z
+    
+    
+    [:this-is-a-test :with-3-blanks-above?])
+  
+  (def a :more stuff)
+  
+  
+  
+  (def b :3-blanks-above))
+```
+
+Here is the output when you reset `:respect-nl?` for processing at the
+next level:
+
+```clojure
+(zprint rnl2x {:parse-string? true :fn-map {"comment" [:none {:list {:respect-nl? true} :reset {:list {:respect-nl? false}}}]}})
+(comment
+  (defn x [y] (println y))
+  
+  (this is a thing that is interesting)
+  
+  (def z [:this-is-a-test :with-3-blanks-above?])
+  
+  (def a :more stuff)
+  
+  
+  
+  (def b :3-blanks-above))
+```
+
+__NOTE:__ While you can use `:style <whatever>` in the options map in a
+`:fn-map` vector: `[<fn-type> <options-map>]`, you cannot use `:style` with
+the `:reset` key.  Styles are implemented as an options map to merge into
+the existing options map.  There is no "inverse-style" that can be used
+for reset.  Either use specific configuration options in the options map
+and then reset those, or if you use a style in the options map, reset
+the individual configuration option values to whatever you want them to
+be in the reset key.
+
+
 ### Configuring the `:fn-map`
 
 Often the :fn-map is configured by changing the `.zprintrc` file so 

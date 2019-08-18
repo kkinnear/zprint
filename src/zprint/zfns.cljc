@@ -70,6 +70,5 @@
 (def zreader-cond-w-symbol? nil)
 (def zreader-cond-w-coll? nil)
 (def zlift-ns nil)
-(def zinlinecomment? nil)
 (def zfind nil)
 (def ztake-append nil)

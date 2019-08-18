@@ -15,7 +15,7 @@
       zderef zrecord? zns? zobj-to-vec zexpandarray znewline?
       zwhitespaceorcomment? zmap-all zpromise? zfuture? zdelay? zkeyword?
       zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot zsymbol?
-      znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zinlinecomment?
+      znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns 
       zfind zmap-w-nl zmap-w-nl-comma ztake-append znextnws-w-nl znextnws 
       znamespacedmap?]]
     [zprint.ansi :refer [color-str]]
@@ -7114,8 +7114,7 @@
                         ; otherwise we get left with :comment-inline element
                         ; types that don't go away
                         inline-comment-vec (when (:inline? (:comment options))
-					(inlinecomment? zloc)
-                                        #_(zinlinecomment? zloc))]
+					(inlinecomment? zloc))]
                     (dbg options "fzprint* trim-comments?:" trim-comments?
 		                 "inline-comment-vec:" inline-comment-vec)
                     (if (and (:count? (:comment options)) overflow-in-hang?)

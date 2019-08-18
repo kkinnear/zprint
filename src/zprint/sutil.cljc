@@ -348,7 +348,6 @@
     zprint.zfns/zreader-cond-w-symbol? (constantly false)
     zprint.zfns/zreader-cond-w-coll? (constantly false)
     zprint.zfns/zlift-ns slift-ns
-    zprint.zfns/zinlinecomment? (constantly false)
     zprint.zfns/zfind sfind
     zprint.zfns/ztake-append stake-append]
    (body-fn)))

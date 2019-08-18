@@ -57,6 +57,38 @@ won't be what you expect.  An example:
 If you put it on your path, you can just run it from anywhere.  I use it in my editor,
 to format a function while I'm editing it.  For most functions, it runs fast enough I don't even notice it.
 
+In addition to an options map, there are a few simple switches.  Here
+is the help text:
+```
+./zprintm-0.4.17 -h
+zprint-0.4.17
+
+ zprint <options-map> <input-file >output-file
+ zprint <switches <input-file >output-file
+
+ Where zprint is any of:
+
+  zprintm-0.4.17
+  zprintl-0.4.17
+  java -jar zprint-filter-0.4.17
+
+ <options-map> is a Clojure map containing zprint options.
+               Note that since it contains spaces, it must be
+               wrapped in quotes, for example:
+               '{:width 120}'
+
+ <switches> may be any of:
+
+  -s       --standard     Accept no configuration input.
+  -h       --help         Output this help text.
+  -v       --version      Output the version of zprint.
+  -e       --explain      Output configuration, showing where
+                          non-default values came from.
+
+ You can have either an <options-map> or <switches>, but not both!
+```
+
+
 #### Caveat
 
 Zprint will not build directly with `native-image`, as there are 5 "unsupported"

@@ -403,7 +403,7 @@
                :string :red,
                :uneval :magenta,
                :user-fn :black},
-   :comment {:count? false, :wrap? true, :inline? true},
+   :comment {:count? false, :wrap? true, :inline? true :inline-align-style :align},
    :configured? false,
    :cwd-zprintrc? false,
    :dbg-ge nil,

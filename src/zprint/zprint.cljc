@@ -7127,18 +7127,18 @@
                         ; Only check for inline comments if we are doing them
                         ; otherwise we get left with :comment-inline element
                         ; types that don't go away
-                        inline-spaces (when (:inline? (:comment options))
+                        inline-comment-vec (when (:inline? (:comment options))
 					(inlinecomment? zloc)
                                         #_(zinlinecomment? zloc))]
                     (dbg options "fzprint* trim-comments?:" trim-comments?
-		                 "inline-spaces:" inline-spaces)
+		                 "inline-comment-vec:" inline-comment-vec)
                     (if (and (:count? (:comment options)) overflow-in-hang?)
                       (do (dbg options "fzprint*: overflow comment ========")
                           nil)
                       #_[[zcomment (zcolor-map options :comment) :comment]]
-                      (if inline-spaces
+                      (if inline-comment-vec
                         [[zcomment (zcolor-map options :comment) :comment-inline
-                          inline-spaces]]
+                          (first inline-comment-vec) (second inline-comment-vec)]]
                         [[zcomment (zcolor-map options :comment) :comment]])))
 		
                 (= (ztag zloc) :comma) [[zstr :none :comma]]
@@ -7175,6 +7175,45 @@
 ;;
 
 (defn inlinecomment?
+  "If this is an inline comment, returns a vector with the amount
+  of space that was between this and the previous element and the
+  starting column of this inline comment.  That means that if we
+  go left, we get something other than whitespace before a newline.
+  If we get only whitespace before a newline, then this is considered
+  an inline comment if the comment at the end of the previous line
+  was an inline comment and we were aligned with that comment.
+  Assumes zloc is a comment."
+  [zloc]
+  #_(prn "inlinecomment? zloc:" (zstring zloc))
+  (loop [nloc (zprint.zutil/left* zloc)
+         spaces 0]
+    (let [tnloc (ztag nloc)]
+      #_(prn "inlinecomment? tnloc:" tnloc)
+      (cond
+        (nil? tnloc) nil  ; the start of the zloc
+        (= tnloc :newline) nil
+        (or (= tnloc :comment) (= tnloc :comment-inline))
+          ; Two comments in a row don't have a newline showing between
+          ; them, it is captured by the first comment.  Sigh.
+          (do #_(prn "inlinecomment? found previous comment!")
+              ; is it an inline comment?
+              (when (inlinecomment? nloc)
+                ; figure the total alignment from the newline
+                (let [nloc-length-before (length-before nloc)
+                      zloc-length-before (length-before zloc)]
+                  #_(prn "inlinecomment?:"
+                       "nloc-length-before:" nloc-length-before
+                       "zloc-length-before:" zloc-length-before
+                       "spaces:" spaces)
+                  (if (= nloc-length-before zloc-length-before)
+                    ; we have a lineup
+                    [spaces zloc-length-before]
+                    nil))))
+        (not= tnloc :whitespace) [spaces (length-before zloc)]
+        :else (recur (zprint.zutil/left* nloc)
+                     ^long (+ ^long (zprint.zutil/length nloc) spaces))))))
+
+(defn inlinecomment?-alt
   "If this is an inline comment, returns the amount of space that
   was between this and the previous element.  That means that if
   we go left, we get something other than whitespace before a
@@ -7210,7 +7249,6 @@
         (not= tnloc :whitespace) spaces
         :else (recur (zprint.zutil/left* nloc)
                      ^long (+ ^long (zprint.zutil/length nloc) spaces))))))
-
 
 (defn last-space
   "Take a string and an index, and look for the last space prior to the
@@ -7399,6 +7437,99 @@
 ;; ## Align inline comments
 ;;
 
+(def max-aligned-inline-comment-distance 5)
+
+(defn find-aligned-inline-comments
+  "Given a style-vec, find previously aligned inline comments and
+  output the as a sequence of vectors of comments. The previously
+  aligned comments do not have to be consecutive, but they can't
+  be separated by more than max-aligned-inline-comment-distance.
+  Each comment itself is a vector: [indent-index inline-comment-index],
+  yielding a [[[indent-index inline-comment-index] [indent-index
+  inline-comment-index] ...] ...].  The indexes are into the
+  style-vec."
+  [style-vec]
+  #_(def fcic style-vec)
+  (loop [cvec style-vec
+         index 0
+         last-indent 0
+         current-seq []
+         current-column 0
+         distance 0
+         out []]
+    (if-not cvec
+      (let [out (if (> (count current-seq) 1) (conj out current-seq) out)]
+        #_(def fcico out)
+        out)
+      (let [[s c e spaces start-column :as element] (first cvec)]
+        (cond
+          (= e :comment-inline)
+            (if (= start-column current-column)
+              ; include this inline comment in the current-seq, since
+              ; it has the same starting column
+              (recur (next cvec)
+                     (inc index)
+                     nil
+                     (if last-indent
+                       (conj current-seq [last-indent index])
+                       (do (throw (#?(:clj Exception.
+                                      :cljs js/Error.)
+                                   (str "concat-no-nil:" index)))
+                           []))
+                     current-column
+                     ; distance from last inline comment is zero
+                     0
+                     out)
+              ; start a new current-seq, since this comment's starting
+              ; column doesn't match the current-column of the current-seq
+              (recur
+                (next cvec)
+                (inc index)
+                nil
+                (if last-indent
+                  [[last-indent index]]
+                  (do (throw (#?(:clj Exception.
+                                 :cljs js/Error.)
+                              (str "concat-no-nil:" index)))
+                      []))
+                ; new starting column
+                start-column
+                ; distance from the last inline comment is zero
+                0
+                  ; if we have more than one current inline comments,
+                  ; add them to the out vector
+                  (if (> (count current-seq) 1) (conj out current-seq) out)))
+          (= e :indent)
+            (if (>= distance max-aligned-inline-comment-distance)
+              ; We have gone too far
+              (recur (next cvec)
+                     (inc index)
+                     ; last-indent is this index
+                     index
+                     []
+                     ; current-column
+                     0
+                     ; distance
+                     0
+                     (if (> (count current-seq) 1) (conj out current-seq) out))
+              ; We have not gone too far
+              (recur (next cvec)
+                     (inc index)
+                     ; last-indent is this index
+                     index
+                     current-seq
+                     current-column
+                     ; we've passed another line
+                     (inc distance)
+                     out))
+          :else (recur (next cvec)
+                       (inc index)
+                       last-indent
+                       current-seq
+                       current-column
+                       distance
+                       out))))))
+
 (defn find-consecutive-inline-comments
   "Given a style-vec, find consecutive inline comments and output
   the as a sequence of vectors of comments.  Each comment itself
@@ -7406,7 +7537,7 @@
   [[[indent-index inline-comment-index] [indent-index inline-comment-index]
   ...] ...]"
   [style-vec]
-  (def fcic style-vec)
+  #_(def fcic style-vec)
   (loop [cvec style-vec
          index 0
          last-indent 0
@@ -7450,7 +7581,6 @@
                      ; them
                      out))
           :else (recur (next cvec) (inc index) last-indent current-seq out))))))
-
 (defn comment-column
   "Takes a single vector of [indent-index comment-index] and will show the
   column on the line in which the comment starts."
@@ -7541,9 +7671,15 @@
 (defn fzprint-align-inline-comments
   "Given the current style-vec, align all consecutive inline comments."
   [options style-vec]
-  (let [comment-vec (find-consecutive-inline-comments style-vec)
-        comment-vec-column (comment-vec-all-column style-vec comment-vec)]
-    (reduce align-comment-vec style-vec comment-vec-column)))
+  (let [style (:inline-align-style (:comment options))]
+    (if (= style :none)
+      style-vec
+      (let [comment-vec (cond (= style :aligned) (find-aligned-inline-comments
+                                                   style-vec)
+                              (= style :consecutive)
+                                (find-consecutive-inline-comments style-vec))
+            comment-vec-column (comment-vec-all-column style-vec comment-vec)]
+        (reduce align-comment-vec style-vec comment-vec-column)))))
 
 ;;
 ;; # External interface to all fzprint functions

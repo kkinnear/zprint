@@ -93,6 +93,7 @@
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))
 (s/def ::indent-only-style-value #{:input-hang :none})
+(s/def ::inline-align-style-value #{:consecutive :aligned :none})
 
 ;;
 ;; # Leaf map keys
@@ -123,6 +124,7 @@
 (s/def ::indent-arg ::nilable-number)
 (s/def ::indent-only? ::boolean)
 (s/def ::indent-only-style ::indent-only-style-value)
+(s/def ::inline-align-style ::inline-align-style-value)
 (s/def ::inline? ::boolean)
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
@@ -184,7 +186,8 @@
                       ::hash-paren ::keyword ::nil ::none ::number ::paren
                       ::quote ::string ::syntax-quote-paren ::uneval
                       ::user-fn]))
-(s/def :alt/comment (only-keys :opt-un [::count? ::wrap? ::inline?]))
+(s/def :alt/comment (only-keys :opt-un [::count? ::wrap? ::inline?
+                                        ::inline-align-style]))
 (s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
 (s/def ::cwd-zprintrc? ::boolean)

@@ -2284,9 +2284,24 @@ subsequent lines up on to a wrapped line.
 #### :inline? <text style="color:#A4A4A4;"><small>true</small></text>
 
 If the a comment is on the same line as some code, keep the comment
-on that same line.  The distance from the code is preserved (since we
-don't really have any better idea yet).  If the comment extends beyond the
-width, it will be wrapped just like a comment which is on its own line.
+on that same line.  The distance from the code is preserved only
+when `:inline-align-style :none` is used.  See `:inline-align-style`
+for details.  If the comment extends beyond the width, it will be
+wrapped just like a comment which is on its own line.
+
+#### :inline-align-style <text style="color:#A4A4A4;"><small>:aligned</small></text>
+
+There are three possible ways that inline comments can be aligned:
+
+  * `:none` -- no effort is made to align inline comments.  The distance from
+    the code on input is preserved.  If they are aligned, it is because the
+    code didn't move (or moved together).
+
+  * `:aligned` -- the default.  Any comments that are aligned on input and are
+    separated by less than 5 lines on output will be aligned in the output.
+
+  * `:consecutive` -- Any inline comments which appear on consecutive lines
+    in the output (not the input) will be aligned.
 
 #### :count? <text style="color:#A4A4A4;"><small>false</small></text>
 

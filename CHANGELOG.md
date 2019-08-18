@@ -45,6 +45,13 @@ All notable changes to this project will be documented in this file.
   * `-e`, `--explain` switches to output configuration and show where
     any non-default values came from.
 
+  * `:inline-align-style` to align inline comments in one of three ways:
+    `:none`, `:aligned`, `:consecutive`.  The default is `:aligned`, where
+    if inline comments are aligned on input, it will align them on output
+    as long as they aren't separated by more than 5 non-comment lines.
+    `:consecutive` aligns inline comments that appear on consecutive lines.
+    `:none` doesn't align inline comments beyond what naturally happens.
+
 ### Changed
 
   * If there was an error on the command line, either in the new

@@ -399,7 +399,7 @@
                                (fzprint-inline-comments options cvec-wo-empty)
                                cvec-wo-empty)
             _ (def ssvi inline-style-vec)
-	    inline-style-vec (if true 
+	    inline-style-vec (if (:inline? (:comment options))
 			       (fzprint-align-inline-comments
 				  options
 				  inline-style-vec)

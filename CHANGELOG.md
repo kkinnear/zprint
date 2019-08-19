@@ -90,6 +90,9 @@ All notable changes to this project will be documented in this file.
     with an existing inline comment will stay aligned with that
     inline comment.  Issue #67.
 
+  * In vectors, a full line comment could become an inline comment
+    because of the way they wrapped.  Fixed this.  Issue #39
+
 ## 0.4.16 - 2019-06-12
 
 ### Added

@@ -5817,6 +5817,92 @@
                   len (- last-width ind)
                   len (max 0 len)
                   newline? (= (nth (first this-seq) 2) :newline)
+                  comment? (= (nth (first this-seq) 2) :comment)
+                  comment-inline? (= (nth (first this-seq) 2) :comment-inline)
+                  width (if (= index last-index) (- width rightcnt) width)
+                  ; need to check size, and if one line and fits, should fit
+                  fit? (and (not newline?)
+		            (or (zero? index) (not comment?))
+                            (or (zero? index)
+                                (and (if multi? (= linecnt 1) true)
+                                     (<= (+ cur-ind len) width))))
+                  new-ind (cond
+                            ; Comments cause an overflow of the size
+                            (or comment? comment-inline?)
+                              (inc width)
+                            (and multi? (> linecnt 1) (not wrap-after-multi?))
+                              width
+                            fit? (+ cur-ind len 1)
+                            newline? ind
+                            :else (+ ind len 1))]
+              #_(prn "------ this-seq:" this-seq
+                     "lines:" lines
+                     "linecnt:" linecnt
+                     "multi?" multi?
+                     "newline?:" newline?
+                     "previous-newline?:" previous-newline?
+                     "linecnt:" linecnt
+                     "max-width:" max-width
+                     "last-width:" last-width
+                     "len:" len
+                     "cur-ind:" cur-ind
+                     "new-ind:" new-ind
+                     "width:" width
+                     "fit?" fit?)
+              ; need to figure out what to do with a comment,
+              ; want to force next line to not fit whether or not
+              ; this line fit.  Comments are already multi-line, and
+              ; it is really not clear what multi? does in this routine
+              (recur
+                (next cur-seq)
+                new-ind
+                (inc index)
+                newline?
+                ; TODO: concat-no-nil fails here, why?
+                (concat
+                  out
+                  (if fit?
+                    (if (not (zero? index))
+                      (concat-no-nil [[" " :none :whitespace]] this-seq)
+                      this-seq)
+                    (if newline?
+                      [[(str "\n" (blanks (dec new-ind))) :none :indent]]
+                      (if previous-newline?
+                        (concat-no-nil [[" " :none :indent]] this-seq)
+                        (concat-no-nil [[(str "\n" (blanks ind)) :none :indent]]
+                                       this-seq)))))))))))))
+
+(defn wrap-zmap-alt-mostly
+  "Given the output from fzprint-seq, which is a style-vec in
+  the making without spacing, but with extra [] around the elements,
+  wrap the elements to the right margin."
+  [caller
+   {:keys [width rightcnt], {:keys [wrap-after-multi?]} caller, :as options} ind
+   coll-print]
+  #_(prn "wz:" coll-print)
+  (let [last-index (dec (count coll-print))
+        rightcnt (fix-rightcnt rightcnt)]
+    (loop [cur-seq coll-print
+           cur-ind ind
+           index 0
+           previous-newline? false
+           ; transient here slows things down, interestingly enough
+           out []]
+      (if-not cur-seq
+        out
+        (let [next-seq (first cur-seq)]
+          (when next-seq
+            (let [multi? (> (count (first cur-seq)) 1)
+                  this-seq (first cur-seq)
+                  _ (log-lines options "wrap-zmap:" ind this-seq)
+                  _ (dbg options "wrap-zmap: ind:" ind "this-seq:" this-seq)
+                  [linecnt max-width lines] (style-lines options ind this-seq)
+                  last-width (last lines)
+                  len (- last-width ind)
+                  len (max 0 len)
+                  newline? (= (nth (first this-seq) 2) :newline)
+                  comment? (= (nth (first this-seq) 2) :comment)
+                  comment-inline? (= (nth (first this-seq) 2) :comment-inline)
                   width (if (= index last-index) (- width rightcnt) width)
                   ; need to check size, and if one line and fits, should fit
                   fit? (and (not newline?)
@@ -5825,8 +5911,8 @@
                                      (<= (+ cur-ind len) width))))
                   new-ind (cond
                             ; Comments cause an overflow of the size
-                            (or (= (nth (first this-seq) 2) :comment)
-                                (= (nth (first this-seq) 2) :comment-inline))
+                            (or comment? #_(= (nth (first this-seq) 2) :comment)
+                                comment-inline? #_(= (nth (first this-seq) 2) :comment-inline))
                               (inc width)
                             (and multi? (> linecnt 1) (not wrap-after-multi?))
                               width

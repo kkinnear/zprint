@@ -527,7 +527,7 @@
 ;[list a b ;def
 ;]
 
-(expect "[list a b ;def\n]"
+(expect "[list a b\n ;def\n]"
         (zprint-str "[list a b ;def\n]"
                     {:parse-string? true, :comment {:inline? false}}))
 
@@ -3948,3 +3948,16 @@ ser/collect-vars-acc %1 %2) )))"
      :fn-map {"comment" [:none
                          {:list {:respect-nl? true},
                           :reset {:list {:respect-nl? false}}}]}}))
+
+;;
+;; Issue #39
+;;
+;; Full line comments becoming end of line comments
+;;
+
+(expect
+  "[;first comment\n :a :b ; comment-inline 1\n :c :d\n ; comment one\n :e :f\n ; comment two\n]"
+  (zprint-str
+    "[;first comment\n   :a :b ; comment-inline 1\n   :c :d\n   ; comment one\n   :e :f\n   ; comment two\n   ]"
+    {:parse-string? true}))
+

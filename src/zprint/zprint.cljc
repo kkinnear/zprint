@@ -2325,8 +2325,12 @@
   does ok as hanging, or better with flow. hindent is hang-indent, and 
   findent is flow-indent, and each contains the initial separator.  
   Might be nice if the fn-style actually got sent to this fn."
-  [caller {:keys [one-line?], :as options} hindent findent zloc]
-  (dbg-pr options "fzprint-hang-one:" (zstring zloc) " hindent:" hindent "findent:" findent)
+  [caller {:keys [one-line? width], {:keys [hang-avoid]} caller, :as options}
+   hindent findent zloc]
+  (dbg-pr options
+          "fzprint-hang-one:" (zstring zloc)
+          " hindent:" hindent
+          "findent:" findent)
   (when (:dbg-hang options)
     (println (dots (:pdepth options))
              "h1 caller:"
@@ -2338,9 +2342,14 @@
         ; If we don't have an hindent, we better not be trying to hang
         ; things -- in this case, we'll just flow.
         hindent (or hindent findent)
-        hanging (when (not= hindent findent)
-                  (fzprint* (in-hang local-options) hindent zloc))
         hang-count (zcount zloc)
+	; This implements :hang-avoid for fzprint-hang-one, instead of just
+	; for fzprint-hang-remaining.  It didn't change the tests, but 
+	; removed some silly formatting when using :arg2 and small widths.
+        hanging (when (and (not= hindent findent)
+                           (or (not hang-avoid)
+                               (< hang-count (* (- width hindent) hang-avoid))))
+                  (fzprint* (in-hang local-options) hindent zloc))
         hanging (concat-no-nil [[" " :none :whitespace]] hanging)
         _ (log-lines options "fzprint-hang-one: hanging:" (dec hindent) hanging)
         hr-lines (style-lines options (dec hindent) hanging)]

@@ -1545,7 +1545,7 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent]
    ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
@@ -1572,7 +1572,7 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent]
    ["{" :red :left] [":abc" :blue :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
@@ -1601,7 +1601,7 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent]
    ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
@@ -1628,7 +1628,7 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent]
    ["{" :red :left] [":abc" :blue :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
@@ -1657,7 +1657,7 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent]
    ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
@@ -1734,7 +1734,7 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent]
    ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
@@ -1760,7 +1760,7 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["" :none :whitespace] ["]" :purple :right] ["\n  " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent]
    ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]

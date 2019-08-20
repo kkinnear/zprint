@@ -51,6 +51,7 @@ All notable changes to this project will be documented in this file.
     as long as they aren't separated by more than 5 non-comment lines.
     `:consecutive` aligns inline comments that appear on consecutive lines.
     `:none` doesn't align inline comments beyond what naturally happens.
+    Issue #37.
 
   * `:reset` in the options map of a `:fn-map` vector.  This allows you
     to set some configuration for only one level of processing.  See

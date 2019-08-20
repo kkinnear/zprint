@@ -6042,26 +6042,21 @@
                     "fzprint-vec*: new-ind:" new-ind
                     "one-line:" one-line)
           one-line-lines (style-lines options new-ind one-line)]
-      ; While this seems a reasonable optimization, we have 7 tests that
-      ; expect a ["" :none :whitespace] in an empty vector, and this isn't
-      ; the time to try to fix all of the tests.
-      (if false ;(zero? len)
+      (if (zero? len)
         (concat-no-nil l-str-vec r-str-vec)
         (when one-line-lines
           (if (fzfit-one-line options one-line-lines)
             (concat-no-nil l-str-vec one-line r-str-vec)
             (if indent-only?
-              (if (zero? len)
-                (concat-no-nil l-str-vec r-str-vec)
-                (concat-no-nil l-str-vec
-                               (indent-zmap caller
-                                            options
-                                            ind
-                                            ; actual-ind
-                                            (+ ind l-str-len)
-                                            coll-print
-                                            indent)
-                               r-str-vec))
+	      (concat-no-nil l-str-vec
+			     (indent-zmap caller
+					  options
+					  ind
+					  ; actual-ind
+					  (+ ind l-str-len)
+					  coll-print
+					  indent)
+			     r-str-vec)
               (if (or (and (not wrap-coll?) (any-zcoll? options new-ind zloc))
                       (not wrap?))
                 (concat-no-nil l-str-vec

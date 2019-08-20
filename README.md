@@ -1509,14 +1509,11 @@ next level:
 ```
 
 __NOTE:__ While you can use `:style <whatever>` in the options map in a
-`:fn-map` vector: `[<fn-type> <options-map>]`, you cannot use `:style` with
-the `:reset` key.  Styles are implemented as an options map to merge into
-the existing options map.  There is no "inverse-style" that can be used
-for reset.  Either use specific configuration options in the options map
-and then reset those, or if you use a style in the options map, reset
-the individual configuration option values to whatever you want them to
-be in the reset key.
-
+`:fn-map` vector: `[<fn-type> <options-map>]`, if you want to remove that
+style you have to either set a new style or change the various individual
+configuration parameters of that style to be what you think they were
+before.  It is not possible to simply restore the options map to what
+it was prior to the changes made by the `<options-map>`.
 
 ### Configuring the `:fn-map`
 

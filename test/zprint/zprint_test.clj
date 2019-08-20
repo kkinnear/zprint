@@ -3961,3 +3961,33 @@ ser/collect-vars-acc %1 %2) )))"
     "[;first comment\n   :a :b ; comment-inline 1\n   :c :d\n   ; comment one\n   :e :f\n   ; comment two\n   ]"
     {:parse-string? true}))
 
+;;
+;; Issue #86
+;;
+;; Getting the arg vector on the same line as the function name.
+;;
+
+(expect
+  "(defn thefn [a b c]\n  (swap! this is (only a test))\n  (list a b c))"
+  (zprint-str
+    "(defn thefn\n  [a b c]\n  (swap! this is (only a test))\n  (list a b c))"
+    {:parse-string? true,
+     :width 80,
+     :fn-map {"defn" [:arg2
+                      {:fn-force-nl #{:arg2},
+                       :reset {:remove {:fn-force-nl #{:arg2}}}}]}}))
+
+(expect
+  "(defn thefn [a b c]\n  (swap! this is\n    (only a test))\n  (list a b c))"
+  (zprint-str
+    "(defn thefn\n  [a b c]\n  (swap! this is (only a test))\n  (list a b c))"
+    {:parse-string? true,
+     :width 80,
+     :fn-map {"defn" [:arg2 {:fn-force-nl #{:arg2}}]}}))
+
+(expect
+  "(defn thefn [a b c] (swap! this is (only a test)) (list a b c))"
+  (zprint-str
+    "(defn thefn\n  [a b c]\n  (swap! this is (only a test))\n  (list a b c))"
+    {:parse-string? true, :width 80, :fn-map {"defn" [:arg2 {}]}}))
+

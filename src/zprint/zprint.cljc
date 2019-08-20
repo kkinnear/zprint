@@ -7104,7 +7104,14 @@
   (let [avail (- width indent)
         ; note that depth affects how comments are printed, toward the end
         options (assoc options :depth (inc depth))
-	options (if reset (dissoc (merge-deep options reset) :reset) options)
+        options
+          #_(if reset (dissoc (merge-deep options reset) :reset) options)
+          (if reset
+            (dissoc
+              (first
+                (zprint.config/config-and-validate "reset:" nil options reset))
+              :reset)
+            options)
         options (if (or dbg? dbg-print?)
                   (assoc options
                     :dbg-indent (str (get options :dbg-indent "")
@@ -7126,124 +7133,123 @@
     ; We don't check depth if it is not a collection.  We might have
     ; just not incremented depth if it wasn't a collection, but this
     ; may be equivalent.
-    (cond (and (zcoll? zloc)
-               (or (>= depth max-depth) (zero? (get-max-length options))))
-            (if (= zloc (zdotdotdot))
-              [["..." (zcolor-map options :none) :element]]
-              [[(:max-depth-string options) (zcolor-map options :keyword)
-                :element]])
-          (and in-hang?
-               (not in-code?)
-               ;(> (/ indent width) 0.3)
-               (or (> (- depth in-hang?) max-hang-span)
-                   (and (not one-line?)
-                        (> (zcount zloc) max-hang-count)
-                        (> depth max-hang-depth))))
-            nil
-          (zrecord? zloc) (fzprint-record options indent zloc)
-          (zlist? zloc) (fzprint-list options indent zloc)
-          (zvector? zloc) (fzprint-vec options indent zloc)
+    (cond
+      (and (zcoll? zloc)
+           (or (>= depth max-depth) (zero? (get-max-length options))))
+        (if (= zloc (zdotdotdot))
+          [["..." (zcolor-map options :none) :element]]
+          [[(:max-depth-string options) (zcolor-map options :keyword)
+            :element]])
+      (and in-hang?
+           (not in-code?)
+           ;(> (/ indent width) 0.3)
+           (or (> (- depth in-hang?) max-hang-span)
+               (and (not one-line?)
+                    (> (zcount zloc) max-hang-count)
+                    (> depth max-hang-depth))))
+        nil
+      (zrecord? zloc) (fzprint-record options indent zloc)
+      (zlist? zloc) (fzprint-list options indent zloc)
+      (zvector? zloc) (fzprint-vec options indent zloc)
       (or (zmap? zloc) (znamespacedmap? zloc)) (fzprint-map options indent zloc)
-          (zset? zloc) (fzprint-set options indent zloc)
-          (zanonfn? zloc) (fzprint-anon-fn options indent zloc)
-          (zfn-obj? zloc) (fzprint-fn-obj options indent zloc)
-          (zarray? zloc)
-            (if (:object? (:array options))
-              (fzprint-object options indent zloc)
-              (fzprint-array #?(:clj (if (:hex? (:array options))
-                                       (assoc options
-                                         :hex? (:hex? (:array options))
-                                         :shift-seq (zarray-to-shift-seq zloc))
-                                       options)
-                                :cljs options)
-                             indent
-                             (zexpandarray zloc)))
-          (zatom? zloc) (fzprint-atom options indent zloc)
-          (zmeta? zloc) (fzprint-meta options indent zloc)
-          (prefix-tags (ztag zloc)) (fzprint-vec* :prefix-tags
-                                                  (prefix-tags (ztag zloc))
-                                                  ""
-						  ; Pick up the :indent-only?
-						  ; config from :list
-						  (make-caller
-                                                    (prefix-options options
-                                                                    (ztag zloc))
-						    :prefix-tags
-						    :list
-						    [:indent-only?])
-                                                  indent
-                                                  zloc)
-          (zns? zloc) (fzprint-ns options indent zloc)
-          (or (zpromise? zloc) (zfuture? zloc) (zdelay? zloc) (zagent? zloc))
-            (fzprint-future-promise-delay-agent options indent zloc)
-          (zreader-macro? zloc) (fzprint-reader-macro options indent zloc)
-          ; This is needed to not be there for newlines in parse-string-all,
-          ; but is needed for respect-nl? support.
-          ;(and (= (ztag zloc) :newline) (> depth 0)) [["\n" :none :newline]]
-          (and (= (ztag zloc) :newline) (> depth 0)) 
-	    (fzprint-newline options indent zloc)
-          :else
-            (let [zstr (zstring zloc)
-                  overflow-in-hang?
-                    (and in-hang?
-                         (> (+ (count zstr) indent (or rightcnt 0)) width))]
-              (cond
-		(and (zcomment? zloc) 
-		     #_(not (clojure.string/starts-with? ";" zstr))
-		     (not (some #{\;} zstr)))
-		  ; We should remvoe them when we get zutil fixed.
-	          (fzprint-newline options indent zloc)
-                (zcomment? zloc)
-                  (let [zcomment
-                          ; Do we have a file-level comment that is way too
-                          ; long??
-                          (if (and (zero? depth) (not trim-comments?))
-                            zstr
-                            (clojure.string/replace-first zstr "\n" ""))
-                        ; Only check for inline comments if we are doing them
-                        ; otherwise we get left with :comment-inline element
-                        ; types that don't go away
-                        inline-comment-vec (when (:inline? (:comment options))
-					(inlinecomment? zloc))]
-                    (dbg options "fzprint* trim-comments?:" trim-comments?
-		                 "inline-comment-vec:" inline-comment-vec)
-                    (if (and (:count? (:comment options)) overflow-in-hang?)
-                      (do (dbg options "fzprint*: overflow comment ========")
-                          nil)
-                      #_[[zcomment (zcolor-map options :comment) :comment]]
-                      (if inline-comment-vec
-                        [[zcomment (zcolor-map options :comment) :comment-inline
-                          (first inline-comment-vec) (second inline-comment-vec)]]
-                        [[zcomment (zcolor-map options :comment) :comment]])))
-		
-                (= (ztag zloc) :comma) [[zstr :none :comma]]
-                ; Really just testing for whitespace, comments filtered above
-                (zwhitespaceorcomment? zloc) [[zstr :none :whitespace]]
-                ; At this point, having filtered out whitespace and
-                ; comments above, now we expect zsexpr will work for all of
-                ; the remaining things.
-                ;
-                ; If we are going to overflow, and we are doing a hang, let's
-                ; stop now!
-                overflow-in-hang?
-                  (do (dbg options "fzprint*: overflow <<<<<<<<<<") nil)
-                (zkeyword? zloc) [[zstr (zcolor-map options :keyword) :element]]
-                (string? (zsexpr zloc))
-                  [[(if string-str?
-                      (str (zsexpr zloc))
-                      ; zstr
-                      (zstring zloc))
-                    (if string-color string-color (zcolor-map options :string))
-                    :element]]
-                (showfn? fn-map (zsexpr zloc)) [[zstr (zcolor-map options :fn)
-                                                 :element]]
-                (show-user-fn? options (zsexpr zloc))
-                  [[zstr (zcolor-map options :user-fn) :element]]
-                (number? (zsexpr zloc))
-                  [[(if hex? (znumstr zloc hex? shift-seq) zstr)
-                    (zcolor-map options :number) :element]]
-                (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil) :element]]
-                :else [[zstr (zcolor-map options :none) :element]])))))
+      (zset? zloc) (fzprint-set options indent zloc)
+      (zanonfn? zloc) (fzprint-anon-fn options indent zloc)
+      (zfn-obj? zloc) (fzprint-fn-obj options indent zloc)
+      (zarray? zloc)
+        (if (:object? (:array options))
+          (fzprint-object options indent zloc)
+          (fzprint-array #?(:clj (if (:hex? (:array options))
+                                   (assoc options
+                                     :hex? (:hex? (:array options))
+                                     :shift-seq (zarray-to-shift-seq zloc))
+                                   options)
+                            :cljs options)
+                         indent
+                         (zexpandarray zloc)))
+      (zatom? zloc) (fzprint-atom options indent zloc)
+      (zmeta? zloc) (fzprint-meta options indent zloc)
+      (prefix-tags (ztag zloc))
+        (fzprint-vec* :prefix-tags
+                      (prefix-tags (ztag zloc))
+                      ""
+                      ; Pick up the :indent-only?
+                      ; config from :list
+                      (make-caller (prefix-options options (ztag zloc))
+                                   :prefix-tags
+                                   :list
+                                   [:indent-only?])
+                      indent
+                      zloc)
+      (zns? zloc) (fzprint-ns options indent zloc)
+      (or (zpromise? zloc) (zfuture? zloc) (zdelay? zloc) (zagent? zloc))
+        (fzprint-future-promise-delay-agent options indent zloc)
+      (zreader-macro? zloc) (fzprint-reader-macro options indent zloc)
+      ; This is needed to not be there for newlines in parse-string-all,
+      ; but is needed for respect-nl? support.
+      ;(and (= (ztag zloc) :newline) (> depth 0)) [["\n" :none :newline]]
+      (and (= (ztag zloc) :newline) (> depth 0))
+        (fzprint-newline options indent zloc)
+      :else
+        (let [zstr (zstring zloc)
+              overflow-in-hang? (and in-hang?
+                                     (> (+ (count zstr) indent (or rightcnt 0))
+                                        width))]
+          (cond
+            (and (zcomment? zloc)
+                 #_(not (clojure.string/starts-with? ";" zstr))
+                 (not (some #{\;} zstr)))
+              ; We should remvoe them when we get zutil fixed.
+              (fzprint-newline options indent zloc)
+            (zcomment? zloc)
+              (let [zcomment
+                      ; Do we have a file-level comment that is way too
+                      ; long??
+                      (if (and (zero? depth) (not trim-comments?))
+                        zstr
+                        (clojure.string/replace-first zstr "\n" ""))
+                    ; Only check for inline comments if we are doing them
+                    ; otherwise we get left with :comment-inline element
+                    ; types that don't go away
+                    inline-comment-vec (when (:inline? (:comment options))
+                                         (inlinecomment? zloc))]
+                (dbg options
+                     "fzprint* trim-comments?:" trim-comments?
+                     "inline-comment-vec:" inline-comment-vec)
+                (if (and (:count? (:comment options)) overflow-in-hang?)
+                  (do (dbg options "fzprint*: overflow comment ========") nil)
+                  #_[[zcomment (zcolor-map options :comment) :comment]]
+                  (if inline-comment-vec
+                    [[zcomment (zcolor-map options :comment) :comment-inline
+                      (first inline-comment-vec) (second inline-comment-vec)]]
+                    [[zcomment (zcolor-map options :comment) :comment]])))
+            (= (ztag zloc) :comma) [[zstr :none :comma]]
+            ; Really just testing for whitespace, comments filtered above
+            (zwhitespaceorcomment? zloc) [[zstr :none :whitespace]]
+            ; At this point, having filtered out whitespace and
+            ; comments above, now we expect zsexpr will work for all of
+            ; the remaining things.
+            ;
+            ; If we are going to overflow, and we are doing a hang, let's
+            ; stop now!
+            overflow-in-hang? (do (dbg options "fzprint*: overflow <<<<<<<<<<")
+                                  nil)
+            (zkeyword? zloc) [[zstr (zcolor-map options :keyword) :element]]
+            (string? (zsexpr zloc))
+              [[(if string-str?
+                  (str (zsexpr zloc))
+                  ; zstr
+                  (zstring zloc))
+                (if string-color string-color (zcolor-map options :string))
+                :element]]
+            (showfn? fn-map (zsexpr zloc)) [[zstr (zcolor-map options :fn)
+                                             :element]]
+            (show-user-fn? options (zsexpr zloc))
+              [[zstr (zcolor-map options :user-fn) :element]]
+            (number? (zsexpr zloc))
+              [[(if hex? (znumstr zloc hex? shift-seq) zstr)
+                (zcolor-map options :number) :element]]
+            (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil) :element]]
+            :else [[zstr (zcolor-map options :none) :element]])))))
 
 ;;
 ;; # Comment Wrap Support

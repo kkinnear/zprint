@@ -3991,3 +3991,52 @@ ser/collect-vars-acc %1 %2) )))"
     "(defn thefn\n  [a b c]\n  (swap! this is (only a test))\n  (list a b c))"
     {:parse-string? true, :width 80, :fn-map {"defn" [:arg2 {}]}}))
 
+;;
+;; # option-fn, fn-format tests for vectors
+;;
+
+(expect "[this is a test this is only a test]"
+        (zprint-str "[this is a test this is only a test]"
+                    {:parse-string? true}))
+
+(expect
+  "[this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test]"
+  (zprint-str "[this is a test this is only a test]"
+              {:parse-string? true,
+               :vector {:option-fn #(if (= (first %3) 'this)
+                                     {:vector {:fn-format :force-nl}})}}))
+
+(expect "[this [is a\n       test this\n       is only]\n  (a test)]"
+        (zprint-str "[this [is a test this is only] (a test)]"
+                    {:parse-string? true,
+                     :vector {:option-fn #(if (= (first %3) 'this)
+                                           {:vector {:fn-format :binding}})}}))
+
+(expect "[:arg1-force-nl :a\n  :b :c\n  :d :e\n  :f :g]"
+        (zprint-str [:arg1-force-nl :a :b :c :d :e :f :g]
+                    {:parse-string? false,
+                     :vector {:option-fn #(do {:vector {:fn-format (first
+                                                                     %3)}})}}))
+(expect "[:arg2 a b\n  c\n  d\n  e\n  f\n  g]"
+        (zprint-str "[:arg2 a b c d e f g]"
+                    {:parse-string? true,
+                     :vector {:option-fn #(do {:vector {:fn-format (first %3)},
+                                               :fn-force-nl #{(first %3)}})}}))
+
+(expect "[:force-nl :a\n           :b :c\n           :d :e\n           :f :g]"
+        (zprint-str [:force-nl :a :b :c :d :e :f :g]
+                    {:parse-string? false,
+                     :vector {:option-fn #(do {:vector {:fn-format (first
+                                                                     %3)}})}}))
+
+(expect "[:pair a\n       b\n       c\n       d\n       e\n       f\n       g]"
+        (zprint-str "[:pair a b c d e f g]"
+                    {:parse-string? true,
+                     :vector {:option-fn #(do {:vector {:fn-format (first %3)},
+                                               :fn-force-nl #{(first %3)}})}}))
+
+(expect "[:pair-fn a b\n          c d\n          e f\n          g]"
+        (zprint-str "[:pair-fn a b c d e f g]"
+                    {:parse-string? true,
+                     :vector {:option-fn #(do {:vector {:fn-format (first
+                                                                     %3)}})}}))

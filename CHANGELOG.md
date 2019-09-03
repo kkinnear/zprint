@@ -58,6 +58,15 @@ All notable changes to this project will be documented in this file.
     the readme section "Altering the formatting inside of certain functions"
     for details.  Implemented to resolve Issue #71.
 
+  * `:option-fn` and `:fn-format` in `:vector`.  Thanks to some
+    creative thinking and clever implementation by @milankinen
+    (Matti Lankinen), you can now use all of the formatting available
+    to functions in lists in vectors.  He implemented this to allow
+    formatting hiccup vectors in a standard and readable way, but
+    there are plenty of other opportunities to format vectors in
+    useful and clear ways.  A huge thanks to Matti for contributing
+    this to zprint.
+
 ### Changed
 
   * If there was an error on the command line, either in the new

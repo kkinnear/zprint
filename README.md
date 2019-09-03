@@ -67,8 +67,9 @@ zprint:
   doesn't format functions based on the `:fn-map` styles configured. It
   decides whether to hang or flow a list based on the locations of the first
   three elements in a list -- if the first two are on the same line, and the
-  third is on the next line aligned with the second on the line above, it
-  will flow the list.  The indent-only approach is for people who want 
+  third is on the next line aligned with the second on previous line, it
+  will hang the list, otherwise it will flow the list.  
+  The indent-only approach is for people who want
   the code they put on each line to stay on that line!
 
   You can do this for a whole file by specifying the options
@@ -232,7 +233,7 @@ In addition to meeting the goals listed above, zprint has the
 following specific features:
 
 * Runs fast enough to be used as a filter while in an editor
-* Prints function definitions at the Clojure repl (including clojure.core functions)
+* Prints function definitions at the Clojure repl (including clojure.core functions - `czprint-fn`
 * Prints s-expressions (EDN structures) at the repl
 * Processes Clojure source files through lein-zprint
 * Supports Clojure and Clojurescript
@@ -250,7 +251,7 @@ following specific features:
 * Justify paired output (maps, binding forms, cond clauses, etc.) if desired
 * Syntax coloring at the terminal
 * Optionally preserve all incoming newlines in source
-* Optionally only indent each line, and don't add or remove any newlines
+* Optionally properly indent each line, and don't add or remove any newlines
 
 All of this is just so many words, of course.  Give zprint a try on
 your code or data structures, and see what you think!
@@ -1168,7 +1169,7 @@ name is controlled by `:pair-fn {:hang? boolen}` and the indent of
 the leftmost element is controlled by `:pair-fn {:indent n}`.
 
 The actual formatting of the pairs themselves is controlled by
-`:pair`.  The controls for `:pair-fn` are govern how to handle the
+`:pair`.  The controls for `:pair-fn` govern how to handle the
 block of pairs -- whether or not they should be in a hang with
 respect to the function name.  The controls for how the elements
 within the pairs are printed are governed by `:pair`. For instance,
@@ -1361,7 +1362,7 @@ map is shown below:
           "binding" :binding,
           "case" :arg1-pair,
           "catch" :none,
-          "cond" :pair,
+          "cond" :pair-fn,
 	  ...}
 ```
 
@@ -1386,7 +1387,7 @@ with the classification first and the options map second.  For example:
           "binding" :binding,
           "case" :arg1-pair,
           "catch" :none,
-          "cond" :pair,
+          "cond" :pair-fn,
 	  ...
 	  "defproject" [:arg2-pair {:vector {:wrap? false}}]
 	  "defprotocol" :arg1-force-nl
@@ -1895,11 +1896,13 @@ to the right of the left bracket.
 
 ### :indent-only?
 
-This is configurable for the major data structures: lists, maps, sets, and 
-vectors.  When enabled, zprint will not add or remove newlines from the
-incoming source, but will otherwise regularize whitespace.  
-Most of the other configuration parameters will be ignored when `:indent-only?`
-is enabled.
+This is configurable for the major data structures: lists, maps,
+sets, and vectors.  When enabled, zprint will not add or remove
+newlines from the incoming source, but will otherwise regularize
+whitespace.  When `:indent-only?` is specified, other configuration
+parameters for the lists, maps, sets, or vectors will be
+ignored except for `:indent` (for all of the data types) and
+`:indent-only-style` (to control hang or flow, only for lists).
 
 ### :respect-nl?
 
@@ -3913,16 +3916,113 @@ _____
 Do not add or remove newlines.  Just indent the lines that are there and
 regularize other whitespace.
 
-#### :option-fn-first <text style="color:#A4A4A4;"><small>false</small></text>
+#### :fn-format <text style="color:#A4A4A4;"><small>nil</small></text>
+
+There are a rich set of formatting options available to lists through
+the `:fn-map`, which relates function names to formatting styles.
+Typically vectors are formatted simply as individual elements wrapped
+to the end of the line.  However, the formatting available to lists
+is also available to vectors through the use of `:fn-format`, which
+when set will cause a vector to be formatted in the same way as a
+list whose first element is a function that maps to the same
+formatting style as the value of `:fn-format`.  Thus, the various function formatting styles
+such as `:arg1` or `:arg2` are available to vectors as well as lists
+by setting the `:vector` key `:fn-format` to `:arg1` or some other
+function formatting style.
+
+While you can configure this in the options map for every vector,
+typically this configuration value is set by using `option-fn` or
+`option-fn-first`, and it is based on the information in the vector
+itself.  When this key has a non-nil value, the vector is formatting
+like a list whose function (i.e., first element) is associated with
+a particular formatting style.  When `:fn-format` is non-nil, the
+configuration elements in `:vector-fn` are used instead of the
+configuration elements in `:vector` or `:list` when formatting that
+vector (but only that vector, not other vectors nested inside of
+it).
+
+Note that the `:fn-format` processing is done before testing for
+`:indent-only?` (as is the `:option-fn` and `:option-fn-first` processing
+as well), so if the result of the `:option-fn` or `:option-fn-first` 
+processing sets `:fn-format`, then the value of `:indent-only?` in
+`:vector-fn` will control whether or not `:indent-only?` is used,
+not the value of `:indent-only?` iin `:vector`.  This is worthy of
+mention in any case, but particularly because `:style :indent-only` does
+__not__ set `:indent-only?` for `:vector-fn`!
+
+As an example, the `:hiccup` style is implemented as follows:
+
+```clojure
+{ ...
+      :hiccup {:vector
+                 {:option-fn
+                    (fn [opts n exprs]
+                      (let [hiccup? (and (>= n 2)
+                                         (or (keyword? (first exprs))
+                                             (symbol? (first exprs)))
+                                         (map? (second exprs)))]
+                        (cond (and hiccup? (not (:fn-format (:vector opts))))
+                                {:vector {:fn-format :arg1-force-nl}}
+                              (and (not hiccup?) (:fn-format (:vector opts)))
+                                {:vector {:fn-format nil}}
+                              :else nil))),
+                  :wrap? false}
+}
+
+; Here is some hiccup without using this style:
+
+(czprint-fn header)
+
+(defn header
+  [{:keys [title icon description]}]
+  [:header.container
+   [:div.cols {:class "gap top", :on-click (fn [] (println "tsers"))}
+    [:div {:class "shrink"} icon]
+    [:div.rows {:class "gap-xs"}
+     [:dov.cols {:class "middle between"} [:div title]
+      [:div {:class "shrink"} [:button "x"]]] [:div description]]]])
+
+; Here is the same hiccup using the :hiccup style:
+
+(czprint-fn header {:style :hiccup})
+
+(defn header
+  [{:keys [title icon description]}]
+  [:header.container
+   [:div.cols {:class "gap top", :on-click (fn [] (println "tsers"))}
+    [:div {:class "shrink"} icon]
+    [:div.rows {:class "gap-xs"}
+     [:dov.cols {:class "middle between"}
+      [:div title]
+      [:div {:class "shrink"} [:button "x"]]]
+     [:div description]]]])
+
+; Not a huge difference, but note the use of :arg1-force-nl to clean up
+; the display of the elements beyond the map in each vector.  Were this more
+; complex hiccup, the difference would be more valuable.
+
+```
+
+This also points out a difference between enforcing and allowing a formatting
+style.  One could use `:respect-nl?` to let whatever formatting was in the
+file inform the output for zprint, which is fine if you are using zprint to
+clean up the formatting of a file.  But if you are using zprint to enforce
+a particular formatting approach, then `:fn-format` and `:option-fn` can
+be very useful.
+
+#### :option-fn-first <text style="color:#A4A4A4;"><small>nil</small></text>
 
 Vectors often come with data that needs different formatting than the
 default or than the code around them needs.  To support this capability,
-you can configure an function as the `:option-fn-first` which will be
+you can configure a function as the `:option-fn-first` which will be
 given the first element of a vector and may return an options map to be
 used to format this vector (and all of the data inside of it).  If this
 function returns nil, no change is made.  The function must be a function
 of two arguments, the first being the current options map, and the second
 being the first element of the vector.
+
+If you need access to additional data in the vector to determine the proper
+formatting, see `option-fn` which gives that access.
 
 The `:style :keyword-respect-nl` is implemented as an `:option-fn-first`
 as follows:
@@ -3955,6 +4055,34 @@ Exception Options resulting from :vector :option-fn-first called with :g
 had these errors: In the key-sequence [:vector :sort?] the key :sort? was 
 not recognized as valid!  zprint.zprint/internal-validate (zprint.cljc:2381)
 ```
+Note that `:option-fn` and `:option-fn-first` can both be 
+used. `:option-fn-first` is executed first, and the results of that are given
+to `:option-fn` as the options map.
+
+
+#### :option-fn <text style="color:#A4A4A4;"><small>nil</small></text>
+
+Vectors often come with data that needs different formatting than
+the default or than the code around them needs.  To support this
+capability, you can configure a function as the `:option-fn` which
+will be given the all the elements of a vector and may return an
+options map to be used to format this vector (and all of the data
+inside of it).  If this function returns nil, no change is made.
+The function must be a function of three arguments, the first being
+the current options map, and the second being the count of elements
+in the vector, and the third being a sequence of the non-comment
+and non-whitespace elements of the vector (not necessarily a vector).
+
+This differs from `option-fn-first` in that `option-fn` gives you access
+to all of the elements of the vector in order to make the decision of
+how to format it.
+
+See `:fn-format` for one example of how to use `:option-fn`.  `:option-fn` 
+is also used in the implemenation of the `:hiccup` style.
+
+Note that `:option-fn` and `:option-fn-first` can both be 
+used. `:option-fn-first` is executed first, and the results of that are given
+to `:option-fn` as the options map.
 
 #### :respect-nl? <text style="color:#A4A4A4;"><small>false</small></text>
 

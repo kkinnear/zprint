@@ -112,7 +112,7 @@
 ;;   :key1 :val1
 ;;   :key2 :val2)
 ;;
-;; :pair
+;; :pair-fn
 ;;
 ;; The function has a series of clauses which are paired.
 ;;
@@ -403,7 +403,8 @@
                :string :red,
                :uneval :magenta,
                :user-fn :black},
-   :comment {:count? false, :wrap? true, :inline? true :inline-align-style :align},
+   :comment
+     {:count? false, :wrap? true, :inline? true, :inline-align-style :align},
    :configured? false,
    :cwd-zprintrc? false,
    :dbg-ge nil,
@@ -441,10 +442,10 @@
           :hang? true,
           :indent 2,
           :indent-arg nil,
-	  :indent-only? nil,
-	  :indent-only-style :input-hang,
-          :pair-hang? true
-	  :respect-nl? false},
+          :indent-only? false,
+          :indent-only-style :input-hang,
+          :pair-hang? true,
+          :respect-nl? false},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -456,7 +457,7 @@
          ; was created and set to 0.  That certainly looks better, but
          ; wider stuff seems better with -1, so for now, we will go with that.
          :hang-adjust -1,
-	 :indent-only? false
+         :indent-only? false,
          :key-order nil,
          :key-ignore nil,
          :key-ignore-silent nil,
@@ -471,7 +472,7 @@
          :justify? false,
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	 :respect-nl? false,
+         :respect-nl? false,
          :unlift-ns? false},
    :max-depth 1000,
    :max-depth-string "##",
@@ -523,8 +524,8 @@
    :return-cvec? false,
    :search-config? false,
    :set {:indent 2,
-	 :indent-only? false
-	 :respect-nl? false
+         :indent-only? false,
+         :respect-nl? false,
          :sort? true,
          :sort-in-code? false,
          :wrap-after-multi? true,
@@ -561,18 +562,34 @@
                                                       {:list {:hang? true}}],
                                            ":require" :flow},
                                   :list {:hang? false, :indent-arg 1}}]}},
-      :indent-only {:list {:indent-only? true}
-                    :map {:indent-only? true}
-		    :set {:indent-only? true}
-		    :vector {:indent-only? true}}
+      :hiccup {:vector
+                 {:option-fn
+                    (fn [opts n exprs]
+                      (let [hiccup? (and (>= n 2)
+                                         (or (keyword? (first exprs))
+                                             (symbol? (first exprs)))
+                                         (map? (second exprs)))]
+                        (cond (and hiccup? (not (:fn-format (:vector opts))))
+                                {:vector {:fn-format :arg1-force-nl}}
+                              (and (not hiccup?) (:fn-format (:vector opts)))
+                                {:vector {:fn-format nil}}
+                              :else nil))),
+                  :wrap? false},
+               :vector-fn {:indent 1, :indent-arg 1}},
+      :indent-only {:list {:indent-only? true},
+                    :map {:indent-only? true},
+                    :set {:indent-only? true},
+		    ; Should we also set :vector-fn to :indent-only?  That
+		    ; is only used by :fn-format, so it might confuse people
+		    ; if we did that.
+                    :vector {:indent-only? true}},
       :justified {:binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
-      :keyword-respect-nl {:vector
-                             {:option-fn-first
-                                #(let [k? (keyword? %2)]
-                                   (when (not= k? (:respect-nl? (:vector %1)))
-                                     {:vector {:respect-nl? k?}}))}},
+      :keyword-respect-nl
+        {:vector {:option-fn-first #(let [k? (keyword? %2)]
+                                     (when (not= k? (:respect-nl? (:vector %1)))
+                                       {:vector {:respect-nl? k?}}))}},
       :map-nl {:map {:indent 0, :nl-separator? true}},
       :no-hang {:map {:hang? false},
                 :list {:hang? false},
@@ -582,10 +599,10 @@
                 :reader-cond {:hang? false},
                 :record {:hang? false}},
       :pair-nl {:pair {:indent 0, :nl-separator? true}},
-      :respect-nl {:list {:respect-nl? true}
-                   :map {:respect-nl? true}
-		   :vector {:respect-nl? true}
-		   :set {:respect-nl? true}}
+      :respect-nl {:list {:respect-nl? true},
+                   :map {:respect-nl? true},
+                   :vector {:respect-nl? true},
+                   :set {:respect-nl? true}},
       :spec {:list {:constant-pair-min 2},
              :vector {:wrap? false},
              ;:pair {:indent 0} removed in 0.4.1
@@ -630,12 +647,12 @@
             :binding? false,
             :option-fn-first nil,
             :option-fn nil,
-            :fn-format nil
+            :fn-format nil,
             :respect-nl? false,
             :wrap-after-multi? true,
             :wrap-coll? true,
             :wrap? true,
-	    :indent-only? false},
+            :indent-only? false},
    :vector-fn {:constant-pair-min 4,
                :constant-pair? true,
                :hang-avoid 0.5,
@@ -645,7 +662,10 @@
                :hang? true,
                :indent 2,
                :indent-arg nil,
-               :pair-hang? true}
+               :indent-only? false,
+               :indent-only-style :input-hang,
+               :pair-hang? true,
+               :respect-nl? false},
    :width 80,
    :zipper? false})
 

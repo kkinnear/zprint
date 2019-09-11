@@ -1,8 +1,9 @@
 (ns ^:no-doc zprint.spec
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
-  (:require #?@(:clj [[zprint.smacros :refer [only-keys]]
-                      [clojure.spec.alpha :as s]]
-                :cljs [[cljs.spec.alpha :as s]])))
+  (:require [clojure.string :as string]
+    #?@(:clj [[zprint.smacros :refer [only-keys]]
+              [clojure.spec.alpha :as s]]
+        :cljs [[cljs.spec.alpha :as s]])))
 
 ;;
 ;; # Compatibility
@@ -378,7 +379,7 @@
           [key-choice min-via] (first (sort-by second key-via-len-seq))
           problem (first (filter (comp (partial = min-via) count :via)
                            (val-map key-choice)))]
-      (cond (clojure.string/ends-with? (str (:pred problem)) "?")
+      (cond (string/ends-with? (str (:pred problem)) "?")
               (str (ks-phrase problem)
                    " was not a " (map-pred (str (:pred problem))))
             (set? (:pred problem)) (str (ks-phrase problem)

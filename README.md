@@ -87,14 +87,15 @@ everyone can live with it".
 
 Now you have:
 
-  * __Standard mode__  
-    If you give the uberjar (or graalVM binaries) `-s` or `--standard` on
+  * __Default mode__  
+    If you give the uberjar (or graalVM binaries) `-d` or `--default` on
     the command line, they will run zprint with no external configuration.
     The default configuration is what you get, and no other options are 
     read from anywhere.  In particular, the `$HOME/.zprintrc` file is
     __not__ examined, nor is any other external configuration file.
-    No matter who runs it, running zprint with "-s" will produce the same
-    output from the same input file. 
+    No matter who runs it, running zprint with "-d" will produce the same
+    output from the same input file.   Note that `lein-zprint` also 
+    implements these same switches.
 
 #### What does zprint do?
 

@@ -45,7 +45,7 @@
      ""
      " <switches> may be any single one of:"
      ""
-     "  -s       --standard     Accept no configuration input."
+     "  -d       --default      Accept no configuration input."
      "  -h       --help         Output this help text."
      "  -v       --version      Output the version of zprint."
      "  -e       --explain      Output configuration, showing where"
@@ -69,27 +69,37 @@
   (zprint.redef/remove-locking)
   (let [options (first args)
         ; Some people wanted a zprint that didn't take configuration.
-        ; If you say "-standard" or "-s", that is what you get.
-        ; -standard or -s means that you get no configuration read from
-        ; $HOME/.zprintrc or anywhere else.  You get the defaults
-        ; (or whatever is set in the (if standard? ...) below)
+        ; If you say "--default" or "-d", that is what you get.
+        ; --default or -s means that you get no configuration read from
+        ; $HOME/.zprintrc or anywhere else.  You get the defaults.
+	;
+	; Basic support for "-s" or "--standard" is baked in, but
+	; not turned on.  
         version? (or (= options "--version") (= options "-v"))
         help? (or (= options "--help") (= options "-h"))
-	explain? (or (= options "--explain") (= options "-e"))
+        explain? (or (= options "--explain") (= options "-e"))
         format? (not (or version? help? explain?))
+        default? (or (= options "--default") (= options "-d"))
         standard? (or (= options "--standard") (= options "-s"))
         [option-status option-stderr switch?]
           (if (and (not (clojure.string/blank? options))
                    (clojure.string/starts-with? options "-"))
-            (if (or version? help? standard? explain?)
+            ; standard not yet implemented
+            (if (or version? help? default? #_standard? explain?)
               [0 nil true]
               [1 (str "Unrecognized switch: '" options "'" "\n" help-str) true])
             [0 nil false])
-        _ (if standard?
-            (set-options! {:configured? true,
-                           :additional-libraries? false,
-                           :parallel? true})
-            (set-options! {:additional-libraries? false, :parallel? true}))
+        _ (cond
+            default? (set-options! {:configured? true,
+                                    :additional-libraries? false,
+                                    :parallel? true})
+            standard? (set-options! {:configured? true,
+                                     #_:style,
+                                     #_:standard,
+                                     :additional-libraries? false,
+                                     :parallel? true})
+            :else (set-options! {:additional-libraries? false,
+                                 :parallel? true}))
         [option-status option-stderr]
           (if (and (not switch?)
                    format?
@@ -112,7 +122,7 @@
             [0 nil])
         option-stderr (cond version? (:version (get-options))
                             help? help-str
-			    explain? (zprint-str (get-explained-options))
+                            explain? (zprint-str (get-explained-options))
                             :else option-stderr)
         exit-status (+ option-status format-status)
         stderr-str (cond (and option-stderr format-stderr)

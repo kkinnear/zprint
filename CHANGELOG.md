@@ -5,8 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-  * Standard mode.  Some people wanted a zprint that was not configurable.
-    If you give the uberjar (or graalVM binaries) "-s" or "--standard" on
+  * Default mode.  Some people wanted a zprint that was not configurable.
+    If you give the uberjar (or graalVM binaries) "-d" or "--default" on
     the command line, it will run zprint with no external configuration.  
     The default configuration is what you get, and no other options are 
     read from anywhere.  In particular, the `$HOME/.zprintrc` file is

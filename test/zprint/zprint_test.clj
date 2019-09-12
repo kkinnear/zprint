@@ -60,11 +60,11 @@
 ;; change)
 ;;
 
-(def y1 (source-fn 'fzprint-map-two-up))
+(def y1 (source-fn 'fzprint-map-two-up-new))
 (expect (read-string y1)
         (read-string (zprint-str y1 {:parallel? false, :parse-string? true})))
 
-(def y2 (source-fn 'partition-all-2-nc))
+(def y2 (source-fn 'partition-all-2-nc-new))
 (expect (trim-gensym-regex (read-string y2))
         (trim-gensym-regex (read-string (zprint-str y2
                                                     {:parallel? false,
@@ -79,11 +79,11 @@
 ;; and again with :parallel? true
 ;;
 
-(def y1 (source-fn 'fzprint-map-two-up))
+(def y1 (source-fn 'fzprint-map-two-up-new))
 (expect (read-string y1)
         (read-string (zprint-str y1 {:parallel? true, :parse-string? true})))
 
-(def y2 (source-fn 'partition-all-2-nc))
+(def y2 (source-fn 'partition-all-2-nc-new))
 (expect (trim-gensym-regex (read-string y2))
         (trim-gensym-regex
           (read-string (zprint-str y2 {:parallel? true, :parse-string? true}))))
@@ -97,13 +97,13 @@
 ;; and again with :parallel? true and {:style :justify}
 ;;
 
-(def y1 (source-fn 'fzprint-map-two-up))
+(def y1 (source-fn 'fzprint-map-two-up-new))
 (expect
   (read-string y1)
   (read-string
     (zprint-str y1 {:style :justified, :parallel? true, :parse-string? true})))
 
-(def y2 (source-fn 'partition-all-2-nc))
+(def y2 (source-fn 'partition-all-2-nc-new))
 (expect (trim-gensym-regex (read-string y2))
         (trim-gensym-regex (read-string (zprint-str y2
                                                     {:style :justified,
@@ -3947,7 +3947,7 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true,
      :fn-map {"comment" [:none
                          {:list {:respect-nl? true},
-                          :reset {:list {:respect-nl? false}}}]}}))
+                          :next-inner {:list {:respect-nl? false}}}]}}))
 
 ;;
 ;; Issue #39
@@ -3975,7 +3975,7 @@ ser/collect-vars-acc %1 %2) )))"
      :width 80,
      :fn-map {"defn" [:arg2
                       {:fn-force-nl #{:arg2},
-                       :reset {:remove {:fn-force-nl #{:arg2}}}}]}}))
+                       :next-inner {:remove {:fn-force-nl #{:arg2}}}}]}}))
 
 (expect
   "(defn thefn [a b c]\n  (swap! this is\n    (only a test))\n  (list a b c))"

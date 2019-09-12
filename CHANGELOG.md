@@ -53,7 +53,7 @@ All notable changes to this project will be documented in this file.
     `:none` doesn't align inline comments beyond what naturally happens.
     Issue #37.
 
-  * `:reset` in the options map of a `:fn-map` vector.  This allows you
+  * `:next-inner` in the options map of a `:fn-map` vector.  This allows you
     to set some configuration for only one level of processing.  See
     the readme section "Altering the formatting inside of certain functions"
     for details.  Implemented to resolve Issue #71.

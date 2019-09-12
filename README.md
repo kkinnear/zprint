@@ -1491,11 +1491,11 @@ Here is the output when you enable `:list {:respect-nl? true}` for
   (def b :3-blanks-above))
 ```
 
-Here is the output when you reset `:respect-nl?` for processing at the
-next level:
+Here is the output when you reset the `:respect-nl?` for processing at the
+next inner level:
 
 ```clojure
-(zprint rnl2x {:parse-string? true :fn-map {"comment" [:none {:list {:respect-nl? true} :reset {:list {:respect-nl? false}}}]}})
+(zprint rnl2x {:parse-string? true :fn-map {"comment" [:none {:list {:respect-nl? true} :next-inner {:list {:respect-nl? false}}}]}})
 (comment
   (defn x [y] (println y))
   

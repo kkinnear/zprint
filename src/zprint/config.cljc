@@ -579,17 +579,18 @@
       :indent-only {:list {:indent-only? true},
                     :map {:indent-only? true},
                     :set {:indent-only? true},
-		    ; Should we also set :vector-fn to :indent-only?  That
-		    ; is only used by :fn-format, so it might confuse people
-		    ; if we did that.
+                    ; Should we also set :vector-fn to :indent-only?  That
+                    ; is only used by :fn-format, so it might confuse people
+                    ; if we did that.
                     :vector {:indent-only? true}},
       :justified {:binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
-      :keyword-respect-nl
-        {:vector {:option-fn-first #(let [k? (keyword? %2)]
-                                     (when (not= k? (:respect-nl? (:vector %1)))
-                                       {:vector {:respect-nl? k?}}))}},
+      :keyword-respect-nl {:vector
+                             {:option-fn-first
+                                #(let [k? (keyword? %2)]
+                                   (when (not= k? (:respect-nl? (:vector %1)))
+                                     {:vector {:respect-nl? k?}}))}},
       :map-nl {:map {:indent 0, :nl-separator? true}},
       :no-hang {:map {:hang? false},
                 :list {:hang? false},
@@ -1251,7 +1252,8 @@
   (when map-string
     (try (let [opts-map (read-string map-string)] [opts-map nil])
          (catch #?(:clj Exception
-                   :cljs :default) e
+                   :cljs :default)
+           e
            [nil
             (str "Unable to read configuration from map" map-string
                  " because " e)]))))

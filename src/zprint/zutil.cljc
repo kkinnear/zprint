@@ -20,12 +20,8 @@
 ;;
 
 (def nl-to-comment? (atom false))
-(defn set-nl-to-comment!
-  []
-  (reset! nl-to-comment? true))
-(defn clear-nl-to-comment!
-  []
-  (reset! nl-to-comment? false))
+(defn set-nl-to-comment! [] (reset! nl-to-comment? true))
+(defn clear-nl-to-comment! [] (reset! nl-to-comment? false))
 
 
 ;;
@@ -96,20 +92,21 @@
 
 ; indent-only
 #_(defn tag
-  [zloc]
-  (let [t (z/tag zloc)] (if @nl-to-comment? (if (= t :newline) :comment t) t)))
- 
+    [zloc]
+    (let [t (z/tag zloc)]
+      (if @nl-to-comment? (if (= t :newline) :comment t) t)))
+
 (def skip
   #?(:clj z/skip
      :cljs zw/skip))
 
 #_(def skip-whitespace
-  #?(:clj z/skip-whitespace
-     :cljs zw/skip-whitespace))
+    #?(:clj z/skip-whitespace
+       :cljs zw/skip-whitespace))
 
 #_(def whitespace?
-  #?(:clj z/whitespace?
-     :cljs zw/whitespace?))
+    #?(:clj z/whitespace?
+       :cljs zw/whitespace?))
 
 ;; FIX THIS
 ; indent-only
@@ -201,12 +198,12 @@
 
 ; indent-only
 #_(defn zcomment?
-  "Returns true if this is a comment."
-  [zloc]
-  (when zloc
-    (if @nl-to-comment?
-      (or (= (tag zloc) :comment) (= (tag zloc) :newline))
-      (= (tag zloc) :comment))))
+    "Returns true if this is a comment."
+    [zloc]
+    (when zloc
+      (if @nl-to-comment?
+        (or (= (tag zloc) :comment) (= (tag zloc) :newline))
+        (= (tag zloc) :comment))))
 
 (defn znewline?
   "Returns true if this is a newline."
@@ -220,10 +217,7 @@
   [zloc _ _]
   (string zloc))
 
-(defn zstart
-  "Find the zloc inside of this zloc."
-  [zloc]
-  (down* zloc))
+(defn zstart "Find the zloc inside of this zloc." [zloc] (down* zloc))
 
 (defn zfirst
   "Find the first non-whitespace zloc inside of this zloc, or
@@ -313,11 +307,11 @@
 
 ; This uses next*, not right*, and will step up out of a sequence.
 #_(defn znextnws
-  "Find the next non-whitespace zloc."
-  [zloc]
-  (if (z/end? zloc)
-    zloc
-    (if-let [nloc (next* zloc)] (skip next* whitespace? nloc))))
+    "Find the next non-whitespace zloc."
+    [zloc]
+    (if (z/end? zloc)
+      zloc
+      (if-let [nloc (next* zloc)] (skip next* whitespace? nloc))))
 
 
 (defn zprevnws
@@ -666,11 +660,11 @@
                   #_(println "k:" k "rest-of-x-pair:" rest-of-pair)
                   current-ns
                     (when (and ; This is at least a pair
-                               rest-of-pair
-                               ; It does not include an implicit ns
-                               (not (clojure.string/starts-with? (z/string k)
-                                                                 "::"))
-                               (or (zkeyword? k) (zsymbol? k)))
+                            rest-of-pair
+                            ; It does not include an implicit ns
+                            (not (clojure.string/starts-with? (z/string k)
+                                                              "::"))
+                            (or (zkeyword? k) (zsymbol? k)))
                       (namespace (z/sexpr k)))]
               (if-not k
                 (when ns [(str ":" ns) out])
@@ -703,10 +697,10 @@
               #_(println "k:" k "rest-of-y-pair:" rest-of-pair)
               current-ns
                 (when (and ; This is at least a pair
-                           rest-of-pair
-                           ; It does not include an implicit ns
-                           (not (clojure.string/starts-with? (z/string k) "::"))
-                           (or (zkeyword? k) (zsymbol? k)))
+                        rest-of-pair
+                        ; It does not include an implicit ns
+                        (not (clojure.string/starts-with? (z/string k) "::"))
+                        (or (zkeyword? k) (zsymbol? k)))
                   (namespace (z/sexpr k)))]
           (if-not k
             [nil out]

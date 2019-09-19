@@ -188,8 +188,8 @@
                       ::hash-paren ::keyword ::nil ::none ::number ::paren
                       ::quote ::string ::syntax-quote-paren ::uneval
                       ::user-fn]))
-(s/def :alt/comment (only-keys :opt-un [::count? ::wrap? ::inline?
-                                        ::inline-align-style]))
+(s/def :alt/comment
+  (only-keys :opt-un [::count? ::wrap? ::inline? ::inline-align-style]))
 (s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
 (s/def ::cwd-zprintrc? ::boolean)
@@ -223,8 +223,7 @@
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
                       ::indent-arg ::pair-hang? ::return-altered-zipper
-		      ::respect-nl?
-		      ::indent-only? ::indent-only-style]))
+                      ::respect-nl? ::indent-only? ::indent-only-style]))
 (s/def ::vector-fn ::list)
 (s/def ::map
   (only-keys
@@ -281,9 +280,8 @@
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-nl? ::option-fn-first
-                      ::option-fn ::fn-format
-                      ::wrap-after-multi? ::wrap-coll? ::wrap?
-		      ::indent-only?]))
+                      ::option-fn ::fn-format ::wrap-after-multi? ::wrap-coll?
+                      ::wrap? ::indent-only?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::zipper? ::boolean)
@@ -294,20 +292,19 @@
 
 (s/def ::options
   (only-keys
-    :opt-un [::additional-libraries? ::agent ::array ::atom ::auto-width?
-             ::binding ::color? ::color-map :alt/comment ::configured? ::dbg?
-	     ::dbg-local?
-             ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge ::delay
-             ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
-             ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
-             ::format ::future ::indent ::list ::map ::max-depth
-             ::max-depth-string ::max-hang-count ::max-hang-depth
-             ::max-hang-span ::max-length ::object ::old? ::output ::pair
-             ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
-             ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
-             ::record ::remove ::next-inner ::return-cvec? ::search-config? ::set ::spaces?
-             ::spec ::style ::style-map ::tab ::trim-comments? ::tuning
-             :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width ::zipper?]))
+    :opt-un
+      [::additional-libraries? ::agent ::array ::atom ::auto-width? ::binding
+       ::color? ::color-map :alt/comment ::configured? ::dbg? ::dbg-local?
+       ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang?
+       ::drop? ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl
+       ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj ::format ::future ::indent
+       ::list ::map ::max-depth ::max-depth-string ::max-hang-count
+       ::max-hang-depth ::max-hang-span ::max-length ::object ::old? ::output
+       ::pair ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
+       ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond ::record
+       ::remove ::next-inner ::return-cvec? ::search-config? ::set ::spaces?
+       ::spec ::style ::style-map ::tab ::trim-comments? ::tuning :alt/uneval
+       ::user-fn-map ::vector ::vector-fn ::version ::width ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 
@@ -416,7 +413,8 @@
                  ", " (explain-more (s/explain-data ::options options)))
             (explain-more (s/explain-data ::options options))))
         (catch #?(:clj Exception
-                  :cljs :default) e
+                  :cljs :default)
+          e
           #_(println "Exception:" (str e))
           #_(println "type of exception:" (type e))
           #_(println ":cause" (:cause e))

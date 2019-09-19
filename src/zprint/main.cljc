@@ -1,8 +1,7 @@
 (ns ^:no-doc zprint.main
   (:require ;[clojure.string :as str]
-            [zprint.core :refer
-             [zprint-str czprint zprint-file-str set-options!]]
-            [zprint.config :refer [get-options get-explained-options]])
+    [zprint.core :refer [zprint-str czprint zprint-file-str set-options!]]
+    [zprint.config :refer [get-options get-explained-options]])
   #?(:clj (:gen-class)))
 
 ;;
@@ -32,13 +31,14 @@
      ""
      (str "  " (clojure.string/replace (:version (get-options)) "-" "m-"))
      (str "  " (clojure.string/replace (:version (get-options)) "-" "l-"))
-     (str "  " "java -jar zprint-filter-" 
+     (str "  "
+          "java -jar zprint-filter-"
           (second (clojure.string/split (:version (get-options)) #"-")))
      ""
      " <options-map> is a Clojure map containing zprint options."
      "               Note that since it contains spaces, it must be"
      "               wrapped in quotes, for example:"
-     "               '{:width 120}'"   
+     "               '{:width 120}'"
      ""
      "               Use the -e switch to see the total options"
      "               map, which will show you what is configurable."
@@ -72,9 +72,9 @@
         ; If you say "--default" or "-d", that is what you get.
         ; --default or -s means that you get no configuration read from
         ; $HOME/.zprintrc or anywhere else.  You get the defaults.
-	;
-	; Basic support for "-s" or "--standard" is baked in, but
-	; not turned on.  
+        ;
+        ; Basic support for "-s" or "--standard" is baked in, but
+        ; not turned on.
         version? (or (= options "--version") (= options "-v"))
         help? (or (= options "--help") (= options "-h"))
         explain? (or (= options "--explain") (= options "-e"))
@@ -161,5 +161,3 @@
     ; so the process will end!
     (shutdown-agents)
     (System/exit exit-status)))
-
-

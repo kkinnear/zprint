@@ -8,7 +8,7 @@
             [zprint.zprint :as zprint :refer
              [fzprint blanks line-count max-width line-widths expand-tabs
               zcolor-map fzprint-wrap-comments fzprint-inline-comments
-	      fzprint-align-inline-comments]]
+              fzprint-align-inline-comments]]
             [zprint.finish :refer
              [cvec-to-style-vec compress-style no-style-map color-comp-vec
               handle-lines]]
@@ -399,11 +399,10 @@
                                (fzprint-inline-comments options cvec-wo-empty)
                                cvec-wo-empty)
             _ (def ssvi inline-style-vec)
-	    inline-style-vec (if (:inline? (:comment options))
-			       (fzprint-align-inline-comments
-				  options
-				  inline-style-vec)
-				inline-style-vec)
+            inline-style-vec (if (:inline? (:comment options))
+                               (fzprint-align-inline-comments options
+                                                              inline-style-vec)
+                               inline-style-vec)
             _ (def ssvia inline-style-vec)
             str-style-vec (cvec-to-style-vec {:style-map no-style-map,
                                               :elide (:elide (:output options))}
@@ -430,7 +429,8 @@
   [fn-name]
   (or (try #?(:clj (source-fn fn-name))
            (catch #?(:clj Exception
-                     :cljs :default) e
+                     :cljs :default)
+             e
              nil))
       (throw (#?(:clj Exception.
                  :cljs js/Error.)
@@ -633,7 +633,8 @@
       (try
         [(read-string possible-options) nil]
         (catch #?(:clj Exception
-                  :cljs :default) e
+                  :cljs :default)
+          e
           [nil
            (str "Unable to create zprint options-map from: '" possible-options
                 "' found in !zprint directive number: " zprint-num

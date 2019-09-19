@@ -6,7 +6,7 @@
             :key "mit",
             :year 2015}
   :plugins
-    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.3.16"]]
+    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.3.17"]]
   :profiles {:dev {:dependencies [#_[expectations "2.2.0-rc1"]
                                   [expectations "2.2.0-rc3"]
                                   #_[expectations "2.1.0"]

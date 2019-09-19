@@ -60,11 +60,11 @@
 ;; change)
 ;;
 
-(def y1 (source-fn 'fzprint-map-two-up-new))
+(def y1 (source-fn 'fzprint-map-two-up))
 (expect (read-string y1)
         (read-string (zprint-str y1 {:parallel? false, :parse-string? true})))
 
-(def y2 (source-fn 'partition-all-2-nc-new))
+(def y2 (source-fn 'partition-all-2-nc))
 (expect (trim-gensym-regex (read-string y2))
         (trim-gensym-regex (read-string (zprint-str y2
                                                     {:parallel? false,
@@ -79,11 +79,11 @@
 ;; and again with :parallel? true
 ;;
 
-(def y1 (source-fn 'fzprint-map-two-up-new))
+(def y1 (source-fn 'fzprint-map-two-up))
 (expect (read-string y1)
         (read-string (zprint-str y1 {:parallel? true, :parse-string? true})))
 
-(def y2 (source-fn 'partition-all-2-nc-new))
+(def y2 (source-fn 'partition-all-2-nc))
 (expect (trim-gensym-regex (read-string y2))
         (trim-gensym-regex
           (read-string (zprint-str y2 {:parallel? true, :parse-string? true}))))
@@ -97,13 +97,13 @@
 ;; and again with :parallel? true and {:style :justify}
 ;;
 
-(def y1 (source-fn 'fzprint-map-two-up-new))
+(def y1 (source-fn 'fzprint-map-two-up))
 (expect
   (read-string y1)
   (read-string
     (zprint-str y1 {:style :justified, :parallel? true, :parse-string? true})))
 
-(def y2 (source-fn 'partition-all-2-nc-new))
+(def y2 (source-fn 'partition-all-2-nc))
 (expect (trim-gensym-regex (read-string y2))
         (trim-gensym-regex (read-string (zprint-str y2
                                                     {:style :justified,

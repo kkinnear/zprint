@@ -5,15 +5,6 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-  * Default mode.  Some people wanted a zprint that was not configurable.
-    If you give the uberjar (or graalVM binaries) "-d" or "--default" on
-    the command line, it will run zprint with no external configuration.  
-    The default configuration is what you get, and no other options are 
-    read from anywhere.  In particular, the `$HOME/.zprintrc` file is
-    __not__ examined, nor is any other external configuration file.
-    No matter who runs it, running zprint with "-s" will produce the same
-    output from the same input file. 
-
   * Respect New Lines.  `:respect-nl?` has been implemented for lists, maps,
     sets, and vectors.  Also as a style for all of them: `:style :respect-nl`.
     This will ensure that all newlines in the input also appear in the 
@@ -37,6 +28,15 @@ All notable changes to this project will be documented in this file.
     map `{:style :indent-only}`, or for a single function (say "func") by
     giving this options map: 
     `{:fn-map {"func" [:none {:style :indent-only}]}}`.
+
+  * Default mode.  Some people wanted a zprint that was not configurable.
+    If you give the uberjar (or graalVM binaries) "-d" or "--default" on
+    the command line, it will run zprint with no external configuration.  
+    The default configuration is what you get, and no other options are 
+    read from anywhere.  In particular, the `$HOME/.zprintrc` file is
+    __not__ examined, nor is any other external configuration file.
+    No matter who runs it, running zprint with "-s" will produce the same
+    output from the same input file. 
 
   * `-v` and `--version` switches.  Issue #94.
 
@@ -77,6 +77,12 @@ All notable changes to this project will be documented in this file.
 
   * Configuring zprint with environment variables or Java properties has
     been deprecated for a good while, and is now no longer supported.
+    As part of this change, the `{:additional-libaries? ...}` key is
+    now not supported (or allowed).
+
+  * Removed `{:style :spec}`, since it has been deprecated since
+    the relevant spec functions were enhanced to force `{:list
+    {:constant-pair-min 2}}`.
 
 ### Fixed
 

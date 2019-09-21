@@ -398,12 +398,12 @@
             inline-style-vec (if (:inline? (:comment options))
                                (fzprint-inline-comments options cvec-wo-empty)
                                cvec-wo-empty)
-            _ (def ssvi inline-style-vec)
+            #_(def ssvi inline-style-vec)
             inline-style-vec (if (:inline? (:comment options))
                                (fzprint-align-inline-comments options
                                                               inline-style-vec)
                                inline-style-vec)
-            _ (def ssvia inline-style-vec)
+            #_(def ssvia inline-style-vec)
             str-style-vec (cvec-to-style-vec {:style-map no-style-map,
                                               :elide (:elide (:output options))}
                                              inline-style-vec
@@ -414,7 +414,7 @@
             wrapped-style-vec (if (:wrap? (:comment options))
                                 (fzprint-wrap-comments options str-style-vec)
                                 str-style-vec)
-            _ (def ssvy wrapped-style-vec)
+            #_(def ssvy wrapped-style-vec)
             comp-style (compress-style wrapped-style-vec)
             #_(def cps comp-style)
             ; don't do extra processing unless we really need it

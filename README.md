@@ -610,8 +610,6 @@ in order to configure itself:
   and did not have `:search-config?` set to true, then it will search
   the current directory for `.zprintrc` and `.zprint.edn` in that order,
   and use the information from the first file it finds.
-* __DEPRECATED:__ Environment variables for individual option map values
-* __DEPRECATED:__ Java properties for individual option map values
 
 The `{:search-config? true}` capability is designed to allow projects
 to have zprint configuration files in various places in the project
@@ -675,99 +673,6 @@ function.  You can invoke `configure-all!` at any later time which
 will cause all of the external forms of configuration (e.g. .zprintrc,
 environment variables, and Java system properties) to be read
 and converted again.
-
-#### Environment variables: __DEPRECATED__
-
-You can specify an individual configuration element by specifying the
-key as the environment variable name and the value as the value of the
-environment variable.  For example, to specify the indent for a map
-to be 0, you would say
-
-`export zprint__map__indent=0`
-
-which yields this change to the options map:
-
-`{:map {:indent 0}}`
-
-where a double underline `__` translates to a level in the map, and
-a single underline `_` translates into a dash.  Thus
-
-`export zprint__pair_fn__hang?=true`
-
-will yield
-
-`{:pair-fn {:hang? true}}`
-
-Note that the strings `true` and `false` will be converted into their
-boolean equivalents.
-
-You can add (or change) functions in the :fn-map with environment variables.
-Special processing is invoked when something inside the :fn-map is specified,
-causing the final token of the environment variable to become a string and
-the value of the environment variable is coerced to a keyword.  Thus, to
-add the function `new-fn` as an `:arg1` function, use
-
-`export zprint__fn_map__new_fn=arg1`
-
-which will merge this map
-
-`{:fn-map {"new-fn" :arg1}}`
-
-into the existing `:fn-map`.
-Alas, there is no way to use environment variables to affect a function
-with an underscore in its function name.
-
-The values of the environment variable are converted into EDN data.
-Numbers become actual numbers, data structures become data structures, and
-everything else becomes a string.  There are not a lot of data structures
-in the options map, but the `:map :key-order` key takes a vector of
-keys to place first when formatting a map.  You would specify the
-following `:key-order`
-
-`{:map {:key-order [:name "important"]}}`
-
-like this
-
-`export zprint__map__key_order='[:name "important"]'`
-
-Note that these values are only read and converted when zprint initially
-configures itself, which is at the first use of a zprint or czprint
-function.  You can invoke `(configure-all!)` at any later time which
-will cause all of the external forms of configuration (e.g. .zprintrc,
-environment variables, and Java system properties) to be read and
-converted again.  
-
-#### Java Properties: __DEPRECATED__
-
-You can also specify individual configuration elements using Java properties.
-In Java properties, a dot is turned into a hypen (dash), and an underscore
-represents a level in the map.
-Thus,
-
-`System.setProperty("zprint_map_indent" "0")`
-
-will create the map
-
-`{:map {:indent 0}}`
- 
-to be merged into the internal options map.
-Similar to environment variables, numeric strings become numbers, strings
-with the value `true` and `false` are turned into booleans, and 
-you can specify a structure, so to set the `:key-order` 
-to `["first" :second]` you would specify the Java property as:
-
-`System.setProperty("zprint_map_key.order" "[\"first\" :second]")`
-
-or in Clojure
-
-`(System/setProperty "zprint_map_key.order" "[\"first\" :second]")`
-
-Note that these values are only read and converted when zprint initially
-configures itself, which is at the first use of a zprint or czprint
-function.  You can invoke `(configure-all!)` at any later time which
-will cause all of the external forms of configuration (e.g. .zprintrc,
-environment variables, and Java system properties) to be read and
-converted again.
 
 #### set-options!
 
@@ -920,18 +825,6 @@ If you want it to run more quickly when embedded in a program,
 certainly you should set :parallel? to true -- but don't forget to
 call `(shutdown-agents)` at the end of your program or your program
 won't exit!
-
-#### :additional-libraries?
-
-If the first call you make to anything to do with zprint is:
-
-```clojure
-(set-options! {:additional-libraries? false})
-```
-
-then zprint will not even try to load the libraries: cprop and table.
-And you will not be able to use :auto-width? or configure with environment
-variables or Java properties.
 
 ### Syntax coloring
 
@@ -1801,8 +1694,7 @@ a few at the beginning):
 ```clojure
 (czprint x {:max-length [10 0]})
 
-{:additional-libraries? true,
- :agent ##,
+{:agent ##,
  :array ##,
  :atom ##,
  :auto-width? false,
@@ -1815,8 +1707,7 @@ a few at the beginning):
 
 (czprint x {:max-length [10 1 0]})
 
-{:additional-libraries? true,
- :agent {:object? false},
+{:agent {:object? false},
  :array {:hex? false, ...},
  :atom {:object? false},
  :auto-width? false,
@@ -3780,23 +3671,6 @@ named `:dependencies` inside any function (macro) named `defproject`.
 Has no effect when formatting a structure (as opposed to parsing a
 string and formatting code).
 
-#### :spec
-
-__DEPRECATED__
-
-This should be largely unnecessary with enhancements to the `:fn-map` for
-spec definitions functions.  I believe that spec files format correctly
-with no additional configuration required.  
-
-This style is good for formatting clojure.spec files.  The 
-`{:list {:constant-pair-min 2}}` is going to be useful for everyone, and
-probably the `{:pair {:indent 0}}` will be too.  The `{:vector {:wrap? false}}`
-is an open question.  Some people want the keys each on one line, and some
-people want them all tucked up together.  Remember, a style is applied before
-the rest of the options map, so if you want to have your specs that show up
-in a vector all tucked up together, you can do: 
-`{:style :spec, :vector {:wrap? true}}`.
-
 #### :keyword-respect-nl
 
 This style is used to preserve most of the existing formatting for
@@ -4254,24 +4128,6 @@ printed?
   "key" "value"}
  10 11 12 13 14 15 16 17 18 19
 ```
-
-______
-______
-## Experimental Features
-
-The following features are present in the library, but may not be
-supported in future versions.  Alternatively, they may be supported
-in a very different way in future versions.
-_____
-#### :auto-width <text style="color:#A4A4A4;"><small>false</small></text>
-
-__DEPRECATED__
-
-This will attempt to determine the width of a terminal window and
-set the width to that value.  Seems to work on OS/X, untested on
-other platforms.  As of 0.3.0, this now requires adding the
-additional library: `[table "0.4.0" :exclusions [[org.clojure/clojure]]]`
-to the dependencies.  
 
 ______
 ______

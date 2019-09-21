@@ -374,7 +374,6 @@
   {:agent {:object? false},
    :array {:hex? false, :indent 1, :object? false, :wrap? true},
    :atom {:object? false},
-   :auto-width? false,
    :binding {:flow? false,
              :force-nl? false,
              :hang-diff 1,
@@ -477,7 +476,6 @@
    :max-depth 1000,
    :max-depth-string "##",
    :parallel? false,
-   :additional-libraries? true,
    :max-hang-count 4,
    ; :max-hang-depth used to be 3, but while it helped a bit, there was
    ; at least one bug filed where this caused a problem.  Since we now
@@ -604,10 +602,6 @@
                    :map {:respect-nl? true},
                    :vector {:respect-nl? true},
                    :set {:respect-nl? true}},
-      :spec {:list {:constant-pair-min 2},
-             :vector {:wrap? false},
-             ;:pair {:indent 0} removed in 0.4.1
-             },
       :sort-dependencies {:list {:return-altered-zipper [1 'defproject
                                                          sort-dependencies]}}},
    :tab {:expand? true, :size 8},
@@ -959,33 +953,23 @@
 (defn config-configure-all!
   "Do external configuration regardless of whether or not it has
   already been done, replacing any internal configuration.  Returns
-  nil if successful, a vector of errors if not.  Argument, if it
-  exists, says whether or not to try to load additional libraries.
-  Defaults to true, unusually enough."
-  ([additional-libraries?]
-   (when additional-libraries?
-     #?(:clj (try #_(println "requiring cprop.source")
-                  (require 'cprop.source)
-                  (catch Exception e nil)))
-     #?(:clj (try #_(println "requiring table.width")
-                  (require 'table.width)
-                  (catch Exception e nil))))
-   ; Any config changes prior to this will be lost, as
-   ; config-and-validate-all works from the default options!
-   (let [[zprint-options doc-map errors] (config-and-validate-all nil nil)]
-     (if errors
-       errors
-       (do (reset-options! zprint-options doc-map)
-           (config-set-options! {:configured? true} "internal")
-           ; If we are running in a repl, then turn on :parallel?
-           ; the first time we run
-           (when (is-in-repl?)
-             (internal-set-options! "REPL execution default"
-                                    (get-explained-all-options)
-                                    (get-options)
-                                    {:parallel? true}))
-           nil))))
-  ([] (config-configure-all! (:additional-libraries? (get-options)))))
+  nil if successful, a vector of errors if not. "
+  []
+  ; Any config changes prior to this will be lost, as
+  ; config-and-validate-all works from the default options!
+  (let [[zprint-options doc-map errors] (config-and-validate-all nil nil)]
+    (if errors
+      errors
+      (do (reset-options! zprint-options doc-map)
+          (config-set-options! {:configured? true} "internal")
+          ; If we are running in a repl, then turn on :parallel?
+          ; the first time we run
+          (when (is-in-repl?)
+            (internal-set-options! "REPL execution default"
+                                   (get-explained-all-options)
+                                   (get-options)
+                                   {:parallel? true}))
+          nil))))
 
 (defn config-set-options!
   "Add some options to the current options, checking to make
@@ -994,13 +978,7 @@
    ; avoid infinite recursion, while still getting the doc-map updated
    (when (and (not (:configured? (get-options)))
               (not (:configured? new-options)))
-     (let [additional-libraries-existing? (:additional-libraries? (get-options))
-           additional-libraries-new?
-             (get new-options :additional-libraries? :not-found)
-           additional-libraries? (if (not= additional-libraries-new? :not-found)
-                                   additional-libraries-new?
-                                   additional-libraries-existing?)]
-       (config-configure-all! additional-libraries?)))
+     (config-configure-all!))
    (internal-set-options! doc-str
                           (get-explained-all-options)
                           (get-options)

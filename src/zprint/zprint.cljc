@@ -8,7 +8,7 @@
     [zprint.zfns :refer
      [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zseqnws-w-nl
       zmap-right zfocus-style zstart zfirst zfirst-no-comment zsecond
-      zsecond-no-comment zthird zfourth znthnext zcount zmap zanonfn? zfn-obj?
+      znthnext zcount zmap zanonfn? zfn-obj?
       zfocus zfind-path zwhitespace? zlist? zcount-zloc-seq-nc-nws zvector?
       zmap? zset? zcoll? zuneval? zmeta? ztag zlast zarray? zatom? zderef
       zrecord? zns? zobj-to-vec zexpandarray znewline? zwhitespaceorcomment?
@@ -23,7 +23,6 @@
     [rewrite-clj.zip :as z]
     #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
-(declare interpose-nl-hf)
 
 ;;
 ;; # Utility Functions
@@ -1458,6 +1457,8 @@
                (or r-type :right)]])))
   ([options ind zloc r-str] (rstr-vec options ind zloc r-str nil)))
 
+(declare interpose-nl-hf)
+
 (defn fzprint-binding-vec
   [{{:keys [nl-separator?]} :binding, :as options} ind zloc]
   (dbg options "fzprint-binding-vec: ind:" ind "zloc:" (zstring (zfirst zloc)))
@@ -1858,7 +1859,7 @@
   then put one in.  We could take the whole newline, but the indent is
   really the only unique thing."
   [ind style-vec]
-  (def eswn style-vec)
+  #_(def eswn style-vec)
   #_(prn "ensure-start-w-nl:" style-vec)
   (let [element-type (nth (first style-vec) 2)]
     #_(prn "ensure-start-w-nl:" element-type)
@@ -1870,7 +1871,7 @@
   "Given a style-vec, ensure it ends with a newline.  If it doesn't,
   then put one in."
   [ind style-vec]
-  (def eewn style-vec)
+  #_(def eewn style-vec)
   #_(prn "ensure-end-w-nl:" style-vec)
   (let [element-type (nth (last style-vec) 2)]
     #_(prn "ensure-end-w-nl:" element-type)
@@ -2775,69 +2776,6 @@
                    fn-style
                    arg-1-indent
                    nil)))
-
-(defn fzprint-indent-good
-  "This function assumes that :indent-only? was set for the caller
-  in the options (since anything else doesn't make sense).  It takes
-  a zloc and the ind, which is where we are on the line this point,
-  and will process the zloc to include any newlines.  Of course we
-  have to have all of the white space in the zloc too, since we
-  need to ask some questions about what we are starting with at
-  some point.  We don't add newlines and we let the newlines that
-  are in there do their thing.  We might add newlines if we move
-  beyond the right margin, but for now, we don't (and it isn't
-  entirely clear how or if that would work).  This routine has to
-  make decisions about the indent, that is whether to hang or flow
-  the expression. It does that based on what was done in the input
-  if the configuration allows."
-  [caller l-str r-str options ind zloc fn-style arg-1-indent]
-  (let [flow-indent (:indent (caller options))
-        l-str-len (count l-str)
-        flow-indent (if (and (> flow-indent l-str-len) (= caller :list))
-                      ; If we don't think this could be a fn, indent minimally
-                      (if arg-1-indent flow-indent l-str-len)
-                      flow-indent)
-        actual-ind (+ ind l-str-len)
-        _ (dbg-pr options
-                  "fzprint-indent: caller:" caller
-                  "l-str-len:" l-str-len
-                  "ind:" ind
-                  "fn-style:" fn-style
-                  "arg-1-indent:" arg-1-indent
-                  "flow-indent:" flow-indent
-                  "actual-ind:" actual-ind)
-        zloc-seq (zmap-w-nl identity zloc)
-        coll-print (fzprint-seq options ind zloc-seq)
-        _ (dbg-pr options "fzprint-indent: coll-print:" coll-print)
-        indent-only-style (:indent-only-style (caller options))
-        ; If we have the possibility of :input-hang, then try if it is
-        ; configured.
-        already-hung? (when (and indent-only-style
-                                 (= indent-only-style :input-hang))
-                        (hang-zloc? (first zloc-seq)))
-        raw-indent
-          (if (and arg-1-indent already-hung?) arg-1-indent flow-indent)
-        indent raw-indent
-        coll-print-contains-nil? (contains-nil? coll-print)
-        _ (dbg-pr options
-                  "fzprint-indent:" (zstring zloc)
-                  "ind:" ind
-                  "fn-style:" fn-style
-                  "indent-only-style:" indent-only-style
-                  "already-hung?:" already-hung?
-                  "arg-1-indent:" arg-1-indent
-                  "l-str-len:" (count l-str)
-                  "actual-ind:" actual-ind
-                  "raw-indent:" raw-indent
-                  "coll-print-contains-nil?:" coll-print-contains-nil?
-                  "indent:" indent)
-        coll-print (when-not coll-print-contains-nil? coll-print)]
-    ; indent needs to adjust for the size of l-str-vec, since actual-ind
-    ; has l-str-vec in it so that indent-zmap knows where we are on the
-    ; line.  Just like fzprint-one-line needs one-line-ind, not ind.
-    (let [output (indent-zmap caller options ind actual-ind coll-print indent)]
-      (dbg-pr options "fzprint-indent: output:" output)
-      output)))
 
 (defn zfind-seq
   "Find the location, counting from zero, and counting every element 

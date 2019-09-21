@@ -16,15 +16,6 @@
 ;;
 
 ;;
-;; ### TEMPORARY PROTOTYPE CODE -- REMOVE THIS
-;;
-
-(def nl-to-comment? (atom false))
-(defn set-nl-to-comment! [] (reset! nl-to-comment? true))
-(defn clear-nl-to-comment! [] (reset! nl-to-comment? false))
-
-
-;;
 ;; Note that both rewrite-clj and rewrite-cljs use the following namespaces:
 ;;
 ;; rewrite-clj.parse
@@ -90,33 +81,15 @@
   #?(:clj z/tag
      :cljs zb/tag))
 
-; indent-only
-#_(defn tag
-    [zloc]
-    (let [t (z/tag zloc)]
-      (if @nl-to-comment? (if (= t :newline) :comment t) t)))
-
 (def skip
   #?(:clj z/skip
      :cljs zw/skip))
 
-#_(def skip-whitespace
-    #?(:clj z/skip-whitespace
-       :cljs zw/skip-whitespace))
-
-#_(def whitespace?
-    #?(:clj z/whitespace?
-       :cljs zw/whitespace?))
-
-;; FIX THIS
-; indent-only
 (defn whitespace?
   [zloc]
-  (if @nl-to-comment?
-    (or (= (tag zloc) :whitespace) (= (tag zloc) :comma))
     (or (= (tag zloc) :whitespace)
         (= (tag zloc) :newline)
-        (= (tag zloc) :comma))))
+        (= (tag zloc) :comma)))
 
 ; indent-only
 (defn skip-whitespace
@@ -195,15 +168,6 @@
   "Returns true if this is a comment."
   [zloc]
   (when zloc (= (tag zloc) :comment)))
-
-; indent-only
-#_(defn zcomment?
-    "Returns true if this is a comment."
-    [zloc]
-    (when zloc
-      (if @nl-to-comment?
-        (or (= (tag zloc) :comment) (= (tag zloc) :newline))
-        (= (tag zloc) :comment))))
 
 (defn znewline?
   "Returns true if this is a newline."
@@ -312,7 +276,6 @@
     (if (z/end? zloc)
       zloc
       (if-let [nloc (next* zloc)] (skip next* whitespace? nloc))))
-
 
 (defn zprevnws
   "Find the next non-whitespace zloc."

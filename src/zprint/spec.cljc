@@ -151,7 +151,6 @@
 (s/def ::paths ::path-seq)
 (s/def ::return-altered-zipper vector?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
-(s/def ::additional-libraries? ::boolean)
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
@@ -178,7 +177,6 @@
 (s/def ::agent (only-keys :opt-un [::object?]))
 (s/def ::array (only-keys :opt-un [::hex? ::indent ::object? ::wrap?]))
 (s/def ::atom (only-keys :opt-un [::object?]))
-(s/def ::auto-width? ::boolean)
 (s/def ::binding
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::indent ::justify? ::justify-hang ::justify-tuning
@@ -293,7 +291,7 @@
 (s/def ::options
   (only-keys
     :opt-un
-      [::additional-libraries? ::agent ::array ::atom ::auto-width? ::binding
+      [::agent ::array ::atom ::binding
        ::color? ::color-map :alt/comment ::configured? ::dbg? ::dbg-local?
        ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang?
        ::drop? ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl

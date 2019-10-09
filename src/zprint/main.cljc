@@ -60,9 +60,8 @@
 ;;
 
 (defn -main
-  "Read a file from stdin, format it, and write it to sdtout.  Do
-  not load any additional libraries for configuration, and process
-  as fast as we can using :parallel?"
+  "Read a file from stdin, format it, and write it to sdtout.  
+  Process as fast as we can using :parallel?"
   [& args]
   ; Turn off multi-zprint locking since graalvm can't handle it, and
   ; we only do one zprint at a time here in the uberjar.
@@ -89,17 +88,11 @@
               [0 nil true]
               [1 (str "Unrecognized switch: '" options "'" "\n" help-str) true])
             [0 nil false])
-        _ (cond
-            default? (set-options! {:configured? true,
-                                    :additional-libraries? false,
-                                    :parallel? true})
-            standard? (set-options! {:configured? true,
-                                     #_:style,
-                                     #_:standard,
-                                     :additional-libraries? false,
-                                     :parallel? true})
-            :else (set-options! {:additional-libraries? false,
-                                 :parallel? true}))
+        _ (cond default? (set-options! {:configured? true, :parallel? true})
+                standard?
+                  (set-options!
+                    {:configured? true, #_:style, #_:standard, :parallel? true})
+                :else (set-options! {:parallel? true}))
         [option-status option-stderr]
           (if (and (not switch?)
                    format?

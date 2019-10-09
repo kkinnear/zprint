@@ -152,29 +152,27 @@
   further processing: [<style-vec> options]"
   [coll options]
   (let [[input options]
-          (cond
-            (:zipper? options)
-              #?(:clj (if (zipper? coll)
-                        [coll options]
-                        (throw (#?(:clj Exception.
-                                   :cljs js/Error.)
-                                (str "Collection is not a zipper"
-                                     " yet :zipper? specified!"))))
-                 :cljs [coll options])
-            (:parse-string? options) (if (string? coll)
-                                       [(get-zipper options coll) options]
-                                       (throw
-                                         (#?(:clj Exception.
-                                             :cljs js/Error.)
-                                          (str "Collection is not a string yet"
-                                               " :parse-string? specified!"))))
-            (:zloc? (:focus (:output options)))
-              ; We have a zloc which we want to display with
-              ; focus.  First, we have to find the root and path
-              ; of the zloc.
-              (let [[root path] (find-root-and-path-nw coll)]
-                [root (assoc-in options [:output :focus :path] path)])
-            :else [nil options])
+          (cond (:zipper? options)
+                  #?(:clj (if (zipper? coll)
+                            [coll options]
+                            (throw (Exception. (str
+                                                 "Collection is not a zipper"
+                                                 " yet :zipper? specified!"))))
+                     :cljs [coll options])
+                (:parse-string? options)
+                  (if (string? coll)
+                    [(get-zipper options coll) options]
+                    (throw (#?(:clj Exception.
+                               :cljs js/Error.)
+                            (str "Collection is not a string yet"
+                                 " :parse-string? specified!"))))
+                (:zloc? (:focus (:output options)))
+                  ; We have a zloc which we want to display with
+                  ; focus.  First, we have to find the root and path
+                  ; of the zloc.
+                  (let [[root path] (find-root-and-path-nw coll)]
+                    [root (assoc-in options [:output :focus :path] path)])
+                :else [nil options])
         z-type (if input :zipper :sexpr)
         input (or input coll)]
     (cond (nil? input) [[["nil" (zcolor-map options :nil) :element]] options]

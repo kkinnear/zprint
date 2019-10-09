@@ -7,15 +7,15 @@
     [zprint.finish :refer [newline-vec]]
     [zprint.zfns :refer
      [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zseqnws-w-nl
-      zmap-right zfocus-style zstart zfirst zfirst-no-comment zsecond
-      znthnext zcount zmap zanonfn? zfn-obj?
-      zfocus zfind-path zwhitespace? zlist? zcount-zloc-seq-nc-nws zvector?
-      zmap? zset? zcoll? zuneval? zmeta? ztag zlast zarray? zatom? zderef
-      zrecord? zns? zobj-to-vec zexpandarray znewline? zwhitespaceorcomment?
-      zmap-all zpromise? zfuture? zdelay? zkeyword? zconstant? zagent?
-      zreader-macro? zarray-to-shift-seq zdotdotdot zsymbol? znil?
-      zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zfind zmap-w-nl
-      zmap-w-nl-comma ztake-append znextnws-w-nl znextnws znamespacedmap?]]
+      zmap-right zfocus-style zstart zfirst zfirst-no-comment zsecond znthnext
+      zcount zmap zanonfn? zfn-obj? zfocus zfind-path zwhitespace? zlist?
+      zcount-zloc-seq-nc-nws zvector? zmap? zset? zcoll? zuneval? zmeta? ztag
+      zlast zarray? zatom? zderef zrecord? zns? zobj-to-vec zexpandarray
+      znewline? zwhitespaceorcomment? zmap-all zpromise? zfuture? zdelay?
+      zkeyword? zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot
+      zsymbol? znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zfind
+      zmap-w-nl zmap-w-nl-comma ztake-append znextnws-w-nl znextnws
+      znamespacedmap?]]
     [zprint.ansi :refer [color-str]]
     [zprint.config :refer [validate-options merge-deep]]
     [zprint.zutil :refer [add-spec-to-docstring]]

@@ -87,9 +87,7 @@
 
 (defn whitespace?
   [zloc]
-    (or (= (tag zloc) :whitespace)
-        (= (tag zloc) :newline)
-        (= (tag zloc) :comma)))
+  (or (= (tag zloc) :whitespace) (= (tag zloc) :newline) (= (tag zloc) :comma)))
 
 ; indent-only
 (defn skip-whitespace

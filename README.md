@@ -389,6 +389,22 @@ work, and please also include the output from this call:
 
 This will assist me a great deal in reproducing and working on the issue.  Thanks!
 
+### Contributors
+
+A number of folks have contributed to zprint, not all of whom
+show up on GitHub because I have integrated the code or suggestions manually.
+
+  * `:option-fn` and `:fn-format` for enhanced vector formatting: @milankinen
+  * Fixed missing require in `spec.cljc`: @Quezion
+  * Corrected readme: @griffis 
+  * Fixed nested reader conditional: @rgould1
+  * Clarified and added useful example for clj usage: @bherrmann7 
+  * Suggested fix for international chars and graalVM native image: @huahaiy
+
+Thanks to everyone who has contributed fixes as well as everyone who has
+reported an issue.  I really appreciate all of the help making zprint better
+for everybody!
+
 ### Acknowledgements
 
 At the core of `zprint` is the `rewrite-clj` library by Yannick
@@ -1059,7 +1075,7 @@ executed after the binding is `:list {:indent n}`.
 
 The function has a series of clauses which are paired.  Whether or
 not the paired clauses use hang or flow with respect to the function
-name is controlled by `:pair-fn {:hang? boolen}` and the indent of
+name is controlled by `:pair-fn {:hang? boolean}` and the indent of
 the leftmost element is controlled by `:pair-fn {:indent n}`.
 
 The actual formatting of the pairs themselves is controlled by

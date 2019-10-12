@@ -107,7 +107,11 @@ All notable changes to this project will be documented in this file.
     inline comment.  Issue #67.
 
   * In vectors, a full line comment could become an inline comment
-    because of the way they wrapped.  Fixed this.  Issue #39
+    because of the way they wrapped.  Fixed this.  Issue #39.
+
+  * Added `(require clojure.string ...)` to spec.cljc.  Issue #109.
+
+  * Removed nested conditional compilation in `core.cljc`.  Issue #110.
 
 ## 0.4.16 - 2019-06-12
 

@@ -1,6 +1,7 @@
 (ns ^:no-doc zprint.spec
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
-  (:require #?@(:clj [[zprint.smacros :refer [only-keys]]
+  (:require clojure.string
+            #?@(:clj [[zprint.smacros :refer [only-keys]]
                       [clojure.spec.alpha :as s]]
                 :cljs [[cljs.spec.alpha :as s]])))
 

@@ -44,6 +44,4 @@
      [org.clojure/clojure "1.9.0"]
      #_[org.clojure/clojure "1.8.0"]
      [rewrite-cljs "0.4.4" :exclusions [[org.clojure/clojurescript]]]
-     [rewrite-clj "0.6.1" :exclusions [[com.cemerick/austin]]]
-     #_[table "0.4.0" :exclusions [[org.clojure/clojure]]]
-     #_[cprop "0.1.6"]])
+     [rewrite-clj "0.6.1" :exclusions [[com.cemerick/austin]]]])

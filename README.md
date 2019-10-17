@@ -214,10 +214,10 @@ $ cat > deps.edn <<< $'
                       {org.clojure/clojure
                          #:mvn{:version "1.9.0"},
                        zprint #:mvn{:version
-                                      "0.4.17"}},
+                                      "0.5.0"}},
                     :main-opts ["-m" "zprint.main"]}},
  :deps {org.clojure/clojure #:mvn{:version "1.9.0"},
-        zprint #:mvn{:version "0.4.17"}}}'
+        zprint #:mvn{:version "0.5.0"}}}'
 $ clj -A:zprint < deps.edn
 $ clj -m zprint.main <deps.edn
 ```

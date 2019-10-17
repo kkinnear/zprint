@@ -1,6 +1,6 @@
 # First argument -- location of graalvm
 # Second argument -- file name of native image in graalvml directory
-# THird argument -- version of zprint-filter
+# Third argument -- version of zprint-filter
 cd /app
 export PATH=$1/bin:$PATH
 export JAVA_HOME=$1

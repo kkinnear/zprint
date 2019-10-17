@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.5.0 - 2019-08-30
+## 0.5.0 - 2019-09-17
 
 ### Added
 
@@ -56,7 +56,7 @@ All notable changes to this project will be documented in this file.
   * `:next-inner` in the options map of a `:fn-map` vector.  This allows you
     to set some configuration for only one level of processing.  See
     the readme section "Altering the formatting inside of certain functions"
-    for details.  Implemented to resolve Issue #71.
+    for details.  Implemented to resolve Issues #71 and #86.
 
   * `:option-fn` and `:fn-format` in `:vector`.  Thanks to some
     creative thinking and clever implementation by @milankinen

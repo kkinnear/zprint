@@ -1,7 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.5.0 - 2019-09-17
+## 0.5.0 - 2019-10-22
+
+Because of the considerable changes in this version, moved from
+`0.4.x` to `0.5.x`.
 
 ### Added
 
@@ -60,8 +63,9 @@ All notable changes to this project will be documented in this file.
 
   * `:option-fn` and `:fn-format` in `:vector`.  Thanks to some
     creative thinking and clever implementation by @milankinen
-    (Matti Lankinen), you can now use all of the formatting available
-    to functions in lists in vectors.  He implemented this to allow
+    (Matti Lankinen), the formatting available
+    when formatting functions in lists is now also available for
+    formatting vectors.  He implemented this to allow
     formatting hiccup vectors in a standard and readable way, but
     there are plenty of other opportunities to format vectors in
     useful and clear ways.  A huge thanks to Matti for contributing

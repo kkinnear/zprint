@@ -490,9 +490,8 @@
 
 ; This change came when we started to correctly recognize functions
 ; even though they were preceded by comments and/or newlines.
-(expect 
-"(;a\n list :b\n      :c\n      ;def\n  )"
-;"(;a\n list\n :b\n :c\n ;def\n  )"
+(expect "(;a\n list :b\n      :c\n      ;def\n  )"
+        ;"(;a\n list\n :b\n :c\n ;def\n  )"
         (zprint-str "(;a\nlist\n:b\n:c ;def\n)"
                     {:parse-string? true, :comment {:inline? false}}))
 
@@ -541,9 +540,9 @@
 ;{a b,
 ; ;def
 ; }
-(expect
-"{a b,\n ;def\n }"
-(zprint-str "{ a b ;def\n}" {:parse-string? true :comment {:inline? false}}))
+(expect "{a b,\n ;def\n }"
+        (zprint-str "{ a b ;def\n}"
+                    {:parse-string? true, :comment {:inline? false}}))
 
 
 (expect [6 1 8 1 9 1 11]
@@ -591,8 +590,8 @@
   "Test comment forcing things"
   [x]
   (cond (and (list ;
-                   (identity "stuff")
-                   "bother"))
+               (identity "stuff")
+               "bother"))
           x
         :else (or :a :b :c)))
 
@@ -626,10 +625,10 @@
 ; treatment.
 (expect
   "(defn zctest3\n  \"Test comment forcing things\"\n  [x]\n  (cond\n    (and (list ;\n           (identity \"stuff\")\n           \"bother\"))\n      x\n    :else (or :a :b :c)))"
-  ;  "(defn zctest3\n  \"Test comment forcing things\"\n  [x]\n  (cond\n    (and
-  ;  (list ;\n               (identity \"stuff\")\n               \"bother\"))\n
-  ;       x\n    :else (or :a :b :c)))"
-  (zprint-fn-str zprint.zprint-test/zctest3 40 {:pair-fn {:hang? nil}}))
+    ;  "(defn zctest3\n  \"Test comment forcing things\"\n  [x]\n  (cond\n    (and
+    ;  (list ;\n               (identity \"stuff\")\n               \"bother\"))\n
+    ;       x\n    :else (or :a :b :c)))"
+    (zprint-fn-str zprint.zprint-test/zctest3 40 {:pair-fn {:hang? nil}}))
 
 (expect
   "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let\n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things way\n           ; to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
@@ -1545,8 +1544,8 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["]" :purple :right] ["\n  " :none :indent]
-   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
+   [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
@@ -1572,13 +1571,12 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["]" :purple :right] ["\n  " :none :indent]
-   ["{" :red :left] [":abc" :blue :element] ["\n     " :none :indent]
-   [";stuff" :green :comment] ["\n     " :none :indent]
-   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
-   ["\"deep\"" :blue :element] [" " :none :whitespace] ["{" :red :left]
-   ["\"and\"" :yellow :element] [" " :none :whitespace]
-   ["\"even\"" :red :element] [", " :none :whitespace]
+   ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
+   [":abc" :blue :element] ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"deep\"" :blue :element]
+   [" " :none :whitespace] ["{" :red :left] ["\"and\"" :yellow :element]
+   [" " :none :whitespace] ["\"even\"" :red :element] [", " :none :whitespace]
    [":deeper" :yellow :element] [" " :none :whitespace] ["{" :red :left]
    ["\"that\"" :green :element] [" " :none :whitespace]
    [":is" :magenta :element] [", " :none :whitespace] [":just" :green :element]
@@ -1601,8 +1599,8 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["]" :purple :right] ["\n  " :none :indent]
-   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
+   [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
@@ -1628,25 +1626,24 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["]" :purple :right] ["\n  " :none :indent]
-   ["{" :red :left] [":abc" :blue :element] ["\n     " :none :indent]
-   [";stuff" :green :comment] ["\n     " :none :indent]
-   [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
-   ["\"deep\"" :cyan :element] [" " :none :whitespace] ["{" :red :left]
-   ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
-   [", " :none :whitespace] [":deeper" :magenta :element]
-   [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
-   [" " :none :whitespace] [":is" :magenta :element] [", " :none :whitespace]
-   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
-   [", " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
-   [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
-   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["5" :green :element] [" " :none :whitespace]
-   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
-   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
-   [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
-   [")" :green :right]]
+   ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
+   [":abc" :blue :element] ["\n     " :none :indent] [";stuff" :green :comment]
+   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["\"deep\"" :cyan :element]
+   [" " :none :whitespace] ["{" :red :left] ["\"and\"" :red :element]
+   [" " :none :whitespace] ["\"even\"" :red :element] [", " :none :whitespace]
+   [":deeper" :magenta :element] [" " :none :whitespace] ["{" :red :left]
+   ["\"that\"" :red :element] [" " :none :whitespace] [":is" :magenta :element]
+   [", " :none :whitespace] [":just" :magenta :element] [" " :none :whitespace]
+   ["\"the\"" :red :element] [", " :none :whitespace] ["\"way\"" :red :element]
+   [" " :none :whitespace] [":it-is" :magenta :element] ["}" :red :right]
+   ["}" :red :right] ["," :none :whitespace] ["\n   " :none :indent]
+   ["\"def\"" :red :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["5" :green :element]
+   [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
+   ["}" :red :right] [")" :green :right]]
   (czprint-fn-str zprint.zprint-test/key-color-tst
                   {:map {:key-color {:abc :blue, "deep" :cyan, 5 :green}},
                    :return-cvec? true}))
@@ -1657,8 +1654,8 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["]" :purple :right] ["\n  " :none :indent]
-   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
+   [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
@@ -1734,8 +1731,8 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["]" :purple :right] ["\n  " :none :indent]
-   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
+   [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
@@ -1760,8 +1757,8 @@
 (expect
   [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
-   ["]" :purple :right] ["\n  " :none :indent]
-   ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
+   ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
+   [":abc" :magenta :element] ["\n     " :none :indent]
    [";stuff" :green :comment] ["\n     " :none :indent]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
@@ -3156,7 +3153,7 @@ ser/collect-vars-acc %1 %2) )))"
 
 (expect "{:a :b,\n :c :d,\n :e :f}"
         (zprint-str "{:a :b :c :d :e :f}"
-                    {:parse-string? true, :map {:respect-nl? true} :width 15}))
+                    {:parse-string? true, :map {:respect-nl? true}, :width 15}))
 
 (expect "{:a\n   :b,\n :c :d,\n :e :f}"
         (zprint-str "{:a \n :b :c :d :e :f}"
@@ -3275,7 +3272,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;; :arg1-extend tests
 ;;
 
-(defprotocol ZprintProtocol  
+(defprotocol ZprintProtocol
   ; an optional doc string
   "This is a test protocol for zprint!"
   ; method signatures
@@ -4004,13 +4001,13 @@ ser/collect-vars-acc %1 %2) )))"
   (zprint-str "[this is a test this is only a test]"
               {:parse-string? true,
                :vector {:option-fn #(if (= (first %3) 'this)
-                                     {:vector {:fn-format :force-nl}})}}))
+                                      {:vector {:fn-format :force-nl}})}}))
 
 (expect "[this [is a\n       test this\n       is only]\n  (a test)]"
         (zprint-str "[this [is a test this is only] (a test)]"
                     {:parse-string? true,
                      :vector {:option-fn #(if (= (first %3) 'this)
-                                           {:vector {:fn-format :binding}})}}))
+                                            {:vector {:fn-format :binding}})}}))
 
 (expect "[:arg1-force-nl :a\n  :b :c\n  :d :e\n  :f :g]"
         (zprint-str [:arg1-force-nl :a :b :c :d :e :f :g]

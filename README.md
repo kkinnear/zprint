@@ -31,7 +31,9 @@ it around from line to line trying to find a good visual representation
 for your code.  Though it will just re-indent your code if that is
 what you want.
 
-## Major Additions to Formatting Clojure(script) Source
+## New Capabilities in Formatting Clojure(script) Source
+
+##### _First released in 0.5.0_
 
 Some people want a formatting tool to enforce a particular style, regardless
 of the input.  That is what classic zprint does -- it enforces the style
@@ -68,9 +70,9 @@ zprint:
   decides whether to hang or flow a list based on the locations of the first
   three elements in a list -- if the first two are on the same line, and the
   third is on the next line aligned with the second on previous line, it
-  will hang the list, otherwise it will flow the list.  
-  The indent-only approach is for people who want
-  the code they put on each line to stay on that line!
+  will hang the list, otherwise it will flow the list. The indent-only 
+  approach is for people who want the code __they__ put on each line to 
+  __stay__ on that line!
 
   You can do this for a whole file by specifying the options
   map `{:style :indent-only}`, or for a single function (say "func") by
@@ -176,27 +178,16 @@ __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 [![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
 
-### Clojure 1.8:
-
-The last zprint release built with Clojure 1.8 was [zprint "0.4.15"].
-
-In addition to the zprint dependency, you also need to
-include the following library when using Clojure 1.8: 
-
-```
-[clojure-future-spec "1.9.0-alpha17"]
-```
 
 ### Clojurescript:
 
-zprint uses `clojure.spec.alpha`, and has been tested in each of the
-following environments:
+zprint has been tested in each of the following environments:
 
-  * Clojurescript 1.10.439
-    - figwheel
-    - shadow-cljs
-  * `lumo` 1.8.0-beta 
-  * `planck` 2.8.1
+  * Clojurescript 1.10.520
+    - figwheel 0.5.19
+    - shadow-cljs 2.8.62
+  * `lumo` 1.10.1
+  * `planck` 2.24.0
 
 It requires `tools.reader` at least 1.0.5, which all of the environments
 above contain.
@@ -226,6 +217,17 @@ Then you can use the following as filter and pretty printer:
 
 ```shell
 cat /path/to/file.clj | clojure -A:zprint
+```
+
+### Clojure 1.8:
+
+The last zprint release built with Clojure 1.8 was [zprint "0.4.15"].
+
+In addition to the zprint dependency, you also need to
+include the following library when using Clojure 1.8: 
+
+```
+[clojure-future-spec "1.9.0-alpha17"]
 ```
 
 ## Features

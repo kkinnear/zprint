@@ -158,13 +158,13 @@
   [x]
   (cond ; one
         ; two
-        :stuff
-          ; middle
-          ; second middle
-          :bother
-        ; three
-        ; four
-        :else nil))
+    :stuff
+      ; middle
+      ; second middle
+      :bother
+    ; three
+    ; four
+    :else nil))
 
 (def x8 (source-fn 'testfn8))
 (expect (read-string x8) (read-string (zprint-str x8 {:parse-string? true})))
@@ -176,13 +176,13 @@
    sslj sldk lsdkjf sldkj lskj]
   (cond ; one
         ; two
-        :stuff
-          ; middle
-          ; second middle
-          :bother
-        ; three
-        ; four
-        :else nil))
+    :stuff
+      ; middle
+      ; second middle
+      :bother
+    ; three
+    ; four
+    :else nil))
 
 (def x9 (source-fn 'testfn9))
 (expect (read-string x9) (read-string (zprint-str x9 {:parse-string? true})))
@@ -198,13 +198,13 @@
     :as options} ind style floc zloc]
   (cond ; one
         ; two
-        :stuff
-          ; middle
-          ; second middle
-          :bother
-        ; three
-        ; four
-        :else nil))
+    :stuff
+      ; middle
+      ; second middle
+      :bother
+    ; three
+    ; four
+    :else nil))
 
 (def x10 (source-fn 'testfn10))
 (expect (read-string x10) (read-string (zprint-str x10 {:parse-string? true})))
@@ -242,9 +242,9 @@
   [a b c d]
   (cond ; comment
         ;
-        a (println b)
-        b (println c)
-        :else d))
+    a (println b)
+    b (println c)
+    :else d))
 
 (def x12 (source-fn 'testfn12))
 (expect (read-string x12) (read-string (zprint-str x12 {:parse-string? true})))
@@ -280,8 +280,8 @@
 (defn testfn16
   []
   (when :true
-    ; comment 1
-    ; comment 2
+        ; comment 1
+        ; comment 2
     ))
 
 (def x16 (source-fn 'testfn16))
@@ -297,8 +297,8 @@
      ;comment
      }
     (when :true
-      ; comment 1
-      ; comment 2
+          ; comment 1
+          ; comment 2
       )))
 
 (def x17 (source-fn 'testfn17))

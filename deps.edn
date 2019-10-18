@@ -1,0 +1,9 @@
+
+{:aliases {:zprint {:extra-deps
+                      {org.clojure/clojure
+                         #:mvn{:version "1.9.0"},
+                       zprint #:mvn{:version
+                                      "0.5.0"}},
+                    :main-opts ["-m" "zprint.main"]}},
+ :deps {org.clojure/clojure #:mvn{:version "1.9.0"},
+        zprint #:mvn{:version "0.5.0"}}}

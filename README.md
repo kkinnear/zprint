@@ -99,7 +99,7 @@ Now you have:
     output from the same input file.   Note that `lein-zprint` also 
     implements these same switches.
 
-#### What does zprint do?
+## What does zprint do?
 
 One of the things I like the most about Clojure (and any Lisp) is that 
 the logical structure of a function has a visual representation -- if

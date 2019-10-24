@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
 
   * Removed internal use of `{:style :spec}` which was removed in 0.5.0.
 
+  * `(zprint-fn-str)` and `(czprint-fn-str)` didn't add specs to docstring.
+
 ## 0.5.0 - 2019-10-19
 
 Because of the considerable changes in this version, moved from

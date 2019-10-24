@@ -541,7 +541,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(apply czprint-str-internal
-          {:parse-string? true, :color? false}
+          {:parse-string? true, :color? false, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
           [])))
@@ -563,7 +563,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(apply czprint-str-internal
-          {:parse-string? true}
+          {:parse-string? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
           [])))
@@ -902,7 +902,7 @@
           ; leave room for double-quote at the end
           width (dec (- (:width options) total-indent))
           key-spec-data (describe-fn key-spec)
-          spec-str (zprint-str key-spec-data width {:style :spec})
+          spec-str (zprint-str key-spec-data width)
           spec-no-nl (clojure.string/split spec-str #"\n")
           spec-shift-right
             (apply str (interpose (str "\n" (blanks total-indent)) spec-no-nl))]

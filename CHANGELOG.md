@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.5.1 - 2019-10-25
+
+
+### Added
+
+### Changed
+
+### Fixed
+
+  * Removed internal use of `{:style :spec}` which was removed in 0.5.0.
+
 ## 0.5.0 - 2019-10-19
 
 Because of the considerable changes in this version, moved from

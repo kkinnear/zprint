@@ -62,8 +62,8 @@
 ;; # File Descriptors
 ;; 
 
-(def *stdin* 0)
-(def *stdout* 1)
+(def ^:dynamic *stdin* 0)
+(def ^:dynamic *stdout* 1)
 
 ;;
 ;; # File Functions

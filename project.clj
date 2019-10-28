@@ -29,7 +29,7 @@
   ; :uberjar-exclusions [#"\.(clj|java|txt)"]
   ; Clojure 1.9 requires the .clj files in the uberjar
    :uberjar-exclusions [#"\.(clj\.|java|cljs|txt)"]
-   :jar-exclusions [#"\.(clj$|clj\.|java|txt)"]
+   :jar-exclusions [#"\.(clj$|clj\.|java|txt|cljs)"]
   :zprint {:old? false}
   :jvm-opts ^:replace
             ["-server" "-Xms2048m" "-Xmx2048m" "-Xss500m"

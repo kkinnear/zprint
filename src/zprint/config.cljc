@@ -384,7 +384,7 @@
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
              :justify? false,
              :nl-separator? false},
-   :color? true,
+   :color? false,
    :color-map {:brace :red,
                :bracket :purple,
                :comment :green,
@@ -857,9 +857,7 @@
     ; is :key-order now nil and :key-value is not?
     (and (nil? (:key-order (:reader-cond updated-map)))
          (not (nil? (:key-value (:reader-cond updated-map)))))
-      (dissoc-two [:reader-cond :key-value])
-    (not (:color? updated-map)) (assoc :color-map no-color-map)
-    (not (:color? updated-map)) (assoc-in [:uneval :color-map] no-color-map)))
+      (dissoc-two [:reader-cond :key-value])))
 
 (defn reset-options!
   "Replace options to be used on every call.  You must have validated

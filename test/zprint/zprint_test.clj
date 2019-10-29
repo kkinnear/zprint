@@ -690,7 +690,7 @@
 
 (expect ["\n\n" ";;stuff\n" "(list :a :b)" "\n\n"]
         (zprint.zutil/zmap-all
-          (partial czprint-str-internal {:zipper? true, :color? false})
+          (partial zprint-str-internal {:zipper? true, :color? false})
           (z/edn* (p/parse-string-all "\n\n;;stuff\n(list :a :b)\n\n"))))
 
 ;;
@@ -4037,3 +4037,87 @@ ser/collect-vars-acc %1 %2) )))"
                     {:parse-string? true,
                      :vector {:option-fn #(do {:vector {:fn-format (first
                                                                      %3)}})}}))
+
+;;
+;; # Issue #113
+;;
+;; Let zprint-file-str do things in color.
+;;
+
+(expect 55 (count (zprint-file-str "(a :b \"c\")" "test" {:color? true})))
+
+(expect 10 (count (zprint-file-str "(a :b \"c\")" "test" {:color? false})))
+
+;;
+;; Can we control color with the rest of the functions?
+;;
+
+;; Establish that we have some difference between colored and non-colored
+
+(expect 14 (count (zprint-str "(a :b \"c\")" {:color? false})))
+
+(expect 23 (count (zprint-str "(a :b \"c\")" {:color? true})))
+
+;; See if those differences match what we expect
+
+(expect (czprint-str "(a :b \"c\")" {:color? true})
+        (zprint-str "(a :b \"c\")" {:color? true}))
+
+(expect (czprint-str "(a :b \"c\")") (zprint-str "(a :b \"c\")" {:color? true}))
+
+(expect (czprint-str "(a :b \"c\")" {:color? false})
+        (zprint-str "(a :b \"c\")" {:color? false}))
+
+(expect (czprint-str "(a :b \"c\")" {:color? false})
+        (zprint-str "(a :b \"c\")"))
+
+(expect 15 (count (with-out-str (zprint "(a :b \"c\")" {:color? false}))))
+
+(expect 24 (count (with-out-str (zprint "(a :b \"c\")" {:color? true}))))
+
+;; See if those differences match what we expect
+
+(expect (with-out-str (czprint "(a :b \"c\")" {:color? true}))
+        (with-out-str (zprint "(a :b \"c\")" {:color? true})))
+
+(expect (with-out-str (czprint "(a :b \"c\")"))
+        (with-out-str (zprint "(a :b \"c\")" {:color? true})))
+
+(expect (with-out-str (czprint "(a :b \"c\")" {:color? false}))
+        (with-out-str (zprint "(a :b \"c\")" {:color? false})))
+
+(expect (with-out-str (czprint "(a :b \"c\")" {:color? false}))
+        (with-out-str (zprint "(a :b \"c\")")))
+
+
+(expect 92 (count (zprint-fn-str zprint.zprint/blanks)))
+
+(expect 227 (count (czprint-fn-str zprint.zprint/blanks)))
+
+(expect (zprint-fn-str zprint.zprint/blanks {:color? false})
+        (czprint-fn-str zprint.zprint/blanks {:color? false}))
+
+(expect (zprint-fn-str zprint.zprint/blanks)
+        (czprint-fn-str zprint.zprint/blanks {:color? false}))
+
+(expect (zprint-fn-str zprint.zprint/blanks {:color? true})
+        (czprint-fn-str zprint.zprint/blanks {:color? true}))
+
+(expect (zprint-fn-str zprint.zprint/blanks {:color? true})
+        (czprint-fn-str zprint.zprint/blanks))
+
+(expect 93 (count (with-out-str (zprint-fn zprint.zprint/blanks))))
+
+(expect 228 (count (with-out-str (czprint-fn zprint.zprint/blanks))))
+
+(expect (with-out-str (zprint-fn zprint.zprint/blanks {:color? false}))
+        (with-out-str (czprint-fn zprint.zprint/blanks {:color? false})))
+
+(expect (with-out-str (zprint-fn zprint.zprint/blanks))
+        (with-out-str (czprint-fn zprint.zprint/blanks {:color? false})))
+
+(expect (with-out-str (zprint-fn zprint.zprint/blanks {:color? true}))
+        (with-out-str (czprint-fn zprint.zprint/blanks {:color? true})))
+
+(expect (with-out-str (zprint-fn zprint.zprint/blanks {:color? true}))
+        (with-out-str (czprint-fn zprint.zprint/blanks)))

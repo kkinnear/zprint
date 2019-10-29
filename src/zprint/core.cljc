@@ -363,20 +363,21 @@
   [v [start end]]
   (take (- end start) (drop start v)))
 
-(defn ^:no-doc czprint-str-internal
+(defn ^:no-doc zprint-str-internal
   "Take a zipper or string and pretty print with fzprint, 
-  output a str.  Key :color? is true by default, and should
-  be set to false in internal-options to make this non-colored.
+  output a str.  Key :color? is false by default, and should
+  be set to true in internal-options to make things colored.
   Special processing for :parse-string-all?, with
   not only a different code path, but a different default for 
   :parse {:interpose nil} to {:interpose true}"
   [internal-options coll & rest]
   (let [[special-option rest-options] (process-rest-options internal-options
                                                             rest)]
+    #_(println "special-option:" special-option "rest-options:" rest-options)
     (if (:parse-string-all? rest-options)
       (if (string? coll)
         (process-multiple-forms (parse-string-all-options rest-options)
-                                czprint-str-internal
+                                zprint-str-internal
                                 ":parse-string-all? call"
                                 (edn* (p/parse-string-all coll)))
         (throw (#?(:clj Exception.
@@ -384,6 +385,11 @@
                 (str ":parse-string-all? requires a string!"))))
       (let [actual-options (determine-options rest-options)
             [cvec options] (zprint* coll special-option actual-options)
+            #_(println "special-option:" special-option
+                       "actual-options:" (apply sorted-map
+                                           (flatten (seq actual-options)))
+                       "\n\n\noptions:" (apply sorted-map
+                                          (flatten (seq options))))
             cvec-wo-empty cvec
             #_(def cvwoe cvec-wo-empty)
             focus-vec (if-let [path (:path (:focus (:output options)))]
@@ -466,7 +472,7 @@
       (zprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (apply czprint-str-internal {:color? false} coll rest))
+  (apply zprint-str-internal {} coll rest))
 
 (defn czprint-str
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -485,7 +491,7 @@
       (czprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (apply czprint-str-internal {} coll rest))
+  (apply zprint-str-internal {:color? true} coll rest))
 
 (defn zprint
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -504,7 +510,7 @@
       (zprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (println (apply czprint-str-internal {:color? false} coll rest)))
+  (println (apply zprint-str-internal {} coll rest)))
 
 (defn czprint
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -523,7 +529,7 @@
       (czprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (println (apply czprint-str-internal {} coll rest)))
+  (println (apply zprint-str-internal {:color? true} coll rest)))
 
 #?(:clj
      (defmacro zprint-fn-str
@@ -540,8 +546,8 @@
       (zprint nil :explain) ; to see the current options-map "
        {:doc/format :markdown}
        [fn-name & rest]
-       `(apply czprint-str-internal
-          {:parse-string? true, :color? false, :fn-name '~fn-name}
+       `(apply zprint-str-internal
+          {:parse-string? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
           [])))
@@ -562,8 +568,8 @@
       (czprint nil :explain) ; to see the current options-map"
        {:doc/format :markdown}
        [fn-name & rest]
-       `(apply czprint-str-internal
-          {:parse-string? true, :fn-name '~fn-name}
+       `(apply zprint-str-internal
+          {:parse-string? true, :color? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
           [])))
@@ -583,8 +589,8 @@
       (zprint nil :explain) ; to see the current options-map"
        {:doc/format :markdown}
        [fn-name & rest]
-       `(println (apply czprint-str-internal
-                   {:parse-string? true, :color? false, :fn-name '~fn-name}
+       `(println (apply zprint-str-internal
+                   {:parse-string? true, :fn-name '~fn-name}
                    (get-fn-source '~fn-name)
                    ~@rest
                    []))))
@@ -605,8 +611,8 @@
       (czprint nil :explain) ; to see the current options-map"
        {:doc/format :markdown}
        [fn-name & rest]
-       `(println (apply czprint-str-internal
-                   {:parse-string? true, :fn-name '~fn-name}
+       `(println (apply zprint-str-internal
+                   {:parse-string? true, :color? true, :fn-name '~fn-name}
                    (get-fn-source '~fn-name)
                    ~@rest
                    []))))
@@ -845,13 +851,13 @@
              ; If file ended with a \newline, make sure it still does
              filestring (if ends-with-nl? (str filestring "\n") filestring)
              forms (edn* (p/parse-string-all filestring))
-             pmf-options {:process-bang-zprint? true, :color? false}
+             pmf-options {:process-bang-zprint? true}
              pmf-options (if (:interpose (:parse (get-options)))
                            (assoc pmf-options :trim-comments? true)
                            pmf-options)
              #_(def fileforms (zmap-all identity forms))
              out-str (process-multiple-forms pmf-options
-                                             czprint-str-internal
+                                             zprint-str-internal
                                              zprint-specifier
                                              forms)]
          (if (and ends-with-nl? (not (clojure.string/ends-with? out-str "\n")))

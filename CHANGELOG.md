@@ -1,16 +1,29 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.5.1 - 2019-10-25
-
+## 0.5.1 - 2019-10-29
 
 ### Added
 
-### Changed
+  * Now you can force colored output from the zprint-filter (uberjar and
+    graalVM binaries) by adding `{:color? true}` to the options map when
+    using them.  The resulting output will have ANSI escapse sequences
+    embedded in the output, which will result in "colorized" output when
+    displayed on a "terminal" which supports ANSI escape sequences.  The
+    output will be useless when stored in a file (unless the point is to
+    save it for later display on a "terminal").  As part of this
+    implementation the `:color?` key will now control color on all of th
+    `zprint`, `zprint-*`, `czprint` and `czprint-*` functions.  The
+    functions beginning with "c" simply specify `{:color? true}` for you.
 
+    __DO NOT__ place `{:color? true}` in your `$HOME/.zprintrc` file,
+    or all of the zprint-filter output (uberjar and graalVM binaries)
+    will produce files with embedded ANSI escape sequences!
+    
 ### Fixed
 
-  * Removed internal use of `{:style :spec}` which was removed in 0.5.0.
+  * Removed internal use of `{:style :spec}` which was itself removed in 0.5.0.
+    Issue #115.
 
   * `(zprint-fn-str)` and `(czprint-fn-str)` didn't add specs to docstring.
 

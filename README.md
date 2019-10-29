@@ -577,6 +577,7 @@ of the options map looks like this:
  :atom {...},
  :binding {...},
  :color-map {...},
+ :color false,
  :comment {...},
  :cwd-zprintrc? false,
  :delay {...},
@@ -844,10 +845,37 @@ certainly you should set :parallel? to true -- but don't forget to
 call `(shutdown-agents)` at the end of your program or your program
 won't exit!
 
+#### :color?
+
+As of zprint 0.5.1, the `:color?` option key will control whether
+or not the output is produced with ANSI escape sequences based on the
+`:color-map` option key.  The functions `czprint` and its variants `czprint-*`
+essentially simply set `{:color? true}`.
+
+The `:color?` key also controls `zprint-file-str`, which is used inside
+of the uberjar and the graalVM binaries that are distributed, and so
+you can specify `{:color? true}` in an options map included on the command
+line of these utilities to get colorized output.  This output will only be
+useful when displayed on a "terminal" which interprets ANSI escapse sequences.
+
+You will want to avoid setting `{:color? true}` in a `$HOME/.zprintrc` file,
+as then all of the files produced by the uberjar and graalVM binaries would
+always contain ANSI escapse sequences!
+
+
+
 ### Syntax coloring
 
 Zprint will colorize the output when the czprint and czprint-fn calls
 are used.  It is limited to the colors available on an ANSI terminal.
+You can get the same output by adding the `{:color? true}` option to
+any call to zprint or zprint-fn.
+
+Note that `{:color? true}` will also
+affect any uberjar or zprint-filter invocations as well, so you probably
+want to avoid placing `{:color? true}` in your `$HOME/.zprintrc` file,
+as it will cause the files produced to contain ANSI escape sequences.
+
 
 The key :color-map contains by default:
 

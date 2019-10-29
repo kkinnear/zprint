@@ -4205,9 +4205,22 @@ approaches.
 
 ## Testing this library
 
-With [Leiningen](https://leiningen.org/) installed, run `lein test` from the root directory of this repo.
+With [Leiningen](https://leiningen.org/) installed, run `lein expectations`
+from the root directory of this repo.  There are over 700 tests.  It will
+take upwards of 30 to 45 seconds for them all to run.
 
-As an addition test, you may build the uberjar with `lein uberjar` & then run `./test_uberjar`. If tests pass, the script will return with no output.
+As an additional test of the uberjar (all in the root directory): 
+
+  * Build the uberjar with `lein clean`, `lein uberjar`
+  
+  * Format the file `src/zprint/zprint.cljc` with 
+    `lein zprint src/zprint/zprint.cljc`.  You have to be running a version
+    of lein-zprint which uses the current zprint library built into the
+    uberjar.
+  
+  * Run `./test_uberjar` 
+  
+If tests pass, the script will return with no output.
 
 ## License
 

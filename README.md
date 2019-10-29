@@ -6,20 +6,20 @@ either embedded in a larger codebase, or as a useful utility at the
 repl.  It can be configured to process entire files or just take small
 sections of code and reformat them on demand.
 
-If you want to use the zprint library to format your Clojure source, 
+If you want to use the zprint library to format your Clojure source,
 you have many options:
 
-  * A super-fast [native-image](doc/graalvm.md) __prebuilt__ for MacOS or 
-    Linux. 
-  * Using the released [zprint-filter](doc/filter.md) uberjar, you can 
+  * A super-fast [native-image](doc/graalvm.md) __prebuilt__ for MacOS or
+    Linux.
+  * Using the released [zprint-filter](doc/filter.md) uberjar, you can
     pretty-print functions from within many editors
   * Leiningen:  [lein-zprint][leinzprint] to format entire source files
   * Boot: [boot-fmt][bootfmt] to format entire source files
-  * Node: [zprint-clj][zprintclj] npm module 
-  * Atom: [zprint-atom][zprintatom] Atom plugin 
+  * Node: [zprint-clj][zprintclj] npm module
+  * Atom: [zprint-atom][zprintatom] Atom plugin
   * Use `planck` or `lumo` and configure zprint as a Clojure pretty-print filter. See [lein-zprint][leinzprint] for details.
 
-__If you haven't used zprint before and are running on MacOS or Linux, 
+__If you haven't used zprint before and are running on MacOS or Linux,
 check out the [native-image](doc/graalvm.md) approach.__  Now prebuilt
 binaries are available for both Linux and MacOS!
 
@@ -37,8 +37,8 @@ what you want.
 
 Some people want a formatting tool to enforce a particular style, regardless
 of the input.  That is what classic zprint does -- it enforces the style
-configured in the options map, almost completely ignoring how the input was 
-formatted.  
+configured in the options map, almost completely ignoring how the input was
+formatted.
 
 However, some people want a source formatting tool that will take
 into account some amount of the formatting that is already present
@@ -48,30 +48,30 @@ zprint:
 * __Respect Newlines__ - `:style :respect-nl`
 
   This approach to source formatting is similar to classic zprint, but it will
-  not remove any newlines.  It will add them as necessary based on the 
+  not remove any newlines.  It will add them as necessary based on the
   formatting configuration given to zprint.  It is effective when you want
   zprint to "pretty up" your source, but not entirely ignore the newlines
   that you sent in.
 
   In many cases, the classic zprint formatting works fine, but sometimes
-  there are one or two functions that would be better handled with 
+  there are one or two functions that would be better handled with
   `:style :respect-nl`.
-  If you have a function "func" which would be better 
+  If you have a function "func" which would be better
   handled with `:style :respect-nl`, then an options map of
   `{:fn-map {"func" [:none {:style :respect-nl}]}}` will do that for you.
 
 * __Indent Only__ - `:style :indent-only`
 
   This approach to source formatting will not remove nor add any newlines.
-  Every line stays as it is -- the only change zprint will make is to 
+  Every line stays as it is -- the only change zprint will make is to
   indent each line and to regularize whitespace on the remainder of the
-  line.  It bears little relationship to classic zprint, and 
+  line.  It bears little relationship to classic zprint, and
   doesn't format functions based on the `:fn-map` styles configured. It
   decides whether to hang or flow a list based on the locations of the first
   three elements in a list -- if the first two are on the same line, and the
   third is on the next line aligned with the second on previous line, it
-  will hang the list, otherwise it will flow the list. The indent-only 
-  approach is for people who want the code __they__ put on each line to 
+  will hang the list, otherwise it will flow the list. The indent-only
+  approach is for people who want the code __they__ put on each line to
   __stay__ on that line!
 
   You can do this for a whole file by specifying the options
@@ -89,19 +89,19 @@ everyone can live with it".
 
 Now you have:
 
-  * __Default mode__  
+  * __Default mode__
     If you give the uberjar (or graalVM binaries) `-d` or `--default` on
     the command line, they will run zprint with no external configuration.
-    The default configuration is what you get, and no other options are 
+    The default configuration is what you get, and no other options are
     read from anywhere.  In particular, the `$HOME/.zprintrc` file is
     __not__ examined, nor is any other external configuration file.
     No matter who runs it, running zprint with "-d" will produce the same
-    output from the same input file.   Note that `lein-zprint` also 
+    output from the same input file.   Note that `lein-zprint` also
     implements these same switches.
 
 ## What does zprint do?
 
-One of the things I like the most about Clojure (and any Lisp) is that 
+One of the things I like the most about Clojure (and any Lisp) is that
 the logical structure of a function has a visual representation -- if
 the function is pretty printed in a known way.  Zprint exists in part to take
 any Clojure code, and pretty print it so that you can visually
@@ -110,22 +110,22 @@ grasp its underlying structure.
 You can see the features available in zprint below, but the major
 goals for zprint are:
 
-* Reformat (pretty print) Clojure and Clojurescript code, completely 
-  ignoring any existing white space within functions.  Fit the result 
-  as strictly as possible within a specified margin, while using the 
-  vertical space most efficiently.   
+* Reformat (pretty print) Clojure and Clojurescript code, completely
+  ignoring any existing white space within functions.  Fit the result
+  as strictly as possible within a specified margin, while using the
+  vertical space most efficiently.
 
   For example, here is a before and after:
 
 ```clojure
 (defn apply-style-x
-  "Given an existing-map and a new-map, if the new-map specifies a 
-  style, apply it if it exists.  Otherwise do nothing. Return 
+  "Given an existing-map and a new-map, if the new-map specifies a
+  style, apply it if it exists.  Otherwise do nothing. Return
   [updated-map new-doc-map error-string]"
   [doc-string doc-map existing-map new-map] (let [style-name (get new-map :style :not-specified)]
-  (if (= style-name :not-specified) [existing-map doc-map nil] (let [style-map ( if (= style-name :default) 
-  (get-default-options) (get-in existing-map [:style-map style-name]))] (cond (nil? style-name) 
-  [exist ing-map doc-map "Can't specify a style of nil!"] style-map [(merge-deep existing-map style-map) 
+  (if (= style-name :not-specified) [existing-map doc-map nil] (let [style-map ( if (= style-name :default)
+  (get-default-options) (get-in existing-map [:style-map style-name]))] (cond (nil? style-name)
+  [exist ing-map doc-map "Can't specify a style of nil!"] style-map [(merge-deep existing-map style-map)
   (when doc-map (diff-deep-doc (str doc-string " specified :style " style-name)
   doc-map existing-map style-map)) nil] :else [existing-map doc-map (str "Style '" style-name "' not found!")])))))
 
@@ -151,7 +151,7 @@ goals for zprint are:
                                           style-map)) nil]
               :else [existing-map doc-map (str "Style '" style-name "' not found!")])))))
 ```
- 
+
 * Do a great job, "out of the box" on formatting code at the repl, code in
 files, and EDN data structures.  Also be highly configurable, so you can
 adapt zprint to print things the way you like them without having to dive
@@ -194,7 +194,7 @@ above contain.
 
 ### Clojure CLI
 
-Add the following to the `:aliases` section of `$HOME/.clojure/deps.edn` 
+Add the following to the `:aliases` section of `$HOME/.clojure/deps.edn`
 file or to a project's `deps.edn`.
 
 For example:
@@ -224,7 +224,7 @@ cat /path/to/file.clj | clojure -A:zprint
 The last zprint release built with Clojure 1.8 was [zprint "0.4.15"].
 
 In addition to the zprint dependency, you also need to
-include the following library when using Clojure 1.8: 
+include the following library when using Clojure 1.8:
 
 ```
 [clojure-future-spec "1.9.0-alpha17"]
@@ -232,7 +232,7 @@ include the following library when using Clojure 1.8:
 
 ## Features
 
-In addition to meeting the goals listed above, zprint has the 
+In addition to meeting the goals listed above, zprint has the
 following specific features:
 
 * Runs fast enough to be used as a filter while in an editor
@@ -266,7 +266,7 @@ The API for zprint is small.  A simple example:
 ```clojure
 (require '[zprint.core :as zp])
 
-(zp/zprint {:a "this is a pretty long value" 
+(zp/zprint {:a "this is a pretty long value"
  :b "a shorter value" :c '(a pretty long list of symbols)})
 
 {:a "this is a pretty long value",
@@ -296,7 +296,7 @@ in both Clojure and Clojurescript:
 
 ;; Colorize output for an ANSI terminal
 ;;
-;;   None of the syntax coloring in this readme is from zprint, it is 
+;;   None of the syntax coloring in this readme is from zprint, it is
 ;;   all due to the github flavored markdown.
 ;;
 (czprint x)
@@ -320,7 +320,7 @@ or format strings containing multiple "top level" forms by calling:
 ```clojure
 (zprint-file-str file-str zprint-specifier new-options doc-str)
 ```
-Both of these functions support the `;!zprint` 
+Both of these functions support the `;!zprint`
 [file comment API](doc/bang.md), which supports changes to the
 formatting to be stored in a source file as specially formatted
 comments.  See [here](doc/bang.md) for full documentation on
@@ -343,7 +343,7 @@ is preserved.
 Zprint has two fundemental regimes -- formatting s-expressions, or parsing
 a string and formatting the results of the parsing.  When the `-fn` versions
 of the API are used, zprint acquires the source of the function, parses it,
-and formats the result at the repl.  
+and formats the result at the repl.
 
 When parsing a string and formatting the results, zprint has three regimes:
 
@@ -374,7 +374,7 @@ the best it can to indent the major data types: lists, maps, sets, and vectors.
 When formatting lists, it will (configurably) examine the incoming characters
 and will format lists as a hang instead of a flow if the first two elements
 of a list are on the same line and the third element of the
-list was left-aligned with the second element of the list.  Obviously this 
+list was left-aligned with the second element of the list.  Obviously this
 regime doesn't enforce anything other than indentation.
 
 
@@ -398,9 +398,9 @@ show up on GitHub because I have integrated the code or suggestions manually.
 
   * `:option-fn` and `:fn-format` for enhanced vector formatting: @milankinen
   * Fixed missing require in `spec.cljc`: @Quezion
-  * Corrected readme: @griffis 
+  * Corrected readme: @griffis
   * Fixed nested reader conditional: @rgould1
-  * Clarified and added useful example for clj usage: @bherrmann7 
+  * Clarified and added useful example for clj usage: @bherrmann7
   * Suggested fix for international chars and graalVM native image: @huahaiy
 
 Thanks to everyone who has contributed fixes as well as everyone who has
@@ -420,14 +420,14 @@ It too worked with no issues when porting to Clojurescript!
 
 Aren't there enough pretty printers already?  What about:
 
-* [clojure.pprint](https://clojure.github.io/clojure/clojure.pprint-api.html) which 
+* [clojure.pprint](https://clojure.github.io/clojure/clojure.pprint-api.html) which
 is built into Clojure, and does both s-expressions as well as code.
 This features a port of the redoubtable Common Lisp formatter.
 
-* [fipp](https://github.com/brandonbloom/fipp) "Fast Idiomatic Pretty Printer" and 
+* [fipp](https://github.com/brandonbloom/fipp) "Fast Idiomatic Pretty Printer" and
 [puget](https://github.com/greglook/puget), a useful
 library that adds significant capability to fipp.
-Fipp features a very cool formatting engine, and puget adds some 
+Fipp features a very cool formatting engine, and puget adds some
 great features on top of fipp (in particular color and sorted keys
 in maps).
 
@@ -503,18 +503,18 @@ configuration options as well as several different ways to configure zprint.
 You mostly don't have to care about any of this unless you want to change
 the way that zprint outputs your code or data.   If you do, read on...
 
-* [Overview](#overview)  
-* [How to Configure zprint](#how-to-configure-zprint)  
-* [Configuration Interface](#configuration-interface)  
-  * [ Option Validation](#option-validation)  
-  * [ What is Configurable](#what-is-configurable)  
-    * [  Generalized Capabilities](#generalized-capabilities)  
-    * [  Syntax Coloring](#syntax-coloring)  
-    * [  Function Classification for Pretty Printing](#function-classification-for-pretty-printing)  
-      * [   Changing or Adding Function Classifications](#changing-or-adding-function-classifications)  
-      * [   A note about two-up printing](#a-note-about-two-up-printing)  
-      * [   A note on justifying two-up printing](#a-note-on-justifying-two-up-printing)  
-  * [ Widely Used Configuration Parameters](#widely-used-configuration-parameters)  
+* [Overview](#overview)
+* [How to Configure zprint](#how-to-configure-zprint)
+* [Configuration Interface](#configuration-interface)
+  * [ Option Validation](#option-validation)
+  * [ What is Configurable](#what-is-configurable)
+    * [  Generalized Capabilities](#generalized-capabilities)
+    * [  Syntax Coloring](#syntax-coloring)
+    * [  Function Classification for Pretty Printing](#function-classification-for-pretty-printing)
+      * [   Changing or Adding Function Classifications](#changing-or-adding-function-classifications)
+      * [   A note about two-up printing](#a-note-about-two-up-printing)
+      * [   A note on justifying two-up printing](#a-note-on-justifying-two-up-printing)
+  * [ Widely Used Configuration Parameters](#widely-used-configuration-parameters)
 * [Configurable Elements](#configurable-elements)
   * [:agent](#agent-atom-delay-fn-future-promise)
   * [:array](#array)
@@ -606,14 +606,14 @@ of the options map looks like this:
  :zipper? false}
 ```
 
-## How to Configure zprint 
+## How to Configure zprint
 
 When zprint (or one of the zprint-filters) is called for the first
 time it will configure itself from all of the information that it
 has available at that time.  It will examine the following information
 in order to configure itself:
 
-* The file `$HOME/.zprintrc` or if that file does not exist, the  file 
+* The file `$HOME/.zprintrc` or if that file does not exist, the  file
   `$HOME/.zprint.edn` for an options map in EDN format.
 * If the file found above has `:search-config?` true, it will look
   in the current directory for a file `.zprintrc` and if it doesn't find
@@ -655,7 +655,7 @@ configuration.
 
 You can add configuration information by:
 
-* Calling `set-options!` with an options map, which is saved in the internal 
+* Calling `set-options!` with an options map, which is saved in the internal
 options map across calls
 * Specifing an options map on any call to zprint, which only affects that call
 to `zprint` or `czprint`
@@ -680,8 +680,8 @@ map:
   * `.zprintrc` or `.zprint.edn` in the current working directory or its
   parents, up to the root of the file system if the configuration file in
   `$HOME` has `:search-config?` set to `true`.
-  * `.zprintrc` or `.zprint.edn` in the current working directory, 
-  which is only read if the configuration file in `$HOME` has 
+  * `.zprintrc` or `.zprint.edn` in the current working directory,
+  which is only read if the configuration file in `$HOME` has
   `{:cwd-zprintrc? true}` and does not have `{:search-config? true}`
   in its options map
 
@@ -713,8 +713,8 @@ You simply specify the options map on the call itself:
 ```clojure
 (require '[zprint.core :as zp])
 
-(def my-map {:stuff "a fairly long value" 
-   :bother 
+(def my-map {:stuff "a fairly long value"
+   :bother
    "A much longer value, which makes this certainly not fit in 80 columns"})
 
 (zp/zprint my-map {:map {:indent 0}})
@@ -731,13 +731,13 @@ All changes to the options map are validated to some degree for
 correctness.  When the change to the internal options map is itself
 a map, when using the `.zprintrc` file, calling `(set-options! ...)`,
 or specifying an options map on an individual call, every key in
-the options map is validated, and some level of at least type 
+the options map is validated, and some level of at least type
 validation on the values is also performed.  Thus:
 
 ```clojure
 (czprint nil {:map {:hang false}})
 
-Exception Option errors in this call: Value does not match schema: {:map {:hang disallowed-key}}  
+Exception Option errors in this call: Value does not match schema: {:map {:hang disallowed-key}}
 zprint.core/zprint* (core.clj:241)
 
 ```
@@ -748,7 +748,7 @@ map validation was forgetting to type the "?" at the end of boolean valued
 options and wondering why nothing changed.
 
 There is no key validation performed for environment variables or
-Java system properties -- invalid keys are simply ignored.  However, 
+Java system properties -- invalid keys are simply ignored.  However,
 value type validation is performed.  Thus:
 
 ```clojure
@@ -888,7 +888,7 @@ This is the default :uneval color map:
 ```clojure
 :uneval {:color-map {:brace :yellow,
 		    :bracket :yellow,
-		    :comment :green, 
+		    :comment :green,
 		    :deref :yellow,
 		    :fn :cyan,
 		    :hash-brace :yellow,
@@ -907,7 +907,7 @@ This is the default :uneval color map:
 
 You can also change these to any of the colors specified above.
 
-Note that in this readme, the syntax coloring of Clojure code is 
+Note that in this readme, the syntax coloring of Clojure code is
 that provided by the github flavored markdown, and not zprint.
 
 ### Function Classification for Pretty Printing
@@ -920,7 +920,7 @@ when the function call doesn't fit on the current line.  The following
 examples are shown with an implied width of well less than 80 columns
 in order to demonstrate the function style in a concise manner.
 
-Note that the 
+Note that the
 [community style guide](https://github.com/bbatsov/clojure-style-guide)
 specifies different indentation amounts for functions (forms) that have
 "body" parameters, and functions that just have arguments.  Personally,
@@ -933,8 +933,8 @@ right things will happen.
 
 A function that is not classified explicitly by appearing in the
 `:fn-map` is considered an "arg" function as opposed to "body" function,
-and the indent for its arguments is controlled by `:list {:indent-arg n}` 
-if it appears, and `:list {:indent n}` if it does not. 
+and the indent for its arguments is controlled by `:list {:indent-arg n}`
+if it appears, and `:list {:indent n}` if it does not.
 
 How does zprint classify functions that are called with a namespace
 on the front?  First, it looks up the string in the fn-map, and if
@@ -947,8 +947,8 @@ The available classifications are:
 
 #### :arg1
 
-Print the first argument on the same line as the function, if possible.  
-Later arguments are indented the amount specified by `:list {:indent-arg n}`, 
+Print the first argument on the same line as the function, if possible.
+Later arguments are indented the amount specified by `:list {:indent-arg n}`,
 or `:list {:indent n}` if `:indent-arg` is not specified.
 
 ```clojure
@@ -959,7 +959,7 @@ or `:list {:indent n}` if `:indent-arg` is not specified.
 
 #### :arg1-body
 
-Print the first argument on the same line as the function, if possible.  
+Print the first argument on the same line as the function, if possible.
 Later arguments are indented the amount specified by `:list {:indent n}`.
 
 ```clojure
@@ -969,9 +969,9 @@ Later arguments are indented the amount specified by `:list {:indent n}`.
 ```
 #### :arg1-pair
 
-The function has an important first argument, then the rest of the 
+The function has an important first argument, then the rest of the
 arguments are paired up. Leftmost part of the pair is indented
-by `:list {:indent-arg n}` if it is specified, and `:list {:indent n}` 
+by `:list {:indent-arg n}` if it is specified, and `:list {:indent n}`
 if it is not.
 
 ```clojure
@@ -981,7 +981,7 @@ if it is not.
 ```
 #### :arg1-pair-body
 
-The function has an important first argument, then the rest of the 
+The function has an important first argument, then the rest of the
 arguments are paired up.  The leftmost part of the pair is indented
 by the amount specified by `:list {:indent n}`.
 
@@ -1022,7 +1022,7 @@ a docstring.
 ```
 
 #### :arg2
- 
+
 Print the first argument on the same line as the function name if it will
 fit on the same line. If it does, print the second argument
 on the same line as the first argument if it fits. Indentation of
@@ -1060,13 +1060,13 @@ Just like :arg2, but prints the third through last arguments as functions.
 
 #### :binding
 
-The function has a binding clause as its first argument.  
+The function has a binding clause as its first argument.
 Print the binding clause two-up (as pairs)  The indent for any wrapped
 binding element is :binding `{:indent n}`, the indent for the functions
 executed after the binding is `:list {:indent n}`.
 
 ```clojure
- (let [first val1 
+ (let [first val1
        second
          (calculate second using a lot of arguments)
        c d]
@@ -1110,7 +1110,7 @@ don't hang well is `:list {:indent n}`.
 
 #### :extend
 
-The s-expression has a series of symbols with one or more forms 
+The s-expression has a series of symbols with one or more forms
 following each.  The level of indent is configurable by `:extend {:indent n}`.
 
 ```clojure
@@ -1190,13 +1190,13 @@ to have any effect.
   (->> opts
        foo
        bar
-       baz) 
+       baz)
 ```
 
 #### :fn
 
 Print the first argument on the same line as the `(fn ...)` if it will
-fit on the same line. If it does, and the second argument is a vector, 
+fit on the same line. If it does, and the second argument is a vector,
 print it on the same line as the first argument if it fits.  Indentation
 is controlled by `:list {:indent n}`.
 
@@ -1245,7 +1245,7 @@ If function `foo` has a function style of `:gt2-force-nl`, then
 #### :none
 
 This is for things like special forms that need to be in this
-map to show up as functions for syntax coloring, but don't actually 
+map to show up as functions for syntax coloring, but don't actually
 trigger the function recognition logic to represent them as such.
 Also, `:none` is used to remove the default classification for functions
 by specifying it in an option map.  The indent for arguments that
@@ -1329,9 +1329,9 @@ you will get this by default:
           :eeeeeee])
 ```
 
-You can alter the formatting of just the top level of a function by 
+You can alter the formatting of just the top level of a function by
 resetting some of the configuration when zprint decends one level from
-the function in the function map.  
+the function in the function map.
 
 For example, say that you wanted to enable `{:list {:respect-nl? true}}`
 for the `comment` function, but didn't want that to be in force while the
@@ -1346,12 +1346,12 @@ Here is the input:
   [y]
   (println y))
 
-(this 
-  is 
+(this
+  is
   a
          thing that is interesting)
 
-(def z 
+(def z
 
 
 [:this-is-a-test :with-3-blanks-above?])
@@ -1381,7 +1381,7 @@ Here is the output when you enable `:list {:respect-nl? true}` for
   (defn x
     [y]
     (println y))
-  
+
   (this
     is
     a
@@ -1389,16 +1389,16 @@ Here is the output when you enable `:list {:respect-nl? true}` for
     that
     is
     interesting)
-  
+
   (def z
-    
-    
+
+
     [:this-is-a-test :with-3-blanks-above?])
-  
+
   (def a :more stuff)
-  
-  
-  
+
+
+
   (def b :3-blanks-above))
 ```
 
@@ -1409,15 +1409,15 @@ next inner level:
 (zprint rnl2x {:parse-string? true :fn-map {"comment" [:none {:list {:respect-nl? true} :next-inner {:list {:respect-nl? false}}}]}})
 (comment
   (defn x [y] (println y))
-  
+
   (this is a thing that is interesting)
-  
+
   (def z [:this-is-a-test :with-3-blanks-above?])
-  
+
   (def a :more stuff)
-  
-  
-  
+
+
+
   (def b :3-blanks-above))
 ```
 
@@ -1430,7 +1430,7 @@ it was prior to the changes made by the `<options-map>`.
 
 ### Configuring the `:fn-map`
 
-Often the :fn-map is configured by changing the `.zprintrc` file so 
+Often the :fn-map is configured by changing the `.zprintrc` file so
 that functions are formattted the way you prefer.  You can change the
 default formatting of functions as well as configure formatting for
 your own functions.  To remove formating for a function which has
@@ -1613,7 +1613,7 @@ in a cond are about the same length, and the locals in a binding are
 about the same length.
 
 I don't personally find the justified approach my favorite in code,
-though there are some functions where it looks good.  
+though there are some functions where it looks good.
 
 Try:
 
@@ -1678,7 +1678,7 @@ will yield a `...`.
 That's nice, but sometimes you want to see different amounts of
 a collection at different levels.  Perhaps you want to see all of
 the keys in a map, but not much of the information lower down in
-the values of the map.  
+the values of the map.
 
 In this situation, the `:max-length` can be a vector, where the
 value at each level is the max-length for that level in the collection.
@@ -1689,7 +1689,7 @@ So, `{:max-length [3 2 1 0]}` would output 3 things at the top level
 of the collection, 2 for everything at the next level down, one for
 every collection at the next level, and `##` for any collections
 below that.  Since the rightmost value is used for any level beyond
-that explicitly specified, `{:max-length n}` and `{:max-length [n]}` 
+that explicitly specified, `{:max-length n}` and `{:max-length [n]}`
 are equivalent.  Also `{:max-depth 3}` and `{:max-length [1000 1000 1000 0]}`
 are also equivalent.
 
@@ -1739,7 +1739,7 @@ a few at the beginning):
 
 If you have a complex structure, a little experimentation with
 `:max-length` and a vector can often allow you to generate a useful
-overview of the structure without much effort. 
+overview of the structure without much effort.
 
 While you might not think this would be useful for looking at code,
 for code that has a very regular structure, it can be helpful.  For
@@ -1779,7 +1779,7 @@ instance, if you want an overview of a `deftype`, you could use
 
 #### :max-depth <text style="color:#A4A4A4;"><small>1000</small></text>
 
-Will limit depth of a collection.  
+Will limit depth of a collection.
 
 ```clojure
 (czprint {:a {:b {:c :d}}} {:max-depth 1})
@@ -1790,11 +1790,11 @@ Will limit depth of a collection.
 ## Widely Used Configuration Parameters
 
 There are a several  configuration parameters that are meaningful
-across a number of formatting types.  
+across a number of formatting types.
 
 ### :indent
 
-The value for indent is how far to indent the second through nth of 
+The value for indent is how far to indent the second through nth of
 something if it doesn't all fit on one line (and becomes a flow, see
 immediately below).
 
@@ -1894,7 +1894,7 @@ The value of `:hang-diff` (an integer) is related to the indent for
 a hang and a flow.  Clearly, if the indent for a hang and a flow are
 the same, you might as well do a hang, since a flow buys you nothing.
 The difference in these indents `(- hang-indent flow-indent)` is compared
-to the value of `:hang-diff`, and if this difference is <= then it 
+to the value of `:hang-diff`, and if this difference is <= then it
 skips the `:hang-expand` check.  `:hang-diff` is by default 1, since even if a
 flow buys you one more space to the left, it often looks kind of odd.
 You could set `:hang-diff` to 0 if you wanted to be more "strict", and
@@ -1904,7 +1904,7 @@ with this level of control.
 #### :flow?
 
 If `:flow?` is true, all of the elements of a collection will be forced
-onto a new line, even if they would have fit on the same line originally. 
+onto a new line, even if they would have fit on the same line originally.
 When a function has a function type of `:flow`, all of the arguments will
 be flowed below the function, each taking its own line.  The `:flow?` options
 configuration key does a similar thing for data structures (both within
@@ -1931,7 +1931,7 @@ code and just in data structures).  For example:
       :m}}
 ```
 
-This looks a bit strange because the keys are very short, making the 
+This looks a bit strange because the keys are very short, making the
 indentation of the second element in each pair odd.  If you do this, you
 might want to reduce the indent, thus:
 
@@ -2092,8 +2092,8 @@ was formatted with a flow. Some examples:
 ; If you turn off the hang, then now if a pair doesn't fit on one line,
 ; you get a flow:
 
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 
-         30 
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}}
+         30
          {:map {:nl-separator? true :hang? false}})
 
 {:a :b,
@@ -2102,7 +2102,7 @@ was formatted with a flow. Some examples:
     :g :h,
     :i :j,
     :k :l},
- 
+
  :m :n,
  :o {:p {:q :r, :s :t}}}
 
@@ -2110,14 +2110,14 @@ was formatted with a flow. Some examples:
 ; want the right hand side of a pair indented.  So if you turn off :hang?
 ; then you probably want to remove the indent as well.
 
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 
-         30 
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}}
+         30
          {:map {:nl-separator? true :hang? false :indent 0}})
 
 {:a :b,
  :c
  {:e :f, :g :h, :i :j, :k :l},
- 
+
  :m :n,
  :o {:p {:q :r, :s :t}}}
 ```
@@ -2130,7 +2130,7 @@ Default is nil (justification off).
 
 # Configurable Elements
 ______
-## :agent, :atom, :delay, :fn, :future, :promise 
+## :agent, :atom, :delay, :fn, :future, :promise
 
 All of these elements are formatted in a readable manner by default,
 which shows their current value and minimizes extra information.
@@ -2138,7 +2138,7 @@ which shows their current value and minimizes extra information.
 #### :object? <text style="color:#A4A4A4;"><small>false</small></text>
 
 All of these elements can be formatted more as Clojure represents
-Java objects by setting `:object?` to true.  
+Java objects by setting `:object?` to true.
 
 _____
 ## :array
@@ -2147,13 +2147,13 @@ Arrays are formatted by default with the values of their elements.
 
 #### :hex? <text style="color:#A4A4A4;"><small>false</small></text>
 
-If the elements are numeric, format them in hex. Useful if you are 
-doing networking.  See below for an example. 
+If the elements are numeric, format them in hex. Useful if you are
+doing networking.  See below for an example.
 
 #### :object? <text style="color:#A4A4A4;"><small>false</small></text>
 
-Don't print the elements of the array, just print it as an 
-object. 
+Don't print the elements of the array, just print it as an
+object.
 
 A simple example:
 
@@ -2190,7 +2190,7 @@ _____
 
 Controls the formatting of the first argument of
 any function which has `:binding` as its function type.  `let` is, of
-course, the canonical example. 
+course, the canonical example.
 
 ##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
@@ -2246,7 +2246,7 @@ alter the way binding pairs are printed:
         f]
   (list a f))
 
-(czprint "(let [abcd b cdef d efgh f] (list a f))" 
+(czprint "(let [abcd b cdef d efgh f] (list a f))"
          {:parse-string? true :binding {:flow? true :indent 0}})
 
 ; Remove the indent
@@ -2259,7 +2259,7 @@ alter the way binding pairs are printed:
       f]
   (list a f))
 
-(czprint "(let [abcd b cdef d efgh f] (list a f))" 
+(czprint "(let [abcd b cdef d efgh f] (list a f))"
          {:parse-string? true :binding {:flow? true :indent 0 :nl-separator? true}})
 
 ; Some people like their binding pairs formatted this way:
@@ -2290,8 +2290,8 @@ indpendent capabilities.
 #### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
 
 Wrap a comment if it doesn't fit within the width.  Works hard to preserve
-the initial part of the line and word wraps the end.  Does not pull 
-subsequent lines up on to a wrapped line.  
+the initial part of the line and word wraps the end.  Does not pull
+subsequent lines up on to a wrapped line.
 
 #### :inline? <text style="color:#A4A4A4;"><small>true</small></text>
 
@@ -2319,7 +2319,7 @@ There are three possible ways that inline comments can be aligned:
 
 Count the length of the comment when ensuring that things fit within the
 width. Doesn't play well with inline comments.  With any kinds of comments,
-this tends to mess up the code more than helping, in my view.  
+this tends to mess up the code more than helping, in my view.
 
 An example (using :parse-string? true to include the comment):
 
@@ -2379,7 +2379,7 @@ fn defn set formats with a flow.
 
 #### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
 
-Places a new line between the type and the fn defns in a single 
+Places a new line between the type and the fn defns in a single
 type/fn defn set in the extend.
 
 Here are some examples of two rather different, but commonly used,
@@ -2444,7 +2444,7 @@ Contains a set of elements that will be placed on the same line as the
 protocol-or-interface-or-Object.  Created largely to support `defui` in
 Clojurescript om/next, but may have other utility. Elements specified
 by `{:extend {:modifiers #{<element1> <element2>}}}` are added to
-the set (as opposed to replacing the set entirely). You can remove 
+the set (as opposed to replacing the set entirely). You can remove
 elements from the set by `{:remove {:extend {:modifers #{<thing-to-remove>}}}}`.
 
 _____
@@ -2516,7 +2516,7 @@ formatting, so that the anonymous functions show up right.
 
 ;;
 ;; Without constant pairing, it is ok...
-;; 
+;;
 
 (zp/zprint x 60 {:parse-string? true :list {:constant-pair? nil}})
 
@@ -2570,11 +2570,11 @@ by the `:pair` configuration (just like the pairs in a `cond`, `assoc`,
 and any function style with "pair" in the name).
 
 #### :constant-pair-min <text style="color:#A4A4A4;"><small>4</small></text>
- 
+
 An integer specifying the minimum number of required elements capable of being
 constant paired before constant pairing is used.  Note that constant
 pairing works from the end of the list back toward the front (not illustrated
-in these examples).  
+in these examples).
 
 Using our previous example again:
 
@@ -2618,7 +2618,7 @@ Using our previous example again:
 __EXPERIMENTAL__
 
 This capability will let you rewrite any list that zprint encounters.  It only
-works when zprint is formatting source code -- where `:parse-string?` is 
+works when zprint is formatting source code -- where `:parse-string?` is
 `true`.  When a structure is being formatted, none of this is invoked.
 
 This will call a function that you supply with the zipper of the list
@@ -2630,8 +2630,8 @@ is obvious.  Less obvious is the relative difficulty of actually writing a
 function to rewrite the code.  Implementing this feature was very easy,
 writng the first example, the style `:sort-dependencies` was a significant
 piece of work.  It is hard to rewrite code using rewrite-clj (not that
-I have a better approach), it is hard to debug, the Clojure and Clojurescript 
-implementations of rewrite-clj are very slightly different.  
+I have a better approach), it is hard to debug, the Clojure and Clojurescript
+implementations of rewrite-clj are very slightly different.
 
 The configuration for `:return-altered-zipper` is a vector: `[<depth> <symbol> <fn>]`, where `<depth>` is the depth to call the function (if the `<symbol>`
 matches).  A `<depth>` of `nil` will call at any depth.  The `<symbol>` is the
@@ -2704,7 +2704,7 @@ part of the pair formats as a flow.
 
 {:abc
  :def,
- 
+
  :ghi
  :ijk}
 ```
@@ -2759,22 +2759,22 @@ the key/value pair formats with the value as a flow.
 ; If you turn off the hang, then now if a pair doesn't fit on one line,
 ; you get a flow:
 
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 
-         30 
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}}
+         30
          {:map {:nl-separator? true :hang? false}})
 
 ; Most people use the :nl-separator? kind of formatting when they don't
 ; want the right hand side of a pair indented.  So if you turn off :hang?
 ; then you probably want to remove the indent as well.
 
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 
-         30 
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}}
+         30
          {:map {:nl-separator? true :hang? false :indent 0}})
 
 {:a :b,
  :c
  {:e :f, :g :h, :i :j, :k :l},
- 
+
  :m :n,
  :o {:p {:q :r, :s :t}}}
 ```
@@ -2782,11 +2782,11 @@ the key/value pair formats with the value as a flow.
 ####  :comma?  <text style="color:#A4A4A4;"><small>true</small></text>
 
 Put a comma after the value in a key-value pair, if it is not the
-last pair in a map.  
+last pair in a map.
 
 #### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
 
-Force a new-line between each key and value pair in a map.  
+Force a new-line between each key and value pair in a map.
 
 ```clojure
 (czprint {:abc :def :ghi :ijk})
@@ -2803,12 +2803,12 @@ Force a new-line between each key and value pair in a map.
 #### :sort? <text style="color:#A4A4A4;"><small>true</small></text>
 
 Sort the key-value pairs in a map prior to output.  Alternatively, simply output
-them in the order in which they come out of the map. 
+them in the order in which they come out of the map.
 
 #### :sort-in-code? <text style="color:#A4A4A4;"><small>false</small></text>
 
 If the map appears inside of a list that seems to be code, should it
-be sorted.  
+be sorted.
 
 #### :key-order <text style="color:#A4A4A4;"><small>nil</small></text>
 
@@ -2821,7 +2821,7 @@ be a significant help in debugging, when looking a lot of maps at
 the repl.  Note that `:key-order` only affects the key order when
 keys are sorted.
 
-Here is a vector of maps formatted with just sorting. 
+Here is a vector of maps formatted with just sorting.
 
 ```clojure
 [{:code "58601",
@@ -2925,7 +2925,7 @@ yields:
   :time 1425704003}]
 ```
 
-When working with hundreds of maps, even the tiny improvement 
+When working with hundreds of maps, even the tiny improvement
 made by ordering a few keys in a better way can reduce the cognitive
 load, particularly when debugging.
 
@@ -3078,7 +3078,7 @@ An example of the key-sequence approach.  This will remove all
 of the elements with key `:code` inside of the maps with the key
 `:detail`, but not the elements with the key `:code` elsewhere.
 This example uses `:key-ignore` so you can see where it removed
-values.  
+values.
 
 ```clojure
 zprint.core=> (czprint sort-demo {:map {:key-ignore [[:detail :code]]}})
@@ -3150,10 +3150,10 @@ based on their type.
 
 ####  :key-depth-color  <text style="color:#A4A4A4;"><small>nil</small></text>
 
-Note that this is an EXPERIMENTAL feature.  The value of `:key-depth-color` is 
+Note that this is an EXPERIMENTAL feature.  The value of `:key-depth-color` is
 a vector of colors, and these colors will be used to color the keys which
 are at a corresponding depth in the map.  Thus, the first color in the vector
-will be the color for the outermost keys in the map, the second color in 
+will be the color for the outermost keys in the map, the second color in
 vector will be the color for the keys.  You can place a `nil` in the vector,
 and for that depth the normal colors (based on the type of the key) will
 be used.  If you also have defined a `:key-color` map, any colors speciied
@@ -3195,7 +3195,7 @@ For example:
 {:x/:a :b, :x/:c :d}
 ```
 
-Note that `:unlift-ns? true` only works if `:lifts-ns? false` is present, 
+Note that `:unlift-ns? true` only works if `:lifts-ns? false` is present,
 since otherwise zprint won't know which keyword to honor, and `:lift-ns?` was
 there first.
 
@@ -3212,16 +3212,16 @@ _____
 ## :object
 
 When elements are formatted with `:object?` `true`, then the output
-if formatted using the information specified in the `:object` 
-information.  
+if formatted using the information specified in the `:object`
+information.
 
 ##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
 _____
 ## :output
 
-This controls the overall output that is produced.  
+This controls the overall output that is produced.
 
-#### :focus 
+#### :focus
 Determines whether to highlight a part of the structure, and which
 part to highlight. Only one of `:zloc?` or `:path` can have a value.
 
@@ -3270,7 +3270,7 @@ If you wish to force a newline between all things that are paired
       cdef d)
 ```
 
-You could achieve a similar result by placing the function style `:pair-fn` 
+You could achieve a similar result by placing the function style `:pair-fn`
 into the set of `:fn-gt2-force-nl`, thus:
 
 ```clojure
@@ -3318,7 +3318,7 @@ Some examples of how `:flow?` an `:nl-separator?` can interact:
       cdef
       d)
 
-(czprint "(cond abcd b cdef d)" 
+(czprint "(cond abcd b cdef d)"
          {:parse-string? true :pair {:flow? true :indent 0 :nl-separator? true}})
 
 ; :nl-separator? places an entirely blank line between any pair that formats as a flow
@@ -3329,11 +3329,11 @@ Some examples of how `:flow?` an `:nl-separator?` can interact:
       cdef
       d)
 
-(czprint "(cond abcd b cdef d)" 
-         {:parse-string? true 
+(czprint "(cond abcd b cdef d)"
+         {:parse-string? true
           :pair {:flow? true
-                 :indent 0 
-                 :nl-separator? true} 
+                 :indent 0
+                 :nl-separator? true}
           :pair-fn {:hang? false}})
 
 ; Just FYI, this is how to cause cond to never hang its pairs
@@ -3350,14 +3350,14 @@ _____
 ## :pair-fn
 
 The :pair-fn key controls the printing of the arguments of a function
-which has :pair-fn as its function type (e.g. `cond`). 
+which has :pair-fn as its function type (e.g. `cond`).
 
 ##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 ##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
 ##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
 
 This function type exists largely to allow you to control how the
-pairs of a `cond` are formatted with respect to the function name.  
+pairs of a `cond` are formatted with respect to the function name.
 For example:
 
 ```clojure
@@ -3404,16 +3404,16 @@ shown with map syntax, or by calling their `toString()` method.
 
 This will output a record by calling its `toString()` java method, which
 can be useful for some records. If the record contains a lot of information
-that you didn't want to print, for instance. If `:to-string?` is true, 
+that you didn't want to print, for instance. If `:to-string?` is true,
 it overrides the other `:record` configuration options.
 
 #### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
 
-Should a hang be attempted?  See example below. 
+Should a hang be attempted?  See example below.
 
 #### :record-type? <text style="color:#A4A4A4;"><small>true</small></text>
 
-Should the record type be output?  
+Should the record type be output?
 
 An example of `:hang?`, `:record-type?`, and `:to-string?`
 
@@ -3470,7 +3470,7 @@ them in the order in which they come out of the set.
 #### :sort-in-code? <text style="color:#A4A4A4;"><small>false</small></text>
 
 If the set appears inside of a list that seems to be code, should it
-be sorted.  
+be sorted.
 
 _____
 ## :spec
@@ -3511,7 +3511,7 @@ options map.
 This attempts to recreate the community standards defined in the
 [community style guide](https://github.com/bbatsov/clojure-style-guide).
 It is an evolving effort -- if you see something that matters to you
-that differs from the community style guide when using `:style :community`, 
+that differs from the community style guide when using `:style :community`,
 please create an issue explaining the difference.
 
 #### :justified
@@ -3540,7 +3540,7 @@ zprint will add newlines, but will not remove any existing newlines from
 incoming source.  Existing formatting configuration will be followed, of
 course with the constraint that existing newlines will be included wherever
 they appear.  You can configure this style for just a particular function,
-if you have one that doesn't format well with classic zprint. See 
+if you have one that doesn't format well with classic zprint. See
 [Altering the formatting inside of certain functions](#altering-the-formatting-inside-of-certain-functions) for details.
 
 
@@ -3550,15 +3550,15 @@ Some examples of classic zprint, `:respect-nl`, and `:indent-only`:
 
 (def io2
 "
-(let 
- [stuff 
-   (bother in 
-           addition 
+(let
+ [stuff
+   (bother in
+           addition
 		    to more)
-      foo (bar 
-          with 
+      foo (bar
+          with
 	  baz)]
-  (if output 
+  (if output
          stuff foo))")
 
 ; Classic zprint
@@ -3577,12 +3577,12 @@ Some examples of classic zprint, `:respect-nl`, and `:indent-only`:
 ; :style :respect-nl
 ;
 ; Does the same thing as classic zprint, but if there is a newline, it
-; will not remove it.  Based on incoming newlines, it will try to make 
-; the output look as much like classic zprint as possible.  
+; will not remove it.  Based on incoming newlines, it will try to make
+; the output look as much like classic zprint as possible.
 ;
 ; Note that you can configure this style for just a particular function,
 ; if there is a function that doesn't format well with classic zprint.
-; 
+;
 
 (czprint io2 {:parse-string? true :style :respect-nl})
 (let
@@ -3684,8 +3684,8 @@ save you some typing if these styles are favorites of yours.
 __EXPERIMENTAL__
 
 Sort the dependencies in a leiningen project.clj file in alphabetical
-order.  Technically, it will sort the vectors in the value of any key 
-named `:dependencies` inside any function (macro) named `defproject`. 
+order.  Technically, it will sort the vectors in the value of any key
+named `:dependencies` inside any function (macro) named `defproject`.
 Has no effect when formatting a structure (as opposed to parsing a
 string and formatting code).
 
@@ -3793,11 +3793,11 @@ set the tab size.
 
 #### :expand? <text style="color:#A4A4A4;"><small>true</small></text>
 
-Expand tabs.  
+Expand tabs.
 
 #### :size <text style="color:#A4A4A4;"><small>8</small></text>
 
-An integer for the tab size for tab expansion.  
+An integer for the tab size for tab expansion.
 
 _____
 ## :vector
@@ -3836,7 +3836,7 @@ it).
 
 Note that the `:fn-format` processing is done before testing for
 `:indent-only?` (as is the `:option-fn` and `:option-fn-first` processing
-as well), so if the result of the `:option-fn` or `:option-fn-first` 
+as well), so if the result of the `:option-fn` or `:option-fn-first`
 processing sets `:fn-format`, then the value of `:indent-only?` in
 `:vector-fn` will control whether or not `:indent-only?` is used,
 not the value of `:indent-only?` iin `:vector`.  This is worthy of
@@ -3927,7 +3927,7 @@ as follows:
                                  {:vector {:respect-nl? k?}}))}},
 ```
 
-This function will decide whether or not the vector should 
+This function will decide whether or not the vector should
 have `:respect-nl? true` used, and then change the options map to have
 that value only if necessary.  The "only if necessary" is important,
 as every vector will call this function, almost certainly multiple times.
@@ -3939,16 +3939,16 @@ If the options map returned by the function is not valid, an exception will
 be thrown.  For example:
 
 ```clojure
-(zprint-str "[:g :f :d :e :e \n :t :r :a :b]" 
-            {:parse-string? true 
-             :vector {:option-fn-first 
+(zprint-str "[:g :f :d :e :e \n :t :r :a :b]"
+            {:parse-string? true
+             :vector {:option-fn-first
                        #(do %1 %2 {:vector {:sort? true}})}})
 
-Exception Options resulting from :vector :option-fn-first called with :g 
-had these errors: In the key-sequence [:vector :sort?] the key :sort? was 
+Exception Options resulting from :vector :option-fn-first called with :g
+had these errors: In the key-sequence [:vector :sort?] the key :sort? was
 not recognized as valid!  zprint.zprint/internal-validate (zprint.cljc:2381)
 ```
-Note that `:option-fn` and `:option-fn-first` can both be 
+Note that `:option-fn` and `:option-fn-first` can both be
 used. `:option-fn-first` is executed first, and the results of that are given
 to `:option-fn` as the options map.
 
@@ -3970,10 +3970,10 @@ This differs from `option-fn-first` in that `option-fn` gives you access
 to all of the elements of the vector in order to make the decision of
 how to format it.
 
-See `:fn-format` for one example of how to use `:option-fn`.  `:option-fn` 
+See `:fn-format` for one example of how to use `:option-fn`.  `:option-fn`
 is also used in the implemenation of the `:hiccup` style.
 
-Note that `:option-fn` and `:option-fn-first` can both be 
+Note that `:option-fn` and `:option-fn-first` can both be
 used. `:option-fn-first` is executed first, and the results of that are given
 to `:option-fn` as the options map.
 
@@ -4018,14 +4018,14 @@ a `rum` macro (taken from GitHub rum/examples/rum/examples/inputs.cljc):
 
 ; This is how it looked originally:
 
-(def re1        
-"(rum/defc inputs []  
-  (let [*ref (atom nil)] 
-    [:dl 
-      [:dt \"Input\"]  [:dd (reactive-input *ref)] 
-      [:dt \"Checks\"] [:dd (checkboxes *ref)] 
-      [:dt \"Radio\"]  [:dd (radio *ref)] 
-      [:dt \"Select\"] [:dd (select *ref)] 
+(def re1
+"(rum/defc inputs []
+  (let [*ref (atom nil)]
+    [:dl
+      [:dt \"Input\"]  [:dd (reactive-input *ref)]
+      [:dt \"Checks\"] [:dd (checkboxes *ref)]
+      [:dt \"Radio\"]  [:dd (radio *ref)]
+      [:dt \"Select\"] [:dd (select *ref)]
       [:dt (value *ref)] [:dd (shuffle-button *ref)]]))")
 
 ; A rather unlovely transformation...
@@ -4081,7 +4081,7 @@ a line and then continue on the next line.
 
 #### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
 
-If there is a collection in the vector, should it wrap? 
+If there is a collection in the vector, should it wrap?
 
 ```clojure
 (require '[zprint.core :as zp])
@@ -4119,14 +4119,14 @@ If there is a collection in the vector, should it wrap?
 ```
 #### :wrap-after-multi? <text style="color:#A4A4A4;"><small>true</small></text>
 
-Should a vector continue to wrap after a multi-line element is 
-printed? 
+Should a vector continue to wrap after a multi-line element is
+printed?
 
 ```clojure
 (require '[zprint.core :as zp])
 
-(def u (vec (concat (range 10) '({:key :value "key" "value" :stuff 
-"the value of stuff is hard to quantify" :bother 
+(def u (vec (concat (range 10) '({:key :value "key" "value" :stuff
+"the value of stuff is hard to quantify" :bother
 "few people enjoy being bothered"}) (range 10 20))))
 
 (zp/zprint u)
@@ -4203,9 +4203,14 @@ made to them.  Anything you can see with the `:explain` option can
 be changed by set-options! or by any of the other configuration
 approaches.
 
+## Testing this library
+
+With [Leiningen](https://leiningen.org/) installed, run `lein test` from the root directory of this repo.
+
+As an addition test, you may build the uberjar with `lein uberjar` & then run `./test_uberjar`. If tests pass, the script will return with no output.
+
 ## License
 
-Copyright © 2016-2018 Kim Kinnear
+Copyright © 2016-2019 Kim Kinnear
 
 Distributed under the MIT License.  See the file LICENSE for details.
-

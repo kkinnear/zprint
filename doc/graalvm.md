@@ -30,29 +30,29 @@ news is that we are back to a different version for each platform.
 
 ### Linux
 
-You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.5.1`
+You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.5.2`
 (or the appropriate version) in the latest zprint release.
 
 ### MacOS
 
-You can now download a pre-build MacOS image from zprint GitHub, look for `zprintm-0.5.1`
+You can now download a pre-build MacOS image from zprint GitHub, look for `zprintm-0.5.2`
 (or the appropriate version) in the latest zprint release.
 
 ## Usage
 
-The `zprintl-0.5.1` or `zprintm-0.5.1` It is a regular "unix-like" filter which will
+The `zprintl-0.5.2` or `zprintm-0.5.2` It is a regular "unix-like" filter which will
 run on Linux or MacOS respectively -- __without any JVM__ involved!.  You
 use it like:
 
 ```
-./zprintm-0.5.1 < core.clj > core.new.clj
+./zprintm-0.5.2 < core.clj > core.new.clj
 ```
 It reads the source code and spits out formatted source code.  It will accept an options
 map as on the command line.  Don't forget to put "'" around the options map, or the results
 won't be what you expect.  An example:
 
 ```
-./zprintm-0.5.1 '{:style :community}' < core.clj > core.new.clj
+./zprintm-0.5.2 '{:style :community}' < core.clj > core.new.clj
 ```
 If you put it on your path, you can just run it from anywhere.  I use it in my editor,
 to format a function while I'm editing it.  For most functions, it runs fast enough I don't even notice it.
@@ -60,7 +60,7 @@ to format a function while I'm editing it.  For most functions, it runs fast eno
 In addition to an options map, there are a few simple switches.  Here
 is the help text:
 ```
-./zprintm-0.5.1 -h
+./zprintm-0.5.2 -h
 zprint-0.51.
 
  zprint <options-map> <input-file >output-file
@@ -68,9 +68,9 @@ zprint-0.51.
 
  Where zprint is any of:
 
-  zprintm-0.5.1
-  zprintl-0.5.1
-  java -jar zprint-filter-0.5.1
+  zprintm-0.5.2
+  zprintl-0.5.2
+  java -jar zprint-filter-0.5.2
 
  <options-map> is a Clojure map containing zprint options.
                Note that since it contains spaces, it must be

@@ -4,11 +4,17 @@
             [zprint.zprint :refer :all]
             [zprint.config :refer :all]
             [zprint.finish :refer :all]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]
             [clojure.repl :refer :all]
             [clojure.string :as str]
             [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
             [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z :only [edn*]]))
+            [rewrite-clj.zip :as z :only [edn*]])
+  (:import (com.sun.net.httpserver HttpHandler HttpServer)
+           (java.net InetSocketAddress)
+           (java.io File)
+           (java.util Date)))
 
 ;; Keep some of the test from wrapping so they still work
 ;!zprint {:comment {:wrap? false} :fn-map {"more-of" :arg1}}
@@ -266,3 +272,162 @@
                                  {:fn-map {":export"
                                              [:flow {:list {:hang true}}]}}]}})
                (get-options)))
+
+;; Test config loading via URL
+
+(def url-cache-path (str *cache-path* File/separator "urlcache"))
+; New URL
+(expect (more-of options
+                 1
+                 (get options :max-depth))
+        (let [options-file (File/createTempFile "load-options" "1")
+              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))]
+          (.delete cache-file)
+          (spit options-file (print-str {:max-depth 1}))
+          (redef-state [zprint.config]
+                       (load-options! (.toURL options-file))
+                       (.delete cache-file)
+                       (get-options))))
+
+; Extend with set-options
+(expect (more-of options
+                 2
+                 (get options :max-depth)
+                 22
+                 (get options :max-length))
+        (let [options-file (File/createTempFile "load-options" "2")
+              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))]
+          (.delete cache-file)
+          (spit options-file (print-str {:max-depth 2}))
+          (redef-state [zprint.config]
+                       (set-options! {:max-length 22})
+                       (load-options! (.toURL options-file))
+                       (.delete cache-file)
+                       (get-options))))
+
+; Cached
+(expect (more-of options
+                 3
+                 (get options :max-depth))
+        (let [options-file (File/createTempFile "load-options" "3")
+              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))]
+          (.delete cache-file)
+          (spit options-file (print-str {:max-depth 3}))
+          (redef-state [zprint.config]
+                       (load-options! (.toURL options-file))
+                       (while (not (.exists cache-file))    ;default 5 min cache created async in ms
+                         (Thread/sleep 10))
+                       (spit options-file (print-str {:max-depth 33})) ;unused remote
+                       (load-options! (.toURL options-file))
+                       (.delete cache-file)
+                       (get-options))))
+
+; Expired cache, get rempte
+(expect (more-of options
+                 44
+                 (get options :max-depth))
+        (let [options-file (File/createTempFile "load-options" "4")
+              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))]
+          (.delete cache-file)
+          (spit options-file (print-str {:max-depth 4}))
+          (redef-state [zprint.config]
+                       (load-options! (.toURL options-file))
+                       (while (not (.exists cache-file))
+                         (Thread/sleep 10))
+                       (spit cache-file (print-str {:expires 0 :options {:max-depth 4}})) ;expire cache
+                       (spit options-file (print-str {:max-depth 44})) ;used remote
+                       (load-options! (.toURL options-file))
+                       (.delete cache-file)
+                       (get-options))))
+
+; Good url, corrupt cache
+(expect (more-of options
+                 5
+                 (get options :max-depth))
+        (let [options-file (File/createTempFile "load-options" "5")
+              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))]
+          (.delete cache-file)
+          (spit options-file (print-str {:max-depth 5}))
+          (redef-state [zprint.config]
+                       (spit cache-file "{bad-cache")       ;corrupt edn
+                       (load-options! (.toURL options-file))
+                       (.delete cache-file)
+                       (get-options))))
+
+; Bad url, no cache
+(expect Exception
+        (redef-state [zprint.config]
+                     (load-options! "http://b.a.d.u.r.l")
+                     (get-options)))
+
+; Write url, bad content, no cache
+(expect Exception
+        (let [options-file (File/createTempFile "url-bad-content" "1")]
+          (spit options-file "{bad-content")
+          (redef-state [zprint.config]
+                       (load-options! (.toURL options-file)))))
+
+; Bad url, but cache
+(expect (more-of options
+                 6
+                 (get options :max-depth))
+        (let [options-file (File/createTempFile "load-options" "6")
+              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))]
+          (.delete cache-file)
+          (spit options-file (print-str {:max-depth 6}))
+          (redef-state [zprint.config]
+                       (load-options! (.toURL options-file))
+                       (while (not (.exists cache-file))
+                         (Thread/sleep 10))
+                       (.delete options-file)               ;break url
+                       (load-options! (.toURL options-file))
+                       (.delete cache-file)
+                       (get-options))))
+
+; Bad url, expired cache
+(expect (more-of options
+                 7
+                 (get options :max-depth))
+        (let [options-file (File/createTempFile "load-options" "7")
+              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))]
+          (.delete cache-file)
+          (redef-state [zprint.config]
+                       (spit cache-file (print-str {:expires 0 :options {:max-depth 7}})) ;expire cache
+                       (.delete options-file)               ;break url
+                       (try (load-options! (.toURL options-file))
+                            (finally (.delete cache-file)))
+                       (get-options))))
+
+; max-age for cache expiry and overrides Expires, else Expires by itself sets cache
+(expect (more-of [options cache1 cache2]
+                 true (<= (System/currentTimeMillis) (:expires cache1) (+ 1e7 (System/currentTimeMillis)))
+                 true (<= (System/currentTimeMillis) (:expires cache1) (.getTime (Date. (- 2999 1900) 9 19))
+                          (:expires cache2) (.getTime (Date. (- 2999 1900) 9 23))))
+        (let [body          "{:max-depth 8}"
+              first-request (atom true)
+              http-server   (doto (HttpServer/create (InetSocketAddress. "0.0.0.0" 0) 0) ;any port will do
+                              (.createContext "/cfg"
+                                              (reify HttpHandler
+                                                (handle [this ex]
+                                                  (if @first-request (.add (.getResponseHeaders ex) "Cache-Control" (format "max-age=%s" (int 1e4))))
+                                                  (.add (.getResponseHeaders ex) "Expires" "Wed, 21 Oct 2999 00:00:00 GMT")
+                                                  (.sendResponseHeaders ex 200 (count body))
+                                                  (reset! first-request false)
+                                                  (doto (io/writer (.getResponseBody ex))
+                                                    (.write body)
+                                                    (.close)))))
+                              (.setExecutor nil)
+                              (.start))
+              server        (.getAddress http-server)
+              url           (format "http://0.0.0.0:%s/cfg" (.getPort server))]
+          (let [cache-file (io/file url-cache-path (str "0.0.0.0_" (hash url)))]
+            (.delete cache-file)
+            (redef-state [zprint.config]
+                         (load-options! url)
+                         (let [cache1 (-> cache-file slurp edn/read-string)]
+                           (.delete cache-file)
+                           (load-options! url)
+                           (let [cache2 (-> cache-file slurp edn/read-string)]
+                             (.stop http-server 0)
+                             (.delete cache-file)
+                             [(get-options) cache1 cache2]))))))

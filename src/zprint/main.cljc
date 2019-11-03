@@ -1,6 +1,6 @@
 (ns ^:no-doc zprint.main
   (:require ;[clojure.string :as str]
-    [zprint.core :refer [zprint-str czprint zprint-file-str set-options!]]
+    [zprint.core :refer [zprint-str czprint zprint-file-str set-options! load-options!]]
     [zprint.config :refer [get-options get-explained-options]])
   #?(:clj (:gen-class)))
 
@@ -47,6 +47,7 @@
      ""
      "  -d       --default      Accept no configuration input."
      "  -h       --help         Output this help text."
+     "  -u       --url     URL  Load options from URL."
      "  -v       --version      Output the version of zprint."
      "  -e       --explain      Output configuration, showing where"
      "                          non-default values (if any) came from."
@@ -80,15 +81,18 @@
         format? (not (or version? help? explain?))
         default? (or (= options "--default") (= options "-d"))
         standard? (or (= options "--standard") (= options "-s"))
+        url?  #?(:clj (or (= options "--url") (= options "-u")) :default nil)
+
         [option-status option-stderr switch?]
           (if (and (not (clojure.string/blank? options))
                    (clojure.string/starts-with? options "-"))
             ; standard not yet implemented
-            (if (or version? help? default? #_standard? explain?)
-              [0 nil true]
-              [1
-               (str "Unrecognized switch: '" options "'" "\n" main-help-str)
-               true])
+            (cond (or version? help? default? #_standard? explain?) [0 nil true]
+                  url? (try (load-options! (second args))
+                            [0 nil false]
+                            (catch Exception e
+                              [1 (str e) false]))
+                  :else [1 (str "Unrecognized switch: '" options "'" "\n" help-str) true])
             [0 nil false])
         _ (cond default? (set-options! {:configured? true, :parallel? true})
                 standard?
@@ -97,6 +101,7 @@
                 :else (set-options! {:parallel? true}))
         [option-status option-stderr]
           (if (and (not switch?)
+                   (not url?)
                    format?
                    options
                    (not (clojure.string/blank? options)))

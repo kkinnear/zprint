@@ -173,7 +173,10 @@
   "Is this an array?"
   [x]
   (when x
-    #?(:clj (.isArray (type x))
+    #?(:clj (try (.isArray ^Class (type x))
+                 (catch Exception e
+                   (println (str "Error in sarray? Type:" (type x)
+                                 ", element: " x))))
        :cljs (array? x))))
 
 (defn satom?

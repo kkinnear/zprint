@@ -20,7 +20,7 @@
   [vec-str]
   (apply str (interpose "\n" vec-str)))
 
-(def help-str
+(def main-help-str
   (vec-str-to-str
     [(:version (get-options))
      ""
@@ -86,7 +86,7 @@
             ; standard not yet implemented
             (if (or version? help? default? #_standard? explain?)
               [0 nil true]
-              [1 (str "Unrecognized switch: '" options "'" "\n" help-str) true])
+              [1 (str "Unrecognized switch: '" options "'" "\n" main-help-str) true])
             [0 nil false])
         _ (cond default? (set-options! {:configured? true, :parallel? true})
                 standard?
@@ -114,7 +114,7 @@
                  (catch Exception e [1 in-str (str "Failed to zprint: " e)]))
             [0 nil])
         option-stderr (cond version? (:version (get-options))
-                            help? help-str
+                            help? main-help-str
                             explain? (zprint-str (get-explained-options))
                             :else option-stderr)
         exit-status (+ option-status format-status)

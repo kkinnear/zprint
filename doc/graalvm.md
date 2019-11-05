@@ -63,8 +63,8 @@ is the help text:
 ./zprintm-0.5.2 -h
 zprint-0.51.
 
- zprint <options-map> <input-file >output-file
- zprint <switches <input-file >output-file
+ zprint options-map < input-file > output-file
+ zprint switches < input-file > output-file
 
  Where zprint is any of:
 
@@ -72,12 +72,12 @@ zprint-0.51.
   zprintl-0.5.2
   java -jar zprint-filter-0.5.2
 
- <options-map> is a Clojure map containing zprint options.
-               Note that since it contains spaces, it must be
-               wrapped in quotes, for example:
-               '{:width 120}'
+ options-map is a Clojure map containing zprint options.
+             Note that since it contains spaces, it must be
+             wrapped in quotes, for example:
+             '{:width 120}'
 
- <switches> may be any of:
+ switches may be any of:
 
   -s       --standard     Accept no configuration input.
   -h       --help         Output this help text.
@@ -85,7 +85,7 @@ zprint-0.51.
   -e       --explain      Output configuration, showing where
                           non-default values came from.
 
- You can have either an <options-map> or <switches>, but not both!
+ You can have either an options-map or switches, but not both!
 ```
 
 

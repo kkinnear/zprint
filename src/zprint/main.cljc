@@ -86,7 +86,9 @@
             ; standard not yet implemented
             (if (or version? help? default? #_standard? explain?)
               [0 nil true]
-              [1 (str "Unrecognized switch: '" options "'" "\n" main-help-str) true])
+              [1
+               (str "Unrecognized switch: '" options "'" "\n" main-help-str)
+               true])
             [0 nil false])
         _ (cond default? (set-options! {:configured? true, :parallel? true})
                 standard?

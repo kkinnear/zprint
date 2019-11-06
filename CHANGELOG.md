@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 0.5.2 - 2019-11-6
+
+### Fixed
+
+  * Bug in the graalVM binaries: `zprintm-0.5.1 -e` would throw an
+    exception.  Issue #116.
+
 ## 0.5.1 - 2019-10-29
 
 ### Added

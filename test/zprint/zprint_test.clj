@@ -4121,3 +4121,11 @@ ser/collect-vars-acc %1 %2) )))"
 
 (expect (with-out-str (zprint-fn zprint.zprint/blanks {:color? true}))
         (with-out-str (czprint-fn zprint.zprint/blanks)))
+
+;;
+;; # Issue #118, :respect-nl not working inside of binding vectors
+;;
+
+(expect "(let [a\n        b\n      c d]\n  e)"
+        (zprint-str "(let [a\nb\nc d] e)"
+                    {:parse-string? true, :style :respect-nl}))

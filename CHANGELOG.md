@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+  * If the style `{:style :respect-nl}` were used, it would not respect
+    newlines in a binding vector (e.g., the vector for `let`).  This
+    should have been controlled by `{:vector {:respect-nl? true}}`.
+    Issue #118.
+
 ## 0.5.2 - 2019-11-6
 
 ### Fixed

@@ -1458,6 +1458,7 @@
   ([options ind zloc r-str] (rstr-vec options ind zloc r-str nil)))
 
 (declare interpose-nl-hf)
+(declare fzprint-get-zloc-seq)
 
 (defn fzprint-binding-vec
   [{{:keys [nl-separator?]} :binding, :as options} ind zloc]
@@ -1481,7 +1482,22 @@
                       options
                       (inc ind)
                       false
-                      (second (partition-all-2-nc options (zseqnws zloc)))))
+                      (second (partition-all-2-nc
+                                options
+                                ; This is controlled by the :vector config
+                                ; options, because if we added it to the
+                                ; :binding option, it would not work because
+                                ; the fzprint-list* one line testing doesn't
+                                ; know it is a binding vector, it thinks
+                                ; that it is just a vector.  Alternatively
+                                ; we could probably notice that we were in
+                                ; a :binding fn-type, and force :vector
+                                ; :respect-nl? to be the same as :binding
+                                ; :respect-nl? for the one-line test.  Which
+                                ; would fail if there were some other vector
+                                ; with newlines in it that wasn't the
+                                ; binding vector.
+                                (fzprint-get-zloc-seq :vector options zloc)))))
                   r-str-vec)))))
 
 (defn fzprint-hang

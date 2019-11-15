@@ -112,58 +112,95 @@
 (def ^:dynamic *default-url-cache-secs* 300)
 
 #?(:clj
-   (defn load-options!
-     "Loads options from url, expecting edn options map that will be passed
-      to set-options! Valid options will be cached in *zprint-cache-dir* for
-      5 minutes by default or as set by *default-url-cache-secs*. Invalid
-      options will throw an Exception.
+     (defn load-options!
+       "Loads options from url, expecting an edn options map that will be passed
+  to set-options! Valid options will be cached in *zprint-cache-dir* for
+  5 minutes by default or as set by *default-url-cache-secs*. Invalid
+  options will throw an Exception.
 
-      HTTP urls will have the Cache-Control max-age parameter respected,
-      falling back to the Expires header if set."
-     [url]
-     (let [^URL url        (if (instance? URL url) url (URL. url))
-           host            (if (= "" (.getHost url)) "nohost" (.getHost url))
-           url-as-filename (str host "_" (hash (str url)))
-           cache           (io/file (str *cache-path* File/separator "urlcache") url-as-filename)
-           cache-item      (if (and (.exists cache) (not (zero? (.length cache))))
-                                (try
-                                  (-> (slurp cache)
-                                      (clojure.edn/read-string))
-                                  (catch Exception e (.delete cache) nil)))
-           active-cache?    (and cache-item (> (:expires cache-item) (System/currentTimeMillis)))]
-       (if active-cache?
-         (set-options! (:options cache-item))               ;1> cached, non expired version of url used
-         (try
-           (let [^URLConnection remote-conn (doto (.openConnection url)
-                                              (.setConnectTimeout 1000)
-                                              (.connect))
-                 remote-opts                (some-> (slurp (.getInputStream remote-conn))
-                                                    (clojure.edn/read-string))]
-             (if remote-opts
-               (do (set-options! remote-opts)               ;2> no valid cache, remote used, async best-effort cache
+  HTTP urls will have the Cache-Control max-age parameter respected,
+  falling back to the Expires header if set."
+       [url]
+       (let [^URL url (if (instance? URL url) url (URL. url))
+             host (if (= "" (.getHost url)) "nohost" (.getHost url))
+             url-as-filename (str host "_" (hash (str url)))
+             cache (io/file (str *cache-path* File/separator "urlcache")
+                            url-as-filename)
+             cache-item (if (and (.exists cache) (not (zero? (.length cache))))
+                          (try (-> (slurp cache)
+                                   (clojure.edn/read-string))
+                               (catch Exception e (.delete cache) nil)))
+             active-cache? (and cache-item
+                                (> (:expires cache-item)
+                                   (System/currentTimeMillis)))]
+         (if active-cache?
+           ;1> cached, non expired version of url used
+           (set-options! (:options cache-item))
+           (try
+             (let [^URLConnection remote-conn (doto (.openConnection url)
+                                                (.setConnectTimeout 1000)
+                                                (.connect))
+                   remote-opts (some-> (slurp (.getInputStream remote-conn))
+                                       (clojure.edn/read-string))]
+               (if remote-opts
+                 (do
+                   ;2> no valid cache, remote used, async best-effort cache
+                   (set-options! remote-opts)
                    (.. (Executors/newSingleThreadExecutor)
                        (submit
-                         (reify Runnable
-                           (run [this]
-                             (try
-                               (io/make-parents cache)
-                               (let [cc           (.getHeaderField remote-conn "Cache-Control")
-                                     [_ max-age] (if cc (re-matches #"(?i).*?max-age\s*=\s*(\d+)" cc))
-                                     cache-expiry (if max-age
-                                                    (+ (System/currentTimeMillis) (* 1000 (Long/parseLong max-age)))
-                                                    (let [expires (.getExpiration remote-conn)]
-                                                      (if (and expires (not (zero? expires)))
-                                                        expires
-                                                        (+ (System/currentTimeMillis) (* 1000 *default-url-cache-secs*)))))]
-                                 (spit cache (print-str {:expires cache-expiry :options remote-opts})))
-                               (catch Exception e (.println System/err (format "WARN: cache failed for %s: %s" url (.getMessage e))))))))
+                         (reify
+                           Runnable
+                             (run [this]
+                               (try
+                                 (io/make-parents cache)
+                                 (let
+                                   [cc (.getHeaderField remote-conn
+                                                        "Cache-Control")
+                                    [_ max-age]
+                                      (if cc
+                                        (re-matches
+                                          #"(?i).*?max-age\s*=\s*(\d+)"
+                                          cc))
+                                    cache-expiry
+                                      (if max-age
+                                        (+ (System/currentTimeMillis)
+                                           (* 1000 (Long/parseLong max-age)))
+                                        (let [expires (.getExpiration
+                                                        remote-conn)]
+                                          (if (and expires
+                                                   (not (zero? expires)))
+                                            expires
+                                            (+ (System/currentTimeMillis)
+                                               (* 1000
+                                                  *default-url-cache-secs*)))))]
+                                   (spit cache
+                                         (print-str {:expires cache-expiry,
+                                                     :options remote-opts})))
+                                 (catch Exception e
+                                   (.println System/err
+                                             (format
+                                               "WARN: cache failed for %s: %s"
+                                               url
+                                               (.getMessage e))))))))
                        (get)))
-               (throw (Exception. "ERROR: retrieving config from %s" url))))    ;3> no cache, blank remote
-           (catch Exception e
-             (if cache-item
-               (do (set-options! (:options cache-item))    ;4> expired cache but remote failed, use cache
-                   (.println System/err (format "WARN: using expired cache config for %s after error: %s" url (.getMessage e))))
-               (throw (Exception. (format "ERROR: retrieving config from %s: %s" url (.getMessage e))))))))))) ;5> no cache, failed remote
+                 ;3> no cache, blank remote
+                 (throw (Exception. "ERROR: retrieving config from %s" url))))
+             (catch Exception e
+               (if cache-item
+                 (do
+                   ;4> expired cache but remote failed, use cache
+                   (set-options! (:options cache-item))
+                   (.println
+                     System/err
+                     (format
+                       "WARN: using expired cache config for %s after error: %s"
+                       url
+                       (.getMessage e))))
+                 (throw ;5> no cache, failed remote
+                        (Exception.
+                          (format "ERROR: retrieving config from %s: %s"
+                                  url
+                                  (.getMessage e)))))))))))
 
 (defn configure-all!
   "Do external configuration regardless of whether or not it already

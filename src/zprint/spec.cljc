@@ -276,6 +276,9 @@
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
                       ::general-hang-adjust ::hang-if-equal-flow?]))
 (s/def :alt/uneval (only-keys :opt-un [::color-map]))
+(s/def ::url-cache-path string?)
+(s/def ::url-cache-secs int?)
+
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-nl? ::option-fn-first
@@ -302,7 +305,7 @@
              ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
              ::record ::remove ::next-inner ::return-cvec? ::search-config?
              ::set ::spaces? ::spec ::style ::style-map ::tab ::trim-comments?
-             ::tuning :alt/uneval ::user-fn-map ::vector ::vector-fn ::version
+             ::tuning :alt/uneval ::url-cache-path ::url-cache-secs ::user-fn-map ::vector ::vector-fn ::version
              ::width ::zipper?]))
 
 (defn numbers-or-number-pred?

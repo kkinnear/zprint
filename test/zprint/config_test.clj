@@ -13,7 +13,7 @@
             [rewrite-clj.zip :as z :only [edn*]])
   (:import (com.sun.net.httpserver HttpHandler HttpServer)
            (java.net InetSocketAddress)
-           (java.io File)
+           (java.io File ByteArrayOutputStream PrintStream)
            (java.util Date)))
 
 ;; Keep some of the test from wrapping so they still work
@@ -384,25 +384,32 @@
                        (.delete cache-file)
                        (get-options))))
 
+
 ; Bad url, expired cache
-(expect (more-of options
+(expect (more-of [options std-err]
                  7
-                 (get options :max-depth))
+                 (get options :max-depth)
+                 true
+                 (some? (re-matches #"WARN: using expired cache config for.*" (str/trim std-err))))
         (let [options-file (File/createTempFile "load-options" "7")
-              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))]
+              cache-file   (io/file url-cache-path (str "nohost_" (hash (str (.toURL options-file)))))
+              baos         (ByteArrayOutputStream.)]
+          (System/setErr (PrintStream. baos))
           (.delete cache-file)
           (redef-state [zprint.config]
                        (spit cache-file (print-str {:expires 0 :options {:max-depth 7}})) ;expire cache
                        (.delete options-file)               ;break url
                        (try (load-options! (.toURL options-file))
                             (finally (.delete cache-file)))
-                       (get-options))))
+                       [(get-options) (str baos)])))
 
 ; max-age for cache expiry and overrides Expires, else Expires by itself sets cache
 (expect (more-of [options cache1 cache2]
-                 true (<= (System/currentTimeMillis) (:expires cache1) (+ 1e7 (System/currentTimeMillis)))
-                 true (<= (System/currentTimeMillis) (:expires cache1) (.getTime (Date. (- 2999 1900) 9 19))
-                          (:expires cache2) (.getTime (Date. (- 2999 1900) 9 23))))
+                 true
+                 (<= (System/currentTimeMillis) (:expires cache1) (+ 1e7 (System/currentTimeMillis)))
+                 true
+                 (<= (System/currentTimeMillis) (:expires cache1) (.getTime (Date. (- 2999 1900) 9 19))
+                     (:expires cache2) (.getTime (Date. (- 2999 1900) 9 23))))
         (let [body          "{:max-depth 8}"
               first-request (atom true)
               http-server   (doto (HttpServer/create (InetSocketAddress. "0.0.0.0" 0) 0) ;any port will do
@@ -431,3 +438,26 @@
                              (.stop http-server 0)
                              (.delete cache-file)
                              [(get-options) cache1 cache2]))))))
+
+; Cached via url-cache-path and url-cache-secs
+(expect (more-of [options cache]
+                 9
+                 (:max-depth options)
+                 9
+                 (get-in cache [:options :max-depth])
+                 0
+                 (:url-cache-secs options)
+                 true
+                 (< (:expires cache) (System/currentTimeMillis)))
+        (let [options-file       (File/createTempFile "load-options" "9")
+              cache-file         (File/createTempFile "cache-file" "9")]
+          (spit options-file (print-str {:max-depth 9}))
+          (redef-state [zprint.config]
+                       (set-options! {:configured? true :url-cache-secs 0 :url-cache-path (.getPath cache-file)})
+                       (load-options! (.toURL options-file))
+                       (Thread/sleep 1)                     ;make sure expires
+                       (.delete options-file)
+                       (load-options! (.toURL options-file))
+                       (while (not (.exists cache-file))
+                         (Thread/sleep 10))
+                       [(get-options) (-> cache-file slurp edn/read-string)])))

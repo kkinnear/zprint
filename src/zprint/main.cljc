@@ -45,12 +45,13 @@
      ""
      " <switches> may be any single one of:"
      ""
-     "  -d       --default      Accept no configuration input."
-     "  -h       --help         Output this help text."
-     "  -u       --url     URL  Load options from URL."
-     "  -v       --version      Output the version of zprint."
-     "  -e       --explain      Output configuration, showing where"
-     "                          non-default values (if any) came from."
+     "  -d       --default         Accept no configuration input."
+     "  -h       --help            Output this help text."
+     "  -u       --url      URL    Load options from URL."
+     "           --url-only URL    Load options from URL, ignoring all locally set options."
+     "  -v       --version         Output the version of zprint."
+     "  -e       --explain         Output configuration, showing where"
+     "                             non-default values (if any) came from."
      ""
      " You can have either an <options-map> or <switches>, but not both!"
      ""]))
@@ -81,20 +82,22 @@
         format? (not (or version? help? explain?))
         default? (or (= options "--default") (= options "-d"))
         standard? (or (= options "--standard") (= options "-s"))
-        url?  #?(:clj (or (= options "--url") (= options "-u")) :default nil)
+        url? #?(:clj (or (= options "--url") (= options "-u")) :default nil)
+        url-only? #?(:clj (= options "--url-only") :default nil)
 
         [option-status option-stderr switch?]
           (if (and (not (clojure.string/blank? options))
                    (clojure.string/starts-with? options "-"))
             ; standard not yet implemented
             (cond (or version? help? default? #_standard? explain?) [0 nil true]
-                  url? #?(:clj (try (load-options! (second args))
-                            [0 nil false]
-                            (catch Exception e
-                              [1 (str e) false])) :default nil)
+                  (or url? url-only?) #?(:clj (try (load-options! (second args))
+                                                   [0 nil false]
+                                                   (catch Exception e
+                                                     [1 (str e) false])) :default nil)
                   :else [1 (str "Unrecognized switch: '" options "'" "\n" main-help-str) true])
             [0 nil false])
-        _ (cond default? (set-options! {:configured? true, :parallel? true})
+        _ (cond url-only? nil
+                default? (set-options! {:configured? true, :parallel? true})
                 standard?
                   (set-options!
                     {:configured? true, #_:style, #_:standard, :parallel? true})
@@ -102,6 +105,7 @@
         [option-status option-stderr]
           (if (and (not switch?)
                    (not url?)
+                   (not url-only?)
                    format?
                    options
                    (not (clojure.string/blank? options)))

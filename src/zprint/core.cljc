@@ -23,7 +23,8 @@
             [zprint.sutil]
             [zprint.focus :refer [range-ssv]]
             [rewrite-clj.parser :as p]
-            #_[clojure.spec.alpha :as s])
+            #_[clojure.spec.alpha :as s]
+            [clojure.string :as str])
   (:import (java.net URL URLConnection)
            (java.util.concurrent Executors)
            (java.io File)
@@ -124,7 +125,10 @@
      (let [^URL url        (if (instance? URL url) url (URL. url))
            host            (if (= "" (.getHost url)) "nohost" (.getHost url))
            url-as-filename (str host "_" (hash (str url)))
-           cache           (io/file (str *cache-path* File/separator "urlcache") url-as-filename)
+           options         (get-options)
+           cache           (if (:url-cache-path options)
+                             (io/file (:url-cache-path options))
+                             (io/file (str *cache-path* File/separator "urlcache") url-as-filename))
            cache-item      (if (and (.exists cache) (not (zero? (.length cache))))
                                 (try
                                   (-> (slurp cache)
@@ -151,10 +155,11 @@
                                      [_ max-age] (if cc (re-matches #"(?i).*?max-age\s*=\s*(\d+)" cc))
                                      cache-expiry (if max-age
                                                     (+ (System/currentTimeMillis) (* 1000 (Long/parseLong max-age)))
-                                                    (let [expires (.getExpiration remote-conn)]
-                                                      (if (and expires (not (zero? expires)))
+                                                    (if-let [expires (.getExpiration remote-conn)]
+                                                      (if-not (zero? expires)
                                                         expires
-                                                        (+ (System/currentTimeMillis) (* 1000 *default-url-cache-secs*)))))]
+                                                        (+ (System/currentTimeMillis)
+                                                           (* 1000 (or (:url-cache-secs options) *default-url-cache-secs*))))))]
                                  (spit cache (print-str {:expires cache-expiry :options remote-opts})))
                                (catch Exception e (.println System/err (format "WARN: cache failed for %s: %s" url (.getMessage e))))))))
                        (get)))

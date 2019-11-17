@@ -166,7 +166,7 @@
                (throw (Exception. "ERROR: retrieving config from %s" url))))    ;3> no cache, blank remote
            (catch Exception e
              (if cache-item
-               (do (set-options! (:options cache-item))    ;4> expired cache but remote failed, use cache
+               (do (set-options! (:options cache-item)) ;4> expired cache but remote failed, use cache
                    (.println System/err (format "WARN: using expired cache config for %s after error: %s" url (.getMessage e))))
                (throw (Exception. (format "ERROR: retrieving config from %s: %s" url (.getMessage e))))))))))) ;5> no cache, failed remote
 

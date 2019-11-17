@@ -90,14 +90,15 @@
                    (clojure.string/starts-with? options "-"))
             ; standard not yet implemented
             (cond (or version? help? default? #_standard? explain?) [0 nil true]
-                  (or url? url-only?) #?(:clj (try (load-options! (second args))
-                                                   [0 nil false]
-                                                   (catch Exception e
-                                                     [1 (str e) false])) :default nil)
+                  (or url? url-only?) #?(:clj (do
+                                                (when url-only? (set-options! {:configured? true}))
+                                                (try (load-options! (second args))
+                                                     [0 nil false]
+                                                     (catch Exception e
+                                                       [1 (str e) false])) ) :default nil)
                   :else [1 (str "Unrecognized switch: '" options "'" "\n" main-help-str) true])
             [0 nil false])
-        _ (cond url-only? nil
-                default? (set-options! {:configured? true, :parallel? true})
+        _ (cond default? (set-options! {:configured? true, :parallel? true})
                 standard?
                   (set-options!
                     {:configured? true, #_:style, #_:standard, :parallel? true})

@@ -2468,7 +2468,7 @@
              (let [multi? (> (count this-seq) 1)
                    _ (log-lines options "indent-zmap:" ind this-seq)
                    _ (dbg-pr options
-                             "indent-zmap: cur-ind:" cur-ind
+                             "indent-zmap loop: cur-ind:" cur-ind
                              "multi?" multi?
                              "(count this-seq):" (count this-seq)
                              "this-seq:" this-seq
@@ -2754,7 +2754,7 @@
                                   (= indent-only-style :input-hang))
                          (hang-zloc? (first zloc-seq)))
          raw-indent
-           (if (and arg-1-indent already-hung?) arg-1-indent flow-indent)
+           (if (and arg-1-indent already-hung?) (- arg-1-indent ind) flow-indent)
          indent raw-indent
          coll-print-contains-nil? (contains-nil? coll-print)
          _ (dbg-pr options

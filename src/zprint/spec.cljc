@@ -100,11 +100,14 @@
 ;; # Leaf map keys
 ;;
 
+(s/def ::binding? ::boolean)
+(s/def ::cache-dir (s/nilable string?))
+(s/def ::cache-secs ::nilable-number)
 (s/def ::comma? ::boolean)
 (s/def ::constant-pair? ::boolean)
 (s/def ::constant-pair-min number?)
 (s/def ::count? ::boolean)
-(s/def ::binding? ::boolean)
+(s/def ::directory (s/nilable string?))
 (s/def ::docstring? ::boolean)
 (s/def ::elide (s/nilable string?))
 (s/def ::expand? ::boolean)
@@ -141,6 +144,7 @@
 (s/def ::key-order (s/nilable ::key-value))
 (s/def ::left-space ::keep-or-drop)
 (s/def ::lines ::line-seq)
+(s/def ::location (s/nilable string?))
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::nl-separator? ::boolean)
 (s/def ::object? ::boolean)
@@ -182,6 +186,7 @@
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::indent ::justify? ::justify-hang ::justify-tuning
                       ::nl-separator?]))
+(s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::color-map
   (only-keys :opt-un [::brace ::bracket ::comment ::deref ::fn ::hash-brace
                       ::hash-paren ::keyword ::nil ::none ::number ::paren
@@ -283,6 +288,7 @@
                       ::wrap? ::indent-only?]))
 (s/def ::version string?)
 (s/def ::width number?)
+(s/def ::url (only-keys :opt-un [::cache-dir ::cache-secs]))
 (s/def ::zipper? ::boolean)
 
 ;;
@@ -291,7 +297,7 @@
 
 (s/def ::options
   (only-keys
-    :opt-un [::agent ::array ::atom ::binding ::color? ::color-map :alt/comment
+    :opt-un [::agent ::array ::atom ::binding ::cache ::color? ::color-map :alt/comment
              ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc? ::dbg-bug?
              ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend
              ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map
@@ -303,7 +309,7 @@
              ::record ::remove ::next-inner ::return-cvec? ::search-config?
              ::set ::spaces? ::spec ::style ::style-map ::tab ::trim-comments?
              ::tuning :alt/uneval ::user-fn-map ::vector ::vector-fn ::version
-             ::width ::zipper?]))
+             ::width ::url ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

@@ -42,6 +42,9 @@
 
 (def zprint-keys [:width])
 
+(def operational-options [:cache :cwd-zprintrc? :parallel? :search-config?
+                          :url])
+
 (def explain-hide-keys
   [:configured? :dbg-print? :dbg? :do-in-hang? :drop? :dbg-ge :file? :spaces?
    :process-bang-zprint? :trim-comments? :zipper? :indent :remove :return-cvec?
@@ -384,6 +387,7 @@
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
              :justify? false,
              :nl-separator? false},
+   :cache {:directory ".zprint", :location "HOME"}
    :color? false,
    :color-map {:brace :red,
                :bracket :purple,
@@ -662,6 +666,7 @@
                :pair-hang? true,
                :respect-nl? false},
    :width 80,
+   :url {:cache-dir "urlcache" :cache-secs 300}
    :zipper? false})
 
 ;; Returns nil for all of the colors
@@ -1292,6 +1297,12 @@
   map.  Will not add any new keys to the first map."
   [existing new]
   (reduce replace-existing existing new))
+
+(defn select-op-options
+  "Given an options map, return an options map with only the operational
+  options remaining."
+  [options]
+  (select-keys options operational-options))
 
 ;;
 ;; # Configure one map

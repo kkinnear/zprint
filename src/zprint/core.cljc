@@ -109,22 +109,53 @@
   ([new-options doc-str] (do (config-set-options! new-options doc-str) nil))
   ([new-options] (do (config-set-options! new-options) nil)))
 
+; Default [:cache :location]
+(def ^:dynamic *default-cache-loc* ".")
+; Default [:cache :directory]
+(def ^:dynamic *default-cache-dir* ".zprint")
+; Default [:url :cache-dir] 
+(def ^:dynamic *default-url-cache* "urlcache")
+; Default [:url :cache-secs] 
 (def ^:dynamic *default-url-cache-secs* 300)
 
 #?(:clj
      (defn load-options!
        "Loads options from url, expecting an edn options map that will be passed
-  to set-options! Valid options will be cached in *zprint-cache-dir* for
-  5 minutes by default or as set by *default-url-cache-secs*. Invalid
-  options will throw an Exception.
-
+  to set-options! Valid options will be cached in 
+  (str (:cache-loc (:cache options)) 
+       File/separator 
+       (:cache-dir (:cache options))
+       File/separator
+       (:url (:cache-dir (:cache options))))
+  for (:cache-secs (:url options)) or 5 minutes if :cache-secs is nil.
+  If [:cache :location] contains a \".\", it is considered a Java property, 
+  else it is considered an environment variable.  In either case, 
+  it is looked up.
+  Invalid options will throw an Exception.
   HTTP urls will have the Cache-Control max-age parameter respected,
   falling back to the Expires header if set."
-       [url]
+       [options url]
        (let [^URL url (if (instance? URL url) url (URL. url))
              host (if (= "" (.getHost url)) "nohost" (.getHost url))
              url-as-filename (str host "_" (hash (str url)))
-             cache (io/file (str *cache-path* File/separator "urlcache")
+             cache-loc (or (:location (:cache options)) "")
+             ; If we have no cache-loc, make it the current directory
+             cache-loc (if (empty? cache-loc)
+			 *default-cache-loc*
+			 ; If the cache-loc includes a ".", then treat it
+			 ; as a Java system property, else an environment 
+			 ; variable.
+                         (if (clojure.string/includes? cache-loc ".")
+                           (System/getProperty cache-loc)
+                           (System/getenv cache-loc)))
+             ; Default cache-dir to .zprint
+             cache-dir (or (:directory (:cache options)) *default-cache-dir*)
+             cache-path (str cache-loc File/separator cache-dir)
+             ; Default urldir to "urlcache"
+             urldir (or (:cache-dir (:url options)) *default-url-cache*)
+             cache-secs (or (:cache-secs (:url options))
+                            *default-url-cache-secs*)
+             cache (io/file (str cache-path File/separator urldir)
                             url-as-filename)
              cache-item (if (and (.exists cache) (not (zero? (.length cache))))
                           (try (-> (slurp cache)
@@ -133,6 +164,15 @@
              active-cache? (and cache-item
                                 (> (:expires cache-item)
                                    (System/currentTimeMillis)))]
+	 (println "cache items:"
+	   "\ncache-loc:" cache-loc
+	   "\ncache-dir:" cache-dir
+	   "\ncache-path:" cache-path
+	   "\nurl-dir:" urldir
+	   "\ncache-secs:" cache-secs
+	   "\ncache:" cache
+	   "\ncache-items:" cache-item
+	   "\nactive-cache?:" active-cache?)
          (if active-cache?
            ;1> cached, non expired version of url used
            (set-options! (:options cache-item))
@@ -153,26 +193,24 @@
                              (run [this]
                                (try
                                  (io/make-parents cache)
-                                 (let
-                                   [cc (.getHeaderField remote-conn
-                                                        "Cache-Control")
-                                    [_ max-age]
-                                      (if cc
-                                        (re-matches
-                                          #"(?i).*?max-age\s*=\s*(\d+)"
-                                          cc))
-                                    cache-expiry
-                                      (if max-age
-                                        (+ (System/currentTimeMillis)
-                                           (* 1000 (Long/parseLong max-age)))
-                                        (let [expires (.getExpiration
-                                                        remote-conn)]
-                                          (if (and expires
-                                                   (not (zero? expires)))
-                                            expires
-                                            (+ (System/currentTimeMillis)
-                                               (* 1000
-                                                  *default-url-cache-secs*)))))]
+                                 (let [cc (.getHeaderField remote-conn
+                                                           "Cache-Control")
+                                       [_ max-age]
+                                         (if cc
+                                           (re-matches
+                                             #"(?i).*?max-age\s*=\s*(\d+)"
+                                             cc))
+                                       cache-expiry
+                                         (if max-age
+                                           (+ (System/currentTimeMillis)
+                                              (* 1000 (Long/parseLong max-age)))
+                                           (let [expires (.getExpiration
+                                                           remote-conn)]
+                                             (if (and expires
+                                                      (not (zero? expires)))
+                                               expires
+                                               (+ (System/currentTimeMillis)
+                                                  (* 1000 cache-secs)))))]
                                    (spit cache
                                          (print-str {:expires cache-expiry,
                                                      :options remote-opts})))
@@ -197,10 +235,9 @@
                        url
                        (.getMessage e))))
                  (throw ;5> no cache, failed remote
-                        (Exception.
-                          (format "ERROR: retrieving config from %s: %s"
-                                  url
-                                  (.getMessage e)))))))))))
+                   (Exception. (format "ERROR: retrieving config from %s: %s"
+                                       url
+                                       (.getMessage e)))))))))))
 
 (defn configure-all!
   "Do external configuration regardless of whether or not it already

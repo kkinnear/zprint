@@ -10,7 +10,6 @@
   :profiles {:dev {:dependencies [#_[expectations "2.2.0-rc1"]
                                   #_[expectations "2.2.0-rc3"]
                                   [expectations "2.1.10"]
-                                  #_[expectations "2.1.0"]
                                   [com.taoensso/tufte "1.1.1"]
                                   #_[org.clojure/clojurescript "1.9.946"]
                                   ;[rum "0.10.8"];

@@ -2656,7 +2656,7 @@ then format the altered list.
 General caveats -- you can really screw things up very easily, as I'm sure
 is obvious.  Less obvious is the relative difficulty of actually writing a
 function to rewrite the code.  Implementing this feature was very easy,
-writng the first example, the style `:sort-dependencies` was a significant
+writing the first example, the style `:sort-dependencies` was a significant
 piece of work.  It is hard to rewrite code using rewrite-clj (not that
 I have a better approach), it is hard to debug, the Clojure and Clojurescript
 implementations of rewrite-clj are very slightly different.

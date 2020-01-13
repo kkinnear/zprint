@@ -102,6 +102,7 @@
 
 (s/def ::binding? ::boolean)
 (s/def ::cache-dir (s/nilable string?))
+(s/def ::cache-path (s/nilable string?))  ; debugging only
 (s/def ::cache-secs ::nilable-number)
 (s/def ::comma? ::boolean)
 (s/def ::constant-pair? ::boolean)
@@ -288,7 +289,7 @@
                       ::wrap? ::indent-only?]))
 (s/def ::version string?)
 (s/def ::width number?)
-(s/def ::url (only-keys :opt-un [::cache-dir ::cache-secs]))
+(s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))
 (s/def ::zipper? ::boolean)
 
 ;;

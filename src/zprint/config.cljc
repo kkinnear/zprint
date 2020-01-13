@@ -52,7 +52,7 @@
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] :tuning
-   :perf-vs-format])
+   :perf-vs-format [:url :cache-path]])
 
 ;;
 ;; ## Function style database

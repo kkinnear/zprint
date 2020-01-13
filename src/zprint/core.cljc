@@ -143,10 +143,10 @@
              cache-loc (or (:location (:cache options)) "")
              ; If we have no cache-loc, make it the current directory
              cache-loc (if (empty? cache-loc)
-			 *default-cache-loc*
-			 ; If the cache-loc includes a ".", then treat it
-			 ; as a Java system property, else an environment 
-			 ; variable.
+                         *default-cache-loc*
+                         ; If the cache-loc includes a ".", then treat it
+                         ; as a Java system property, else an environment
+                         ; variable.
                          (if (clojure.string/includes? cache-loc ".")
                            (System/getProperty cache-loc)
                            (System/getenv cache-loc)))
@@ -157,8 +157,10 @@
              urldir (or (:cache-dir (:url options)) *default-url-cache*)
              cache-secs (or (:cache-secs (:url options))
                             *default-url-cache-secs*)
-             cache (io/file (str cache-path File/separator urldir)
-                            url-as-filename)
+             cache (if (:cache-path (:url options))
+                     (io/file (:cache-path (:url options)))
+                     (io/file (str cache-path File/separator urldir)
+                              url-as-filename))
              cache-item (if (and (.exists cache) (not (zero? (.length cache))))
                           (try (-> (slurp cache)
                                    (clojure.edn/read-string))
@@ -166,16 +168,16 @@
              active-cache? (and cache-item
                                 (> (:expires cache-item)
                                    (System/currentTimeMillis)))]
-	 #_(prn "cache items:"
-	   "\noptions:" options
-	   "\ncache-loc:" cache-loc
-	   "\ncache-dir:" cache-dir
-	   "\ncache-path:" cache-path
-	   "\nurl-dir:" urldir
-	   "\ncache-secs:" cache-secs
-	   "\ncache:" cache
-	   "\ncache-items:" cache-item
-	   "\nactive-cache?:" active-cache?)
+         #_(prn "cache items:"
+                "\noptions:" options
+                "\ncache-loc:" cache-loc
+                "\ncache-dir:" cache-dir
+                "\ncache-path:" cache-path
+                "\nurl-dir:" urldir
+                "\ncache-secs:" cache-secs
+                "\ncache:" cache
+                "\ncache-items:" cache-item
+                "\nactive-cache?:" active-cache?)
          (if active-cache?
            ;1> cached, non expired version of url used
            (set-options! (:options cache-item))
@@ -216,7 +218,7 @@
                                                   (* 1000 cache-secs)))))]
                                    (spit cache
                                          (pr-str {:expires cache-expiry,
-                                                     :options remote-opts})))
+                                                  :options remote-opts})))
                                  (catch Exception e
                                    (.println System/err
                                              (format

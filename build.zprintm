@@ -2,4 +2,4 @@
 export PATH=$PATH:$1/Contents/Home/bin
 export JAVA_HOME=$1/Contents/Home
 native-image --version
-native-image --no-server -jar $2 -H:Name="$3" --report-unsupported-elements-at-runtime --initialize-at-build-time --no-fallback
+native-image --no-server -jar $2 -H:Name="$3" -H:EnableURLProtocols=https,http -H:+ReportExceptionStackTraces --report-unsupported-elements-at-runtime --initialize-at-build-time --no-fallback

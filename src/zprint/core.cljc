@@ -106,6 +106,8 @@
   configured from ~/.zprintrc when zprint is first used.  set-options! 
   is used to alter the internal options-map by specifying individual
   options-map values that will be merged into the internal options-map."
+  ([new-options doc-str op-options] 
+   (do (config-set-options! new-options doc-str op-options) nil))
   ([new-options doc-str] (do (config-set-options! new-options doc-str) nil))
   ([new-options] (do (config-set-options! new-options) nil)))
 
@@ -164,7 +166,8 @@
              active-cache? (and cache-item
                                 (> (:expires cache-item)
                                    (System/currentTimeMillis)))]
-	 (println "cache items:"
+	 #_(prn "cache items:"
+	   "\noptions:" options
 	   "\ncache-loc:" cache-loc
 	   "\ncache-dir:" cache-dir
 	   "\ncache-path:" cache-path
@@ -212,7 +215,7 @@
                                                (+ (System/currentTimeMillis)
                                                   (* 1000 cache-secs)))))]
                                    (spit cache
-                                         (print-str {:expires cache-expiry,
+                                         (pr-str {:expires cache-expiry,
                                                      :options remote-opts})))
                                  (catch Exception e
                                    (.println System/err

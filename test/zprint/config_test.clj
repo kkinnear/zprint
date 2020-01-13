@@ -285,7 +285,7 @@
           (.delete cache-file)
           (spit options-file (print-str {:max-depth 1}))
           (redef-state [zprint.config]
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (.delete cache-file)
                        (get-options))))
 
@@ -301,7 +301,7 @@
           (spit options-file (print-str {:max-depth 2}))
           (redef-state [zprint.config]
                        (set-options! {:max-length 22})
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (.delete cache-file)
                        (get-options))))
 
@@ -314,11 +314,11 @@
           (.delete cache-file)
           (spit options-file (print-str {:max-depth 3}))
           (redef-state [zprint.config]
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (while (not (.exists cache-file))    ;default 5 min cache created async in ms
                          (Thread/sleep 10))
                        (spit options-file (print-str {:max-depth 33})) ;unused remote
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (.delete cache-file)
                        (get-options))))
 
@@ -331,12 +331,12 @@
           (.delete cache-file)
           (spit options-file (print-str {:max-depth 4}))
           (redef-state [zprint.config]
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (while (not (.exists cache-file))
                          (Thread/sleep 10))
                        (spit cache-file (print-str {:expires 0 :options {:max-depth 4}})) ;expire cache
                        (spit options-file (print-str {:max-depth 44})) ;used remote
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (.delete cache-file)
                        (get-options))))
 
@@ -350,14 +350,14 @@
           (spit options-file (print-str {:max-depth 5}))
           (redef-state [zprint.config]
                        (spit cache-file "{bad-cache")       ;corrupt edn
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (.delete cache-file)
                        (get-options))))
 
 ; Bad url, no cache
 (expect Exception
         (redef-state [zprint.config]
-                     (load-options! "http://b.a.d.u.r.l")
+                     (load-options! nil "http://b.a.d.u.r.l")
                      (get-options)))
 
 ; Write url, bad content, no cache
@@ -365,7 +365,7 @@
         (let [options-file (File/createTempFile "url-bad-content" "1")]
           (spit options-file "{bad-content")
           (redef-state [zprint.config]
-                       (load-options! (.toURL options-file)))))
+                       (load-options! nil (.toURL options-file)))))
 
 ; Bad url, but cache
 (expect (more-of options
@@ -376,11 +376,11 @@
           (.delete cache-file)
           (spit options-file (print-str {:max-depth 6}))
           (redef-state [zprint.config]
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (while (not (.exists cache-file))
                          (Thread/sleep 10))
                        (.delete options-file)               ;break url
-                       (load-options! (.toURL options-file))
+                       (load-options! nil (.toURL options-file))
                        (.delete cache-file)
                        (get-options))))
 
@@ -394,7 +394,7 @@
           (redef-state [zprint.config]
                        (spit cache-file (print-str {:expires 0 :options {:max-depth 7}})) ;expire cache
                        (.delete options-file)               ;break url
-                       (try (load-options! (.toURL options-file))
+                       (try (load-options! nil  (.toURL options-file))
                             (finally (.delete cache-file)))
                        (get-options))))
 
@@ -423,10 +423,10 @@
           (let [cache-file (io/file url-cache-path (str "0.0.0.0_" (hash url)))]
             (.delete cache-file)
             (redef-state [zprint.config]
-                         (load-options! url)
+                         (load-options! nil url)
                          (let [cache1 (-> cache-file slurp edn/read-string)]
                            (.delete cache-file)
-                           (load-options! url)
+                           (load-options! nil url)
                            (let [cache2 (-> cache-file slurp edn/read-string)]
                              (.stop http-server 0)
                              (.delete cache-file)

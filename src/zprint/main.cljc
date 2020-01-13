@@ -1,7 +1,7 @@
 (ns ^:no-doc zprint.main
   (:require ;[clojure.string :as str]
     [zprint.core :refer [zprint-str czprint zprint-file-str set-options! load-options!]]
-    [zprint.config :refer [get-options get-explained-options config-and-validate-all select-op-options]])
+    [zprint.config :refer [get-options get-explained-options config-and-validate-all select-op-options vec-str-to-str merge-deep]])
   #?(:clj (:gen-class)))
 
 ;;
@@ -13,12 +13,6 @@
 ;;
 
 ;!zprint {:vector {:wrap? false}}
-
-(defn vec-str-to-str
-  "Take a vector of strings and concatenate them into one string with
-  newlines between them."
-  [vec-str]
-  (apply str (interpose "\n" vec-str)))
 
 (def main-help-str
   (vec-str-to-str
@@ -139,23 +133,30 @@
                           "' because: "
                           e
                           ".") {}]))))
-            ; Get operational-options (op-options), merging in any that
-            ; were on the command line
+            ; Get all of the operational-options (op-options),
+            ; merging in any that were on the command line
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
-              (println "pre config-and-validate-all"
-                       "\noption-status:" option-status
-                       "\nexit-status:" exit-status
-                       "\noption-stderr:" option-stderr
-                       "\nop-options:" op-options)
+              #_(println "pre config-and-validate-all"
+                         "\noption-status:" option-status
+                         "\nexit-status:" exit-status
+                         "\noption-stderr:" option-stderr
+                         "\nop-options:" op-options)
               (if (= option-status :complete)
                 running-status
                 (let [[new-map doc-map errors]
-                        (config-and-validate-all op-options nil)]
-		  (println "post config-and-validate-all"
-		    "\nnew-map selections:" (select-op-options new-map)
-		    "\ncolor:" (:color? (get-options))
-		    "\nerrors:" errors)
+                        (config-and-validate-all nil nil op-options)
+                      #_(println "post config-and-validate-all"
+                                 "\nnew-map selections:" (select-op-options
+                                                           new-map)
+                                 "\ncolor:" (:color? (get-options))
+                                 "\nerrors:" errors)
+                      new-map (select-op-options (merge-deep new-map
+                                                             op-options))]
+                  #_(println "post merge"
+                             "\new-map:" new-map
+                             "\ncolor:" (:color? (get-options))
+                             "\nerrors:" errors)
                   (if errors
                     [:complete 1 errors nil]
                     [:incomplete 0 nil (select-op-options new-map)]))))
@@ -178,7 +179,7 @@
                 running-status
                 (if url-only?
                   #?(:clj (try (set-options! {:configured? true})
-		               (load-options!  op-options (second args))
+                               (load-options! op-options (second args))
                                [:complete 0 nil op-options]
                                (catch Exception e
                                  [:complete 1 (str e) op-options]))
@@ -187,11 +188,11 @@
             ; if --default or --standard just use what we have, nothing else
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
-              (println "a....."
-                       "\noption-status:" option-status
-                       "\nexit-status:" exit-status
-                       "\noption-stderr:" option-stderr
-                       "\nop-options:" op-options)
+              #_(println "a....."
+                         "\noption-status:" option-status
+                         "\nexit-status:" exit-status
+                         "\noption-stderr:" option-stderr
+                         "\nop-options:" op-options)
               (if (= option-status :complete)
                 running-status
                 (if (or default? standard?)
@@ -206,14 +207,16 @@
             ; at this point and we would be complete by now.
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
-              (println "b..."
-                       "\noption-status:" option-status
-                       "\nexit-status:" exit-status
-                       "\noption-stderr:" option-stderr
-                       "\nop-options:" op-options)
+              #_(println "b..."
+                         "\noption-status:" option-status
+                         "\nexit-status:" exit-status
+                         "\noption-stderr:" option-stderr
+                         "\nop-options:" op-options)
               (if (or (= option-status :complete) (empty? options))
                 running-status
-                (try (set-options! (read-string options))
+                (try (set-options! (read-string options)
+                                   "command-line options"
+                                   op-options)
                      [:complete 0 nil op-options]
                      (catch Exception e
                        [:complete 1
@@ -221,17 +224,21 @@
                              options
                              "' because: "
                              e
-                             ".") {}])))))]
+                             ".") {}]))))
+            ; We could nitialize using the op-options if we haven't done
+            ; so already, but if we didn't have any command line options, then
+            ; there are no op-options that matter.
+            )]
     ; If option-stderr has something in it, we have either had some
     ; kind of a problem or we have processed the switch and it has
     ; output.  In either case, if option-stderr is non-nil we need
     ; to exit, and the exit status will be used.  Conversely, if
     ; option-stderr is nil, the exit status has no meaning.
-    (println "c ..."
-             "\noption-status:" option-status
-             "\nexit-status:" exit-status
-             "\noption-stderr:" option-stderr
-             "\nop-options:" op-options)
+    #_(println "c ..."
+               "\noption-status:" option-status
+               "\nexit-status:" exit-status
+               "\noption-stderr:" option-stderr
+               "\nop-options:" op-options)
     (if option-stderr
       (do (let [^java.io.Writer w (clojure.java.io/writer *err*)]
             (.write w (str option-stderr "\n"))
@@ -276,107 +283,3 @@
         (shutdown-agents)
         (System/exit format-status)))))
 
-(defn -main-old
-  "Read a file from stdin, format it, and write it to sdtout.  
-  Process as fast as we can using :parallel?"
-  [& args]
-  ; Turn off multi-zprint locking since graalvm can't handle it, and
-  ; we only do one zprint at a time here in the uberjar.
-  (zprint.redef/remove-locking)
-  (let [options (first args)
-        ; Some people wanted a zprint that didn't take configuration.
-        ; If you say "--default" or "-d", that is what you get.
-        ; --default or -s means that you get no configuration read from
-        ; $HOME/.zprintrc or anywhere else.  You get the defaults.
-        ;
-        ; Basic support for "-s" or "--standard" is baked in, but
-        ; not turned on.
-        version? (or (= options "--version") (= options "-v"))
-        help? (or (= options "--help") (= options "-h"))
-        explain? (or (= options "--explain") (= options "-e"))
-        format? (not (or version? help? explain?))
-        default? (or (= options "--default") (= options "-d"))
-        standard? (or (= options "--standard") (= options "-s"))
-        url? #?(:clj (or (= options "--url") (= options "-u"))
-                :default nil)
-        [option-status option-stderr switch?]
-          (if (and (not (clojure.string/blank? options))
-                   (clojure.string/starts-with? options "-"))
-            ; standard not yet implemented
-            (cond
-              (or version? help? default? #_standard? explain?) [0 nil true]
-              url? #?(:clj (try (load-options! (second args))
-                                [0 nil false]
-                                (catch Exception e [1 (str e) false]))
-                      :default nil)
-              :else
-                [1 (str "Unrecognized switch: '" options "'" "\n" main-help-str)
-                 true])
-            [0 nil false])
-        _ (cond default? (set-options! {:configured? true, :parallel? true})
-                standard?
-                  (set-options!
-                    {:configured? true, #_:style, #_:standard, :parallel? true})
-                :else (set-options! {:parallel? true}))
-        [option-status option-stderr]
-          (if (and (not switch?)
-                   (not url?)
-                   format?
-                   options
-                   (not (clojure.string/blank? options)))
-            (try [0 (set-options! (read-string options))]
-                 (catch Exception e
-                   [1
-                    (str "Failed to use command line options: '"
-                         options
-                         "' because: "
-                         e
-                         ".")]))
-            [option-status option-stderr])
-        in-str (when (and (= option-status 0) format?) (slurp *in*))
-        [format-status stdout-str format-stderr]
-          (if (and (= option-status 0) format?)
-            (try [0 (zprint-file-str in-str "<stdin>") nil]
-                 (catch Exception e [1 in-str (str "Failed to zprint: " e)]))
-            [0 nil])
-        option-stderr (cond version? (:version (get-options))
-                            help? main-help-str
-                            explain? (zprint-str (get-explained-options))
-                            :else option-stderr)
-        exit-status (+ option-status format-status)
-        stderr-str (cond (and option-stderr format-stderr)
-                           (str option-stderr ", " format-stderr)
-                         (not (or option-stderr format-stderr)) nil
-                         :else (str option-stderr format-stderr))]
-    ;
-    ; We used to do this: (spit *out* fmt-str) and it worked fine
-    ; in the uberjar, presumably because the JVM eats any errors on
-    ; close when it is exiting.  But when using clj, spit will close
-    ; stdout, and when clj closes stdout there is an error and it will
-    ; bubble up to the top level.
-    ;
-    ; Now, we write and flush explicitly, sidestepping that particular
-    ; problem. In part because there are plenty of folks that say that
-    ; closing stdout is a bad idea.
-    ;
-    ; Getting this to work with graalvm was a pain.  In particular,
-    ; w/out the (str ...) around fmt-str, graalvm would error out
-    ; with an "unable to find a write function" error.  You could
-    ; get around this by offering graalvm a reflectconfig file, but
-    ; that is just one more file that someone needs to have to be
-    ; able to make this work.  You could also get around this (probably)
-    ; by type hinting fmt-str, though I didn't try that.
-    ;
-    ; Write whatever is supposed to go to stdout
-    (let [^java.io.Writer w (clojure.java.io/writer *out*)]
-      (.write w (str stdout-str))
-      (.flush w))
-    ; Write whatever is supposed to go to stderr, if any
-    (when stderr-str
-      (let [^java.io.Writer w (clojure.java.io/writer *err*)]
-        (.write w (str stderr-str "\n"))
-        (.flush w)))
-    ; Since we did :parallel? we need to shut down the pmap threadpool
-    ; so the process will end!
-    (shutdown-agents)
-    (System/exit exit-status)))

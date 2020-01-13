@@ -1,0 +1,437 @@
+if [[ -z "$1" ]]
+  then
+    echo "Must have a first parameter with the version (e.g. 0.5.4) not in quotes!"
+    exit 1
+  fi
+
+command="java -jar target/zprint-filter-$1"
+if [[ $2 != "uberjar" ]]
+  then
+    command="./zprintm-$1"
+    if [[ $2 != "graalvm-mac" ]]
+      then
+	command="./zprintl-$1"
+	if [[ $2 != "graalvm-linux" ]]
+	  then
+	    echo "Second argument must be uberjar or graalvm-mac or graalvm-linux!"
+	    exit 1
+	fi
+    fi
+fi
+
+
+
+#
+# Output something to format
+#
+# These will be cleaned up later
+#
+
+echo "{:this :is :a :test :this :is :only :a :test :foo :bar :baz}" > test_config.map.clj
+echo "\"Hello World!\"" > test_config.string.clj
+
+#
+# Save ~/.zprintrc and ./.zprintrc
+#
+
+
+if [[ -f "$HOME/.zprintrc" ]]
+  then
+    echo "Saving ~/.zprintrc"
+    mv ~/.zprintrc ~/.zprintrc.save
+fi
+
+if [[ -f "./.zprintrc" ]]
+  then
+    echo "Saving ./.zprintrc"
+    mv ./.zprintrc ./.zprintrc.save
+fi
+
+#
+# Create new, narrow, ~/.zprintrc
+# and color local ./.zprintrc
+#
+
+echo "{:width 40 :url {:cache-dir \"configurldir\" :cache-secs 9}}" > ~/.zprintrc
+echo "{:color? true}" > ./.zprintrc
+
+# Make a test config file
+
+echo "{:color? true}" > test_config.edn
+
+# Remove any previously cached url
+
+rm -rf ~/.zprint/configurldir
+
+###############################
+# 
+# Start of Tests
+#
+
+#
+# Set up for testing --url and --url-only
+#
+
+# Start a web-server
+
+python -m SimpleHTTPServer 8081  >/dev/null 2&>1 &
+
+# Let it come up
+
+sleep 5
+
+#
+# Try --url
+#
+# It should do the map in 6 lines in color.  
+#  6 lines from ~/.zprintrc width 40
+#  color from config_test.edn
+#  197 means 6 lines in color
+#   71 means 6 lines w/out color
+#  192 means 1 line w/color
+#
+
+
+echo "...........  --url"
+
+output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "197" ]]
+  then
+    echo "--url test failed to have correct count of chars, should be 197, was: $output_length"
+    $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+#
+# Remove file that is the target of --url, see if cache works
+#
+
+rm -rf test_config.edn
+
+echo "...........  --url, with URL missing, see if cache works"
+
+output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "197" ]]
+  then
+    echo "--url test failed to have correct count of chars, should be 197, was: $output_length"
+    $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+sleep 10
+
+echo "...........  --url, with URL missing, see if expired cache works"
+
+output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "323" ]]
+  then
+    echo "--url test failed to have correct count of chars, should be 323, was: $output_length"
+    $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+rm -rf ~/.zprint/configurldir
+
+echo "...........  --url, with URL missing, and no cache"
+
+output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep ERROR | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "128" ]]
+  then
+    echo "--url test failed to have correct count of chars, should be 128, was: $output_length"
+    $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+#
+# The URL is there, but not a valid Clojure map
+#
+
+# Make a test config file that is not a Clojure map
+
+echo "{:color? true" > test_config.edn
+
+echo "...........  --url, with URL not a valid Clojure map, and no cache"
+
+output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep ERROR | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "108" ]]
+  then
+    echo "--url test failed to have correct count of chars, should be 108, was: $output_length"
+    $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+#
+# Valid Clojure map, but not valid zprint options map
+#
+
+echo "{:colorx? true}" > test_config.edn
+
+echo "...........  --url, with URL not a valid zprint options map, and no cache"
+
+output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep ERROR | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "246" ]]
+  then
+    echo "--url test failed to have correct count of chars, should be 246, was: $output_length"
+    $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+#
+# Fix URL file
+#
+
+echo "{:color? true}" > test_config.edn
+
+echo "...........  --url-only, with valid URL and no cache"
+
+output_length=`$command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | wc -c`
+output_lines=`$command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+output_lines=`echo "${output_lines}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+#echo "lines is $output_lines"
+if [[ $output_length != "192" ]]
+  then
+    echo "--url test failed to have correct count of chars, should be 192, was: $output_length"
+    $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+if [[ $output_lines != "1" ]]
+  then
+    echo "--url test failed to have correct count of lines, should be 1, was: $output_lines"
+    $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+
+#
+# End of URL tests, kill webserver
+#
+
+{ kill %1 && wait %1; } 2>/dev/null
+sleep 2
+
+
+#
+# Try basic config and see if that works.
+#
+
+echo "...........  basic config test."
+
+output_length=`$command <test_config.string.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "15" ]]
+  then
+    echo "basic config test failed to have correct count of chars, should be 15, was: $output_length"
+    $command <test_config.string.clj 
+
+fi
+
+
+# Make a local .zprintrc
+
+echo "{:color? true}" > .zprintrc
+
+#
+# See if we can get {:cwd-zprintrc? true} to be recognized on the command line
+#
+
+echo "...........  {:cwd-zprintrc? true} on command line test"
+
+output_length=`$command '{:cwd-zprintrc? true}' <test_config.string.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "24" ]]
+  then
+    echo "{:cwd-zprintrc? true} test failed to have correct count of chars, should be 24, was: $output_length"
+    $command '{:cwd-zprintrc? true}' <test_config.string.clj 
+
+fi
+
+#
+# See if we can get {:search-config? true} to be recognized on the command line
+#
+
+echo "...........  {:search-config? true} on command line test"
+
+output_length=`$command '{:search-config? true}' <test_config.string.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "24" ]]
+  then
+    echo "{:search-config? true} test failed to have correct count of chars, should be 24, was: $output_length"
+    $command '{:search-config? true}' <test_config.string.clj 
+
+fi
+
+#
+# Is ~/.zprintrc being used at all?
+#
+
+echo "...........  ~/.zprintrc being used test"
+
+output_length=`$command <test_config.map.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "71" ]]
+  then
+    echo "~/.zprintrc being used test failed to have correct count of chars, should be 71, was: $output_length"
+    $command <test_config.map.clj 
+
+fi
+
+#
+# ~/.zprintrc should not be used now, since this is -d
+#
+
+echo "...........  -d test -- ~/.zprintrc should not be used"
+
+output_length=`$command -d <test_config.map.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "66" ]]
+  then
+    echo "-d test -- ~/.zprintrc should not be used test failed to have correct count of chars, should be 66, was: $output_length"
+    $command -d <test_config.map.clj 
+
+fi
+
+
+#
+# Try bad basic ~/.zprintrc
+#
+#  This is not a valid Clojure map (missing last '}'")
+#
+
+echo "{:width 40 :url {:cache-dir \"configurldir\" :cache-secs 9}" > ~/.zprintrc
+
+echo "...........  bad ~/.zprintrc, invalid Clojure map test"
+
+output_length=`$command <test_config.string.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "119" ]]
+  then
+    echo "bad ~/.zprintrc (invalid Clojure map) test failed to have correct count of chars, should be 119, was: $output_length"
+    $command <test_config.string.clj 
+
+fi
+
+#
+# Try another bad basic ~/.zprintrc
+#
+#  This is a valid Clojure map, but not a valid zprint options map
+#
+
+echo "{:widthxxx 40 :url {:cache-dir \"configurldir\" :cache-secs 9}}" > ~/.zprintrc
+
+echo "...........  invalid zprint options map in ~/.zprintrc"
+
+output_length=`$command <test_config.string.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "130" ]]
+  then
+    echo "invalid zprint options map in ~/.zprintrc test failed to have correct count of chars, should be 130, was: $output_length"
+    $command <test_config.string.clj 
+
+fi
+
+
+#
+# Put back a reasonable ~/.zprintrc
+#
+
+echo "{:width 40 :url {:cache-dir \"configurldir\" :cache-secs 9}}" > ~/.zprintrc
+
+
+#
+# Test -v switch (version output)
+#
+
+echo "...........  -v test"
+
+zprint_version=`$command -v 2>&1 >/dev/null`
+if [[ $zprint_version != "zprint-$1" ]]
+  then
+    echo "-v test failed to have correct version, should be zprint-$1, was: $zprint-version"
+    $command -v
+fi
+
+#
+# Test -h switch (help output)
+#
+#   Of course, it needs to be fixed when we change the help output
+#
+
+echo "...........  -h test"
+
+output_length=`$command -h 2>&1 >/dev/null | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "31" ]]
+  then
+    echo "-h test failed to have correct count of chars, should be 31, was: $output-length"
+    $command -h
+fi
+
+#
+# Test -e switch (explain output)
+#
+#   Of course, it needs to be fixed when we change the config options map
+#
+
+echo "...........  -e test"
+
+output_length=`$command -e 2>&1 >/dev/null | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "381" ]]
+  then
+    echo "-e test failed to have correct count of lines, should be 381, was: $output_length"
+    $command -e
+fi
+
+#
+# Clean up
+#
+
+rm -rf test_config.edn
+rm -rf test_config.map.clj
+rm -rf test_config.string.clj
+
+#
+# Restore ~/.zprintrc if we saved one
+#
+
+rm -rf ~/.zprintrc
+if [[  -e "$HOME/.zprintrc.save" ]]
+  then
+    echo "Restoring ~/.zprintrc"
+    mv ~/.zprintrc.save ~/.zprintrc
+fi
+
+#
+# Restore ./.zprintrc if we saved one
+#
+
+rm -rf ./.zprintrc
+if [[  -e "./.zprintrc.save" ]]
+  then
+    echo "Restoring ./.zprintrc"
+    mv ./.zprintrc.save ./.zprintrc
+fi

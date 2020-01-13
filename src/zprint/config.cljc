@@ -957,38 +957,42 @@
   "Do external configuration regardless of whether or not it has
   already been done, replacing any internal configuration.  Returns
   nil if successful, a vector of errors if not. "
-  []
-  ; Any config changes prior to this will be lost, as
-  ; config-and-validate-all works from the default options!
-  (let [[zprint-options doc-map errors] (config-and-validate-all nil nil)]
-    (if errors
-      errors
-      (do (reset-options! zprint-options doc-map)
-          (config-set-options! {:configured? true} "internal")
-          ; If we are running in a repl, then turn on :parallel?
-          ; the first time we run
-          (when (is-in-repl?)
-            (internal-set-options! "REPL execution default"
-                                   (get-explained-all-options)
-                                   (get-options)
-                                   {:parallel? true}))
-          nil))))
+  ([op-options]
+   ; Any config changes prior to this will be lost, as
+   ; config-and-validate-all works from the default options!
+   (let [[zprint-options doc-map errors]
+           (config-and-validate-all nil nil op-options)]
+     (if errors
+       errors
+       (do (reset-options! zprint-options doc-map)
+           (config-set-options! {:configured? true} "internal")
+           ; If we are running in a repl,
+           ; then turn on :parallel?
+           ; the first time we run
+           (when (is-in-repl?)
+             (internal-set-options! "REPL execution default"
+                                    (get-explained-all-options)
+                                    (get-options)
+                                    {:parallel? true}))
+           nil))))
+  ([] (config-configure-all! nil)))
 
 (defn config-set-options!
   "Add some options to the current options, checking to make
   sure that they are correct."
-  ([new-options doc-str]
+  ([new-options doc-str op-options]
    ; avoid infinite recursion, while still getting the doc-map updated
    (when (and (not (:configured? (get-options)))
               (not (:configured? new-options)))
-     (config-configure-all!))
+     (config-configure-all! op-options))
    (internal-set-options! doc-str
                           (get-explained-all-options)
                           (get-options)
                           new-options))
   ([new-options]
    (config-set-options! new-options
-                        (str "repl or api call " (inc-explained-sequence)))))
+                        (str "repl or api call " (inc-explained-sequence))))
+  ([new-options doc-str] (config-set-options! new-options doc-str nil)))
 
 ;;
 ;; # Options Validation Functions
@@ -1164,25 +1168,35 @@
 
 ;; Remove two files from this, make it one file at a time.`
 ;; Do the whole file here.
+
 (defn get-config-from-file
   "Read in an options map from one file or another file. Possibly neither of
-  them exist, which is fine if optional? is truthy."
+  them exist, which is fine if optional? is truthy. Return
+  [options-from-file error-string full-path-of-file].  It is acceptable to
+  not have a file if optional? is truthy, but if the file exists, then 
+  regardless of optional?, errors are detected and reported."
   ([filename optional?]
-   #?(:clj (when filename
-             (let [filestr (str filename)
-                   the-file (java.io.File. filestr)
-                   full-path (.getCanonicalPath the-file)]
-               #_(println "get-config-from-file: filename:" filename
-                          "full-path:" full-path)
-               (try (let [lines (file-line-seq-file filename)
-                          opts-file (clojure.edn/read-string (apply str lines))]
-                      [opts-file nil full-path])
-                    (catch Exception e
-                      (if optional?
-                        nil
-                        [nil
-                         (str "Unable to read configuration from file " filename
-                              " because " e) full-path])))))
+   #?(:clj
+        (when filename
+          (let [filestr (str filename)
+                the-file (java.io.File. filestr)
+                full-path (.getCanonicalPath the-file)
+                #_(println "get-config-from-file: filename:" filename
+                           "full-path:" full-path)
+                [lines file-error]
+                  (try (let [lines (file-line-seq-file filename)] [lines nil])
+                       (catch Exception e
+                         [nil
+                          (str "Unable to open configuration file " full-path
+                               " because " e)]))]
+            (if file-error
+              (if optional? nil [nil file-error full-path])
+              (try (let [opts-file (clojure.edn/read-string (apply str lines))]
+                     [opts-file nil full-path])
+                   (catch Exception e
+                     [nil
+                      (str "Unable to read configuration from file " full-path
+                           " because " e) full-path])))))
       :cljs nil))
   ([filename] (get-config-from-file filename nil)))
 
@@ -1338,14 +1352,24 @@
 (defn config-and-validate-all
   "Take the opts and errors from the command line arguments, if any,
   and do the rest of the configuration and validation along the way.  
-  If there are no command line arguments, that's ok too. Since we
-  took the main.clj out, there aren't going to be any soon.  Left
-  the config map, config file, and cli processing in place in case
+  op-options are options that control where to look for information.
+  Left the config map, config file, and cli processing in place in case
   we go replace the uberjar capability soon.  
   Returns [new-map doc-map errors]"
-  [cli-opts cli-errors]
+  [cli-opts cli-errors op-options]
+  #_(println "config-and-validate-all!")
   (let [default-map (get-default-options)
         default-doc-map (get-default-explained-all-options)
+        ;
+        ; Validate op-options
+        ;
+        [op-options _ op-option-errors] (config-and-validate
+                                            "Operational options"
+                                            default-doc-map
+                                            default-map
+                                            op-options)
+        op-options (select-op-options op-options)
+	#_(println "op-options:" op-options)
         ;
         ; $HOME/.zprintrc
         ;
@@ -1369,7 +1393,9 @@
         ; as we got above for the HOME config, ignore it.
         ;
         [search-rcfile search-errors-rcfile search-filename :as search-config]
-          (when (and (:search-config? updated-map) file-separator)
+          (when (and (or (:search-config? updated-map)
+                         (:search-config? op-options))
+                     file-separator)
             (scan-up-dir-tree [zprintrc zprintedn] file-separator))
         [search-rcfile search-errors-rcfile search-filename]
           (when (not= home-config search-config)
@@ -1387,7 +1413,8 @@
         ;
         [cwd-rcfile cwd-errors-rcfile cwd-filename]
           (when (and (not (:search-config? updated-map))
-                     (:cwd-zprintrc? search-map)
+                     (or (:cwd-zprintrc? search-map)
+                         (:cwd-zprintrc? op-options))
                      file-separator)
             (get-config-from-path [zprintrc zprintedn] file-separator ["."]))
         [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
@@ -1470,7 +1497,8 @@
                                prop-errors
                                errors-configfile
                                config-errors
-                               cli-errors))))
+                               cli-errors
+                               op-option-errors))))
         all-errors (if (empty? all-errors) nil all-errors)]
     [updated-map new-doc-map all-errors]))
 

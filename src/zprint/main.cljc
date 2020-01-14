@@ -1,7 +1,10 @@
 (ns ^:no-doc zprint.main
   (:require ;[clojure.string :as str]
-    [zprint.core :refer [zprint-str czprint zprint-file-str set-options! load-options!]]
-    [zprint.config :refer [get-options get-explained-options config-and-validate-all select-op-options vec-str-to-str merge-deep]])
+    [zprint.core :refer
+     [zprint-str czprint zprint-file-str set-options! load-options!]]
+    [zprint.config :refer
+     [get-options get-explained-options config-and-validate-all
+      select-op-options vec-str-to-str merge-deep]])
   #?(:clj (:gen-class)))
 
 ;;
@@ -45,7 +48,7 @@
      "      --url-only URL Load only options found from URL, ignore all others."
      "  -v  --version      Output the version of zprint."
      "  -e  --explain      Output configuration, showing where"
-     "                          non-default values (if any) came from."
+     "                     non-default values (if any) came from."
      ""
      " You can have either an <options-map> or <switches>, but not both!"
      ""]))
@@ -81,13 +84,6 @@
                      :default nil)
         valid-switch?
           (or version? help? explain? default? standard? url? url-only?)
-        #_(println "switches: version?" version?
-                   "help?" help?
-                   "explain?" explain?
-                   "default?" default?
-                   "standard?" standard?
-                   "url?" url?
-                   "url-only?" url-only?)
         [option-status exit-status option-stderr op-options]
           ; [option-status exit-status option-stderr op-options]
           ; options-status :incomplete
@@ -188,11 +184,6 @@
             ; if --default or --standard just use what we have, nothing else
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
-              #_(println "a....."
-                         "\noption-status:" option-status
-                         "\nexit-status:" exit-status
-                         "\noption-stderr:" option-stderr
-                         "\nop-options:" op-options)
               (if (= option-status :complete)
                 running-status
                 (if (or default? standard?)
@@ -207,11 +198,6 @@
             ; at this point and we would be complete by now.
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
-              #_(println "b..."
-                         "\noption-status:" option-status
-                         "\nexit-status:" exit-status
-                         "\noption-stderr:" option-stderr
-                         "\nop-options:" op-options)
               (if (or (= option-status :complete) (empty? options))
                 running-status
                 (try (set-options! (read-string options)
@@ -234,11 +220,6 @@
     ; output.  In either case, if option-stderr is non-nil we need
     ; to exit, and the exit status will be used.  Conversely, if
     ; option-stderr is nil, the exit status has no meaning.
-    #_(println "c ..."
-               "\noption-status:" option-status
-               "\nexit-status:" exit-status
-               "\noption-stderr:" option-stderr
-               "\nop-options:" op-options)
     (if option-stderr
       (do (let [^java.io.Writer w (clojure.java.io/writer *err*)]
             (.write w (str option-stderr "\n"))

@@ -1,7 +1,7 @@
 # Installing a zprint filter
 
 __If you haven't used zprint before and are running on MacOS or Linux, 
-check out the [native-image](graalvm.md) approach.__
+iheck out the [native-image](graalvm.md) approach.__
 Continue with this article if that doesn't work for you.
 
 Would you be interested in a capability where you could
@@ -76,14 +76,13 @@ you were sitting in an editor or IDE looking at the function.
 Yes, I thought that Clojure startup would be __way__ too slow, so I spent
 some significant time exploring Clojurescript specifically so that I could
 build a zprint formatting filter using Clojurescript.  And I did, and it
-does work in Clojurescript -- you can see the results of my efforts in
-`lein-zprint` [here](https://github.com/kkinnear/lein-zprint#a-zprint-formatting-filter-using-planck-or-lumo)
+does work in Clojurescript.
 
 However, I have found that, if I AOT compile all of zprint and
 the associated libraries (and use just minimal libraries), and use the
 right Java command line arguments (and caching techniques), that I can
 get a Clojure zprint filter to startup slightly __faster__ than a Clojurescript
-zprint filter.  And to do so in just under 1 second.  Which isn't zero, but
+zprint filter.  It will startup in just under 1 second.  Which isn't zero, but
 which is fast enough to be perfectly useful.
 
 Moreover, as the amount of source to be formatted grows, the Clojure
@@ -94,7 +93,9 @@ version runs considerably faster than the Clojurescript version.
 I have built two Clojurescript zprint filters, one using `planck`, which
 uses JavascriptCore on MacOS, and one using `lumo`, which uses node.js.
 There are also three different invocations of the Clojure zprint filter,
-which I will explain later.  
+which I will explain later.   While zprint runs well in Clojurescript,
+I don't support the planck or lumo zprint filters anymore, since there
+is no performance value to using them.
 
 __The bottom line__: If you download an uberjar from github, you can
 have a filter that will pretty-print your Clojure(script) source
@@ -481,6 +482,11 @@ Then put these together.
 If you get this to work in an editor not yet listed here, please file
 an issue and tell me how to you did it, and I'll update the instructions
 here.
+
+## Using the filter
+
+For details of the how to use the uberjar as a filter 
+see the [help text](graalvm.md#help-text).
 
 ## Configuring the filter
 

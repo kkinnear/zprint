@@ -845,6 +845,44 @@ certainly you should set :parallel? to true -- but don't forget to
 call `(shutdown-agents)` at the end of your program or your program
 won't exit!
 
+#### :cache
+
+In cases where zprint needs to cache some value, the following keys indicate
+a directory where all cached data will reside:
+
+##### :location <text style="color:#A4A4A4;"><small>"HOME"</small></text>
+
+If this does not appear, the location is the home directory ".".  If this
+does appear, it must be a string and it will either be considered an
+environment variable or a Java system property.  If the string contains
+a ".", it will be considered a Java system property and will be looked 
+resolved in that fashion, and if it does not contain a ".", it will be 
+considered an environment variable and resolved in that fashion.
+
+##### :directory <text style="color:#A4A4A4;"><small>".zprint"</small></text>
+
+This is the directory in which the various aspects of the cache will
+reside.  This directory is used or created in the :location (see immediately
+above).  Typically this directory would start with a "." so that it would
+not normally be visible.  The default is ".zprint".
+
+#### :url
+
+The only things currently cached are the results of URL lookups of option
+maps used for configuration.  These lookups are triggered by the `--url`
+or `--url-only` switches on the uberjar and graalvm binaries.  There are
+two values associated with cacheing of URL lookups.
+
+##### :cache-secs <text style="color:#A4A4A4;"><small>300</small></text>
+
+This the time that for which the result of a URL lookup is cached.  
+
+##### :cache-dir <text style="color:#A4A4A4;"><small>"urlcache"</small></text>
+
+This the name of the directory in which the cached URL results are held.  This
+directory is itself located in the [:cache :directory] value described
+immediately above.
+
 #### :color?
 
 As of zprint 0.5.1, the `:color?` option key will control whether
@@ -936,7 +974,7 @@ This is the default :uneval color map:
 You can also change these to any of the colors specified above.
 
 Note that in this readme, the syntax coloring of Clojure code is
-that provided by the github flavored markdown, and not zprint.
+that provided by the GitHub flavored markdown, and not zprint!
 
 ### Function Classification for Pretty Printing
 

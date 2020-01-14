@@ -30,12 +30,12 @@ news is that we are back to a different version for each platform.
 
 ### Linux
 
-You can download a pre-build Linux image from zprint GitHub, look for `zprintl-0.5.4`
+You can download a pre-built Linux image from zprint GitHub, look for `zprintl-0.5.4`
 (or the appropriate version) in the latest zprint release.
 
 ### MacOS
 
-You can now download a pre-build MacOS image from zprint GitHub, look for `zprintm-0.5.43`
+You can now download a pre-built MacOS image from zprint GitHub, look for `zprintm-0.5.4`
 (or the appropriate version) in the latest zprint release.
 
 ## Usage
@@ -57,14 +57,15 @@ won't be what you expect.  An example:
 If you put it on your path, you can just run it from anywhere.  I use it in my editor,
 to format a function while I'm editing it.  For most functions, it runs fast enough I don't even notice it.
 
+#### Help Text
+
 In addition to an options map, there are a few simple switches.  Here
 is the help text:
 ```
-./zprintm-0.5.4 -h
-zprint-0.51.
+zprint-0.5.4
 
- zprint options-map < input-file > output-file
- zprint switches < input-file > output-file
+ zprint <options-map> <input-file >output-file
+ zprint <switches <input-file >output-file
 
  Where zprint is any of:
 
@@ -72,22 +73,48 @@ zprint-0.51.
   zprintl-0.5.4
   java -jar zprint-filter-0.5.4
 
- options-map is a Clojure map containing zprint options.
-             Note that since it contains spaces, it must be
-             wrapped in quotes, for example:
-             '{:width 120}'
+ <options-map> is a Clojure map containing zprint options.
+               Note that since it contains spaces, it must be
+               wrapped in quotes, for example:
+               '{:width 120}'
 
- switches may be any of:
+               Use the -e switch to see the total options
+               map, which will show you what is configurable.
 
-  -s       --standard     Accept no configuration input.
-  -h       --help         Output this help text.
-  -v       --version      Output the version of zprint.
-  -e       --explain      Output configuration, showing where
-                          non-default values came from.
+ <switches> may be any single one of:
 
- You can have either an options-map or switches, but not both!
-```
+  -d  --default      Accept no configuration input.
+  -h  --help         Output this help text.
+  -u  --url URL      Load options from URL.
+      --url-only URL Load only options found from URL, ignore all others.
+  -v  --version      Output the version of zprint.
+  -e  --explain      Output configuration, showing where
+                     non-default values (if any) came from.
 
+ You can have either an <options-map> or <switches>, but not both!
+ ```
+
+The `-u` and `--url` switches will apply the options map found at the
+given URL as though the options were specified on the command-line.  That
+is to say that they will be applied last and will thus typically override
+any that were specified in the `~/.zprintrc` or in any `.zprintrc` files
+found in the project directory.
+
+The `--url-only` switch will configure the zprint program to only use the 
+options map found at the given URL to format the source.  Any formatting
+options given in the `~/.zprintrc` or any local `.zprintrc` files will be
+ignored.  
+
+However, the `~/.zprintrc` and possibly local `.zprintrc` files will be
+examined and any `:cache` or `:url` values seen in those files will be used
+when the `--url-only` capability creates or examines the options which were
+found from a previously looked up URL.
+
+You can specify `{:cwd-zprintrc? true}` or `{:search-config? true}` in
+an options map on the command line, and the zprint will honor those 
+options when initially configuring.  This is new in version `0.5.4`.
+Prior to that version, these two options were only used if set in the
+`~/.zprintrc` file.
 
 #### Caveat
 

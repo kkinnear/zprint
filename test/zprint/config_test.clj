@@ -528,3 +528,16 @@
                         (-> cache-file
                             slurp
                             edn/read-string)])))
+
+;;
+;; Check configuration of non-boolean values for boolean keys
+;;
+;; Issue #111
+;;
+
+(expect (more-of options true (boolean (:to-string? (:record options))))
+        (redef-state [zprint.config]
+                     (set-options! {:record {:to-string? 'stuff}})
+                     (get-options)))
+
+

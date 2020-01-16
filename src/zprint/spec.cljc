@@ -18,6 +18,16 @@
            [x]
            (or (cljs.core/true? x) (cljs.core/false? x))))
 
+(defn booleanable?
+  "Can this value be coerced into a boolean?"
+  [x]
+  (try (boolean x)
+       true
+       (catch #?(:clj Exception
+                 :cljs :default)
+         e
+         false)))
+
 ;!zprint {:list {:constant-pair-min 2}}
 
 ;;
@@ -52,7 +62,10 @@
 ;; # Fundamental values
 ;;
 
-(s/def ::boolean (s/nilable zboolean?))
+;(s/def ::boolean (s/nilable zboolean?))
+;(s/def ::boolean (s/nilable zany?))
+(s/def ::boolean booleanable?)
+
 (s/def ::fn-type
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
     :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair

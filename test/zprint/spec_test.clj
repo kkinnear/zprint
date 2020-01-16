@@ -46,7 +46,10 @@
         (explain-more (s/explain-data :zprint.spec/options
                                       {:map {:hang? true, :x :y}})))
 
-(expect "The value of the key-sequence [:map :hang?] -> 0 was not a boolean"
+; Relaxed boolean requirement
+; Issue #111
+(expect nil
+        #_"The value of the key-sequence [:map :hang?] -> 0 was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options {:map {:hang? 0}})))
 
 ;;
@@ -106,26 +109,32 @@
 ;;
 ;; ## Should be a boolean
 ;;
+;; Relaxed boolean requirements -- Issue #111
+;;
 
-(expect "The value of the key-sequence [:parse-string?] -> 0 was not a boolean"
+(expect nil #_"The value of the key-sequence [:parse-string?] -> 0 was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options {:parse-string? 0})))
-(expect "The value of the key-sequence [:parse-string?] -> :a was not a boolean"
+(expect nil #_"The value of the key-sequence [:parse-string?] -> :a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:parse-string? :a})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> \"a\" was not a boolean"
+  nil
+  #_"The value of the key-sequence [:parse-string?] -> \"a\" was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? "a"})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> [:a] was not a boolean"
+  nil
+  #_"The value of the key-sequence [:parse-string?] -> [:a] was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? [:a]})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> {:a :b} was not a boolean"
+  nil
+  #_"The value of the key-sequence [:parse-string?] -> {:a :b} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? {:a :b}})))
-(expect "The value of the key-sequence [:parse-string?] -> a was not a boolean"
+(expect nil #_"The value of the key-sequence [:parse-string?] -> a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:parse-string? 'a})))
 (expect
-  "The value of the key-sequence [:parse-string?] -> #{:a} was not a boolean"
+  nil
+  #_"The value of the key-sequence [:parse-string?] -> #{:a} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? #{:a}})))
 
 ;;
@@ -222,23 +231,28 @@
 ;;
 ;; ## Should be a boolen
 ;;
+;; Relaxed boolean requirement -- Issue #111
+;;
 
 (expect
-  "The value of the key-sequence [:list :hang?] -> \"a\" was not a boolean"
+  nil
+  #_"The value of the key-sequence [:list :hang?] -> \"a\" was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? "a"}})))
-(expect "The value of the key-sequence [:list :hang?] -> :a was not a boolean"
+(expect nil #_"The value of the key-sequence [:list :hang?] -> :a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:list {:hang? :a}})))
-(expect "The value of the key-sequence [:list :hang?] -> [:a] was not a boolean"
+(expect nil #_"The value of the key-sequence [:list :hang?] -> [:a] was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:list {:hang? [:a]}})))
 (expect
-  "The value of the key-sequence [:list :hang?] -> {:a :b} was not a boolean"
+  nil
+  #_"The value of the key-sequence [:list :hang?] -> {:a :b} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? {:a :b}}})))
 (expect
-  "The value of the key-sequence [:list :hang?] -> #{:a} was not a boolean"
+  nil
+  #_"The value of the key-sequence [:list :hang?] -> #{:a} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? #{:a}}})))
-(expect "The value of the key-sequence [:list :hang?] -> a was not a boolean"
+(expect nil #_"The value of the key-sequence [:list :hang?] -> a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:list {:hang? 'a}})))
 

@@ -121,7 +121,7 @@
 (def ^:dynamic *default-url-cache-secs* 300)
 
 #?(:clj
-     (defn load-options!
+     (defn ^:no-doc load-options!
        "Loads options from url, expecting an edn options map that will be passed
   to set-options! Valid options will be cached in 
   (str (:cache-loc (:cache options)) 

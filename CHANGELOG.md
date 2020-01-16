@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * Configure the uberjar or pre-built graalVM binaries from a URL.
+  `--url` will add an options map found at the specified URL to other
+  configuration found from the environment (for instance, `~/.zprintrc`).
+  `--url-only` will configure zprint only from an options map found at
+  the specified URL.  Thanks to coltnz for the idea and the pull request 
+  for this feature.  I learned a lot about Java manipulation of URLs 
+  and other http related data from his work.  Issue #117 and #112..
+
 ### Changed
+
+  * Two options map keys were previously ignored if specified in an
+  options map on the command line: `:cwd-zprintrc?` and `:search-config?`.
+  These keys are now examined and used if specified an options map on the
+  command line.  Issue #120.
 
 ### Fixed
 

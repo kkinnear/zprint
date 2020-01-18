@@ -1070,6 +1070,32 @@
           error-string (apply str (interpose ", " error-seq))]
       (if (empty? error-string) nil error-string))))
 
+(defn validate-fn-option-pairs-extended
+  "Given a seq of fn-option pairs, validate the options maps in the
+  pairs.  Returns nil for success and an error string with any errors."
+  [fn-option-pairs source-str]
+  (when (not (empty? fn-option-pairs))
+    (let
+      [error-seq
+         (mapv
+           #(if (map? (second %))
+              (validate-options
+                (second %)
+                (str ":fn-map, in the options map assocated with the function: "
+                     (first %)))
+              (if (fn? (second %))
+                nil
+                (str
+                  "In "
+                  source-str
+                  " :fn-map, in the vector associated with the function: "
+                  (first %)
+                  " the second element of the vector must be a map or a function.")))
+           fn-option-pairs)
+       error-seq (remove nil? error-seq)
+       error-string (apply str (interpose ", " error-seq))]
+      (if (empty? error-string) nil error-string))))
+
 (defn validate-options
   "Validate an options map, source-str is a descriptive phrase 
   which will be included in the errors (if any). Returns nil 
@@ -1191,7 +1217,9 @@
                                " because " e)]))]
             (if file-error
               (if optional? nil [nil file-error full-path])
-              (try (let [opts-file (clojure.edn/read-string (apply str lines))]
+              (try (let [opts-file
+                           #_(load-file filename)
+                           (clojure.edn/read-string (apply str lines))]
                      [opts-file nil full-path])
                    (catch Exception e
                      [nil

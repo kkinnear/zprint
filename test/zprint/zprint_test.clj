@@ -4129,3 +4129,115 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "(let [a\n        b\n      c d]\n  e)"
         (zprint-str "(let [a\nb\nc d] e)"
                     {:parse-string? true, :style :respect-nl}))
+
+;;
+;; # Issue #121
+;;
+;; Translate (quote a) to 'a.  But just for structures, not for code.
+;;
+
+;; Basic capability tests:
+
+(expect "'a" (zprint-str '(quote a) {:style :backtranslate}))
+
+; Should not change, since it is a zipper
+(expect "(quote a)"
+        (zprint-str "(quote a)" {:parse-string? true, :style :backtranslate}))
+
+; Should change, since we explicitly did this for zippers
+(expect "'a"
+        (zprint-str "(quote a)"
+                    {:parse-string? true,
+                     :fn-map {"quote" [:replace-w-string
+                                       {:list {:replacement-string "'"}} {}]}}))
+
+
+(expect "#'a" (zprint-str '(var a) {:style :backtranslate}))
+
+(expect "(var a)"
+        (zprint-str "(var a)" {:parse-string? true, :style :backtranslate}))
+
+(expect "#'a"
+        (zprint-str "(var a)"
+                    {:parse-string? true,
+                     :fn-map {"var" [:replace-w-string
+                                     {:list {:replacement-string "#'"}} {}]}}))
+
+
+(expect "@a" (zprint-str '(clojure.core/deref a) {:style :backtranslate}))
+
+(expect "(clojure.core/deref a)"
+        (zprint-str "(clojure.core/deref a)"
+                    {:parse-string? true, :style :backtranslate}))
+
+(expect "@a"
+        (zprint-str "(clojure.core/deref a)"
+                    {:parse-string? true,
+                     :fn-map {"clojure.core/deref" [:replace-w-string
+                                                    {:list {:replacement-string
+                                                              "@"}} {}]}}))
+
+
+(expect "~a" (zprint-str '(clojure.core/unquote a) {:style :backtranslate}))
+
+(expect "(clojure.core/unquote a)"
+        (zprint-str "(clojure.core/unquote a)"
+                    {:parse-string? true, :style :backtranslate}))
+
+(expect "~a"
+        (zprint-str "(clojure.core/unquote a)"
+                    {:parse-string? true,
+                     :fn-map {"clojure.core/unquote" [:replace-w-string
+                                                    {:list {:replacement-string
+                                                              "~"}} {}]}}))
+
+;; Random test...
+
+(expect
+  "(this\n  is\n  a\n  test\n  (#'a\n    this\n    is\n    only)\n  a\n  test)"
+  (zprint-str '(this is a test ((var a) this is only) a test)
+              {:style :backtranslate, :width 10}))
+
+;; What happens with comments when we do this with zippers/strings?
+
+;; Nothing, because this does only structures
+
+(expect "(;a\n quote ;b\n  a ;c\n  )"
+        (zprint-str "(;a\n quote ;b\n a ;c\n)"
+                    {:parse-string? true,
+                     :fn-map {"quote" [:replace-w-string {}
+                                       {:list {:replacement-string "'"}}]}}))
+
+;; A lot because we do it with both structures and code here
+
+(expect "';a\n ;b\n a ;c\n  "
+        (zprint-str "(;a\n quote ;b\n a ;c\n)"
+                    {:parse-string? true,
+                     :fn-map {"quote" [:replace-w-string
+                                       {:list {:replacement-string "'"}}]}}))
+
+;; The original issues example:
+
+;; What he found
+(expect "[(quote x) (quote y)]" (zprint-str '['x 'y]))
+
+;; What we will do now
+(expect "['x 'y]" (zprint-str '['x 'y] {:style :backtranslate}))
+
+;; How do we handle rightcnt?
+
+(expect "(this is a thing (and more thing (and more 'a)))"
+        (zprint-str '(this is a thing (and more thing (and more (quote a))))
+                    {:fn-map {"quote" [:replace-w-string
+                                       {:list {:replacement-string "'"}}]},
+                     :width 48}))
+(expect "(this is a thing (and more thing (and more 'a)))"
+        (zprint-str "(this is a thing (and more thing (and more (quote a))))"
+                    {:parse-string? true,
+                     :fn-map {"quote" [:replace-w-string
+                                       {:list {:replacement-string "'"}}]},
+                     :width 48}))
+(expect "(this is a thing (and more thing (and more 'a)))"
+        (zprint-str "(this is a thing (and more thing (and more 'a)))"
+                    {:parse-string? true, :width 48}))
+

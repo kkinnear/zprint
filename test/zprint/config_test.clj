@@ -541,3 +541,34 @@
                      (get-options)))
 
 
+;;
+;; Check to see that second options map (if any) is validated.
+;;
+;; Issue #121 enhancements for more option maps in :fn-map vectors.
+;;
+
+(expect Exception
+        (redef-state [zprint.config]
+                     (set-options!
+                       {:fn-map {"quote" [:replace-w-string
+                                          {:list {:replacement-string "'"}}
+					  ; This is incorrect, and should 
+					  ; force an Exception -- bad second
+					  ; map.
+                                          {:stuff :bother}]}})
+                     (get-options)))
+
+(expect Exception
+        (redef-state [zprint.config]
+                     (set-options!
+                       {:fn-map {"quote" [:replace-w-string
+                                          {:list {:replacement-string "'"}}
+					  {:width 20}
+					  ; This is incorrect, and should 
+					  ; force an Exception -- can't have
+					  ; more than two maps.
+                                          {}]}})
+                     (get-options)))
+
+
+

@@ -71,7 +71,7 @@
     :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair
     :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
     :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin
-    :indent})
+    :indent :replace-w-string})
 (s/def ::format-value #{:on :off :next :skip})
 (s/def ::nilable-number (s/nilable number?))
 (s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
@@ -168,6 +168,7 @@
      :cljs false?))
 (s/def ::path (s/coll-of number? :kind sequential?))
 (s/def ::paths ::path-seq)
+(s/def ::replacement-string (s/nilable string?))
 (s/def ::return-altered-zipper vector?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::option-fn-first (s/nilable fn?))
@@ -241,7 +242,8 @@
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
                       ::indent-arg ::pair-hang? ::return-altered-zipper
-                      ::respect-nl? ::indent-only? ::indent-only-style]))
+                      ::respect-nl? ::indent-only? ::indent-only-style
+		      ::replacement-string]))
 (s/def ::vector-fn ::list)
 (s/def ::map
   (only-keys

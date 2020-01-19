@@ -317,6 +317,12 @@
                  rest)]
     (when result (persistent! result))))
 
+(defn remove-one
+  "Remove a single thing from a sequence."
+  [s index]
+  (concat (take index s)
+          (drop (inc index) s)))
+  
 (defn force-vector
   "Ensure that whatever we have is a vector."
   [coll]
@@ -2928,12 +2934,29 @@
         ; some of the things found in it above would have to change too!
         options
           ; The config-and-validate allows us to use :style in the options
-          ; map associated with a function
+          ; map associated with a function.  Don't think that we really needed
+	  ; to validate (second fn-style), as that was already done.  But this
+	  ; does allow us to use :style and other stuff.  Potential performance
+	  ; improvement would be to build a config-and-validate that did the
+	  ; same things and didn't validate.
+	  ;
+	  ; There could be two option maps in the fn-style vector:
+	  ;   [:fn-style {:option :map}]
+	  ;   [:fn-style {:zipper :option-map} {:structure :option-map}]
+	  ;
+	  ; If there is only one, it is used for both.  If there are two, 
+	  ; then we use the appropriate one.
           (if (vector? fn-style)
             (first (zprint.config/config-and-validate "fn-style:"
                                                       nil
                                                       options
-                                                      (second fn-style)))
+						      (if (= (count fn-style) 2)
+						      ; only one option map
+                                                      (second fn-style)
+						      (if 
+						  (= :zipper (:ztype options))
+						        (second fn-style)
+							(nth fn-style 2)))))
             options)
         ; If we messed with the options, then find new stuff.  This will
         ; probably change only zloc-seq because of :respect-nl? or :indent-only?
@@ -2955,12 +2978,31 @@
                                    first-data)
         ; This len doesn't include newlines or other whitespace or
         len (zcount-zloc-seq-nc-nws zloc-seq)
-        #_(prn "fzprint-list* pre-arg-1-style-vec:" pre-arg-1-style-vec
+        #_ (prn "fzprint-list* pre-arg-1-style-vec:" pre-arg-1-style-vec
                "pre-arg-2-style-vec:" pre-arg-2-style-vec
                "arg-1-zloc:" (zstring arg-1-zloc)
                "arg-2-zloc:" (zstring arg-2-zloc)
                "arg-1-count:" arg-1-count
                "arg-2-count:" arg-2-count)
+	; If fn-style is :replace-w-string, then we have an interesting
+	; set of things to do.
+	;
+	[options arg-1-zloc l-str l-str-len r-str len zloc-seq]
+	  (if (and (= fn-style :replace-w-string) 
+	           (:replacement-string (options caller))
+		   (= len 2))
+	    [(assoc (update-in options [caller] dissoc :replacement-string)
+	      :rightcnt (dec (:rightcnt options)))
+	     arg-2-zloc 
+	     (:replacement-string (options caller))
+	     (count (:replacement-string (options caller)))
+	     ""
+	     1
+	     (remove-one zloc-seq arg-1-count)
+	     ]
+	    [options arg-1-zloc l-str l-str-len r-str len zloc-seq])
+	#_ (prn "fzprint-list*: l-str:" l-str "l-str-len:" l-str-len "len:" len 
+	       "fn-style:" fn-style)
         ; Get indents which might have changed if the options map was
         ; re-written by the function style being a vector.
         indent (:indent (options caller))
@@ -2978,7 +3020,7 @@
         ; three elements minimum. We could put this in the fn-map,
         ; but until there are more than three (well four) exceptions, seems
         ; like too much mechanism.
-        fn-style (if (#{:hang :flow :flow-body :binding} fn-style)
+        fn-style (if (#{:hang :flow :flow-body :binding :replace-w-string} fn-style)
                    fn-style
                    (if (< len 3) nil fn-style))
         ;fn-style (if (= fn-style :hang) fn-style (if (< len 3) nil fn-style))
@@ -3041,10 +3083,11 @@
             "arg-1-zloc:" (zstring arg-1-zloc)
             "l-str:" (str "'" l-str "'")
             "indent-adj:" indent-adj
-            "len:" len
             "one-line?:" one-line?
             "indent-only?:" indent-only?
-            "rightcnt:" (:rightcnt options))
+            "rightcnt:" (:rightcnt options)
+	    "replacement-string:" (:replacement-string (caller options))
+	    ":ztype:" (:ztype options))
         one-line (if (zero? len)
                    :empty
                    (when one-line-ok?
@@ -3070,11 +3113,14 @@
                                                   fn-style
                                                   arg-1-indent)
                                   r-str-vec)
-      (= len 1) (concat-no-nil l-str-vec
+      (= len 1) #_(concat-no-nil l-str-vec
                                ; Not clear if this is necessary
                                pre-arg-1-style-vec
                                (fzprint* roptions one-line-ind arg-1-zloc)
                                pre-arg-2-style-vec
+                               r-str-vec)
+       (concat-no-nil l-str-vec
+			       (fzprint-flow-seq roptions one-line-ind zloc-seq nil nil)
                                r-str-vec)
       ; In general, we don't have a fn-style if we have less than 3 elements.
       ; However, :binding is allowed with any number up to this point, so we

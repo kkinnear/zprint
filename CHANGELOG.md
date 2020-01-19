@@ -6,13 +6,30 @@ All notable changes to this project will be documented in this file.
 ### Added
 
   * Configure the uberjar or pre-built graalVM binaries from a URL.
-  `--url` will add an options map found at the specified URL to other
-  configuration found from the environment (for instance, `~/.zprintrc`).
-  `--url-only` will configure zprint only from an options map found at
-  the specified URL.  Thanks to coltnz for the idea and the pull request 
-  for this feature.  I learned a lot about Java manipulation of URLs 
-  and other http related data from his work.  Issue #117 and #112..
+  `--url` will add an options map found at the specified URL to
+  other configuration found from the environment (for instance,
+  `~/.zprintrc`).  `--url-only` will configure zprint only from an
+  options map found at the specified URL.  Thanks to Colin Taylor
+  (coltnz) for the idea and the pull request for this feature.  I
+  learned a lot about Java manipulation of URLs and other http
+  related data from his work.  Issue #117 and #112..
 
+  * The built in pretty printer for Clojure, clojure.pprint, will
+  backtranslate `(quote a)` to `'a`, `(var a)` to `#'a`, 
+  `(clojure.core/deref a)` to `@a` and `(clojure.core/unquote a)` to
+  `~a`.  clojure.pprint only does this when printing data structures, (which
+  may be code), since that is all it operates on.  Zprint has been
+  enhanced to optionally perform this backtranslation when formatting
+  structures.  Use `{:style :backtranslate}` to get this behavior, and
+  see the definition of that style to see how it was implemented.
+  Even if you use `{:style :backtranslate}`, there is no change to the
+  way that source is formatted since zprint has been enhanced to 
+  distinguish between source and structures in some situations.  You could
+  configure zprint to do this backtranslation for source if you wished to,
+  though there is not a pre-defined style to enable that operation.
+  See the implementation for `{:style :backtranslate}` for a hint for how
+  to do this (or open an issue and ask). Issue #121.
+  
 ### Changed
 
   * Two options map keys were previously ignored if specified in an

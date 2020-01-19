@@ -448,7 +448,8 @@
           :indent-only? false,
           :indent-only-style :input-hang,
           :pair-hang? true,
-          :respect-nl? false},
+          :respect-nl? false
+	  :replacement-string nil},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -544,6 +545,19 @@
                  :pair-fn {:hang? true},
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
+      :backtranslate
+        {:fn-map {"quote" [:replace-w-string 
+	                   {} 
+			   {:list {:replacement-string "'"}}]
+		  "clojure.core/deref" [:replace-w-string
+		           {}
+			   {:list {:replacement-string "@"}}]
+		  "var" [:replace-w-string
+		           {}
+			   {:list {:replacement-string "#'"}}]
+		  "clojure.core/unquote" [:replace-w-string
+		           {}
+			   {:list {:replacement-string "~"}}]}}
       :binding-nl {:binding {:indent 0, :nl-separator? true}},
       :community {:binding {:indent 0},
                   :fn-map {"apply" :none,
@@ -1047,7 +1061,7 @@
                          fn-map
                          (mapcat #(vector (first %) (first (second %)))
                            fns-w-options))
-            fn-option-pairs (map #(vector (first %) (second (second %)))
+            fn-option-pairs (map #(vec (cons (first %) (drop 1 (second %))))
                               fns-w-options)]
         [(assoc options :fn-map new-fn-map) fn-option-pairs]))))
 
@@ -1056,41 +1070,37 @@
 (defn validate-fn-option-pairs
   "Given a seq of fn-option pairs, validate the options maps in the
   pairs.  Returns nil for success and an error string with any errors."
-  [fn-option-pairs]
-  (when (not (empty? fn-option-pairs))
-    (let [error-seq
-            (mapv
-              #(validate-options
-                  (second %)
-                  (str
-                    ":fn-map, in the options map assocated with the function: "
-                    (first %)))
-              fn-option-pairs)
-          error-seq (remove nil? error-seq)
-          error-string (apply str (interpose ", " error-seq))]
-      (if (empty? error-string) nil error-string))))
-
-(defn validate-fn-option-pairs-extended
-  "Given a seq of fn-option pairs, validate the options maps in the
-  pairs.  Returns nil for success and an error string with any errors."
   [fn-option-pairs source-str]
   (when (not (empty? fn-option-pairs))
     (let
       [error-seq
          (mapv
-           #(if (map? (second %))
-              (validate-options
-                (second %)
-                (str ":fn-map, in the options map assocated with the function: "
-                     (first %)))
-              (if (fn? (second %))
-                nil
+           #(cond
+              (= (count %) 2)
+                (validate-options
+                  (second %)
+                  (str
+                    ":fn-map, in the options map assocated with the function: "
+                    (first %)))
+              (= (count %) 3)
+                (or
+                  (validate-options
+                    (second %)
+                    (str
+                      ":fn-map, in the first options map assocated with the function: "
+                      (first %)))
+                  (validate-options
+                    (nth % 2)
+                    (str
+                      ":fn-map, in the second options map assocated with the function: "
+                      (first %))))
+              :else
                 (str
                   "In "
                   source-str
                   " :fn-map, in the vector associated with the function: "
                   (first %)
-                  " the second element of the vector must be a map or a function.")))
+                  " there may only be either two or three elements."))
            fn-option-pairs)
        error-seq (remove nil? error-seq)
        error-string (apply str (interpose ", " error-seq))]
@@ -1114,7 +1124,7 @@
                      ; validate-style-map, because they call validate-options
                      ; too!
                      (when fn-option-pairs
-                       (validate-fn-option-pairs fn-option-pairs))
+                       (validate-fn-option-pairs fn-option-pairs source-str))
                      (when (:style-map options)
                        (validate-style-map options))))))))))
   ([options] (validate-options options nil)))

@@ -1494,6 +1494,32 @@ configuration parameters of that style to be what you think they were
 before.  It is not possible to simply restore the options map to what
 it was prior to the changes made by the `<options-map>`.
 
+#### Replacing functions with reader-macros
+
+The `:fn-map` is can be used to allow backtranslation of arbitrary functions
+into reader-macros.  For instance, `(quote a)` can be backtranslated into
+`'a` by using the following `:fn-map` entry:
+
+```
+{:fn-map {"quote" [:replace-w-string {} {:list {:replacement-string "'"}}]}}
+```
+
+If there is a function which has a fn-type of `:replace-w-string` __and__ 
+the options map has a `{:list {:replacement-string "'"}}` value, then 
+that function will be replaced by the string.  The leading and trailing
+"()" will be removed, as will the function name.  If there is only one
+options map in the vector which is the value of the key-value pair, then
+it is used for both structures and source formatting.  However, if there
+are two maps as the second and third elements in the vector, the first
+map (which is the second element of the vector) is used as the options map 
+for source formatting, and the second map (third element of the vector)
+is used as the options map for structure formatting.  Thus, the
+example above only replaces `(quote a)` with `'a` when formatting structures,
+and not when formatting source.  If there was just one options map, it
+would perform this replacement when formatting both structures and 
+source. 
+
+
 ### Configuring the `:fn-map`
 
 Often the :fn-map is configured by changing the `.zprintrc` file so

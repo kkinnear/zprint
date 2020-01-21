@@ -105,12 +105,10 @@
                     running-status]
               (if (= option-status :complete)
                 running-status
-                (if (or version? help? explain?)
+                (if (or version? help?)
                   [:complete 0
                    (cond version? (:version (get-options))
-                         help? main-help-str
-                         explain? (zprint-str (get-explained-options)))
-                   op-options]
+                         help? main-help-str) op-options]
                   running-status)))
             ; If this is not a switch, get any operational options off
             ; of the command line
@@ -156,6 +154,20 @@
                   (if errors
                     [:complete 1 errors nil]
                     [:incomplete 0 nil (select-op-options new-map)]))))
+            ; We now have the op-options, so process -e to explain what
+            ; we have for a configuration from the various command files.
+            ; This won't include any command-line options since we either
+            ; do switches or command-line options.
+            (let [[option-status exit-status option-stderr op-options]
+                    running-status]
+              (if (= option-status :complete)
+                running-status
+                (if explain?
+                  ; Force set-options to configure using op-options
+                  (do (set-options! {} "" op-options)
+                      [:complete 0 (zprint-str (get-explained-options))
+                       op-options])
+                  running-status)))
             ; If --url try to load the args - along with other args
             (let [[option-status exit-status option-stderr op-options]
                     running-status]

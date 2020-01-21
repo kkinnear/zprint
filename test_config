@@ -400,9 +400,9 @@ echo "...........  -e test"
 output_length=`$command -e 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "381" ]]
+if [[ $output_length != "410" ]]
   then
-    echo "-e test failed to have correct count of lines, should be 381, was: $output_length"
+    echo "-e test failed to have correct count of lines, should be 410, was: $output_length"
     $command -e
 fi
 

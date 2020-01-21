@@ -964,6 +964,12 @@
   #?(:clj (some is-repl-stack-element (current-stack-trace))
      :cljs nil))
 
+(defn select-op-options
+  "Given an options map, return an options map with only the operational
+  options remaining."
+  [options]
+  (select-keys options operational-options))
+
 ;;
 ;; End "detect in a REPL" code
 
@@ -1005,8 +1011,10 @@
                           new-options))
   ([new-options]
    (config-set-options! new-options
-                        (str "repl or api call " (inc-explained-sequence))))
-  ([new-options doc-str] (config-set-options! new-options doc-str nil)))
+                        (str "repl or api call " (inc-explained-sequence))
+                        (select-op-options new-options)))
+  ([new-options doc-str]
+   (config-set-options! new-options doc-str (select-op-options new-options))))
 
 ;;
 ;; # Options Validation Functions
@@ -1349,12 +1357,6 @@
   map.  Will not add any new keys to the first map."
   [existing new]
   (reduce replace-existing existing new))
-
-(defn select-op-options
-  "Given an options map, return an options map with only the operational
-  options remaining."
-  [options]
-  (select-keys options operational-options))
 
 ;;
 ;; # Configure one map

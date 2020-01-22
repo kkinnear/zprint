@@ -1683,18 +1683,19 @@
 (declare precede-w-nl)
 
 (defn fzprint-flow-seq
-  "Take a seq of a zloc, created by (zmap identity zloc) and return
-  a style-vec of the result.  Either it fits on one line, or it is
-  rendered on multiple lines.  You can force multiple lines with
-  force-nl?. If you want it to do less than everything in the
-  original zloc, modify the result of (zmap identity zloc) to just
-  contain what you want to print. ind is either a single indent,
-  or a seq of indents, one for each element in zloc-seq.  Don't
-  concatenate an indent/newline on to the beginning of the output
-  from this routine.  Let this routine do it for you, as it needs
-  to know one is there in order to properly deal with any newlines
-  in the actual stream.  Else you will get two where you only should
-  have one."
+  "Takes zloc-seq, a seq of a zloc, created by (zmap identity zloc),
+  and returns a style-vec of the result.  Either it fits on one
+  line, or it is rendered on multiple lines.  You can force multiple
+  lines with force-nl?. If the seq is empty, returns :noseq, which
+  is what you give concat-no-nil if you want this to just disappear.
+  If you want it to do less than everything in the original zloc,
+  modify the result of (zmap identity zloc) to just contain what
+  you want to print. ind is either a single indent, or a seq of
+  indents, one for each element in zloc-seq.  Don't concatenate an
+  indent/newline on to the beginning of the output from this routine.
+  Let this routine do it for you, as it needs to know one is there
+  in order to properly deal with any newlines in the actual stream.
+  Else you will get two where you only should have one."
   ([options ind zloc-seq force-nl? nl-first?]
    (dbg options "fzprint-flow-seq: count zloc-seq:" (count zloc-seq))
    (let [coll-print (fzprint-seq options ind zloc-seq)
@@ -1703,16 +1704,17 @@
                     (interpose [[" " :none :whitespace]] coll-print))
          _ (log-lines options "fzprint-flow-seq:" ind one-line)
          one-line-lines (style-lines options ind one-line)]
-     (dbg-form options
-               "fzprint-flow-seq: exit:"
-               (if (and (not force-nl?) (fzfit-one-line options one-line-lines))
-                 one-line
-                 (apply concat-no-nil
-                   (precede-w-nl ind coll-print (not nl-first?)))))))
+     (dbg-form
+       options
+       "fzprint-flow-seq: exit:"
+       (if (and (not force-nl?) (fzfit-one-line options one-line-lines))
+         one-line
+         (if (not (empty? coll-print))
+           (apply concat-no-nil (precede-w-nl ind coll-print (not nl-first?)))
+           :noseq)))))
   ([options ind zloc-seq] (fzprint-flow-seq options ind zloc-seq nil nil))
   ([options ind zloc-seq force-nl?]
    (fzprint-flow-seq options ind zloc-seq force-nl? nil)))
-
 
 (defn fzprint-hang-one
   "Try out the given zloc, and if it fits on the current line, just
@@ -3113,15 +3115,13 @@
                                                   fn-style
                                                   arg-1-indent)
                                   r-str-vec)
-      (= len 1) #_(concat-no-nil l-str-vec
-                               ; Not clear if this is necessary
-                               pre-arg-1-style-vec
-                               (fzprint* roptions one-line-ind arg-1-zloc)
-                               pre-arg-2-style-vec
-                               r-str-vec)
-       (concat-no-nil l-str-vec
-			       (fzprint-flow-seq roptions one-line-ind zloc-seq nil nil)
-                               r-str-vec)
+      (= len 1) 
+	; While len is one, don't assume that there is actually only one
+	; thing to print and use fzprint*.  len only counts the non-comment
+	; and non-nl elements, and there might be other things to print.
+	(concat-no-nil l-str-vec
+		       (fzprint-flow-seq roptions one-line-ind zloc-seq nil nil)
+		       r-str-vec)
       ; In general, we don't have a fn-style if we have less than 3 elements.
       ; However, :binding is allowed with any number up to this point, so we
       ; have to check here.  :binding is actually allowed with at least two
@@ -3143,17 +3143,18 @@
                          (fzprint* loptions (inc ind) arg-1-zloc)
                          pre-arg-2-style-vec
                          binding-style-vec
-                         (if (> len 2)
-                           (concat-no-nil ; here we use options, because
-                                          ; fzprint-flow-seq
-                                          ; will sort it out
-                             (fzprint-flow-seq options
-                                               (+ indent ind)
-                                               (get-zloc-seq-right second-data)
-                                               :force-nl
-                                               :newline-first)
-                             r-str-vec)
-                           r-str-vec)))
+			 (concat-no-nil 
+			   ; Here we use options, because fzprint-flow-seq
+			   ; will sort it out.  It will also handle an
+			   ; empty zloc-seq by returning :noseq, so we 
+			   ; don't have to check for (> len 2) before 
+			   ; we call it.
+			   (fzprint-flow-seq options
+					     (+ indent ind)
+					     (get-zloc-seq-right second-data)
+					     :force-nl
+					     :newline-first)
+			   r-str-vec)))
       (= fn-style :pair-fn)
         (let [zloc-seq-right-first (get-zloc-seq-right first-data)
               zloc-count (count zloc-seq)]

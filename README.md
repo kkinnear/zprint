@@ -837,13 +837,44 @@ As of 0.3.0, on Clojure zprint will use mutiple threads in several
 ways, including `pmap`.   By default, if used as a library in a program,
 it will not use any parallel features because if it does, your program
 will not exit unless you call `(shutdown-agents)`.  When zprint is
-running at the repl, it __will__ enable parallel features as this
-doesn't turn into a problem when exiting the repl.
+running at the REPL, it __will__ enable parallel features as this
+doesn't turn into a problem when exiting the REPL.
+
+In the event that you have configured `{:parallel? false}` in any
+of the various `.zprintrc` files, it will not be enabled when running
+at the REPL.
 
 If you want it to run more quickly when embedded in a program,
 certainly you should set :parallel? to true -- but don't forget to
 call `(shutdown-agents)` at the end of your program or your program
 won't exit!
+
+#### :coerce-to-false 
+
+__Experimental__ 
+
+This experimental capability exists in order to allow specification
+of option maps for remote invocations of zprint, where boolean `true`
+and `false` in the  options maps turn into something other than `true`
+and `false` when zprint is invoked remotely.  For instance, if `true`
+becomes `1` in the remove invocation, and `false` becomes `0`, it would
+be impossible to invoke zprint with a reasaonable options map, since
+both `1 `and `0` would fail to validate as they are not boolean.  Relaxing
+the validation rules would not help, as `0` is never going to be `false`
+for Clojure.
+
+In this (very rare) case you could set `:coerce-to-false` to the
+value that you want to be `false`.  If you do this the options map you specify
+will be searched for all values which must be boolean.  If they are
+already boolean (i.e., already `true` or `false`), they are not changed.
+If they are not boolean, then if they equal the value of `:coerce-to-false`,
+they will be set to `false`, and otherwise they will be set to `true`.
+
+In the example above, `{:coerce-to-false 0}` would correctly set the
+various boolean values.
+
+You may rely on this capability not going away as long as you let me
+know that you are using it by opening an issue. 
 
 #### :cache
 

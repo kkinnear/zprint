@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
   options map found at the specified URL.  Thanks to Colin Taylor
   (coltnz) for the idea and the pull request for this feature.  I
   learned a lot about Java manipulation of URLs and other http
-  related data from his work.  Issue #117 and #112..
+  related data from his work.  Issue #117 and #112.
 
   * The built in pretty printer for Clojure, clojure.pprint, will
   backtranslate `(quote a)` to `'a`, `(var a)` to `#'a`, 
@@ -29,15 +29,46 @@ All notable changes to this project will be documented in this file.
   though there is not a pre-defined style to enable that operation.
   See the implementation for `{:style :backtranslate}` for a hint for how
   to do this (or open an issue and ask). Issue #121.
+
+  * In some cases, when specifying option maps for remote invocations
+  of zprint, boolean `true` and `false` in the  options map turns
+  into something other than `true` and `false` when zprint is invoked
+  remotely.  For instance, `true` can become `1` in the remove
+  invocation, and `false` can become `0`.  This makes it impossible
+  to invoke zprint with a reasaonable options map, since both `1
+  `and `0` fail to validate as they are not boolean.  Relaxing the
+  validation rules would not help, as `0` is never going to be
+  `false` for Clojure.
+
+  In this (rather obscure) case you could set `:coerce-to-false`
+  to the value that you want to be `false`.  If you do this the
+  options map you specify will be searched for all values which
+  must be boolean.  If they are already boolean (i.e., already
+  `true` or `false`), they are not changed.  If they are not boolean,
+  then if they equal the value of `:coerce-to-false`, they will be
+  set to `false`, and otherwise they will be set to `true`.
+
+  In the example above, `{:coerce-to-false 0}` would correctly set
+  the various boolean values.  Issue #111.
   
 ### Changed
 
   * Two options map keys were previously ignored if specified in an
   options map on the command line: `:cwd-zprintrc?` and `:search-config?`.
   These keys are now examined and used if specified an options map on the
-  command line.  Issue #120.
+  command line or in a call to `set-options!`.  Issue #120.
 
 ### Fixed
+
+  * Fixed an issue when `.zprintrc` file failed to validate when `set-options!`
+  was first called, it would be cause zprint to not be initialized but no
+  errors would be output.  Now errors are output.  Issue #127
+
+  * `:parallel?` was always set to true when running at the REPL even if
+  it was explicitly configured `false` in a `.zprintrc` file.  Now
+  the value is not changed if there was any explicit configuration for
+  `:parallel?`. Issue #128.
+
 
 ## 0.5.3 - 2019-11-9
 

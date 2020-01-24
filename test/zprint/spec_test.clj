@@ -46,10 +46,7 @@
         (explain-more (s/explain-data :zprint.spec/options
                                       {:map {:hang? true, :x :y}})))
 
-; Relaxed boolean requirement
-; Issue #111
-(expect nil
-        #_"The value of the key-sequence [:map :hang?] -> 0 was not a boolean"
+(expect "The value of the key-sequence [:map :hang?] -> 0 was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options {:map {:hang? 0}})))
 
 ;;
@@ -109,32 +106,26 @@
 ;;
 ;; ## Should be a boolean
 ;;
-;; Relaxed boolean requirements -- Issue #111
-;;
 
-(expect nil #_"The value of the key-sequence [:parse-string?] -> 0 was not a boolean"
+(expect "The value of the key-sequence [:parse-string?] -> 0 was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options {:parse-string? 0})))
-(expect nil #_"The value of the key-sequence [:parse-string?] -> :a was not a boolean"
+(expect "The value of the key-sequence [:parse-string?] -> :a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:parse-string? :a})))
 (expect
-  nil
-  #_"The value of the key-sequence [:parse-string?] -> \"a\" was not a boolean"
+  "The value of the key-sequence [:parse-string?] -> \"a\" was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? "a"})))
 (expect
-  nil
-  #_"The value of the key-sequence [:parse-string?] -> [:a] was not a boolean"
+  "The value of the key-sequence [:parse-string?] -> [:a] was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? [:a]})))
 (expect
-  nil
-  #_"The value of the key-sequence [:parse-string?] -> {:a :b} was not a boolean"
+  "The value of the key-sequence [:parse-string?] -> {:a :b} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? {:a :b}})))
-(expect nil #_"The value of the key-sequence [:parse-string?] -> a was not a boolean"
+(expect "The value of the key-sequence [:parse-string?] -> a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:parse-string? 'a})))
 (expect
-  nil
-  #_"The value of the key-sequence [:parse-string?] -> #{:a} was not a boolean"
+  "The value of the key-sequence [:parse-string?] -> #{:a} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:parse-string? #{:a}})))
 
 ;;
@@ -231,28 +222,23 @@
 ;;
 ;; ## Should be a boolen
 ;;
-;; Relaxed boolean requirement -- Issue #111
-;;
 
 (expect
-  nil
-  #_"The value of the key-sequence [:list :hang?] -> \"a\" was not a boolean"
+  "The value of the key-sequence [:list :hang?] -> \"a\" was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? "a"}})))
-(expect nil #_"The value of the key-sequence [:list :hang?] -> :a was not a boolean"
+(expect "The value of the key-sequence [:list :hang?] -> :a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:list {:hang? :a}})))
-(expect nil #_"The value of the key-sequence [:list :hang?] -> [:a] was not a boolean"
+(expect "The value of the key-sequence [:list :hang?] -> [:a] was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:list {:hang? [:a]}})))
 (expect
-  nil
-  #_"The value of the key-sequence [:list :hang?] -> {:a :b} was not a boolean"
+  "The value of the key-sequence [:list :hang?] -> {:a :b} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? {:a :b}}})))
 (expect
-  nil
-  #_"The value of the key-sequence [:list :hang?] -> #{:a} was not a boolean"
+  "The value of the key-sequence [:list :hang?] -> #{:a} was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options {:list {:hang? #{:a}}})))
-(expect nil #_"The value of the key-sequence [:list :hang?] -> a was not a boolean"
+(expect "The value of the key-sequence [:list :hang?] -> a was not a boolean"
         (explain-more (s/explain-data :zprint.spec/options
                                       {:list {:hang? 'a}})))
 
@@ -396,3 +382,45 @@
                                       {:map {:key-value-color
                                                {:deeper {:string :yellow,
                                                          :keyword :blue}}}})))
+
+;;
+;; # coerce-to-false
+;;
+
+; nothing happens to :b because :a is not zprint.spec/boolean
+(expect {:a :b} (coerce-to-boolean {:a :b, :coerce-to-false :b}))
+
+; :parallel? is zprint.spec/boolean so :b becomes false
+(expect {:parallel? false}
+        (coerce-to-boolean {:parallel? :b, :coerce-to-false :b}))
+
+; :parallel? is zprint.spec/boolean so :b becomes true since it is not 
+; equal to :coerce-to-false
+(expect {:parallel? true}
+        (coerce-to-boolean {:parallel? :b, :coerce-to-false :c}))
+
+; same thing, and false doesn't change
+(expect {:parallel? true, :vector {:wrap? false}}
+        (coerce-to-boolean
+          {:parallel? :b, :coerce-to-false :c, :vector {:wrap? false}}))
+
+; if :coerce-to-false is configured as a boolean, nothing will ever change
+; because only non-boolean things are examined for a match to coerce-to-false
+(expect {:parallel? true, :vector {:wrap? true}}
+        (coerce-to-boolean
+          {:parallel? :b, :coerce-to-false true, :vector {:wrap? true}}))
+
+; you can configure :coerce-to-false with pretty much anything
+(expect {:parallel? true, :vector {:wrap? false}}
+        (coerce-to-boolean
+          {:parallel? :b, :coerce-to-false "stuff", :vector {:wrap? "stuff"}}))
+
+; nothing matches 0, all things are boolean spec, so they all go to true
+(expect {:parallel? true, :vector {:wrap? true}}
+        (coerce-to-boolean
+          {:parallel? :b, :coerce-to-false 0, :vector {:wrap? "stuff"}}))
+
+; things that do match :coerce-to-false got to false
+(expect {:parallel? true, :vector {:wrap? false}}
+        (coerce-to-boolean
+          {:parallel? :b, :coerce-to-false 0, :vector {:wrap? 0}}))

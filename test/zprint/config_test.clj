@@ -530,14 +530,15 @@
                             edn/read-string)])))
 
 ;;
-;; Check configuration of non-boolean values for boolean keys
+;; Check coercion of non-boolean value for boolean keys
 ;;
 ;; Issue #111
 ;;
 
-(expect (more-of options true (boolean (:to-string? (:record options))))
+(expect (more-of options false (boolean (:to-string? (:record options))))
         (redef-state [zprint.config]
-                     (set-options! {:record {:to-string? 'stuff}})
+                     (set-options! {:coerce-to-false 'stuff,
+                                    :record {:to-string? 'stuff}})
                      (get-options)))
 
 

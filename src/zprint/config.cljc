@@ -3,7 +3,7 @@
   (:require clojure.string
             [clojure.set :refer [difference]]
             [clojure.data :as d]
-            [zprint.spec :refer [validate-basic]]
+            [zprint.spec :refer [validate-basic coerce-to-boolean]]
             [zprint.rewrite :refer [sort-dependencies]]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
@@ -988,8 +988,10 @@
            (config-set-options! {:configured? true} "internal")
            ; If we are running in a repl,
            ; then turn on :parallel?
-           ; the first time we run
-           (when (is-in-repl?)
+           ; the first time we run unless it has been explicitly
+	   ; set by some external configuration
+           (when (and (is-in-repl?)
+	              (not (:set-by (:parallel? (get-explained-all-options)))))
              (internal-set-options! "REPL execution default"
                                     (get-explained-all-options)
                                     (get-options)
@@ -1002,13 +1004,18 @@
   sure that they are correct."
   ([new-options doc-str op-options]
    ; avoid infinite recursion, while still getting the doc-map updated
-   (when (and (not (:configured? (get-options)))
-              (not (:configured? new-options)))
-     (config-configure-all! op-options))
-   (internal-set-options! doc-str
-                          (get-explained-all-options)
-                          (get-options)
-                          new-options))
+   (let [error-vec (when (and (not (:configured? (get-options)))
+                              (not (:configured? new-options)))
+                     (config-configure-all! op-options))]
+     (when error-vec
+       (throw
+         (#?(:clj Exception.
+             :cljs js/Error.)
+          (str "set-options! for " doc-str " found these errors: " error-vec))))
+     (internal-set-options! doc-str
+                            (get-explained-all-options)
+                            (get-options)
+                            new-options)))
   ([new-options]
    (config-set-options! new-options
                         (str "repl or api call " (inc-explained-sequence))
@@ -1368,7 +1375,8 @@
   [doc-string doc-map existing-map new-map]
   #_(println "config-and-validate:" new-map)
   (if new-map
-    (let [errors (validate-options new-map doc-string)
+    (let [new-map (coerce-to-boolean new-map)
+          errors (validate-options new-map doc-string)
           ; remove set elements, and then remove the :remove key too
           [existing-map new-map new-doc-map]
             (perform-remove doc-string doc-map existing-map new-map)

@@ -1,6 +1,7 @@
 (ns ^:no-doc zprint.spec
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
   (:require clojure.string
+	    [clojure.walk :refer [prewalk]]
             #?@(:clj [[zprint.smacros :refer [only-keys]]
                       [clojure.spec.alpha :as s]]
                 :cljs [[cljs.spec.alpha :as s]])))
@@ -62,9 +63,8 @@
 ;; # Fundamental values
 ;;
 
-;(s/def ::boolean (s/nilable zboolean?))
-;(s/def ::boolean (s/nilable zany?))
-(s/def ::boolean booleanable?)
+(s/def ::boolean (s/nilable zboolean?))
+;(s/def ::boolean booleanable?)
 
 (s/def ::fn-type
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
@@ -422,9 +422,53 @@
                                         " was not recognized as valid!")
             :else (str "what?")))))
 
+(defn coerce-to-boolean
+  "Examine an options map prior to validation and if :coerce-to-false
+  appears as a key, scan the map for keys which are a keyword with
+  zprint.spec/:boolean as their spec, and if any are found, if their
+  values are boolean, do not change them.  If their values are not
+  boolean, replace those whose values are equal to the value of
+  :coerce-to-false with false, and all others (that are found) with
+  true.  Return the modified map without :coerce-to-false.  If there
+  are any problems with this transformation, return the unmodified
+  map."
+  [options]
+  (let [coerce-to-false (when (map? options) (:coerce-to-false options))]
+    (if-not coerce-to-false
+      options
+      (try (dissoc (prewalk #(if (and (map-entry? %)
+                                      (keyword? (first %))
+                                      (= (s/get-spec (keyword "zprint.spec"
+                                                              (name (first %))))
+                                         :zprint.spec/boolean))
+                               ; This is a keyword whose spec is
+                               ; boolean.  If it is boolean, we're good.
+			       ; If it isn't, then figure out if it is the
+			       ; same as coerce-to-false, in which case it 
+			       ; will be false, otherwise change it to true.
+			       (if (zboolean? (second %))
+				  ; Don't change anything
+				  (first {(first %) (second %)})
+				  ; Is it equal to coerce-to-false?
+				  (if (= (second %) coerce-to-false)
+				    ; Make it false
+				    (first {(first %) false})
+				    ; Make it true
+				    (first {(first %) true})))
+                               %)
+                            options)
+                   :coerce-to-false)
+           (catch #?(:clj Exception
+                     :cljs :default)
+             e
+             options)))))
+
 (defn validate-basic
   "Using spec defined above, validate the given options map.  Return
-  nil if no errors, or a string containing errors if any."
+  nil if no errors, or a string containing errors if any. If :coerce-to-false
+  appears as a key, scan the map for keys which are keyword with 
+  zprint.spec/:boolean as their spec, and if any are found replace their
+  values with the value of :coerce-to-false." 
   ([options source-str]
    #_(println "Options:" options)
    (try (if (s/valid? ::options options)

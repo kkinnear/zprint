@@ -60,14 +60,26 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-  * Fixed an issue when `.zprintrc` file failed to validate when `set-options!`
-  was first called, it would be cause zprint to not be initialized but no
-  errors would be output.  Now errors are output.  Issue #127
+  * Fixed an issue when `.zprintrc` file failed to validate when
+  `set-options!` was first called, it would be cause zprint to not
+  be initialized but no errors would be output.  Now errors are
+  output.  Issue #127
 
-  * `:parallel?` was always set to true when running at the REPL even if
-  it was explicitly configured `false` in a `.zprintrc` file.  Now
-  the value is not changed if there was any explicit configuration for
-  `:parallel?`. Issue #128.
+  * `:parallel?` was always set to true when running at the REPL
+  even if it was explicitly configured `false` in a `.zprintrc`
+  file.  Now the value is not changed if there was any explicit
+  configuration for `:parallel?`. Issue #128.
+
+  * While functions have been valid configuration inside of options
+  maps for some time, they were only valid when configured with
+  `set-options!`, as they would not read in properly from `.zprintrc`
+  files or the command line.  Now fns can be read in successfully
+  from `~/.zprintrc` and from options maps specified on the command
+  line.  Functions are not allowed when reading `.zprintrc` files
+  not in the `$HOME` directory and in options maps from URLs.  In
+  these files they are considered errors (in order to allow opening
+  up that path with explicit configuration in the future).  
+  Issue #124.
 
 
 ## 0.5.3 - 2019-11-9

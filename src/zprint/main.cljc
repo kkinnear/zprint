@@ -212,7 +212,9 @@
                     running-status]
               (if (or (= option-status :complete) (empty? options))
                 running-status
-                (try (set-options! (read-string options)
+		; Accept fns from command-line options map
+                (try (set-options! #_(read-string options)
+				   (load-string options)
                                    "command-line options"
                                    op-options)
                      [:complete 0 nil op-options]

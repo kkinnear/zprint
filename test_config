@@ -20,7 +20,6 @@ if [[ $2 != "uberjar" ]]
 fi
 
 
-
 #
 # Output something to format
 #
@@ -37,15 +36,17 @@ echo "\"Hello World!\"" > test_config.string.clj
 
 if [[ -f "$HOME/.zprintrc" ]]
   then
-    echo "Saving ~/.zprintrc"
+    echo "Saving ~/.zprintrc as ~/.zprintrc.save"
     mv ~/.zprintrc ~/.zprintrc.save
 fi
 
 if [[ -f "./.zprintrc" ]]
   then
-    echo "Saving ./.zprintrc"
+    echo "Saving ./.zprintrc ./.zprintrc.save"
     mv ./.zprintrc ./.zprintrc.save
 fi
+
+echo "If you ^c out of this test, be sure and clean up ~/.zprintrc and ./.zprintrc!"
 
 #
 # Create new, narrow, ~/.zprintrc
@@ -218,6 +219,31 @@ fi
 
 
 #
+# URL file with fn included, should fail
+#
+
+# remove cache
+rm -rf ~/.zprint/configurldir
+
+# URL config file containing fn, which should not work
+echo "{:vector {:option-fn-first (fn [x y] {})}}" > test_config.edn
+
+echo "...........  --url-only, with valid URL, invalid file w/fn, and no cache"
+
+output_lines=`$command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep "was not a clojure.core/fn?" | wc -l`
+output_lines=`echo "${output_lines}" | sed -e 's/^[[:space:]]*//'`
+#echo "lines is $output_lines"
+if [[ $output_lines != "1" ]]
+  then
+    echo "--url with fn test failed to have correct count of lines, should be 1, was: $output_lines"
+    $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+
+fi
+
+
+
+
+#
 # End of URL tests, kill webserver
 #
 
@@ -321,12 +347,12 @@ echo "{:width 40 :url {:cache-dir \"configurldir\" :cache-secs 9}" > ~/.zprintrc
 
 echo "...........  bad ~/.zprintrc, invalid Clojure map test"
 
-output_length=`$command <test_config.string.clj 2>&1 | wc -c`
+output_length=`$command <test_config.string.clj 2>&1| grep "EOF while reading" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "119" ]]
+if [[ $output_length != "1" ]]
   then
-    echo "bad ~/.zprintrc (invalid Clojure map) test failed to have correct count of chars, should be 119, was: $output_length"
+    echo "bad ~/.zprintrc (invalid Clojure map) test failed to have correct count of lines after grep for 'EOF while reading', should be 1, was: $output_length"
     $command <test_config.string.clj 
 
 fi
@@ -430,6 +456,67 @@ if [[ $output_length != "1" ]]
     $command -e
 fi
 
+#
+# Configure some strange .zprintrc files to test fns in zprintrc files
+#
+
+echo "...........  fn in ~/.zprintrc file test"
+
+# ~/.zprintrc gets a fn
+echo "{:vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
+# no ./.zprintrc
+rm -rf ./.zprintrc
+
+output_length=`$command -e 2>&1| grep :option-fn-first | grep ":set-by" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "1" ]]
+  then
+    echo "-e test failed to have correct count of lines, should be 1, was: $output_length"
+    $command -e
+fi
+
+#
+# Configure some strange .zprintrc files to test fns in zprintrc files
+#
+
+echo "...........  fn is invalid in ./.zprintrc file test"
+
+# ~/.zprintrc gets a fn
+echo "{:cwd-zprintrc? true :vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
+
+# ./.zprintrc get a fn too, which should fail
+echo "{:vector {:option-fn-first (fn [x y] {})}}" > ./.zprintrc
+
+output_length=`$command -e 2>&1| grep :cwd-zprintrc? | grep "was not a clojure.core/fn?" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "1" ]]
+  then
+    echo "-e test failed to have correct count of lines, should be 1, was: $output_length"
+    $command -e
+fi
+
+#
+# Fns on the command line
+#
+
+echo "...........  fn on command line test"
+
+# ~/.zprintrc gets a fn
+echo "{:vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
+
+# No ./.zprintrc
+rm -rf ./.zprintrc
+
+output_length=`$command '{:vector {:option-fn-first (fn [x y] {})}}' <test_config.string.clj 2>&1| grep "Hello World!" |  wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "1" ]]
+  then
+    echo "fn on command line test failed to have correct count of lines, should be 1, was: $output_length"
+    $command '{:vector {:option-fn-first (fn [x y] {})}}' <test_config.string.clj 
+fi
 
 #
 # Clean up

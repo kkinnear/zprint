@@ -616,7 +616,8 @@ in order to configure itself:
 
 * The file `$HOME/.zprintrc` or if that file does not exist, the  file
   `$HOME/.zprint.edn` for an options map in EDN format.
-* If the file found above has `:search-config?` true, it will look
+* If the file found above or the options map on the command line has 
+  `:search-config?` true, it will look
   in the current directory for a file `.zprintrc` and if it doesn't find
   one, it will look for `.zprint.edn`.l  If it doesn't find either of them,
   it will look in the parent of the current directory for the same two files,
@@ -625,7 +626,8 @@ in order to configure itself:
   home directory (that is, it is the same file found in the first step
   in this process, above), it will read the file but it will not use the
   results (because it has already done so).
-* If the file found in the home directory has `:cwd-zprintrc?` set to true,
+* If the file found in the home directory or the options map on the 
+  command line has `:cwd-zprintrc?` set to true,
   and did not have `:search-config?` set to true, then it will search
   the current directory for `.zprintrc` and `.zprint.edn` in that order,
   and use the information from the first file it finds.
@@ -661,6 +663,7 @@ options map across calls
 * Specifing an options map on any call to zprint, which only affects that call
 to `zprint` or `czprint`
 
+
 ## Configuration Interface
 
 ### .zprintrc or .zprint.edn
@@ -693,7 +696,8 @@ will cause all of the external forms of configuration (e.g. .zprintrc,
 environment variables, and Java system properties) to be read
 and converted again.
 
-#### set-options!
+
+### set-options!
 
 You call set-options! with an EDN map of the specific key-value pairs
 that you want changed from the current values.  This is useful both
@@ -707,7 +711,7 @@ in some particular way.  For example:
 (zp/set-options! {:map {:indent 0}})
 ```
 
-#### Options map on an individual call
+### Options map on an individual call
 
 You simply specify the options map on the call itself:
 
@@ -725,6 +729,19 @@ You simply specify the options map on the call itself:
  :stuff "a fairly long value"}
 
 ```
+### Configuring functions in an options map
+
+There are several keys whose values must be functions, in order to
+allow complex analysis of the structure or code to be formatted.
+Function definitions for these keys may only be specified in the
+`$HOME/.zprintrc` or `$HOME/.zprint.edn` files, in calls to
+`set-options!`, or in options maps in individual calls.  
+Function defintions are explicitly disallowed in
+other `.zprintrc` and `.zprint.edn` files for security reasons,
+since code must be executed in order to define functions.
+
+When configuring function in files, use the `(fn [x y] ...)` form of 
+definition as opposed to the `#(...)` reader-macro form.
 
 ### Option Validation
 
@@ -737,30 +754,12 @@ validation on the values is also performed.  Thus:
 
 ```clojure
 (czprint nil {:map {:hang false}})
-
-Exception Option errors in this call: Value does not match schema: {:map {:hang disallowed-key}}
-zprint.core/zprint* (core.clj:241)
+Exception Option errors in this call: In the key-sequence [:map :hang] the key :hang was not recognized as valid!  zprint.core/determine-options (core.cljc:415)
 
 ```
 
 This call will fail validation because there is no `:hang` key in `:map`.  The
-"?" is missing from `:hang?`.  My initial motivation for adding options
-map validation was forgetting to type the "?" at the end of boolean valued
-options and wondering why nothing changed.
-
-There is no key validation performed for environment variables or
-Java system properties -- invalid keys are simply ignored.  However,
-value type validation is performed.  Thus:
-
-```clojure
-(System/setProperty "zprint_map_indent" "true")
-
-(configure-all!)
-
-"In System property: Value does not match schema: {:map {:indent (not (instance? java.lang.Number true))}}"
-```
-whichs says that "true" is not an instance of java.lang.Number, and tells
-you that any value for `{:map {:indent <value>}}` needs to be a number.
+"?" is missing from `:hang?`.  
 
 All option validation errors must be fixed, or zprint will not operate.
 

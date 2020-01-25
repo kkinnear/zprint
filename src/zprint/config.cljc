@@ -1226,7 +1226,7 @@
   [options-from-file error-string full-path-of-file].  It is acceptable to
   not have a file if optional? is truthy, but if the file exists, then 
   regardless of optional?, errors are detected and reported."
-  ([filename optional?]
+  ([filename optional? acceptfns?]
    #?(:clj
         (when filename
           (let [filestr (str filename)
@@ -1243,23 +1243,24 @@
             (if file-error
               (if optional? nil [nil file-error full-path])
               (try (let [opts-file
-                           #_(load-file filename)
-                           (clojure.edn/read-string (apply str lines))]
+	                  (if acceptfns?
+                            (load-string (apply str lines))
+                            (clojure.edn/read-string (apply str lines)))]
                      [opts-file nil full-path])
                    (catch Exception e
                      [nil
                       (str "Unable to read configuration from file " full-path
                            " because " e) full-path])))))
       :cljs nil))
-  ([filename] (get-config-from-file filename nil)))
+  ([filename] (get-config-from-file filename nil nil)))
 
 (defn get-config-from-path
   "Take a vector of filenames, and look in exactly one directory for
   all of the filenames.  Return the [option-map error-str full-file-path]
   from get-config-from-file for the first one found, or nil if none found."
-  [filename-vec file-sep dir-vec]
+  [filename-vec file-sep dir-vec acceptfns?]
   (let [dirspec (apply str (interpose file-sep dir-vec))
-        config-vec (some #(get-config-from-file % :optional)
+        config-vec (some #(get-config-from-file % :optional acceptfns?)
                          (map (partial str dirspec file-sep) filename-vec))]
     config-vec))
 
@@ -1268,9 +1269,9 @@
   filenames in filename-vec in the directory specified by dir-vec.
   When one is found, return (using reduced) the [option-map error-str
   full-file-path] from get-config-from-file, or nil if none are
-  found."
+  found.  Will not accept fns from any of the files."
   [filename-vec file-sep dir-vec _]
-  (let [config-vec (get-config-from-path filename-vec file-sep dir-vec)]
+  (let [config-vec (get-config-from-path filename-vec file-sep dir-vec nil)]
     (if config-vec
       (reduced config-vec)
       (if (= ["."] dir-vec) [".."] (concat [".."] dir-vec)))))
@@ -1428,7 +1429,11 @@
         zprintrc-file (str home file-separator zprintrc)
         [opts-rcfile errors-rcfile rc-filename :as home-config]
           (when (and home file-separator)
-            (get-config-from-path [zprintrc zprintedn] file-separator [home]))
+            (get-config-from-path [zprintrc zprintedn] 
+	                          file-separator 
+				  [home] 
+				  ; Do accept fns from this file
+				  :acceptfns))
         [updated-map new-doc-map rc-errors]
           (config-and-validate (str "Home directory file: " rc-filename)
                                default-doc-map
@@ -1444,6 +1449,7 @@
           (when (and (or (:search-config? updated-map)
                          (:search-config? op-options))
                      file-separator)
+	    ; Do not accept functions from any files found
             (scan-up-dir-tree [zprintrc zprintedn] file-separator))
         [search-rcfile search-errors-rcfile search-filename]
           (when (not= home-config search-config)
@@ -1464,7 +1470,11 @@
                      (or (:cwd-zprintrc? search-map)
                          (:cwd-zprintrc? op-options))
                      file-separator)
-            (get-config-from-path [zprintrc zprintedn] file-separator ["."]))
+            (get-config-from-path [zprintrc zprintedn] 
+	                          file-separator 
+				  ["."]
+				  ; Do not accept fns from this file
+				  nil))
         [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
           (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
                                search-doc-map

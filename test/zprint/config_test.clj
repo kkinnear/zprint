@@ -572,4 +572,11 @@
                      (get-options)))
 
 
+;;
+;; Can we input fn definitions on a single call?
+;;
+
+(expect "{:a :b}"
+        (zprint-str {:a :b} {:vector {:option-fn-first (fn [x y] {})}}))
+
 

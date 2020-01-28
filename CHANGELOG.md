@@ -1,9 +1,29 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 0.5.4 - 2019-11-9
+## 0.5.4 - 2020-1-27
 
 ### Added
+
+  * Significant new capability -- __Respect Blank Lines__.  In the same
+  way that `:respect-nl?` has been implemented for lists, vectors,
+  maps and sets, now `:respect-bl?` has been implemented for them
+  all as well.  This means that whenever a blank line appears in
+  the source, it will be "respected", and will appear in the output.
+  However, all other formatting will be applied around any blank
+  lines that may appear. Issue #125.
+
+  While `:respect-nl?` was something that you might want to configure
+  for formatting a single function, `:respect-bl?` is something that
+  is perfectly reasonable to configure for processing whole files,
+  or perhaps all of the time in your `~/.zprintrc` file. If you
+  do that, everything will operate as normal with zprint, but if you
+  put blank lines inside a function definition, those blank lines
+  will continue to appear in the output.  And all of the information
+  will all be formatted correctly around those blank lines.
+
+  There is a new style: `{:style :respect-bl}` to simplify using
+  this capability.
 
   * Configure the uberjar or pre-built graalVM binaries from a URL.
   `--url` will add an options map found at the specified URL to
@@ -12,7 +32,7 @@ All notable changes to this project will be documented in this file.
   options map found at the specified URL.  Thanks to Colin Taylor
   (coltnz) for the idea and the pull request for this feature.  I
   learned a lot about Java manipulation of URLs and other http
-  related data from his work.  Issue #117 and #112.
+  related data from his work.  Issues #117 and #112.
 
   * The built in pretty printer for Clojure, clojure.pprint, will
   backtranslate `(quote a)` to `'a`, `(var a)` to `#'a`, 
@@ -80,6 +100,10 @@ All notable changes to this project will be documented in this file.
   these files they are considered errors (in order to allow opening
   up that path with explicit configuration in the future).  
   Issue #124.
+
+  * Fixed issue where vectors output using `:respect-nl?` didn't 
+  properly handle two newlines not separated by other whitespace.
+  Issue #129.
 
 
 ## 0.5.3 - 2019-11-9

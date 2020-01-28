@@ -176,6 +176,7 @@
 (s/def ::fn-format (s/nilable ::fn-type))
 (s/def ::record-type? ::boolean)
 (s/def ::respect-nl? ::boolean)
+(s/def ::respect-bl? ::boolean)
 (s/def ::size number?)
 (s/def ::sort? ::boolean)
 (s/def ::sort-in-code? ::boolean)
@@ -242,6 +243,7 @@
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
                       ::indent-arg ::pair-hang? ::return-altered-zipper
+		      ::respect-bl?
                       ::respect-nl? ::indent-only? ::indent-only-style
 		      ::replacement-string]))
 (s/def ::vector-fn ::list)
@@ -251,8 +253,8 @@
              ::hang-expand ::hang? ::indent ::indent-only? ::justify?
              ::justify-hang ::justify-tuning ::key-color ::key-value-color
              ::key-depth-color ::key-ignore ::key-ignore-silent ::key-order
-             ::lift-ns? ::lift-ns-in-code? ::nl-separator? ::respect-nl?
-             ::sort-in-code? ::sort? ::unlift-ns?]))
+             ::lift-ns? ::lift-ns-in-code? ::nl-separator? ::respect-bl? 
+	     ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -284,7 +286,8 @@
 (s/def ::next-inner zany?)
 (s/def ::return-cvec? ::boolean)
 (s/def ::set
-  (only-keys :opt-un [::indent ::indent-only? ::respect-nl? ::sort?
+  (only-keys :opt-un [::indent ::indent-only? ::respect-bl? 
+                      ::respect-nl? ::sort?
                       ::sort-in-code? ::wrap-after-multi? ::wrap-coll?
                       ::wrap?]))
 (s/def ::spaces? ::boolean)
@@ -299,7 +302,8 @@
 (s/def :alt/uneval (only-keys :opt-un [::color-map]))
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
-  (only-keys :opt-un [::indent ::binding? ::respect-nl? ::option-fn-first
+  (only-keys :opt-un [::indent ::binding? ::respect-bl? 
+                      ::respect-nl? ::option-fn-first
                       ::option-fn ::fn-format ::wrap-after-multi? ::wrap-coll?
                       ::wrap? ::indent-only?]))
 (s/def ::version string?)

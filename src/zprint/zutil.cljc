@@ -296,7 +296,98 @@
     (when (not (nil? nloc))
       (if (zthing? nloc) i (recur (zrightnws nloc) (inc i))))))
 
+(defn znl
+  []
+  "Return a zloc which is a newline."
+  (edn* (p/parse-string "\n")))
+
+(defn multi-nl
+  "Take a zloc that is a newline and has more than one newline,
+  and split it into a sequence of individual newlines."
+  [n]
+  (apply vector (repeat n (znl))))
+
+(defn zmap-w-bl
+  "Return a vector containing the return of applying a function to
+  every non-whitespace zloc inside of zloc, including two newlines
+  for every blank line encountered.  Note that a truly blank line
+  will show up as one zloc with two newlines in it.  It will have
+  (= (z/tag nloc) :newline), but it will have both newlines.  To
+  ease handling of these multi-line newlines, this routine will
+  split them up into multiple individual newlines."
+  [zfn zloc]
+  (loop [nloc (down* zloc)
+         blank? false
+         previous-was-nl? false
+         out []]
+    (if-not nloc
+      out
+      (let [ws? (whitespace? nloc)
+            nl? (= (z/tag nloc) :newline)
+            nl-len (when nl? (length nloc))
+            multi-nl? (when nl? (> (length nloc) 1))
+            emit-nl? (or (and blank? nl?) multi-nl?)
+            ; newline thing to emit
+            nl-to-emit (when emit-nl?
+                         (cond multi-nl? (mapv zfn
+                                           (multi-nl (if (or previous-was-nl?
+                                                             (not blank?))
+                                                       nl-len
+                                                       (inc nl-len))))
+                               previous-was-nl? [(zfn nloc)]
+                               :else [(zfn nloc) (zfn nloc)]))
+            ; non newline thing to emit
+            result (when (not ws?) (zfn nloc))]
+        #_(prn "map-w-bl: blank?" blank?
+               ", zloc:" (z/string nloc)
+               ", length:" (length nloc)
+               ", ws?" ws?
+               ", nl? " nl?
+               ", nl-len:" nl-len
+               ", multi-nl?" multi-nl?
+               ", emit-nl?" emit-nl?
+               ", nl-to-emit" (map z/string nl-to-emit))
+        (recur (right* nloc)
+               (if blank?
+                 ; If already blank, then if it is whitespace it is still
+                 ; blank.  That includes newlines (which are ws? too).
+                 (or ws? nl?)
+                 ; Not already blank, only a newline (of any length)
+                 ; will start blank
+                 nl?)
+               ; If we emitted something, was it a nl?  If nothing emitted,
+               ; no change.
+               (if (or result nl-to-emit) emit-nl? previous-was-nl?)
+               (cond result (conj out result)
+                     nl-to-emit (apply conj out nl-to-emit)
+                     :else out))))))
+
 (defn zmap-w-nl
+  "Return a vector containing the return of applying a function to
+  every non-whitespace zloc inside of zloc, including newlines.
+  This will also split newlines into separate zlocs if they were
+  multiple."
+  [zfn zloc]
+  (loop [nloc (down* zloc)
+         out []]
+    (if-not nloc
+      out
+      (let [; non-newline thing to emit
+            result (when (not (whitespace? nloc)) (zfn nloc))
+            nl? (= (z/tag nloc) :newline)
+            nl-len (when nl? (length nloc))
+            multi-nl? (when nl? (> (length nloc) 1))
+            ; newline thing to emit
+            nl-to-emit (when nl?
+                         (if multi-nl?
+                           (mapv zfn (multi-nl nl-len))
+                           [(zfn nloc)]))]
+        (recur (right* nloc)
+               (cond result (conj out result)
+                     nl-to-emit (apply conj out nl-to-emit)
+                     :else out))))))
+
+(defn zmap-w-nl-alt
   "Return a vector containing the return of applying a function to 
   every non-whitespace zloc inside of zloc, including newlines."
   [zfn zloc]
@@ -368,6 +459,12 @@
   newlines."
   [zloc]
   (zmap-w-nl identity zloc))
+
+(defn zseqnws-w-bl
+  "Return a seq of all of the non-whitespace children of zloc, including
+  only newlines that start and end blank lines."
+  [zloc]
+  (zmap-w-bl identity zloc))
 
 (defn zremove-right
   "Remove everything to the right of the current zloc. In other words,
@@ -690,6 +787,7 @@
     zprint.zfns/zsexpr sexpr
     zprint.zfns/zseqnws zseqnws
     zprint.zfns/zseqnws-w-nl zseqnws-w-nl
+    zprint.zfns/zseqnws-w-bl zseqnws-w-bl
     zprint.zfns/zmap-right zmap-right
     zprint.zfns/zfocus-style zfocus-style
     zprint.zfns/zstart zstart
@@ -707,6 +805,7 @@
     zprint.zfns/zcount-zloc-seq-nc-nws zcount-zloc-seq-nc-nws
     zprint.zfns/zmap zmap
     zprint.zfns/zmap-w-nl zmap-w-nl
+    zprint.zfns/zmap-w-bl zmap-w-bl
     zprint.zfns/zmap-w-nl-comma zmap-w-nl-comma
     zprint.zfns/zanonfn? zanonfn?
     zprint.zfns/zfn-obj? (constantly false)

@@ -15,7 +15,7 @@
       zkeyword? zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot
       zsymbol? znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zfind
       zmap-w-nl zmap-w-nl-comma ztake-append znextnws-w-nl znextnws
-      znamespacedmap?]]
+      znamespacedmap? zmap-w-bl zseqnws-w-bl]]
     [zprint.ansi :refer [color-str]]
     [zprint.config :refer [validate-options merge-deep]]
     [zprint.zutil :refer [add-spec-to-docstring]]
@@ -1917,7 +1917,7 @@
   ([caller
     {:keys [dbg? width],
      {:keys [hang? constant-pair? constant-pair-min hang-avoid hang-expand
-             hang-diff nl-separator? respect-nl?]}
+             hang-diff nl-separator?]}
        caller,
      :as options} hindent findent zloc-seq fn-style zloc-count]
    (when (:dbg-hang options)
@@ -1928,7 +1928,6 @@
         "findent:" findent
         "caller:" caller
         "nl-separator?:" nl-separator?
-        "respect-nl?:" respect-nl?
         "(count zloc-seq):" (count zloc-seq))
    ; (in-hang options) slows things down here, for some reason
    (let [seq-right zloc-seq
@@ -2105,10 +2104,11 @@
 (defn fzprint-get-zloc-seq
   "Get the zloc seq, with or without newlines, as indicated by the options."
   [caller options zloc]
-  (if (:respect-nl? (caller options))
-    (zmap-w-nl identity zloc)
-    (zmap identity zloc)))
-
+  (let [caller-options (caller options)]
+    (cond (:respect-nl? caller-options) (zmap-w-nl identity zloc)
+          (:respect-bl? caller-options) (zmap-w-bl identity zloc)
+          :else (zmap identity zloc))))
+        
 (defn newline-or-comment?
   "Given an zloc, is it a newline or a comment?"
   [zloc]
@@ -2917,6 +2917,7 @@
         indent (:indent (options caller))
         [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
           (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
+	#_(prn "fzprint-list* zloc-seq:" (map zstring zloc-seq))
         arg-1-coll? (not (or (zkeyword? arg-1-zloc) (zsymbol? arg-1-zloc)))
         ; Use an alternative arg-1-indent if the fn-style is forced on input
         ; and we don't actually have an arg-1 from which we can get an indent.
@@ -3633,7 +3634,7 @@
   [caller l-str r-str
    {:keys [rightcnt in-code?],
     {:keys [wrap-coll? wrap? binding? option-fn-first option-fn respect-nl?
-            sort? sort-in-code? fn-format indent indent-only?]}
+            respect-bl? sort? sort-in-code? fn-format indent indent-only?]}
       caller,
     :as options} ind zloc]
   (dbg options "fzprint-vec* ind:" ind "indent:" indent "caller:" caller)
@@ -3665,8 +3666,8 @@
                        nws-count))))
           _ (when option-fn
               (dbg-pr options "fzprint-vec* option-fn new options" new-options))
-          {{:keys [wrap-coll? wrap? binding? respect-nl? sort? fn-format
-                   sort-in-code? indent indent-only?]}
+          {{:keys [wrap-coll? wrap? binding? respect-bl? respect-nl? sort?
+                   fn-format sort-in-code? indent indent-only?]}
              caller,
            :as options}
             (merge-deep options new-options)]
@@ -3681,20 +3682,22 @@
                        (assoc options :fn-style fn-format)
                        ind
                        zloc)
-        (let [; If sort? is true, then respect-nl? makes no sense.  And vice
-              ; versa.
-              ; If respect-nl?, then no sort.
+        (let [; If sort? is true, then respect-nl? and respect-bl? make
+              ; no sense.  And vice versa.
+              ; If respect-nl? or respect-bl?, then no sort.
               indent (or indent (count l-str))
               new-ind (if indent-only? ind (+ indent ind))
               _ (dbg-pr options
                         "fzprint-vec*:" (zstring zloc)
                         "new-ind:" new-ind)
-              zloc-seq (if (or respect-nl? indent-only?)
-                         (zmap-w-nl identity zloc)
-                         (zmap identity zloc))
+              zloc-seq (cond (or respect-nl? indent-only?) (zmap-w-nl identity
+                                                                      zloc)
+                             respect-bl? (zmap-w-bl identity zloc)
+                             :else (zmap identity zloc))
               zloc-seq (if (and sort?
                                 (if in-code? sort-in-code? true)
                                 (not respect-nl?)
+                                (not respect-bl?)
                                 (not indent-only?))
                          (order-out caller options identity zloc-seq)
                          zloc-seq)
@@ -3714,7 +3717,7 @@
                              ; when it is enabled.  Could be separately
                              ; controlled
                              ; instead of with :respect-nl? if desired.
-                             (if (or respect-nl? indent-only?)
+                             (if (or respect-nl? :respect-bl? indent-only?)
                                coll-print
                                (remove-nl coll-print)))))
               _ (log-lines options "fzprint-vec*:" new-ind one-line)
@@ -4000,7 +4003,7 @@
   [caller l-str r-str
    {:keys [one-line? ztype map-depth in-code?],
     {:keys [comma? key-ignore key-ignore-silent nl-separator? force-nl? lift-ns?
-            lift-ns-in-code? respect-nl? indent-only? indent],
+            lift-ns-in-code? respect-bl? respect-nl? indent-only? indent],
      :as map-options}
       caller,
     :as options} ind zloc ns]
@@ -4024,16 +4027,19 @@
           zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
                  (map-ignore caller options zloc)
                  zloc)
-          [no-sort? pair-seq] (partition-all-2-nc (no-max-length options)
-                                                  (if respect-nl?
-                                                    #_(zmap-w-nl identity zloc)
-                                                    (zseqnws-w-nl zloc)
-                                                    #_(zmap identity zloc)
-                                                    (zseqnws zloc)))
+          [no-sort? pair-seq]
+            (partition-all-2-nc (no-max-length options)
+                                (cond respect-nl?
+                                        #_(zmap-w-nl identity zloc)
+                                        (zseqnws-w-nl zloc)
+                                      respect-bl? (zseqnws-w-bl zloc)
+                                      :else
+                                        #_(zmap identity zloc)
+                                        (zseqnws zloc)))
           #_(dbg-pr "fzprint-map* pair-seq:"
                     (map (comp zstring first) pair-seq))
           ; don't sort if we are doing respect-nl?
-          no-sort? (or no-sort? respect-nl?)
+          no-sort? (or no-sort? respect-nl? respect-bl?)
           [ns lift-pair-seq]
             (zlift-ns (assoc map-options :in-code? in-code?) pair-seq ns)
           _ (dbg-pr options "fzprint-map* zlift-ns ns:" ns)

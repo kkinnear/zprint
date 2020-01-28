@@ -1,10 +1,36 @@
 # zprint
 
-__zprint__ is a library providing a pretty printing capability for
-both Clojure code and Clojure/EDN structures.  It can be used as a library,
-either embedded in a larger codebase, or as a useful utility at the
-repl.  It can be configured to process entire files or just take small
-sections of code and reformat them on demand.
+__zprint__ is a library and command line tool providing a variety
+of pretty printing capabilities for both Clojure code and Clojure/EDN
+structures.  It can meet almost anyone's needs.  As such, it supports
+the following major source code formattng approaches:
+
+  * __classic zprint__ -- ignores whitespace in function definitions and 
+  formats code with a variety of heuristics to look as good as 
+  hand-formatted code
+  * __respect blank lines__ -- similar to classic zprint, but blank lines 
+  inside of function defintions are retained, while code is otherwise 
+  formatted to look beautiful
+  * __indent only__ -- very different from classic zprint -- no code ever
+  changes lines, it is only correctly indented on whatever line it was already
+  on
+
+It is available here as a:
+
+  * __super-fast__ [native-image](doc/graalvm.md), __*prebuilt*__ for macOS or
+    Linux  ...  (Starts in __less than 50ms!__)
+  * __run anywhere__ [uberjar](doc/filter.md) 
+  * __leiningen plugin__: [lein-zprint][leinzprint] to format entire projects
+  * __library__ for use at the REPL or build into other programs
+
+Configurations can be:
+
+  * stored in a `~/.zprintrc` file, so that once you
+  get something you like, you don't have to think about it agin  
+  * stored in a `.zprintrc` file in a project directory for project specific
+  formatting
+  * customized to format user-defined functions in a very natural way
+
 
 If you want to use the zprint library to format your Clojure source,
 you have many options:

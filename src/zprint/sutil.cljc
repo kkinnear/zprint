@@ -288,6 +288,7 @@
     zprint.zfns/zsexpr identity
     zprint.zfns/zseqnws sseqnws
     zprint.zfns/zseqnws-w-nl sseqnws
+    zprint.zfns/zseqnws-w-bl sseqnws
     zprint.zfns/zmap-right smap-right
     zprint.zfns/zfocus-style sfocus-style
     zprint.zfns/zstart sfirst
@@ -305,6 +306,7 @@
     zprint.zfns/zcount-zloc-seq-nc-nws scount
     zprint.zfns/zmap smap
     zprint.zfns/zmap-w-nl smap
+    zprint.zfns/zmap-w-bl smap
     zprint.zfns/zmap-w-nl-comma smap
     ; zprint.zfns/zfn? sfn?
     zprint.zfns/zanonfn? (constantly false) ; this only works because lists,

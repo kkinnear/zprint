@@ -3219,6 +3219,115 @@ ser/collect-vars-acc %1 %2) )))"
                     {:parse-string? true}))
 
 ;;
+;; :respect-nl? true tests for vectors
+;;
+
+(expect "[a b c d]" (zprint-str "[a\nb\nc\nd]" {:parse-string? true}))
+
+(expect "[a b c d]"
+        (zprint-str "[a\nb\n\nc\nd]"
+                    {:parse-string? true, :vector {:respect-nl? false}}))
+
+(expect "[a\n b\n\n c\n d]"
+        (zprint-str "[a\nb\n\nc\nd]"
+                    {:parse-string? true, :vector {:respect-nl? true}}))
+
+(expect "[a\n b\n\n c\n [e\n  f]\n d]"
+        (zprint-str "[a\nb\n\nc [e \n f]\nd]"
+                    {:parse-string? true, :vector {:respect-nl? true}}))
+
+(expect "[this\n\n is a thing]"
+        (zprint-str "[this\n\nis a thing]"
+                    {:parse-string? true, :vector {:respect-nl? true}}))
+
+(expect "[this\n\n is a thing]"
+        (zprint-str "[this\n  \nis a thing]"
+                    {:parse-string? true, :vector {:respect-nl? true}}))
+
+;;
+;; :respect-bl? true tests for lists
+;;
+
+(expect
+  "(this is\n      a\n      \n      thing\n      with\n      a\n      blank\n      line)"
+  (zprint-str "(this is a\n\nthing with a blank line)"
+              {:parse-string? true, :list {:respect-bl? true}}))
+
+(expect
+  "(this is\n      a\n      \n      thing\n      with\n      a\n      blank\n      line)"
+  (zprint-str "(this is a\n     \nthing with a blank line)"
+              {:parse-string? true, :list {:respect-bl? true}}))
+
+(expect
+  "(comment (defn x [y] (println y))\n         \n         (this is a thing that is interesting)\n         \n         (def z :this-is-a-test)\n         \n         (def a :more stuff)\n         \n         \n         \n         (def b :3-blanks-above))"
+  (zprint-str
+    "(comment\n(defn x\n  [y]\n  (println y))\n\n(this is a\n         thing that is interesting)\n\n(def z :this-is-a-test)\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
+    {:parse-string? true, :list {:respect-bl? true}}))
+
+(expect "(a b\n   \n   \n   c\n   d)"
+        (zprint-str "(a\nb\n \n\nc\nd)"
+                    {:parse-string? true, :style :respect-bl}))
+
+(expect "(a b\n   \n   \n   c\n   \n   \n   \n   \n   d)"
+        (zprint-str "(a\nb\n \n\nc \n \n\n \n\nd)"
+                    {:parse-string? true, :style :respect-bl}))
+
+;;
+;; :respect-bl? true tests for vectors
+;;
+
+(expect "[a b\n\n c d]"
+        (zprint-str "[a\nb\n\nc\nd]"
+                    {:parse-string? true, :vector {:respect-bl? true}}))
+
+
+(expect "[a b\n\n c [e f] d]"
+        (zprint-str "[a\nb\n\nc [e \n f]\nd]"
+                    {:parse-string? true, :vector {:respect-bl? true}}))
+
+(expect "[this\n\n is a thing]"
+        (zprint-str "[this\n\nis a thing]"
+                    {:parse-string? true, :vector {:respect-bl? true}}))
+
+(expect "[this\n\n is a thing]"
+        (zprint-str "[this\n  \nis a thing]"
+                    {:parse-string? true, :vector {:respect-bl? true}}))
+
+;;
+;; :respect-bl? true tests for sets
+;;
+
+(expect "#{:a :b :c\n \n  :d :e}"
+        (zprint-str "#{:a :b \n :c \n\n :d :e}"
+                    {:parse-string? true, :set {:respect-bl? true}}))
+(expect "#{:a :b :c\n \n \n  :d\n \n  :e}"
+        (zprint-str "#{:a :b \n :c \n\n\n :d \n\n :e}"
+                    {:parse-string? true, :set {:respect-bl? true}}))
+
+;;
+;; :respect-bl? true for maps
+;;
+
+(expect "{:a :b,\n :c :d,\n \n :e\n   \n   \n   :f}"
+        (zprint-str "{:a :b \n :c \n :d \n\n :e \n\n\n :f}"
+                    {:parse-string? true, :map {:respect-bl? true}}))
+
+(expect "{:a :b, :c {:g :h, :i :j}, :e :f}"
+        (zprint-str "{:a :b \n :c \n {:g \n :h :i \n\n :j} \n\n :e \n\n\n :f}"
+                    {:parse-string? true, :map {:respect-bl? false}}))
+
+(expect
+  "{:a :b,\n :c {:g :h,\n     :i\n       \n       :j},\n \n :e\n   \n   \n   :f}"
+  (zprint-str "{:a :b \n :c \n {:g \n :h :i \n\n :j} \n\n :e \n\n\n :f}"
+              {:parse-string? true, :map {:respect-bl? true}}))
+
+(expect
+  "{:a :b,\n :c\n   {:g\n      :h,\n    :i\n      \n      :j},\n \n :e\n   \n   \n   :f}"
+  (zprint-str "{:a :b \n :c \n {:g \n :h :i \n\n :j} \n\n :e \n\n\n :f}"
+              {:parse-string? true, :map {:respect-nl? true}}))
+
+
+;;
 ;; partition-all-sym was handling a comment with a symbol on its own
 ;; incorrectly.
 

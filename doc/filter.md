@@ -418,7 +418,7 @@ in vim.
 You can also pass an options map to the zprint-filter, though
 you have to enclose it in single quotes.  For instance, you
 could type this: `!a(za '{:vector {:wrap? false}}'` and have
-the zprint-filter no pack things into vectors.
+the zprint-filter not pack things into vectors.
 
 ### emacs
 

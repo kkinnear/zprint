@@ -1004,8 +1004,10 @@
   ([] (config-configure-all! nil)))
 
 (defn config-set-options!
-  "Add some options to the current options, checking to make
-  sure that they are correct."
+  "Add some options to the current options, checking to make sure
+  that they are correct. op-options are operational options that
+  affect where to get options or how to do the processing, but do
+  not affect the format of the output directly."
   ([new-options doc-str op-options]
    ; avoid infinite recursion, while still getting the doc-map updated
    (let [error-vec (when (and (not (:configured? (get-options)))
@@ -1221,6 +1223,29 @@
 ;; # Configuration Utilities
 ;;
 
+(defn try-to-load-string
+  "Read an options map from a string.  Try to use load-string so that
+  functions defined in the options map will be correctly defined, but
+  if that fails (for two specific reasons), then back off to use read-string
+  instead.  Any failures from read-string are not caught and propagate
+  back up the call stack."
+  [s]
+  #?(:clj (try
+            (load-string s)
+            (catch Exception e
+              (if (or (clojure.string/includes?
+                        (str e)
+                        "Unsupported method java.lang.ClassLoader.defineClass")
+                      (clojure.string/includes?
+                        (str e)
+                        "Could not locate clojure/spec/alpha__init.class"))
+                ; This must be graalVM complaining about the eval in
+                ; load-string
+                (clojure.edn/read-string s)
+                ; This is something else wrong, let it go
+                (do #_(println "Exception: '" (str e) "'") (throw e)))))
+     :cljs nil))
+
 ;; Remove two files from this, make it one file at a time.`
 ;; Do the whole file here.
 
@@ -1248,7 +1273,7 @@
               (if optional? nil [nil file-error full-path])
               (try (let [opts-file
 	                  (if acceptfns?
-                            (load-string (apply str lines))
+                            (try-to-load-string (apply str lines))
                             (clojure.edn/read-string (apply str lines)))]
                      [opts-file nil full-path])
                    (catch Exception e

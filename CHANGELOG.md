@@ -95,10 +95,12 @@ All notable changes to this project will be documented in this file.
   `set-options!`, as they would not read in properly from `.zprintrc`
   files or the command line.  Now fns can be read in successfully
   from `~/.zprintrc` and from options maps specified on the command
-  line.  Functions are not allowed when reading `.zprintrc` files
-  not in the `$HOME` directory and in options maps from URLs.  In
-  these files they are considered errors (in order to allow opening
-  up that path with explicit configuration in the future).  
+  line when using the uberjar or `lein-zprint`, __but not when using
+  the pre-built graalVM binaries that are distributed in the GitHub
+  release.__  Functions are never allowed when reading `.zprintrc`
+  files not in the `$HOME` directory and in options maps from URLs.
+  In these files they are considered errors (in order to allow
+  opening up that path with explicit configuration in the future).
   Issue #124.
 
   * Fixed issue where vectors output using `:respect-nl?` didn't 

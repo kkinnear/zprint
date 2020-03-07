@@ -460,7 +460,7 @@ fi
 # Configure some strange .zprintrc files to test fns in zprintrc files
 #
 
-echo "...........  fn in ~/.zprintrc file test"
+echo "...........  fn in ~/.zprintrc file test (works for uberjar, fails for graalvm)"
 
 # ~/.zprintrc gets a fn
 echo "{:vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
@@ -470,9 +470,23 @@ rm -rf ./.zprintrc
 output_length=`$command -e 2>&1| grep :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "1" ]]
+
+# For the uberjar, this should work.  We will assume that to start.
+expected_length=1
+# For the graalvm binaries, this should not work!
+if [[ $2 == "graalvm-mac" ]]
   then
-    echo "-e test failed to have correct count of lines, should be 1, was: $output_length"
+    expected_length=0
+  else
+    if [[ $2 == "graalvm-linux" ]]
+      then
+        expected_length=0
+    fi
+fi
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command -e
 fi
 
@@ -493,7 +507,7 @@ output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 if [[ $output_length != "1" ]]
   then
-    echo "-e test failed to have correct count of lines, should be 1, was: $output_length"
+    echo "fn is invalid in ./.zprintrc test failed to have correct count of lines, should be 1, was: $output_length"
     $command -e
 fi
 
@@ -501,7 +515,7 @@ fi
 # Fns on the command line
 #
 
-echo "...........  fn on command line test"
+echo "...........  fn on command line test (works for uberjar, fails for graalvm)"
 
 # ~/.zprintrc gets a fn
 echo "{:vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
@@ -512,9 +526,23 @@ rm -rf ./.zprintrc
 output_length=`$command '{:vector {:option-fn-first (fn [x y] {})}}' <test_config.string.clj 2>&1| grep "Hello World!" |  wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "1" ]]
+
+# For the uberjar, this should work.  We will assume that to start.
+expected_length=1
+# For the graalvm binaries, this should not work!
+if [[ $2 == "graalvm-mac" ]]
   then
-    echo "fn on command line test failed to have correct count of lines, should be 1, was: $output_length"
+    expected_length=0
+  else
+    if [[ $2 == "graalvm-linux" ]]
+      then
+        expected_length=0
+    fi
+fi
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn on command line test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command '{:vector {:option-fn-first (fn [x y] {})}}' <test_config.string.clj 
 fi
 

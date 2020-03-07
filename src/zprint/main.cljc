@@ -4,7 +4,7 @@
      [zprint-str czprint zprint-file-str set-options! load-options!]]
     [zprint.config :refer
      [get-options get-explained-options config-and-validate-all
-      select-op-options vec-str-to-str merge-deep]])
+      select-op-options vec-str-to-str merge-deep try-to-load-string]])
   #?(:clj (:gen-class)))
 
 ;;
@@ -213,8 +213,7 @@
               (if (or (= option-status :complete) (empty? options))
                 running-status
 		; Accept fns from command-line options map
-                (try (set-options! #_(read-string options)
-				   (load-string options)
+                (try (set-options! (try-to-load-string options)
                                    "command-line options"
                                    op-options)
                      [:complete 0 nil op-options]

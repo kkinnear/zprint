@@ -3,127 +3,25 @@
 __zprint__ is a library and command line tool providing a variety
 of pretty printing capabilities for both Clojure code and Clojure/EDN
 structures.  It can meet almost anyone's needs.  As such, it supports
-the following major source code formattng approaches:
+the a variety of major source code formattng approaches.
 
-  * __classic zprint__ -- ignores whitespace in function definitions and 
-  formats code with a variety of heuristics to look as good as 
-  hand-formatted code
-  * __respect blank lines__ -- similar to classic zprint, but blank lines 
-  inside of function defintions are retained, while code is otherwise 
-  formatted to look beautiful
-  * __indent only__ -- very different from classic zprint -- no code ever
-  changes lines, it is only correctly indented on whatever line it was already
-  on
+## See zprint formatting:
 
-It is available here as a:
+  * [__classic zprint__](./types/classic.md) -- ignores whitespace 
+  in function definitions and formats code with a variety of heuristics 
+  to look as good as hand-formatted code 
+  ([_see examples_](./types/classic.md))
+  * [__respect blank lines__](./types/respectbl.md) -- similar to 
+  classic zprint, but blank lines inside of function defintions are retained, 
+  while code is otherwise formatted to look beautiful
+  ([_see examples_](./types/respectbl.md))
+  * [__indent only__](./types/indentonly.md) -- very different from 
+  classic zprint -- no code ever changes lines, it is only correctly 
+  indented on whatever line it was already on
+  ([_see examples_](./types/indentonly.md))
 
-  * __super-fast__ [native-image](doc/graalvm.md), __*prebuilt*__ for macOS or
-    Linux  ...  (Starts in __less than 50ms!__)
-  * __run anywhere__ [uberjar](doc/filter.md) 
-  * __leiningen plugin__: [lein-zprint][leinzprint] to format entire projects
-  * __library__ for use at the REPL or build into other programs
+In addition, zprint is very handy [__to use at the REPL__](./types/repl.md).
 
-Configurations can be:
-
-  * stored in a `~/.zprintrc` file, so that once you
-  get something you like, you don't have to think about it agin  
-  * stored in a `.zprintrc` file in a project directory for project specific
-  formatting
-  * customized to format user-defined functions in a very natural way
-
-
-If you want to use the zprint library to format your Clojure source,
-you have many options:
-
-  * A super-fast [native-image](doc/graalvm.md) __prebuilt__ for MacOS or
-    Linux.
-  * Using the released [zprint-filter](doc/filter.md) uberjar, you can
-    pretty-print functions from within many editors
-  * Leiningen:  [lein-zprint][leinzprint] to format entire source files
-  * Boot: [boot-fmt][bootfmt] to format entire source files
-  * Node: [zprint-clj][zprintclj] npm module
-  * Atom: [zprint-atom][zprintatom] Atom plugin
-  * Use `planck` or `lumo` and configure zprint as a Clojure pretty-print filter. See [lein-zprint][leinzprint] for details.
-
-__If you haven't used zprint before and are running on MacOS or Linux,
-check out the [native-image](doc/graalvm.md) approach.__  Now prebuilt
-binaries are available for both Linux and MacOS!
-
-Zprint includes support for Clojurescript, both browser based and self-hosted.
-
-Zprint is designed to be a single pretty printer to use for code
-and data structures.  It doesn't just re-indent code, it moves
-it around from line to line trying to find a good visual representation
-for your code.  Though it will just re-indent your code if that is
-what you want.
-
-## New Capabilities in Formatting Clojure(script) Source
-
-##### _First released in 0.5.0_
-
-Some people want a formatting tool to enforce a particular style, regardless
-of the input.  That is what classic zprint does -- it enforces the style
-configured in the options map, almost completely ignoring how the input was
-formatted.
-
-However, some people want a source formatting tool that will take
-into account some amount of the formatting that is already present
-in the input file.  Two capabilities for this are now available in
-zprint:
-
-* __Respect Newlines__ - `:style :respect-nl`
-
-  This approach to source formatting is similar to classic zprint, but it will
-  not remove any newlines.  It will add them as necessary based on the
-  formatting configuration given to zprint.  It is effective when you want
-  zprint to "pretty up" your source, but not entirely ignore the newlines
-  that you sent in.
-
-  In many cases, the classic zprint formatting works fine, but sometimes
-  there are one or two functions that would be better handled with
-  `:style :respect-nl`.
-  If you have a function "func" which would be better
-  handled with `:style :respect-nl`, then an options map of
-  `{:fn-map {"func" [:none {:style :respect-nl}]}}` will do that for you.
-
-* __Indent Only__ - `:style :indent-only`
-
-  This approach to source formatting will not remove nor add any newlines.
-  Every line stays as it is -- the only change zprint will make is to
-  indent each line and to regularize whitespace on the remainder of the
-  line.  It bears little relationship to classic zprint, and
-  doesn't format functions based on the `:fn-map` styles configured. It
-  decides whether to hang or flow a list based on the locations of the first
-  three elements in a list -- if the first two are on the same line, and the
-  third is on the next line aligned with the second on previous line, it
-  will hang the list, otherwise it will flow the list. The indent-only
-  approach is for people who want the code __they__ put on each line to
-  __stay__ on that line!
-
-  You can do this for a whole file by specifying the options
-  map `{:style :indent-only}`, or for a single function (say "func") by
-  giving this options map: `{:fn-map {"func" [:none {:style :indent-only}]}}`.
-
-  If all you ever want is for zprint to do `{:style :indent-only}`, put
-  `{:style :indent-only}` in your `$HOME/.zprintrc` file.
-
-In addition, some people want a source formatter that enforces a
-particular configuration approach, and does it without need for or
-any option to change its configuration.  This is in line with the
-"nobody loves the format produced by xxx, but since it is standard,
-everyone can live with it".
-
-Now you have:
-
-  * __Default mode__
-    If you give the uberjar (or graalVM binaries) `-d` or `--default` on
-    the command line, they will run zprint with no external configuration.
-    The default configuration is what you get, and no other options are
-    read from anywhere.  In particular, the `$HOME/.zprintrc` file is
-    __not__ examined, nor is any other external configuration file.
-    No matter who runs it, running zprint with "-d" will produce the same
-    output from the same input file.   Note that `lein-zprint` also
-    implements these same switches.
 
 ## What does zprint do?
 
@@ -190,71 +88,6 @@ For everyone else, it is nice that comments don't disappear
 when pretty printing source code.
 
 * Do all of this with excellent (and competitive) performance.
-
-[leinzprint]: https://github.com/kkinnear/lein-zprint
-[bootfmt]: https://github.com/pesterhazy/boot-fmt
-[zprintclj]: https://github.com/roman01la/zprint-clj
-[zprintatom]: https://github.com/roman01la/zprint-atom
-
-## Usage
-
-### Clojure 1.9, 1.10, 1.10.1:
-
-__Leiningen ([via Clojars](http://clojars.org/zprint))__
-
-[![Clojars Project](http://clojars.org/zprint/latest-version.svg)](http://clojars.org/zprint)
-
-
-### Clojurescript:
-
-zprint has been tested in each of the following environments:
-
-  * Clojurescript 1.10.520
-    - figwheel 0.5.19
-    - shadow-cljs 2.8.62
-  * `lumo` 1.10.1
-  * `planck` 2.24.0
-
-It requires `tools.reader` at least 1.0.5, which all of the environments
-above contain.
-
-### Clojure CLI
-
-Add the following to the `:aliases` section of `$HOME/.clojure/deps.edn`
-file or to a project's `deps.edn`.
-
-For example:
-
-```clojure
-$ cat > deps.edn <<< $'
-{:aliases {:zprint {:extra-deps
-                      {org.clojure/clojure
-                         #:mvn{:version "1.9.0"},
-                       zprint #:mvn{:version
-                                      "0.5.4"}},
-                    :main-opts ["-m" "zprint.main"]}},
- :deps {org.clojure/clojure #:mvn{:version "1.9.0"},
-        zprint #:mvn{:version "0.5.4"}}}'
-$ clj -A:zprint < deps.edn
-$ clj -m zprint.main <deps.edn
-```
-
-Then you can use the following as filter and pretty printer:
-
-```shell
-cat /path/to/file.clj | clojure -A:zprint
-```
-
-### Clojure 1.8:
-
-The last zprint release built with Clojure 1.8 was [zprint "0.4.15"].
-
-In addition to the zprint dependency, you also need to
-include the following library when using Clojure 1.8:
-
-```
-[clojure-future-spec "1.9.0-alpha17"]
-```
 
 ## Features
 
@@ -360,48 +193,16 @@ If you need to refresh your memory for the API while at the repl, try:
 (zprint nil :help)
 ```
 
-Note that zprint completely ignores all whitespace and line breaks
-in the function definition -- the formatting above is entirely
-independent of the source of the function.  When using `lein-zprint`
-to format source files, whitespace in the file between function definitions
-is preserved.
+Note that classic zprint completely ignores all whitespace and line
+breaks in the function definition -- the formatting above is entirely
+independent of the source of the function.  When using the zprint
+binaries or `lein-zprint` to format source files, whitespace in the
+file between function definitions is always preserved.
 
 Zprint has two fundemental regimes -- formatting s-expressions, or parsing
 a string and formatting the results of the parsing.  When the `-fn` versions
 of the API are used, zprint acquires the source of the function, parses it,
 and formats the result at the repl.
-
-When parsing a string and formatting the results, zprint has three regimes:
-
-* Classic zprint: ignore all white space, and format based entirely on
-algorithms driven by the current configuration.  This regime will detect
-end-of-line comments and keep them with the line they ended (which is the
-only time it examines the incoming whitespace).  This regimes enforces
-a particular format on the incoming source.
-
-* Respect Newline: This regime will ensure that any newlines in the
-incoming source are replicated in the formatted output. It is
-available as `:style :respect-nl`.  It will not remove any newlines,
-but will add newlines in order to format the source.   This will not enforce
-a particular format, since the output is based, in part, on the format of
-the input.  If you format
-something with classic zprint and then send that output through
-zprint with `:style :respect-nl`, it will not change.
-You can turn this on and off for lists, maps, sets, and vectors individually.
-This regime uses the `:fn-map` to determine the kind of formatting to use for
-each function, and will format them as appropriate (subject to the constraint
-to not remove any newlines).
-
-* Indent Only: This regime will not remove or add any newlines.  It will take
-what it is given and indent each line the best it can.  This regime doesn't
-know about function type as configured in the `:fn-map`, and it doesn't know
-about pairs of things in maps and `cond` and binding vectors.  It simply does
-the best it can to indent the major data types: lists, maps, sets, and vectors.
-When formatting lists, it will (configurably) examine the incoming characters
-and will format lists as a hang instead of a flow if the first two elements
-of a list are on the same line and the third element of the
-list was left-aligned with the second element of the list.  Obviously this
-regime doesn't enforce anything other than indentation.
 
 # Configuration
 
@@ -461,12 +262,12 @@ configuration options as well as several different ways to configure zprint.
 You mostly don't have to care about any of this unless you want to change
 the way that zprint outputs your code or data.   If you do, read on...
 
-* [Overview](#overview)
-* [How to Configure zprint](#how-to-configure-zprint)
-* [Configuration Interface](#configuration-interface)
+* [Configuration uses an options map](#configuration-uses-an-options-map)
+* [Where to put an options map](#where-to-put-an-options-map)
+* [Options map format](#options-map-format)
   * [ Option Validation](#option-validation)
   * [ What is Configurable](#what-is-configurable)
-    * [  Generalized Capabilities](#generalized-capabilities)
+    * [  Generalized Capabilities](#generalized-capabilites)
     * [  Syntax Coloring](#syntax-coloring)
     * [  Function Classification for Pretty Printing](#function-classification-for-pretty-printing)
       * [   Changing or Adding Function Classifications](#changing-or-adding-function-classifications)
@@ -498,7 +299,7 @@ the way that zprint outputs your code or data.   If you do, read on...
   * [:tab](#tab)
   * [:vector](#vector)
 
-## Overview
+## Configuration uses an Options map
 
 The formatting done by zprint is driven off of an options map.
 Zprint is built with an internal, default, options map.  This
@@ -565,7 +366,7 @@ of the options map looks like this:
  :zipper? false}
 ```
 
-## How to Configure zprint
+## Where to put an options map
 
 When zprint (or one of the zprint-filters) is called for the first
 time it will configure itself from all of the information that it
@@ -622,7 +423,7 @@ options map across calls
 to `zprint` or `czprint`
 
 
-## Configuration Interface
+## Options map format
 
 ### .zprintrc or .zprint.edn
 
@@ -1128,7 +929,7 @@ executed after the binding is `:list {:indent n}`.
    (+ a c))
 ```
 
-#### :pair-fn
+#### :pair-fn _(function type)_
 
 The function has a series of clauses which are paired.  Whether or
 not the paired clauses use hang or flow with respect to the function
@@ -1163,7 +964,7 @@ don't hang well is `:list {:indent n}`.
       (> (inc j) (stuff k)))
 ```
 
-#### :extend
+#### :extend _(function type)_
 
 The s-expression has a series of symbols with one or more forms
 following each.  The level of indent is configurable by `:extend {:indent n}`.
@@ -2267,7 +2068,7 @@ A simple example:
 Should it wrap its contents, or just list each on a separate line
 if they don't all fit on one line.?
 _____
-## :binding key
+## :binding
 
 Controls the formatting of the first argument of
 any function which has `:binding` as its function type.  `let` is, of
@@ -2443,7 +2244,7 @@ zprint.core=> (czprint cd 75 {:parse-string? true :comment {:count? true}})
   (list a :b :c "d"))
 ```
 _____
-## :extend key
+## :extend
 
 When formatting functions which have extend in their function types.
 
@@ -3899,10 +3700,10 @@ to the end of the line.  However, the formatting available to lists
 is also available to vectors through the use of `:fn-format`, which
 when set will cause a vector to be formatted in the same way as a
 list whose first element is a function that maps to the same
-formatting style as the value of `:fn-format`.  Thus, the various function formatting styles
-such as `:arg1` or `:arg2` are available to vectors as well as lists
-by setting the `:vector` key `:fn-format` to `:arg1` or some other
-function formatting style.
+formatting style as the value of `:fn-format`.  Thus, the various
+function formatting styles such as `:arg1` or `:arg2` are available
+to vectors as well as lists by setting the `:vector` key `:fn-format`
+to `:arg1` or some other function formatting style.
 
 While you can configure this in the options map for every vector,
 typically this configuration value is set by using `option-fn` or
@@ -3920,7 +3721,7 @@ Note that the `:fn-format` processing is done before testing for
 as well), so if the result of the `:option-fn` or `:option-fn-first`
 processing sets `:fn-format`, then the value of `:indent-only?` in
 `:vector-fn` will control whether or not `:indent-only?` is used,
-not the value of `:indent-only?` iin `:vector`.  This is worthy of
+not the value of `:indent-only?` in `:vector`.  This is worthy of
 mention in any case, but particularly because `:style :indent-only` does
 __not__ set `:indent-only?` for `:vector-fn`!
 
@@ -3993,7 +3794,19 @@ given the first element of a vector and may return an options map to be
 used to format this vector (and all of the data inside of it).  If this
 function returns nil, no change is made.  The function must be a function
 of two arguments, the first being the current options map, and the second
-being the first element of the vector.
+being the first element of the vector.  
+
+__Note__: Functions are always allowed when using `set-options!`
+to update an options map.  In addition, they are allowed on options
+maps that appear in calls to the zprint API.  They are also allowed
+in the `~/.zprintrc` file and an options map on the command line,
+but only for library use or when using the uberjar (including the
+`appcds` accelerated uberjar).  The prebuilt graalVM binaries in
+the GitHub releae do __not__ support use of functions in options
+maps in any external file or on the command line!  The functions
+defined in the default options map are always allowed -- the above
+restrictions only apply to functions being read in from external
+files or from the command line.
 
 If you need access to additional data in the vector to determine the proper
 formatting, see `option-fn` which gives that access.
@@ -4046,6 +3859,18 @@ The function must be a function of three arguments, the first being
 the current options map, and the second being the count of elements
 in the vector, and the third being a sequence of the non-comment
 and non-whitespace elements of the vector (not necessarily a vector).
+
+__Note__: Functions are always allowed when using `set-options!`
+to update an options map.  In addition, they are allowed on options
+maps that appear in calls to the zprint API.  They are also allowed
+in the `~/.zprintrc` file and an options map on the command line,
+but only for library use or when using the uberjar (including the
+`appcds` accelerated uberjar).  The prebuilt graalVM binaries in
+the GitHub release do __not__ support use of functions in options
+maps in any external file or on the command line!  The functions
+defined in the default options map are always allowed -- the above
+restrictions only apply to functions being read in from external
+files or from the command line.
 
 This differs from `option-fn-first` in that `option-fn` gives you access
 to all of the elements of the vector in order to make the decision of
@@ -4134,11 +3959,11 @@ a `rum` macro (taken from GitHub rum/examples/rum/examples/inputs.cljc):
 ```
 
 Enabling this globally may cause argument vectors to become strangely
-formatted.  The simple answer is to use `:style :keyword-respect-nl` which
-will cause only vectors whose first element is a keyword to be formatted with
-`:respect-nl? true`. The
-more complex answer is to employ `:option-fn-first`, above (which is what
-`:style :keyword-respect-nl` does).
+formatted.  The simple answer is to use `:style :keyword-respect-nl`
+which will cause only vectors whose first element is a keyword to
+be formatted with `:respect-nl? true`. The more complex answer is
+to employ `:option-fn-first`, above (which is what `:style
+:keyword-respect-nl` does).
 
 #### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
 

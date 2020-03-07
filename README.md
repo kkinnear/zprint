@@ -3,7 +3,7 @@
 __zprint__ is a library and command line tool providing a variety
 of pretty printing capabilities for both Clojure code and Clojure/EDN
 structures.  It can meet almost anyone's needs.  As such, it supports
-the a number of major source code formattng approaches.
+a number of major source code formattng approaches.
 
 ## See zprint:
 
@@ -20,7 +20,7 @@ the a number of major source code formattng approaches.
   indented on whatever line it was already on
   ([_see examples_](./doc/types/indentonly.md))
 
-In addition, zprint is very handy [__to use at the REPL__](./types/repl.md).
+In addition, zprint is very handy [__to use at the REPL__](./doc/types/repl.md).
 
 ## Use zprint:
 
@@ -37,9 +37,9 @@ In addition, zprint is very handy [__to use at the REPL__](./types/repl.md).
   * [an accelerated uberjar for any Java enabled platform](./doc/getting/appcds.md)    _starts in about 1s_
   * [a library to use at the REPL](./doc/using/repl.md)
 
-## Alter zprints formatting behavior:
+## Alter zprint's formatting behavior:
 
-  * [what do you do to change zprint's behavior](./doc/altering.md)
+  * [How do I change zprint's behavior?](./doc/altering.md)
 
 ### I want to change...
 
@@ -52,38 +52,6 @@ In addition, zprint is very handy [__to use at the REPL__](./types/repl.md).
   * [how the second element of a pair is indented](./doc/options/pairs.md)
   * [how comments are handled](./doc/options/comments.md)
   * [anything else...](./doc/reference.md)
-
-## Reference
-
-  * The zprint [API]/(./doc/reference.md#api).
-  * 
-
-
-* [Introduction to Configuration](./doc/reference.md#introduction-to-configuration)
-* [Overview](./doc/reference.md#overview)
-* [How to Configure zprint](./doc/reference.md#how-to-configure-zprint)
-* [Configuration Interface](./doc/reference.md#configuration-interface)
-* [What is Configurable](./doc/reference.md#what-is-configurable)
-* [Widely Used Configuration Parameters](./doc/reference.md#widely-used-configuration-parameters)
-* [:agent, :atom, :delay, :fn, :future, :promise](./doc/reference.md#agent-atom-delay-fn-future-promise)
-* [:array](./doc/reference.md#array)
-* [:binding](./doc/reference.md#binding-key)
-* [:comment](./doc/reference.md#comment)
-* [:extend](./doc/reference.md#extend-key)
-## :list
-## :map
-## :object
-## :output
-## :pair
-## :pair-fn
-## :reader-cond
-## :record
-## :set
-## :spec
-## :style and :style-map
-## :tab
-## :vector
-## Debugging the configuration
 
 
 ## Usage
@@ -118,11 +86,63 @@ include the following library when using Clojure 1.8:
 ```
 [clojure-future-spec "1.9.0-alpha17"]
 ```
+
+## The zprint Reference
+
+  * [Entire reference document](./doc/reference.md)
+  * [What does zprint do?](./doc/reference.md#what-does-zprint-do)
+  * [Features](./doc/reference.md#features)
+  * The zprint [API](./doc/reference.md#api)
+  * Configuration
+    * [ Configuration uses an options map](./doc/reference.md#configuration-uses-an-options-map)
+    * [ Where to put an options map](./doc/reference.md#where-to-put-an-options-map)
+    * [ Options map format](./doc/reference.md#options-map-format)
+      * [  Option Validation](./doc/reference.md#option-validation)
+      * [  What is Configurable](./doc/reference.md#what-is-configurable)
+	* [   Generalized Capabilities](./doc/reference.md#generalized-capabilites)
+	* [   Syntax Coloring](./doc/reference.md#syntax-coloring)
+	* [   Function Classification for Pretty Printing](./doc/reference.md#function-classification-for-pretty-printing)
+	  * [    Changing or Adding Function Classifications](./doc/reference.md#changing-or-adding-function-classifications)
+	  * [    Replacing functions with reader-macros](./doc/reference.md#replacing-functions-with-reader-macros)
+	  * [    Controlling single and multi-line output](./doc/reference.md#controlling-single-and-multi-line-output)
+	  * [    A note about two-up printing](./doc/reference.md#a-note-about-two-up-printing)
+	  * [    A note on justifying two-up printing](./doc/reference.md#a-note-on-justifying-two-up-printing)
+    * [ Formatting large or deep collections](./doc/reference.md#formatting-large-or-deep-collections)
+    * [ Widely Used Configuration Parameters](./doc/reference.md#widely-used-configuration-parameterss)
+    * [ Configurable Elements](./doc/reference.md#configurable-elements)
+      * [:agent](./doc/reference.md#agent-atom-delay-fn-future-promise)
+      * [:array](./doc/reference.md#array)
+      * [:atom](./doc/reference.md#agent-atom-delay-fn-future-promise)
+      * [:binding](./doc/reference.md#binding)
+      * [:comment](./doc/reference.md#comment)
+      * [:delay](./doc/reference.md#agent-atom-delay-fn-future-promise)
+      * [:extend](./doc/reference.md#extend)
+      * [:fn](./doc/reference.md#agent-atom-delay-fn-future-promise)
+      * [:future](./doc/reference.md#agent-atom-delay-fn-future-promise)
+      * [:list](./doc/reference.md#list)
+      * [:map](./doc/reference.md#map)
+      * [:object](./doc/reference.md#object)
+      * [:pair](./doc/reference.md#pair)
+      * [:pair-fn](./doc/reference.md#pair-fn)
+      * [:promise](./doc/reference.md#agent-atom-delay-fn-future-promise)
+      * [:reader-cond](./doc/reference.md#reader-cond)
+      * [:record](./doc/reference.md#record)
+      * [:set](./doc/reference.md#set)
+      * [:spec](./doc/reference.md#spec)
+      * [:style](./doc/reference.md#style-and-style-map)
+      * [:style-map](./doc/reference.md#style-and-style-map)
+      * [:tab](./doc/reference.md#tab)
+      * [:vector](./doc/reference.md#vector)
+
+
 ### Contributors
 
 A number of folks have contributed to zprint, not all of whom
 show up on GitHub because I have integrated the code or suggestions manually.
+__Thanks for all of the great contributions!__
 
+  * `--url` and `--url-only`: @coltnz
+  * Suggestion/encouragement to implement `:respect-bl`: @griffis
   * `:option-fn` and `:fn-format` for enhanced vector formatting: @milankinen
   * Fixed missing require in `spec.cljc`: @Quezion
   * Corrected readme: @griffis

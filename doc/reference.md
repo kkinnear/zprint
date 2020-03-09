@@ -639,7 +639,6 @@ know that you are using it by opening an issue.
 In cases where zprint needs to cache some value, the following keys indicate
 a directory where all cached data will reside:
 
-##### :location <text style="color:#A4A4A4;"><small>"HOME"</small></text>
 ##### :location _"HOME"_
 
 If this does not appear, the location is the home directory ".".  If this
@@ -649,7 +648,7 @@ a ".", it will be considered a Java system property and will be looked
 resolved in that fashion, and if it does not contain a ".", it will be 
 considered an environment variable and resolved in that fashion.
 
-##### :directory <text style="color:#A4A4A4;"><small>".zprint"</small></text>
+##### :directory _".zprint"_
 
 This is the directory in which the various aspects of the cache will
 reside.  This directory is used or created in the :location (see immediately
@@ -663,11 +662,11 @@ maps used for configuration.  These lookups are triggered by the `--url`
 or `--url-only` switches on the uberjar and graalvm binaries.  There are
 two values associated with cacheing of URL lookups.
 
-##### :cache-secs <text style="color:#A4A4A4;"><small>300</small></text>
+##### :cache-secs _300_
 
 This the time that for which the result of a URL lookup is cached.  
 
-##### :cache-dir <text style="color:#A4A4A4;"><small>"urlcache"</small></text>
+##### :cache-dir _"urlcache"_
 
 This the name of the directory in which the cached URL results are held.  This
 directory is itself located in the [:cache :directory] value described
@@ -1328,18 +1327,18 @@ one line, and zprint will do this for some functions by default.
 There are three sets which control which function styles will never
 print on one line even if they would otherwise fit:
 
-#### :fn-force-nl <text style="color:#A4A4A4;"><small>#{:force-nl :force-nl-body :noarg1 :noarg1-body :arg1-force-nl :flow :flow-body}</small></text>
+#### :fn-force-nl _#{:force-nl :force-nl-body :noarg1 :noarg1-body :arg1-force-nl :flow :flow-body}_
 
 This is a set that specifies which function types will always format with
 a hang or a flow, and never be printed on the same line even if they fit.
 
-#### :fn-gt2-force-nl <text style="color:#A4A4A4;"><small>#{:gt2-force-nl :binding}</small></text>
+#### :fn-gt2-force-nl _#{:gt2-force-nl :binding}_
 
 This is a set that specifies which function types will always format with
 a hang or a flow, and never be printed on the same line if they have more
 than 2 arguments.
 
-#### :fn-gt3-force-nl <text style="color:#A4A4A4;"><small>#{:gt3-force-nl :arg1-pair :arg1-pair-body}</small></text>
+#### :fn-gt3-force-nl _#{:gt3-force-nl :arg1-pair :arg1-pair-body}_
 
 This is a set that specifies which function types will always format with
 a hang or a flow, and never be printed on the same line if they have more
@@ -1545,7 +1544,7 @@ capabilities, but they are now fully supported.
 
 There are two limits that can be helpful.
 
-#### :max-length <text style="color:#A4A4A4;"><small>1000</small></text>
+#### :max-length _1000_
 
 Will limit the length of a sequence on output -- more than this many
 will yield a `...`.
@@ -1659,7 +1658,7 @@ instance, if you want an overview of a `deftype`, you could use
     (equiv [this other] ...))
 ```
 
-#### :max-depth <text style="color:#A4A4A4;"><small>1000</small></text>
+#### :max-depth _1000_
 
 Will limit depth of a collection.
 
@@ -1686,7 +1685,7 @@ an `:indent 2` will leave two blanks to the right of the left "bracket"
 (e.g. "{" for maps).  For other things an `:indent 2` will leave one blank
 to the right of the left bracket.
 
-### :indent-only?
+### :indent-only? _false_
 
 This is configurable for the major data structures: lists, maps,
 sets, and vectors.  When enabled, zprint will not add or remove
@@ -1696,7 +1695,16 @@ parameters for the lists, maps, sets, or vectors will be
 ignored except for `:indent` (for all of the data types) and
 `:indent-only-style` (to control hang or flow, only for lists).
 
-### :respect-nl?
+### :respect-bl? _false_
+
+This will cause zprint to respect incoming blank lines. If this is enabled,
+zprint will add newlines and remove newlines as necessary, but will not remove 
+any existing blank lines from
+incoming source.  Existing formatting configuration will be followed, of
+course with the constraint that existing blank lines will be included wherever
+they appear.
+
+### :respect-nl? _false_
 
 This will cause zprint to respect incoming newlines. If this is enabled,
 zprint will add newlines, but will not remove any existing newlines from
@@ -1734,7 +1742,7 @@ too much vertical space (which makes things less clear, instead of more
 clear).  There are several values which will tune the output for
 hang and flow.
 
-#### :hang?
+#### :hang? _true_
 
 If `:hang?` is true, zprint will attempt to hang if all of the elements in
 the collection don't fit on one line. If it is false, it won't
@@ -1783,7 +1791,7 @@ You could set `:hang-diff` to 0 if you wanted to be more "strict", and
 see if you like the results better.  Probably you won't want to deal
 with this level of control.
 
-#### :flow?
+#### :flow? _false_
 
 If `:flow?` is true, all of the elements of a collection will be forced
 onto a new line, even if they would have fit on the same line originally.
@@ -1891,7 +1899,7 @@ formatting `:extend` types work in an alternative way:
 
 ```
 
-#### :force-nl?
+#### :force-nl? _false_
 
 Very similar to `:flow?`, but operates on pairs, not individual elements
 of a pair.  For example:
@@ -1923,7 +1931,7 @@ Also works with `:pair` functions
       cdef d)
 ```
 
-#### :nl-separator?
+#### :nl-separator? _false_
 
 This will put a blank line between any pair where the right part of a pair
 was formatted with a flow. Some examples:
@@ -2005,7 +2013,7 @@ was formatted with a flow. Some examples:
 ```
 
 
-#### :justify?
+#### :justify? _false_
 
 Turn on [justification](#a-note-on-justifying-two-up-printing).
 Default is nil (justification off).
@@ -2017,7 +2025,7 @@ ______
 All of these elements are formatted in a readable manner by default,
 which shows their current value and minimizes extra information.
 
-#### :object? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :object? _false_
 
 All of these elements can be formatted more as Clojure represents
 Java objects by setting `:object?` to true.
@@ -2027,12 +2035,12 @@ _____
 
 Arrays are formatted by default with the values of their elements.
 
-#### :hex? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :hex? _false_
 
 If the elements are numeric, format them in hex. Useful if you are
 doing networking.  See below for an example.
 
-#### :object? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :object? _false_
 
 Don't print the elements of the array, just print it as an
 object.
@@ -2063,7 +2071,7 @@ A simple example:
 #object["[B" "0x31ef8e0b" "[B@31ef8e0b"]
 ```
 
-#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :wrap? _true_
 
 Should it wrap its contents, or just list each on a separate line
 if they don't all fit on one line.?
@@ -2074,12 +2082,12 @@ Controls the formatting of the first argument of
 any function which has `:binding` as its function type.  `let` is, of
 course, the canonical example.
 
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
-#### :force-nl?  <text style="color:#A4A4A4;"><small>true</small></text>
+##### :indent _2_
+##### :hang? _true_
+##### :hang-expand _2_
+##### :hang-diff _1_
+##### :justify? _false_
+#### :force-nl?  _true_
 
 If you never want to see multiple binding pairs on the same line,
 like this:
@@ -2105,8 +2113,8 @@ You can configure `:binding` to have `:force-nl? true`, which will yield this:
   (list a f))
 ```
 
-#### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
-#### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :flow? _false_
+#### :nl-separator? _false_
 
 Both `:flow?` and `:nl-separator?` together with `:indent` can significantly
 alter the way binding pairs are printed:
@@ -2169,13 +2177,13 @@ into account when formatting.  In addition, comments can be
 word-wrapped if they don't fit the width, or not.  These are
 indpendent capabilities.
 
-#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :wrap? _true_
 
 Wrap a comment if it doesn't fit within the width.  Works hard to preserve
 the initial part of the line and word wraps the end.  Does not pull
 subsequent lines up on to a wrapped line.
 
-#### :inline? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :inline? _true_
 
 If the a comment is on the same line as some code, keep the comment
 on that same line.  The distance from the code is preserved only
@@ -2183,7 +2191,7 @@ when `:inline-align-style :none` is used.  See `:inline-align-style`
 for details.  If the comment extends beyond the width, it will be
 wrapped just like a comment which is on its own line.
 
-#### :inline-align-style <text style="color:#A4A4A4;"><small>:aligned</small></text>
+#### :inline-align-style _:aligned_
 
 There are three possible ways that inline comments can be aligned:
 
@@ -2197,7 +2205,7 @@ There are three possible ways that inline comments can be aligned:
   * `:consecutive` -- Any inline comments which appear on consecutive lines
     in the output (not the input) will be aligned.
 
-#### :count? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :count? _false_
 
 Count the length of the comment when ensuring that things fit within the
 width. Doesn't play well with inline comments.  With any kinds of comments,
@@ -2248,18 +2256,18 @@ _____
 
 When formatting functions which have extend in their function types.
 
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-#### :force-nl?  <text style="color:#A4A4A4;"><small>true</small></text>
+##### :indent _2_
+##### :hang? _true_
+#### :force-nl?  _true_
 
 Forces a new line between one type/fn defn set and the next in the extend.
 
-#### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :nl-separator? _false_
 
 Places a blank line between one type/fn defn set and the next if the
 fn defn set formats with a flow.
 
-#### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :flow? _false_
 
 Places a new line between the type and the fn defns in a single
 type/fn defn set in the extend.
@@ -2320,7 +2328,7 @@ ways to format extend:
   (meta [_] _meta))
 
 ```
-#### :modifiers <text style="color:#A4A4A4;"><small>#{"static"}</small></text>
+#### :modifiers _#{"static"}_
 
 Contains a set of elements that will be placed on the same line as the
 protocol-or-interface-or-Object.  Created largely to support `defui` in
@@ -2336,13 +2344,13 @@ Lists show up in lots of places, but mostly they are code.  So
 in addition to the various function types described above, the `:list`
 configuration affects the look of formatted code.
 
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-avoid <text style="color:#A4A4A4;"><small>0.5</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>2.0</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+##### :indent _2_
+##### :hang? _true_
+##### :hang-avoid _0.5_
+##### :hang-expand _2.0_
+##### :hang-diff _1_
 
-#### :indent-arg <text style="color:#A4A4A4;"><small>nil</small></text>
+#### :indent-arg _nil_
 
 The amount to indent the arguments of a function whose arguments do
 not contain "body" forms.
@@ -2353,7 +2361,7 @@ are not "body" functions.  You would configure this value only if
 you wanted "arg" type functions to have a different indent from
 "body" type functions.  It is configured by `:style :community`.
 
-#### :indent-only? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :indent-only? _false_
 
 Do not add or remove newlines.  Just indent the lines that are there and
 regularize whitespace.  The `:fn-map` which gives formatting and indentation
@@ -2361,7 +2369,7 @@ information about different functions is ignored.  The default indentation is
 flow, however based on the value of the `:indent-only-style`, a hang will
 be used in some situations.  See `:indent-only-style` below for details.
 
-#### :indent-only-style <text style="color:#A4A4A4;"><small>:input-hang</small></text>
+#### :indent-only-style _:input-hang_
 
 Controls how `:indent-only` indents a list. If the value is
 `:input-hang`, then if the input is formatted as a hang, it will
@@ -2371,7 +2379,7 @@ line, and the third element of the list is on the second line aligned
 with the second element.  The determination of alignment is not
 affected by the appearance of comments.
 
-#### :hang-size <text style="color:#A4A4A4;"><small>100</small></text>
+#### :hang-size _100_
 
 The maximum number of lines that are allowed in a hang.  If the number
 of lines in the hang is greater than the `:hang-size`, it will not do
@@ -2379,7 +2387,7 @@ the hang but instead will format this as a flow.  Together with
 `:hang-expand` this will keep hangs from getting too long so that
 code (typically) doesn't get very distorted.
 
-#### :constant-pair? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :constant-pair? _true_
 
 Lists (which are frequently code) support something called _**constant
 pairing**_.  This capability looks at the end of a list, and if the
@@ -2451,7 +2459,7 @@ Note that the formatting of the pairs in a constant pair is controlled
 by the `:pair` configuration (just like the pairs in a `cond`, `assoc`,
 and any function style with "pair" in the name).
 
-#### :constant-pair-min <text style="color:#A4A4A4;"><small>4</small></text>
+#### :constant-pair-min _4_
 
 An integer specifying the minimum number of required elements capable of being
 constant paired before constant pairing is used.  Note that constant
@@ -2495,7 +2503,7 @@ Using our previous example again:
                #(< (:ret %) (-> % :args :end))))
 ```
 
-#### :return-altered-zipper <text style="color:#A4A4A4;"><small>nil</small></text>
+#### :return-altered-zipper _nil_
 
 __EXPERIMENTAL__
 
@@ -2542,13 +2550,13 @@ Maps support both the __indent__ and __hang__ values, above.  The default
 `:hang-expand` value is `1000.0` because maps  don't look bad with a large
 hangs.
 
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>1000.0</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
+##### :indent _2_
+##### :hang? _true_
+##### :hang-expand _1000.0_
+##### :hang-diff _1_
+##### :justify? _false_
 
-#### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :flow? _false_
 
 Never print the key and value of a single key/value pair on the same
 line.
@@ -2565,7 +2573,7 @@ line.
  :ghi
    :ijk}
 ```
-#### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :nl-separator? _false_
 
 Put an entirely blank line between any key/value pair where the value
 part of the pair formats as a flow.
@@ -2661,12 +2669,12 @@ the key/value pair formats with the value as a flow.
  :o {:p {:q :r, :s :t}}}
 ```
 
-####  :comma?  <text style="color:#A4A4A4;"><small>true</small></text>
+####  :comma?  _true_
 
 Put a comma after the value in a key-value pair, if it is not the
 last pair in a map.
 
-#### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :force-nl? _false_
 
 Force a new-line between each key and value pair in a map.
 
@@ -2682,17 +2690,17 @@ Force a new-line between each key and value pair in a map.
 
 ```
 
-#### :sort? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :sort? _true_
 
 Sort the key-value pairs in a map prior to output.  Alternatively, simply output
 them in the order in which they come out of the map.
 
-#### :sort-in-code? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :sort-in-code? _false_
 
 If the map appears inside of a list that seems to be code, should it
 be sorted.
 
-#### :key-order <text style="color:#A4A4A4;"><small>nil</small></text>
+#### :key-order _nil_
 
 Accepts a vector which contains keys which should sort before all
 other keys.  Typically these keys would be keywords, strings, or
@@ -2811,8 +2819,8 @@ When working with hundreds of maps, even the tiny improvement
 made by ordering a few keys in a better way can reduce the cognitive
 load, particularly when debugging.
 
-#### :key-ignore <text style="color:#A4A4A4;"><small>nil</small></text>
-#### :key-ignore-silent <text style="color:#A4A4A4;"><small>nil</small></text>
+#### :key-ignore _nil_
+#### :key-ignore-silent _nil_
 
 You can also ignore keys (or key sequences) in maps when formatting
 them.  There are two basic approaches.  `:key-ignore` will replace
@@ -3010,7 +3018,7 @@ zprint.core=> (czprint sort-demo {:map {:key-ignore [[:detail :code]]}})
   :type "error"}]
 ```
 
-####  :key-color  <text style="color:#A4A4A4;"><small>nil</small></text>
+####  :key-color  _nil_
 
 The value of `:key-color` is a map which relates keys that are
 'constants' to a color in which to print that key.  A constant is
@@ -3021,7 +3029,7 @@ with `:key-order [:key1 :key2 ...]` which is another way to distinguish
 a special key.  You can place some keys at the front of the map and
 you can also adjust their colors to meet your needs.
 
-####  :key-value-color  <text style="color:#A4A4A4;"><small>nil</small></text>
+####  :key-value-color  _nil_
 
 The value of `:key-value-color` is a map which relates keys (that
 don't have to be constants) to a color-map which is merged into the
@@ -3030,7 +3038,7 @@ This way you can have the values of some keys formatted in a color that
 is different from the color in which they would normally be formatted
 based on their type.
 
-####  :key-depth-color  <text style="color:#A4A4A4;"><small>nil</small></text>
+####  :key-depth-color  _nil_
 
 Note that this is an EXPERIMENTAL feature.  The value of `:key-depth-color` is
 a vector of colors, and these colors will be used to color the keys which
@@ -3042,7 +3050,7 @@ be used.  If you also have defined a `:key-color` map, any colors speciied
 in that map for specific keys will override the color that they would be
 given by the `:key-depth-color` vector.
 
-####  :lift-ns?  <text style="color:#A4A4A4;"><small>true</small></text>
+####  :lift-ns?  _true_
 
 When all of the keys in a map are namespaced, and they all have the same
 key, "lift" that namespace out of the keys and make it a namespaced map.
@@ -3061,11 +3069,11 @@ this cannot be "lifted" when encountered in a string because there is no
 way to reliably infer the implicit namespace.  Thus, the entire map
 will not be lifted if it contains a single `::a` type key in it.
 
-####  :lift-ns-in-code?  <text style="color:#A4A4A4;"><small>false</small></text>
+####  :lift-ns-in-code?  _false_
 
 Controls whether to actually lift the namespace if the map is in code.
 
-####  :unlift-ns?  <text style="color:#A4A4A4;"><small>false</small></text>
+####  :unlift-ns?  _false_
 
 This only applies when dealing with formatting code or strings.  When
 the map was specified with the namespace "lifted", then distribute the
@@ -3081,7 +3089,7 @@ Note that `:unlift-ns? true` only works if `:lifts-ns? false` is present,
 since otherwise zprint won't know which keyword to honor, and `:lift-ns?` was
 there first.
 
-#### :indent-only? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :indent-only? _false_
 
 Do not add or remove newlines.  Just indent the lines that are there and
 regularize whitespace.
@@ -3097,7 +3105,7 @@ When elements are formatted with `:object?` `true`, then the output
 if formatted using the information specified in the `:object`
 information.
 
-##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+##### :indent _1_
 _____
 ## :output
 
@@ -3108,12 +3116,12 @@ Determines whether to highlight a part of the structure, and which
 part to highlight. Only one of `:zloc?` or `:path` can have a value.
 
 Contains a map with the following possible keys.
-##### :zloc? <text style="color:#A4A4A4;"><small>false</small></text>
+##### :zloc? _false_
 If true, indicates that the first argument is a zipper, and the zipper
 currently "points at" the expression at which to focus.  zprint will
 print the entire zipper, and highlight the expression at which the
 zipper is currently pointing.
-##### :path <text style="color:#A4A4A4;"><small>nil</small></text>
+##### :path _nil_
 The path is a vector of integers, which indicates where the focus
 should be placed.  Each number in the vector indicates moving into
 a structure, and the value of the number indicates the element within
@@ -3130,13 +3138,13 @@ The :pair key controls the printing of the arguments of a function
 which has -pair in its function type (e.g. `:arg1-pair`, `:pair-fn`,
 `:arg2-pair`).  `:pair`
 
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-##### :justify? <text style="color:#A4A4A4;"><small>false</small></text>
+##### :indent _2_
+##### :hang? _true_
+##### :hang-expand _2_
+##### :hang-diff _1_
+##### :justify? _false_
 
-#### :force-nl? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :force-nl? _false_
 
 If you wish to force a newline between all things that are paired
 (which is more than just `cond`), you can use `:force-nl?`.  For example:
@@ -3165,12 +3173,12 @@ into the set of `:fn-gt2-force-nl`, thus:
 (cond abcd b
       cdef d)
 ```
-#### :flow? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :flow? _false_
 
 Format the right-hand part of every pair to onto a different
 line from the left-hand part of every pair.
 
-#### :nl-separator? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :nl-separator? _false_
 
 Insert an entirely blank line between every pair where the right hand part
 of the pair is formatted as a flow.
@@ -3234,9 +3242,9 @@ _____
 The :pair-fn key controls the printing of the arguments of a function
 which has :pair-fn as its function type (e.g. `cond`).
 
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
+##### :hang? _true_
+##### :hang-expand _2_
+##### :hang-diff _1_
 
 This function type exists largely to allow you to control how the
 pairs of a `cond` are formatted with respect to the function name.
@@ -3267,14 +3275,14 @@ of the keys which are supported for `:map` are supported for `:reader-cond`
 `:sort?` and specify a `:key-order` vector to order the elements of a
 reader conditional.
 
-##### :indent <text style="color:#A4A4A4;"><small>2</small></text>
-##### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :hang-expand <text style="color:#A4A4A4;"><small>1000.0</small></text>
-##### :hang-diff <text style="color:#A4A4A4;"><small>1</small></text>
-##### :force-nl? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :sort? <text style="color:#A4A4A4;"><small>false</small></text>
-##### :sort-in-code? <text style="color:#A4A4A4;"><small>false</small></text>
-##### :key-order <text style="color:#A4A4A4;"><small>nil</small></text>
+##### :indent _2_
+##### :hang? _true_
+##### :hang-expand _1000.0_
+##### :hang-diff _1_
+##### :force-nl? _true_
+##### :sort? _false_
+##### :sort-in-code? _false_
+##### :key-order _nil_
 
 _____
 ## :record
@@ -3282,18 +3290,18 @@ _____
 Records are printed with the record-type and value of the record
 shown with map syntax, or by calling their `toString()` method.
 
-#### :to-string? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :to-string? _false_
 
 This will output a record by calling its `toString()` java method, which
 can be useful for some records. If the record contains a lot of information
 that you didn't want to print, for instance. If `:to-string?` is true,
 it overrides the other `:record` configuration options.
 
-#### :hang? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :hang? _true_
 
 Should a hang be attempted?  See example below.
 
-#### :record-type? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :record-type? _true_
 
 Should the record type be output?
 
@@ -3334,22 +3342,22 @@ _____
 
 `:set` supports the same keys as does vector and a few more.
 
-##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
-##### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
-##### :wrap-after-multi? <text style="color:#A4A4A4;"><small>true</small></text>
+##### :indent _1_
+##### :wrap? _true_
+##### :wrap-coll? _true_
+##### :wrap-after-multi? _true_
 
-#### :indent-only? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :indent-only? _false_
 
 Do not add or remove newlines.  Just indent the lines that are there and
 regularize whitespace.
 
-#### :sort? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :sort? _true_
 
 Sort the elements in a set prior to output.  Alternatively, simply output
 them in the order in which they come out of the set.
 
-#### :sort-in-code? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :sort-in-code? _false_
 
 If the set appears inside of a list that seems to be code, should it
 be sorted.
@@ -3362,7 +3370,7 @@ _____
 supports specs, and the function being output _has_ a spec.  If
 that is true, and if:
 
-##### :docstring? <text style="color:#A4A4A4;"><small>true</small></text>
+##### :docstring? _true_
 
 is also true, then zprint will format the spec and append it to the
 docstring.  At present this only works for docstrings in `defn` and
@@ -3388,34 +3396,318 @@ options map.
 
 ### Available Styles:
 
+#### :all-hang
+
+Some implementations of zprint into runnable programs turn off all hangs
+by default, since performance is rather better with them off.  If you
+are using one of these programs, you can turn all of the hangs back
+on (which is their normal default) by using this style.
+
+#### :backtranslate
+
+The built in pretty printer for Clojure, `clojure.pprint`, will
+backtranslate `(quote a)` to `'a`, `(var a)` to `#'a`, 
+`(clojure.core/deref a)` to `@a` and `(clojure.core/unquote a)` to
+`~a`.  `clojure.pprint` only does this when printing data structures, (which
+may be code), since that is all it operates on.  Zprint has been
+enhanced to optionally perform this backtranslation when formatting
+structures.  Use `{:style :backtranslate}` to get this behavior, and
+see the definition of that style to see how it was implemented.
+Even if you use `{:style :backtranslate}`, there is no change to the
+way that source is formatted since zprint has been enhanced to 
+distinguish between source and structures in some situations.  You could
+configure zprint to do this backtranslation for source if you wished to,
+though there is not a pre-defined style to enable that operation.
+See the implementation for `{:style :backtranslate}` for a hint for how
+to do this (or open an issue and ask). 
+
 #### :community
 
 This attempts to recreate the community standards defined in the
 [community style guide](https://github.com/bbatsov/clojure-style-guide).
 It is an evolving effort -- if you see something that matters to you
-that differs from the community style guide when using `:style :community`,
+that differs from the community style guide when using `{:style :community}`,
 please create an issue explaining the difference.
+
+For more discussion, see [Community](./options/community.md).
+
+#### :extend-nl
+
+This sets up a different way of formatting extend styles, with a new-line
+between each group.  For example
+
+```clojure
+(czprint-fn ->Typetest1)
+
+; Default output
+
+(deftype Typetest1
+  [cnt _meta]
+  clojure.lang.IHashEq
+    (hasheq [this] (list this) (list this this) (list this this this this))
+  clojure.lang.Counted (count [_] cnt)
+  clojure.lang.IMeta (meta [_] _meta))
+
+(czprint-fn ->Typetest1 {:style :extend-nl})
+
+; Alternative output with {:style :extend-nl}
+
+(deftype Typetest1
+  [cnt _meta]
+  clojure.lang.IHashEq
+  (hasheq [this] (list this) (list this this) (list this this this this))
+
+  clojure.lang.Counted
+  (count [_] cnt)
+
+  clojure.lang.IMeta
+  (meta [_] _meta))
+
+```
+#### :how-to-ns
+
+__Experimental:__ Still working out some of the details, so the
+specifics may change.
+
+This will format `ns` declarations regarding newlines and indentation
+as in Stewart Sierra's "How to ns".  Specifically, it will indent
+lists by 1 instead of 2, and not hang lists except for `:import`.
+If you follow the instructions in the "How to ns" blog post, the
+new lines and indentation will be correct.  zprint will not reorganize
+the `ns` declaration or change lists to vectors or otherwise change
+the order or syntax of what you have entered -- that's still your
+responsibility.
+
+#### :hiccup
+
+Recognizes when the information in a vector is in `hiccup` format,
+and format just those vectors differently in order make the hiccup
+information more understandable.
+
+```clojure
+
+; Here is some hiccup without using this style:
+
+(czprint-fn header)
+
+(defn header
+  [{:keys [title icon description]}]
+  [:header.container
+   [:div.cols {:class "gap top", :on-click (fn [] (println "tsers"))}
+    [:div {:class "shrink"} icon]
+    [:div.rows {:class "gap-xs"}
+     [:dov.cols {:class "middle between"} [:div title]
+      [:div {:class "shrink"} [:button "x"]]] [:div description]]]])
+
+; Here is the same hiccup using the :hiccup style:
+
+(czprint-fn header {:style :hiccup})
+
+(defn header
+  [{:keys [title icon description]}]
+  [:header.container
+   [:div.cols {:class "gap top", :on-click (fn [] (println "tsers"))}
+    [:div {:class "shrink"} icon]
+    [:div.rows {:class "gap-xs"}
+     [:dov.cols {:class "middle between"}
+      [:div title]
+      [:div {:class "shrink"} [:button "x"]]]
+     [:div description]]]])
+
+; Not a huge difference, but note the use of :arg1-force-nl to clean up
+; the display of the elements beyond the map in each vector.  Were this more
+; complex hiccup, the difference would be more valuable.
+
+```
+
+#### :indent-only 
+
+This is __very different__ from classic zprint!
+
+When `:indent-only` is configured, zprint will not add or remove
+newlines from the incoming source, but will otherwise regularize
+whitespace.  Lists will be formatted as a hang if the incoming list
+was formatted as a hang (controlled by `{:list {:indent-only-style
+:input-hang}}`.  The indent for maps goes to 0.  Most of the other
+configuration parameters will be ignored when `:indent-only` is
+enabled.
+
+See `:respect-nl` below for a comparison of `:indent-only`, `:respect-nl`,
+and classic zprint.
+
+For more examples, see [Indent Only](./types/indentonly.md).
 
 #### :justified
 
 This sets `:justify? true` in each of `:binding`, `:pair`, and `:map`.
 It is useful to see what you think about justfied output.
 
-#### :indent-only
+#### :keyword-respect-nl
 
-This is __very different__ from classic zprint!
+This style is used to preserve most of the existing formatting for
+vectors with keywords as the first element.  The typical example was 
+hiccup or rum data inside of a function or in a source file. However,
+subsequent enhancements allowed the implementation of a better style
+for hiccup data -- `:hiccup`. 
 
-When configured, zprint will not add or remove newlines from the
-incoming source, but will otherwise regularize whitespace.  Lists
-will be formatted as a hang if the incoming list was fomatted as a
-hang (controlled by `{:list {:indent-only-style :input-hang}}`.
-The indent for maps goes to 0.  Most of the other configuration
-parameters will be ignored when `:indent-only` is enabled.
+If you specify this style, every vector with a keyword as the first
+element will preserve the newlines present in the input to zprint.
+zprint will still handle the indenting, and none of the existing
+newlines will cause zprint to violate its basic formatting rules
+(e.g., lines will still fit in the width, etc.).  But the existing
+hand-formatting will typically be preserved if it makes any sense
+at all.
 
-See `:respect-nl` below for a comparison of `:indent-only`, `:respect-nl`,
-and classic zprint.
+If you are using hiccup format, you should use the `:hiccup` style.
 
-#### :respect-nl
+This is usually only useful formatting source.  Here is an example
+using a `rum` macro (taken from GitHub rum/examples/rum/examples/inputs.cljc):
+
+```clojure 
+; The original way it was defined:
+(print re1)
+
+(rum/defc inputs []
+  (let [*ref (atom nil)]
+    [:dl
+      [:dt "Input"]  [:dd (reactive-input *ref)]
+      [:dt "Checks"] [:dd (checkboxes *ref)]
+      [:dt "Radio"]  [:dd (radio *ref)]
+      [:dt "Select"] [:dd (select *ref)]
+      [:dt (value *ref)] [:dd (shuffle-button *ref)]]))nil
+
+; An unlovely transformation:
+
+(zprint re1 {:parse-string? true})
+
+(rum/defc inputs
+  []
+  (let [*ref (atom nil)]
+    [:dl [:dt "Input"] [:dd (reactive-input *ref)] [:dt "Checks"]
+     [:dd (checkboxes *ref)] [:dt "Radio"] [:dd (radio *ref)] [:dt "Select"]
+     [:dd (select *ref)] [:dt (value *ref)] [:dd (shuffle-button *ref)]]))
+
+; A much better approach (close, though not identical, to the input):
+
+(zprint re1 {:parse-string? true :style :keyword-respect-nl})
+
+(rum/defc inputs
+  []
+  (let [*ref (atom nil)]
+    [:dl
+     [:dt "Input"] [:dd (reactive-input *ref)]
+     [:dt "Checks"] [:dd (checkboxes *ref)]
+     [:dt "Radio"] [:dd (radio *ref)]
+     [:dt "Select"] [:dd (select *ref)]
+     [:dt (value *ref)] [:dd (shuffle-button *ref)]]))
+
+```
+
+The implementation of this style is as follows:
+
+```clojure 
+      :keyword-respect-nl {:vector
+                             {:option-fn-first
+                                #(let [k? (keyword? %2)]
+                                   (when (not= k? (:respect-nl? (:vector %1)))
+                                     {:vector {:respect-nl? k?}}))}},
+```
+which serves as an example of how to implement an `:option-fn-first`
+function for vectors.
+
+#### :map-nl, :pair-nl, :binding-nl
+
+These are convenience styles which simply allow you to set `{:indent
+0 :nl-separator? true}` for each of the associated format elements.
+They simply exist to save you some typing if these styles are
+favorites of yours.
+
+#### :no-hang, :all-hang
+
+These two styles will turn on or off all of the `:hang?` booleans
+in `:map`, `:list`, `:extend`, `:pair`, `:pair-fn`, `:reader-cond`,
+and `:record`.  The `:hang?` capability almost always produces
+clearly better results, but can take more time (particularly in
+Clojurescript, as it is single-threaded).  `:all-hang` is the
+effective default, but `:no-hang` can be used to turn it all off
+if you wish.  If `:hang?` is off for some reason, you can use
+`:all-hang` to turn it back on.
+
+#### :respect-bl 
+
+Respect blank lines: in the same way that `:respect-nl?` has been
+implemented for lists, vectors, maps and sets, now `:respect-bl?`
+has been implemented for them all as well.  This means that whenever
+a blank line appears in the source, it will be "respected", and
+will appear in the output.  However, all other formatting will be
+applied around any blank lines that may appear.
+
+While `:respect-nl?` was something that you might want to configure
+for formatting a single function, `:respect-bl?` is something that
+is perfectly reasonable to configure for processing whole files,
+or perhaps all of the time in your `~/.zprintrc` file. If you
+do that, everything will operate as normal with zprint, but if you
+put blank lines inside a function definition, those blank lines
+will continue to appear in the output.  And all of the information
+will all be formatted correctly around those blank lines.
+
+Note that blank lines at the top level (i.e., outside of function
+definitions and `(def ...)` expressions) are always respected and 
+never changed.
+
+An example from clojure.core:
+
+```clojure
+; Classic zprint 
+
+(czprint-fn ->ArrayChunk)
+
+(deftype ArrayChunk [^clojure.core.ArrayManager am arr ^int off ^int end]
+  clojure.lang.Indexed
+    (nth [_ i] (.aget am arr (+ off i)))
+    (count [_] (- end off))
+  clojure.lang.IChunk
+    (dropFirst [_]
+      (if (= off end)
+        (throw (IllegalStateException. "dropFirst of empty chunk"))
+        (new ArrayChunk am arr (inc off) end)))
+    (reduce [_ f init]
+      (loop [ret init
+             i off]
+        (if (< i end)
+          (let [ret (f ret (.aget am arr i))]
+            (if (reduced? ret) ret (recur ret (inc i))))
+          ret))))
+```
+```clojure
+;Classic zprint {:style :respect-bl}
+
+(czprint-fn ->ArrayChunk {:style :respect-bl})
+
+(deftype ArrayChunk [^clojure.core.ArrayManager am arr ^int off ^int end]
+  
+  clojure.lang.Indexed
+    (nth [_ i] (.aget am arr (+ off i)))
+    
+    (count [_] (- end off))
+  
+  clojure.lang.IChunk
+    (dropFirst [_]
+      (if (= off end)
+        (throw (IllegalStateException. "dropFirst of empty chunk"))
+        (new ArrayChunk am arr (inc off) end)))
+    
+    (reduce [_ f init]
+      (loop [ret init
+             i off]
+        (if (< i end)
+          (let [ret (f ret (.aget am arr i))]
+            (if (reduced? ret) ret (recur ret (inc i))))
+          ret))))
+```
+For more examples, see [Respect Blank Lines](./types/respectbl.md).
+
+#### :respect-nl 
 
 This will cause zprint to respect incoming newlines. If this is enabled,
 zprint will add newlines, but will not remove any existing newlines from
@@ -3509,143 +3801,15 @@ Some examples of classic zprint, `:respect-nl`, and `:indent-only`:
 
 ```
 
-#### :extend-nl
-
-This sets up a different way of formatting extend styles, with a new-line
-between each group.  For example
-
-```clojure
-(czprint-fn ->Typetest1)
-
-; Default output
-
-(deftype Typetest1
-  [cnt _meta]
-  clojure.lang.IHashEq
-    (hasheq [this] (list this) (list this this) (list this this this this))
-  clojure.lang.Counted (count [_] cnt)
-  clojure.lang.IMeta (meta [_] _meta))
-
-(czprint-fn ->Typetest1 {:style :extend-nl})
-
-; Alternative output with {:style :extend-nl}
-
-(deftype Typetest1
-  [cnt _meta]
-  clojure.lang.IHashEq
-  (hasheq [this] (list this) (list this this) (list this this this this))
-
-  clojure.lang.Counted
-  (count [_] cnt)
-
-  clojure.lang.IMeta
-  (meta [_] _meta))
-
-```
-#### :how-to-ns
-
-__Experimental:__ Still working out some of the details, so the
-specifics may change.
-
-This will format `ns` declarations regarding newlines and indentation
-as in Stewart Sierra's "How to ns".  Specifically, it will indent
-lists by 1 instead of 2, and not hang lists except for `:import`.
-If you follow the instructions in the "How to ns" blog post, the
-new lines and indentation will be correct.  zprint will not reorganize
-the `ns` declaration or change lists to vectors or otherwise change
-the order or syntax of what you have entered -- that's still your
-responsibility.
-
-#### :map-nl, :pair-nl, :binding-nl
-
-These are convenience styles which simply allow you to set `{:indent 0 :nl-separator? true}` for each of the associated format elements.  They simply exist to
-save you some typing if these styles are favorites of yours.
-
 #### :sort-dependencies
 
 __EXPERIMENTAL__
 
 Sort the dependencies in a leiningen project.clj file in alphabetical
-order.  Technically, it will sort the vectors in the value of any key
-named `:dependencies` inside any function (macro) named `defproject`.
-Has no effect when formatting a structure (as opposed to parsing a
-string and formatting code).
-
-#### :keyword-respect-nl
-
-This style is used to preserve most of the existing formatting for
-vectors with keywords as the first element.  The typical example is
-hiccup or rum data inside of a function or in a source file.  If
-you specify this style, every vector with a keyword as the first element
-will preserve the newlines present in the input to zprint.  zprint will
-still handle the indenting, and none of the existing newlines will cause
-zprint to violate its basic formatting rules (e.g., lines will still
-fit in the width, etc.).  But the existing hand-formatting will typically
-be preserved if it makes any sense at all.
-
-This is usually only useful formatting source.  Here is an example using
-a `rum` macro (taken from GitHub rum/examples/rum/examples/inputs.cljc):
-
-```clojure
-; The original way it was defined:
-
-(print re1)
-
-(rum/defc inputs []
-  (let [*ref (atom nil)]
-    [:dl
-      [:dt "Input"]  [:dd (reactive-input *ref)]
-      [:dt "Checks"] [:dd (checkboxes *ref)]
-      [:dt "Radio"]  [:dd (radio *ref)]
-      [:dt "Select"] [:dd (select *ref)]
-      [:dt (value *ref)] [:dd (shuffle-button *ref)]]))nil
-
-; An unlovely transformation:
-
-(zprint re1 {:parse-string? true})
-
-(rum/defc inputs
-  []
-  (let [*ref (atom nil)]
-    [:dl [:dt "Input"] [:dd (reactive-input *ref)] [:dt "Checks"]
-     [:dd (checkboxes *ref)] [:dt "Radio"] [:dd (radio *ref)] [:dt "Select"]
-     [:dd (select *ref)] [:dt (value *ref)] [:dd (shuffle-button *ref)]]))
-
-; A much better approach (close, though not identical, to the input):
-
-(zprint re1 {:parse-string? true :style :keyword-respect-nl})
-
-(rum/defc inputs
-  []
-  (let [*ref (atom nil)]
-    [:dl
-     [:dt "Input"] [:dd (reactive-input *ref)]
-     [:dt "Checks"] [:dd (checkboxes *ref)]
-     [:dt "Radio"] [:dd (radio *ref)]
-     [:dt "Select"] [:dd (select *ref)]
-     [:dt (value *ref)] [:dd (shuffle-button *ref)]]))
-```
-The implementation of this style is as follows:
-
-```clojure
-:keyword-respect-nl
-  {:vector {:option-fn-first #(let [k? (keyword? %2)]
-                               (when (not= k? (:respect-nl? (:vector %1)))
-                                 {:vector {:respect-nl? k?}}))}},
-```
-which serves as an example of how to implement an :option-fn-first
-function for vectors.
-
-#### :all-hang, :no-hang
-
-These two styles will turn on or off all of the `:hang?` booleans
-in `:map`, `:list`, `:extend`, `:pair`, `:pair-fn`, `:reader-cond`,
-and `:record`.  The `:hang?` capability almost always produces
-clearly better results, but can take more time (particularly in
-Clojurescript, as it is single-threaded).  `:all-hang` is the
-effective default, but `:no-hang` can be used to turn it all off
-if you wish.  If `:hang?` is off for some reason, you can use
-`:all-hang` to turn it back on.
+order.  Technically, it will sort the vectors in the value of any
+key named `:dependencies` inside any function (macro) named
+`defproject`.  Has no effect when formatting a structure (as opposed
+to parsing a string and formatting code).
 
 ### Defining your own styles
 
@@ -3663,35 +3827,35 @@ You might wish to define several styles with different color-maps,
 perhaps, allowing you to alter the colors more easily.
 
 You cannot define a style and apply it in the same configuration
-pass, as styles are applied before the rest of the configuration in
-a options map.
+pass, as styles are applied before the rest of the configuration
+in a options map.
 
 ______
 ## :tab
 
-zprint will expand tabs by default when parsing a string, largely in order
-to properly size comments.  You can disable tab expansion and you can
-set the tab size.
+zprint will expand tabs by default when parsing a string, largely
+in order to properly size comments.  You can disable tab expansion
+and you can set the tab size.
 
-#### :expand? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :expand? _true_
 
 Expand tabs.
 
-#### :size <text style="color:#A4A4A4;"><small>8</small></text>
+#### :size _8_
 
 An integer for the tab size for tab expansion.
 
 _____
 ## :vector
 
-##### :indent <text style="color:#A4A4A4;"><small>1</small></text>
+##### :indent _1_
 
-#### :indent-only? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :indent-only? _false_
 
-Do not add or remove newlines.  Just indent the lines that are there and
-regularize other whitespace.
+Do not add or remove newlines.  Just indent the lines that are there
+and regularize other whitespace.
 
-#### :fn-format <text style="color:#A4A4A4;"><small>nil</small></text>
+#### :fn-format _nil_
 
 There are a rich set of formatting options available to lists through
 the `:fn-map`, which relates function names to formatting styles.
@@ -3717,18 +3881,18 @@ vector (but only that vector, not other vectors nested inside of
 it).
 
 Note that the `:fn-format` processing is done before testing for
-`:indent-only?` (as is the `:option-fn` and `:option-fn-first` processing
-as well), so if the result of the `:option-fn` or `:option-fn-first`
-processing sets `:fn-format`, then the value of `:indent-only?` in
-`:vector-fn` will control whether or not `:indent-only?` is used,
-not the value of `:indent-only?` in `:vector`.  This is worthy of
-mention in any case, but particularly because `:style :indent-only` does
-__not__ set `:indent-only?` for `:vector-fn`!
+`:indent-only?` (as is the `:option-fn` and `:option-fn-first`
+processing as well), so if the result of the `:option-fn` or
+`:option-fn-first` processing sets `:fn-format`, then the value of
+`:indent-only?` in `:vector-fn` will control whether or not
+`:indent-only?` is used, not the value of `:indent-only?` in
+`:vector`.  This is worthy of mention in any case, but particularly
+because `:style :indent-only` does __not__ set `:indent-only?` for
+`:vector-fn`!
 
 As an example, the `:hiccup` style is implemented as follows:
 
-```clojure
-{ ...
+```clojure { ...
       :hiccup {:vector
                  {:option-fn
                     (fn [opts n exprs]
@@ -3785,7 +3949,7 @@ clean up the formatting of a file.  But if you are using zprint to enforce
 a particular formatting approach, then `:fn-format` and `:option-fn` can
 be very useful.
 
-#### :option-fn-first <text style="color:#A4A4A4;"><small>nil</small></text>
+#### :option-fn-first _nil_
 
 Vectors often come with data that needs different formatting than the
 default or than the code around them needs.  To support this capability,
@@ -3801,9 +3965,10 @@ to update an options map.  In addition, they are allowed on options
 maps that appear in calls to the zprint API.  They are also allowed
 in the `~/.zprintrc` file and an options map on the command line,
 but only for library use or when using the uberjar (including the
-`appcds` accelerated uberjar).  The prebuilt graalVM binaries in
-the GitHub releae do __not__ support use of functions in options
-maps in any external file or on the command line!  The functions
+`appcds` accelerated uberjar).  __The prebuilt graalVM binaries (i.e.,
+`zprintm-x.y.z` and `zprintl-x.y.z`) in
+the GitHub releae do not support use of functions in options
+maps in any external file or on the command line!__  The functions
 defined in the default options map are always allowed -- the above
 restrictions only apply to functions being read in from external
 files or from the command line.
@@ -3847,7 +4012,7 @@ used. `:option-fn-first` is executed first, and the results of that are given
 to `:option-fn` as the options map.
 
 
-#### :option-fn <text style="color:#A4A4A4;"><small>nil</small></text>
+#### :option-fn _nil_
 
 Vectors often come with data that needs different formatting than
 the default or than the code around them needs.  To support this
@@ -3865,9 +4030,10 @@ to update an options map.  In addition, they are allowed on options
 maps that appear in calls to the zprint API.  They are also allowed
 in the `~/.zprintrc` file and an options map on the command line,
 but only for library use or when using the uberjar (including the
-`appcds` accelerated uberjar).  The prebuilt graalVM binaries in
-the GitHub release do __not__ support use of functions in options
-maps in any external file or on the command line!  The functions
+`appcds` accelerated uberjar).  __The prebuilt graalVM binaries (i.e.,
+`zprintm-x.y.z` and `zprintl-x.y.z`) in
+the GitHub release do not support use of functions in options
+maps in any external file or on the command line!__  The functions
 defined in the default options map are always allowed -- the above
 restrictions only apply to functions being read in from external
 files or from the command line.
@@ -3883,7 +4049,7 @@ Note that `:option-fn` and `:option-fn-first` can both be
 used. `:option-fn-first` is executed first, and the results of that are given
 to `:option-fn` as the options map.
 
-#### :respect-nl? <text style="color:#A4A4A4;"><small>false</small></text>
+#### :respect-nl? _false_
 
 Normally, zprint ignores all newlines when formatting.  However, sometimes
 people will hand-format vectors to make them more understandable.  This
@@ -3965,7 +4131,7 @@ be formatted with `:respect-nl? true`. The more complex answer is
 to employ `:option-fn-first`, above (which is what `:style
 :keyword-respect-nl` does).
 
-#### :wrap? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :wrap? _true_
 
 Should it wrap its contents, or just list each on a separate line
 if they don't all fit on one line?
@@ -3985,7 +4151,7 @@ a line and then continue on the next line.
 ```
 
 
-#### :wrap-coll? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :wrap-coll? _true_
 
 If there is a collection in the vector, should it wrap?
 
@@ -4023,7 +4189,7 @@ If there is a collection in the vector, should it wrap?
  18
  19]
 ```
-#### :wrap-after-multi? <text style="color:#A4A4A4;"><small>true</small></text>
+#### :wrap-after-multi? _true_
 
 Should a vector continue to wrap after a multi-line element is
 printed?

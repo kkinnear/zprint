@@ -34,7 +34,7 @@ All notable changes to this project will be documented in this file.
   learned a lot about Java manipulation of URLs and other http
   related data from his work.  Issues #117 and #112.
 
-  * The built in pretty printer for Clojure, clojure.pprint, will
+  * The built in pretty printer for Clojure, `clojure.pprint`, will
   backtranslate `(quote a)` to `'a`, `(var a)` to `#'a`, 
   `(clojure.core/deref a)` to `@a` and `(clojure.core/unquote a)` to
   `~a`.  clojure.pprint only does this when printing data structures, (which

@@ -37,7 +37,28 @@ In addition, zprint is very handy [__to use at the REPL__](./doc/types/repl.md).
   * [an accelerated uberjar for any Java enabled platform](./doc/getting/appcds.md)    _starts in about 1s_
   * [a library to use at the REPL](./doc/using/repl.md)
 
-## Alter zprint's formatting behavior:
+## Get something other than the default formatting:
+
+### Without learning how to configure zprint:
+
+Maybe one of the existing "styles" will meet your needs.  All you have to
+do is put `{:style ...}` on the command line or as the third argument
+to a zprint call.
+
+Some commonly used styles:
+
+  * [Format using "community" standards](./doc/reference.md#community)
+  * [Respect blank lines](./doc/reference.md#respect-bl)
+  * [Indent Only](./doc/reference.md#indent-only)
+  * [Respect all newlines](./doc/reference.md#respect-nl)
+  * [Detect and format hiccup vectors](./doc/reference.md#hiccup)
+  * [Justify all pairs](./doc/reference.md#justified)
+  * [Backtranslate `quote`, `deref`, `var`, `unquote` in structures](./doc/reference.md#backtranslate)
+  * [Detect keywords in vectors, if found respect newlines](./doc/reference.md#keyword-respect-nl)
+  * [Sort dependencies in project.clj](./doc/reference.md#sort-dependencies)
+  * [Support "How to ns"](./doc/reference.md#how-to-ns)
+
+## Learn how to alter zprint's formatting behavior:
 
   * [How do I change zprint's behavior?](./doc/altering.md)
 
@@ -51,7 +72,7 @@ In addition, zprint is very handy [__to use at the REPL__](./doc/types/repl.md).
   * [the colors used for formatting source](./doc/options/colors.md)
   * [how the second element of a pair is indented](./doc/options/pairs.md)
   * [how comments are handled](./doc/options/comments.md)
-  * [anything else...](./doc/reference.md)
+  * [anything else...](./doc/reference.md#introduction-to-configuration)
 
 
 ## Usage
@@ -96,6 +117,21 @@ include the following library when using Clojure 1.8:
   * Configuration
     * [ Configuration uses an options map](./doc/reference.md#configuration-uses-an-options-map)
     * [ Where to put an options map](./doc/reference.md#where-to-put-an-options-map)
+    * [ __Simplified Configuration__ -- using `:style`](./doc/reference.md#style-and-style-map)
+      * [  Respect blank lines](./doc/reference.md#respect-bl)
+      * [  Indent Only](./doc/reference.md#indent-only)
+      * [  Format using "community" standards](./doc/reference.md#community)
+      * [  Respect all newlines](./doc/reference.md#respect-nl)
+      * [  Detect and format hiccup vectors](./doc/reference.md#hiccup)
+      * [  Justify all pairs](./doc/reference.md#justified)
+      * [  Backtranslate `quote`, `deref`, `var`, `unquote` in structures](./doc/reference.md#backtranslate)
+      * [  Detect keywords in vectors, if found respect newlines](./doc/reference.md#keyword-respect-nl)
+      * [  Sort dependencies in project.clj](./doc/reference.md#sort-dependencies)
+      * [  Support "How to ns"](./doc/reference.md#how-to-ns)
+      * [  Add newlines between pairs in `let` binding vectors](./doc/reference.md#map-nl-pair-nl-binding-nl)
+      * [  Add newlines between `cond`, `assoc` pairs](./doc/reference.md#map-nl-pair-nl-binding-nl)
+      * [  Add newlines between extend clauses](./doc/reference.md#extend-nl)
+      * [  Add newlines between map pairs](./doc/reference.md#map-nl-pair-nl-binding-nl)
     * [ Options map format](./doc/reference.md#options-map-format)
       * [  Option Validation](./doc/reference.md#option-validation)
       * [  What is Configurable](./doc/reference.md#what-is-configurable)
@@ -108,8 +144,8 @@ include the following library when using Clojure 1.8:
 	  * [    A note about two-up printing](./doc/reference.md#a-note-about-two-up-printing)
 	  * [    A note on justifying two-up printing](./doc/reference.md#a-note-on-justifying-two-up-printing)
     * [ Formatting large or deep collections](./doc/reference.md#formatting-large-or-deep-collections)
-    * [ Widely Used Configuration Parameters](./doc/reference.md#widely-used-configuration-parameterss)
-    * [ Configurable Elements](./doc/reference.md#configurable-elements)
+    * [ Widely Used Configuration Parameters](./doc/reference.md#widely-used-configuration-parameters)
+    * [ __Configurable Elements__](./doc/reference.md#configurable-elements)
       * [:agent](./doc/reference.md#agent-atom-delay-fn-future-promise)
       * [:array](./doc/reference.md#array)
       * [:atom](./doc/reference.md#agent-atom-delay-fn-future-promise)

@@ -298,6 +298,7 @@ the way that zprint outputs your code or data.   If you do, read on...
   * [:style-map](#style-and-style-map)
   * [:tab](#tab)
   * [:vector](#vector)
+  * [:vector-fn](#vector-fn)
 
 ## Configuration uses an Options map
 
@@ -1697,21 +1698,31 @@ ignored except for `:indent` (for all of the data types) and
 
 ### :respect-bl? _false_
 
-This will cause zprint to respect incoming blank lines. If this is enabled,
-zprint will add newlines and remove newlines as necessary, but will not remove 
-any existing blank lines from
-incoming source.  Existing formatting configuration will be followed, of
-course with the constraint that existing blank lines will be included wherever
-they appear.
+This will cause zprint to respect incoming blank lines. If this is
+enabled, zprint will add newlines and remove newlines as necessary,
+but will not remove any existing blank lines from incoming source.
+Existing formatting configuration will be followed, of course with
+the constraint that existing blank lines will be included wherever
+they appear.  Note that blank lines at the "top level" (i.e., those
+outside of `(defn ...)` and `(def ...)` expressions) are always
+respected and never changed. `:respect-bl?` controls what happens
+to blank lines __within__ `defn` and `def` expressions.
+
+If you wish to use zprint to enforce a particular format, using
+`:respect-bl?` might be a bad idea -- since it depends on the incoming source
+with regard to blank lines.
+
+If you use blank lines a lot within function definitions in order
+to make them more readable, this can be a good capability to enable
+globally.
 
 ### :respect-nl? _false_
 
-This will cause zprint to respect incoming newlines. If this is enabled,
-zprint will add newlines, but will not remove any existing newlines from
-incoming source.  Existing formatting configuration will be followed, of
-course with the constraint that existing newlines will be included wherever
-they appear.
-
+This will cause zprint to respect incoming newlines. If this is
+enabled, zprint will add newlines, but will not remove any existing
+newlines from incoming source.  Existing formatting configuration
+will be followed, of course with the constraint that existing
+newlines will be included wherever they appear.
 
 ### hang and flow
 
@@ -2543,6 +2554,34 @@ This whole capability is experimental until further notice.  There may be
 a better way of accomplishing this, or the API may change in important
 ways.  In the event you write a function that works, let me know!
 
+#### :respect-bl? _false_
+
+This will cause zprint to respect incoming blank lines. If this is
+enabled, zprint will add newlines and remove newlines as necessary,
+but will not remove any existing blank lines when formatting lists.
+Existing formatting configuration will be followed, of course with
+the constraint that existing blank lines will be included wherever
+they appear.  Note that blank lines at the "top level" (i.e., those
+outside of `(defn ...)` and `(def ...)` expressions) are always
+respected and never changed. `:respect-bl?` controls what happens
+to blank lines __within__ `defn` and `def` expressions.
+
+If you wish to use zprint to enforce a particular format, using
+`:respect-bl?` might be a bad idea -- since it depends on the
+incoming source with regard to blank lines.
+
+If you use blank lines a lot within function definitions in order
+to make them more readable, this can be a good capability to enable
+globally.
+
+#### :respect-nl? _false_
+
+This will cause zprint to respect incoming newlines. If this is
+enabled, zprint will add newlines, but will not remove any existing
+newlines when formatting lists.  Existing formatting configuration
+will be followed, of course with the constraint that existing
+newlines will be included wherever they appear.
+
 _____
 ## :map
 
@@ -3098,6 +3137,30 @@ is indented identically since there is no assumption that key-value pairs
 are placed on lines in any particular way.   Note that commas are not
 added, but existing commas will be included if `:comma?` flag is true.
 
+#### :respect-bl? _false_
+
+This will cause zprint to respect incoming blank lines. If this is
+enabled, zprint will add newlines and remove newlines as necessary,
+but will not remove any existing blank lines when formatting maps.
+Existing formatting configuration will be followed, of course with
+the constraint that existing blank lines will be included wherever
+they appear.  Note that blank lines at the "top level" (i.e., those
+outside of `(defn ...)` and `(def ...)` expressions) are always
+respected and never changed. `:respect-bl?` controls what happens
+to blank lines in maps __within__ `defn` and `def` expressions.
+
+If you wish to use zprint to enforce a particular format, using
+`:respect-bl?` might be a bad idea -- since it depends on the
+incoming source with regard to blank lines.
+
+#### :respect-nl? _false_
+
+This will cause zprint to respect incoming newlines. If this is
+enabled, zprint will add newlines, but will not remove any existing
+newlines when formatting lists.  Existing formatting configuration
+will be followed, of course with the constraint that existing
+newlines will be included wherever they appear.
+
 _____
 ## :object
 
@@ -3351,6 +3414,35 @@ _____
 
 Do not add or remove newlines.  Just indent the lines that are there and
 regularize whitespace.
+
+#### :respect-bl? _false_
+
+This will cause zprint to respect incoming blank lines. If this is
+enabled, zprint will add newlines and remove newlines as necessary,
+but will not remove any existing blank lines when formatting sets.
+Existing formatting configuration will be followed, of course with
+the constraint that existing blank lines will be included wherever
+they appear.  Note that blank lines at the "top level" (i.e., those
+outside of `(defn ...)` and `(def ...)` expressions) are always
+respected and never changed. `:respect-bl?` controls what happens
+to blank lines in sets __within__ `defn` and `def` expressions.
+
+If you wish to use zprint to enforce a particular format, using
+`:respect-bl?` might be a bad idea -- since it depends on the
+incoming source with regard to blank lines.
+
+If you use blank lines a lot within sets embedded in function
+definitions in order to make them more readable, this can be a good
+capability to enable globally.
+
+#### :respect-nl? _false_
+
+This will cause zprint to respect incoming newlines. If this is
+enabled, zprint will add newlines, but will not remove any existing
+newlines when formatting sets.  Existing formatting configuration
+will be followed, of course with the constraint that existing
+newlines will be included wherever they appear.
+
 
 #### :sort? _true_
 
@@ -4049,6 +4141,26 @@ Note that `:option-fn` and `:option-fn-first` can both be
 used. `:option-fn-first` is executed first, and the results of that are given
 to `:option-fn` as the options map.
 
+#### :respect-bl? _false_
+
+This will cause zprint to respect incoming blank lines. If this is
+enabled, zprint will add newlines and remove newlines as necessary,
+but will not remove any existing blank lines when formatting vectors.
+Existing formatting configuration will be followed, of course with
+the constraint that existing blank lines will be included wherever
+they appear.  Note that blank lines at the "top level" (i.e., those
+outside of `(defn ...)` and `(def ...)` expressions) are always
+respected and never changed. `:respect-bl?` controls what happens
+to blank lines in vectors __within__ `defn` and `def` expressions.
+
+If you wish to use zprint to enforce a particular format, using
+`:respect-bl?` might be a bad idea -- since it depends on the
+incoming source with regard to blank lines.
+
+If you use blank lines a lot within vectors embedded in function
+definitions in order to make them more readable, this can be a good
+capability to enable globally.
+
 #### :respect-nl? _false_
 
 Normally, zprint ignores all newlines when formatting.  However, sometimes
@@ -4218,6 +4330,111 @@ printed?
   "key" "value"}
  10 11 12 13 14 15 16 17 18 19
 ```
+_____
+## :vector-fn
+
+This is the configuration used when `:fn-format` is enabled for a vector.
+By default it is largely the same as `:list`, but it exists so that you 
+can change it for this specific case.
+
+Note that the `:fn-format` processing is done before testing for
+`:indent-only?` (as is the `:option-fn` and `:option-fn-first`
+processing as well), so if the result of the `:option-fn` or
+`:option-fn-first` processing sets `:fn-format`, then the value of
+`:indent-only?` in `:vector-fn` will control whether or not
+`:indent-only?` is used, not the value of `:indent-only?` in
+`:vector`.  This is worthy of mention in any case, but particularly
+because `:style :indent-only` does __not__ set `:indent-only?` for
+`:vector-fn`!
+
+##### :indent _2_
+##### :hang? _true_
+##### :hang-avoid _0.5_
+##### :hang-expand _2.0_
+##### :hang-diff _1_
+
+#### :indent-arg _nil_
+
+The amount to indent the arguments of a function whose arguments do
+not contain "body" forms.  For vectors, this will depend on the value
+of `:fn-format` -- what kind of "function" it is using to format this
+vector.
+
+If this is nil, then the value configured for `:indent` is used for 
+the arguments of functions that are not "body" functions.
+You would configure this value only if you wanted "arg" type functions 
+to have a different indent from "body" type functions.
+It is configured by `:style :community`.
+
+#### :indent-only? _false_
+
+Do not add or remove newlines.  Just indent the lines that are there and
+regularize whitespace.  The `:fn-map` which gives formatting and indentation
+information about different functions is ignored.  The default indentation is
+flow, however based on the value of the `:indent-only-style`, a hang will
+be used in some situations.  See `:indent-only-style` below for details.
+
+#### :indent-only-style _:input-hang_
+
+Controls how `:indent-only` indents a vector. If the value is
+`:input-hang`, then if the input is formatted as a hang, it will
+indent the vector as a hang.  The input is considered to be formatted
+as a hang if the first two elements of the vector are on the same
+line, and the third element of the vector is on the second line aligned
+with the second element.  The determination of alignment is not
+affected by the appearance of comments.
+
+#### :hang-size _100_
+
+The maximum number of lines that are allowed in a hang.  If the number
+of lines in the hang is greater than the `:hang-size`, it will not do
+the hang but instead will format this as a flow.  Together with
+`:hang-expand` this will keep hangs from getting too long so that
+code (typically) doesn't get very distorted.
+
+#### :constant-pair? _true_
+
+Vectors being formatted like lists also support something called _**constant
+pairing**_.  This capability looks at the end of the vector, and if the
+end of the vector appears to contain pairs of constants followed by
+anything, it will print them paired up.  A constant in this context
+is a keyword, string, or number.  
+
+Note that the formatting of the pairs in a constant pair is controlled
+by the `:pair` configuration (just like the pairs in a `cond`, `assoc`,
+and any function style with "pair" in the name).
+
+#### :constant-pair-min _4_
+
+An integer specifying the minimum number of required elements capable of being
+constant paired before constant pairing is used.  Note that constant
+pairing works from the end of the vector back toward the front (not illustrated
+in these examples).
+
+### :respect-bl? _false_
+
+This will cause zprint to respect incoming blank lines. If this is
+enabled, zprint will add newlines and remove newlines as necessary,
+but will not remove any existing blank lines when formatting vectors
+similarly to lists.
+Existing formatting configuration will be followed, of course with
+the constraint that existing blank lines will be included wherever
+they appear.  Note that blank lines at the "top level" (i.e., those
+outside of `(defn ...)` and `(def ...)` expressions) are always
+respected and never changed. `:respect-bl?` controls what happens
+to blank lines in vectors __within__ `defn` and `def` expressions.
+
+If you wish to use zprint to enforce a particular format, using
+`:respect-bl?` might be a bad idea -- since it depends on the
+incoming source with regard to blank lines.
+
+### :respect-nl? _false_
+
+This will cause zprint to respect incoming newlines. If this is
+enabled, zprint will add newlines, but will not remove any existing
+newlines when formatting lists.  Existing formatting configuration
+will be followed, of course with the constraint that existing
+newlines will be included wherever they appear.
 
 ______
 ______

@@ -1,6 +1,43 @@
-#:cljdoc.doc{:tree [["Documentation" {:file "README.md"}]
-                    ["Guides" {} 
-		     ["Fast zprint Filter" {:file "doc/graalvm.md"}]
-                     ["Zprint filter" {:file "doc/filter.md"}]
-                     ["File comment formatting control"
-                      {:file "doc/bang.md"}]]]}
+#:cljdoc.doc{:tree
+               [["Introduction" {:file "README.md"}]
+                ["See zprint" {}
+                 ["Classic zprint" {:file "doc/types/classic.md"}]
+                 ["Respect blank lines" {:file "doc/types/respectbl.md"}]
+                 ["Indent only" {:file "doc/types/indentonly.md"}]]
+                ["Use zprint" {}
+                 ["To Format Whole Files" {:file "doc/using/files.md"}]
+                 ["While Using an Editor" {:file "doc/using/editor.md"}]
+                 ["At the REPL" {:file "doc/using/repl.md"}]
+                 ["From Inside a Clojure(script) Program"
+                  {:file "doc/using/library.md"}]]
+                ["Get zprint" {}
+                 ["a standalone binary for macOS"
+                  {:file "doc/getting/macos.md"}]
+                 ["a standalone binary for Linux"
+                  {:file "doc/getting/linux.md"}]
+                 ["an uberjar for any Java enabled platform"
+                  {:file "doc/getting/uberjar.md"}]
+                 ["an accelerated uberjar for any Java enabled platform"
+                  {:file "doc/getting/appcds.md"}]
+                 ["a library to use at the REPL" {:file "doc/using/repl.md"}]]
+                ["How do I change zprint's formatting?"
+                 {:file "doc/altering.md"}]
+                ["I want to change ..." {}
+                 ["how user defined functions are formatted"
+                  {:file "doc/options/fns.md"}]
+                 ["the indentation in lists" {:file "doc/options/indent.md"}]
+                 ["the configuration to track the \"community\" standard"
+                  {:file "doc/options/community.md"}]
+                 ["how blank lines in source are handled"
+                  {:file "doc/options/blank.md"}]
+                 ["how map keys are formatted" {:file "doc/options/maps.md"}]
+                 ["the colors used for formatting source"
+                  {:file "doc/options/colors.md"}]
+                 ["how the second element of a pair is indented"
+                  {:file "doc/options/pairs.md"}]
+                 ["how comments are handled" {:file "doc/options/comments.md"}]
+                 ["anything else..."
+                  {:file "doc/reference.md"}]]
+		["Reference" {:file "doc/reference.md"}]
+		  ]}
+

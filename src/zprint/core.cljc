@@ -24,7 +24,8 @@
             [zprint.focus :refer [range-ssv]]
             [rewrite-clj.parser :as p]
             #_[clojure.spec.alpha :as s])
-  (:import (java.net URL URLConnection)
+  (:import 
+           #?@(:clj ((java.net URL URLConnection)))
            (java.util.concurrent Executors)
            (java.io File)
            (java.util Date)))

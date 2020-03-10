@@ -24,11 +24,12 @@
             [zprint.focus :refer [range-ssv]]
             [rewrite-clj.parser :as p]
             #_[clojure.spec.alpha :as s])
-  (:import 
-           #?@(:clj ((java.net URL URLConnection)))
+  #?@(:clj ((:import 
+           (java.net URL URLConnection)
            (java.util.concurrent Executors)
            (java.io File)
            (java.util Date)))
+	   ))
 
 ;;
 ;; zprint
@@ -100,7 +101,9 @@
 ;; Clean up the API a bit by putting all of the public functions
 ;; in zprint.core
 ;;
-(def ^:dynamic *cache-path* (str (System/getProperty "user.home") File/separator ".zprint"))
+(def ^:dynamic *cache-path*
+  #?(:clj (str (System/getProperty "user.home") File/separator ".zprint")
+     :cljs nil))
 
 (defn set-options!
   "There is an internal options-map containing default values which is 

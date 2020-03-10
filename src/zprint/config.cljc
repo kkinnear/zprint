@@ -448,6 +448,7 @@
           :indent-only? false,
           :indent-only-style :input-hang,
           :pair-hang? true,
+	  :respect-bl? false
           :respect-nl? false
 	  :replacement-string nil},
    :map {:indent 2,
@@ -476,6 +477,7 @@
          :justify? false,
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+	 :respect-bl? false
          :respect-nl? false,
          :unlift-ns? false},
    :max-depth 1000,
@@ -528,6 +530,7 @@
    :search-config? false,
    :set {:indent 2,
          :indent-only? false,
+	 :respect-bl? false
          :respect-nl? false,
          :sort? true,
          :sort-in-code? false,
@@ -665,6 +668,7 @@
             :option-fn-first nil,
             :option-fn nil,
             :fn-format nil,
+	    :respect-bl? false
             :respect-nl? false,
             :wrap-after-multi? true,
             :wrap-coll? true,
@@ -682,6 +686,7 @@
                :indent-only? false,
                :indent-only-style :input-hang,
                :pair-hang? true,
+	       :respect-bl? false
                :respect-nl? false},
    :width 80,
    :url {:cache-dir "urlcache" :cache-secs 300}

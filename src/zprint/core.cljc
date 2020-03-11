@@ -101,7 +101,7 @@
 ;; Clean up the API a bit by putting all of the public functions
 ;; in zprint.core
 ;;
-(def ^:dynamic *cache-path*
+(def ^:dynamic ^:no-doc *cache-path*
   #?(:clj (str (System/getProperty "user.home") File/separator ".zprint")
      :cljs nil))
 
@@ -116,13 +116,13 @@
   ([new-options] (do (config-set-options! new-options) nil)))
 
 ; Default [:cache :location]
-(def ^:dynamic *default-cache-loc* ".")
+(def ^:dynamic ^:no-doc *default-cache-loc* ".")
 ; Default [:cache :directory]
-(def ^:dynamic *default-cache-dir* ".zprint")
+(def ^:dynamic ^:no-doc *default-cache-dir* ".zprint")
 ; Default [:url :cache-dir] 
-(def ^:dynamic *default-url-cache* "urlcache")
+(def ^:dynamic ^:no-doc *default-url-cache* "urlcache")
 ; Default [:url :cache-secs] 
-(def ^:dynamic *default-url-cache-secs* 300)
+(def ^:dynamic ^:no-doc *default-url-cache-secs* 300)
 
 (defn ^:no-doc load-options!
        "Loads options from url, expecting an edn options map that will be passed

@@ -11,15 +11,15 @@
                  ["From Inside a Clojure(script) Program"
                   {:file "doc/using/library.md"}]]
                 ["Get zprint" {}
-                 ["a standalone binary for macOS"
+                 ["standalone binary for macOS"
                   {:file "doc/getting/macos.md"}]
-                 ["a standalone binary for Linux"
+                 ["standalone binary for Linux"
                   {:file "doc/getting/linux.md"}]
-                 ["an uberjar for any Java enabled platform"
+                 ["uberjar for any Java enabled platform"
                   {:file "doc/getting/uberjar.md"}]
-                 ["an accelerated uberjar for any Java enabled platform"
+                 ["accelerated uberjar for any Java enabled platform"
                   {:file "doc/getting/appcds.md"}]
-                 ["a library to use at the REPL" {:file "doc/using/repl.md"}]]
+                 ["library to use at the REPL" {:file "doc/using/repl.md"}]]
                 ["How do I change zprint's formatting?"
                  {:file "doc/altering.md"}]
                 ["I want to change ..." {}

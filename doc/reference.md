@@ -5,22 +5,68 @@ of pretty printing capabilities for both Clojure code and Clojure/EDN
 structures.  It can meet almost anyone's needs.  As such, it supports
 the a variety of major source code formattng approaches.
 
-## See zprint formatting:
+## Table of Contents
 
-  * [__classic zprint__](./types/classic.md) -- ignores whitespace 
-  in function definitions and formats code with a variety of heuristics 
-  to look as good as hand-formatted code 
-  ([_see examples_](./types/classic.md))
-  * [__respect blank lines__](./types/respectbl.md) -- similar to 
-  classic zprint, but blank lines inside of function defintions are retained, 
-  while code is otherwise formatted to look beautiful
-  ([_see examples_](./types/respectbl.md))
-  * [__indent only__](./types/indentonly.md) -- very different from 
-  classic zprint -- no code ever changes lines, it is only correctly 
-  indented on whatever line it was already on
-  ([_see examples_](./types/indentonly.md))
-
-In addition, zprint is very handy [__to use at the REPL__](./types/repl.md).
+  * [What does zprint do?](#what-does-zprint-do)
+  * [See zprint formatting](#see-zprint-formatting)
+  * [Features](#features)
+  * The zprint [API](#api)
+  * Configuration
+    * [ Configuration uses an options map](#configuration-uses-an-options-map)
+    * [ Where to put an options map](#where-to-put-an-options-map)
+    * [ __Simplified Configuration__ -- using `:style`](#style-and-style-map)
+      * [  Respect blank lines](#respect-bl)
+      * [  Indent Only](#indent-only)
+      * [  Format using "community" standards](#community)
+      * [  Respect all newlines](#respect-nl)
+      * [  Detect and format hiccup vectors](#hiccup)
+      * [  Justify all pairs](#justified)
+      * [  Backtranslate `quote`, `deref`, `var`, `unquote` in structures](#backtranslate)
+      * [  Detect keywords in vectors, if found respect newlines](#keyword-respect-nl)
+      * [  Sort dependencies in project.clj](#sort-dependencies)
+      * [  Support "How to ns"](#how-to-ns)
+      * [  Add newlines between pairs in `let` binding vectors](#map-nl-pair-nl-binding-nl)
+      * [  Add newlines between `cond`, `assoc` pairs](#map-nl-pair-nl-binding-nl)
+      * [  Add newlines between extend clauses](#extend-nl)
+      * [  Add newlines between map pairs](#map-nl-pair-nl-binding-nl)
+    * [ Options map format](#options-map-format)
+      * [  Option Validation](#option-validation)
+      * [  What is Configurable](#what-is-configurable)
+	* [   Generalized Capabilities](#generalized-capabilites)
+	* [   Syntax Coloring](#syntax-coloring)
+	* [   Function Classification for Pretty Printing](#function-classification-for-pretty-printing)
+	  * [    Changing or Adding Function Classifications](#changing-or-adding-function-classifications)
+	  * [    Replacing functions with reader-macros](#replacing-functions-with-reader-macros)
+	  * [    Controlling single and multi-line output](#controlling-single-and-multi-line-output)
+	  * [    A note about two-up printing](#a-note-about-two-up-printing)
+	  * [    A note on justifying two-up printing](#a-note-on-justifying-two-up-printing)
+    * [ Formatting large or deep collections](#formatting-large-or-deep-collections)
+    * [ Widely Used Configuration Parameters](#widely-used-configuration-parameters)
+    * [ __Configurable Elements__](#configurable-elements)
+      * [:agent](#agent-atom-delay-fn-future-promise)
+      * [:array](#array)
+      * [:atom](#agent-atom-delay-fn-future-promise)
+      * [:binding](#binding)
+      * [:comment](#comment)
+      * [:delay](#agent-atom-delay-fn-future-promise)
+      * [:extend](#extend)
+      * [:fn](#agent-atom-delay-fn-future-promise)
+      * [:future](#agent-atom-delay-fn-future-promise)
+      * [:list](#list)
+      * [:map](#map)
+      * [:object](#object)
+      * [:pair](#pair)
+      * [:pair-fn](#pair-fn)
+      * [:promise](#agent-atom-delay-fn-future-promise)
+      * [:reader-cond](#reader-cond)
+      * [:record](#record)
+      * [:set](#set)
+      * [:spec](#spec)
+      * [:style](#style-and-style-map)
+      * [:style-map](#style-and-style-map)
+      * [:tab](#tab)
+      * [:vector](#vector)
+      * [:vector-fn](#vector-fn)
 
 
 ## What does zprint do?
@@ -88,6 +134,24 @@ For everyone else, it is nice that comments don't disappear
 when pretty printing source code.
 
 * Do all of this with excellent (and competitive) performance.
+
+## See zprint formatting:
+
+  * [__classic zprint__](./types/classic.md) -- ignores whitespace 
+  in function definitions and formats code with a variety of heuristics 
+  to look as good as hand-formatted code 
+  ([_see examples_](./types/classic.md))
+  * [__respect blank lines__](./types/respectbl.md) -- similar to 
+  classic zprint, but blank lines inside of function defintions are retained, 
+  while code is otherwise formatted to look beautiful
+  ([_see examples_](./types/respectbl.md))
+  * [__indent only__](./types/indentonly.md) -- very different from 
+  classic zprint -- no code ever changes lines, it is only correctly 
+  indented on whatever line it was already on
+  ([_see examples_](./types/indentonly.md))
+
+In addition, zprint is very handy [__to use at the REPL__](./types/repl.md).
+
 
 ## Features
 

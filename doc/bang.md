@@ -34,41 +34,6 @@ For example:
 will turn off vector wrapping in the file and it will stay that way
 until the end of the file (or another `;!zprint` comment alters it).
 
-## ;!zprint API
-
-You can format entire source files from the command line 
-without calling any functions by using:
-
-  * [lein-zprint][leinzprint] leiningen plugin
-  * [boot-fmt][bootfmt] boot
-  * [zprint-filter][zprintfilter] JVM based uberjar, starts in <1s
-  * [zprint-clj][zprintclj] zprint for node npm 
-
-each of which supports `;!zprint` directives in source files.
-
-[leinzprint]: https://github.com/kkinnear/lein-zprint
-[bootfmt]: https://github.com/pesterhazy/boot-fmt
-[zprintfilter]: doc/filter.md
-[zprintclj]: https://github.com/roman01la/zprint-clj
-
-There are two functions that you can call which support the `;!zprint`
-directives.  
-
-#### zprint-file
-
-`zprint-file` accepts an input file and an output file, and will
-zprint format the input file and write the results to the output
-file.  It calls `zprint-file-str` to do the formatting.  See the
-doc-string for details of its arguments.
-
-#### zprint-file-str
-
-The function `zprint-file-str` will accept a string which consists
-of an entire source file full of Clojure or Clojurescript source,
-and will format every form in that string.  It will recognize
-`;!zprint` directives during that processing.  See the doc-string
-for details of its arguments.
-
 ### ;!zprint Directives
 
 The formatting directives are only recognized when they start in

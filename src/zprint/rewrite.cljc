@@ -26,7 +26,7 @@
           (recur (z/next loc)))
         (recur (z/next loc))))))
 
-(defn prewalk
+(defn ^:no-doc prewalk
   [zloc p? f]
   (z/replace zloc
              (z/root (prewalk-subtree p?
@@ -41,7 +41,7 @@
 ;; # Routines to modify zippers inside of zprint
 ;;
 
-(defn get-sortable
+(defn ^:no-doc get-sortable
   "Given a zloc, get something out of it that is sortable."
   [zloc]
   (loop [nloc zloc]
@@ -51,7 +51,7 @@
              (if (= (z/tag next-element) :token) (z/string next-element) "")))
       (recur (z/down nloc)))))
 
-(defn sort-val
+(defn ^:no-doc sort-val
   "Sort the everything in the vector to the right of zloc."
   [zloc]
   (let [dep-val zloc
@@ -87,7 +87,7 @@
           (recur (z/right replaced-loc) (next new-loc) replaced-loc))
         (z/up last-loc)))))
 
-(defn sort-down
+(defn ^:no-doc sort-down
   "Do a down and a sort-val"
   [zloc]
   (sort-val (z/down (z/right zloc))))

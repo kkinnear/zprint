@@ -9,15 +9,18 @@ While the defaults that you have established with your `~/.zprintrc`
 file may be perfectly appropriate for the vast majority of the
 functions and data given in a file, there are frequently one or two
 functions which would benefit from a different formatting configuration.
+For example, sometimes `{:style :justified}` will make one function
+look much more understandable, while not being appropriate for most
+of the remaining functions in the file.
 
 Trying to find the common denominator zprint configuration can be
 a frustrating effort, and isn't actually required.  You can include
-lines in the file which will alter the zprint formatting.  You can
-alter the formatting for the next function definition (really, the
-next top level form), or you can alter the formatting for the rest
-of the file.  You can turn off all zprint processing for one top
-level form or until it is turned back on by another zprint formatting
-directive.
+lines in the file which will alter the zprint formatting for one
+or more functions in the file.  You can alter the formatting for
+the next function definition (really, the next top level form), or
+you can alter the formatting for the rest of the file.  You can
+turn off all zprint processing for one top level form or until it
+is turned back on by another zprint formatting directive.
 
 This is all possible because of the zprint comment API.
 

@@ -1,5 +1,7 @@
 # Use zprint to format entire source files
-There are several ways to use zprint to format entire source files:
+
+There are several ways to use zprint to format entire source files.
+
 ## 1. High Performance Prebuilt Binaries
   * High performance: startup is fast < 50ms
   * Available for macOS and Linux
@@ -92,8 +94,16 @@ the `:plugins` key in `project.clj`:
   :repl-options {:init-ns zpuse.core})
 ```
 
-## 4. Other approaches
+## 5. Other approaches
 Prior the prebuilt, high performance binaries (see above), a number of
 approaches were created to execute in various Javascript/Clojurescript
 engines.  At this point, the pre-built binaries startup as fast or faster 
 and run much faster than any Javascript based zprint.
+
+# Changing the formatting approach using comments in the file. 
+
+You can alter the way that zprint formats a single function or any
+part of an entire file by including comments in the file which
+contain [zprint comment formatting directives](../bang.md).
+
+

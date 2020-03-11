@@ -969,8 +969,9 @@
   "Take a string, which typically holds the contents of an entire
   file, but doesn't have to, and format the entire string, outputing
   a formatted string.  It respects white space at the top level,
-  while completely ignoring it within all top level forms (typically
-  defs and function definitions).  It allows comments at the top
+  while ignoring it within all top level forms (unless
+  :indent-only, :respect-bl, or :respect-nl are used).
+  It allows comments at the top
   level, as well as in function definitions, and also supports
   ;!zprint directives at the top level. See File Comment API for
   information on ;!zprint directives. zprint-specifier is the thing

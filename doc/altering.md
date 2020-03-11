@@ -28,30 +28,35 @@ There are several ways to determine how to change the options map:
 ## 2. Get the options map recognized by zprint when formatting
 Different formatting regimes accept options map information from different
 places.
+
 ### Formatting whole files
 When using either the pre-built binaries, or the uberjar (with or without
 appcds acceleration), options maps may be read from:
-##### `$HOME/.zprintrc`
+#### `$HOME/.zprintrc`
 The `~/.zprintrc` (also known as `$HOME/.zprintrc`) file will be read
 when zprint is first invoked.  You can put options maps changes in that
 file and they will always be used (unless overridden by a later options map).
-##### `:zprint` key for lein-zprint
+#### `:zprint` key for lein-zprint
 If you are using lein-zprint, you can put an options map in the `:zprint` key
 in `project.clj`.
-##### `./.zprintrc` in the current working directory
+#### `./.zprintrc` in the current working directory
 If you have configured `{:cwd-zprintrc? true}` in your `~/.zprintrc` or on the
 command line options map, zprint will look in the current working directory
 (cwd) for a `.zprintrc` file.
-##### Search for `.zprintrc` 
+#### Search for `.zprintrc` 
 If you have configured `{:search-config? true}` in your `~/.zprintc` or
 on the command line options map, zprint will look in the current working
 directory for a `.zprintrc` file.  If it finds one, it will use it.  If it
 doesn't find one, it will look in the parent of the directory for a `.zprintrc`
 file and use it if it finds one.  zprint will keep looking up the directory
 tree for a `.zprintrc` file, using the first one it finds.
-##### Command line options map
+#### Command line options map
 zprint will accept an options map on the command line every time it is
 called.  These options will only be used for that particular call.
+#### Comments in the file
+You can alter the way that zprint formats a single function or any
+part of an entire file by including comments in the file which
+contain [zprint comment formatting directives](./bang.md).
 
 ### When using zprint inside another program or at the REPL
 When using zprint as a library, it will look for configuration information:

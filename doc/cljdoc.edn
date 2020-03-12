@@ -38,6 +38,7 @@
                  ["how comments are handled" {:file "doc/options/comments.md"}]
                  ["anything else..."
                   {:file "doc/reference.md"}]]
-		["Reference" {:file "doc/reference.md"}]
+		["File Comment API" {:file "doc/bang.md"}]
+		["zprint Reference" {:file "doc/reference.md"}]
 		  ]}
 

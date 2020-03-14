@@ -1,4 +1,4 @@
-# File Comment API
+# zprint comment formatting directives
 
 In order to properly format a file, sometimes you want to alter the
 value of the zprint options map for a single function definition,

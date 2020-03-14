@@ -1,7 +1,7 @@
 # zprint at the REPL
 ## Maps
 Maps are everywhere in Clojure.  But they can be hard to visualize at the
-REPL.
+REPL.  Let's look at an example map...
 ### printed at the repl
 ```clojure
 [{:detail {:ident "64:c1:2f:34", :alternate "64:c1:2f:34", :string "datacenter", :interface "3.13.168.35"}, :direction :received, :connection "2795", :reference 14873, :type "get", :time 1425704001, :code "58601"} {:detail {:ident "64:c1:2f:34", :ip4 "3.13.168.151", :time "30m", :code "0xe4e9"}, :direction :transmitted, :connection "X13404", :reference 14133, :type "post", :time 1425704001, :code "0xe4e9"} {:direction :transmitted, :connection "X13404", :reference 14227, :type "post", :time 1425704001, :code "58601"} {:detail {:ident "50:56:a5:1d:61", :ip4 "3.13.171.81", :code "0x1344a676"}, :direction :received, :connection "2796", :reference 14133, :type "error", :time 1425704003, :code "0x1344a676"} {:detail {:ident "50:56:a5:1d:61", :alternate "01:50:56:a5:1d:61", :string "datacenter", :interface "3.13.168.35"}, :direction :transmitted, :connection "2796", :reference 14873, :type "error", :time 1425704003, :code "323266166"}]

@@ -1,4 +1,11 @@
 # zprint at the REPL
+
+[Maps](#maps)  
+[Vectors](#vectors)  
+[Function Definitions with specs](#function-definitions-with-specs)  
+[Explore at the REPL](#explore-at-the-repl)  
+[Exploring deftype](#exploring-deftype)  
+
 ## Maps
 Maps are everywhere in Clojure.  But they can be hard to visualize at the
 REPL.  Let's look at an example map...
@@ -241,9 +248,9 @@ data.
  {:type "error", :code "0x1344a676", :connection "2796", ...}
  {:type "error", :code "323266166", :connection "2796", ...}]
 ```
-# Vectors
-## Margins
-### pprint gets nervous about the right margin (80 columns here)
+## Vectors
+### Margins
+#### pprint gets nervous about the right margin (80 columns here)
 ```clojure
 (clojure.pprint/pprint (byte-array (range 1 400)))
 
@@ -275,7 +282,7 @@ data.
  -127, -126, -125, -124, -123, -122, -121, -120, -119, -118, -117,
  -116, -115, -114, -113]
 ```
-### Classic zprint
+#### Classic zprint
 ```clojure
 (zprint (byte-array (range 1 400)))
 
@@ -298,11 +305,11 @@ data.
  110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 -128
  -127 -126 -125 -124 -123 -122 -121 -120 -119 -118 -117 -116 -115 -114 -113]
 ```
-## Looking at byte values
+### Looking at byte values
 If you are looking at memory or network packets, you are probably
 dealing with bytes and byte arrays.  Hex makes it a lot better.
 
-### clojure.pprint/pprint
+#### clojure.pprint/pprint
 ```clojure
 (clojure.pprint/write (byte-array (range 1 400)) :base 16)
 
@@ -330,7 +337,7 @@ dealing with bytes and byte arrays.  Hex makes it a lot better.
  6f, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 7a, 7b, 7c, 7d, 7e, 7f,
  80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 8a, 8b, 8c, 8d, 8e, 8f]
 ```
-### Classic zprint `{:array {:hex? true}}`
+#### Classic zprint `{:array {:hex? true}}`
 Since every byte is the same size and there are no commas, it can be easier
 to see patterns in the data.
 
@@ -354,7 +361,7 @@ to see patterns in the data.
  6d 6e 6f 70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f 80 81 82 83 84 85 86
  87 88 89 8a 8b 8c 8d 8e 8f] 
 ```
-# Function Definitions with specs
+## Function Definitions with specs
 If you want to see the definition of a function, just ask zprint.
 Note that any specs defined for the function are included in the docstring,
 nicely formatted, of course..

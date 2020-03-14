@@ -24,6 +24,23 @@ zprint-0.5.4
 ```
 
 ## 3. Test it with `-e`
+
+```
+java -jar zprint-filter -e
+{:agent {:object? false},
+ :array {:hex? false, :indent 1, :object? false, :wrap? true},
+ :atom {:object? false},
+ :binding {:flow? false,
+           :force-nl? false,
+           :hang-diff 1,
+           :hang-expand 2.0,
+           :hang? true,
+           :indent 2,
+           :justify? false,
+           :nl-separator? false},
+[...]
+```
+
 The `-e` switch will output the configuration zprint will use when
 run. For any values that are not the default, this will include where that
 value came from (for instance, if you set something in your `~/.zprintrc`, 

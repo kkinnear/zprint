@@ -1,5 +1,11 @@
 # Use zprint at the REPL
 zprint was designed to be very helpful at the REPL.  What do you have to do?
+
+[1. Get zprint into the dependencies](#1-get-zprint-into-the-dependencies)  
+[2. Require zprint when you run the REPL](#2-require-zprint-when-you-run-the-repl)   
+[3. Use zprint](#3-use-zprint)  
+
+
 ## 1. Get zprint into the dependencies
 First, you have to make sure zprint shows up in your dependencies.
 ### Leiningen (project.clj)
@@ -18,6 +24,24 @@ in the dependencies.  For example:
                  [zprint "0.5.4"]]
   :repl-options {:init-ns zpuse.core})
 ```
+
+__Even better -- put it in the:__ 
+
+`:profiles {:dev {:dependencies [zprint "0.5.4]}}`
+
+like this:
+
+```clojure
+(defproject zpuse "0.1.0-SNAPSHOT"
+  :description "FIXME: write description"
+  :url "http://example.com/FIXME"
+  :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
+            :url "https://www.eclipse.org/legal/epl-2.0/"}
+  :profiles {:dev {:dependencies [zprint "0.5.4]}}
+  :dependencies [[org.clojure/clojure "1.10.0"]]
+  :repl-options {:init-ns zpuse.core})
+```
+
 ### deps.edn
 ```clojure
 {:deps {org.clojure/clojure #:mvn{:version "1.9.0"},

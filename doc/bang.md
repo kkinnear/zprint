@@ -1,4 +1,4 @@
-# zprint comment formatting directives
+# Comment Formatting Directives
 
 In order to properly format a file, sometimes you want to alter the
 value of the zprint options map for a single function definition,

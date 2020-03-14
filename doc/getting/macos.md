@@ -28,6 +28,23 @@ To be able to run zprint it needs to be in a directory that appears in
 your path.
 
 ## 4. Test it with `-e`
+
+```
+zprint -e
+{:agent {:object? false},
+ :array {:hex? false, :indent 1, :object? false, :wrap? true},
+ :atom {:object? false},
+ :binding {:flow? false,
+           :force-nl? false,
+           :hang-diff 1,
+           :hang-expand 2.0,
+           :hang? true,
+           :indent 2,
+           :justify? false,
+           :nl-separator? false},
+[...]
+```
+
 The `-e` switch will output the configuration zprint will use when
 run. For any values that are not the default, this will include where that
 value came from (for instance, if you set something in your `~/.zprintrc`, 
@@ -42,6 +59,7 @@ The zprint program you have installed will accept Clojure source on stdin
 and produce formatted Clojure source on stdout.  It will also 
 accept an options map on the command line.  Note the need for single quotes
 around any options map value that you specify.
+
 ```
 zprint '{:width 90}' < myfile.clj 
 ```

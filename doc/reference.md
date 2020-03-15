@@ -3791,12 +3791,28 @@ if you wish.  If `:hang?` is off for some reason, you can use
 
 #### :respect-bl 
 
-Respect blank lines: in the same way that `:respect-nl?` has been
-implemented for lists, vectors, maps and sets, now `:respect-bl?`
-has been implemented for them all as well.  This means that whenever
-a blank line appears in the source, it will be "respected", and
+Respect blank lines. 
+
+Whenever a blank line appears in the source, it will be "respected", and
 will appear in the output.  However, all other formatting will be
-applied around any blank lines that may appear.
+applied around any blank lines that may appear.  
+
+Note that blank lines at the top level (i.e., outside of function
+definitions and `(def ...)` expressions) are always respected and 
+never changed.  This style extends that behavior into the actual function
+definitions.
+
+Respect new lines (i.e., `:respect-nl`) sounds like a similar style,
+but the actual results are quite different.  With `:respect-nl`,
+no lines are ever joined together.  Lines that are long may be
+split, but that is the extent of changes allowed concerning where
+things appear on lines.  The freedom for zprint to actually format
+the code is quite limited with `:respect-nl`.
+
+Alternatively, with `:respect-bl`, there is plenty of freedom for zprint
+to format the code in a maximally readable manner, since only blank lines
+interrupt zprint's ability to flow code back and forth between lines
+as necessary for good formatting.
 
 While `:respect-nl?` was something that you might want to configure
 for formatting a single function, `:respect-bl?` is something that
@@ -3807,9 +3823,19 @@ put blank lines inside a function definition, those blank lines
 will continue to appear in the output.  And all of the information
 will all be formatted correctly around those blank lines.
 
-Note that blank lines at the top level (i.e., outside of function
-definitions and `(def ...)` expressions) are always respected and 
-never changed.
+Note that zprint can be used in a number of ways.  If you are using
+zprint to enforce a particular format on code (say in a group setting),
+then `:respect-bl` is probably not a great choice, since different people
+will want to put blank lines in different places for readability.
+
+There are several ways to get zprint to place blank lines in particular
+places when formatting code, and these approaches are compatible with using
+zprint to enforce a particular code approach.  Here are some of them:
+
+ * [add newlines between pairs in let binding vectors](#map-nl-pair-nl-binding-nl)
+ * [add newlines between cond, assoc pairs](#map-nl-pair-nl-binding-nl)
+ * [add newlines between extend clauses](#extend-nl)
+ * [add newlines between map pairs](#map-nl-pair-nl-binding-nl)
 
 An example from clojure.core:
 

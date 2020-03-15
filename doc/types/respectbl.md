@@ -54,6 +54,10 @@ start on the same line as the leftmost element).
 
 ## Examples from clojure
 
+Note that these examples from `clojure.core` have blank lines in their original
+source formatting.  Using `:respect-bl` when formatting them lets these
+existing blank lines show through.
+
 ### Classic zprint 
 ```clojure
 (czprint-fn ->ArrayChunk)

@@ -3776,7 +3776,88 @@ function for vectors.
 These are convenience styles which simply allow you to set `{:indent
 0 :nl-separator? true}` for each of the associated format elements.
 They simply exist to save you some typing if these styles are
-favorites of yours.
+favorites of yours.  This will add a blank line between any pairs
+where the rightmost element of the pair (e.g., the value in a map key-value
+pair) formats as a flow.  It will not add a blank line between every pair,
+just between pairs where the rightmost element doesn't format as a hang.
+
+Some examples:
+
+```clojure
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 40 {:map {:nl-separator? false}})
+
+{:a :b,
+ :c {:e :f, :g :h, :i :j, :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; No effect if all the pairs print on one line
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 40 {:map {:nl-separator? true}})
+{:a :b,
+ :c {:e :f, :g :h, :i :j, :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; With a narrower width, one of them takes more than one line
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? false}})
+
+{:a :b,
+ :c {:e :f,
+     :g :h,
+     :i :j,
+     :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; and even now :nl-separator? will not have any effect because none of the
+; right hand pairs are formatted with a flow -- that is, none of the right
+; hand parts of the pairs start all of the way to the left.  They are still
+; formatted as a hang
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} 30 {:map {:nl-separator? true}})
+
+{:a :b,
+ :c {:e :f,
+     :g :h,
+     :i :j,
+     :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; If you turn off the hang, then now if a pair doesn't fit on one line,
+; you get a flow:
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}}
+         30
+         {:map {:nl-separator? true :hang? false}})
+
+{:a :b,
+ :c
+   {:e :f,
+    :g :h,
+    :i :j,
+    :k :l},
+
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; Most people use the :nl-separator? kind of formatting when they don't
+; want the right hand side of a pair indented.  So if you turn off :hang?
+; then you probably want to remove the indent as well.
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}}
+         30
+         {:map {:nl-separator? true :hang? false :indent 0}})
+
+{:a :b,
+ :c
+ {:e :f, :g :h, :i :j, :k :l},
+
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+```
 
 #### :no-hang, :all-hang
 

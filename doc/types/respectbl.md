@@ -25,19 +25,28 @@ to format the code in a maximally readable manner, since only blank lines
 interrupt zprint's ability to flow code back and forth between lines
 as necessary for good formatting.
 
+## Enforcing a particular formatting style
+
 Note that zprint can be used in a number of ways.  If you are using
 zprint to enforce a particular format on code (say in a group setting),
 then `:respect-bl` is probably not a great choice, since different people
 will want to put blank lines in different places for readability.
 
-There are several ways to get zprint to place blank lines in particular
+There are several ways to get zprint to intentionally place blank lines in particular
 places when formatting code, and these approaches are compatible with using
-zprint to enforce a particular code approach.  Here are some of them:
+zprint to enforce a particular code approach.  These approaches do not depend
+on any particular format for the input -- the blank lines appear regardless
+of the input formatting.  
 
- * [add newlines between pairs in let binding vectors](../reference.md#map-nl-pair-nl-binding-nl)
- * [add newlines between cond, assoc pairs](../reference.md#map-nl-pair-nl-binding-nl)
- * [add newlines between extend clauses](../reference.md#extend-nl)
- * [add newlines between map pairs](../reference.md#map-nl-pair-nl-binding-nl)
+Here are some styles that will place a blank line between pairs of elements
+where the rightmost element doesn't format as a hang (i.e., doesn't at least
+start on the same line as the leftmost element).
+
+ * [add newlines between pairs that flow in let binding vectors](../reference.md#map-nl-pair-nl-binding-nl)
+ * [add newlines between cond, assoc pairs that flow](../reference.md#map-nl-pair-nl-binding-nl)
+ * [add newlines between extend clauses that flow](../reference.md#extend-nl)
+ * [add newlines between map pairs that flow](../reference.md#map-nl-pair-nl-binding-nl)
+
 
 ## Examples from clojure.core
 

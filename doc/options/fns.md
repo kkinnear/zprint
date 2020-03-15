@@ -28,7 +28,9 @@ mapping), you have two approaches you can use to determine the function
 type that you would like to use:
 
 1. Find an existing function that formats the way that you want, determine
-its function type, and use that.  
+its function type, and use that.  You can find the function type of an
+existing function by entering `(czprint nil :explain)` at the REPL, and
+looking at the list of functions under the key `:fn-map` in the output.
 
 2. Look through the [list of possible function types](../reference.md#function-classification-for-pretty-printing), and figure out which
 one best matches what you want.

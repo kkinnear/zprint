@@ -24,6 +24,7 @@ to be kept in source.
   lines and all other newlines will be kept.  zprint will add newlines as
   necessary to attempt to fit to the `:width`, but will never remove a
   newline even if everything would fit fine in fewer lines.
+  You can see [examples of this here](../reference.md#respect-nl).
   
   * Indent only `{:style :indent-only}`  
   This still will keep __all__ of the newlines in the source, and will

@@ -3697,6 +3697,7 @@ For more examples, see [Indent Only](./types/indentonly.md).
 
 This sets `:justify? true` in each of `:binding`, `:pair`, and `:map`.
 It is useful to see what you think about justfied output.
+[Here is more information on justified output.](#a-note-on-justifying-two-up-printing)
 
 #### :keyword-respect-nl
 

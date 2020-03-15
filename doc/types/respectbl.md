@@ -34,10 +34,10 @@ There are several ways to get zprint to place blank lines in particular
 places when formatting code, and these approaches are compatible with using
 zprint to enforce a particular code approach.  Here are some of them:
 
- * [add newlines between pairs in let binding vectors](../doc/reference.md#map-nl-pair-nl-binding-nl)
- * [add newlines between cond, assoc pairs](../doc/reference.md#map-nl-pair-nl-binding-nl)
- * [add newlines between extend clauses](../doc/reference.md#extend-nl)
- * [add newlines between map pairs](../doc/reference.md#map-nl-pair-nl-binding-nl)
+ * [add newlines between pairs in let binding vectors](../reference.md#map-nl-pair-nl-binding-nl)
+ * [add newlines between cond, assoc pairs](../reference.md#map-nl-pair-nl-binding-nl)
+ * [add newlines between extend clauses](../reference.md#extend-nl)
+ * [add newlines between map pairs](../reference.md#map-nl-pair-nl-binding-nl)
 
 ## Examples from clojure.core
 

@@ -3,7 +3,7 @@
 [Maps](#maps)  
 [Vectors](#vectors)  
 [Function Definitions with specs](#function-definitions-with-specs)  
-[Explore at the REPL](#explore-at-the-repl)  
+[Explore definitions of functions at the REPL](#explore-definitions-of-functions-at-the-repl)  
 [Exploring deftype](#exploring-deftype)  
 
 ## Maps
@@ -448,7 +448,7 @@ Spec
 ```
 Which would you prefer?
 
-## Explore at the REPL
+## Explore definitions of functions at the REPL
 Want to see what `clojure.spec.alpha/describe` looks like?
 ### Classic zprint
 ```clojure

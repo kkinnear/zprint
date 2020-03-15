@@ -450,6 +450,57 @@ they would have been with respect-blank-lines as well).
           :descendants (tf (:descendants h) parent ta tag td)})
        h))))
 ```
+### Classic zprint
+
+This isn't a lot different from `{:style :indent-only}`, which is interesting
+in its own right.  However, when you look at the `:indent-only` output,
+above, how does the return value of the two argument version of derive
+differ from the return value of the three argument version?  The example
+formatted with classic zprint makes the answer to that question obvious.
+
+```clojure
+(czprint-fn derive 90)
+
+; Formatted for 90 columns, to ease comparison with the examples above
+
+(defn derive
+  "Establishes a parent/child relationship between parent and
+  tag. Parent must be a namespace-qualified symbol or keyword and
+  child can be either a namespace-qualified symbol or keyword or a
+  class. h must be a hierarchy obtained from make-hierarchy, if not
+  supplied defaults to, and modifies, the global hierarchy."
+  {:added "1.0"}
+  ([tag parent]
+   (assert (namespace parent))
+   (assert (or (class? tag) (and (instance? clojure.lang.Named tag) (namespace tag))))
+   (alter-var-root #'global-hierarchy derive tag parent)
+   nil)
+  ([h tag parent]
+   (assert (not= tag parent))
+   (assert (or (class? tag) (instance? clojure.lang.Named tag)))
+   (assert (instance? clojure.lang.Named parent))
+   (let [tp (:parents h)
+         td (:descendants h)
+         ta (:ancestors h)
+         tf (fn [m source sources target targets]
+              (reduce1
+                (fn [ret k]
+                  (assoc ret
+                    k (reduce1 conj (get targets k #{}) (cons target (targets target)))))
+                m
+                (cons source (sources source))))]
+     (or (when-not (contains? (tp tag) parent)
+           (when (contains? (ta tag) parent)
+             (throw (Exception. (print-str tag "already has" parent "as ancestor"))))
+           (when (contains? (ta parent) tag)
+             (throw (Exception.
+                      (print-str "Cyclic derivation:" parent "has" tag "as ancestor"))))
+           {:parents (assoc (:parents h) tag (conj (get tp tag #{}) parent)),
+            :ancestors (tf (:ancestors h) tag td parent ta),
+            :descendants (tf (:descendants h) parent ta tag td)})
+         h))))
+```
+
 ## Want indent-only which will fit into a particular width?
 If you like the behavior of `{:style :indent-only}`, but you would also like
 zprint to add newlines when a line goes over a particular width, you might

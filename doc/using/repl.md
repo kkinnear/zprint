@@ -79,7 +79,8 @@ Let's say that you don't want commas in maps.
 ```clojure
 zpuse.core=> (zp/set-options! {:map {:commas? false}})
 Execution error at zprint.config/internal-set-options! (config.cljc:928).
-set-options! for repl or api call 2 found these errors: In repl or api call 2, In the key-sequence [:map :commas?] the key :commas? was not recognized as valid!
+set-options! for repl or api call 2 found these errors: 
+In repl or api call 2, In the key-sequence [:map :commas?] the key :commas? was not recognized as valid!
 
 ; Oops, it isn't "commas?", it must be "comma?"...
 

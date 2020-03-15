@@ -3529,8 +3529,8 @@ that is true, and if:
 ##### :docstring? _true_
 
 is also true, then zprint will format the spec and append it to the
-docstring.  At present this only works for docstrings in `defn` and
-`defmacro` definitions, not functions defined with `def`.
+docstring.  The spec formatting is effectively identical to hand-formatted
+specs.
 
 ______
 ## :style and :style-map

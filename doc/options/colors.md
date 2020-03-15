@@ -24,11 +24,13 @@ The default color map:
              :user-fn :black},
 ```
 If you want to change the colors, simple remap something.  For example,
-to change the color of parentheses from the default green to black:
+to change the color of parentheses from the default green to black
+(for only this call to zprint):
 ```
 (czprint-fn defn {:color-map {:paren :black}})
 ```
-You can of course change it permanently by placing the change in an
+You can of course change it permanently by placing the change
+(in this case `{:color-map {:paren :black}}`) in an
 options map that is used for configuration, like `~/.zprintrc`.
 
 ### Unevaluated code

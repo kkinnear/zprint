@@ -6,9 +6,9 @@ What do you have to do?
 First, you have to make sure zprint shows up in your dependencies.
 #### Leiningen (project.clj)
 Put:
-```clojure
-	[zprint "0.5.4"]
-```
+
+[![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)
+
 in the dependencies.  For example:
 ```clojure
 (defproject zpuse "0.1.0-SNAPSHOT"

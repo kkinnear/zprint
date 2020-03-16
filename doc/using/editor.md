@@ -9,6 +9,7 @@ Many editors have a feature allowing you to pipe some segment of the
 text in the editor through an external program, and replace the existing
 text with the results of that external program.  To use zprint in this 
 environment, you must then:
+
   * Install zprint to [format whole files](./files.md)
   * Instruct your editor to send the text to zprint and use the result
 
@@ -40,6 +41,11 @@ formatted Clojure source on stdout.
 
 ### vim
 
+There is a [vim plugin to run zprint when you close a file](https://github.com/bfontaine/zprint.vim).  
+
+If you want to format individual definitions while running vim, make
+sure that you [install zprint to format entire files](./files.md).
+
 In vim, if your cursor is at the top level left parenthesis of a
 function definition, you can type `!a(zprint`.
 This will pipe everything to the balanced
@@ -59,8 +65,10 @@ There is an [emacs plugin for zprint](https://github.com/pesterhazy/zprint-mode.
 
 [![MELPA](https://melpa.org/packages/zprint-mode-badge.svg)](https://melpa.org/#/zprint-mode)
 
+#### If you want to do it yourself.
 
-##### If you want to do it yourself.
+First, see [here](./files.md) for information on how to install zprint
+to format whole files.
 
 Emacs seems to have several ways to move to the top of a function
 definition and to then mark a region bounded by parentheses, 

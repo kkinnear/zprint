@@ -1,4 +1,10 @@
 # Use zprint while using an editor
+
+[vim](#vim)  
+[emacs](#emacs)  
+[Sublime Text](#sublime-text-2-or-3)  
+[Atom](#atom)  
+
 Many editors have a feature allowing you to pipe some segment of the
 text in the editor through an external program, and replace the existing
 text with the results of that external program.  To use zprint in this 
@@ -49,6 +55,13 @@ zprint format the result for 90 columns instead of the default 80.
 
 ### emacs
 
+There is an [emacs plugin for zprint](https://github.com/pesterhazy/zprint-mode.el).
+
+[![MELPA](https://melpa.org/packages/zprint-mode-badge.svg)](https://melpa.org/#/zprint-mode)
+
+
+##### If you want to do it yourself.
+
 Emacs seems to have several ways to move to the top of a function
 definition and to then mark a region bounded by parentheses, 
 and your personal configuration may have even more.  I'll leave
@@ -92,6 +105,10 @@ to `Ctrl-Shift-m`) to select between parentheses and repeat it once
 to include the parentheses themseleves.  If you are deep within a
 function, you may need to repeat it several times to get to the
 top level.  There may be other ways to get to the top level.  
+
+### Atom
+
+The atom editor has a [zprint plugin](https://atom.io/packages/zprint-atom).
 
 
 ### Other Editors

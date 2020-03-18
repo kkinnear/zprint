@@ -38,7 +38,7 @@ In addition, zprint is very handy [__to use at the REPL__](./doc/types/repl.md).
   * [an uberjar for any Java enabled platform](./doc/getting/uberjar.md)    _starts in several seconds_
   * [an accelerated uberjar for any Java enabled platform](./doc/getting/appcds.md)    _starts in about 1s_
   * [a library to use at the REPL](./doc/using/repl.md)
-  * [other ways to access zprint](./doc/gettng/other.md)
+  * [other ways to access zprint](./doc/getting/other.md)
 
 ## Get something other than the default formatting:
 

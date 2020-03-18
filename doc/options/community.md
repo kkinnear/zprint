@@ -164,7 +164,12 @@ function as well as the indent for the second element of a pair:
 
 Look at the indent of "with-open only allows Symbols in bindings".  It
 is different.  In the first example, all lists in code are indented by
-2.  In the second, only known body functions are indented by 2.
+2.  In the second, only known body functions are indented by 2 when formatted
+with a flow.  Note that unless you tell zprint that functions that you 
+define are "body" functions by making them at least `:none-body` in the
+`:fn-map`, then whenever your functions are formatted with a flow they
+will be indented by 1, not 2 spaces.
+
 
 ## How to get community endorsed formatting?
 

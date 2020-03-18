@@ -19,7 +19,7 @@
                   {:file "doc/getting/uberjar.md"}]
                  ["accelerated uberjar for any Java enabled platform"
                   {:file "doc/getting/appcds.md"}]
-                 ["library to use at the REPL" {:file "doc/using/repl.md"}]]
+                 ["library to use at the REPL" {:file "doc/using/repl.md"}]
                  ["other ways to access zprint" {:file "doc/getting/other.md"}]]
                 ["How do I change zprint's formatting?"
                  {:file "doc/altering.md"}]

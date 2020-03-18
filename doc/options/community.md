@@ -52,6 +52,50 @@ This change to the defaults for zprint does several things:
 
 You can read lots about this [here](./pairs.md).
 
+Here is an example of the difference:
+
+```clojure
+(czprint-fn cond-let)
+
+(defmacro cond-let
+  "An alternative to `clojure.core/cond` where instead of a test/expression pair, it is possible
+  to have a :let/binding vector pair."
+  [& clauses]
+  (cond (empty? clauses) nil
+        (not (even? (count clauses)))
+          (throw (ex-info (str `cond-let " requires an even number of forms")
+                          {:form &form, :meta (meta &form)}))
+        :else
+          (let [[test expr-or-binding-form & more-clauses] clauses]
+            (if (= :let test)
+              `(let ~expr-or-binding-form (cond-let ~@more-clauses))
+              ;; Standard case
+              `(if ~test ~expr-or-binding-form (cond-let ~@more-clauses))))))
+
+; Here it is using {:style :community}, which doesn't indent pairs that flow
+; Look at the (throw ...) in the (cond ...)
+
+(czprint-fn cond-let {:style :community})
+
+(defmacro cond-let
+  "An alternative to `clojure.core/cond` where instead of a test/expression pair, it is possible
+  to have a :let/binding vector pair."
+  [& clauses]
+  (cond (empty? clauses) nil
+        (not (even? (count clauses)))
+        (throw (ex-info (str `cond-let " requires an even number of forms")
+                        {:form &form, :meta (meta &form)}))
+        :else
+        (let [[test expr-or-binding-form & more-clauses] clauses]
+          (if (= :let test)
+            `(let ~expr-or-binding-form (cond-let ~@more-clauses))
+            ;; Standard case
+            `(if ~test ~expr-or-binding-form (cond-let ~@more-clauses))))))
+
+```
+
+Look at the `(throw ...)` in the `(cond ...)` to see the difference.
+
 ### Different indents for body functions and argument functions?
 
 At some point, the "community standards" for Clojure source formatting
@@ -68,6 +112,59 @@ distinction, zprint will accept the suffix `-body` to many of the function
 types, and will also accept a value for `:indent-arg`, which (if non-nil)
 will be used as the indent for argument functions (which is 
 everything that is not explicitly classified as a body function).
+
+Here is an example that illustrates the different indent for a body
+function as well as the indent for the second element of a pair:
+
+```clojure
+(czprint-fn with-open)
+
+(defmacro with-open
+  "bindings => [name init ...]
+
+  Evaluates body in a try expression with names bound to the values
+  of the inits, and a finally clause that calls (.close name) on each
+  name in reverse order."
+  {:added "1.0"}
+  [bindings & body]
+  (assert-args (vector? bindings)
+               "a vector for its binding"
+               (even? (count bindings))
+               "an even number of forms in binding vector")
+  (cond (= (count bindings) 0) `(do ~@body)
+        (symbol? (bindings 0))
+          `(let ~(subvec bindings 0 2)
+                (try (with-open ~(subvec bindings 2) ~@body)
+                     (finally (. ~(bindings 0) close))))
+        :else (throw (IllegalArgumentException.
+                       "with-open only allows Symbols in bindings"))))
+
+(czprint-fn with-open {:style :community})
+
+(defmacro with-open
+  "bindings => [name init ...]
+
+  Evaluates body in a try expression with names bound to the values
+  of the inits, and a finally clause that calls (.close name) on each
+  name in reverse order."
+  {:added "1.0"}
+  [bindings & body]
+  (assert-args (vector? bindings)
+               "a vector for its binding"
+               (even? (count bindings))
+               "an even number of forms in binding vector")
+  (cond (= (count bindings) 0) `(do ~@body)
+        (symbol? (bindings 0))
+        `(let ~(subvec bindings 0 2)
+              (try (with-open ~(subvec bindings 2) ~@body)
+                   (finally (. ~(bindings 0) close))))
+        :else (throw (IllegalArgumentException.
+                      "with-open only allows Symbols in bindings"))))
+```
+
+Look at the indent of "with-open only allows Symbols in bindings".  It
+is different.  In the first example, all lists in code are indented by
+2.  In the second, only known body functions are indented by 2.
 
 ## How to get community endorsed formatting?
 

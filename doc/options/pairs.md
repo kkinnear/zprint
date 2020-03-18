@@ -20,6 +20,49 @@ find them bothersome, so by default zprint will indent the
 second part of these pairs by 2 columns (controlled by `{:pair {:indent 2}}`
 for `cond` and `{:binding {:indent 2}}` for binding functions).
 
+Here is an example of both approaches:
+
+```clojure
+(czprint-fn cond-let)
+
+(defmacro cond-let
+  "An alternative to `clojure.core/cond` where instead of a test/expression pair, it is possible
+  to have a :let/binding vector pair."
+  [& clauses]
+  (cond (empty? clauses) nil
+        (not (even? (count clauses)))
+          (throw (ex-info (str `cond-let " requires an even number of forms")
+                          {:form &form, :meta (meta &form)}))
+        :else
+          (let [[test expr-or-binding-form & more-clauses] clauses]
+            (if (= :let test)
+              `(let ~expr-or-binding-form (cond-let ~@more-clauses))
+              ;; Standard case
+              `(if ~test ~expr-or-binding-form (cond-let ~@more-clauses))))))
+
+; Here it is using {:style :community}, which doesn't indent pairs that flow
+; Look at the (throw ...) in the (cond ...)
+
+(czprint-fn cond-let {:style :community})
+
+(defmacro cond-let
+  "An alternative to `clojure.core/cond` where instead of a test/expression pair, it is possible
+  to have a :let/binding vector pair."
+  [& clauses]
+  (cond (empty? clauses) nil
+        (not (even? (count clauses)))
+        (throw (ex-info (str `cond-let " requires an even number of forms")
+                        {:form &form, :meta (meta &form)}))
+        :else
+        (let [[test expr-or-binding-form & more-clauses] clauses]
+          (if (= :let test)
+            `(let ~expr-or-binding-form (cond-let ~@more-clauses))
+            ;; Standard case
+            `(if ~test ~expr-or-binding-form (cond-let ~@more-clauses))))))
+
+```
+Look at the `(throw ...)` in the `(cond ...)` to see the difference.
+
 Maps also have pairs, and perhaps suffer from the potential
 for confusion a bit more then binding-forms and cond functions.
 By default then, the map indent for the value that is placed on the
@@ -37,4 +80,5 @@ when calling zprint (specify that in your `.zprintrc` file, perhaps).
 
 You can change the indent from the default of 2 to 0 individually
 in `:binding`, `:map`, or `:pair` if you want to tune it in more detail.
+
 

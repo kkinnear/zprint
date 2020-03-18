@@ -367,12 +367,13 @@ echo "{:widthxxx 40 :url {:cache-dir \"configurldir\" :cache-secs 9}}" > ~/.zpri
 
 echo "...........  invalid zprint options map in ~/.zprintrc"
 
-output_length=`$command <test_config.string.clj 2>&1 | wc -c`
+output_length=`$command <test_config.string.clj 2>&1| grep "the key :widthxxx was not recognized as valid" | wc -l`
+
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "130" ]]
+if [[ $output_length != "1" ]]
   then
-    echo "invalid zprint options map in ~/.zprintrc test failed to have correct count of chars, should be 130, was: $output_length"
+    echo "invalid zprint options map in ~/.zprintrc test failed to have correct count of chars, should be 1, was: $output_length"
     $command <test_config.string.clj 
 
 fi
@@ -426,9 +427,9 @@ echo "...........  -e test"
 output_length=`$command -e 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "415" ]]
+if [[ $output_length != "420" ]]
   then
-    echo "-e test failed to have correct count of lines, should be 415, was: $output_length"
+    echo "-e test failed to have correct count of lines, should be 420, was: $output_length"
     $command -e
 fi
 
@@ -444,15 +445,15 @@ echo "...........  :coerce-to-false test"
 
 echo "{:cwd-zprintrc? 1 :coerce-to-false 0 :parallel? \"junk\"}" > ~/.zprintrc
 
-echo "{:parallel? :stuff :coerce-to-false :stuff}" > ./.zprintrc
+echo "{:parallel? :stuff :coerce-to-false :stuff :width 500}" > ./.zprintrc
 
 
-output_length=`$command -e 2>&1| grep -A 3 :parallel? | tail -1 | grep ":value false" | wc -l`
+output_length=`$command -e 2>&1| grep :parallel? | grep ":value false" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 if [[ $output_length != "1" ]]
   then
-    echo "-e test failed to have correct count of lines, should be 1, was: $output_length"
+    echo ":coerce-to-false test failed to have correct count of lines, should be 1, was: $output_length"
     $command -e
 fi
 

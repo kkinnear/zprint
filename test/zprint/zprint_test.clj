@@ -4296,9 +4296,9 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "~a"
         (zprint-str "(clojure.core/unquote a)"
                     {:parse-string? true,
-                     :fn-map {"clojure.core/unquote" [:replace-w-string
-                                                    {:list {:replacement-string
-                                                              "~"}} {}]}}))
+                     :fn-map {"clojure.core/unquote"
+                                [:replace-w-string
+                                 {:list {:replacement-string "~"}} {}]}}))
 
 ;; Random test...
 
@@ -4349,4 +4349,3 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "(this is a thing (and more thing (and more 'a)))"
         (zprint-str "(this is a thing (and more thing (and more 'a)))"
                     {:parse-string? true, :width 48}))
-

@@ -42,8 +42,8 @@
 
 (def zprint-keys [:width])
 
-(def operational-options [:cache :cwd-zprintrc? :parallel? :search-config?
-                          :url])
+(def operational-options
+  [:cache :cwd-zprintrc? :parallel? :search-config? :url])
 
 (def explain-hide-keys
   [:configured? :dbg-print? :dbg? :do-in-hang? :drop? :dbg-ge :file? :spaces?
@@ -289,6 +289,7 @@
    "and" :hang,
    "apply" :arg1,
    "as->" :arg2,
+   "assert-args" :pair-fn,
    "assoc" :arg1-pair,
    "assoc-in" :arg1,
    "binding" :binding,
@@ -387,7 +388,7 @@
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
              :justify? false,
              :nl-separator? false},
-   :cache {:directory ".zprint", :location "HOME"}
+   :cache {:directory ".zprint", :location "HOME"},
    :color? false,
    :color-map {:brace :red,
                :bracket :purple,
@@ -448,9 +449,9 @@
           :indent-only? false,
           :indent-only-style :input-hang,
           :pair-hang? true,
-	  :respect-bl? false
-          :respect-nl? false
-	  :replacement-string nil},
+          :respect-bl? false,
+          :respect-nl? false,
+          :replacement-string nil},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -477,7 +478,7 @@
          :justify? false,
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	 :respect-bl? false
+         :respect-bl? false,
          :respect-nl? false,
          :unlift-ns? false},
    :max-depth 1000,
@@ -530,7 +531,7 @@
    :search-config? false,
    :set {:indent 2,
          :indent-only? false,
-	 :respect-bl? false
+         :respect-bl? false,
          :respect-nl? false,
          :sort? true,
          :sort-in-code? false,
@@ -549,18 +550,13 @@
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
       :backtranslate
-        {:fn-map {"quote" [:replace-w-string 
-	                   {} 
-			   {:list {:replacement-string "'"}}]
-		  "clojure.core/deref" [:replace-w-string
-		           {}
-			   {:list {:replacement-string "@"}}]
-		  "var" [:replace-w-string
-		           {}
-			   {:list {:replacement-string "#'"}}]
-		  "clojure.core/unquote" [:replace-w-string
-		           {}
-			   {:list {:replacement-string "~"}}]}}
+        {:fn-map
+           {"quote" [:replace-w-string {} {:list {:replacement-string "'"}}],
+            "clojure.core/deref" [:replace-w-string {}
+                                  {:list {:replacement-string "@"}}],
+            "var" [:replace-w-string {} {:list {:replacement-string "#'"}}],
+            "clojure.core/unquote" [:replace-w-string {}
+                                    {:list {:replacement-string "~"}}]}},
       :binding-nl {:binding {:indent 0, :nl-separator? true}},
       :community {:binding {:indent 0},
                   :fn-map {"apply" :none,
@@ -668,7 +664,7 @@
             :option-fn-first nil,
             :option-fn nil,
             :fn-format nil,
-	    :respect-bl? false
+            :respect-bl? false,
             :respect-nl? false,
             :wrap-after-multi? true,
             :wrap-coll? true,
@@ -686,10 +682,10 @@
                :indent-only? false,
                :indent-only-style :input-hang,
                :pair-hang? true,
-	       :respect-bl? false
+               :respect-bl? false,
                :respect-nl? false},
    :width 80,
-   :url {:cache-dir "urlcache" :cache-secs 300}
+   :url {:cache-dir "urlcache", :cache-secs 300},
    :zipper? false})
 
 ;; Returns nil for all of the colors
@@ -998,9 +994,9 @@
            ; If we are running in a repl,
            ; then turn on :parallel?
            ; the first time we run unless it has been explicitly
-	   ; set by some external configuration
+           ; set by some external configuration
            (when (and (is-in-repl?)
-	              (not (:set-by (:parallel? (get-explained-all-options)))))
+                      (not (:set-by (:parallel? (get-explained-all-options)))))
              (internal-set-options! "REPL execution default"
                                     (get-explained-all-options)
                                     (get-options)
@@ -1120,13 +1116,12 @@
                     (str
                       ":fn-map, in the second options map assocated with the function: "
                       (first %))))
-              :else
-                (str
-                  "In "
-                  source-str
-                  " :fn-map, in the vector associated with the function: "
-                  (first %)
-                  " there may only be either two or three elements."))
+              :else (str
+                      "In "
+                      source-str
+                      " :fn-map, in the vector associated with the function: "
+                      (first %)
+                      " there may only be either two or three elements."))
            fn-option-pairs)
        error-seq (remove nil? error-seq)
        error-string (apply str (interpose ", " error-seq))]
@@ -1276,15 +1271,15 @@
                                " because " e)]))]
             (if file-error
               (if optional? nil [nil file-error full-path])
-              (try (let [opts-file
-	                  (if acceptfns?
-                            (try-to-load-string (apply str lines))
-                            (clojure.edn/read-string (apply str lines)))]
-                     [opts-file nil full-path])
-                   (catch Exception e
-                     [nil
-                      (str "Unable to read configuration from file " full-path
-                           " because " e) full-path])))))
+              (try
+                (let [opts-file (if acceptfns?
+                                  (try-to-load-string (apply str lines))
+                                  (clojure.edn/read-string (apply str lines)))]
+                  [opts-file nil full-path])
+                (catch Exception e
+                  [nil
+                   (str "Unable to read configuration from file " full-path
+                        " because " e) full-path])))))
       :cljs nil))
   ([filename] (get-config-from-file filename nil nil)))
 
@@ -1447,12 +1442,12 @@
         ; Validate op-options
         ;
         [op-options _ op-option-errors] (config-and-validate
-                                            "Operational options"
-                                            default-doc-map
-                                            default-map
-                                            op-options)
+                                          "Operational options"
+                                          default-doc-map
+                                          default-map
+                                          op-options)
         op-options (select-op-options op-options)
-	#_(println "op-options:" op-options)
+        #_(println "op-options:" op-options)
         ;
         ; $HOME/.zprintrc
         ;
@@ -1463,11 +1458,11 @@
         zprintrc-file (str home file-separator zprintrc)
         [opts-rcfile errors-rcfile rc-filename :as home-config]
           (when (and home file-separator)
-            (get-config-from-path [zprintrc zprintedn] 
-	                          file-separator 
-				  [home] 
-				  ; Do accept fns from this file
-				  :acceptfns))
+            (get-config-from-path [zprintrc zprintedn]
+                                  file-separator
+                                  [home]
+                                  ; Do accept fns from this file
+                                  :acceptfns))
         [updated-map new-doc-map rc-errors]
           (config-and-validate (str "Home directory file: " rc-filename)
                                default-doc-map
@@ -1483,7 +1478,7 @@
           (when (and (or (:search-config? updated-map)
                          (:search-config? op-options))
                      file-separator)
-	    ; Do not accept functions from any files found
+            ; Do not accept functions from any files found
             (scan-up-dir-tree [zprintrc zprintedn] file-separator))
         [search-rcfile search-errors-rcfile search-filename]
           (when (not= home-config search-config)
@@ -1504,11 +1499,11 @@
                      (or (:cwd-zprintrc? search-map)
                          (:cwd-zprintrc? op-options))
                      file-separator)
-            (get-config-from-path [zprintrc zprintedn] 
-	                          file-separator 
-				  ["."]
-				  ; Do not accept fns from this file
-				  nil))
+            (get-config-from-path [zprintrc zprintedn]
+                                  file-separator
+                                  ["."]
+                                  ; Do not accept fns from this file
+                                  nil))
         [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
           (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
                                search-doc-map

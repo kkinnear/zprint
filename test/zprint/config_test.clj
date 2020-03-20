@@ -535,7 +535,8 @@
 ;; Issue #111
 ;;
 
-(expect (more-of options false (boolean (:to-string? (:record options))))
+(expect (more-of options
+          false (boolean (:to-string? (:record options))))
         (redef-state [zprint.config]
                      (set-options! {:coerce-to-false 'stuff,
                                     :record {:to-string? 'stuff}})
@@ -549,27 +550,27 @@
 ;;
 
 (expect Exception
-        (redef-state [zprint.config]
-                     (set-options!
-                       {:fn-map {"quote" [:replace-w-string
-                                          {:list {:replacement-string "'"}}
-					  ; This is incorrect, and should 
-					  ; force an Exception -- bad second
-					  ; map.
-                                          {:stuff :bother}]}})
-                     (get-options)))
+        (redef-state
+          [zprint.config]
+          (set-options! {:fn-map {"quote" [:replace-w-string
+                                           {:list {:replacement-string "'"}}
+                                           ; This is incorrect, and should 
+                                           ; force an Exception -- bad second
+                                           ; map.
+                                           {:stuff :bother}]}})
+          (get-options)))
 
-(expect Exception
-        (redef-state [zprint.config]
-                     (set-options!
-                       {:fn-map {"quote" [:replace-w-string
-                                          {:list {:replacement-string "'"}}
-					  {:width 20}
-					  ; This is incorrect, and should 
-					  ; force an Exception -- can't have
-					  ; more than two maps.
-                                          {}]}})
-                     (get-options)))
+(expect
+  Exception
+  (redef-state [zprint.config]
+               (set-options! {:fn-map {"quote" [:replace-w-string
+                                                {:list {:replacement-string
+                                                          "'"}} {:width 20}
+                                                ; This is incorrect, and should 
+                                                ; force an Exception -- can't have
+                                                ; more than two maps.
+                                                {}]}})
+               (get-options)))
 
 
 ;;
@@ -578,5 +579,3 @@
 
 (expect "{:a :b}"
         (zprint-str {:a :b} {:vector {:option-fn-first (fn [x y] {})}}))
-
-

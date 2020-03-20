@@ -24,12 +24,10 @@
             [zprint.focus :refer [range-ssv]]
             [rewrite-clj.parser :as p]
             #_[clojure.spec.alpha :as s])
-  #?@(:clj ((:import 
-           (java.net URL URLConnection)
-           (java.util.concurrent Executors)
-           (java.io File)
-           (java.util Date)))
-	   ))
+  #?@(:clj ((:import (java.net URL URLConnection)
+                     (java.util.concurrent Executors)
+                     (java.io File)
+                     (java.util Date)))))
 
 ;;
 ;; zprint
@@ -109,8 +107,16 @@
   "There is an internal options-map containing default values which is 
   configured from ~/.zprintrc when zprint is first used.  set-options! 
   is used to alter the internal options-map by specifying individual
-  options-map values that will be merged into the internal options-map."
-  ([new-options doc-str op-options] 
+  options-map values that will be merged into the internal options-map.
+  Typically, it is called with only new-options, an options map.  If
+  you add a doc-str, that will show up when the internal options map
+  is displayed with (czprint nil :explain).  The argument op-options
+  is an options map that is only examined if the call to set-options!
+  is the first use of the zprint library.  If it is, operational options
+  are examined in the op-options map to see where to find formatting
+  options.  Operational options are those such as cwd-zprintrc? and
+  search-config?."
+  ([new-options doc-str op-options]
    (do (config-set-options! new-options doc-str op-options) nil))
   ([new-options doc-str] (do (config-set-options! new-options doc-str) nil))
   ([new-options] (do (config-set-options! new-options) nil)))
@@ -119,13 +125,13 @@
 (def ^:dynamic ^:no-doc *default-cache-loc* ".")
 ; Default [:cache :directory]
 (def ^:dynamic ^:no-doc *default-cache-dir* ".zprint")
-; Default [:url :cache-dir] 
+; Default [:url :cache-dir]
 (def ^:dynamic ^:no-doc *default-url-cache* "urlcache")
-; Default [:url :cache-secs] 
+; Default [:url :cache-secs]
 (def ^:dynamic ^:no-doc *default-url-cache-secs* 300)
 
 (defn ^:no-doc load-options!
-       "Loads options from url, expecting an edn options map that will be passed
+  "Loads options from url, expecting an edn options map that will be passed
   to set-options! Valid options will be cached in 
   (str (:cache-loc (:cache options)) 
        File/separator 
@@ -139,7 +145,7 @@
   Invalid options will throw an Exception.
   HTTP urls will have the Cache-Control max-age parameter respected,
   falling back to the Expires header if set."
-     [options url]
+  [options url]
   #?(:clj
        (let [^URL url (if (instance? URL url) url (URL. url))
              host (if (= "" (.getHost url)) "nohost" (.getHost url))

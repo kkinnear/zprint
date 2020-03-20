@@ -1,7 +1,7 @@
 (ns ^:no-doc zprint.spec
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
   (:require clojure.string
-	    [clojure.walk :refer [prewalk]]
+            [clojure.walk :refer [prewalk]]
             #?@(:clj [[zprint.smacros :refer [only-keys]]
                       [clojure.spec.alpha :as s]]
                 :cljs [[cljs.spec.alpha :as s]])))
@@ -70,8 +70,8 @@
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
     :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair
     :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
-    :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin
-    :indent :replace-w-string})
+    :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin :indent
+    :replace-w-string})
 (s/def ::format-value #{:on :off :next :skip})
 (s/def ::nilable-number (s/nilable number?))
 (s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
@@ -115,7 +115,7 @@
 
 (s/def ::binding? ::boolean)
 (s/def ::cache-dir (s/nilable string?))
-(s/def ::cache-path (s/nilable string?))  ; debugging only
+(s/def ::cache-path (s/nilable string?)); debugging only
 (s/def ::cache-secs ::nilable-number)
 (s/def ::comma? ::boolean)
 (s/def ::constant-pair? ::boolean)
@@ -243,9 +243,8 @@
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
                       ::indent-arg ::pair-hang? ::return-altered-zipper
-		      ::respect-bl?
-                      ::respect-nl? ::indent-only? ::indent-only-style
-		      ::replacement-string]))
+                      ::respect-bl? ::respect-nl? ::indent-only?
+                      ::indent-only-style ::replacement-string]))
 (s/def ::vector-fn ::list)
 (s/def ::map
   (only-keys
@@ -253,8 +252,8 @@
              ::hang-expand ::hang? ::indent ::indent-only? ::justify?
              ::justify-hang ::justify-tuning ::key-color ::key-value-color
              ::key-depth-color ::key-ignore ::key-ignore-silent ::key-order
-             ::lift-ns? ::lift-ns-in-code? ::nl-separator? ::respect-bl? 
-	     ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
+             ::lift-ns? ::lift-ns-in-code? ::nl-separator? ::respect-bl?
+             ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -286,9 +285,8 @@
 (s/def ::next-inner zany?)
 (s/def ::return-cvec? ::boolean)
 (s/def ::set
-  (only-keys :opt-un [::indent ::indent-only? ::respect-bl? 
-                      ::respect-nl? ::sort?
-                      ::sort-in-code? ::wrap-after-multi? ::wrap-coll?
+  (only-keys :opt-un [::indent ::indent-only? ::respect-bl? ::respect-nl?
+                      ::sort? ::sort-in-code? ::wrap-after-multi? ::wrap-coll?
                       ::wrap?]))
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
@@ -302,10 +300,9 @@
 (s/def :alt/uneval (only-keys :opt-un [::color-map]))
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
-  (only-keys :opt-un [::indent ::binding? ::respect-bl? 
-                      ::respect-nl? ::option-fn-first
-                      ::option-fn ::fn-format ::wrap-after-multi? ::wrap-coll?
-                      ::wrap? ::indent-only?]))
+  (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?
+                      ::option-fn-first ::option-fn ::fn-format
+                      ::wrap-after-multi? ::wrap-coll? ::wrap? ::indent-only?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))
@@ -317,11 +314,11 @@
 
 (s/def ::options
   (only-keys
-    :opt-un [::agent ::array ::atom ::binding ::cache ::color? ::color-map :alt/comment
-             ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc? ::dbg-bug?
-             ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend
-             ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map
-             ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
+    :opt-un [::agent ::array ::atom ::binding ::cache ::color? ::color-map
+             :alt/comment ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc?
+             ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
+             ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
+             ::fn-map ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
              ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
              ::max-hang-span ::max-length ::object ::old? ::output ::pair
              ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
@@ -440,39 +437,40 @@
   (let [coerce-to-false (when (map? options) (:coerce-to-false options))]
     (if-not coerce-to-false
       options
-      (try (dissoc (prewalk #(if (and (map-entry? %)
-                                      (keyword? (first %))
-                                      (= (s/get-spec (keyword "zprint.spec"
-                                                              (name (first %))))
-                                         :zprint.spec/boolean))
-                               ; This is a keyword whose spec is
-                               ; boolean.  If it is boolean, we're good.
-			       ; If it isn't, then figure out if it is the
-			       ; same as coerce-to-false, in which case it 
-			       ; will be false, otherwise change it to true.
-			       (if (zboolean? (second %))
-				  ; Don't change anything
-				  (first {(first %) (second %)})
-				  ; Is it equal to coerce-to-false?
-				  (if (= (second %) coerce-to-false)
-				    ; Make it false
-				    (first {(first %) false})
-				    ; Make it true
-				    (first {(first %) true})))
-                               %)
-                            options)
-                   :coerce-to-false)
-           (catch #?(:clj Exception
-                     :cljs :default)
-             e
-             options)))))
+      (try
+        (dissoc (prewalk #(if (and (map-entry? %)
+                                   (keyword? (first %))
+                                   (= (s/get-spec (keyword "zprint.spec"
+                                                             (name (first %))))
+                                      :zprint.spec/boolean))
+                            ; This is a keyword whose spec is
+                            ; boolean.  If it is boolean, we're good.
+                            ; If it isn't, then figure out if it is the
+                            ; same as coerce-to-false, in which case it
+                            ; will be false, otherwise change it to true.
+                            (if (zboolean? (second %))
+                              ; Don't change anything
+                              (first {(first %) (second %)})
+                              ; Is it equal to coerce-to-false?
+                              (if (= (second %) coerce-to-false)
+                                ; Make it false
+                                (first {(first %) false})
+                                ; Make it true
+                                (first {(first %) true})))
+                            %)
+                         options)
+                :coerce-to-false)
+        (catch #?(:clj Exception
+                  :cljs :default)
+          e
+          options)))))
 
 (defn validate-basic
   "Using spec defined above, validate the given options map.  Return
   nil if no errors, or a string containing errors if any. If :coerce-to-false
   appears as a key, scan the map for keys which are keyword with 
   zprint.spec/:boolean as their spec, and if any are found replace their
-  values with the value of :coerce-to-false." 
+  values with the value of :coerce-to-false."
   ([options source-str]
    #_(println "Options:" options)
    (try (if (s/valid? ::options options)

@@ -6,7 +6,7 @@
             :key "mit",
             :year 2015}
   :plugins
-    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.5.3"]]
+    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.5.4"]]
   :profiles {:dev {:dependencies [#_[expectations "2.2.0-rc1"]
                                   #_[expectations "2.2.0-rc3"]
                                   [expectations "2.1.10"]
@@ -40,7 +40,7 @@
           :metadata {:doc/format :markdown}}
   :dependencies
     [#_[org.clojure/clojure "1.10.0"]
-     #_[org.clojure/clojure "1.10.1"]
+     #_[org.clojure/clojure "1.10.2-alpha1"]
      [org.clojure/clojure "1.9.0"]
      #_[org.clojure/clojure "1.8.0"]
      [rewrite-cljs "0.4.4" :exclusions [[org.clojure/clojurescript]]]

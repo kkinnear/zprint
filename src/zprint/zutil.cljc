@@ -296,10 +296,7 @@
     (when (not (nil? nloc))
       (if (zthing? nloc) i (recur (zrightnws nloc) (inc i))))))
 
-(defn znl
-  []
-  "Return a zloc which is a newline."
-  (edn* (p/parse-string "\n")))
+(defn znl [] "Return a zloc which is a newline." (edn* (p/parse-string "\n")))
 
 (defn multi-nl
   "Take a zloc that is a newline and has more than one newline,
@@ -378,10 +375,9 @@
             nl-len (when nl? (length nloc))
             multi-nl? (when nl? (> (length nloc) 1))
             ; newline thing to emit
-            nl-to-emit (when nl?
-                         (if multi-nl?
-                           (mapv zfn (multi-nl nl-len))
-                           [(zfn nloc)]))]
+            nl-to-emit
+              (when nl?
+                (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
         (recur (right* nloc)
                (cond result (conj out result)
                      nl-to-emit (apply conj out nl-to-emit)

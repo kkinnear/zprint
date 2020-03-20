@@ -97,8 +97,10 @@
             (if (and (not (clojure.string/blank? options))
                      (not valid-switch?)
                      (clojure.string/starts-with? options "-"))
-              [:complete 1
-               (str "Unrecognized switch: '" options "'" "\n" main-help-str) {}]
+              [:complete
+               1
+               (str "Unrecognized switch: '" options "'" "\n" main-help-str)
+               {}]
               running-status)
             ; Handle switches
             (let [[option-status exit-status option-stderr op-options]
@@ -106,9 +108,11 @@
               (if (= option-status :complete)
                 running-status
                 (if (or version? help?)
-                  [:complete 0
+                  [:complete
+                   0
                    (cond version? (:version (get-options))
-                         help? main-help-str) op-options]
+                         help? main-help-str)
+                   op-options]
                   running-status)))
             ; If this is not a switch, get any operational options off
             ; of the command line
@@ -121,12 +125,14 @@
                 (try
                   [:incomplete 0 nil (select-op-options (read-string options))]
                   (catch Exception e
-                    [:complete 1
+                    [:complete
+                     1
                      (str "Failed to use command line operational options: '"
                           options
                           "' because: "
                           e
-                          ".") {}]))))
+                          ".")
+                     {}]))))
             ; Get all of the operational-options (op-options),
             ; merging in any that were on the command line
             (let [[option-status exit-status option-stderr op-options]
@@ -165,7 +171,9 @@
                 (if explain?
                   ; Force set-options to configure using op-options
                   (do (set-options! {} "" op-options)
-                      [:complete 0 (zprint-str (get-explained-options))
+                      [:complete
+                       0
+                       (zprint-str (get-explained-options))
                        op-options])
                   running-status)))
             ; If --url try to load the args - along with other args
@@ -212,18 +220,20 @@
                     running-status]
               (if (or (= option-status :complete) (empty? options))
                 running-status
-		; Accept fns from command-line options map
+                ; Accept fns from command-line options map
                 (try (set-options! (try-to-load-string options)
                                    "command-line options"
                                    op-options)
                      [:complete 0 nil op-options]
                      (catch Exception e
-                       [:complete 1
+                       [:complete
+                        1
                         (str "Failed to use command line options: '"
                              options
                              "' because: "
                              e
-                             ".") {}]))))
+                             ".")
+                        {}]))))
             ; We could nitialize using the op-options if we haven't done
             ; so already, but if we didn't have any command line options, then
             ; there are no op-options that matter.
@@ -276,4 +286,3 @@
         ; so the process will end!
         (shutdown-agents)
         (System/exit format-status)))))
-

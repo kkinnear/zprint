@@ -78,6 +78,8 @@ All notable changes to this project will be documented in this file.
   These keys are now examined and used if specified an options map on the
   command line or in a call to `set-options!`.  Issue #120.
 
+  * The `clojure.core` function `assert-args` is now a `:pair-fn`.
+
 ### Fixed
 
   * Fixed an issue when `.zprintrc` file failed to validate when

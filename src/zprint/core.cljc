@@ -22,6 +22,7 @@
              [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
             [zprint.sutil]
             [zprint.focus :refer [range-ssv]]
+	    [zprint.range :refer [expand-range-to-top-level split-out-range]]
             [rewrite-clj.parser :as p]
             #_[clojure.spec.alpha :as s])
   #?@(:clj ((:import (java.net URL URLConnection)
@@ -999,9 +1000,32 @@
                        lines)
                      lines)
              filestring (clojure.string/join "\n" lines)
+             range-start (:start (:range (:output (get-options))))
+             range-end (:end (:range (:output (get-options))))
+             [actual-start actual-end] (when (or range-start range-end)
+                                         (expand-range-to-top-level filestring
+                                                                    lines
+                                                                    range-start
+                                                                    range-end))
+             [before-lines range after-lines]
+               (when (and actual-start actual-end)
+                 (split-out-range lines actual-start actual-end))
+             filestring (if range (clojure.string/join "\n" range) filestring)
+             _ (prn "range-start:" range-start
+                        "actual-start:" actual-start
+                        "range-end:" range-end
+                        "actual-end:" actual-end
+                        "before-lines count:" (count before-lines)
+                        "range count:" (count range)
+                        "after-lines count:" (count after-lines)
+                        "filestring count:" (count filestring)
+                        "range:" range)
              ends-with-nl? (clojure.string/ends-with? file-str "\n")
              ; If file ended with a \newline, make sure it still does
-             filestring (if ends-with-nl? (str filestring "\n") filestring)
+             ; if we are not doing a range
+             filestring (if (and ends-with-nl? (not range))
+                          (str filestring "\n")
+                          filestring)
              forms (edn* (p/parse-string-all filestring))
              pmf-options {:process-bang-zprint? true}
              pmf-options (if (:interpose (:parse (get-options)))
@@ -1011,7 +1035,16 @@
              out-str (process-multiple-forms pmf-options
                                              zprint-str-internal
                                              zprint-specifier
-                                             forms)]
+                                             forms)
+             out-str (if range
+                       (str (if (empty? before-lines)
+                              ""
+                              (clojure.string/join "\n" before-lines))
+                            out-str
+                            (if (empty? after-lines)
+                              ""
+                              (clojure.string/join "\n" after-lines)))
+                       out-str)]
          (if (and ends-with-nl? (not (clojure.string/ends-with? out-str "\n")))
            (str out-str "\n")
            out-str))

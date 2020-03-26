@@ -495,7 +495,8 @@
    :max-length 1000,
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
-   :output {:focus {:zloc? false, :surround nil}, :lines nil, :elide nil},
+   :output {:focus {:zloc? false, :surround nil}, :lines nil, :elide nil
+            :range {:start nil :end nil}},
    :pair {:flow? false,
           :force-nl? nil,
           :hang-diff 1,

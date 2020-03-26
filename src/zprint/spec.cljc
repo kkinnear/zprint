@@ -124,6 +124,7 @@
 (s/def ::directory (s/nilable string?))
 (s/def ::docstring? ::boolean)
 (s/def ::elide (s/nilable string?))
+(s/def ::end (s/nilable number?))
 (s/def ::expand? ::boolean)
 (s/def ::flow? ::boolean)
 (s/def ::focus (only-keys :opt-un [::zloc? ::path ::surround]))
@@ -168,6 +169,7 @@
      :cljs false?))
 (s/def ::path (s/coll-of number? :kind sequential?))
 (s/def ::paths ::path-seq)
+(s/def ::range (only-keys :opt-un [::start ::end]))
 (s/def ::replacement-string (s/nilable string?))
 (s/def ::return-altered-zipper vector?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
@@ -180,6 +182,7 @@
 (s/def ::size number?)
 (s/def ::sort? ::boolean)
 (s/def ::sort-in-code? ::boolean)
+(s/def ::start (s/nilable number?))
 (s/def ::lift-ns? ::boolean)
 (s/def ::unlift-ns? ::boolean)
 (s/def ::lift-ns-in-code? ::boolean)
@@ -262,7 +265,7 @@
 (s/def ::max-length ::number-or-vector-of-numbers)
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
-(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
+(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths ::range]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::indent ::justify? ::justify-hang ::justify-tuning

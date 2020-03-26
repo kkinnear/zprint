@@ -6,6 +6,8 @@ export PATH=$1/bin:$PATH
 export JAVA_HOME=$1
 echo "$PATH"
 pwd
+apt-get update
+apt-get -y install libstdc++
 gu install -L $2
 whereis native-image
 native-image --version

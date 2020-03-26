@@ -6,9 +6,10 @@
             :key "mit",
             :year 2015}
   :plugins
-    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "0.5.4"]]
+    [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "1.0.0"]]
   :profiles {:dev {:dependencies [#_[expectations "2.2.0-rc1"]
                                   #_[expectations "2.2.0-rc3"]
+				  #_[borkdude/edamame "0.0.11-alpha.1"]
                                   [expectations "2.1.10"]
                                   [com.taoensso/tufte "1.1.1"]
                                   #_[org.clojure/clojurescript "1.9.946"]
@@ -44,4 +45,5 @@
      [org.clojure/clojure "1.9.0"]
      #_[org.clojure/clojure "1.8.0"]
      [rewrite-cljs "0.4.5" :exclusions [[org.clojure/clojurescript]]]
+     [borkdude/edamame "0.0.11-alpha.1"]
      [rewrite-clj "0.6.1" :exclusions [[com.cemerick/austin]]]])

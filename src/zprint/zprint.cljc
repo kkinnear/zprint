@@ -2231,6 +2231,7 @@
       (dbg-pr "get-zloc-seq-right:" (map zstring zloc-seq))
       zloc-seq)))
 
+
 ;;
 ;; # Indent-only support
 ;;
@@ -3466,10 +3467,11 @@
         (concat-no-nil
           l-str-vec
           pre-arg-1-style-vec
-	  (do (prn "pre-arg-1-style-vec:" pre-arg-1-style-vec "r-str-vec:" r-str-vec) :noseq)
+	  (do #_(prn "pre-arg-1-style-vec:" pre-arg-1-style-vec "r-str-vec:" r-str-vec "arg-1-zloc:" (zstring arg-1-zloc)) :noseq)
+          (if arg-1-zloc 
+	    (fzprint* loptions (+ l-str-len ind) arg-1-zloc)
+	    :noseq)
 	  (if arg-1-zloc
-	  (do
-          (fzprint* loptions (+ l-str-len ind) arg-1-zloc)
           (let [zloc-seq-right-first (get-zloc-seq-right first-data)]
             (if zloc-seq-right-first
               ; We have something else to format after arg-1-zloc
@@ -3504,7 +3506,7 @@
                                       :newline-first))))
               ; Nothing else after arg-1-zloc
               :noseq)
-	      ))
+	      )
 	      :noseq)
           r-str-vec))))
 
@@ -3830,7 +3832,7 @@
          previous-comment? nil]
     (if (empty? coll)
       (let [result (persistent! out)]
-        (prn "precede-w-nl: exit:" result)
+        #_(prn "precede-w-nl: exit:" result)
         (if previous-comment? (butlast result) result))
       (let [[[s color what] :as element] (first coll)
             ; This element may have many things in it, or sometimes
@@ -3846,7 +3848,7 @@
             ; Let's make sure about the last
             last-what (nth (last element) 2)
             comment? (or (= last-what :comment) (= last-what :comment-inline))]
-        (prn "precede-w-nl: element:" element
+        #_(prn "precede-w-nl: element:" element
                "what:" what
                "comment?:" comment?)
         (recur (next coll)

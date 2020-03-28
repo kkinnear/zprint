@@ -1654,7 +1654,8 @@
   is not a style-vec, but a seq of style-vecs of each of the elements.
   These would need to be concatenated together to become a style-vec.
   ind is either a constant or a seq of indents, one for each element in
-  zloc-seq."
+  zloc-seq. Note that right gets evaluated immediately, while left yields
+  a lazy sequence which get evaluated later."
   [options ind zloc-seq]
   (let [max-length (get-max-length options)
         len (count zloc-seq)
@@ -2986,7 +2987,8 @@
                "arg-1-zloc:" (zstring arg-1-zloc)
                "arg-2-zloc:" (zstring arg-2-zloc)
                "arg-1-count:" arg-1-count
-               "arg-2-count:" arg-2-count)
+               "arg-2-count:" arg-2-count
+	       "len:" len)
         ; If fn-style is :replace-w-string, then we have an interesting
         ; set of things to do.
         ;
@@ -3083,6 +3085,7 @@
             "arg-1-coll?" arg-1-coll?
             "arg-1-indent:" arg-1-indent
             "arg-1-zloc:" (zstring arg-1-zloc)
+            "pre-arg-1-style-vec:" pre-arg-1-style-vec
             "l-str:" (str "'" l-str "'")
             "indent-adj:" indent-adj
             "one-line?:" one-line?
@@ -3090,7 +3093,7 @@
             "rightcnt:" (:rightcnt options)
             "replacement-string:" (:replacement-string (caller options))
             ":ztype:" (:ztype options))
-        one-line (if (zero? len)
+        one-line (if (and (zero? len) (= pre-arg-1-style-vec :noseq))
                    :empty
                    (when one-line-ok?
                      (fzprint-one-line options one-line-ind zloc-seq)))]
@@ -3104,7 +3107,8 @@
       one-line?
         (dbg options "fzprint-list*:" fn-str " one-line did not work!!!")
       (dbg options "fzprint-list*: fn-style:" fn-style) nil
-      (= len 0) (concat-no-nil l-str-vec r-str-vec)
+      (and (= len 0) 
+           (= pre-arg-1-style-vec :noseq)) (concat-no-nil l-str-vec r-str-vec)
       indent-only? (concat-no-nil l-str-vec
                                   (fzprint-indent caller
                                                   l-str
@@ -3462,6 +3466,9 @@
         (concat-no-nil
           l-str-vec
           pre-arg-1-style-vec
+	  (do (prn "pre-arg-1-style-vec:" pre-arg-1-style-vec "r-str-vec:" r-str-vec) :noseq)
+	  (if arg-1-zloc
+	  (do
           (fzprint* loptions (+ l-str-len ind) arg-1-zloc)
           (let [zloc-seq-right-first (get-zloc-seq-right first-data)]
             (if zloc-seq-right-first
@@ -3496,7 +3503,9 @@
                                       :force-nl
                                       :newline-first))))
               ; Nothing else after arg-1-zloc
-              :noseq))
+              :noseq)
+	      ))
+	      :noseq)
           r-str-vec))))
 
 (defn fzprint-list
@@ -3627,6 +3636,12 @@
     (lazy-cat [(zsexpr (first nws-seq))] (lazy-sexpr-seq (rest nws-seq)))
     []))
 
+(defn comment-in-zloc-seq?
+  "If there are any comments at the top level of the zloc-seq, return true,
+  else nil."
+  [zloc-seq]
+  (reduce #(when (= (ztag %2) :comment) (reduced true)) false zloc-seq))
+
 (defn fzprint-vec*
   "Print basic stuff like a vector or a set.  Several options for how to
   print them."
@@ -3684,6 +3699,8 @@
         (let [; If sort? is true, then respect-nl? and respect-bl? make
               ; no sense.  And vice versa.
               ; If respect-nl? or respect-bl?, then no sort.
+	      ; If we have comments, then no sort, because we'll lose the
+	      ; comment context.
               indent (or indent (count l-str))
               new-ind (if indent-only? ind (+ indent ind))
               _ (dbg-pr options
@@ -3695,6 +3712,7 @@
                              :else (zmap identity zloc))
               zloc-seq (if (and sort?
                                 (if in-code? sort-in-code? true)
+				(not (comment-in-zloc-seq? zloc-seq))
                                 (not respect-nl?)
                                 (not respect-bl?)
                                 (not indent-only?))
@@ -3801,8 +3819,6 @@
   "Move through a sequence of style vecs and ensure that at least
   one newline (actually an indent) appears before each element.  If
   a newline in the style-vecs is where we wanted one, well and good.
-  If there are more than we wanted, be sure that they come out.
-  (Really? -- this is worth checking!)
   Also, a comment gets a newline and shouldn't overlay a following
   explicit newline.  If not-first? is truthy, then don't put a
   newline before the first element."
@@ -3814,7 +3830,7 @@
          previous-comment? nil]
     (if (empty? coll)
       (let [result (persistent! out)]
-        #_(prn "precede-w-nl: exit:" result)
+        (prn "precede-w-nl: exit:" result)
         (if previous-comment? (butlast result) result))
       (let [[[s color what] :as element] (first coll)
             ; This element may have many things in it, or sometimes
@@ -3830,10 +3846,9 @@
             ; Let's make sure about the last
             last-what (nth (last element) 2)
             comment? (or (= last-what :comment) (= last-what :comment-inline))]
-        #_(prn "precede-w-nl: (first coll):" (first coll)
+        (prn "precede-w-nl: element:" element
                "what:" what
-               "comment?:" comment?
-               "element:" element)
+               "comment?:" comment?)
         (recur (next coll)
                ; Move along ind-seq until we reach the last one, then just
                ; keep using the last one.

@@ -60,6 +60,9 @@
   #?(:clj z/replace*
      :cljs clojure.zip/replace))
 
+(def insert-right*
+  #?(:clj z/insert-right*
+     :cljs clojure.zip/insert-right))
 
 ;;
 ;; ### Routines with different namespaces
@@ -299,8 +302,7 @@
 (defn znl [] "Return a zloc which is a newline." (edn* (p/parse-string "\n")))
 
 (defn multi-nl
-  "Take a zloc that is a newline and has more than one newline,
-  and split it into a sequence of individual newlines."
+  "Return a sequence of zloc newlines."
   [n]
   (apply vector (repeat n (znl))))
 
@@ -359,7 +361,118 @@
                      nl-to-emit (apply conj out nl-to-emit)
                      :else out))))))
 
+(defn split-newline-from-comment
+  "Given a zloc which is a comment, replace it with a zloc which is the
+  same comment with no newline, and a newline that follows it.  This is
+  done in the zipper so that later navigation in this area remains
+  continues to work."
+  [zloc]
+  (let [comment-no-nl
+	  (p/parse-string
+                  (clojure.string/replace-first (z/string zloc) "\n" ""))
+        new-comment (replace* zloc comment-no-nl)
+        new-comment (insert-right* new-comment (p/parse-string "\n"))]
+    new-comment))
+
 (defn zmap-w-nl
+  "Return a vector containing the return of applying a function to
+  every non-whitespace zloc inside of zloc, including newlines.
+  This will also split newlines into separate zlocs if they were
+  multiple, and split the newline off the end of a comment. The
+  comment split actually changes the zipper for the rest of the
+  sequence, where the newline splits do not."
+  [zfn zloc]
+  (loop [nloc (down* zloc)
+         out []]
+    (if-not nloc
+      out
+      (let [; non-newline thing to emit
+            nl? (= (z/tag nloc) :newline)
+            comment? (= (z/tag nloc) :comment)
+            ; This may reset the nloc for the rest of the sequence!
+            nloc (if comment? (split-newline-from-comment nloc) nloc)
+            result (when (not (whitespace? nloc)) (zfn nloc))
+            nl-len (when nl? (length nloc))
+            multi-nl? (when nl? (> (length nloc) 1))
+            ; newline thing to emit
+            nl-to-emit
+              (when nl?
+                (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
+        #_(println "zmap-w-nl: tag:" (z/tag nloc))
+        (recur (right* nloc)
+               (cond result (conj out result)
+                     nl-to-emit (apply conj out nl-to-emit)
+                     :else out))))))
+
+(defn zmap-w-nl-alt-remove-nl
+  "Return a vector containing the return of applying a function to
+  every non-whitespace zloc inside of zloc, including newlines.
+  This will also split newlines into separate zlocs if they were
+  multiple, and split the newline off the end of a comment."
+  [zfn zloc]
+  (loop [nloc (down* zloc)
+         out []]
+    (if-not nloc
+      out
+      (let [; non-newline thing to emit
+            nl? (= (z/tag nloc) :newline)
+            comment? (= (z/tag nloc) :comment)
+            result (when (not (or (whitespace? nloc) comment?)) (zfn nloc))
+            nl-len (when nl? (length nloc))
+            multi-nl? (when nl? (> (length nloc) 1))
+            ; newline thing to emit
+            nl-to-emit
+              (when nl?
+                (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
+	#_(println "zmap-w-nl: tag:" (z/tag nloc))
+        (recur
+          (right* nloc)
+          (cond result (conj out result)
+                nl-to-emit (apply conj out nl-to-emit)
+                comment? (apply conj
+                           out
+                           [(edn* (p/parse-string (clojure.string/replace-first
+                                                    (z/string nloc)
+                                                    "\n"
+                                                    ""))) (znl)])
+                :else out))))))
+
+(defn zmap-w-nl-comma
+  "Return a vector containing the return of applying a function to
+  every non-whitespace zloc inside of zloc, including newlines and commas.
+  This will also split newlines into separate zlocs if they were
+  multiple, and split the newline off the end of a comment."
+  [zfn zloc]
+  (loop [nloc (down* zloc)
+         out []]
+    (if-not nloc
+      out
+      (let [; non-newline thing to emit
+            nl? (= (z/tag nloc) :newline)
+            comment? (= (z/tag nloc) :comment)
+            comma? (= (z/tag nloc) :comma)
+            result (when (not (or (whitespace? nloc) comment? comma?))
+                     (zfn nloc))
+            nl-len (when nl? (length nloc))
+            multi-nl? (when nl? (> (length nloc) 1))
+            ; newline thing to emit
+            nl-to-emit
+              (when nl?
+                (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
+        #_(println "zmap-w-nl-comma: tag:" (z/tag nloc))
+        (recur
+          (right* nloc)
+          (cond result (conj out result)
+                nl-to-emit (apply conj out nl-to-emit)
+                comment? (apply conj
+                           out
+                           [(edn* (p/parse-string (clojure.string/replace-first
+                                                    (z/string nloc)
+                                                    "\n"
+                                                    ""))) (znl)])
+                :else out))))))
+
+(defn zmap-w-nl-alt2
   "Return a vector containing the return of applying a function to
   every non-whitespace zloc inside of zloc, including newlines.
   This will also split newlines into separate zlocs if they were
@@ -398,7 +511,7 @@
                (conj out result)
                out)))))
 
-(defn zmap-w-nl-comma
+(defn zmap-w-nl-comma-alt
   "Return a vector containing the return of applying a function to 
   every non-whitespace zloc inside of zloc, including newlines and commas."
   [zfn zloc]

@@ -4349,3 +4349,17 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "(this is a thing (and more thing (and more 'a)))"
         (zprint-str "(this is a thing (and more thing (and more 'a)))"
                     {:parse-string? true, :width 48}))
+
+;;
+;; # Issue 132
+;;
+;; Problems with newlines and comments in vectors (and pretty
+;; much everywhere, actually).
+;;
+;; Does :respect-nl? work in :vector if we are spliting the comments?
+;;
+
+(expect "(let [a\n        ;stuff\n        b\n      ;bother\n      c d]\n  e)"
+        (zprint-str "(let [a\n ;stuff\n b\n;bother\nc d] e)"
+                    {:parse-string? true, :vector {:respect-nl? true}}))
+

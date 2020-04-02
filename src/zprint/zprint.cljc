@@ -1485,10 +1485,10 @@
                 (concat-no-nil
                   l-str-vec
                   (interpose-nl-hf
-                    (:binding options)
+                    (:binding options) ; i132
                     (inc ind)
                     (fzprint-map-two-up
-                      :binding
+                      :binding ; i132
                       options
                       (inc ind)
                       false
@@ -1506,7 +1506,11 @@
                                 ; :respect-nl? for the one-line test.  Which
                                 ; would fail if there were some other vector
                                 ; with newlines in it that wasn't the
-                                ; binding vector.
+                                ; binding vector.  Ultimately this is because
+				; :respect-nl? (and :respect-bl?) are only
+				; defined for vectors, maps, lists and sets,
+				; and that is implemented by changing what
+				; gets returned as a zloc-seq.
                                 (fzprint-get-zloc-seq :vector options zloc)))))
                   r-str-vec)))))
 
@@ -4095,21 +4099,22 @@
                 (concat-no-nil l-str-vec
                                ;(apply concat-no-nil
                                (interpose-either-nl-hf
+				 ; pred true
                                  [["," ;(str "," (blanks (inc ind)))
                                    :none :whitespace]
                                   [(str "\n" (blanks (inc ind))) :none :indent]]
                                  [["," ;(str "," (blanks (inc ind)))
                                    :none :whitespace] ; Fix issue #59 -- don't
-                                  ; put
-                                  ; blanks to indent before the next \n
+                                  ; put blanks to indent before the next \n
                                   ["\n" :none :indent]
                                   [(str "\n" (blanks (inc ind))) :none :indent]]
+				 ; pred nil
                                  [[(str "\n" (blanks (inc ind))) :none :indent]]
                                  [[(str "\n" (blanks (inc ind))) :none :indent]
                                   [(str "\n" (blanks (inc ind))) :none :indent]]
-                                 (:map options)
-                                 ;nl-separator?
-                                 #(and comma?
+                                 (:map options) ;nl-separator?
+                                 #(and comma?   ; pred
+				       ; don't put commas after comments
                                        (not= (nth (first %) 2) :comment)
                                        (not= (nth (first %) 2) :comment-inline))
                                  pair-print)

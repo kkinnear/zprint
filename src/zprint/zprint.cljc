@@ -3792,7 +3792,7 @@
   explicit newline.  If not-first? is truthy, then don't put a
   newline before the first element."
   [ind coll not-first? respect-nl?]
-  #_(prn "precede-w-nl: (count coll)" (count coll) "not-first?" not-first?)
+  #_(prn "precede-w-nl: (count coll)" (count coll) "not-first?" not-first? "respect-nl?" respect-nl?)
   (loop [coll coll
          ind-seq (if (coll? ind) ind (vector ind))
          out (transient [])
@@ -3826,7 +3826,7 @@
             comment? (if respect-nl? nil
 	    (or (= last-what :comment) (= last-what :comment-inline)))] ; i132
         #_(prn "precede-w-nl: element:" element
-               "comment?:" comment?)
+               "comment?:" comment? "added-nl?:" added-nl?)
         (recur (next coll)
                ; Move along ind-seq until we reach the last one, then just
                ; keep using the last one.
@@ -3971,7 +3971,7 @@
                         nil #_(or (= (nth (last style-vec) 2) :comment)
                             (= (nth (last style-vec) 2) :comment-inline)))
 			    ; i132
-                  (do #_(println "******************") 1)
+                  (do (println "******************") 1)
                   0)
                 #_0 ;newline-count
                 )))))))
@@ -4052,7 +4052,7 @@
           r-str-vec (rstr-vec options (+ indent ind) zloc r-str)]
       (if (empty? pair-seq)
         (concat-no-nil l-str-vec r-str-vec)
-        (let [_ (dbg options
+        (let [_ (dbg-pr options
                      "fzprint-map*:" (zstring zloc)
                      "ind:" ind
                      "comma?" comma?

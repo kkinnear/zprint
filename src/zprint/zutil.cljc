@@ -569,6 +569,20 @@
          out []]
     (if-not nloc
       out
+      (let [comment? (= (z/tag nloc) :comment)
+            ; This may reset the nloc for the rest of the sequence!
+            nloc (if comment? (split-newline-from-comment nloc) nloc)
+            result (when (not (whitespace? nloc)) (zfn nloc))]
+        (recur (right* nloc) (if result (conj out result) out))))))
+
+(defn zmap-alt
+  "Return a vector containing the return of applying a function to 
+  every non-whitespace zloc inside of zloc."
+  [zfn zloc]
+  (loop [nloc (down* zloc)
+         out []]
+    (if-not nloc
+      out
       (recur (right* nloc)
              (if-let [result (when (not (whitespace? nloc)) (zfn nloc))]
                (conj out result)

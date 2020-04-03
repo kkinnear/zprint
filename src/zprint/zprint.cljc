@@ -4695,24 +4695,71 @@
   was an inline comment and we were aligned with that comment.
   Assumes zloc is a comment."
   [zloc]
-  #_(prn "inlinecomment? zloc:" (zstring zloc))
+  (prn "inlinecomment? zloc:" (zstring zloc))
+  (loop [nloc (zprint.zutil/left* zloc)
+         spaces 0
+	 passed-nl? false]
+    (let [tnloc (ztag nloc)]
+      (prn "inlinecomment? tnloc:" tnloc)
+      (cond
+        (nil? tnloc) nil  ; the start of the zloc
+        (= tnloc :newline) (recur (zprint.zutil/left* nloc)
+	                          0
+				  true)
+        (or (= tnloc :comment) (= tnloc :comment-inline))
+          ; Two comments in a row don't have a newline showing between
+          ; them, it is captured by the first comment.  Sigh.
+	  ; Except now it isn't, as we split the newlines out.
+          (do (prn "inlinecomment? found previous comment!")
+              ; is it an inline comment?
+              (when (inlinecomment? nloc)
+                ; figure the total alignment from the newline
+                (let [nloc-length-before (length-before nloc)
+                      zloc-length-before (length-before zloc)]
+                  (prn "inlinecomment?:"
+                         "nloc-length-before:" nloc-length-before
+                         "zloc-length-before:" zloc-length-before
+                         "spaces:" spaces)
+                  (if (= nloc-length-before zloc-length-before)
+                    ; we have a lineup
+                    [spaces zloc-length-before]
+                    nil))))
+        (not= tnloc :whitespace) 
+	   (if passed-nl? nil
+	      [spaces (length-before zloc)])
+        :else (recur (zprint.zutil/left* nloc)
+                     ^long (+ ^long (zprint.zutil/length nloc) spaces)
+		     passed-nl?
+		     )))))
+
+(defn inlinecomment?-alt
+  "If this is an inline comment, returns a vector with the amount
+  of space that was between this and the previous element and the
+  starting column of this inline comment.  That means that if we
+  go left, we get something other than whitespace before a newline.
+  If we get only whitespace before a newline, then this is considered
+  an inline comment if the comment at the end of the previous line
+  was an inline comment and we were aligned with that comment.
+  Assumes zloc is a comment."
+  [zloc]
+  (prn "inlinecomment? zloc:" (zstring zloc))
   (loop [nloc (zprint.zutil/left* zloc)
          spaces 0]
     (let [tnloc (ztag nloc)]
-      #_(prn "inlinecomment? tnloc:" tnloc)
+      (prn "inlinecomment? tnloc:" tnloc)
       (cond
         (nil? tnloc) nil  ; the start of the zloc
         (= tnloc :newline) nil
         (or (= tnloc :comment) (= tnloc :comment-inline))
           ; Two comments in a row don't have a newline showing between
           ; them, it is captured by the first comment.  Sigh.
-          (do #_(prn "inlinecomment? found previous comment!")
+          (do (prn "inlinecomment? found previous comment!")
               ; is it an inline comment?
               (when (inlinecomment? nloc)
                 ; figure the total alignment from the newline
                 (let [nloc-length-before (length-before nloc)
                       zloc-length-before (length-before zloc)]
-                  #_(prn "inlinecomment?:"
+                  (prn "inlinecomment?:"
                          "nloc-length-before:" nloc-length-before
                          "zloc-length-before:" zloc-length-before
                          "spaces:" spaces)

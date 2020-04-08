@@ -8,7 +8,7 @@
 (def ansi-codes
   {:off 0,
    :bold 1,
-   :underline 3,
+   :underline 4,
    :blink 5,
    :reverse 7,
    :hidden 8,
@@ -30,7 +30,7 @@
    :back-blue 44,
    :back-magenta 45,
    :back-purple 45,
-   :back-cyan 66})
+   :back-cyan 46})
 
 (defn color-str
   "Wraps a string with ANSI escape codes."

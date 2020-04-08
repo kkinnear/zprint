@@ -364,7 +364,7 @@
 ;;
 
 (expect
-  "The value of the key-sequence [:map :key-value-color :deeper :keyword] -> :bluex was not one of #{:yellow :green :cyan :red :blue :magenta :purple :black}"
+  "The value of the key-sequence [:map :key-value-color :deeper :keyword] -> :bluex was not a ansi-codes"
   (explain-more
     (s/explain-data :zprint.spec/options
                     {:map {:key-value-color {:deeper {:string :yellow,

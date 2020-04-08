@@ -32,7 +32,25 @@
    :back-magenta 45,
    :back-purple 45,
    :back-cyan 46,
-   :back-white 47})
+   :back-white 47,
+   :bright-black 90,
+   :bright-red 91,
+   :bright-green 92,
+   :bright-yellow 93,
+   :bright-blue 94,
+   :bright-magenta 95,
+   :bright-purple 95,
+   :bright-cyan 96,
+   :bright-white 97,
+   :back-bright-black 100,
+   :back-bright-red 101,
+   :back-bright-green 102,
+   :back-bright-yellow 103,
+   :back-bright-blue 104,
+   :back-bright-magenta 105,
+   :back-bright-purple 105,
+   :back-bright-cyan 106,
+   :back-bright-white 107})
 
 (defn color-str
   "Wraps a string with ANSI escape codes."

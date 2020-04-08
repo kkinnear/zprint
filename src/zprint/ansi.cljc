@@ -24,13 +24,15 @@
    :cyan 36,
    :white 37,
    :xsf 38,
+   :back-black 40,
    :back-red 41,
    :back-green 42,
    :back-yellow 43,
    :back-blue 44,
    :back-magenta 45,
    :back-purple 45,
-   :back-cyan 46})
+   :back-cyan 46,
+   :back-white 47})
 
 (defn color-str
   "Wraps a string with ANSI escape codes."

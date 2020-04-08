@@ -1,5 +1,4 @@
-(ns ^:no-doc zprint.ansi
-  (:require clojure.string))
+(ns ^:no-doc zprint.ansi)
 
 ;;
 ;; # Do ANSI Escape code processing

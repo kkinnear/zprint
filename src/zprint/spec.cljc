@@ -42,7 +42,12 @@
 
 (def ansi-code (-> ansi-codes keys set))
 
-(s/def ::color (s/or :code ansi-code :codes (s/coll-of ansi-code)))
+(defn ansi-codes? [x]
+  (if (sequential? x)
+    (every? ansi-code x)
+    (ansi-code x)))
+
+(s/def ::color ansi-codes?)
 
 (s/def ::brace ::color)
 (s/def ::bracket ::color)
@@ -432,6 +437,7 @@
   [pred]
   (case pred
     "zboolean?" "boolean"
+    "zprint.spec/ansi-codes?" "ansi-codes"
     "zprint.spec/zboolean?" "boolean"
     "clojure.core/set?" "set"
     "clojure.core/sequential?" "sequential"

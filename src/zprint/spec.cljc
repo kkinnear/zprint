@@ -2,6 +2,7 @@
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
   (:require clojure.string
             [clojure.walk :refer [prewalk]]
+            [zprint.ansi :refer [ansi-codes]]
             #?@(:clj [[zprint.smacros :refer [only-keys]]
                       [clojure.spec.alpha :as s]]
                 :cljs [[cljs.spec.alpha :as s]])))
@@ -39,7 +40,9 @@
 ;; ## Color keys
 ;;
 
-(s/def ::color #{:red :purple :green :blue :magenta :yellow :black :cyan})
+(def ansi-code (-> ansi-codes keys set))
+
+(s/def ::color (s/or :code ansi-code :codes (s/coll-of ansi-code)))
 
 (s/def ::brace ::color)
 (s/def ::bracket ::color)

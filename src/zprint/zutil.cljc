@@ -331,6 +331,7 @@
   (loop [nloc (down* zloc)
          blank? false
          previous-was-nl? false
+	 previous-comment? nil
          out []]
     (if-not nloc
       out
@@ -352,11 +353,13 @@
             comment? (= (z/tag nloc) :comment)
             ; This may reset the nloc for the rest of the sequence!
             nloc (if comment? (split-newline-from-comment nloc) nloc)
-            result (when (not ws?) (zfn nloc))]
+            result (when (or (not ws?) (and nl? previous-comment?)) (zfn nloc))]
         #_(prn "map-w-bl: blank?" blank?
                ", zloc:" (z/string nloc)
                ", length:" (length nloc)
                ", ws?" ws?
+	       ", previous-was-nl??" previous-was-nl?
+	       ", previous-comment?" previous-comment?
                ", nl? " nl?
                ", nl-len:" nl-len
                ", multi-nl?" multi-nl?
@@ -372,7 +375,11 @@
                  nl?)
                ; If we emitted something, was it a nl?  If nothing emitted,
                ; no change.
-               (if (or result nl-to-emit) emit-nl? previous-was-nl?)
+	       (if (or result nl-to-emit) 
+		 ; Two ways to emit a nl
+	         (or (and nl? previous-comment?) emit-nl?) 
+		 previous-was-nl?)
+	       comment?
                (cond result (conj out result)
                      nl-to-emit (apply conj out nl-to-emit)
                      :else out))))))
@@ -563,17 +570,25 @@
 
 (defn zmap
   "Return a vector containing the return of applying a function to 
-  every non-whitespace zloc inside of zloc."
+  every non-whitespace zloc inside of zloc. The newline that shows
+  up in every comment is also split out into a separate zloc."
   [zfn zloc]
+  #_(prn "zmap: zloc" (z/string zloc))
   (loop [nloc (down* zloc)
+         previous-comment? nil
          out []]
     (if-not nloc
       out
       (let [comment? (= (z/tag nloc) :comment)
+            nl? (= (z/tag nloc) :newline)
             ; This may reset the nloc for the rest of the sequence!
             nloc (if comment? (split-newline-from-comment nloc) nloc)
-            result (when (not (whitespace? nloc)) (zfn nloc))]
-        (recur (right* nloc) (if result (conj out result) out))))))
+            result (when (or (not (whitespace? nloc))
+                             (and nl? previous-comment?))
+                     (zfn nloc))]
+        (recur (right* nloc) 
+	       comment? 
+	       (if result (conj out result) out))))))
 
 (defn zmap-alt
   "Return a vector containing the return of applying a function to 

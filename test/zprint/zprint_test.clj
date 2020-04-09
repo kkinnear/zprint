@@ -4363,3 +4363,151 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "(let [a\n ;stuff\n b\n;bother\nc d] e)"
                     {:parse-string? true, :vector {:respect-nl? true}}))
 
+(expect
+  "(let [a\n        ;stuff\n        b\n      \n      ;bother\n      c d]\n  e)"
+  (zprint-str "(let [a\n ;stuff\n b\n\n;bother\nc d] e)"
+              {:parse-string? true, :vector {:respect-nl? true}}))
+
+(expect
+  "(let [a\n        ;stuff\n        b\n      \n      ;bother\n      c d]\n  e)"
+  (zprint-str "(let [a\n ;stuff\n b\n\n;bother\nc d] e)"
+              {:parse-string? true, :vector {:respect-bl? true}}))
+
+;;
+;; # Issue 132 -- the real problem was the :vector {:wrap? false} takes out
+;; any newlines.
+;;
+
+(expect "[;first\n \n a\n \n ;second\n \n b\n ;third\n c]"
+        (zprint-str "[;first\n\na\n\n;second\n\nb\n;third\nc]"
+                    {:parse-string? true,
+                     :vector {:respect-nl? true, :wrap? false}}))
+
+(expect "[;first\n \n a\n \n ;second\n \n b\n ;third\n c]"
+        (zprint-str "[;first\n\na\n\n;second\n\nb\n;third\nc]"
+                    {:parse-string? true,
+                     :vector {:respect-bl? true, :wrap? false}}))
+
+;;
+;; # Issue 135 -- aligned inline comments don't work right with respect-nl
+;;
+
+(expect
+  "(def x\n  zprint.zfns/zstart\n  sfirst\n  zprint.zfns/zanonfn?\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
+  (zprint-str
+    "(def x\n  zprint.zfns/zstart\n  sfirst\n  zprint.zfns/zanonfn?\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
+    {:parse-string? true, :style :respect-nl}))
+
+;;
+;; # Issue 136 -- constant pairing count is off with comments:
+;;
+
+(expect "(;a\n list :b\n      :c ;def\n         ;aligned-inline\n      d)"
+        (zprint-str "(;a\nlist\n:b\n:c ;def\n   ;aligned-inline\nd)"
+                    {:parse-string? true}))
+
+;;
+;; # Issue 136 -- constant pairing count is off with newlines
+;;
+
+(expect "(;a\n list\n  :c\n  \n  d)"
+        (zprint-str "(;a\nlist\n:c\n\n d)"
+                 {:parse-string? true, :style :respect-nl}))
+
+(expect "(;a\n list :c\n        \n      d)"
+        (zprint-str "(;a\nlist\n:c\n\n d)"
+                    {:parse-string? true, :style :respect-bl}))
+
+;;
+;; # Issue 137 -- last pair in a map has a comma when followed by a comment
+;;
+
+(expect "{;commenta\n a b\n ;commentx\n }"
+        (zprint-str "{;commenta\na b\n;commentx\n}" {:parse-string? true}))
+
+;;
+;; # Issue 138 -- newline ignored when after last map element
+;;
+
+(expect "{a\n   b\n }"
+        (zprint-str "{a\nb\n}" {:parse-string? true, :map {:respect-nl? true}}))
+
+(expect "{a b\n \n }"
+        (zprint-str "{a\nb\n\n}"
+                    {:parse-string? true, :map {:respect-bl? true}}))
+
+
+;;
+;; # Issue 139 -- comments in sets cause probems
+;;
+
+(expect "#{a\n  ;commentx\n  b ;commenty\n }"
+        (zprint-str "#{a\n;commentx\n\nb ;commenty\n}" {:parse-string? true}))
+
+(expect "#{a\n  ;commentx\n \n  b ;commenty\n }"
+        (zprint-str "#{a\n;commentx\n\nb ;commenty\n}"
+                    {:parse-string? true, :set {:respect-nl? true}}))
+
+(expect "#{a\n  ;commentx\n \n  b ;commenty\n }"
+        (zprint-str "#{a\n;commentx\n\nb ;commenty\n}"
+                    {:parse-string? true, :set {:respect-bl? true}}))
+
+;;
+;; # Issue 141 -- comments in empty list are lost
+;;
+
+(expect "(;abc\n ;def\n )"
+        (zprint-str "(;abc\n\n;def\n)" {:parse-string? true}))
+
+(expect "(;abc\n \n ;def\n )"
+        (zprint-str "(;abc\n\n;def\n)"
+                    {:parse-string? true, :style :respect-nl}))
+
+(expect "(;abc\n \n ;def\n )"
+        (zprint-str "(;abc\n\n;def\n)"
+                    {:parse-string? true, :style :respect-bl}))
+
+;;
+;; # Tests to see where the final right thing goes if it was preceded by
+;; a blank line
+;;
+
+(expect "[a\n ;commentx\n\n b ;commenty\n\n ]"
+        (zprint-str "[a\n;commentx\n\nb ;commenty\n\n]"
+                    {:parse-string? true, :vector {:respect-bl? true}}))
+
+(expect "{a\n   ;commentx\n   \n   b, ;commenty\n \n }"
+        (zprint-str "{a\n;commentx\n\nb ;commenty\n\n}"
+                    {:parse-string? true, :map {:respect-bl? true}}))
+
+(expect "#{a\n  ;commentx\n \n  b ;commenty\n \n  }"
+        (zprint-str "#{a\n;commentx\n\nb ;commenty\n\n}"
+                    {:parse-string? true, :set {:respect-bl? true}}))
+
+(expect "#(a ;commentx\n   \n   b ;commenty\n   \n   )"
+        (zprint-str "#(a\n;commentx\n\nb ;commenty\n\n)"
+                    {:parse-string? true, :list {:respect-bl? true}}))
+
+;;
+;; # Tests to see where the final right thing goes if it was preceded by
+;; a comment
+;;
+
+(expect "[a\n ;commentx\n\n b ;commenty\n ]"
+        (zprint-str "[a\n;commentx\n\nb ;commenty\n]"
+                    {:parse-string? true, :vector {:respect-bl? true}}))
+
+(expect "{a\n   ;commentx\n   \n   b, ;commenty\n }"
+        (zprint-str "{a\n;commentx\n\nb ;commenty\n}"
+                    {:parse-string? true, :map {:respect-bl? true}}))
+
+(expect "#{a\n  ;commentx\n \n  b ;commenty\n  }"
+        (zprint-str "#{a\n;commentx\n\nb ;commenty\n}"
+                    {:parse-string? true, :set {:respect-bl? true}}))
+
+(expect "#(a ;commentx\n   \n   b ;commenty\n   )"
+        (zprint-str "#(a\n;commentx\n\nb ;commenty\n)"
+                    {:parse-string? true, :list {:respect-bl? true}}))
+
+
+

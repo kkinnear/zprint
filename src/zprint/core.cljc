@@ -515,6 +515,20 @@
   [v [start end]]
   (take (- end start) (drop start v)))
 
+(defn ^:no-doc remove-loc
+  "If this is a :newline or :indent, trim off the 4th thing."
+  [tuple]
+  (let [[s color element] tuple]
+    (if (or (= element :newline) (= element :indent))
+       [s color :indent]
+       tuple)))
+
+(defn ^:no-doc remove-newline-indent-locs ; i132
+  "Remove the debugging information on :indent and :newline style-vec
+  elements when doing :return-cvec? true."
+  [cvec]
+  (mapv remove-loc cvec))
+
 (defn ^:no-doc zprint-str-internal
   "Take a zipper or string and pretty print with fzprint, 
   output a str.  Key :color? is false by default, and should
@@ -578,7 +592,9 @@
                           (color-comp-vec comp-style)
                           (apply str (mapv first comp-style)))
             #_(def cs color-style)]
-        (if (:return-cvec? options) cvec color-style)))))
+        (if (:return-cvec? options) 
+	   (remove-newline-indent-locs cvec)  ; i132
+	   color-style)))))
 
 (defn ^:no-doc get-fn-source
   "Call source-fn, and if it isn't there throw an exception."

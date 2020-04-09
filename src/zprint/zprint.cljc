@@ -688,7 +688,7 @@
         ; hang didn't work, do flow
         (do (dbg options "fzprint-hang-unless-fail: hang failed, doing flow")
             [:flow
-             (concat-no-nil [[(str "\n" (blanks findent)) :none :indent]]
+             (concat-no-nil [[(str "\n" (blanks findent)) :none :indent 1]]
                             (fzfn options findent zloc))])))))
 
 (defn replace-color
@@ -973,7 +973,7 @@
                         [:flow
                          (concat-no-nil arg-1
                                         [[(str "\n" (blanks (+ indent ind)))
-                                          :none :indent]]
+                                          :none :indent 2]]
                                         flow)])))))))
         :else [:flow ; The following always flows things of 3 or more
                ; (absent modifers).  If the lloc is a single char,
@@ -1079,7 +1079,6 @@
               _ (dbg options
                      "fzprint-map-two-up: remaining:" (- width ind)
                      "beginning-remaining:" beginning-remaining)
-              ;"(butlast coll):" (butlast coll))
               beginning (when beginning-remaining
                           (zpmap options
                                  (partial fzprint-two-up
@@ -1105,7 +1104,6 @@
                        beginning-remaining
                      "rightcnt:" rightcnt
                      "end-remaining:" end-remaining)
-              ;"(last coll):" (last coll))
               end (when end-remaining
                     (when-let [end-result (fzprint-two-up caller
                                                           justify-options
@@ -1458,8 +1456,8 @@
   the last thing before it is a comment."
   ([options ind zloc r-str r-type respect-nl?] ; i132
    (dbg-pr options "rstr-vec: respect-nl?" respect-nl?)
-   (let [nl (when (and (zcomment? (zlast zloc)) (not respect-nl?))
-              [[(str "\n" (blanks ind)) :none :indent]])]
+   (let [nl nil #_(when (and (zcomment? (zlast zloc)) (not respect-nl?))
+              [[(str "\n" (blanks ind)) :none :indent 3]])]
      (concat nl
              [[r-str (zcolor-map options (or r-type r-str))
                (or r-type :right)]])))
@@ -1538,11 +1536,11 @@
         ]
     (if (or (fzfit-one-line options hr-lines) one-line?)
       hanging
-      (let [flow (concat-no-nil [[(str "\n" (blanks findent)) :none :indent]]
+      (let [flow (concat-no-nil [[(str "\n" (blanks findent)) :none :indent 4]]
                                 (fzfn options findent zloc))
             _ (log-lines options "fzprint-hang: flow:" findent flow)
             fd-lines (style-lines options findent flow)
-            _ (dbg options
+            _ (dbg-pr options
                    "fzprint-hang: ending: hang-count:" hang-count
                    "hanging:" hanging
                    "flow:" flow)
@@ -1707,13 +1705,14 @@
   in order to properly deal with any newlines in the actual stream.
   Else you will get two where you only should have one."
   ([options ind zloc-seq force-nl? nl-first? respect-nl?]
-   (dbg options "fzprint-flow-seq: count zloc-seq:" (count zloc-seq) "nl-first?" nl-first? "respect-nl?" respect-nl?)
+   (dbg-pr options "fzprint-flow-seq: count zloc-seq:" (count zloc-seq) "nl-first?" nl-first? "respect-nl?" respect-nl? "zloc-seq:" (map zstring zloc-seq))
    (let [coll-print (fzprint-seq options ind zloc-seq)
          ; If we are force-nl?, then don't bother trying one-line
          one-line (apply concat-no-nil
                     (interpose [[" " :none :whitespace]] coll-print))
          _ (log-lines options "fzprint-flow-seq:" ind one-line)
          one-line-lines (style-lines options ind one-line)]
+     (dbg-pr options "fzprint-flow-seq: coll-print:" coll-print)
      (dbg-form
        options
        "fzprint-flow-seq: exit:"
@@ -1797,7 +1796,7 @@
     ;
     (if (or (fzfit-one-line options hr-lines) one-line?)
       hanging
-      (let [flow (concat-no-nil [[(str "\n" (blanks findent)) :none :indent]]
+      (let [flow (concat-no-nil [[(str "\n" (blanks findent)) :none :indent 5]]
                                 (fzprint* options findent zloc))
             _ (log-lines options "fzprint-hang-one: flow:" findent flow)
             fd-lines (style-lines options findent flow)
@@ -1901,7 +1900,7 @@
     #_(prn "ensure-start-w-nl:" element-type)
     (if (or (= element-type :newline) (= element-type :indent))
       style-vec
-      (concat-no-nil [[(str "\n" (blanks ind)) :none :indent]] style-vec))))
+      (concat-no-nil [[(str "\n" (blanks ind)) :none :indent 6]] style-vec))))
 
 (defn ensure-end-w-nl
   "Given a style-vec, ensure it ends with a newline.  If it doesn't,
@@ -1913,7 +1912,7 @@
     #_(prn "ensure-end-w-nl:" element-type)
     (if (or (= element-type :newline) (= element-type :indent))
       style-vec
-      (concat-no-nil style-vec [[(str "\n" (blanks ind)) :none :indent]]))))
+      (concat-no-nil style-vec [[(str "\n" (blanks ind)) :none :indent 7]]))))
 
 (defn fzprint-hang-remaining
   "zloc-seq is a seq of zlocs of a collection.  We already know
@@ -2120,10 +2119,14 @@
 (defn fzprint-get-zloc-seq
   "Get the zloc seq, with or without newlines, as indicated by the options."
   [caller options zloc]
-  (let [caller-options (caller options)]
+  (let [caller-options (caller options)
+        zloc-seq
     (cond (:respect-nl? caller-options) (zmap-w-nl identity zloc)
           (:respect-bl? caller-options) (zmap-w-bl identity zloc)
-          :else (zmap identity zloc))))
+          :else (zmap identity zloc))]
+     (dbg-pr options "fzprint-get-zloc-seq:" (map zstring zloc-seq)) ; i132
+     zloc-seq
+	  ))
 
 (defn newline-or-comment?
   "Given an zloc, is it a newline or a comment?"
@@ -2150,6 +2153,17 @@
                       (if (= last-len 1) [] (vector (butlast last-style-vec))))]
         (if (empty? remove-one) [[["" :none :none]]] remove-one)))))
 
+(defn remove-one-newline
+  "Given a single style-vec, look at the last element, and if it is a
+  :newline, remove it.  If there is nothing left, return :noseq"
+  [style-vec]
+  #_(prn "remove-one-newline:" style-vec)
+  (let [last-style-vec (last style-vec)]
+    (if-not (= (nth last-style-vec 2) :newline)
+      style-vec
+      (let [remaining (butlast style-vec)]
+        (if (empty? remaining) :noseq remaining)))))
+
 (defn add-newline-to-comment
   "Given [[[\";stuff\" :none :comment]]] or 
   [[[\";bother\" :none :comment-inline 1]]] add [\"\n\" :none :newline]
@@ -2157,7 +2171,7 @@
   [indent fzprint*-return]
   (let [the-type (nth (first fzprint*-return) 2)]
     (if (or (= the-type :comment) (= the-type :comment-inline))
-      (concat fzprint*-return [[(str "\n" (blanks indent)) :none :newline]])
+      (concat fzprint*-return [[(str "\n" (blanks indent)) :none :newline 1]])
       fzprint*-return)))
 
 (defn gather-up-to-next-zloc
@@ -2191,10 +2205,10 @@
           (let [coll-print (fzprint-seq options ind pre-next-zloc-seq)
                 ; We need to make comments print right, and they have lost their
                 ; newlines
-                coll-print 
-		  (if (:respect-nl? (caller options)) ; i132
-		     coll-print
-		     (map (partial add-newline-to-comment ind) coll-print))
+        ; i132       coll-print 
+	; i132	  (if (:respect-nl? (caller options)) ; i132
+	; i132	     coll-print
+	; i132	     (map (partial add-newline-to-comment ind) coll-print))
                 ; We aren't trying to interpose anything here, we are just
                 ; trying to print the stuff we have in a way that will work.
                 ; Remove the last newline if we are not the first thing
@@ -2339,7 +2353,7 @@
     (loop [ploc next-zloc
            indent-before up-size]
       (if-not ploc
-        indent-before
+        (do #_(prn "length-before: if-not ploc:" indent-before ) indent-before) ; i132
         ; we assume we have a ploc
         (let [zstr (if ploc (zstring ploc) "")
               length-right-of-newline (length-after-newline zstr)
@@ -2353,7 +2367,10 @@
                  "next-zloc:" (zstring next-zloc))
           (if length-right-of-newline
             ; hit a newline
-            (+ length-right-of-newline indent-before)
+	    (do #_(prn "length-before: length-right-of-newline:" 
+	             length-right-of-newline
+		     "indent-before:" indent-before)
+            (+ length-right-of-newline indent-before))
             (recur next-zloc (+ indent-before (count zstr) up-size))))))))
 
 (defn next-actual
@@ -2605,7 +2622,7 @@
                    (if (or newline-before? newline-after?)
                      (concat out
                              [[(str "\n" (blanks actual-indent)) :none
-                               :indent]])
+                               :indent 8]])
                      out)
                    ; TODO: concat-no-nil fails here, why?
                    (concat
@@ -2613,7 +2630,7 @@
                      (cond
                        newline-before? (concat-no-nil
                                          [[(str "\n" (blanks actual-indent))
-                                           :none :indent]]
+                                           :none :indent 9]]
                                          this-seq)
                        newline-after?
                          (if (or beginning? comma?)
@@ -2623,16 +2640,16 @@
                                     (blanks (if l-str-indent?
                                               actual-ind
                                               actual-indent)
-                                            #_actual-indent)) :none :indent]])
+                                            #_actual-indent)) :none :indent 10]])
                            (concat-no-nil [[" " :none :whitespace]]
                                           this-seq
                                           [[(str "\n" (blanks actual-indent))
-                                            :none :indent]]))
+                                            :none :indent 11]]))
                        newline?
                          [[(str "\n"
                                 (blanks
                                   (if l-str-indent? actual-ind actual-indent)
-                                  #_actual-indent)) :none :indent]]
+                                  #_actual-indent)) :none :indent 12]]
                        ; Remove next line, unnecessary
                        (zero? index) this-seq
                        :else (if (or beginning? comma?)
@@ -3032,7 +3049,7 @@
         roptions options
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options (+ indent ind) zloc r-str
-	                (:respect-nl? (caller options))) ; i132
+	             nil (:respect-nl? (caller options))) ; i132
         _ (dbg-pr
             options
             "fzprint-list*:" (zstring zloc)
@@ -3085,7 +3102,7 @@
         ; thing to print and use fzprint*.  len only counts the non-comment
         ; and non-nl elements, and there might be other things to print.
         (concat-no-nil l-str-vec
-                       (fzprint-flow-seq roptions one-line-ind zloc-seq nil nil)
+                       (fzprint-flow-seq roptions one-line-ind zloc-seq nil nil (:respect-nl? (caller options))) ; i132
                        r-str-vec)
       ; In general, we don't have a fn-style if we have less than 3 elements.
       ; However, :binding is allowed with any number up to this point, so we
@@ -3145,7 +3162,7 @@
             l-str-vec
             pre-arg-1-style-vec
             (fzprint* loptions (inc ind) arg-1-zloc)
-            [[(str "\n" (blanks (+ indent ind))) :none :indent]]
+            [[(str "\n" (blanks (+ indent ind))) :none :indent 13]]
             ; I think fzprint-pairs will sort out which
             ; is and isn't the rightmost because of two-up
             (fzprint-extend options (+ indent ind) zloc-seq-right-first)
@@ -3221,7 +3238,7 @@
                           (+ indent ind)
                           arg-3-zloc)
                         (concat-no-nil
-                          [[(str "\n" (blanks (+ indent ind))) :none :indent]]
+                          [[(str "\n" (blanks (+ indent ind))) :none :indent 14]]
                           (fzprint*
                             (if (not zloc-seq-right-third) options loptions)
                             (+ indent ind)
@@ -3236,13 +3253,13 @@
                 first-three
                 (cond (= fn-style :arg2-pair)
                         (concat-no-nil [[(str "\n" (blanks (+ indent ind)))
-                                         :none :indent]]
+                                         :none :indent 15]]
                                        (fzprint-pairs options
                                                       (+ indent ind)
                                                       zloc-seq-right-third))
                       (= fn-style :arg2-extend)
                         (concat-no-nil [[(str "\n" (blanks (+ indent ind)))
-                                         :none :indent]]
+                                         :none :indent 16]]
                                        (fzprint-extend options
                                                        (+ indent ind)
                                                        zloc-seq-right-third))
@@ -3343,9 +3360,9 @@
                               (+ indent ind)
                               arg-2-zloc)
             (cond (and doc-string? mixins?)
-                    (concat-no-nil pre-arg-3-style-vec doc-string mixins)
+                    (concat-no-nil pre-arg-3-style-vec doc-string (remove-one-newline mixins))
                   doc-string? (concat-no-nil pre-arg-3-style-vec doc-string)
-                  mixins? mixins
+                  mixins? (remove-one-newline mixins) ; i132
                   :else :noseq)
             (fzprint-hang-remaining
               caller
@@ -3377,7 +3394,7 @@
           ; we don't do a full hanging here.
           ; We wouldn't be here if len < 3
           (if (= fn-style :arg1-pair)
-            (concat-no-nil [[(str "\n" (blanks (+ indent ind))) :none :indent]]
+            (concat-no-nil [[(str "\n" (blanks (+ indent ind))) :none :indent 17]]
                            (fzprint-pairs options
                                           (+ indent ind)
                                           (get-zloc-seq-right second-data)))
@@ -3402,9 +3419,9 @@
                 pre-arg-1-style-vec
                 (fzprint* loptions (+ indent ind) arg-1-zloc)
                 pre-arg-2-style-vec
-                [[(str "\n" (blanks (+ indent ind))) :none :indent]]
+                [[(str "\n" (blanks (+ indent ind))) :none :indent 18]]
                 (fzprint* loptions (+ indent ind) arg-2-zloc)
-                [[(str "\n" (blanks (+ indent ind))) :none :indent]]
+                [[(str "\n" (blanks (+ indent ind))) :none :indent 19]]
                 (fzprint-extend options (+ indent ind) zloc-seq-right-second)
                 r-str-vec)
             :else
@@ -3418,7 +3435,7 @@
                                   arg-1-indent
                                   (+ indent ind)
                                   arg-2-zloc)
-                [[(str "\n" (blanks (+ indent ind))) :none :indent]]
+                [[(str "\n" (blanks (+ indent ind))) :none :indent 20]]
                 (fzprint-extend options (+ indent ind) zloc-seq-right-second)
                 r-str-vec)))
       ; Unspecified seq, might be a fn, might not.
@@ -3577,10 +3594,16 @@
                       (concat-no-nil [[" " :none :whitespace]] this-seq)
                       this-seq)
                     (if newline?
-                      [[(str "\n" (blanks (dec new-ind))) :none :indent]]
+                      [[(str "\n" 
+		       ; Fix sets and vectors to have terminal right thing
+		       ; after a comment or newline be indented like other
+		       ; elements are
+		       (blanks (if (first (next cur-seq))
+		                            (dec new-ind)
+					    new-ind))) :none :indent 21]]
                       (if previous-newline?
-                        (concat-no-nil [[" " :none :indent]] this-seq)
-                        (concat-no-nil [[(str "\n" (blanks ind)) :none :indent]]
+                        (concat-no-nil [[" " :none :indent 22]] this-seq)
+                        (concat-no-nil [[(str "\n" (blanks ind)) :none :indent 23]]
                                        this-seq)))))))))))))
 
 (defn remove-nl
@@ -3624,7 +3647,7 @@
             respect-bl? sort? sort-in-code? fn-format indent indent-only?]}
       caller,
     :as options} ind zloc]
-  (dbg options "fzprint-vec* ind:" ind "indent:" indent "caller:" caller)
+  (dbg options "fzprint-vec* ind:" ind "indent:" indent "caller:" caller "respect-nl?:" respect-nl?)
   (if (and binding? (= (:depth options) 1))
     (fzprint-binding-vec options ind zloc)
     (let [l-str-len (count l-str)
@@ -3736,9 +3759,11 @@
                                (any-zcoll? options new-ind zloc))
                           (not wrap?))
                     (concat-no-nil l-str-vec
-                                   (apply concat-no-nil
+				   (apply concat-no-nil
+				     (precede-w-nl new-ind coll-print :no-nl-first nil)) ; i132
+                                   #_(apply concat-no-nil
                                      (interpose [[(str "\n" (blanks new-ind))
-                                                  :none :indent]]
+                                                  :none :indent 24]]
                                        (remove-nl coll-print)))
                                    r-str-vec)
                     ; Since there are either no collections in this vector or
@@ -3792,9 +3817,10 @@
   "Move through a sequence of style vecs and ensure that at least
   one newline (actually an indent) appears before each element.  If
   a newline in the style-vecs is where we wanted one, well and good.
-  Also, a comment gets a newline and shouldn't overlay a following
-  explicit newline.  If not-first? is truthy, then don't put a
-  newline before the first element."
+  Comments are now not recognized as different, increasing our
+  appreciation of diversity.  If not-first? is truthy, then don't
+  put a newline before the first element."
+  ; respect-nl? currently not used i132
   [ind coll not-first? respect-nl?]
   #_(prn "precede-w-nl: (count coll)" (count coll) "not-first?" not-first? "respect-nl?" respect-nl?)
   (loop [coll coll
@@ -3811,7 +3837,7 @@
 	    previous-element-index (- (count result) 2)
             previous-type (when (not (neg? previous-element-index))
 	      (nth (first (nth result previous-element-index)) 2))]
-        (if (or (= previous-type :comment) (= previous-type :comment-inline)) 
+        (if nil #_(or (= previous-type :comment) (= previous-type :comment-inline))  ; i132
 	  (butlast result) 
 	  result))
       (let [[[s color what] :as element] (first coll)
@@ -3827,7 +3853,7 @@
             newline? (= what :newline)
             ; Let's make sure about the last
             last-what (nth (last element) 2)
-            comment? (if respect-nl? nil
+            comment? nil #_(if respect-nl? nil
 	    (or (= last-what :comment) (= last-what :comment-inline)))] ; i132
         #_(prn "precede-w-nl: element:" element
                "comment?:" comment? "added-nl?:" added-nl?)
@@ -3848,16 +3874,16 @@
                    (if comment? 
                      (conj-it! out
                                element
-                               [[(str "\n" (blanks indent)) :none :indent]])
+                               [[(str "\n" (blanks indent)) :none :indent 25]])
                      (conj! out element))
                    ; We need both a newline and the element
                    (if comment? 
                      (conj-it! out
-                               [[(str "\n" (blanks indent)) :none :indent]]
+                               [[(str "\n" (blanks indent)) :none :indent 26]]
                                element
-                               [[(str "\n" (blanks indent)) :none :indent]])
+                               [[(str "\n" (blanks indent)) :none :indent 27]])
                      (conj-it! out
-                               [[(str "\n" (blanks indent)) :none :indent]]
+                               [[(str "\n" (blanks indent)) :none :indent 28]]
                                element))))
                ; Is there a newline as the last thing we just did?
                ; Two ways for that to happen.
@@ -3896,7 +3922,14 @@
          first? true
          newline-count 0]
     (if (empty? coll)
-      (apply concat-no-nil (persistent! out))
+      (apply concat-no-nil (persistent! #_out
+      
+           (if (zero? newline-count)
+           out
+           (conj-it! out
+                     (repeat newline-count (first sep-nil)))) 
+      
+      ))
       (let [[hangflow style-vec] (first coll)
             style-vec-empty? (and (= (count style-vec) 1)
                                   (empty? (first (first style-vec))))]
@@ -3988,9 +4021,9 @@
   [suboptions ind coll]
   (interpose-either-nl-hf nil
                           nil
-                          [[(str "\n" (blanks ind)) :none :indent]]
-                          [[(str "\n") :none :indent]
-                           [(str "\n" (blanks ind)) :none :indent]]
+                          [[(str "\n" (blanks ind)) :none :indent 29]]
+                          [[(str "\n") :none :indent 30]
+                           [(str "\n" (blanks ind)) :none :indent 31]]
                           suboptions
                           #_(:nl-separator? suboptions)
                           nil
@@ -4102,16 +4135,16 @@
 				 ; pred true
                                  [["," ;(str "," (blanks (inc ind)))
                                    :none :whitespace]
-                                  [(str "\n" (blanks (inc ind))) :none :indent]]
+                                  [(str "\n" (blanks (inc ind))) :none :indent 32]]
                                  [["," ;(str "," (blanks (inc ind)))
                                    :none :whitespace] ; Fix issue #59 -- don't
                                   ; put blanks to indent before the next \n
-                                  ["\n" :none :indent]
-                                  [(str "\n" (blanks (inc ind))) :none :indent]]
+                                  ["\n" :none :indent 33]
+                                  [(str "\n" (blanks (inc ind))) :none :indent 34]]
 				 ; pred nil
-                                 [[(str "\n" (blanks (inc ind))) :none :indent]]
-                                 [[(str "\n" (blanks (inc ind))) :none :indent]
-                                  [(str "\n" (blanks (inc ind))) :none :indent]]
+                                 [[(str "\n" (blanks (inc ind))) :none :indent 35]]
+                                 [[(str "\n" (blanks (inc ind))) :none :indent 36]
+                                  [(str "\n" (blanks (inc ind))) :none :indent 37]]
                                  (:map options) ;nl-separator?
                                  #(and comma?   ; pred
 				       ; don't put commas after comments
@@ -4474,7 +4507,7 @@
             "fzprint-newline: zloc:" (zstring zloc)
             "newline-count:" newline-count
             "ind:" ind)
-    (into [] (repeat newline-count [(str "\n" (blanks ind)) :none :newline]))))
+    (into [] (repeat newline-count [(str "\n" (blanks ind)) :none :newline 2]))))
 
 (def prefix-tags
   {:quote "'",
@@ -4695,28 +4728,28 @@
   was an inline comment and we were aligned with that comment.
   Assumes zloc is a comment."
   [zloc]
-  (prn "inlinecomment? zloc:" (zstring zloc))
+  #_(prn "inlinecomment? zloc:" (zstring zloc))
   (loop [nloc (zprint.zutil/left* zloc)
          spaces 0
 	 passed-nl? false]
     (let [tnloc (ztag nloc)]
-      (prn "inlinecomment? tnloc:" tnloc)
+      #_(prn "inlinecomment? tnloc:" tnloc)
       (cond
         (nil? tnloc) nil  ; the start of the zloc
         (= tnloc :newline) (recur (zprint.zutil/left* nloc)
-	                          0
+	                          spaces #_0
 				  true)
         (or (= tnloc :comment) (= tnloc :comment-inline))
           ; Two comments in a row don't have a newline showing between
           ; them, it is captured by the first comment.  Sigh.
 	  ; Except now it isn't, as we split the newlines out.
-          (do (prn "inlinecomment? found previous comment!")
+          (do #_(prn "inlinecomment? found previous comment!")
               ; is it an inline comment?
               (when (inlinecomment? nloc)
                 ; figure the total alignment from the newline
                 (let [nloc-length-before (length-before nloc)
                       zloc-length-before (length-before zloc)]
-                  (prn "inlinecomment?:"
+                  #_(prn "inlinecomment?:"
                          "nloc-length-before:" nloc-length-before
                          "zloc-length-before:" zloc-length-before
                          "spaces:" spaces)
@@ -4822,9 +4855,9 @@
         (if (empty? comment-str)
           (if (zero? (count out))
             (if newline?
-              [[semi-str color stype] ["\n" :none :indent]]
+              [[semi-str color stype] ["\n" :none :indent 38]]
               [[semi-str color stype]])
-            (persistent! (if newline? (conj! out ["\n" :none :indent]) out)))
+            (persistent! (if newline? (conj! out ["\n" :none :indent 39]) out)))
           (let [last-space-index (if (<= (count comment-str) comment-width)
                                    (dec (count comment-str))
                                    (if (<= comment-width 0)
@@ -4842,7 +4875,7 @@
               (if (zero? (count out))
                 ;(empty? out)
                 (conj! out [(str semi-str space-str next-comment) color stype])
-                (conj! (conj! out [(str "\n" (blanks start)) :none :indent])
+                (conj! (conj! out [(str "\n" (blanks start)) :none :indent 40])
                        [(str semi-str space-str next-comment) color
                         :comment-wrap])))))))))
 
@@ -4897,6 +4930,16 @@
 (defn find-element-from-end
   "Find a the first element of this type working from the end of a 
   style-vec.  Return the index of the element."
+  [element-pred? style-vec]
+  (loop [index (dec (count style-vec))]
+    (if (neg? index)
+      nil
+      (let [[_ _ e] (nth style-vec index)]
+        (if (element-pred? e) index (recur (dec index)))))))
+
+(defn find-element-from-end-alt
+  "Find a the first element of this type working from the end of a 
+  style-vec.  Return the index of the element."
   [element-type style-vec]
   (loop [index (dec (count style-vec))]
     (if (neg? index)
@@ -4911,6 +4954,16 @@
   (apply + (map (partial loc-vec 0) style-vec)))
 
 (defn space-before-comment
+  "Given a style-vec, whose last element in a comment, find the amount
+  of space before that comment on the line."
+  [style-vec]
+  (let [indent-index (find-element-from-end #(or (= % :indent) (= % :newline))
+                                            style-vec)
+        this-line-vec
+          (if indent-index (nthnext style-vec indent-index) style-vec)]
+    (line-size (butlast this-line-vec))))
+
+(defn space-before-comment-alt
   "Given a style-vec, whose last element in a comment, find the amount
   of space before that comment on the line."
   [style-vec]
@@ -4934,7 +4987,8 @@
             [_ _ le] last-out
             new-element
               (cond
-                (and (= e :indent) (= ne :comment-inline))
+                (and (or (= e :indent) (= e :newline))  ; i132
+		     (= ne :comment-inline))
                   (if-not (or (= le :comment) (= le :comment-inline))
                     ; Regular line to get the inline comment
                     [(blanks nn) c :whitespace]
@@ -4945,7 +4999,7 @@
                     ; How much space before the last comment?
                     (do #_(prn "inline:" (space-before-comment out))
                         [(str "\n" (blanks (space-before-comment out))) c
-                         :indent]
+                         :indent 41]
                         #_element))
                 ; Don't turn inline-comments into comments
                 #_#_(= e :comment-inline) [s c :comment]
@@ -4968,7 +5022,7 @@
   inline-comment-index] ...] ...].  The indexes are into the
   style-vec."
   [style-vec]
-  #_(def fcic style-vec)
+  (def fcic style-vec)
   (loop [cvec style-vec
          index 0
          last-indent 0
@@ -4992,7 +5046,7 @@
                            (conj current-seq [last-indent index])
                            (do (throw (#?(:clj Exception.
                                           :cljs js/Error.)
-                                       (str "concat-no-nil:" index)))
+                                       (str "find-aligned-inline-comments a:" index)))
                                []))
                          current-column
                          ; distance from last inline comment is zero
@@ -5007,7 +5061,7 @@
                            [[last-indent index]]
                            (do (throw (#?(:clj Exception.
                                           :cljs js/Error.)
-                                       (str "concat-no-nil:" index)))
+                                       (str "find-aligned-inline-comments b:" index)))
                                []))
                          ; new starting column
                          start-column
@@ -5018,7 +5072,7 @@
                            (if (> (count current-seq) 1)
                              (conj out current-seq)
                              out)))
-              (= e :indent)
+              (or (= e :indent) (= e :newline)) ; i132
                 (if (>= distance max-aligned-inline-comment-distance)
                   ; We have gone too far
                   (recur
@@ -5075,10 +5129,10 @@
                                          (do (throw
                                                (#?(:clj Exception.
                                                    :cljs js/Error.)
-                                                (str "concat-no-nil:" index)))
+                                                (str "find-consecutive-inline-comments:" index)))
                                              []))
                                        out)
-          (= e :indent)
+          (or (= e :indent) (= e :newline)) ; i132
             (recur (next cvec)
                    (inc index)
                    index
@@ -5189,6 +5243,7 @@
 (defn fzprint-align-inline-comments
   "Given the current style-vec, align all consecutive inline comments."
   [options style-vec]
+  (dbg-pr options "fzprint-align-inline-comments: style-vec:" style-vec)
   (let [style (:inline-align-style (:comment options))]
     (if (= style :none)
       style-vec

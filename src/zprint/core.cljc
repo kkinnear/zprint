@@ -284,7 +284,8 @@
   (when (coll? z) (or (rewrite-clj-zipper? z) (:tag (first z)))))
 
 (defn ^:no-doc get-zipper
-  "If it is a zipper or a string, return a zipper, else return nil."
+  "If it is a zipper or a string, return a zipper, else return nil.
+  Always trims whitespace (including nl) off of strings before parsing!"
   [options x]
   (if (string? x)
     (let [x (if (:expand? (:tab options))
@@ -529,6 +530,52 @@
   [cvec]
   (mapv remove-loc cvec))
 
+(defn ^:no-doc any-respect?
+  "If any of :respect-nl?, :respect-bl?, or :indent-only? are set, return
+  true."
+  [caller options]
+  (let [callers-options (caller options)]
+    (or (:respect-nl? callers-options)
+        (:respect-bl? callers-options)
+        (:indent-only? callers-options))))
+
+(defn ^:no-doc any-respect-at-all?
+  "Look throught the options, and see if any of :respect-nl?, :respect-bl?
+  or :indent-only are enabled for anything.  Return false if none are enabled,
+  truthy if any are."
+  [options]
+  (or (any-respect? :list options)
+      (any-respect? :vector options)
+      (any-respect? :set options)
+      (any-respect? :map options)))
+
+(defn ^:no-doc find-eol-blanks
+  "Given a str-style-vec, find all of the places where the end of a line
+  has blanks.  Output the tuples that have that and the ones that 
+  follow. If no-respect? is truthy, then only do this if no :respect-nl,
+  :respect-bl, or indent-only are set."
+  [options ssv coll no-respect?]
+  (when (cond (string? coll) (not (clojure.string/blank? coll))
+              (zipper? coll) (not (clojure.string/blank? (rewrite-clj.zip/string
+                                                           coll)))
+              :else nil)
+    (if (or (not no-respect?) (not (any-respect-at-all? options)))
+      (loop [style-vec ssv
+             previous-ends-w-blanks? nil
+             previous-tuple nil
+             out []]
+        (if-not (first style-vec)
+          (if previous-ends-w-blanks? (conj out previous-tuple) out)
+          (let [[s _ e :as tuple] (first style-vec)
+                add-previous-to-out? (and (or (= e :indent) (= e :newline))
+                                          previous-ends-w-blanks?)
+                ends-w-blanks? (clojure.string/ends-with? s " ")]
+            (recur
+              (next style-vec)
+              ends-w-blanks?
+              tuple
+              (if add-previous-to-out? (conj out previous-tuple) out))))))))
+
 (defn ^:no-doc zprint-str-internal
   "Take a zipper or string and pretty print with fzprint, 
   output a str.  Key :color? is false by default, and should
@@ -540,12 +587,17 @@
   (let [[special-option rest-options] (process-rest-options internal-options
                                                             rest)]
     #_(println "special-option:" special-option "rest-options:" rest-options)
+    (dbg rest-options "zprint-str-internal VVVVVVVVVVVVVVVV")
     (if (:parse-string-all? rest-options)
       (if (string? coll)
+	(let [result
         (process-multiple-forms (parse-string-all-options rest-options)
                                 zprint-str-internal
                                 ":parse-string-all? call"
-                                (edn* (p/parse-string-all coll)))
+                                (edn* (p/parse-string-all coll)))]
+         (dbg rest-options "zprint-str-internal ^^^ pmf ^^^ pmf ^^^ pmf ^^^")
+	 result)
+
         (throw (#?(:clj Exception.
                    :cljs js/Error.)
                 (str ":parse-string-all? requires a string!"))))
@@ -565,6 +617,20 @@
             #_(println "accept-vec:" accept-vec)
             #_(def av accept-vec)
             #_(println "elide:" (:elide (:output options)))
+	    eol-blanks (find-eol-blanks options cvec-wo-empty coll nil)
+	    _ (when (not (empty? eol-blanks)) 
+	        (do (println "=======") 
+		    (prn "eol-blanks:" eol-blanks)
+		    (prn "cvec-wo-empty:" cvec-wo-empty)
+		    (prn "actual options:" (:parse actual-options))
+		    (prn "special options:" (:parse special-option))
+		    (prn "rest options:" rest-options)
+		    (if (string? coll)
+			(prn coll)
+			(do (prn (rewrite-clj.zip/string coll))
+			    (prn coll)))
+		    (println "-------"))) ; i132
+	    _ (if eol-blanks (def eolb eol-blanks))
             inline-style-vec (if (:inline? (:comment options))
                                (fzprint-inline-comments options cvec-wo-empty)
                                cvec-wo-empty)
@@ -592,6 +658,7 @@
                           (color-comp-vec comp-style)
                           (apply str (mapv first comp-style)))
             #_(def cs color-style)]
+        (dbg rest-options "zprint-str-internal ^^^^^^^^^^^^^^^^^^")
         (if (:return-cvec? options) 
 	   (remove-newline-indent-locs cvec)  ; i132
 	   color-style)))))

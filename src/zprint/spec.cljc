@@ -52,6 +52,7 @@
 (s/def ::brace ::color)
 (s/def ::bracket ::color)
 (s/def ::char ::color)
+(s/def ::comma ::color)
 (s/def ::comment ::color)
 (s/def ::deref ::color)
 (s/def ::false ::color)
@@ -239,8 +240,8 @@
                       ::nl-separator?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::color-map
-  (only-keys :opt-un [::brace ::bracket ::char ::comment ::deref ::false ::fn
-                      ::hash-brace ::hash-paren ::keyword ::nil ::none
+  (only-keys :opt-un [::brace ::bracket ::char ::comma ::comment ::deref ::false
+                      ::fn ::hash-brace ::hash-paren ::keyword ::nil ::none
                       ::number ::paren ::quote ::regex ::string ::symbol
                       ::syntax-quote ::syntax-quote-paren ::true ::uneval
                       ::unquote ::unquote-splicing ::user-fn]))

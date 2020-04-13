@@ -403,6 +403,7 @@
    :color-map {:brace :red,
                :bracket :purple,
                :char :black,
+               :comma :none,
                :comment :green,
                :deref :red,
                :false :black,

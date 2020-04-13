@@ -64,12 +64,15 @@
 (s/def ::number ::color)
 (s/def ::paren ::color)
 (s/def ::symbol ::color)
+(s/def ::syntax-quote ::color)
 (s/def ::syntax-quote-paren ::color)
 (s/def ::quote ::color)
 (s/def ::regex ::color)
 (s/def ::string ::color)
 (s/def ::true ::color)
 (s/def ::uneval ::color)
+(s/def ::unquote ::color)
+(s/def ::unquote-splicing ::color)
 (s/def ::user-fn ::color)
 
 ;;
@@ -239,7 +242,8 @@
   (only-keys :opt-un [::brace ::bracket ::char ::comment ::deref ::false ::fn
                       ::hash-brace ::hash-paren ::keyword ::nil ::none
                       ::number ::paren ::quote ::regex ::string ::symbol
-                      ::syntax-quote-paren ::true ::uneval ::user-fn]))
+                      ::syntax-quote ::syntax-quote-paren ::true ::uneval
+                      ::unquote ::unquote-splicing ::user-fn]))
 (s/def :alt/comment
   (only-keys :opt-un [::count? ::wrap? ::inline? ::inline-align-style]))
 (s/def ::color? ::boolean)

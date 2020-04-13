@@ -4649,7 +4649,7 @@
                                       pair-print-one-line)
                 one-line (when pair-print-one-line
                            (apply concat-no-nil
-                             (interpose-either [[", " :none :whitespace 19]]
+                             (interpose-either [[", " (zcolor-map options :comma) :whitespace 19]]
                                                [[" " :none :whitespace 20]]
                                                (constantly comma?)
                                                pair-print-one-line)))
@@ -4670,9 +4670,9 @@
                     l-str-vec
                     (interpose-either-nl-hf
                       ; comma? true
-                      [["," :none :whitespace 21]
+                      [["," (zcolor-map options :comma) :whitespace 21]
                        [(str "\n" (blanks (inc ind))) :none :indent 32]]
-                      [["," :none :whitespace 22] ; Fix issue #59 -- don't
+                      [["," (zcolor-map options :comma) :whitespace 22] ; Fix issue #59 -- don't
                        ; put blanks to indent before the next \n
                        ["\n" :none :indent 33]
                        [(str "\n" (blanks (inc ind))) :none :indent 34]]
@@ -5261,7 +5261,7 @@
                     [[zcomment (zcolor-map options :comment) :comment-inline
                       (first inline-comment-vec) (second inline-comment-vec)]]
                     [[zcomment (zcolor-map options :comment) :comment]])))
-            (= (ztag zloc) :comma) [[zstr :none :comma]]
+            (= (ztag zloc) :comma) [[zstr (zcolor-map options :comma) :comma]]
             ; Really just testing for whitespace, comments filtered above
             (zwhitespaceorcomment? zloc) [[zstr :none :whitespace 24]]
             ; At this point, having filtered out whitespace and

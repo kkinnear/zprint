@@ -690,9 +690,9 @@
    "#(" :hash-paren,
    "#_" :uneval,
    "'" :quote,
-   "`" :quote,
-   "~" :quote,
-   "~@" :quote,
+   "`" :syntax-quote,
+   "~" :unquote,
+   "~@" :unquote-splicing,
    "@" :deref})
 
 

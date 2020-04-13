@@ -5298,7 +5298,14 @@
             (number? (zsexpr zloc))
               [[(if hex? (znumstr zloc hex? shift-seq) zstr)
                 (zcolor-map options :number) :element]]
+            (symbol? (zsexpr zloc)) [[zstr (zcolor-map options :symbol) :element]]
             (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil) :element]]
+            (true? (zsexpr zloc)) [[zstr (zcolor-map options :true) :element]]
+            (false? (zsexpr zloc)) [[zstr (zcolor-map options :false) :element]]
+            (char? (zsexpr zloc)) [[zstr (zcolor-map options :char) :element]]
+            (or (instance? java.util.regex.Pattern (zsexpr zloc))
+                (re-find #"^#\".*\"$" zstr))
+              [[zstr (zcolor-map options :regex) :element]]
             :else [[zstr (zcolor-map options :none) :element]])))))
 
 ;;

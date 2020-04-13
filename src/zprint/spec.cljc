@@ -51,8 +51,10 @@
 
 (s/def ::brace ::color)
 (s/def ::bracket ::color)
+(s/def ::char ::color)
 (s/def ::comment ::color)
 (s/def ::deref ::color)
+(s/def ::false ::color)
 (s/def ::fn ::color)
 (s/def ::hash-brace ::color)
 (s/def ::hash-paren ::color)
@@ -61,9 +63,12 @@
 (s/def ::none ::color)
 (s/def ::number ::color)
 (s/def ::paren ::color)
+(s/def ::symbol ::color)
 (s/def ::syntax-quote-paren ::color)
 (s/def ::quote ::color)
+(s/def ::regex ::color)
 (s/def ::string ::color)
+(s/def ::true ::color)
 (s/def ::uneval ::color)
 (s/def ::user-fn ::color)
 
@@ -231,10 +236,10 @@
                       ::nl-separator?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::color-map
-  (only-keys :opt-un [::brace ::bracket ::comment ::deref ::fn ::hash-brace
-                      ::hash-paren ::keyword ::nil ::none ::number ::paren
-                      ::quote ::string ::syntax-quote-paren ::uneval
-                      ::user-fn]))
+  (only-keys :opt-un [::brace ::bracket ::char ::comment ::deref ::false ::fn
+                      ::hash-brace ::hash-paren ::keyword ::nil ::none
+                      ::number ::paren ::quote ::regex ::string ::symbol
+                      ::syntax-quote-paren ::true ::uneval ::user-fn]))
 (s/def :alt/comment
   (only-keys :opt-un [::count? ::wrap? ::inline? ::inline-align-style]))
 (s/def ::color? ::boolean)

@@ -547,6 +547,15 @@
   (let [[s color what] (first style-vec)]
     (or (= what :newline) (= what :indent))))
 
+(defn prepend-nl
+  "Given an indent ind and a style-vec coll, place a newline (actually an
+  indent) at the front of coll.  If the first thing in coll is a newline,
+  then don't add any spaces after the newline that we prepend."
+  [options ind coll]
+  (concat-no-nil [[(str "\n" (blanks (if (first-nl? coll) 0 ind))) :none :indent
+                   1]]
+                 coll))
+
 ; Debugging help to find differences between line-lengths and
 ; line-lengths-iter.  Surprisingly helpful!
 #_(defonce lldiff (atom []))
@@ -1844,51 +1853,77 @@
   of the ones we skip so the count is right in the end.  We don't
   expect any whitespace in this, because this seq should have been
   produced by zmap-right or its equivalent, which already skips the
-  whitespace."
-  [seq-right]
-  (loop [seq-right-rev (reverse seq-right)
+  whitespace.  Returns two things: [paired-item-count actual-paired-items],
+  where paired-item-count is the number of things from the end of
+  the seq you have to trim off to get the constant pairs included,
+  and the actual-paired-items is the count of the items to be checked
+  against the constant-pair-min (which is exclusive of comments and
+  newlines).  "
+  [zloc-seq]
+  (loop [zloc-seq-rev (reverse zloc-seq)
          element-count 0
-         ; since it is reversed, we need a constant second
+         paired-element-count 0
+         ; since it is reversed, we need a constant every second element
          constant-required? nil
-         pair-size 0]
-    (let [element (first seq-right-rev)]
-      (if (empty? seq-right-rev)
+         pair-size 0
+         actual-pair-size 0]
+    (let [element (first zloc-seq-rev)]
+      #_(prn "count-constant-pairs: element-count:" element-count
+           "paired-element-count:" paired-element-count
+	   "constant-required:" constant-required?
+	   "pair-size:" pair-size
+	   "actual-pair-size:" actual-pair-size
+	   "element:" (zstring element))
+      (if (empty? zloc-seq-rev)
         ; remove potential elements of this pair, since we haven't
         ; seen the end of it, and return
-        (- element-count pair-size)
+        [(- element-count pair-size) (- paired-element-count actual-pair-size)]
         (let [comment-or-newline? (zcomment-or-newline? element)]
           (if (and (not comment-or-newline?)
                    constant-required?
                    (not (zconstant? element)))
             ; we counted the right-hand and any comments of this pair, but it
             ; isn't a pair so exit now with whatever we have so far
-            (- element-count pair-size)
-            (recur (next seq-right-rev)
+            [(- element-count pair-size)
+             (- paired-element-count actual-pair-size)]
+            (recur (next zloc-seq-rev)
                    (inc element-count)
+                   (if comment-or-newline?
+                     paired-element-count
+                     (inc paired-element-count))
                    (if comment-or-newline?
                      constant-required?
                      (not constant-required?))
                    (if (and constant-required? (not comment-or-newline?))
                      ; must be a constant, so start count over
                      0
-                     (inc pair-size)))))))))
+                     (inc pair-size))
+                   (if (and constant-required? (not comment-or-newline?))
+                     ; start count of actual pairs over as well
+                     0
+                     (if comment-or-newline?
+                       ; we are only counting actual pairs here
+                       actual-pair-size
+                       (inc actual-pair-size))))))))))
 
 (defn constant-pair
   "Argument is a zloc-seq.  Output is a [pair-seq non-paired-item-count],
   if any.  If there are no pair-seqs, pair-seq must be nil, not an
-  empty seq.  This will largely ignore newlines."
+  empty seq.  This will largely ignore newlines and comments."
   [caller {{:keys [constant-pair? constant-pair-min]} caller, :as options}
-   seq-right]
+   zloc-seq]
   (if constant-pair?
-    (let [paired-item-count (count-constant-pairs seq-right)
-          non-paired-item-count (- (count seq-right) paired-item-count)
+    (let [[paired-item-count actual-paired-items] (count-constant-pairs zloc-seq)
+          non-paired-item-count (- (count zloc-seq) paired-item-count)
           _ (dbg options
                  "constant-pair: non-paired-items:"
-                 non-paired-item-count)
-          pair-seq (when (>= paired-item-count constant-pair-min)
-                     (drop non-paired-item-count seq-right))]
+                 non-paired-item-count
+		 "paired-item-count:" paired-item-count
+		 "actual-paired-items:" actual-paired-items)
+          pair-seq (when (>= actual-paired-items constant-pair-min)
+                     (drop non-paired-item-count zloc-seq))]
       [pair-seq non-paired-item-count])
-    [nil (count seq-right)]))
+    [nil (count zloc-seq)]))
 
 ;;
 ;; # Take into account constant pairs

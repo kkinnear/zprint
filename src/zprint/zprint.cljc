@@ -302,7 +302,49 @@
                  rest)]
     (when result (persistent! result))))
 
+(declare count-right-blanks)
+(declare trimr-blanks)
+
 (defn concat-no-nil
+  "Concatentate multiple sequences, but if any of them are nil or empty
+  collections, return nil. If any of them are :noseq, just skip them.
+  When complete, check the last element-- if it is a :right, and if it
+  the previous element is a :newline or :indent, then ensure that the
+  number of spaces in that previous element matches the number to the
+  right of the :right."
+  [& rest]
+  (let [result (reduce (fn [v o]
+                         (if (coll? o)
+                           (if (empty? o) (reduced nil) (reduce conj! v o))
+                           (if (= :noseq o)
+                             ; if the supposed sequence is :noseq, skip it
+                             v
+                             (if (nil? o) (reduced nil) (conj! v o)))))
+                 (transient [])
+                 rest)]
+    (when result
+      (let [result (persistent! result)]
+        (if (< (count result) 2)
+          result
+          (let [[_ _ what right-ind :as last-element] (peek result)]
+            (if (= what :right)
+              ; we have a right paren, bracket, brace as the last thing
+              (let [previous-index (- (count result) 2)
+                    [s color previous-what] (nth result previous-index)]
+                (if (or (= previous-what :newline) (= previous-what :indent))
+                  ; we have a newline or equivalent before the last thing
+                  (if (= (count-right-blanks s) right-ind)
+                    ; we already have the right number of blanks!
+                    result
+                    (let [new-previous [(str (trimr-blanks s)
+                                             (blanks right-ind)) color
+                                        previous-what]]
+                      (assoc result previous-index new-previous)))
+                  result))
+              result)))))))
+		  
+
+(defn concat-no-nil-good
   "Concatentate multiple sequences, but if any of them are nil or empty
   collections, return nil. If any of them are :noseq, just skip them."
   [& rest]
@@ -1476,7 +1518,7 @@
               [[(str "\n" (blanks ind)) :none :indent 3]])]
      (concat nl
              [[r-str (zcolor-map options (or r-type r-str))
-               (or r-type :right)]])))
+               (or r-type :right) ind]])))
   ([options ind zloc r-str] (rstr-vec options ind zloc r-str nil nil))
   ([options ind zloc r-str r-type]
    (rstr-vec options ind zloc r-str r-type nil)))
@@ -1491,7 +1533,7 @@
         l-str "["
         r-str "]"
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options (inc ind) zloc r-str)]
+        r-str-vec (rstr-vec options ind #_(inc ind) zloc r-str)] ; i143
     (dbg-form options
               "fzprint-binding-vec exit:"
               (if (= (zcount zloc) 0)
@@ -3117,7 +3159,7 @@
         loptions (not-rightmost options)
         roptions options
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options (+ indent ind) zloc r-str
+        r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str ; i143
 	             nil (:respect-nl? (caller options))) ; i132
         _ (dbg-pr
             options
@@ -4040,6 +4082,16 @@
               " style-vec:" newline-style-vec))))
     (count newline-style-vec)))
 
+(defn count-right-blanks
+  "Count the number of blanks at the right end of a string."
+  [s]
+  (loop [i (count s)]
+    (if (neg? i)
+      (count s)
+      (if (clojure.string/ends-with? (subs s 0 i) " ") 
+        (recur (dec i)) 
+	(- (count s) i)))))
+
 (defn trimr-blanks
   "Trim only blanks off the right end of a string."
   [s]
@@ -4243,7 +4295,7 @@
   (if indent-only?
     (let [options (assoc options :map-depth (inc map-depth))
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options (+ indent ind) zloc r-str)]
+          r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str)] ; i143
       (if (zero? (zcount zloc))
         (concat-no-nil l-str-vec r-str-vec)
         (concat-no-nil l-str-vec
@@ -4289,7 +4341,7 @@
                      pair-seq)
           indent (count l-str)
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options (+ indent ind) zloc r-str)]
+          r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str)] ; i143
       (if (empty? pair-seq)
         (concat-no-nil l-str-vec r-str-vec)
         (let [_ (dbg-pr options
@@ -4416,7 +4468,7 @@
           r-str ">"
           indent (count l-str)
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
+          r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
           arg-1 (str "Atom@" (hash-identity-str zloc))
           arg-1-indent (+ ind indent 1 (count arg-1))]
       (dbg-pr options
@@ -4453,7 +4505,7 @@
             r-str ">"
             indent (count l-str)
             l-str-vec [[l-str (zcolor-map options l-str) :left]]
-            r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
+            r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
             type-str (case zloc-type
                        :future "Future@"
                        :promise "Promise@"
@@ -4498,7 +4550,7 @@
           r-str ">"
           indent (count l-str)
           l-str-vec [[l-str (zcolor-map options :fn) :left]]
-          r-str-vec (rstr-vec options (+ indent ind) zloc r-str :fn)
+          r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str :fn) ; i143
           arg-1-left "Fn@"
           arg-1-right (hash-identity-str zloc)
           arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))
@@ -4542,7 +4594,7 @@
         r-str ">"
         indent (count l-str)
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
+        r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
         arg-1 "Namespace"
         arg-1-indent (+ ind indent 1 (count arg-1))]
     (dbg-pr options
@@ -4573,7 +4625,7 @@
             r-str ""
             indent (count l-str)
             l-str-vec [[l-str (zcolor-map options l-str) :left]]
-            r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
+            r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
             arg-1 (pr-str #?(:clj (class zloc)
                              :cljs (type zloc)))
             arg-1 (let [tokens (clojure.string/split arg-1 #"\.")]
@@ -4672,7 +4724,7 @@
         ; we may want to color this based on something other than
         ; its actual character string
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options (+ indent ind) zloc r-str)
+        r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
         floc
           (if (and at? (not alt-at?)) (zfirst (zsecond zloc)) (zsecond zloc))]
     (dbg-pr options

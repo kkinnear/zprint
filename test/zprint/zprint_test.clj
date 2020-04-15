@@ -4510,4 +4510,19 @@ ser/collect-vars-acc %1 %2) )))"
                     {:parse-string? true, :list {:respect-bl? true}}))
 
 
+;;
+;; # Issue 143
+;;
+;; Where to put a hanging closing right paren or whatever
+;;
+
+(expect
+  "(a (b (c (d e\n            f ;stuff\n         )\n         h ;foo\n      ) ;bar\n   )\n   i\n   j)"
+  (zprint-str "(a (b (c (d e f ;stuff\n) h ;foo\n) ;bar\n) i j)"
+              {:parse-string? true}))
+
+(expect "[a b c\n [d ;foo\n  e ;bar\n  [f g ;stuff\n  ] ;bother\n ] h i j]"
+        (zprint-str "[a b c [d ;foo\n e ;bar\n [f g ;stuff\n] ;bother\n] h i j]"
+                    {:parse-string? true}))
+
 

@@ -517,12 +517,16 @@
   (take (- end start) (drop start v)))
 
 (defn ^:no-doc remove-loc
-  "If this is a :newline or :indent, trim off the 4th thing."
+  "If this is a :newline, :indent, :whitespace, or :right, trim off the 
+  4th thing."
   [tuple]
   (let [[s color element] tuple]
-    (if (or (= element :newline) (= element :indent))
-       [s color :indent]
-       tuple)))
+    (if (or (= element :newline)
+            (= element :indent)
+            (= element :whitespace)
+            (= element :right))
+      [s color element]
+      tuple)))
 
 (defn ^:no-doc remove-newline-indent-locs ; i132
   "Remove the debugging information on :indent and :newline style-vec

@@ -490,8 +490,8 @@
 
 ; This change came when we started to correctly recognize functions
 ; even though they were preceded by comments and/or newlines.
-(expect "(;a\n list :b\n      :c\n      ;def\n  )"
-        ;"(;a\n list\n :b\n :c\n ;def\n  )"
+(expect "(;a\n list :b\n      :c\n      ;def\n)"
+        ;"(;a\n list\n :b\n :c\n ;def\n)"
         (zprint-str "(;a\nlist\n:b\n:c ;def\n)"
                     {:parse-string? true, :comment {:inline? false}}))
 
@@ -504,7 +504,7 @@
 ;      b ;def
 ;  )
 
-(expect "(list a\n      b ;def\n  )"
+(expect "(list a\n      b ;def\n)"
         (zprint-str "(list a b ;def\n)"
                     {:parse-string? true, :comment {:inline? true}}))
 
@@ -513,7 +513,7 @@
 ;      ;def
 ;  )
 
-(expect "(list a\n      b\n      ;def\n  )"
+(expect "(list a\n      b\n      ;def\n)"
         (zprint-str "(list a b ;def\n)"
                     {:parse-string? true, :comment {:inline? false}}))
 ;[list a b ;def
@@ -533,14 +533,14 @@
 ;{a b, ;def
 ; }
 
-(expect "{a b, ;def\n }"
+(expect "{a b ;def\n}"
         (zprint-str "{ a b ;def\n}"
                     {:parse-string? true, :comment {:inline? true}}))
 
 ;{a b,
 ; ;def
 ; }
-(expect "{a b,\n ;def\n }"
+(expect "{a b\n ;def\n}"
         (zprint-str "{ a b ;def\n}"
                     {:parse-string? true, :comment {:inline? false}}))
 
@@ -1546,7 +1546,7 @@
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
    ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
    [":abc" :magenta :element] ["\n     " :none :indent]
-   [";stuff" :green :comment] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :newline]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
@@ -1573,7 +1573,7 @@
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
    ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
    [":abc" :blue :element] ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["\n     " :none :newline] [":bother" :magenta :element]
    ["," :none :whitespace] ["\n   " :none :indent] ["\"deep\"" :blue :element]
    [" " :none :whitespace] ["{" :red :left] ["\"and\"" :yellow :element]
    [" " :none :whitespace] ["\"even\"" :red :element] [", " :none :whitespace]
@@ -1601,7 +1601,7 @@
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
    ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
    [":abc" :magenta :element] ["\n     " :none :indent]
-   [";stuff" :green :comment] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :newline]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
@@ -1628,7 +1628,7 @@
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
    ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
    [":abc" :blue :element] ["\n     " :none :indent] [";stuff" :green :comment]
-   ["\n     " :none :indent] [":bother" :magenta :element]
+   ["\n     " :none :newline] [":bother" :magenta :element]
    ["," :none :whitespace] ["\n   " :none :indent] ["\"deep\"" :cyan :element]
    [" " :none :whitespace] ["{" :red :left] ["\"and\"" :red :element]
    [" " :none :whitespace] ["\"even\"" :red :element] [", " :none :whitespace]
@@ -1656,7 +1656,7 @@
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
    ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
    [":abc" :magenta :element] ["\n     " :none :indent]
-   [";stuff" :green :comment] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :newline]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
@@ -1733,7 +1733,7 @@
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
    ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
    [":abc" :magenta :element] ["\n     " :none :indent]
-   [";stuff" :green :comment] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :newline]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
@@ -1759,7 +1759,7 @@
    ["key-color-tst" :black :element] ["\n  " :none :indent] ["[" :purple :left]
    ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
    [":abc" :magenta :element] ["\n     " :none :indent]
-   [";stuff" :green :comment] ["\n     " :none :indent]
+   [";stuff" :green :comment] ["\n     " :none :newline]
    [":bother" :magenta :element] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
    ["\"and\"" :red :element] [" " :none :whitespace] ["\"even\"" :red :element]
@@ -2945,13 +2945,13 @@ ser/collect-vars-acc %1 %2) )))"
 ;; Comments as last thing in sequence of pairs causes missing right parens!
 ;;
 
-(expect "(case bar\n  :a 1\n  3\n  ;comment\n  )"
+(expect "(case bar\n  :a 1\n  3\n  ;comment\n)"
         (zprint-str "(case bar\n:a 1\n3\n;comment\n)" {:parse-string? true}))
 
-(expect "(cond a 1\n      b ;comment\n  )"
+(expect "(cond a 1\n      b ;comment\n)"
         (zprint-str "(cond\na 1\nb ;comment\n)" {:parse-string? true}))
 
-(expect "(case bar\n  :a 1\n  3 ;comment\n  )"
+(expect "(case bar\n  :a 1\n  3 ;comment\n)"
         (zprint-str "(case bar\n:a 1\n3 ;comment\n)" {:parse-string? true}))
 
 ;;
@@ -3077,48 +3077,48 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(;stuff\n \n let;bother\n  [a :x\n   b :y];foo\n  ;bar\n  \n  ;baz\n  5)"
+  "(;stuff\n\n let;bother\n  [a :x\n   b :y];foo\n  ;bar\n\n  ;baz\n  5)"
   (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
               {:parse-string? true, :list {:respect-nl? true}}))
 
-(expect "(;stuff\n \n let;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
+(expect "(;stuff\n\n let;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
         (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y](nil? nil) 5)"
                     {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(;stuff\n \n let;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  \n  ;baz\n  5)"
+  "(;stuff\n\n let;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
   (zprint-str "( ;stuff\n\nlet;bother\n[a :x b :y] ;foo\n;bar\n\n;baz\n5)"
               {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(;stuff\n \n let;bother\n  [a :x\n   b :y];foo\n  ;bar\n  \n  ;baz\n  5)"
+  "(;stuff\n\n let;bother\n  [a :x\n   b :y];foo\n  ;bar\n\n  ;baz\n  5)"
   (zprint-str "( ;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
               {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(;stuff\n \n let ;bother\n  [a :x\n   b :y]  ;foo\n  ;bar\n  \n  ;baz\n  5)"
+  "(;stuff\n\n let ;bother\n  [a :x\n   b :y]  ;foo\n  ;bar\n\n  ;baz\n  5)"
   (zprint-str "( ;stuff\n\nlet ;bother\n[a :x b :y]  ;foo\n;bar\n\n;baz\n5)"
               {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(;stuff\n \n let ;bother\n  [a :x\n   b :y]\n  (list a b)\n  (map a b)\n  5)"
+  "(;stuff\n\n let ;bother\n  [a :x\n   b :y]\n  (list a b)\n  (map a b)\n  5)"
   (zprint-str "( ;stuff\n\nlet ;bother\n[a :x b :y]\n(list a b)\n(map a b)\n5)"
               {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(;stuff\n \n let ;bother\n  [a :x\n   b :y]\n  (list a b)\n  (map a b)\n  \n  (should be blank before this)\n  5)"
+  "(;stuff\n\n let ;bother\n  [a :x\n   b :y]\n  (list a b)\n  (map a b)\n\n  (should be blank before this)\n  5)"
   (zprint-str
     "( ;stuff\n\nlet ;bother\n[a :x b :y]\n(list a b)\n(map a b)\n\n(should be blank before this)\n5)"
     {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(this is\n      a\n      test\n      (;stuff\n       \n       let ;bother\n        [a :x\n         b :y]\n        \n        (list a b)\n        (map a b)\n        \n        (should be blank before this)\n        5))"
+  "(this is\n      a\n      test\n      (;stuff\n\n       let ;bother\n        [a :x\n         b :y]\n\n        (list a b)\n        (map a b)\n\n        (should be blank before this)\n        5))"
   (zprint-str
     "(this is a test\n( ;stuff\n\nlet ;bother\n[a :x b :y]\n\n(list a b)\n(map a b)\n\n(should be blank before this)\n5))"
     {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(this is\n      a\n      test\n      (;stuff\n       \n       let [a :x\n            b :y]\n        \n        (list a b)\n        (map a b)\n        \n        (should be blank before this)\n        5))"
+  "(this is\n      a\n      test\n      (;stuff\n\n       let [a :x\n            b :y]\n\n        (list a b)\n        (map a b)\n\n        (should be blank before this)\n        5))"
   (zprint-str
     "(this is a test\n( ;stuff\n\nlet [a :x b :y]\n\n(list a b)\n(map a b)\n\n(should be blank before this)\n5))"
     {:parse-string? true, :list {:respect-nl? true}}))
@@ -3138,7 +3138,7 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(;stuff\n cond\n  \n  (= a 1) ;bother\n    (good stuff)\n  (not= b 2) (bad stuff)\n  :else\n    \n    (remaining stuff))"
+  "(;stuff\n cond\n\n  (= a 1) ;bother\n    (good stuff)\n  (not= b 2) (bad stuff)\n  :else\n\n    (remaining stuff))"
   (zprint-str
     "(;stuff\n cond\n  \n  (= a 1) ;bother\n    (good stuff)\n  (not= b 2) (bad stuff)\n  :else\n    \n    (remaining stuff))"
     {:parse-string? true, :list {:respect-nl? true}}))
@@ -3163,15 +3163,15 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "{:a :b \n :c :d :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 15}))
 
-(expect "{:a :b,\n \n :c :d,\n :e :f}"
+(expect "{:a :b,\n\n :c :d,\n :e :f}"
         (zprint-str "{:a :b \n\n :c :d :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 15}))
 
-(expect "{:a\n   \n   :b,\n :c :d,\n :e :f}"
+(expect "{:a\n\n   :b,\n :c :d,\n :e :f}"
         (zprint-str "{:a \n\n :b \n :c :d \n :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 15}))
 
-(expect "{:a\n   \n   :b,\n :c :d,\n :e :f}"
+(expect "{:a\n\n   :b,\n :c :d,\n :e :f}"
         (zprint-str "{:a \n\n :b \n :c :d \n :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 80}))
 
@@ -3183,19 +3183,19 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "{;stuff\n :a :b ;bother\n :c :d \n :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 80}))
 
-(expect "{;stuff\n \n :a :b, ;bother\n :c\n   \n   :d,\n :e :f}"
+(expect "{;stuff\n\n :a :b, ;bother\n :c\n\n   :d,\n :e :f}"
         (zprint-str "{;stuff\n\n :a :b ;bother\n :c \n\n :d \n :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 15}))
 
-(expect "{;stuff\n \n :a :b, ;bother\n :c\n   \n   :d,\n :e :f}"
+(expect "{;stuff\n\n :a :b, ;bother\n :c\n\n   :d,\n :e :f}"
         (zprint-str "{;stuff\n\n :a :b ;bother\n :c \n\n :d \n :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 80}))
 
-(expect "{;stuff\n \n :a :b,\n :c ;bother\n   \n   :d, ;foo\n \n :e :f}"
+(expect "{;stuff\n\n :a :b,\n :c ;bother\n\n   :d, ;foo\n\n :e :f}"
         (zprint-str "{;stuff\n\n :a :b :c ;bother\n\n :d ;foo\n\n :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 15}))
 
-(expect "{;stuff\n \n :a :b,\n :c ;bother\n   \n   :d, ;foo\n \n :e :f}"
+(expect "{;stuff\n\n :a :b,\n :c ;bother\n\n   :d, ;foo\n\n :e :f}"
         (zprint-str "{;stuff\n\n :a :b :c ;bother\n\n :d ;foo\n\n :e :f}"
                     {:parse-string? true, :map {:respect-nl? true}, :width 80}))
 ;;
@@ -3249,26 +3249,26 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(this is\n      a\n      \n      thing\n      with\n      a\n      blank\n      line)"
+  "(this is\n      a\n\n      thing\n      with\n      a\n      blank\n      line)"
   (zprint-str "(this is a\n\nthing with a blank line)"
               {:parse-string? true, :list {:respect-bl? true}}))
 
 (expect
-  "(this is\n      a\n      \n      thing\n      with\n      a\n      blank\n      line)"
+  "(this is\n      a\n\n      thing\n      with\n      a\n      blank\n      line)"
   (zprint-str "(this is a\n     \nthing with a blank line)"
               {:parse-string? true, :list {:respect-bl? true}}))
 
 (expect
-  "(comment (defn x [y] (println y))\n         \n         (this is a thing that is interesting)\n         \n         (def z :this-is-a-test)\n         \n         (def a :more stuff)\n         \n         \n         \n         (def b :3-blanks-above))"
+  "(comment (defn x [y] (println y))\n\n         (this is a thing that is interesting)\n\n         (def z :this-is-a-test)\n\n         (def a :more stuff)\n\n\n\n         (def b :3-blanks-above))"
   (zprint-str
     "(comment\n(defn x\n  [y]\n  (println y))\n\n(this is a\n         thing that is interesting)\n\n(def z :this-is-a-test)\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
     {:parse-string? true, :list {:respect-bl? true}}))
 
-(expect "(a b\n   \n   \n   c\n   d)"
+(expect "(a b\n\n\n   c\n   d)"
         (zprint-str "(a\nb\n \n\nc\nd)"
                     {:parse-string? true, :style :respect-bl}))
 
-(expect "(a b\n   \n   \n   c\n   \n   \n   \n   \n   d)"
+(expect "(a b\n\n\n   c\n\n\n\n\n   d)"
         (zprint-str "(a\nb\n \n\nc \n \n\n \n\nd)"
                     {:parse-string? true, :style :respect-bl}))
 
@@ -3297,10 +3297,10 @@ ser/collect-vars-acc %1 %2) )))"
 ;; :respect-bl? true tests for sets
 ;;
 
-(expect "#{:a :b :c\n \n  :d :e}"
+(expect "#{:a :b :c\n\n  :d :e}"
         (zprint-str "#{:a :b \n :c \n\n :d :e}"
                     {:parse-string? true, :set {:respect-bl? true}}))
-(expect "#{:a :b :c\n \n \n  :d\n \n  :e}"
+(expect "#{:a :b :c\n\n\n  :d\n\n  :e}"
         (zprint-str "#{:a :b \n :c \n\n\n :d \n\n :e}"
                     {:parse-string? true, :set {:respect-bl? true}}))
 
@@ -3308,7 +3308,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;; :respect-bl? true for maps
 ;;
 
-(expect "{:a :b,\n :c :d,\n \n :e\n   \n   \n   :f}"
+(expect "{:a :b,\n :c :d,\n\n :e\n\n\n   :f}"
         (zprint-str "{:a :b \n :c \n :d \n\n :e \n\n\n :f}"
                     {:parse-string? true, :map {:respect-bl? true}}))
 
@@ -3317,12 +3317,12 @@ ser/collect-vars-acc %1 %2) )))"
                     {:parse-string? true, :map {:respect-bl? false}}))
 
 (expect
-  "{:a :b,\n :c {:g :h,\n     :i\n       \n       :j},\n \n :e\n   \n   \n   :f}"
+  "{:a :b,\n :c {:g :h,\n     :i\n\n       :j},\n\n :e\n\n\n   :f}"
   (zprint-str "{:a :b \n :c \n {:g \n :h :i \n\n :j} \n\n :e \n\n\n :f}"
               {:parse-string? true, :map {:respect-bl? true}}))
 
 (expect
-  "{:a :b,\n :c\n   {:g\n      :h,\n    :i\n      \n      :j},\n \n :e\n   \n   \n   :f}"
+  "{:a :b,\n :c\n   {:g\n      :h,\n    :i\n\n      :j},\n\n :e\n\n\n   :f}"
   (zprint-str "{:a :b \n :c \n {:g \n :h :i \n\n :j} \n\n :e \n\n\n :f}"
               {:parse-string? true, :map {:respect-nl? true}}))
 
@@ -3342,25 +3342,25 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(reify\n  xyzzy1\n  \n  ;comment\n  \n  xyzzy2\n    (rrr [_] \"ghi\")\n    \n    (sss [_] :abc)\n  zzz)"
+  "(reify\n  xyzzy1\n\n  ;comment\n\n  xyzzy2\n    (rrr [_] \"ghi\")\n\n    (sss [_] :abc)\n  zzz)"
   (zprint-str
     "(reify xyzzy1 \n\n ;comment\n\n xyzzy2 (rrr [_] \"ghi\") \n\n (sss [_] :abc) zzz)"
     {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(reify\n  xyzzy1\n  \n  ;comment\n  \n  xyzzy2\n    (rrr [_] \"ghi\")\n    (sss [_] :abc)\n  zzz)"
+  "(reify\n  xyzzy1\n\n  ;comment\n\n  xyzzy2\n    (rrr [_] \"ghi\")\n    (sss [_] :abc)\n  zzz)"
   (zprint-str
     "(reify xyzzy1 \n\n ;comment\n\n xyzzy2 (rrr [_] \"ghi\") \n (sss [_] :abc) zzz)"
     {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(reify\n  xyzzy1\n  \n  ;comment\n  \n  xyzzy2\n    (rrr [_] \"ghi\")\n    (sss [_] :abc)\n  zzz)"
+  "(reify\n  xyzzy1\n\n  ;comment\n\n  xyzzy2\n    (rrr [_] \"ghi\")\n    (sss [_] :abc)\n  zzz)"
   (zprint-str
     "(reify xyzzy1 \n\n ;comment\n\n xyzzy2 (rrr [_] \"ghi\") (sss [_] :abc) zzz)"
     {:parse-string? true, :list {:respect-nl? true}}))
 
 (expect
-  "(reify\n  xyzzy1\n  \n  ;comment\n  xyzzy2\n    (rrr [_] \"ghi\")\n    (sss [_] :abc)\n  zzz)"
+  "(reify\n  xyzzy1\n\n  ;comment\n  xyzzy2\n    (rrr [_] \"ghi\")\n    (sss [_] :abc)\n  zzz)"
   (zprint-str
     "(reify xyzzy1 \n\n ;comment\n xyzzy2 (rrr [_] \"ghi\") (sss [_] :abc) zzz)"
     {:parse-string? true, :list {:respect-nl? true}}))
@@ -3433,7 +3433,7 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true, :style :respect-nl}))
 
 (expect
-  "(extend-protocol ZprintProtocol\n  ZprintType\n    \n    (more-stuff [x] (str x))\n    \n    (more-bother [y] (list y))\n    \n    (more-foo [z] (nil? z)))"
+  "(extend-protocol ZprintProtocol\n  ZprintType\n\n    (more-stuff [x] (str x))\n\n    (more-bother [y] (list y))\n\n    (more-foo [z] (nil? z)))"
   (zprint-str
     "(extend-protocol ZprintProtocol\n      ZprintType\n\n        (more-stuff [x] (str x))\n\n        (more-bother [y] (list y))\n\n        (more-foo [z] (nil? z)))"
     {:parse-string? true, :style :respect-nl}))
@@ -3560,7 +3560,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(deftype Typetest1 [cnt _meta]\n  \n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  \n  clojure.lang.Counted\n    (count [_] cnt)\n  \n  clojure.lang.IMeta\n    (meta [_] _meta))"
+  "(deftype Typetest1 [cnt _meta]\n\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n\n  clojure.lang.Counted\n    (count [_] cnt)\n\n  clojure.lang.IMeta\n    (meta [_] _meta))"
   (zprint-str
     "(deftype Typetest1 [cnt _meta]\n\n  clojure.lang.IHashEq\n    (hasheq [this] \n      (list this) \n      (list this this) \n      (list this this this this))\n\n  clojure.lang.Counted\n    (count [_] cnt)\n\n  clojure.lang.IMeta\n    (meta [_] _meta))"
     {:parse-string? true, :style :respect-nl}))
@@ -3602,7 +3602,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(;comment1\n this ;comment2\n  \n  [a\n   b c]\n  ;comment3\n  Protocol\n    \n    (should cause it to not fit on one line)\n    (and more test)\n    (and more test)\n    (and more test))"
+  "(;comment1\n this ;comment2\n\n  [a\n   b c]\n  ;comment3\n  Protocol\n\n    (should cause it to not fit on one line)\n    (and more test)\n    (and more test)\n    (and more test))"
   (zprint-str
     "(;comment1 \nthis ;comment2\n\n [a \nb c]\n ;comment3\n Protocol\n\n (should cause it to not fit on one line) (and more test) (and more test) (and more test))"
     {:parse-string? true, :fn-map {"this" :arg1-extend}, :style :respect-nl}))
@@ -3661,7 +3661,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n  \n  (bar-me [this] [this y]))"
+  "(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n\n  (bar-me [this] [this y]))"
   (zprint-str
     "(;stuff\ndefprotocol\n ;bother\nP (foo [this]) \n\n(bar-me [this] [this y]))"
     {:parse-string? true, :style :respect-nl}))
@@ -3701,7 +3701,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(;comment1\n assoc ;comment2\n  \n  {} ;comment3\n  :this :is\n  \n  :a :test\n  :but-it-has-to-be :pretty-long-or-it-will\n  :all-fit-on :one-line)"
+  "(;comment1\n assoc ;comment2\n\n  {} ;comment3\n  :this :is\n\n  :a :test\n  :but-it-has-to-be :pretty-long-or-it-will\n  :all-fit-on :one-line)"
   (zprint-str
     "(;comment1\nassoc ;comment2\n\n{} ;comment3\n:this :is \n\n:a :test :but-it-has-to-be :pretty-long-or-it-will :all-fit-on :one-line)"
     {:parse-string? true, :style :respect-nl}))
@@ -3711,7 +3711,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;; in fzprint-list* to be the length of the "good stuff".
 ;;
 
-(expect "(;precomment\n one;postcomment\n  )"
+(expect "(;precomment\n one;postcomment\n)"
         (zprint-str "(;precomment\n one;postcomment\n)" {:parse-string? true}))
 
 
@@ -3726,7 +3726,7 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true}))
 
 (expect
-  "(;comment 1\n rum/defcs ;comment 2\n  component\n  \n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n    \n    rum/static\n    rum/reactive\n    ;comment 6\n    (rum/local 0 :count)\n    \n    (rum/local \"\" :text)\n    ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state)\n        text-atom (:text state)]\n    [:div]))"
+"(;comment 1\n rum/defcs ;comment 2\n  component\n\n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n\n    rum/static\n    rum/reactive\n    ;comment 6\n    (rum/local 0 :count)\n\n    (rum/local \"\" :text)\n    ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state)\n        text-atom (:text state)]\n    [:div]))"
   (zprint-str
     "(;comment 1\n  rum/defcs ;comment 2\n  component\n\n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n\n  rum/static\n                       rum/reactive\n\t\t       ;comment 6\n                       (rum/local 0 :count)\n\n                       (rum/local \"\" :text)\n  ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state)\n        text-atom  (:text state)]\n    [:div]))"
     {:parse-string? true, :style :respect-nl}))
@@ -3818,7 +3818,7 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true}))
 
 (expect
-  "(;comment 1\n ;comment 2\n ;comment 3\n \n this is\n      a\n      test)"
+  "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n      a\n      test)"
   (zprint-str
     "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n      a\n   test)"
     {:parse-string? true, :style :indent-only}))
@@ -3830,7 +3830,7 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true}))
 
 (expect
-  "(;comment 1\n ;comment 2\n ;comment 3\n \n a\n  this is\n  a\n  test)"
+  "(;comment 1\n ;comment 2\n ;comment 3\n\n a\n  this is\n  a\n  test)"
   (zprint-str
     "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n a\n this is\n      a\n   test)"
     {:parse-string? true, :style :indent-only}))
@@ -3842,7 +3842,7 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true}))
 
 (expect
-  "(;comment 1\n ;comment 2\n ;comment 3\n \n this is\n      \n      a\n      test)"
+  "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n\n      a\n      test)"
   (zprint-str
     "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n\n      a\n   test)"
     {:parse-string? true, :style :indent-only}))
@@ -3854,7 +3854,7 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true}))
 
 (expect
-  "(;comment 1\n ;comment 2\n ;comment 3\n \n this is\n      ; comment 4\n      a\n      test)"
+  "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n      ; comment 4\n      a\n      test)"
   (zprint-str
     "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n ; comment 4\n      a\n   test)"
     {:parse-string? true, :style :indent-only}))
@@ -3872,7 +3872,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(;comment 1\n ;comment 2\n ;comment 3\n \n this is\n  ; comment 4\n  a\n  test)"
+  "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n  ; comment 4\n  a\n  test)"
   (zprint-str
     "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n ; comment 4\n      a\n   test)"
     {:parse-string? true,
@@ -3898,13 +3898,13 @@ ser/collect-vars-acc %1 %2) )))"
     {:parse-string? true, :style :indent-only}))
 
 (expect
-  "[\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n \n \"Second string\" [\"this\" is the\n                  third thing\n                  fourth thing\n                  [even deeper\n                   and deeper\n                   with depth]]\n \"Third string\"]"
+"[\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n\n \"Second string\" [\"this\" is the\n                  third thing\n                  fourth thing\n                  [even deeper\n                   and deeper\n                   with depth]]\n \"Third string\"]"
   (zprint-str
     "[\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n\n\"Second string\" [\"this\" is the\nthird thing\nfourth thing\n[even deeper\nand deeper\nwith depth]]\n\"Third string\"]"
     {:parse-string? true, :style :indent-only}))
 
 (expect
-  "(defstuff stuff\n  [a b]\n  {:stuff\n   [_another_symbol\n    [:1\n     \"This is the first string and it is very long and if it is that long then it seems they are together?\"\n     \"This is the second string and it is very long and if it is that long then it seems they are together?\"]\n    \n    _this_is_also_a_symbol\n    [\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n     _this_is_a_symbol\n     \"This is the second string and it is very long and if it is that long then it seems they are together?\"\n     \"Third string\"]\n    ]})"
+"(defstuff stuff\n  [a b]\n  {:stuff\n   [_another_symbol\n    [:1\n     \"This is the first string and it is very long and if it is that long then it seems they are together?\"\n     \"This is the second string and it is very long and if it is that long then it seems they are together?\"]\n\n    _this_is_also_a_symbol\n    [\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n     _this_is_a_symbol\n     \"This is the second string and it is very long and if it is that long then it seems they are together?\"\n     \"Third string\"]\n   ]})"
   (zprint-str
     "(defstuff stuff\n[a b]\n{:stuff\n[_another_symbol\n[:1\n\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n\"This is the second string and it is very long and if it is that long then it seems they are together?\"]\n\n_this_is_also_a_symbol\n[\"This is the first string and it is very long and if it is that long then it seems they are together?\"\n_this_is_a_symbol\n\"This is the second string and it is very long and if it is that long then it seems they are together?\"\n\"Third string\"]\n]})"
     {:parse-string? true, :style :indent-only}))
@@ -3927,26 +3927,26 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "{:a :b \n :c :d :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "{:a :b\n \n :c :d :e :f}"
+(expect "{:a :b\n\n :c :d :e :f}"
         (zprint-str "{:a :b \n\n :c :d :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "{:a\n \n :b\n :c :d\n :e :f}"
+(expect "{:a\n\n :b\n :c :d\n :e :f}"
         (zprint-str "{:a \n\n :b \n :c :d \n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 (expect "{;stuff\n :a :b ;bother\n :c :d\n :e :f}"
         (zprint-str "{;stuff\n :a :b ;bother\n :c :d \n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "{;stuff\n \n :a :b ;bother\n :c\n \n :d\n :e :f}"
+(expect "{;stuff\n\n :a :b ;bother\n :c\n\n :d\n :e :f}"
         (zprint-str "{;stuff\n\n :a :b ;bother\n :c \n\n :d \n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "{;stuff\n \n :a :b :c ;bother\n \n :d ;foo\n \n :e :f}"
+(expect "{;stuff\n\n :a :b :c ;bother\n\n :d ;foo\n\n :e :f}"
         (zprint-str "{;stuff\n\n :a :b :c ;bother\n\n :d ;foo\n\n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "{:a\n \n :b\n :c {:a :b\n     \n     :c\n     :d :e :f}\n :e :f}"
+(expect "{:a\n\n :b\n :c {:a :b\n\n     :c\n     :d :e :f}\n :e :f}"
         (zprint-str "{:a \n\n :b \n :c {:a :b \n\n :c \n :d :e :f} \n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
@@ -3962,11 +3962,11 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "#{:a :b \n :c :d :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "#{:a :b\n  \n  :c :d :e :f}"
+(expect "#{:a :b\n\n  :c :d :e :f}"
         (zprint-str "#{:a :b \n\n :c :d :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "#{:a\n  \n  :b\n  :c :d\n  :e :f}"
+(expect "#{:a\n\n  :b\n  :c :d\n  :e :f}"
         (zprint-str "#{:a \n\n :b \n :c :d \n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
@@ -3974,16 +3974,16 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "#{;stuff\n :a :b ;bother\n :c :d \n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "#{;stuff\n  \n  :a :b ;bother\n  :c\n  \n  :d\n  :e :f}"
+(expect "#{;stuff\n\n  :a :b ;bother\n  :c\n\n  :d\n  :e :f}"
         (zprint-str "#{;stuff\n\n :a :b ;bother\n :c \n\n :d \n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
-(expect "#{;stuff\n  \n  :a :b :c ;bother\n  \n  :d ;foo\n  \n  :e :f}"
+(expect "#{;stuff\n\n  :a :b :c ;bother\n\n  :d ;foo\n\n  :e :f}"
         (zprint-str "#{;stuff\n\n :a :b :c ;bother\n\n :d ;foo\n\n :e :f}"
                     {:parse-string? true, :style :indent-only}))
 
 (expect
-  "#{:a\n  \n  :b\n  :c #{:a :b\n       \n       :c\n       :d :e :f}\n  :e :f}"
+  "#{:a\n\n  :b\n  :c #{:a :b\n\n       :c\n       :d :e :f}\n  :e :f}"
   (zprint-str "#{:a \n\n :b \n :c #{:a :b \n\n :c \n :d :e :f} \n :e :f}"
               {:parse-string? true, :style :indent-only}))
 
@@ -4036,7 +4036,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;; Can we turn on :respect-nl for a function?
 
 (expect
-  "(comment\n  (defn x\n    [y]\n    (println y))\n  \n  (this\n    is\n    a\n    thing\n    that\n    is\n    interesting)\n  \n  (def z\n    \n    \n    [:this-is-a-test :with-3-blanks-above?])\n  \n  (def a :more stuff)\n  \n  \n  \n  (def b :3-blanks-above))"
+  "(comment\n  (defn x\n    [y]\n    (println y))\n\n  (this\n    is\n    a\n    thing\n    that\n    is\n    interesting)\n\n  (def z\n\n\n    [:this-is-a-test :with-3-blanks-above?])\n\n  (def a :more stuff)\n\n\n\n  (def b :3-blanks-above))"
   (zprint-str
     "(comment\n(defn x\n  [y]\n  (println y))\n\n(this \n  is \n  a\n         thing that is interesting)\n\n(def z \n\n\n[:this-is-a-test :with-3-blanks-above?])\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
     {:parse-string? true,
@@ -4047,7 +4047,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect
-  "(comment\n  (defn x [y] (println y))\n  \n  (this is a thing that is interesting)\n  \n  (def z [:this-is-a-test :with-3-blanks-above?])\n  \n  (def a :more stuff)\n  \n  \n  \n  (def b :3-blanks-above))"
+  "(comment\n  (defn x [y] (println y))\n\n  (this is a thing that is interesting)\n\n  (def z [:this-is-a-test :with-3-blanks-above?])\n\n  (def a :more stuff)\n\n\n\n  (def b :3-blanks-above))"
   (zprint-str
     "(comment\n(defn x\n  [y]\n  (println y))\n\n(this \n  is \n  a\n         thing that is interesting)\n\n(def z \n\n\n[:this-is-a-test :with-3-blanks-above?])\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
     {:parse-string? true,
@@ -4311,7 +4311,7 @@ ser/collect-vars-acc %1 %2) )))"
 
 ;; Nothing, because this does only structures
 
-(expect "(;a\n quote ;b\n  a ;c\n  )"
+(expect "(;a\n quote ;b\n  a ;c\n)"
         (zprint-str "(;a\n quote ;b\n a ;c\n)"
                     {:parse-string? true,
                      :fn-map {"quote" [:replace-w-string {}
@@ -4319,7 +4319,7 @@ ser/collect-vars-acc %1 %2) )))"
 
 ;; A lot because we do it with both structures and code here
 
-(expect "';a\n ;b\n a ;c\n  "
+(expect "';a\n ;b\n a ;c\n"
         (zprint-str "(;a\n quote ;b\n a ;c\n)"
                     {:parse-string? true,
                      :fn-map {"quote" [:replace-w-string
@@ -4363,13 +4363,11 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "(let [a\n ;stuff\n b\n;bother\nc d] e)"
                     {:parse-string? true, :vector {:respect-nl? true}}))
 
-(expect
-  "(let [a\n        ;stuff\n        b\n      \n      ;bother\n      c d]\n  e)"
+(expect "(let [a\n        ;stuff\n        b\n\n      ;bother\n      c d]\n  e)"
   (zprint-str "(let [a\n ;stuff\n b\n\n;bother\nc d] e)"
               {:parse-string? true, :vector {:respect-nl? true}}))
 
-(expect
-  "(let [a\n        ;stuff\n        b\n      \n      ;bother\n      c d]\n  e)"
+(expect "(let [a\n        ;stuff\n        b\n\n      ;bother\n      c d]\n  e)"
   (zprint-str "(let [a\n ;stuff\n b\n\n;bother\nc d] e)"
               {:parse-string? true, :vector {:respect-bl? true}}))
 
@@ -4378,12 +4376,12 @@ ser/collect-vars-acc %1 %2) )))"
 ;; any newlines.
 ;;
 
-(expect "[;first\n \n a\n \n ;second\n \n b\n ;third\n c]"
+(expect "[;first\n\n a\n\n ;second\n\n b\n ;third\n c]"
         (zprint-str "[;first\n\na\n\n;second\n\nb\n;third\nc]"
                     {:parse-string? true,
                      :vector {:respect-nl? true, :wrap? false}}))
 
-(expect "[;first\n \n a\n \n ;second\n \n b\n ;third\n c]"
+(expect "[;first\n\n a\n\n ;second\n\n b\n ;third\n c]"
         (zprint-str "[;first\n\na\n\n;second\n\nb\n;third\nc]"
                     {:parse-string? true,
                      :vector {:respect-bl? true, :wrap? false}}))
@@ -4410,11 +4408,11 @@ ser/collect-vars-acc %1 %2) )))"
 ;; # Issue 136 -- constant pairing count is off with newlines
 ;;
 
-(expect "(;a\n list\n  :c\n  \n  d)"
+(expect "(;a\n list\n  :c\n\n  d)"
         (zprint-str "(;a\nlist\n:c\n\n d)"
                  {:parse-string? true, :style :respect-nl}))
 
-(expect "(;a\n list :c\n        \n      d)"
+(expect "(;a\n list :c\n\n      d)"
         (zprint-str "(;a\nlist\n:c\n\n d)"
                     {:parse-string? true, :style :respect-bl}))
 
@@ -4429,10 +4427,11 @@ ser/collect-vars-acc %1 %2) )))"
 ;; # Issue 138 -- newline ignored when after last map element
 ;;
 
-(expect "{a\n   b\n }"
+(expect "{a\n   b\n}"
         (zprint-str "{a\nb\n}" {:parse-string? true, :map {:respect-nl? true}}))
 
-(expect "{a b\n \n }"
+(expect 
+	"{a b\n\n}"
         (zprint-str "{a\nb\n\n}"
                     {:parse-string? true, :map {:respect-bl? true}}))
 
@@ -4444,11 +4443,11 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "#{a\n  ;commentx\n  b ;commenty\n }"
         (zprint-str "#{a\n;commentx\n\nb ;commenty\n}" {:parse-string? true}))
 
-(expect "#{a\n  ;commentx\n \n  b ;commenty\n }"
+(expect "#{a\n  ;commentx\n\n  b ;commenty\n }"
         (zprint-str "#{a\n;commentx\n\nb ;commenty\n}"
                     {:parse-string? true, :set {:respect-nl? true}}))
 
-(expect "#{a\n  ;commentx\n \n  b ;commenty\n }"
+(expect "#{a\n  ;commentx\n\n  b ;commenty\n }"
         (zprint-str "#{a\n;commentx\n\nb ;commenty\n}"
                     {:parse-string? true, :set {:respect-bl? true}}))
 
@@ -4456,14 +4455,14 @@ ser/collect-vars-acc %1 %2) )))"
 ;; # Issue 141 -- comments in empty list are lost
 ;;
 
-(expect "(;abc\n ;def\n )"
+(expect "(;abc\n ;def\n)"
         (zprint-str "(;abc\n\n;def\n)" {:parse-string? true}))
 
-(expect "(;abc\n \n ;def\n )"
+(expect "(;abc\n\n ;def\n)"
         (zprint-str "(;abc\n\n;def\n)"
                     {:parse-string? true, :style :respect-nl}))
 
-(expect "(;abc\n \n ;def\n )"
+(expect "(;abc\n\n ;def\n)"
         (zprint-str "(;abc\n\n;def\n)"
                     {:parse-string? true, :style :respect-bl}))
 
@@ -4472,19 +4471,19 @@ ser/collect-vars-acc %1 %2) )))"
 ;; a blank line
 ;;
 
-(expect "[a\n ;commentx\n\n b ;commenty\n\n ]"
+(expect "[a\n ;commentx\n\n b ;commenty\n\n]"
         (zprint-str "[a\n;commentx\n\nb ;commenty\n\n]"
                     {:parse-string? true, :vector {:respect-bl? true}}))
 
-(expect "{a\n   ;commentx\n   \n   b, ;commenty\n \n }"
+(expect "{a\n   ;commentx\n\n   b, ;commenty\n\n}"
         (zprint-str "{a\n;commentx\n\nb ;commenty\n\n}"
                     {:parse-string? true, :map {:respect-bl? true}}))
 
-(expect "#{a\n  ;commentx\n \n  b ;commenty\n \n  }"
+(expect "#{a\n  ;commentx\n\n  b ;commenty\n\n }"
         (zprint-str "#{a\n;commentx\n\nb ;commenty\n\n}"
                     {:parse-string? true, :set {:respect-bl? true}}))
 
-(expect "#(a ;commentx\n   \n   b ;commenty\n   \n   )"
+(expect "#(a ;commentx\n\n   b ;commenty\n\n )"
         (zprint-str "#(a\n;commentx\n\nb ;commenty\n\n)"
                     {:parse-string? true, :list {:respect-bl? true}}))
 
@@ -4493,19 +4492,19 @@ ser/collect-vars-acc %1 %2) )))"
 ;; a comment
 ;;
 
-(expect "[a\n ;commentx\n\n b ;commenty\n ]"
+(expect "[a\n ;commentx\n\n b ;commenty\n]"
         (zprint-str "[a\n;commentx\n\nb ;commenty\n]"
                     {:parse-string? true, :vector {:respect-bl? true}}))
 
-(expect "{a\n   ;commentx\n   \n   b, ;commenty\n }"
+(expect "{a\n   ;commentx\n\n   b, ;commenty\n}"
         (zprint-str "{a\n;commentx\n\nb ;commenty\n}"
                     {:parse-string? true, :map {:respect-bl? true}}))
 
-(expect "#{a\n  ;commentx\n \n  b ;commenty\n  }"
+(expect "#{a\n  ;commentx\n\n  b ;commenty\n }"
         (zprint-str "#{a\n;commentx\n\nb ;commenty\n}"
                     {:parse-string? true, :set {:respect-bl? true}}))
 
-(expect "#(a ;commentx\n   \n   b ;commenty\n   )"
+(expect "#(a ;commentx\n\n   b ;commenty\n )"
         (zprint-str "#(a\n;commentx\n\nb ;commenty\n)"
                     {:parse-string? true, :list {:respect-bl? true}}))
 

@@ -3159,7 +3159,8 @@
         loptions (not-rightmost options)
         roptions options
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str ; i143
+	; Fudge the ind a bit for r-str-vec for anon fns: #()
+        r-str-vec (rstr-vec options (+ ind (max 0 (dec l-str-len))) #_(+ indent ind) zloc r-str ; i143
 	             nil (:respect-nl? (caller options))) ; i132
         _ (dbg-pr
             options
@@ -3176,6 +3177,8 @@
             "arg-1-zloc:" (zstring arg-1-zloc)
             "pre-arg-1-style-vec:" pre-arg-1-style-vec
             "l-str:" (str "'" l-str "'")
+	    "l-str-len:" l-str-len
+	    "r-str-vec:" r-str-vec
             "indent-adj:" indent-adj
             "one-line?:" one-line?
             "indent-only?:" indent-only?
@@ -3642,11 +3645,13 @@
 (defn fzprint-list
   "Pretty print and focus style a :list element."
   [options ind zloc]
+  (dbg-pr options "fzprint-list")
   (fzprint-list* :list "(" ")" (rightmost options) ind zloc))
 
 (defn fzprint-anon-fn
   "Pretty print and focus style a fn element."
   [options ind zloc]
+  (dbg-pr options "fzprint-anon-fn")
   (fzprint-list* :list "#(" ")" (rightmost options) ind zloc))
 
 (defn any-zcoll?
@@ -3816,7 +3821,14 @@
     (fzprint-binding-vec options ind zloc)
     (let [l-str-len (count l-str)
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options ind zloc r-str nil respect-nl?)
+          #_#_r-str-vec (rstr-vec options ind zloc r-str nil respect-nl?)
+          r-str-vec (rstr-vec options 
+	                      (+ ind (max 0 (dec l-str-len)))  ; i143
+			      zloc 
+			      r-str 
+			      nil
+			      respect-nl?) ; i132 
+
           len (zcount zloc)
           new-options (when option-fn-first
                         (let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
@@ -4151,7 +4163,7 @@
             no-space-element [(trimr-blanks s) color what]
             result
               (into [] (concat (repeat no-space-n no-space-element) [element]))]
-	(prn "repeat-element-nl: result:" result)
+	#_(prn "repeat-element-nl: result:" result)
         result))))
 
 ; transient helped a lot here

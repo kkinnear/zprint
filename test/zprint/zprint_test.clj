@@ -4420,7 +4420,7 @@ ser/collect-vars-acc %1 %2) )))"
 ;; # Issue 137 -- last pair in a map has a comma when followed by a comment
 ;;
 
-(expect "{;commenta\n a b\n ;commentx\n }"
+(expect "{;commenta\n a b\n ;commentx\n}"
         (zprint-str "{;commenta\na b\n;commentx\n}" {:parse-string? true}))
 
 ;;
@@ -4475,7 +4475,7 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "[a\n;commentx\n\nb ;commenty\n\n]"
                     {:parse-string? true, :vector {:respect-bl? true}}))
 
-(expect "{a\n   ;commentx\n\n   b, ;commenty\n\n}"
+(expect "{a\n   ;commentx\n\n   b ;commenty\n\n}"
         (zprint-str "{a\n;commentx\n\nb ;commenty\n\n}"
                     {:parse-string? true, :map {:respect-bl? true}}))
 
@@ -4496,7 +4496,7 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "[a\n;commentx\n\nb ;commenty\n]"
                     {:parse-string? true, :vector {:respect-bl? true}}))
 
-(expect "{a\n   ;commentx\n\n   b, ;commenty\n}"
+(expect "{a\n   ;commentx\n\n   b ;commenty\n}"
         (zprint-str "{a\n;commentx\n\nb ;commenty\n}"
                     {:parse-string? true, :map {:respect-bl? true}}))
 

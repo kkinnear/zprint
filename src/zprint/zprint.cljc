@@ -4200,32 +4200,16 @@
          first? true
          newline-count 0]
     (if (empty? coll)
-      (apply concat-no-nil (persistent! #_out
-      
-           (if (zero? newline-count)
-           out
-           (conj-it! out
-                     (repeat-element-nl newline-count (first sep))
-                     #_(repeat newline-count (first sep)))) 
-      
-      ))
+      (apply concat-no-nil
+        (persistent!
+          (if (zero? newline-count)
+            out
+            (conj-it! out (repeat-element-nl newline-count (first sep))))))
       (let [[hangflow style-vec] (first coll)
-            style-vec-empty? (and (= (count style-vec) 1)
-                                  (empty? (first (first style-vec))))
-	    [_ _ what] (first style-vec) ]
+            [_ _ what] (first style-vec)]
         #_(prn "====>>>>>>>> interpose-either-nl-hf: style-vec:" style-vec)
         (cond
-          ; TODO: Get rid of this cond clause and the check for
-          ; it above if we haven't had the exception.
-          style-vec-empty?
-            ; We have a newline that has been removed, just skip this
-            ; one and move on.
-            #_(recur (next coll) out previous-needs-comma? add-nl? no-interpose?)
-            ; I don't think we should get these anymore.
-            (throw (#?(:clj Exception.
-                       :cljs js/Error.)
-                    (str "empty style vec:" style-vec)))
-          (= what #_(nth (first style-vec) 2) :newline)
+          (= what :newline)
             ; We have a one or more newlines.  We are going to keep
             ; track of what we've seen and will actually output things
             ; later, when we know what we actually have.
@@ -4238,7 +4222,6 @@
                    first?
                    (+ newline-count (count-newline-types style-vec)))
           ;
-          #_(recur (next coll) (conj! out style-vec) nil nil true)
           :else
             ; We have a normal style-vec that we will process.  This one
             ; has no newlines.  But we might have seen plenty of newlines
@@ -4250,10 +4233,10 @@
                   ; if first? we assume that we get one newline from caller
                   interpose-count (if first? 1 interpose-count)
                   addtl-nl-needed (max (- newline-count interpose-count) 0)]
-	      ; Here is where we need to figure out if two newlines are
-	      ; coming out in order, and ensure that the first ones don't
-	      ; have any spaces after them.
-	      #_(prn "ienf: interpose-style-vec:" interpose-style-vec)
+              ; Here is where we need to figure out if two newlines are
+              ; coming out in order, and ensure that the first ones don't
+              ; have any spaces after them.
+              #_(prn "ienf: interpose-style-vec:" interpose-style-vec)
               (recur
                 (next coll)
                 (if first?
@@ -4261,32 +4244,23 @@
                     (conj! out style-vec)
                     (conj-it! out
                               (repeat-element-nl addtl-nl-needed (first sep))
-                              #_(repeat addtl-nl-needed (first sep))
                               style-vec))
                   (if (zero? addtl-nl-needed)
                     (conj-it! out interpose-style-vec style-vec)
                     (conj-it! out
                               (trimr-blanks-style-vec interpose-style-vec)
                               (repeat-element-nl addtl-nl-needed (first sep))
-                              #_(repeat addtl-nl-needed (first sep))
                               style-vec)))
-                #_(if previous-needs-comma?
-                    (conj-it! out (if add-nl? sep-comma-nl sep-comma) style-vec)
-                    (if first?
-                      ;(empty? out)
-                      (conj! out style-vec)
-                      (conj-it! out (if add-nl? sep-nl sep) style-vec)))
-		(and comma?
-		  ; We got rid of newlines above
-		  (not= what :comment)
-		  (not= what :comment-inline)
-		  ; Is there a non comment or non newline/indent element
-		  ; left in coll, or is this the last one? 
-		  ; This returns the [hangflow style-vec], but we are not
-		  ; using the data, just the existence of the thing here
-		  (next-non-comment-nl (next coll)))
-
-                #_(when pred-fn (pred-fn style-vec))
+                (and comma?
+                     ; We got rid of newlines above
+                     (not= what :comment)
+                     (not= what :comment-inline)
+                     ; Is there a non comment or non newline/indent element
+                     ; left in coll, or is this the last one?
+                     ; This returns the [hangflow style-vec], but we are not
+                     ; using the data, just the existence of the thing here
+		     ; Fix for Issue #137.
+                     (next-non-comment-nl (next coll)))
                 ; should we put an extra new-line before the next element?
                 ; Two styles here:
                 ;  o  always put one if the previous pair contained a new-line
@@ -4301,125 +4275,12 @@
                 nil ;first?
                 (if (do #_(prn "interpose-either-nl-hf style-vec:" style-vec
                                "newline-count:" newline-count)
-                        nil #_(or (= (nth (last style-vec) 2) :comment)
-                            (= (nth (last style-vec) 2) :comment-inline)))
-			    ; i132
+                        nil
+                        #_(or (= (nth (last style-vec) 2) :comment)
+                              (= (nth (last style-vec) 2) :comment-inline)))
+                  ; i132
                   (do (println "******************") 1)
-                  0)
-                #_0 ;newline-count
-                )))))))
-
-(defn interpose-either-nl-hf-alt
-  "Do very specialized interpose, but different seps depending on pred-fn
-  return and nl-separator?. This assumes that sep-* does one line, and
-  sep-*-nl does two lines."
-  [sep-true sep-true-nl sep-nil sep-nil-nl
-   {:keys [nl-separator? nl-separator-flow?], :as suboptions} ;nl-separator?
-   pred-fn coll]
-  #_(prn "ienf: sep-nil:" sep-nil "coll:" coll)
-  (loop [coll coll
-         out (transient [])
-         previous-pred? nil
-         add-nl? nil
-         first? true
-         newline-count 0]
-    (if (empty? coll)
-      (apply concat-no-nil (persistent! #_out
-      
-           (if (zero? newline-count)
-           out
-           (conj-it! out
-                     (repeat-element-nl newline-count (first sep-nil))
-                     #_(repeat newline-count (first sep-nil)))) 
-      
-      ))
-      (let [[hangflow style-vec] (first coll)
-            style-vec-empty? (and (= (count style-vec) 1)
-                                  (empty? (first (first style-vec))))]
-        #_(prn "====>>>>>>>> interpose-either-nl-hf: style-vec:" style-vec)
-        (cond
-          ; TODO: Get rid of this cond clause and the check for
-          ; it above if we haven't had the exception.
-          style-vec-empty?
-            ; We have a newline that has been removed, just skip this
-            ; one and move on.
-            #_(recur (next coll) out previous-pred? add-nl? no-interpose?)
-            ; I don't think we should get these anymore.
-            (throw (#?(:clj Exception.
-                       :cljs js/Error.)
-                    (str "empty style vec:" style-vec)))
-          (= (nth (first style-vec) 2) :newline)
-            ; We have a one or more newlines.  We are going to keep
-            ; track of what we've seen and will actually output things
-            ; later, when we know what we actually have.
-            ; For now, just increase the count and don't do anything
-            ; else.
-            (recur (next coll)
-                   out
-                   previous-pred?
-                   add-nl?
-                   first?
-                   (+ newline-count (count-newline-types style-vec)))
-          ;
-          #_(recur (next coll) (conj! out style-vec) nil nil true)
-          :else
-            ; We have a normal style-vec that we will process.  This one
-            ; has no newlines.  But we might have seen plenty of newlines
-            ; before this -- or not.
-            (let [[interpose-style-vec interpose-count]
-                    (if previous-pred?
-                      (if add-nl? [sep-true-nl 2] [sep-true 1])
-                      (if add-nl? [sep-nil-nl 2] [sep-nil 1]))
-                  ; if first? we assume that we get one newline from caller
-                  interpose-count (if first? 1 interpose-count)
-                  addtl-nl-needed (max (- newline-count interpose-count) 0)]
-	      ; Here is where we need to figure out if two newlines are
-	      ; coming out in order, and ensure that the first ones don't
-	      ; have any spaces after them.
-	      #_(prn "ienf: interpose-style-vec:" interpose-style-vec)
-              (recur
-                (next coll)
-                (if first?
-                  (if (zero? addtl-nl-needed)
-                    (conj! out style-vec)
-                    (conj-it! out
-                              (repeat-element-nl addtl-nl-needed (first sep-nil))
-                              #_(repeat addtl-nl-needed (first sep-nil))
-                              style-vec))
-                  (if (zero? addtl-nl-needed)
-                    (conj-it! out interpose-style-vec style-vec)
-                    (conj-it! out
-                              (trimr-blanks-style-vec interpose-style-vec)
-                              (repeat-element-nl addtl-nl-needed (first sep-nil))
-                              #_(repeat addtl-nl-needed (first sep-nil))
-                              style-vec)))
-                #_(if previous-pred?
-                    (conj-it! out (if add-nl? sep-true-nl sep-true) style-vec)
-                    (if first?
-                      ;(empty? out)
-                      (conj! out style-vec)
-                      (conj-it! out (if add-nl? sep-nil-nl sep-nil) style-vec)))
-                (when pred-fn (pred-fn style-vec))
-                ; should we put an extra new-line before the next element?
-                ; Two styles here:
-                ;  o  always put one if the previous pair contained a new-line
-                ;     which could be (but is not) the default
-                ;     To do this you would do:
-                ;       (and nl-separator? (not (single-line? style-vec)))
-                ;  o  put one only if the previous right hand part of the
-                ;     pair did a flow (which is the current default)
-                ;     To do this, you look for whether or not the return
-                ;     from fzprint-map-two-up said it was a flow
-                (and nl-separator? (= hangflow :flow))
-                nil ;first?
-                (if (do #_(prn "interpose-either-nl-hf style-vec:" style-vec
-                               "newline-count:" newline-count)
-                        nil #_(or (= (nth (last style-vec) 2) :comment)
-                            (= (nth (last style-vec) 2) :comment-inline)))
-			    ; i132
-                  (do (println "******************") 1)
-                  0)
-                #_0 ;newline-count
+                  0) ;newline-count
                 )))))))
 
 (defn interpose-nl-hf
@@ -4434,8 +4295,7 @@
                           [[(str "\n") :none :indent 30]
                            [(str "\n" (blanks ind)) :none :indent 31]]
                           suboptions
-                          #_(:nl-separator? suboptions)
-                          nil
+                          nil ; comma?
                           coll))
 
 (defn fzprint-map*
@@ -4499,10 +4359,10 @@
       (if (empty? pair-seq)
         (concat-no-nil l-str-vec r-str-vec)
         (let [_ (dbg-pr options
-                     "fzprint-map*:" (zstring zloc)
-                     "ind:" ind
-                     "comma?" comma?
-                     "rightcnt:" (:rightcnt options))
+                        "fzprint-map*:" (zstring zloc)
+                        "ind:" ind
+                        "comma?" comma?
+                        "rightcnt:" (:rightcnt options))
               ; A possible one line representation of this map, but this is
               ; optimistic and needs to be validated.
               pair-print-one-line
@@ -4538,31 +4398,24 @@
                                                    (+ indent ind)
                                                    comma?
                                                    pair-seq)]
-                (concat-no-nil l-str-vec
-                               ;(apply concat-no-nil
-                               (interpose-either-nl-hf
-				 ; pred true
-                                 [["," ;(str "," (blanks (inc ind)))
-                                   :none :whitespace 21]
-                                  [(str "\n" (blanks (inc ind))) :none :indent 32]]
-                                 [["," ;(str "," (blanks (inc ind)))
-                                   :none :whitespace 22] ; Fix issue #59 -- don't
-                                  ; put blanks to indent before the next \n
-                                  ["\n" :none :indent 33]
-                                  [(str "\n" (blanks (inc ind))) :none :indent 34]]
-				 ; pred nil
-                                 [[(str "\n" (blanks (inc ind))) :none :indent 35]]
-                                 [[(str "\n" (blanks (inc ind))) :none :indent 36]
-                                  [(str "\n" (blanks (inc ind))) :none :indent 37]]
-                                 (:map options) ;nl-separator?
-				 comma?
-                                 #_(and comma?   ; pred
-				       ; don't put commas after comments
-                                       (not= (nth (first %) 2) :comment)
-                                       (not= (nth (first %) 2) :comment-inline))
-                                 pair-print)
-                               ; )
-                               r-str-vec)))))))))
+                (concat-no-nil
+                  l-str-vec
+                  (interpose-either-nl-hf
+                    ; comma? true
+                    [["," :none :whitespace 21]
+                     [(str "\n" (blanks (inc ind))) :none :indent 32]]
+                    [["," :none :whitespace 22] ; Fix issue #59 -- don't
+                     ; put blanks to indent before the next \n
+                     ["\n" :none :indent 33]
+                     [(str "\n" (blanks (inc ind))) :none :indent 34]]
+                    ; comma? nil
+                    [[(str "\n" (blanks (inc ind))) :none :indent 35]]
+                    [[(str "\n" (blanks (inc ind))) :none :indent 36]
+                     [(str "\n" (blanks (inc ind))) :none :indent 37]]
+                    (:map options) ;nl-separator?
+                    comma?
+                    pair-print)
+                  r-str-vec)))))))))
 
 (defn fzprint-map
   "Format a real map."

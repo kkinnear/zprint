@@ -621,20 +621,10 @@
             #_(println "accept-vec:" accept-vec)
             #_(def av accept-vec)
             #_(println "elide:" (:elide (:output options)))
-	    eol-blanks (find-eol-blanks options cvec-wo-empty coll nil)
-	    _ (when (not (empty? eol-blanks)) 
-	        (do (println "=======") 
-		    (prn "eol-blanks:" eol-blanks)
-		    (prn "cvec-wo-empty:" cvec-wo-empty)
-		    (prn "actual options:" (:parse actual-options))
-		    (prn "special options:" (:parse special-option))
-		    (prn "rest options:" rest-options)
-		    (if (string? coll)
-			(prn coll)
-			(do (prn (rewrite-clj.zip/string coll))
-			    (prn coll)))
-		    (println "-------"))) ; i132
-	    _ (if eol-blanks (def eolb eol-blanks))
+	    eol-blanks (when (:test-for-eol-blanks? options)
+	                 (find-eol-blanks options cvec-wo-empty coll nil))
+	    eol-str (when (not (empty? eol-blanks)) 
+	        (str "=======  eol-blanks: " eol-blanks))
             inline-style-vec (if (:inline? (:comment options))
                                (fzprint-inline-comments options cvec-wo-empty)
                                cvec-wo-empty)
@@ -663,9 +653,11 @@
                           (apply str (mapv first comp-style)))
             #_(def cs color-style)]
         (dbg rest-options "zprint-str-internal ^^^^^^^^^^^^^^^^^^")
+	(if eol-str
+	  eol-str 
         (if (:return-cvec? options) 
 	   (remove-newline-indent-locs cvec)  ; i132
-	   color-style)))))
+	   color-style))))))
 
 (defn ^:no-doc get-fn-source
   "Call source-fn, and if it isn't there throw an exception."

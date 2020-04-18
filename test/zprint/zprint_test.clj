@@ -17,7 +17,12 @@
 ; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
 ;
 
-(set-options! {:configured? true})
+;
+; Set :force-eol-blanks? true here to see if we are catching eol blanks
+;
+
+(set-options!
+  {:configured? true, :force-eol-blanks? false, :test-for-eol-blanks? true})
 
 
 ;;

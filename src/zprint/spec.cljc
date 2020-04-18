@@ -218,6 +218,8 @@
 (s/def ::cwd-zprintrc? ::boolean)
 (s/def ::search-config? ::boolean)
 (s/def ::dbg? ::boolean)
+(s/def ::force-eol-blanks? ::boolean)
+(s/def ::test-for-eol-blanks? ::boolean)
 (s/def ::dbg-local? ::boolean)
 (s/def ::dbg-print? ::boolean)
 (s/def ::dbg-ge zany?)
@@ -321,13 +323,14 @@
              :alt/comment ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc?
              ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
              ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-             ::fn-map ::fn-name ::fn-obj ::format ::future ::indent ::list ::map
+             ::fn-map ::fn-name ::fn-obj ::force-eol-blanks? ::format ::future ::indent ::list ::map
              ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
              ::max-hang-span ::max-length ::object ::old? ::output ::pair
              ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
              ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
              ::record ::remove ::next-inner ::return-cvec? ::search-config?
-             ::set ::spaces? ::spec ::style ::style-map ::tab ::trim-comments?
+             ::set ::spaces? ::spec ::style ::style-map ::tab 
+	     ::test-for-eol-blanks? ::trim-comments?
              ::tuning :alt/uneval ::user-fn-map ::vector ::vector-fn ::version
              ::width ::url ::zipper?]))
 

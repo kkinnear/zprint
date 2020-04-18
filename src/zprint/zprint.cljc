@@ -1577,7 +1577,7 @@
   fzprint-pairs does a (zmap-right identity zloc).  Presumably the
   caller knows what the fzfn does, so it has to count the items
   itself and pass it in here as zloc-count if it isn't just (zcount zloc)."
-  [{:keys [one-line?], :as options} caller hindent findent fzfn zloc-count zloc]
+  [{:keys [one-line? force-eol-blanks?], :as options} caller hindent findent fzfn zloc-count zloc]
   #_(dbg options "fzprint-hang:" (zstring (zfirst zloc)) "caller:" caller)
   (let [hanging (when (and (not= hindent findent)
                            ((options caller) :hang?)
@@ -1596,7 +1596,9 @@
       hanging
       (let [flow (let [result (fzfn options findent zloc)]
                     (concat-no-nil
-		      (if (first-nl? result)
+		      ; This will create an end-of-line blanks situation so
+		      ; we can test our ability to see it.
+		      (if  (if force-eol-blanks? nil (first-nl? result))
 		           [[(str "\n") :none :indent 42]]
                            [[(str "\n" (blanks findent)) :none :indent 4]])
 	             result))

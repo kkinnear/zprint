@@ -46,8 +46,9 @@
   [:cache :cwd-zprintrc? :parallel? :search-config? :url])
 
 (def explain-hide-keys
-  [:configured? :dbg-print? :dbg? :do-in-hang? :drop? :dbg-ge :file? :spaces?
-   :process-bang-zprint? :trim-comments? :zipper? :indent :remove :return-cvec?
+  [:configured? :dbg-print? :dbg? :force-eol-blanks? :do-in-hang? :drop? :dbg-ge
+   :file? :spaces? :process-bang-zprint? :trim-comments? :zipper? :indent
+   :remove :return-cvec? :test-for-eol-blanks?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
@@ -433,6 +434,7 @@
    :fn-map zfnstyle,
    :fn-name nil,
    :fn-obj {:object? false},
+   :force-eol-blanks? false
    :format :on,
    :future {:object? false},
    ; This is used for {:parse {:left-space :keep}}
@@ -627,6 +629,7 @@
       :sort-dependencies {:list {:return-altered-zipper [1 'defproject
                                                          sort-dependencies]}}},
    :tab {:expand? true, :size 8},
+   :test-for-eol-blanks? false
    :trim-comments? nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
             :hang-flow 1.1,

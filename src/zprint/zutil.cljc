@@ -414,39 +414,6 @@
                      nl-to-emit (apply conj out nl-to-emit)
                      :else out))))))
 
-(defn zmap-w-nl-alt-remove-nl
-  "Return a vector containing the return of applying a function to
-  every non-whitespace zloc inside of zloc, including newlines.
-  This will also split newlines into separate zlocs if they were
-  multiple, and split the newline off the end of a comment."
-  [zfn zloc]
-  (loop [nloc (down* zloc)
-         out []]
-    (if-not nloc
-      out
-      (let [; non-newline thing to emit
-            nl? (= (z/tag nloc) :newline)
-            comment? (= (z/tag nloc) :comment)
-            result (when (not (or (whitespace? nloc) comment?)) (zfn nloc))
-            nl-len (when nl? (length nloc))
-            multi-nl? (when nl? (> (length nloc) 1))
-            ; newline thing to emit
-            nl-to-emit
-              (when nl?
-                (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
-	#_(println "zmap-w-nl: tag:" (z/tag nloc))
-        (recur
-          (right* nloc)
-          (cond result (conj out result)
-                nl-to-emit (apply conj out nl-to-emit)
-                comment? (apply conj
-                           out
-                           [(edn* (p/parse-string (clojure.string/replace-first
-                                                    (z/string nloc)
-                                                    "\n"
-                                                    ""))) (znl)])
-                :else out))))))
-
 (defn zmap-w-nl-comma
   "Return a vector containing the return of applying a function to
   every non-whitespace zloc inside of zloc, including newlines and commas.
@@ -478,96 +445,6 @@
                 nl-to-emit (apply conj out nl-to-emit)
                 :else out))))))
 
-(defn zmap-w-nl-comma-alt
-  "Return a vector containing the return of applying a function to
-  every non-whitespace zloc inside of zloc, including newlines and commas.
-  This will also split newlines into separate zlocs if they were
-  multiple, and split the newline off the end of a comment."
-  [zfn zloc]
-  (loop [nloc (down* zloc)
-         out []]
-    (if-not nloc
-      out
-      (let [; non-newline thing to emit
-            nl? (= (z/tag nloc) :newline)
-            comment? (= (z/tag nloc) :comment)
-            comma? (= (z/tag nloc) :comma)
-            result (when (not (or (whitespace? nloc) comment? comma?))
-                     (zfn nloc))
-            nl-len (when nl? (length nloc))
-            multi-nl? (when nl? (> (length nloc) 1))
-            ; newline thing to emit
-            nl-to-emit
-              (when nl?
-                (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
-        #_(println "zmap-w-nl-comma: tag:" (z/tag nloc))
-        (recur
-          (right* nloc)
-          (cond result (conj out result)
-                nl-to-emit (apply conj out nl-to-emit)
-                comment? (apply conj
-                           out
-                           [(edn* (p/parse-string (clojure.string/replace-first
-                                                    (z/string nloc)
-                                                    "\n"
-                                                    ""))) (znl)])
-                :else out))))))
-
-(defn zmap-w-nl-alt2
-  "Return a vector containing the return of applying a function to
-  every non-whitespace zloc inside of zloc, including newlines.
-  This will also split newlines into separate zlocs if they were
-  multiple."
-  [zfn zloc]
-  (loop [nloc (down* zloc)
-         out []]
-    (if-not nloc
-      out
-      (let [; non-newline thing to emit
-            result (when (not (whitespace? nloc)) (zfn nloc))
-            nl? (= (z/tag nloc) :newline)
-            nl-len (when nl? (length nloc))
-            multi-nl? (when nl? (> (length nloc) 1))
-            ; newline thing to emit
-            nl-to-emit
-              (when nl?
-                (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
-        (recur (right* nloc)
-               (cond result (conj out result)
-                     nl-to-emit (apply conj out nl-to-emit)
-                     :else out))))))
-
-(defn zmap-w-nl-alt
-  "Return a vector containing the return of applying a function to 
-  every non-whitespace zloc inside of zloc, including newlines."
-  [zfn zloc]
-  (loop [nloc (down* zloc)
-         out []]
-    (if-not nloc
-      out
-      (recur (right* nloc)
-             (if-let [result (when (not (and (whitespace? nloc)
-                                             (not (= (z/tag nloc) :newline))))
-                               (zfn nloc))]
-               (conj out result)
-               out)))))
-
-(defn zmap-w-nl-comma-alt
-  "Return a vector containing the return of applying a function to 
-  every non-whitespace zloc inside of zloc, including newlines and commas."
-  [zfn zloc]
-  (loop [nloc (down* zloc)
-         out []]
-    (if-not nloc
-      out
-      (recur (right* nloc)
-             (if-let [result (when (not (and (whitespace? nloc)
-                                             (not (= (z/tag nloc) :newline))
-                                             (not (= (z/tag nloc) :comma))))
-                               (zfn nloc))]
-               (conj out result)
-               out)))))
-
 (defn zmap
   "Return a vector containing the return of applying a function to 
   every non-whitespace zloc inside of zloc. The newline that shows
@@ -590,6 +467,7 @@
 	       comment? 
 	       (if result (conj out result) out))))))
 
+; This was the original zmap before all of the changes...
 (defn zmap-alt
   "Return a vector containing the return of applying a function to 
   every non-whitespace zloc inside of zloc."
@@ -602,6 +480,19 @@
              (if-let [result (when (not (whitespace? nloc)) (zfn nloc))]
                (conj out result)
                out)))))
+
+(defn zcount
+  "Return the count of non-whitespace elements in zloc.  Comments are
+  counted as one thing, commas are ignored as whitespace."
+  [zloc]
+  (loop [nloc (down* zloc)
+         i 0]
+    (if-not nloc
+      i
+      (recur (right* nloc) 
+             (if (not (whitespace? nloc)) 
+	       (inc i) 
+	       i)))))
 
 ; Used in core.cljc
 (defn zmap-all
@@ -648,12 +539,6 @@
       (up* (zremove-right (zreplace nloc end-struct)))
       (let [xloc (right* nloc)]
         (recur xloc (if (whitespace? xloc) index (inc index)))))))
-
-(defn zcount
-  "How many non-whitespace children does zloc have?  Note that this will
-  include comments."
-  [zloc]
-  (count (zseqnws zloc)))
 
 (defn zcount-zloc-seq-nc-nws
   "How many non-whitespace non-comment children are in zloc-seq? Note

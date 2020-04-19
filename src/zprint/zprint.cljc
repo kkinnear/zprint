@@ -1508,18 +1508,11 @@
           (recur next-remaining new-out))))))
 
 (defn rstr-vec
-  "Create an r-str-vec with, possibly, a newline at the beginning if
-  the last thing before it is a comment."
-  ([options ind zloc r-str r-type respect-nl?] ; i132
-   (dbg-pr options "rstr-vec: respect-nl?" respect-nl?)
-   (let [nl nil #_(when (and (zcomment? (zlast zloc)) (not respect-nl?))
-              [[(str "\n" (blanks ind)) :none :indent 3]])]
-     (concat nl
-             [[r-str (zcolor-map options (or r-type r-str))
-               (or r-type :right) ind]])))
-  ([options ind zloc r-str] (rstr-vec options ind zloc r-str nil nil))
+  "Create an r-str-vec with the indent appropriate for the r-str if
+  it is preceded by a newline."
   ([options ind zloc r-str r-type]
-   (rstr-vec options ind zloc r-str r-type nil)))
+   [[r-str (zcolor-map options (or r-type r-str)) (or r-type :right) ind]])
+  ([options ind zloc r-str] (rstr-vec options ind zloc r-str nil)))
 
 (declare interpose-nl-hf)
 (declare fzprint-get-zloc-seq)
@@ -1531,7 +1524,7 @@
         l-str "["
         r-str "]"
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options ind #_(inc ind) zloc r-str)] ; i143
+        r-str-vec (rstr-vec options ind zloc r-str)]
     (dbg-form options
               "fzprint-binding-vec exit:"
               (if (= (zcount zloc) 0)
@@ -3159,8 +3152,7 @@
         roptions options
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
 	; Fudge the ind a bit for r-str-vec for anon fns: #()
-        r-str-vec (rstr-vec options (+ ind (max 0 (dec l-str-len))) #_(+ indent ind) zloc r-str ; i143
-	             nil (:respect-nl? (caller options))) ; i132
+        r-str-vec (rstr-vec options (+ ind (max 0 (dec l-str-len))) zloc r-str) 
         _ (dbg-pr
             options
             "fzprint-list*:" (zstring zloc)
@@ -3786,13 +3778,10 @@
     (fzprint-binding-vec options ind zloc)
     (let [l-str-len (count l-str)
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          #_#_r-str-vec (rstr-vec options ind zloc r-str nil respect-nl?)
           r-str-vec (rstr-vec options 
-	                      (+ ind (max 0 (dec l-str-len)))  ; i143
+	                      (+ ind (max 0 (dec l-str-len))) 
 			      zloc 
-			      r-str 
-			      nil
-			      respect-nl?) ; i132 
+			      r-str) 
 
           len (zcount zloc)
           new-options (when option-fn-first
@@ -4274,7 +4263,7 @@
   (if indent-only?
     (let [options (assoc options :map-depth (inc map-depth))
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str)] ; i143
+          r-str-vec (rstr-vec options ind zloc r-str)] 
       (if (zero? (zcount zloc))
         (concat-no-nil l-str-vec r-str-vec)
         (concat-no-nil l-str-vec
@@ -4320,7 +4309,7 @@
                      pair-seq)
           indent (count l-str)
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str)] ; i143
+          r-str-vec (rstr-vec options ind zloc r-str)] 
       (if (empty? pair-seq)
         (concat-no-nil l-str-vec r-str-vec)
         (let [_ (dbg-pr options
@@ -4441,7 +4430,7 @@
           r-str ">"
           indent (count l-str)
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
+          r-str-vec (rstr-vec options ind zloc r-str) 
           arg-1 (str "Atom@" (hash-identity-str zloc))
           arg-1-indent (+ ind indent 1 (count arg-1))]
       (dbg-pr options
@@ -4478,7 +4467,7 @@
             r-str ">"
             indent (count l-str)
             l-str-vec [[l-str (zcolor-map options l-str) :left]]
-            r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
+            r-str-vec (rstr-vec options ind zloc r-str)
             type-str (case zloc-type
                        :future "Future@"
                        :promise "Promise@"
@@ -4523,7 +4512,7 @@
           r-str ">"
           indent (count l-str)
           l-str-vec [[l-str (zcolor-map options :fn) :left]]
-          r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str :fn) ; i143
+          r-str-vec (rstr-vec options ind zloc r-str :fn) 
           arg-1-left "Fn@"
           arg-1-right (hash-identity-str zloc)
           arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))
@@ -4567,7 +4556,7 @@
         r-str ">"
         indent (count l-str)
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
+        r-str-vec (rstr-vec options ind zloc r-str)
         arg-1 "Namespace"
         arg-1-indent (+ ind indent 1 (count arg-1))]
     (dbg-pr options
@@ -4598,7 +4587,7 @@
             r-str ""
             indent (count l-str)
             l-str-vec [[l-str (zcolor-map options l-str) :left]]
-            r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
+            r-str-vec (rstr-vec options ind zloc r-str)
             arg-1 (pr-str #?(:clj (class zloc)
                              :cljs (type zloc)))
             arg-1 (let [tokens (clojure.string/split arg-1 #"\.")]
@@ -4697,7 +4686,7 @@
         ; we may want to color this based on something other than
         ; its actual character string
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options ind #_(+ indent ind) zloc r-str) ; i143
+        r-str-vec (rstr-vec options ind zloc r-str)
         floc
           (if (and at? (not alt-at?)) (zfirst (zsecond zloc)) (zsecond zloc))]
     (dbg-pr options

@@ -746,8 +746,7 @@
         ; hang didn't work, do flow
         (do (dbg options "fzprint-hang-unless-fail: hang failed, doing flow")
             [:flow
-             (concat-no-nil [[(str "\n" (blanks findent)) :none :indent 1]]
-                            (fzfn options findent zloc))])))))
+	     (prepend-nl options findent (fzfn options findent zloc))])))))
 
 (defn replace-color
   "Given a style-vec with exactly one thing in it, replace the color
@@ -1030,9 +1029,8 @@
                         nil
                         [:flow
                          (concat-no-nil arg-1
-                                        [[(str "\n" (blanks (+ indent ind)))
-                                          :none :indent 2]]
-                                        flow)])))))))
+					(prepend-nl options (+ indent ind)
+					  flow))])))))))
         :else [:flow ; The following always flows things of 3 or more
                ; (absent modifers).  If the lloc is a single char,
                ; then that can look kind of poor.  But that case
@@ -1597,14 +1595,13 @@
       (let [flow (let [result (fzfn options findent zloc)]
                     (concat-no-nil
 		      ; This will create an end-of-line blanks situation so
-		      ; we can test our ability to see it.
+		      ; we can test our ability to see it.  If we weren't
+		      ; intentionally creating end-of-line blanks, we would
+		      ; use prepend-nl here.
 		      (if  (if force-eol-blanks? nil (first-nl? result))
 		           [[(str "\n") :none :indent 42]]
                            [[(str "\n" (blanks findent)) :none :indent 4]])
 	             result))
-      
-      #_(concat-no-nil [[(str "\n" (blanks findent)) :none :indent 4]]
-                                (fzfn options findent zloc))
             _ (log-lines options "fzprint-hang: flow:" findent flow)
             fd-lines (style-lines options findent flow)
             _ (dbg-pr options
@@ -1863,7 +1860,7 @@
     ;
     (if (or (fzfit-one-line options hr-lines) one-line?)
       hanging
-      (let [flow (concat-no-nil [[(str "\n" (blanks findent)) :none :indent 5]]
+      (let [flow (prepend-nl options findent 
                                 (fzprint* options findent zloc))
             _ (log-lines options "fzprint-hang-one: flow:" findent flow)
             fd-lines (style-lines options findent flow)
@@ -1993,6 +1990,8 @@
     #_(prn "ensure-start-w-nl:" element-type)
     (if (or (= element-type :newline) (= element-type :indent))
       style-vec
+      ; Don't need prepend-nl, since we wouldn't be doing this if there
+      ; was a newline on the front of style-ec
       (concat-no-nil [[(str "\n" (blanks ind)) :none :indent 6]] style-vec))))
 
 (defn ensure-end-w-nl
@@ -2733,9 +2732,7 @@
                    (concat
                      out
                      (cond
-                       newline-before? (concat-no-nil
-                                         [[(str "\n" (blanks actual-indent))
-                                           :none :indent 9]]
+                       newline-before? (prepend-nl options actual-indent
                                          this-seq)
                        newline-after?
                          (if (or beginning? comma?)
@@ -3278,10 +3275,10 @@
             l-str-vec
             pre-arg-1-style-vec
             (fzprint* loptions (inc ind) arg-1-zloc)
-            [[(str "\n" (blanks (+ indent ind))) :none :indent 13]]
-            ; I think fzprint-pairs will sort out which
-            ; is and isn't the rightmost because of two-up
-            (fzprint-extend options (+ indent ind) zloc-seq-right-first)
+	    (prepend-nl options (+ indent ind)
+		; I think fzprint-pairs will sort out which
+		; is and isn't the rightmost because of two-up
+		(fzprint-extend options (+ indent ind) zloc-seq-right-first))
             r-str-vec))
       ; needs (> len 2) but we already checked for that above in fn-style
       (or (and (= fn-style :fn) (not (zlist? arg-2-zloc)))
@@ -3353,8 +3350,7 @@
                             (+ indent ind))
                           (+ indent ind)
                           arg-3-zloc)
-                        (concat-no-nil
-                          [[(str "\n" (blanks (+ indent ind))) :none :indent 14]]
+                       (prepend-nl options (+ indent ind)
                           (fzprint*
                             (if (not zloc-seq-right-third) options loptions)
                             (+ indent ind)
@@ -3367,45 +3363,13 @@
               (concat-no-nil
                 l-str-vec
                 first-three
-		(let [intermediate-result 
                 (cond (= fn-style :arg2-pair)
-                                       (fzprint-pairs options
-                                                      (+ indent ind)
-                                                      zloc-seq-right-third)
-                      (= fn-style :arg2-extend)
-                                       (fzprint-extend options
-                                                       (+ indent ind)
-                                                       zloc-seq-right-third)
-                      :else (fzprint-hang-remaining caller
-                                                    ;options
-                                                    (if (= fn-style :arg2-fn)
-                                                      (assoc options
-                                                        :fn-style :fn)
-                                                      options)
-                                                    (+ indent ind)
-                                                    ; force flow
-                                                    (+ indent ind)
-                                                    zloc-seq-right-third
-                                                    fn-style))]
-		       (if (or (= fn-style :arg2-pair) (= fn-style :arg2-extend))
-		         (if (first-nl? intermediate-result)
-			    (concat-no-nil [[(str "\n") :none :indent 15]]
-			                   intermediate-result)
-                             (concat-no-nil [[(str "\n" (blanks (+ indent ind)))
-                                             :none :indent 16]]
-					    intermediate-result))
-			  intermediate-result))
-			  
-		
-                #_(cond (= fn-style :arg2-pair)
-                        (concat-no-nil [[(str "\n" (blanks (+ indent ind)))
-                                         :none :indent 15]]
+                        (prepend-nl options (+ indent ind)  
                                        (fzprint-pairs options
                                                       (+ indent ind)
                                                       zloc-seq-right-third))
                       (= fn-style :arg2-extend)
-                        (concat-no-nil [[(str "\n" (blanks (+ indent ind)))
-                                         :none :indent 16]]
+                        (prepend-nl  options (+ indent ind) 
                                        (fzprint-extend options
                                                        (+ indent ind)
                                                        zloc-seq-right-third))
@@ -3420,7 +3384,6 @@
                                                     (+ indent ind)
                                                     zloc-seq-right-third
                                                     fn-style))
-
                 r-str-vec))))
       (and (= fn-style :arg1-mixin) (> len 3))
         (let [[pre-arg-3-style-vec arg-3-zloc arg-3-count _ :as third-data]
@@ -3541,7 +3504,7 @@
           ; we don't do a full hanging here.
           ; We wouldn't be here if len < 3
           (if (= fn-style :arg1-pair)
-            (concat-no-nil [[(str "\n" (blanks (+ indent ind))) :none :indent 17]]
+            (prepend-nl options (+ indent ind) 
                            (fzprint-pairs options
                                           (+ indent ind)
                                           (get-zloc-seq-right second-data)))
@@ -3566,10 +3529,10 @@
                 pre-arg-1-style-vec
                 (fzprint* loptions (+ indent ind) arg-1-zloc)
                 pre-arg-2-style-vec
-                [[(str "\n" (blanks (+ indent ind))) :none :indent 18]]
-                (fzprint* loptions (+ indent ind) arg-2-zloc)
-                [[(str "\n" (blanks (+ indent ind))) :none :indent 19]]
-                (fzprint-extend options (+ indent ind) zloc-seq-right-second)
+		(prepend-nl options (+ indent ind)
+		  (fzprint* loptions (+ indent ind) arg-2-zloc))
+		(prepend-nl options (+ indent ind)
+		  (fzprint-extend options (+ indent ind) zloc-seq-right-second))
                 r-str-vec)
             :else
               (concat-no-nil
@@ -3582,8 +3545,8 @@
                                   arg-1-indent
                                   (+ indent ind)
                                   arg-2-zloc)
-                [[(str "\n" (blanks (+ indent ind))) :none :indent 20]]
-                (fzprint-extend options (+ indent ind) zloc-seq-right-second)
+		(prepend-nl options (+ indent ind)
+		  (fzprint-extend options (+ indent ind) zloc-seq-right-second))
                 r-str-vec)))
       ; Unspecified seq, might be a fn, might not.
       ; If (first zloc) is a seq, we won't have an
@@ -3772,10 +3735,10 @@
 				#_	    (dec new-ind)
 					    
 					    )) :none :indent 21]]
+		      ; Unclear if a prepend-nl would be useful here...
                       (if previous-newline?
                         (concat-no-nil [[" " :none :whitespace 16]] this-seq)
-                        (concat-no-nil [[(str "\n" (blanks ind)) :none :indent 23]]
-                                       this-seq)))))))))))))
+			(prepend-nl options ind this-seq)))))))))))))
 
 (defn remove-nl
   "Remove any [_ _ :newline] from the seq."
@@ -3938,11 +3901,11 @@
                           (not wrap?))
                     (concat-no-nil l-str-vec
 				   (apply concat-no-nil
-				     (precede-w-nl options new-ind coll-print :no-nl-first nil)) ; i132
-                                   #_(apply concat-no-nil
-                                     (interpose [[(str "\n" (blanks new-ind))
-                                                  :none :indent 24]]
-                                       (remove-nl coll-print)))
+				     (precede-w-nl options 
+				                   new-ind 
+						   coll-print 
+						   :no-nl-first 
+						   nil)) ; i132
                                    r-str-vec)
                     ; Since there are either no collections in this vector or
                     ; set
@@ -4412,7 +4375,7 @@
                      [(str "\n" (blanks (inc ind))) :none :indent 34]]
                     ; comma? nil
                     [[(str "\n" (blanks (inc ind))) :none :indent 35]]
-                    [[(str "\n" (blanks (inc ind))) :none :indent 36]
+                    [["\n" :none :indent 36]
                      [(str "\n" (blanks (inc ind))) :none :indent 37]]
                     (:map options) ;nl-separator?
                     comma?

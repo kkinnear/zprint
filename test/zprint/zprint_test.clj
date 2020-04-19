@@ -4529,4 +4529,12 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "[a b c [d ;foo\n e ;bar\n [f g ;stuff\n] ;bother\n] h i j]"
                     {:parse-string? true}))
 
+;;
+;; Another trailing blank problem
+;;
 
+(expect "{:a :b\n :c\n   :ddfkdjflajfsdjlfdjldsjldjfdl\n\n :e :f}"
+        (zprint-str "{:a :b \n :c :ddfkdjflajfsdjlfdjldsjldjfdl :e :f}"
+                    {:parse-string? true,
+                     :map {:comma? false, :nl-separator? true},
+                     :width 10}))

@@ -7,7 +7,7 @@
     [zprint.finish :refer [newline-vec]]
     [zprint.zfns :refer
      [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zseqnws-w-nl
-      zmap-right zfocus-style zstart zfirst zfirst-no-comment zsecond znthnext
+      zfocus-style zstart zfirst zfirst-no-comment zsecond znthnext
       zcount zmap zanonfn? zfn-obj? zfocus zfind-path zwhitespace? zlist?
       zcount-zloc-seq-nc-nws zvector? zmap? zset? zcoll? zuneval? zmeta? ztag
       zlast zarray? zatom? zderef zrecord? zns? zobj-to-vec zexpandarray
@@ -1564,8 +1564,7 @@
 (defn fzprint-hang
   "Try to hang something and try to flow it, and then see which is
   better.  Has hang and flow indents. fzfn is the function to use 
-  to do zloc.  Note what fzfn does with the input.  For instance,
-  fzprint-pairs does a (zmap-right identity zloc).  Presumably the
+  to do zloc.  Note what fzfn does with the input. Presumably the
   caller knows what the fzfn does, so it has to count the items
   itself and pass it in here as zloc-count if it isn't just (zcount zloc)."
   [{:keys [one-line? force-eol-blanks?], :as options} caller hindent findent fzfn zloc-count zloc]
@@ -1712,15 +1711,14 @@
                    (concatv! out sep next-out))))))))
 
 (defn fzprint-seq
-  "Take a seq of a zloc, created by (zmap identity zloc) when zloc
-  is a collection, or (zmap-right identity zloc) when zloc is already
-  inside of a collection, and return a seq of the fzprint* of each 
-  element.  No spacing between any of these elements. Note that this
-  is not a style-vec, but a seq of style-vecs of each of the elements.
-  These would need to be concatenated together to become a style-vec.
-  ind is either a constant or a seq of indents, one for each element in
-  zloc-seq. Note that right gets evaluated immediately, while left yields
-  a lazy sequence which get evaluated later."
+  "Take a seq of a zloc, created by (zmap identity zloc).  Return
+  a seq of the fzprint* of each element.  No spacing between any
+  of these elements. Note that this is not a style-vec, but a seq
+  of style-vecs of each of the elements.  These would need to be
+  concatenated together to become a style-vec.  ind is either a
+  constant or a seq of indents, one for each element in zloc-seq.
+  Note that right gets evaluated immediately, while left yields a
+  lazy sequence which get evaluated later."
   [options ind zloc-seq]
   (let [max-length (get-max-length options)
         len (count zloc-seq)
@@ -1885,9 +1883,9 @@
   zconstant? true. This is made more difficult by having to skip
   comments along the way as part of the pair check, but keep track
   of the ones we skip so the count is right in the end.  We don't
-  expect any whitespace in this, because this seq should have been
-  produced by zmap-right or its equivalent, which already skips the
-  whitespace.  Returns two things: [paired-item-count actual-paired-items],
+  expect any spaces in this but newlines must be handled, because 
+  this seq should have been produced by zmap or its equivalent.
+  Returns two things: [paired-item-count actual-paired-items],
   where paired-item-count is the number of things from the end of
   the seq you have to trim off to get the constant pairs included,
   and the actual-paired-items is the count of the items to be checked
@@ -2192,8 +2190,11 @@
                          (- hindent findent)
                          hanging-lines
                          flow-lines)
-	 ; Check to see if hanging starts with a newline i132
-         (concat-no-nil [[" " :none :whitespace 10]] hanging)
+	 ; If hanging starts with a newline, don't put a blank at the
+	 ; end of the previous line.
+	 (if (first-nl? hanging)
+	   hanging
+	   (concat-no-nil [[" " :none :whitespace 10]] hanging))
          (ensure-start-w-nl findent flow)))))
   ([caller options hindent findent zloc fn-style]
    (fzprint-hang-remaining caller options hindent findent zloc fn-style nil)))

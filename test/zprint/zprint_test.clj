@@ -4538,3 +4538,11 @@ ser/collect-vars-acc %1 %2) )))"
                     {:parse-string? true,
                      :map {:comma? false, :nl-separator? true},
                      :width 10}))
+
+;;
+;; A "how much does the right paren indent when it is on a line by itself?"
+;;
+
+(expect "#(a\n   ;commentx\n\n   b ;commenty\n )"
+        (zprint-str "#(a\n;commentx\n\nb ;commenty\n)"
+                    {:parse-string? true, :style :respect-nl}))

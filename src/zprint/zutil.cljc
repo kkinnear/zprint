@@ -603,7 +603,7 @@
                (conj out result)
                out)))))
 
-; Appears to be unused
+; Used in core.cljc
 (defn zmap-all
   "Return a vector containing the return of applying a function to 
   every zloc inside of zloc."
@@ -611,15 +611,6 @@
   (loop [nloc (down* zloc)
          out []]
     (if-not nloc out (recur (right* nloc) (conj out (zfn nloc))))))
-
-(defn zmap-right
-  "Apply a function to every non-whitespace zloc to right of zloc."
-  [zfn zloc]
-  (loop [nloc (right* zloc)
-         out []]
-    (if-not nloc
-      out
-      (recur (right* nloc) (if (whitespace? nloc) out (conj out (zfn nloc)))))))
 
 (defn zseqnws
   "Return a seq of all of the non-whitespace children of zloc."
@@ -960,7 +951,6 @@
     zprint.zfns/zseqnws zseqnws
     zprint.zfns/zseqnws-w-nl zseqnws-w-nl
     zprint.zfns/zseqnws-w-bl zseqnws-w-bl
-    zprint.zfns/zmap-right zmap-right
     zprint.zfns/zfocus-style zfocus-style
     zprint.zfns/zstart zstart
     zprint.zfns/zfirst zfirst

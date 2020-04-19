@@ -66,12 +66,6 @@
   [sexpr]
   (if (map? sexpr) (apply concat (seq sexpr)) (seq sexpr)))
 
-(defn smap-right
-  "Map a function of all of the elements to ther right
-  of this."
-  [zfn sexpr]
-  (if (coll? sexpr) (mapv zfn (next sexpr)) nil))
-
 (defn stake-append
   "Considering the current sexpr a collection, move down into it and
   take n non-whitespace elements, dropping the rest.  Then append the
@@ -289,7 +283,6 @@
     zprint.zfns/zseqnws sseqnws
     zprint.zfns/zseqnws-w-nl sseqnws
     zprint.zfns/zseqnws-w-bl sseqnws
-    zprint.zfns/zmap-right smap-right
     zprint.zfns/zfocus-style sfocus-style
     zprint.zfns/zstart sfirst
     zprint.zfns/zfirst sfirst

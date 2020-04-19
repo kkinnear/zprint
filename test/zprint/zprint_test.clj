@@ -4546,3 +4546,13 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "#(a\n   ;commentx\n\n   b ;commenty\n )"
         (zprint-str "#(a\n;commentx\n\nb ;commenty\n)"
                     {:parse-string? true, :style :respect-nl}))
+
+;;
+;; # Issue 131 -- long comment lines are wrapped even with indent-only
+;;
+
+(expect
+  "(this ; is a test, this is only a test, and this is a long comment\n  is also a test)"
+  (zprint-str
+    "(this ; is a test, this is only a test, and this is a long comment\n is also a test)"
+    {:parse-string? true, :width 40, :style :indent-only}))

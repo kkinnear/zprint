@@ -594,7 +594,8 @@
                               :else nil))),
                   :wrap? false},
                :vector-fn {:indent 1, :indent-arg 1}},
-      :indent-only {:list {:indent-only? true},
+      :indent-only {:comment {:wrap? false}
+                    :list {:indent-only? true},
                     :map {:indent-only? true},
                     :set {:indent-only? true},
                     ; Should we also set :vector-fn to :indent-only?  That

@@ -1073,7 +1073,7 @@
          original-doc-map (get-explained-all-options)]
      (when new-options (set-options! new-options doc-str))
      (try
-       (let [lines (clojure.string/split file-str #"\n")
+       (let [lines (clojure.string/split file-str #"\n" -1)
              lines (if (:expand? (:tab (get-options)))
                      (map (partial expand-tabs (:size (:tab (get-options))))
                        lines)
@@ -1081,28 +1081,32 @@
              filestring (clojure.string/join "\n" lines)
              range-start (:start (:range (:output (get-options))))
              range-end (:end (:range (:output (get-options))))
+	     _ (when (or range-start range-end) 
+	         (dbg new-options "zprint-file-str: range-start:" range-start
+	                  "range-end:" range-end))
              [actual-start actual-end] (when (or range-start range-end)
                                          (expand-range-to-top-level filestring
                                                                     lines
                                                                     range-start
                                                                     range-end))
+	     _ (when (or range-start range-end) 
+	         (dbg new-options "zprint-file-str: actual-start:" actual-start
+	                  "actual-end:" actual-end))
              [before-lines range after-lines]
                (when (and actual-start actual-end)
                  (split-out-range lines actual-start actual-end))
              filestring (if range (clojure.string/join "\n" range) filestring)
-             #_(prn "range-start:" range-start
-                        "actual-start:" actual-start
-                        "range-end:" range-end
-                        "actual-end:" actual-end
-                        "before-lines count:" (count before-lines)
-                        "range count:" (count range)
-                        "after-lines count:" (count after-lines)
-                        "filestring count:" (count filestring)
-                        "range:" range)
+	     _ (when (and actual-start actual-end) 
+	         (dbg-pr new-options "zprint-file-str: lines count:"
+		         (count lines)
+		         "before count:" (count before-lines)
+		         "range count:" (count range)
+			 "after count:" (count after-lines)
+			 "range:" range))
              ends-with-nl? (clojure.string/ends-with? file-str "\n")
              ; If file ended with a \newline, make sure it still does
              ; if we are not doing a range
-             filestring (if (and ends-with-nl? (not range))
+             #_#_filestring (if (and ends-with-nl? (not range))
                           (str filestring "\n")
                           filestring)
              forms (edn* (p/parse-string-all filestring))
@@ -1115,18 +1119,24 @@
                                              zprint-str-internal
                                              zprint-specifier
                                              forms)
+	     ; If we did a range, insert the formatted range back into
+	     ; the before and after lines, using newlines as glue, since
+	     ; they get lost with the three separate join calls.
              out-str (if range
                        (str (if (empty? before-lines)
                               ""
-                              (clojure.string/join "\n" before-lines))
+                              (str (clojure.string/join "\n" before-lines)
+			           "\n"))
                             out-str
                             (if (empty? after-lines)
                               ""
-                              (clojure.string/join "\n" after-lines)))
+                              (str "\n" 
+			           (clojure.string/join "\n" after-lines))))
                        out-str)]
          (if (and ends-with-nl? (not (clojure.string/ends-with? out-str "\n")))
            (str out-str "\n")
-           out-str))
+           out-str)
+	   #_out-str)
        (finally (reset-options! original-options original-doc-map)))))
   ([file-str zprint-specifier new-options]
    (zprint-file-str file-str

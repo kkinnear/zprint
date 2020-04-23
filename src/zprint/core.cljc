@@ -979,6 +979,41 @@
      (or space-count 0)
      (if new-options (inc zprint-num) zprint-num)]))
 
+(defn ^:no-doc interpose-w-comment
+  "A comment aware interpose. It takes a seq of strings, leaves out
+  empty strings, and interposes interpose-str between everything,
+  except after a comment.  After a comment, it will interpose a
+  single newline if there were no blank lines between the comment
+  and a following comment. If there was any number of blank lines
+  after a comment, it will interpose interpose-comment-str before
+  the next (non-comment) element. Output is a single string."
+  [seq-of-strings interpose-str]
+  #_(prn "seq-of-strings" seq-of-strings)
+  (if (empty? seq-of-strings)
+    []
+    (loop [sos seq-of-strings
+           previous-comment? nil
+           start-interpolating? nil
+           out []]
+      (if-not sos
+        out
+        (let [s (first sos)
+              empty-string? (empty? s)
+              ; comments must start with ; since parsing removes leading spaces
+              comment? (clojure.string/starts-with? s ";")]
+          #_(prn "s:" s "empty-string?" empty-string? "comment?" comment?)
+          (recur (next sos)
+                 comment? ; previous-comment?
+                 (or (not empty-string?) start-interpolating?) ; start-inter?
+                 (cond empty-string? out
+                       (not start-interpolating?) (conj out s)
+                       previous-comment? (-> out
+                                             (conj "\n")
+                                             (conj s))
+                       :else (-> out
+                                 (conj interpose-str)
+                                 (conj s)))))))))
+
 ;;
 ;; # File comment API
 ;;
@@ -1018,6 +1053,36 @@
 ;;                                          specified <other-options>
 ;;
 
+;; An example of what is going on here with the reductions:
+;;
+;;zprint.core=> (zprint-file-str "\n\n(ns foo)\n;abc\n;!zprint {:format :next :width 10}\n;def\n(defn baz [])\n\n\n" "junk" {:parse {:interpose "\n\n"}})
+;;"(ns foo)\n\n;abc\n\n;!zprint {:format :next :width 10}\n\n;def\n\n(defn baz\n  [])\n"
+;;zprint.core=> (print *1)
+;;(ns foo)
+;;
+;;;abc
+;;
+;;;!zprint {:format :next :width 10}
+;;
+;;;def
+;;
+;;(defn baz
+;;  [])
+;;nil
+;;zprint.core=> (czprint sozf)
+;;([{} "" 0 0]
+;; [{} "" 0 0]
+;; [{} "(ns foo)" 0 0]
+;; [{} "" 0 0]
+;; [{} ";abc" 0 0]
+;; [{:format :next, :width 10} ";!zprint {:format :next :width 10}" 0 1]
+;; [{:format :next, :width 10} ";def" 0 1]
+;; [{} "(defn baz\n  [])" 0 1]
+;; [{} "" 0 1])
+;;nil
+;;
+;; Note that (defn baz []) came out on two lines because of {:width 10}
+
 (defn ^:no-doc process-multiple-forms
   "Take a sequence of forms (which are zippers of the elements of
   a file or a string containing multiple forms somewhere), and not 
@@ -1040,11 +1105,12 @@
             (partial process-form rest-options zprint-fn zprint-specifier)
             [{} "" 0 0]
             (zmap-all identity forms))
-        #_(def sozf seq-of-zprint-fn)
+        _ (def sozf seq-of-zprint-fn)
         seq-of-strings (map second seq-of-zprint-fn)]
-    #_(def sos seq-of-strings)
+    (def sos seq-of-strings)
     (if interpose-str
-      (apply str (interpose interpose-str (remove empty? seq-of-strings)))
+      (apply str
+        (interpose-w-comment seq-of-strings interpose-str))
       (apply str seq-of-strings))))
 
 ;;
@@ -1073,6 +1139,7 @@
          original-doc-map (get-explained-all-options)]
      (when new-options (set-options! new-options doc-str))
      (try
+       ; Make sure to get trailing newlines by using -1
        (let [lines (clojure.string/split file-str #"\n" -1)
              lines (if (:expand? (:tab (get-options)))
                      (map (partial expand-tabs (:size (:tab (get-options))))
@@ -1135,8 +1202,7 @@
                        out-str)]
          (if (and ends-with-nl? (not (clojure.string/ends-with? out-str "\n")))
            (str out-str "\n")
-           out-str)
-	   #_out-str)
+           out-str))
        (finally (reset-options! original-options original-doc-map)))))
   ([file-str zprint-specifier new-options]
    (zprint-file-str file-str

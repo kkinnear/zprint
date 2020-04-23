@@ -2923,7 +2923,8 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "(a)\n;a\n\n(b)\n;b\n(c)"
         (zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)" "stuff"))
 
-(expect "(a)\n\n;a\n\n(b)\n\n;b\n\n(c)"
+; Issue #101 fix changed this to not interpolate between ;b and (c).
+(expect "(a)\n\n;a\n\n(b)\n\n;b\n(c)"
         (zprint-file-str "(a)\n;a\n\n(b)\n;b\n(c)"
                          "stuff"
                          {:parse {:interpose "\n\n"}}))
@@ -4563,5 +4564,18 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 
 (expect "\n(a)\n\n" (zprint-file-str "\n(a)\n\n" "test"))
+
+;;
+;; # Issue #101 -- :interpolate splits comments, and distances them
+;; from other elements.
+;;
+
+(expect
+  "(ns foo)\n\n;abc\n\n;!zprint {:format :next :width 10}\n\n;  def ghi\n;  jkl mno\n;  pqr\n(defn baz\n  [])\n"
+  (zprint-file-str
+    "\n\n(ns foo)\n;abc\n\n;!zprint {:format :next :width 10}\n\n\n\n;  def ghi jkl mno pqr\n(defn baz [])\n\n\n"
+    "junk"
+    {:parse {:interpose "\n\n"}, :width 10}))
+
 
 

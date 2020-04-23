@@ -4777,8 +4777,7 @@
               (fzprint-newline options indent zloc)
             (zcomment? zloc)
               (let [zcomment
-                      ; Do we have a file-level comment that is way too
-                      ; long??
+		      ; trim-comments? is true for parse-string-all
                       (if (and (zero? depth) (not trim-comments?))
                         zstr
 			; Remove trailing newlines and spaces

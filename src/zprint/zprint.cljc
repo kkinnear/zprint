@@ -2524,9 +2524,11 @@
 						  (= (nth next-seq 2) :indent))
 			                   0
 					   shift-ind)]
-                          (if (= type :indent)
-                            [(str s (blanks this-shift)) color type 42]
-                            this-seq)))
+			  (cond (= type :indent)
+                                  [(str s (blanks this-shift)) color type 42]
+				(= type :right)
+				  [s color type shift-ind]
+				:else this-seq)))
               _ (dbg-pr options
                         "indent-shift: cur-ind:" cur-ind
                         "this-seq:" this-seq
@@ -2755,8 +2757,9 @@
   ([caller l-str r-str options ind zloc fn-style arg-1-indent
     first-indent-only?]
    (let [flow-indent (:indent (caller options))
-         ; If it is a map, then an indent of 1 is all that makes sense.
-         flow-indent (if (= caller :map) 1 flow-indent)
+         ; If it is a map, then an indent of (count l-str) (which is 1)
+	 ; is all that makes sense.
+         flow-indent (if (= caller :map) (count l-str) flow-indent)
          l-str-len (count l-str)
          flow-indent (if (and (> flow-indent l-str-len) (= caller :list))
                        ; If we don't think this could be a fn, indent minimally
@@ -2770,7 +2773,8 @@
                    "fn-style:" fn-style
                    "arg-1-indent:" arg-1-indent
                    "flow-indent:" flow-indent
-                   "actual-ind:" actual-ind)
+                   "actual-ind:" actual-ind
+		   "comma?" (:comma? (caller options)))
          ; We could enable :comma? for lists, sets, vectors someday
          zloc-seq (if (:comma? (caller options))
                     (zmap-w-nl-comma identity zloc)
@@ -2884,6 +2888,49 @@
    :arg2-extend :extend,
    :pair-fn :pair})
 
+(defn get-respect-indent
+  "Given an options map, get the respect-nl?, respect-bl? and indent-only?
+  options from the caller's options, and if the caller doesn't define these,
+  use the values from the backup section of the options map. Return
+  [respect-nl? respect-bl? indent-only?]"
+  ; Note that the routine make-caller exists, and see its use in fzprint*
+  ; That is a different way to solve this problem
+  ;
+  ; We just evaluate the things that need to be evaluated.  The -alt version,
+  ; below, is clearer, but slower since it always evaluates the backup 
+  ; information whether or not it is used.
+  [options caller backup]
+  (let [caller-options (caller options)
+        respect-nl? (get caller-options :respect-nl? :undef)
+        respect-bl? (get caller-options :respect-bl? :undef)
+        indent-only? (get caller-options :indent-only? :undef)]
+    [(if (not= respect-nl? :undef) respect-nl? (:respect-nl? (backup options)))
+     (if (not= respect-bl? :undef) respect-bl? (:respect-bl? (backup options)))
+     (if (not= indent-only? :undef)
+       indent-only?
+       (:indent-only? (backup options)))]))
+
+(defn get-respect-indent-alt
+  "Given an options map, get the respect-nl?, respect-bl? and indent-only?
+  options from the caller's options, and if the caller doesn't define these,
+  use the values from the backup section of the options map. Return
+  [respect-nl? respect-bl? indent-only?]"
+  ; Note that the routine make-caller exists, and see its use in fzprint*
+  ; That is a different way to solve this problem
+  ; 
+  ; This routine used to check for :list, :vector, :map, or :set, and then
+  ; just use the backup-options, but then it turns out :vector-fn has 
+  ; the right stuff, and then make-caller creates callers with the right
+  ; stuff, so it became a support issue to 'know' in this routine just who
+  ; has the right stuff and who doesn't.  That would be faster but is a
+  ; bug waiting to happen, so we do it this way instead.
+  [options caller backup]
+  (let [caller-options (caller options)
+        backup-options (backup options)]
+    [(get caller-options :respect-nl? (:respect-nl? backup-options))
+     (get caller-options :respect-bl? (:respect-bl? backup-options))
+     (get caller-options :indent-only? (:indent-only? backup-options))]))
+     
 (defn allow-one-line?
   "Should we allow this function to print on a single line?"
   [{:keys [fn-force-nl fn-gt2-force-nl fn-gt3-force-nl], :as options} len
@@ -2927,10 +2974,12 @@
   Lots of work to make a list look good, as that is typically code. 
   Presently all of the callers of this are :list or :vector-fn."
   [caller l-str r-str
-   {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl],
-    :as options} ind zloc]
   ; The options map can get re-written down a bit below, so don't get
   ; anything with destructuring that might change with a rewritten  options map!
+   {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl],
+    :as options} ind zloc]
+  ; We don't need to call get-respect-indent here, because all of the
+  ; callers of fzprint-list* define respect-nl?, respect-bl? and indent-only?
   (let [max-length (get-max-length options)
         zloc (modify-zloc caller options zloc)
 	; zcount does (zmap identity zloc) which counts comments and the
@@ -3695,24 +3744,26 @@
   (reduce #(when (= (ztag %2) :comment) (reduced true)) false zloc-seq))
 
 (defn fzprint-vec*
-  "Print basic stuff like a vector or a set.  Several options for how to
-  print them."
+  "Print basic stuff like a vector or a set or an array.  Several options 
+  for how to print them."
   [caller l-str r-str
    {:keys [rightcnt in-code?],
-    {:keys [wrap-coll? wrap? binding? option-fn-first option-fn respect-nl?
-            respect-bl? sort? sort-in-code? fn-format indent indent-only?]}
+    {:keys [wrap-coll? wrap? binding? option-fn-first option-fn 
+            sort? sort-in-code? fn-format indent]}
       caller,
     :as options} ind zloc]
-  (dbg options "fzprint-vec* ind:" ind "indent:" indent "caller:" caller "respect-nl?:" respect-nl?)
+  (dbg options
+       "fzprint-vec* ind:" ind
+       "indent:" indent
+       "caller:" caller)
   (if (and binding? (= (:depth options) 1))
     (fzprint-binding-vec options ind zloc)
-    (let [l-str-len (count l-str)
+    (let [[respect-nl? respect-bl? indent-only?]
+            (get-respect-indent options caller :vector)
+          l-str-len (count l-str)
           l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options 
-	                      (+ ind (max 0 (dec l-str-len))) 
-			      zloc 
-			      r-str) 
-
+          r-str-vec
+            (rstr-vec options (+ ind (max 0 (dec l-str-len))) zloc r-str)
           len (zcount zloc)
           new-options (when option-fn-first
                         (let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
@@ -3755,8 +3806,8 @@
         (let [; If sort? is true, then respect-nl? and respect-bl? make
               ; no sense.  And vice versa.
               ; If respect-nl? or respect-bl?, then no sort.
-	      ; If we have comments, then no sort, because we'll lose the
-	      ; comment context.
+              ; If we have comments, then no sort, because we'll lose the
+              ; comment context.
               indent (or indent (count l-str))
               new-ind (if indent-only? ind (+ indent ind))
               _ (dbg-pr options
@@ -3768,7 +3819,7 @@
                              :else (zmap identity zloc))
               zloc-seq (if (and sort?
                                 (if in-code? sort-in-code? true)
-				(not (comment-in-zloc-seq? zloc-seq))
+                                (not (comment-in-zloc-seq? zloc-seq))
                                 (not respect-nl?)
                                 (not respect-bl?)
                                 (not indent-only?))
@@ -3818,13 +3869,11 @@
                   (if (or (and (not wrap-coll?)
                                (any-zcoll? options new-ind zloc))
                           (not wrap?))
-                    (concat-no-nil l-str-vec
-				   (apply concat-no-nil
-				     (precede-w-nl options 
-				                   new-ind 
-						   coll-print 
-						   :no-nl-first)) 
-                                   r-str-vec)
+                    (concat-no-nil
+                      l-str-vec
+                      (apply concat-no-nil
+                        (precede-w-nl options new-ind coll-print :no-nl-first))
+                      r-str-vec)
                     ; Since there are either no collections in this vector or
                     ; set
                     ; or
@@ -3835,8 +3884,8 @@
                     (concat-no-nil
                       l-str-vec
                       (do (dbg-pr options
-                               "fzprint-vec*: wrap coll-print:"
-                               coll-print)
+                                  "fzprint-vec*: wrap coll-print:"
+                                  coll-print)
                           (wrap-zmap caller options new-ind coll-print))
                       r-str-vec)))))))))))
 
@@ -4158,116 +4207,120 @@
   [caller l-str r-str
    {:keys [one-line? ztype map-depth in-code?],
     {:keys [comma? key-ignore key-ignore-silent nl-separator? force-nl? lift-ns?
-            lift-ns-in-code? respect-bl? respect-nl? indent-only? indent],
+            lift-ns-in-code? indent],
      :as map-options}
       caller,
     :as options} ind zloc ns]
-  (if indent-only?
-    (let [options (assoc options :map-depth (inc map-depth))
-          l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options ind zloc r-str)]
-      (if (zero? (zcount zloc))
-        (concat-no-nil l-str-vec r-str-vec)
-        (concat-no-nil l-str-vec
-                       (fzprint-indent caller
-                                       l-str
-                                       r-str
-                                       options
-                                       ind
-                                       zloc
-                                       nil ;fn-style
-                                       nil) ;arg-1-indent, will prevent hang
-                       r-str-vec)))
-    (let [options (assoc options :map-depth (inc map-depth))
-          zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
-                 (map-ignore caller options zloc)
-                 zloc)
-          [no-sort? pair-seq] (partition-all-2-nc
-                                (no-max-length options)
-                                (cond respect-nl? (zseqnws-w-nl zloc)
-                                      respect-bl? (zseqnws-w-bl zloc)
-                                      :else (zseqnws zloc)))
-          #_(dbg-pr "fzprint-map* pair-seq:"
-                    (map (comp zstring first) pair-seq))
-          ; don't sort if we are doing respect-nl?
-          no-sort? (or no-sort? respect-nl? respect-bl?)
-          [ns lift-pair-seq]
-            (zlift-ns (assoc map-options :in-code? in-code?) pair-seq ns)
-          _ (dbg-pr options "fzprint-map* zlift-ns ns:" ns)
-          l-str (if ns (str "#" ns l-str) l-str)
-          pair-seq (or lift-pair-seq pair-seq)
-          pair-seq
-            (if no-sort? pair-seq (order-out caller options first pair-seq))
-          ; This is where you might put max-length
-          max-length (get-max-length options)
-          pair-count (count pair-seq)
-          pair-seq (if (> pair-count max-length)
-                     (concat (take max-length pair-seq)
-                             (list (list (zdotdotdot))))
-                     pair-seq)
-          indent (count l-str)
-          l-str-vec [[l-str (zcolor-map options l-str) :left]]
-          r-str-vec (rstr-vec options ind zloc r-str)]
-      (if (empty? pair-seq)
-        (concat-no-nil l-str-vec r-str-vec)
-        (let [_ (dbg-pr options
-                        "fzprint-map*:" (zstring zloc)
-                        "ind:" ind
-                        "comma?" comma?
-                        "rightcnt:" (:rightcnt options))
-              ; A possible one line representation of this map, but this is
-              ; optimistic and needs to be validated.
-              pair-print-one-line
-                (fzprint-map-two-up
-                  caller
-                  (if one-line? options (assoc options :one-line? true))
-                  (+ indent ind)
-                  comma?
-                  pair-seq)
-              pair-print-one-line (remove-hangflow pair-print-one-line)
-              ; Does it fit on line line?
-              pair-print-one-line (when (fzfit-one-line options
-                                                        (style-lines
-                                                          options
-                                                          (+ indent ind)
-                                                          pair-print-one-line))
-                                    pair-print-one-line)
-              one-line (when pair-print-one-line
-                         (apply concat-no-nil
-                           (interpose-either [[", " :none :whitespace 19]]
-                                             [[" " :none :whitespace 20]]
-                                             (constantly comma?)
-                                             pair-print-one-line)))
-              one-line-lines (style-lines options (+ indent ind) one-line)
-              one-line (when (fzfit-one-line options one-line-lines) one-line)]
-          (if one-line
-            (concat-no-nil l-str-vec one-line r-str-vec)
-            ; It didn't fit on one line.
-            (when (not one-line?)
-              ; We weren't required to fit it on one line
-              (let [pair-print (fzprint-map-two-up caller
-                                                   options
-                                                   (+ indent ind)
-                                                   comma?
-                                                   pair-seq)]
-                (concat-no-nil
-                  l-str-vec
-                  (interpose-either-nl-hf
-                    ; comma? true
-                    [["," :none :whitespace 21]
-                     [(str "\n" (blanks (inc ind))) :none :indent 32]]
-                    [["," :none :whitespace 22] ; Fix issue #59 -- don't
-                     ; put blanks to indent before the next \n
-                     ["\n" :none :indent 33]
-                     [(str "\n" (blanks (inc ind))) :none :indent 34]]
-                    ; comma? nil
-                    [[(str "\n" (blanks (inc ind))) :none :indent 35]]
-                    [["\n" :none :indent 36]
-                     [(str "\n" (blanks (inc ind))) :none :indent 37]]
-                    (:map options) ;nl-separator?
+  (let [[respect-nl? respect-bl? indent-only?]
+          (get-respect-indent options caller :map)]
+    (dbg-pr options "fzprint-map* caller:" caller)
+    (if indent-only?
+      (let [options (assoc options :map-depth (inc map-depth))
+            l-str-vec [[l-str (zcolor-map options l-str) :left]]
+            r-str-vec (rstr-vec options ind zloc r-str)]
+        (if (zero? (zcount zloc))
+          (concat-no-nil l-str-vec r-str-vec)
+          (concat-no-nil l-str-vec
+                         (fzprint-indent caller
+                                         l-str
+                                         r-str
+                                         options
+                                         ind
+                                         zloc
+                                         nil ;fn-style
+                                         nil) ;arg-1-indent, will prevent hang
+                         r-str-vec)))
+      (let [options (assoc options :map-depth (inc map-depth))
+            zloc (if (and (= ztype :sexpr) (or key-ignore key-ignore-silent))
+                   (map-ignore caller options zloc)
+                   zloc)
+            [no-sort? pair-seq] (partition-all-2-nc
+                                  (no-max-length options)
+                                  (cond respect-nl? (zseqnws-w-nl zloc)
+                                        respect-bl? (zseqnws-w-bl zloc)
+                                        :else (zseqnws zloc)))
+            #_(dbg-pr "fzprint-map* pair-seq:"
+                      (map (comp zstring first) pair-seq))
+            ; don't sort if we are doing respect-nl?
+            no-sort? (or no-sort? respect-nl? respect-bl?)
+            [ns lift-pair-seq]
+              (zlift-ns (assoc map-options :in-code? in-code?) pair-seq ns)
+            _ (dbg-pr options "fzprint-map* zlift-ns ns:" ns)
+            l-str (if ns (str "#" ns l-str) l-str)
+            pair-seq (or lift-pair-seq pair-seq)
+            pair-seq
+              (if no-sort? pair-seq (order-out caller options first pair-seq))
+            ; This is where you might put max-length
+            max-length (get-max-length options)
+            pair-count (count pair-seq)
+            pair-seq (if (> pair-count max-length)
+                       (concat (take max-length pair-seq)
+                               (list (list (zdotdotdot))))
+                       pair-seq)
+            indent (count l-str)
+            l-str-vec [[l-str (zcolor-map options l-str) :left]]
+            r-str-vec (rstr-vec options ind zloc r-str)]
+        (if (empty? pair-seq)
+          (concat-no-nil l-str-vec r-str-vec)
+          (let [_ (dbg-pr options
+                          "fzprint-map*:" (zstring zloc)
+                          "ind:" ind
+                          "comma?" comma?
+                          "rightcnt:" (:rightcnt options))
+                ; A possible one line representation of this map, but this is
+                ; optimistic and needs to be validated.
+                pair-print-one-line
+                  (fzprint-map-two-up
+                    caller
+                    (if one-line? options (assoc options :one-line? true))
+                    (+ indent ind)
                     comma?
-                    pair-print)
-                  r-str-vec)))))))))
+                    pair-seq)
+                pair-print-one-line (remove-hangflow pair-print-one-line)
+                ; Does it fit on line line?
+                pair-print-one-line (when (fzfit-one-line
+                                            options
+                                            (style-lines options
+                                                         (+ indent ind)
+                                                         pair-print-one-line))
+                                      pair-print-one-line)
+                one-line (when pair-print-one-line
+                           (apply concat-no-nil
+                             (interpose-either [[", " :none :whitespace 19]]
+                                               [[" " :none :whitespace 20]]
+                                               (constantly comma?)
+                                               pair-print-one-line)))
+                one-line-lines (style-lines options (+ indent ind) one-line)
+                one-line (when (fzfit-one-line options one-line-lines)
+                           one-line)]
+            (if one-line
+              (concat-no-nil l-str-vec one-line r-str-vec)
+              ; It didn't fit on one line.
+              (when (not one-line?)
+                ; We weren't required to fit it on one line
+                (let [pair-print (fzprint-map-two-up caller
+                                                     options
+                                                     (+ indent ind)
+                                                     comma?
+                                                     pair-seq)]
+                  (concat-no-nil
+                    l-str-vec
+                    (interpose-either-nl-hf
+                      ; comma? true
+                      [["," :none :whitespace 21]
+                       [(str "\n" (blanks (inc ind))) :none :indent 32]]
+                      [["," :none :whitespace 22] ; Fix issue #59 -- don't
+                       ; put blanks to indent before the next \n
+                       ["\n" :none :indent 33]
+                       [(str "\n" (blanks (inc ind))) :none :indent 34]]
+                      ; comma? nil
+                      [[(str "\n" (blanks (inc ind))) :none :indent 35]]
+                      [["\n" :none :indent 36]
+                       [(str "\n" (blanks (inc ind))) :none :indent 37]]
+                      (:map options) ;nl-separator?
+                      comma?
+                      pair-print)
+                    r-str-vec))))))))))
 
 (defn fzprint-map
   "Format a real map."
@@ -4563,6 +4616,9 @@
         ; tests and some repl testing as well.
         namespaced? (= (subs zstr 0 1) ":")
         at? (or (= (ztag (zsecond zloc)) :deref) alt-at?)
+        ; If :reader-cond doesn't have these things, then let :map govern
+        [respect-nl? respect-bl? indent-only?]
+          (get-respect-indent options :reader-cond :map)
         l-str (cond (and reader-cond? at?) "#?@"
                     (and reader-cond? (zcoll? (zsecond zloc))) "#?"
                     reader-cond?
@@ -4588,26 +4644,63 @@
             "fzprint-reader-macro: zloc:" (zstring zloc)
             "floc:" (zstring floc)
             "l-str:" l-str)
-    (concat-no-nil
-      l-str-vec
-      ; Because there is a token here in the zipper, we need something to
-      ; make the focus positioning come out right.
-      [["" :none :element]]
-      (if reader-cond?
-        ; yes rightmost, this is a collection
-        (fzprint-map* :reader-cond
-                      "("
-                      ")"
-                      (rightmost options)
-                      (+ indent ind)
-                      floc
-                      nil)
-        ; not reader-cond?
-        (fzprint-flow-seq options
-                          (+ indent ind)
-                          (let [zloc-seq (zmap identity zloc)]
-                            (if namespaced? (next zloc-seq) zloc-seq))))
-      r-str-vec)))
+    ; This isn't really all that correct, but does yield the right output.
+    ; Question about whether or not it does the right stuff for focus.
+    ; Maybe there is some way to call fzprint-indent with just the
+    ; #? and "", and let it deal with the underlying list. I don't know
+    ; if that would be possible, though maybe if we carefully positioned
+    ; the floc for that case.  But could we hack in the ["" :none :element]
+    ; in that case? At present documented that focus and :indent-only
+    ; don't work together..
+    (if indent-only?
+      (let [l-str-io (if reader-cond? (str l-str "(") l-str)
+            r-str-io (if reader-cond? ")" "")
+            l-str-vec-io [[l-str-io (zcolor-map options l-str-io) :left]]
+            r-str-vec-io (rstr-vec options ind zloc r-str-io)]
+        (concat-no-nil
+          l-str-vec-io
+          (if reader-cond?
+            (fzprint-indent :map
+                            l-str-io
+                            r-str-io
+                            (rightmost options)
+                            ind
+                            floc
+                            nil ;fn-style
+                            nil) ;arg-1-indent, will prevent hang
+            (fzprint-indent :map
+                            l-str-io
+                            r-str-io
+                            (rightmost options)
+                            ind
+                            (if namespaced? (znextnws-w-nl zloc) zloc)
+                            nil ; fn-style
+                            nil) ;arg-1-indent
+            )
+          r-str-vec-io))
+      (concat-no-nil
+        l-str-vec
+        ; Because there is a token here in the zipper, we need something to
+        ; make the focus positioning come out right.
+        [["" :none :element]]
+        (if reader-cond?
+          ; yes rightmost, this is a collection
+          (fzprint-map* :reader-cond
+                        "("
+                        ")"
+                        (rightmost options)
+                        (+ indent ind)
+                        floc
+                        nil)
+          ; not reader-cond?
+          (fzprint-flow-seq options
+                            (+ indent ind)
+                            (let [zloc-seq
+                                    (cond respect-nl? (zmap-w-nl identity zloc)
+                                          respect-bl? (zmap-w-bl identity zloc)
+                                          :else (zmap identity zloc))]
+                              (if namespaced? (next zloc-seq) zloc-seq))))
+        r-str-vec))))
 
 (defn fzprint-newline
   "Given an element which contains newlines, split it up into individual
@@ -4747,12 +4840,15 @@
         (fzprint-vec* :prefix-tags
                       (prefix-tags (ztag zloc))
                       ""
-                      ; Pick up the :indent-only?
-                      ; config from :list
-                      (make-caller (prefix-options options (ztag zloc))
-                                   :prefix-tags
-                                   :list
-                                   [:indent-only?])
+                      ; Pick up the :indent-only?, :respect-nl?, and
+		      ; respect-bl? config from :list
+		      ; Note that the routine get-respect-indent exists,
+		      ; and its use in fzprint-vec* and fzprint-map* also
+		      ; solves a similar problem
+		      (-> (prefix-options options (ztag zloc))
+		          (make-caller :prefix-tags :list [:indent-only?])
+			  (make-caller :prefix-tags :list [:respect-nl?])
+			  (make-caller :prefix-tags :list [:respect-bl?]))
                       indent
                       zloc)
       (zns? zloc) (fzprint-ns options indent zloc)

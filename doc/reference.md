@@ -3232,7 +3232,21 @@ When elements are formatted with `:object?` `true`, then the output
 if formatted using the information specified in the `:object`
 information.
 
+Note that `:respect-nl?`, `:respect-bl?`, and `:indent-only?` are not
+supported independently for `:object` -- when objects
+are processed, the values for `:respect-nl?`, `:respect-bl?` and
+`:indent-only?` for `:vector` are used.
+
+
 ##### :indent _1_
+
+##### :wrap-after-multi? _true_
+
+Same as `:vector`.
+
+##### :wrap-coll? _true_
+
+Same as `:vector`.
 _____
 ## :output
 
@@ -3241,6 +3255,8 @@ This controls the overall output that is produced.
 #### :focus
 Determines whether to highlight a part of the structure, and which
 part to highlight. Only one of `:zloc?` or `:path` can have a value.
+
+Note: `:focus` is not supported with `{:style :indent-only}.
 
 Contains a map with the following possible keys.
 ##### :zloc? _false_
@@ -3395,12 +3411,17 @@ The formatting of the pairs themselves is controlled by `:pair`.
 _____
 ## :reader-cond
 
-Reader conditionals are controlled by the `:reader-cond` key.  All
+Reader conditionals are controlled by the `:reader-cond` key.  Many
 of the keys which are supported for `:map` are supported for `:reader-cond`
 (except `:comma?`), albeit with different defaults.  By default,
 `:sort?` is nil, so the elements are not reordered.  You could enable
 `:sort?` and specify a `:key-order` vector to order the elements of a
-reader conditional.
+reader conditional.  
+
+Note that `:respect-nl?`, `:respect-bl?`, and `:indent-only?` are not
+supported independently for `:reader-cond` -- when reader conditionals
+are processed, the values for `:respect-nl?`, `:respect-bl?` and
+`:indent-only?` for `:map` are used.
 
 ##### :indent _2_
 ##### :hang? _true_

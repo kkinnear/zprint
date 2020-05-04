@@ -1014,6 +1014,16 @@
                                  (conj interpose-str)
                                  (conj s)))))))))
 
+(defn ^:no-doc remove-shebang
+  "Given a string which contains multiple lines, check the first line to
+  see if it begins with a shebang, that is: #!.  If it does, remove that
+  line and return it as the shebang, else shebang is nil.  Returns:
+  [shebang filestring]"
+  [filestring]
+  (if (clojure.string/starts-with? filestring "#!")
+    (clojure.string/split filestring #"\n" 2)
+    [nil filestring]))
+
 ;;
 ;; # File comment API
 ;;
@@ -1171,11 +1181,8 @@
 			 "after count:" (count after-lines)
 			 "range:" range))
              ends-with-nl? (clojure.string/ends-with? file-str "\n")
-             ; If file ended with a \newline, make sure it still does
-             ; if we are not doing a range
-             #_#_filestring (if (and ends-with-nl? (not range))
-                          (str filestring "\n")
-                          filestring)
+	     ; If the filestring starts with #!, remove it and save it
+	     [shebang filestring] (remove-shebang filestring)
              forms (edn* (p/parse-string-all filestring))
              pmf-options {:process-bang-zprint? true}
              pmf-options (if (:interpose (:parse (get-options)))
@@ -1199,7 +1206,8 @@
                               ""
                               (str "\n" 
 			           (clojure.string/join "\n" after-lines))))
-                       out-str)]
+                       out-str)
+	      out-str (if shebang (str shebang "\n" out-str) out-str)]
          (if (and ends-with-nl? (not (clojure.string/ends-with? out-str "\n")))
            (str out-str "\n")
            out-str))

@@ -4531,6 +4531,22 @@ ser/collect-vars-acc %1 %2) )))"
                     {:parse-string? true}))
 
 ;;
+;; Yes, and how does it work with indent-only and respect-nl?
+;;
+;; This is also a test for extra blank line when last thing in a list is a
+;; comment.
+;;
+
+(expect "(a (b (c (d e f ;stuff\n         ) h ;foo\n      ) ;bar\n   ) i j)"
+        (zprint-str "(a (b (c (d e f ;stuff\n) h ;foo\n) ;bar\n) i j)"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect
+  "(a (b (c (d e\n            f ;stuff\n         )\n         h ;foo\n      ) ;bar\n   )\n   i\n   j)"
+  (zprint-str "(a (b (c (d e f ;stuff\n) h ;foo\n) ;bar\n) i j)"
+              {:parse-string? true, :style :respect-nl}))
+
+;;
 ;; Another trailing blank problem
 ;;
 
@@ -4577,5 +4593,84 @@ ser/collect-vars-acc %1 %2) )))"
     "junk"
     {:parse {:interpose "\n\n"}, :width 10}))
 
+;;
+;; # Issue 145 -- reader-conditionals don't work right with indent-only
+;;                respect-nl too...
+;;
 
+(expect "#stuff/bother\n (list :this \"is\" a :test)"
+        (zprint-str "#stuff/bother\n (list :this \"is\" a :test)"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "#stuff/bother (list :this \"is\" a :test)"
+        (zprint-str "#stuff/bother\n (list :this \"is\" a :test)"
+                    {:parse-string? true}))
+
+(expect "#stuff/bother (list :this\n                \"is\" a :test)"
+        (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
+                    {:parse-string? true, :style :indent-only}))
+
+(expect "#stuff/bother\n (list :this\n       \"is\"\n       a\n       :test)"
+        (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
+                    {:parse-string? true, :style :respect-nl}))
+
+(expect
+  "#?(:clj (defn zpmap ([f] (if x y z)))\n   :cljs (defn zpmap ([f] (if x y z))))"
+  (zprint-str
+    "#?(:clj (defn zpmap\n          ([f] \n\t   (if x y z)))\n    :cljs (defn zpmap\n          ([f] \n\t   (if x y z))))"
+    {:parse-string? true}))
+
+(expect
+  "#?(:clj (defn zpmap\n          ([f]\n           (if x y z)))\n   :cljs (defn zpmap\n           ([f]\n            (if x y z))))"
+  (zprint-str
+    "#?(:clj (defn zpmap\n          ([f] \n\t   (if x y z)))\n    :cljs (defn zpmap\n          ([f] \n\t   (if x y z))))"
+    {:parse-string? true, :style :respect-nl}))
+
+(expect
+  "#?(:clj (defn zpmap\n          ([f]\n           (if x y z)))\n   :cljs (defn zpmap\n           ([f]\n            (if x y z))))"
+  (zprint-str
+    "#?(:clj (defn zpmap\n	    ([f] \n\t	(if x y z)))\n	  :cljs (defn zpmap\n	       ([f] \n\t   (if x y z))))"
+    {:parse-string? true, :style :indent-only}))
+
+;;
+;; This is related to the #145 issue, but it is about :prefix-tags.  The bigger
+;; issue was that there were a lot of caller's that didn't have respect
+;; or indent configured. 
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test\n      #_\n        (aaaaaaa bbbbbbbb\n                 cccccccccc)\n      (ddddddddd eeeeeeeeee\n                 fffffffffff))"
+  (zprint-str
+    "(this is a test this is only a test #_\n(aaaaaaa bbbbbbbb cccccccccc)(ddddddddd eeeeeeeeee fffffffffff))"
+    {:parse-string? true, :width 30, :style :respect-nl}))
+
+(expect
+  "(this is a test\n  this is only a test #_\n                        (aaaaaaa bbbbbbbb cccccccccc)\n  (ddddddddd eeeeeeeeee fffffffffff))"
+  (zprint-str
+    "(this is a test \nthis is only a test #_\n(aaaaaaa bbbbbbbb cccccccccc)\n(ddddddddd eeeeeeeeee fffffffffff))"
+    {:parse-string? true, :width 30, :style :indent-only}))
+
+(expect
+  "(this\n  is\n  a\n  test\n  this\n\n  is\n  only\n  a\n  test\n  #_\n\n    (aaaaaaa bbbbbbbb\n             cccccccccc)\n  (ddddddddd\n\n    eeeeeeeeee\n    fffffffffff))"
+  (zprint-str
+    "(this is a test \nthis \n\nis only a test #_\n\n(aaaaaaa bbbbbbbb cccccccccc)(ddddddddd \n\neeeeeeeeee fffffffffff))"
+    {:parse-string? true, :width 30, :style :respect-bl}))
+;;
+;; Discovered that I left out comma support for :indent-only for maps.
+;; Tests did not discover this!
+;; Now they will.
+;;
+
+(expect "{:a :b, :c :d, :e :f}"
+        (zprint-str "{:a :b, :c :d, :e :f}"
+                    {:parse-string? true, :style :indent-only}))
+(expect "{:a :b, :c :d, :e :f}"
+        (zprint-str "{:a :b, :c :d, :e :f}" {:parse-string? true}))
+
+(expect "{:a :b, :c :d, :e :f}"
+        (zprint-str "{:a :b, :c :d, :e :f}"
+                    {:parse-string? true, :style :respect-nl}))
+
+(expect "{:a :b, :c :d, :e :f}"
+        (zprint-str "{:a :b, :c :d, :e :f}"
+                    {:parse-string? true, :style :respect-bl}))
 

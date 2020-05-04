@@ -430,7 +430,7 @@
             comment? (= (z/tag nloc) :comment)
             ; This may reset the nloc for the rest of the sequence!
             nloc (if comment? (split-newline-from-comment nloc) nloc)
-            result (when (not (or (whitespace? nloc) comma?))
+            result (when (or (not (whitespace? nloc)) comma?)
                      (zfn nloc))
             nl-len (when nl? (length nloc))
             multi-nl? (when nl? (> (length nloc) 1))

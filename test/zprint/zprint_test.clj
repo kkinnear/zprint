@@ -4674,3 +4674,21 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "{:a :b, :c :d, :e :f}"
                     {:parse-string? true, :style :respect-bl}))
 
+;;
+;; Issue -- left-space :keep doesn't work for comments
+;; #148
+;;
+
+(expect
+  "\n\n(ns foo)\n;abc\n;!zprint {:format :next :width 20}\n       ;def ghi jkl\n       ;mno pqr\n   (defn baz [])\n\n\n"
+  (zprint-file-str
+    "\n\n(ns foo)\n;abc\n;!zprint {:format :next :width 20}\n       ;def ghi jkl mno pqr\n   (defn baz [])\n\n\n"
+    "junk"
+    {:parse {:interpose nil, :left-space :keep}, :width 30}))
+
+(expect
+  "\n    (defn\n      thisis\n      [a]\n      test)\n    ;def\n    ;ghi\n    ;jkl\n    ;mno\n    ;pqr\n"
+  (zprint-file-str "\n    (defn thisis [a] test)\n    ;def ghi jkl mno pqr\n"
+                   "junk"
+                   {:parse {:interpose nil, :left-space :keep}, :width 10}))
+

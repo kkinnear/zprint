@@ -916,9 +916,7 @@
         ; them into the options map as well.
         next-options
           (if (zero? indent) next-options (assoc next-options :indent indent))
-        internal-options (if (or comment?
-                                 ;whitespace-form?
-                                 (empty? next-options))
+        internal-options (if (empty? next-options)
                            rest-options
                            (merge-deep rest-options next-options))
         decision-options (merge-deep (get-options) internal-options)
@@ -943,7 +941,7 @@
             {:comment {:wrap? false}, :zipper? true, :file? true, :drop? drop?}
             {:zipper? true, :file? true, :drop? drop?})
         internal-options (merge-deep internal-options local-options)
-        #_(do (println "-----------------------")
+        #_ (do (println "-----------------------")
               (println "form:")
               (prn (zprint.zutil/string (or (zprint.zutil/zfirst form) form)))
               (println "space-count:" space-count)

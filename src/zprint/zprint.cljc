@@ -423,7 +423,6 @@
       ; no reason to terminate the line, just accumulate
       ; the size in cur-len
       :else [out (+ cur-len count-s) nil comment?])))
-; (assoc in 1 (+ cur-len count-s) 2 nil 3 comment?))))
 
 (defn generate-ll
   [count-comment? [out cur-len just-eol? just-comment? :as in]
@@ -536,8 +535,7 @@
   character."
   [options ind style-vec]
   (let [length-vec (first ; this final accumulate-ll is to terminate the last
-                          ; line,
-                          ; the one in progress
+                          ; line, the one in progress
                      (let [count-comment? (:count? (:comment options))
                            [_ _ just-eol? just-comment? :as result]
                              (reduce (partial generate-ll count-comment?)
@@ -2896,9 +2894,8 @@
   ; Note that the routine make-caller exists, and see its use in fzprint*
   ; That is a different way to solve this problem
   ;
-  ; We just evaluate the things that need to be evaluated.  The -alt version,
-  ; below, is clearer, but slower since it always evaluates the backup 
-  ; information whether or not it is used.
+  ; We just evaluate the things that need to be evaluated, since this is
+  ; called a *lot*!.  
   [options caller backup]
   (let [caller-options (caller options)
         respect-nl? (get caller-options :respect-nl? :undef)
@@ -2909,27 +2906,6 @@
      (if (not= indent-only? :undef)
        indent-only?
        (:indent-only? (backup options)))]))
-
-(defn get-respect-indent-alt
-  "Given an options map, get the respect-nl?, respect-bl? and indent-only?
-  options from the caller's options, and if the caller doesn't define these,
-  use the values from the backup section of the options map. Return
-  [respect-nl? respect-bl? indent-only?]"
-  ; Note that the routine make-caller exists, and see its use in fzprint*
-  ; That is a different way to solve this problem
-  ; 
-  ; This routine used to check for :list, :vector, :map, or :set, and then
-  ; just use the backup-options, but then it turns out :vector-fn has 
-  ; the right stuff, and then make-caller creates callers with the right
-  ; stuff, so it became a support issue to 'know' in this routine just who
-  ; has the right stuff and who doesn't.  That would be faster but is a
-  ; bug waiting to happen, so we do it this way instead.
-  [options caller backup]
-  (let [caller-options (caller options)
-        backup-options (backup options)]
-    [(get caller-options :respect-nl? (:respect-nl? backup-options))
-     (get caller-options :respect-bl? (:respect-bl? backup-options))
-     (get caller-options :indent-only? (:indent-only? backup-options))]))
      
 (defn allow-one-line?
   "Should we allow this function to print on a single line?"
@@ -5055,9 +5031,9 @@
 
 (defn style-loc-vec
   "Take a style-vec and produce a style-loc-vec with the starting column
-  of each element in the style-vec."
-  [style-vec]
-  (butlast (reductions loc-vec 0 style-vec)))
+  of each element in the style-vec. Accepts a beginning indent."
+  [indent style-vec]
+  (butlast (reductions loc-vec indent style-vec)))
 
 ; Transient didn't help here, rather it hurt a bit.
 
@@ -5083,8 +5059,9 @@
   "Take the final output style-vec, and wrap any comments which run over
   the width. Looking for "
   [{:keys [width], :as options} style-vec]
+  (dbg options "fzprint-wrap-comments: indent:" (:indent options))
   #_(def wcsv style-vec)
-  (let [start-col (style-loc-vec style-vec)
+  (let [start-col (style-loc-vec (or (:indent options) 0) style-vec)
         #_(def stc start-col)
         _ (dbg options "fzprint-wrap-comments: style-vec:" (pr-str style-vec))
         _ (dbg options "fzprint-wrap-comments: start-col:" start-col)
@@ -5410,7 +5387,7 @@
   "The pretty print part of fzprint."
   [options indent zloc]
   #_(def opt options)
-  #_(println "fzprint: indent:" indent "(:indent options)" (:indent options))
+  (dbg options "fzprint: indent:" indent "(:indent options)" (:indent options))
   ; if we are doing specs, find the docstring and modify it with
   ; the spec output.
   #_(println "fn-name:" (:fn-name options))

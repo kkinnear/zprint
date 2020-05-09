@@ -1,0 +1,115 @@
+(ns zprint.range-test
+  (:require [expectations :refer :all]
+            [zprint.core :refer :all]
+            [zprint.core-test :refer :all]
+            [zprint.zprint :refer :all]
+            [zprint.finish :refer :all]
+            [clojure.repl :refer :all]
+            [clojure.string :as str]
+            [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
+            [rewrite-clj.node :as n]
+            [rewrite-clj.zip :as z :only [edn*]]))
+
+;; Keep some of the test on wrapping so they still work
+;!zprint {:comment {:wrap? false}}
+
+;
+; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
+;
+
+;
+; Set :force-eol-blanks? true here to see if we are catching eol blanks
+;
+
+(set-options!
+  {:configured? true, :force-eol-blanks? false, :test-for-eol-blanks? true})
+
+
+;;
+;; # Range
+;;
+;; See if things print the way they are supposed to.
+;;
+
+(def range1
+"\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n")
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 12, :end 17}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 7, :end 9}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 19, :end 19}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 10, :end 10}}}))
+
+(expect
+"\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+(zprint-file-str range1 "junk" {:output {:range {:start 6 :end 10}}}))
+
+(expect
+"\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+(zprint-file-str range1 "junk" {:output {:range {:start 1 :end 1}}}))
+
+(expect
+  "(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 0, :end 0}}}))
+
+(expect
+"\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+(zprint-file-str range1 "junk" {:output {:range {:start 0 :end 10}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 28, :end 28}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 10, :end 20}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 10, :end 21}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 29, :end 29}}}))
+
+(expect
+  "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 0, :end 29}}}))
+
+(expect
+  "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start -1, :end 29}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start -1, :end 0}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start -1, :end -1}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 100, :end -1}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 100, :end 200}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 100, :end 200}}}))
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  (zprint-file-str range1 "junk" {:output {:range {:start 200, :end -1}}}))

@@ -4520,6 +4520,8 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 ;; Where to put a hanging closing right paren or whatever
 ;;
+;; Also Issue #149.
+;;
 
 (expect
   "(a (b (c (d e\n            f ;stuff\n         )\n         h ;foo\n      ) ;bar\n   )\n   i\n   j)"

@@ -22,7 +22,8 @@
              [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
             [zprint.sutil]
             [zprint.focus :refer [range-ssv]]
-	    [zprint.range :refer [expand-range-to-top-level split-out-range]]
+	    [zprint.range :refer [expand-range-to-top-level split-out-range
+	                          reassemble-range]]
             [rewrite-clj.parser :as p]
             #_[clojure.spec.alpha :as s])
   #?@(:clj ((:import (java.net URL URLConnection)
@@ -1156,31 +1157,35 @@
              filestring (clojure.string/join "\n" lines)
              range-start (:start (:range (:output (get-options))))
              range-end (:end (:range (:output (get-options))))
-	     _ (when (or range-start range-end) 
-	         (dbg new-options "zprint-file-str: range-start:" range-start
-	                  "range-end:" range-end))
+             _ (when (or range-start range-end)
+                 (dbg new-options
+                      "zprint-file-str: range-start:" range-start
+                      "range-end:" range-end))
              [actual-start actual-end] (when (or range-start range-end)
-                                         (expand-range-to-top-level filestring
-                                                                    lines
-                                                                    range-start
-                                                                    range-end))
-	     _ (when (or range-start range-end) 
-	         (dbg new-options "zprint-file-str: actual-start:" actual-start
-	                  "actual-end:" actual-end))
+                                         (expand-range-to-top-level
+                                           filestring
+                                           lines
+                                           range-start
+                                           range-end
+                                           (:dbg? (get-options))))
+             _ (when (or range-start range-end)
+                 (dbg new-options
+                      "zprint-file-str: actual-start:" actual-start
+                      "actual-end:" actual-end))
              [before-lines range after-lines]
                (when (and actual-start actual-end)
                  (split-out-range lines actual-start actual-end))
              filestring (if range (clojure.string/join "\n" range) filestring)
-	     _ (when (and actual-start actual-end) 
-	         (dbg-pr new-options "zprint-file-str: lines count:"
-		         (count lines)
-		         "before count:" (count before-lines)
-		         "range count:" (count range)
-			 "after count:" (count after-lines)
-			 "range:" range))
+             _ (when (and actual-start actual-end)
+                 (dbg-pr new-options
+                         "zprint-file-str: lines count:" (count lines)
+                         "before count:" (count before-lines)
+                         "range count:" (count range)
+                         "after count:" (count after-lines)
+                         "range:" range))
              ends-with-nl? (clojure.string/ends-with? file-str "\n")
-	     ; If the filestring starts with #!, remove it and save it
-	     [shebang filestring] (remove-shebang filestring)
+             ; If the filestring starts with #!, remove it and save it
+             [shebang filestring] (remove-shebang filestring)
              forms (edn* (p/parse-string-all filestring))
              pmf-options {:process-bang-zprint? true}
              pmf-options (if (:interpose (:parse (get-options)))
@@ -1191,21 +1196,13 @@
                                              zprint-str-internal
                                              zprint-specifier
                                              forms)
-	     ; If we did a range, insert the formatted range back into
-	     ; the before and after lines, using newlines as glue, since
-	     ; they get lost with the three separate join calls.
+             _ (dbg-pr new-options "zprint-file-str: out-str:" out-str)
+             ; If we did a range, insert the formatted range back into
+             ; the before and after lines.
              out-str (if range
-                       (str (if (empty? before-lines)
-                              ""
-                              (str (clojure.string/join "\n" before-lines)
-			           "\n"))
-                            out-str
-                            (if (empty? after-lines)
-                              ""
-                              (str "\n" 
-			           (clojure.string/join "\n" after-lines))))
+                       (reassemble-range before-lines out-str after-lines)
                        out-str)
-	      out-str (if shebang (str shebang "\n" out-str) out-str)]
+             out-str (if shebang (str shebang "\n" out-str) out-str)]
          (if (and ends-with-nl? (not (clojure.string/ends-with? out-str "\n")))
            (str out-str "\n")
            out-str))

@@ -439,6 +439,7 @@
    :future {:object? false},
    ; This is used for {:parse {:left-space :keep}}
    :indent 0,
+   :input {:range {:start nil :end nil}},
    :list {:constant-pair-min 4,
           :constant-pair? true,
           :hang-avoid 0.5,
@@ -497,8 +498,7 @@
    :max-length 1000,
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
-   :output {:focus {:zloc? false, :surround nil}, :lines nil, :elide nil
-            :range {:start nil :end nil}},
+   :output {:focus {:zloc? false, :surround nil}, :lines nil, :elide nil},
    :pair {:flow? false,
           :force-nl? nil,
           :hang-diff 1,
@@ -531,6 +531,7 @@
             :fn-gt3-force-nl nil,
             :extend {:modifiers nil}},
    :return-cvec? false,
+   :script {:more-options nil},
    :search-config? false,
    :set {:indent 2,
          :indent-only? false,

@@ -66,6 +66,11 @@
 (s/def ::boolean (s/nilable zboolean?))
 ;(s/def ::boolean booleanable?)
 
+; Note that actual fn-types can be [:arg1 {:style :respect-nl}] in addition
+; to simple keywords.  These things are ripped apart during option map
+; validation and done separately.  See validate-options and 
+; separate-fn-map-options in config.cljc for details.
+
 (s/def ::fn-type
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
     :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair
@@ -244,6 +249,7 @@
 (s/def ::format ::format-value)
 (s/def ::future (only-keys :opt-un [::object?]))
 (s/def ::indent number?)
+(s/def ::input (only-keys :opt-un [::range]))
 (s/def ::list
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
@@ -267,7 +273,12 @@
 (s/def ::max-length ::number-or-vector-of-numbers)
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
-(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths ::range]))
+; Note that here we are accepting an entire options map
+; Because of the way that validate is handled for style-maps and for
+; option maps in the fn-map, neither of these things will be validate by
+; spec in this case.  
+(s/def ::more-options (s/nilable ::options))
+(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::indent ::justify? ::justify-hang ::justify-tuning
@@ -289,6 +300,7 @@
                       :alt/extend]))
 (s/def ::next-inner zany?)
 (s/def ::return-cvec? ::boolean)
+(s/def ::script (only-keys :opt-un [::more-options]))
 (s/def ::set
   (only-keys :opt-un [::indent ::indent-only? ::respect-bl? ::respect-nl?
                       ::sort? ::sort-in-code? ::wrap-after-multi? ::wrap-coll?
@@ -296,6 +308,8 @@
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::style ::style-value)
+; This is a full option map, which gets validate separately in 
+; validate-style-map
 (s/def ::style-map map?)
 (s/def ::tab (only-keys :opt-un [::expand? ::size]))
 (s/def ::trim-comments? ::boolean)
@@ -323,13 +337,13 @@
              :alt/comment ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc?
              ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
              ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-             ::fn-map ::fn-name ::fn-obj ::force-eol-blanks? ::format ::future ::indent ::list ::map
+             ::fn-map ::fn-name ::fn-obj ::force-eol-blanks? ::format ::future ::indent ::input ::list ::map
              ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
              ::max-hang-span ::max-length ::object ::old? ::output ::pair
              ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
              ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
              ::record ::remove ::next-inner ::return-cvec? ::search-config?
-             ::set ::spaces? ::spec ::style ::style-map ::tab 
+             ::set ::spaces? ::script ::spec ::style ::style-map ::tab 
 	     ::test-for-eol-blanks? ::trim-comments?
              ::tuning :alt/uneval ::user-fn-map ::vector ::vector-fn ::version
              ::width ::url ::zipper?]))

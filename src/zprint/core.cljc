@@ -1155,8 +1155,8 @@
                        lines)
                      lines)
              filestring (clojure.string/join "\n" lines)
-             range-start (:start (:range (:output (get-options))))
-             range-end (:end (:range (:output (get-options))))
+             range-start (:start (:range (:input (get-options))))
+             range-end (:end (:range (:input (get-options))))
              _ (when (or range-start range-end)
                  (dbg new-options
                       "zprint-file-str: range-start:" range-start
@@ -1191,6 +1191,9 @@
              pmf-options (if (:interpose (:parse (get-options)))
                            (assoc pmf-options :trim-comments? true)
                            pmf-options)
+	     pmf-options (if shebang (merge-deep pmf-options 
+	                                (:more-options (:script (get-options))))
+			    pmf-options)
              #_(def fileforms (zmap-all identity forms))
              out-str (process-multiple-forms pmf-options
                                              zprint-str-internal

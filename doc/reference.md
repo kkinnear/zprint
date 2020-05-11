@@ -2413,6 +2413,38 @@ the set (as opposed to replacing the set entirely). You can remove
 elements from the set by `{:remove {:extend {:modifers #{<thing-to-remove>}}}}`.
 
 _____
+## :input
+
+This controls the input that is formatted.
+
+#### :range
+Allows specification of the start and end of a range when using
+`zprint-file-str` (which is used by all of the file processing binaries
+when they format an entire file).
+
+A range specification is itself a map:
+
+`{:start start-line-number :end end-line-number}`
+
+where start-line-number and end-line-number are zero based, and
+are inclusive (that is to say, both lines will be formatted).
+
+Since zprint can only format effectively if it knows the left margin,
+the start-line-number and end-line-number are expanded outwards to 
+encompass one or more top level expressions.  If they both initially
+reference a single expression, the start is moved up to the first line
+beyond the previous expression, while the end is moved down to the last line
+of the expression referenced.  This is in order to encompass any 
+`;!zprint {}` directives that might appear directly before the expression.
+
+In general, the start is moved to the line before the previous expression
+referenced by start and the end is moved to the last line of the expression 
+in which end falls.
+
+If any problems occur when trying to determine the current or previous
+expressions (since a quick parse of the entire string (file) is required
+for this to happen), the entire string (file) is formatted. 
+_____
 ## :list
 
 Lists show up in lots of places, but mostly they are code.  So
@@ -3485,6 +3517,29 @@ An example of `:hang?`, `:record-type?`, and `:to-string?`
 
 "zprint.core.myrecord@682a5f6b"
 ```
+_____
+## :script
+
+This controls what __additional__ options are added when a 
+string processed by `zprint-file-str` is determined to be a "script".
+
+Note that `zprint-file-str` is the basic driving function used by
+all of the pre-compiled binaries to process entire files.
+
+A script is defined as any string (or file) whose first line
+begins with "#!".  When scripts are processed, the first line
+is removed, zprint is run on the remaining lines, and the first
+line is restored prior to returning the result.
+
+#### :more-options _nil_
+
+This is a options map which will be applied on top of any existing
+options currently in force when a string processed by `zprint-file-str`
+is determined to be a script.  It is the last set of options applied,
+after any that might be on a command line to one of the pre-compiled
+binaries.  It does not replace any existing options, it is an options
+map applied on top of any existing options.
+
 _____
 ## :set
 

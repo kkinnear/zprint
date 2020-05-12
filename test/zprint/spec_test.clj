@@ -364,7 +364,7 @@
 ;;
 
 (expect
-  "The value of the key-sequence [:map :key-value-color :deeper :keyword] -> :bluex was not recognized as valid!"
+  "The value of the key-sequence [:map :key-value-color :deeper :keyword] -> :bluex was not one of #{:yellow :green :cyan :red :blue :magenta :purple :black}"
   (explain-more
     (s/explain-data :zprint.spec/options
                     {:map {:key-value-color {:deeper {:string :yellow,
@@ -424,3 +424,31 @@
 (expect {:parallel? true, :vector {:wrap? false}}
         (coerce-to-boolean
           {:parallel? :b, :coerce-to-false 0, :vector {:wrap? 0}}))
+
+;;
+;; Some tests for some extensions to explain-more to handle deeper problems, 
+;; as we move to letting spec validate pretty much everything.
+;;
+
+; Now spec validates the fn-map
+
+(expect
+  "The value of the key-sequence [:fn-map \"stuff\"] -> [:arg1 {:width :x}] was not recognized as valid! because the value of the key-sequence [:width] -> :x was not a number"
+  (explain-more (s/explain-data :zprint.spec/options
+                                {:fn-map {"stuff" [:arg1 {:width :x}]}})))
+
+; It also validates the style maps
+
+(expect
+  "The value of the key-sequence [:style-map :new-style :parallel?] -> :a was not a boolean"
+  (explain-more (s/explain-data :zprint.spec/options
+                                {:style-map {:new-style {:parallel? :a}}})))
+
+; It also validates the new options map for :script
+
+(expect
+  "The value of the key-sequence [:script :more-options :style] -> \"stuff\" was not a clojure.core/keyword?"
+  (explain-more (s/explain-data :zprint.spec/options
+                                {:script {:more-options {:style "stuff"}}})))
+
+

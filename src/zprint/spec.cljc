@@ -77,6 +77,12 @@
     :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
     :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin :indent
     :replace-w-string})
+(s/def ::fn-type-w-map 
+  (s/or :general-options (s/tuple ::fn-type ::options)
+        :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
+(s/def ::fn-specifier
+  (s/or :simple-type ::fn-type
+        :complex-type ::fn-type-w-map))
 (s/def ::format-value #{:on :off :next :skip})
 (s/def ::nilable-number (s/nilable number?))
 (s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
@@ -107,7 +113,7 @@
   (s/or :boolean ::boolean
         :string string?))
 (s/def ::keep-or-drop #{:keep :drop})
-(s/def ::fn-map-value (s/nilable (s/map-of string? ::fn-type)))
+(s/def ::fn-map-value (s/nilable (s/map-of string? ::fn-specifier)))
 (s/def ::number-or-vector-of-numbers
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))
@@ -310,7 +316,7 @@
 (s/def ::style ::style-value)
 ; This is a full option map, which gets validate separately in 
 ; validate-style-map
-(s/def ::style-map map?)
+(s/def ::style-map (s/nilable (s/map-of keyword? ::options)))
 (s/def ::tab (only-keys :opt-un [::expand? ::size]))
 (s/def ::trim-comments? ::boolean)
 (s/def ::tuning
@@ -422,8 +428,40 @@
     "string?" "string"
     pred))
 
+(defn phrase-problem-str
+  "Take a single problem and turn it into a phrase."
+  [problem last?]
+  (cond
+    (clojure.string/ends-with? (str (:pred problem)) "?")
+      (str (ks-phrase
+             (if last? (assoc problem :in [(last (:in problem))]) problem))
+           " was not a "
+           (map-pred (str (:pred problem))))
+    (set? (:pred problem))
+      (if (< (count (:pred problem)) 10)
+        (str (ks-phrase problem) " was not one of " (:pred problem))
+        (str (ks-phrase problem) " was not recognized as valid!"))
+    :else (str "what?")))
+
+(defn phrase-problem-str-alt
+  "Take a single problem and turn it into a phrase."
+  [problem]
+  (cond (clojure.string/ends-with? (str (:pred problem)) "?")
+          (str (ks-phrase problem)
+               " was not a "
+               (map-pred (str (:pred problem))))
+        (set? (:pred problem)) (str (ks-phrase problem)
+                                    " was not recognized as valid!")
+        :else (str "what?")))
+
+(defn lower-first
+  "Lowercase the first character of a string."
+  [s]
+  (when s (str (clojure.string/lower-case (subs s 0 1)) (subs s 1))))
+
 (defn explain-more
-  "Try to do a better job of explaining spec problems."
+  "Try to do a better job of explaining spec problems. This is a totally
+  heuristic hack to try to extract useful information from spec problems."
   [explain-data-return]
   (when explain-data-return
     (let [problem-list (#?(:clj :clojure.spec.alpha/problems
@@ -431,18 +469,33 @@
                         explain-data-return)
           problem-list (remove #(= "nil?" (str (:pred %))) problem-list)
           val-map (group-by :val problem-list)
+          #_ (println "val-map:\n" (zprint.core/czprint-str val-map))
           key-via-len-seq
             (map (fn [[k v]] [k (apply min (map (comp count :via) v))]) val-map)
+          #_ (println "key-via-len-seq:\n"
+                     (zprint.core/czprint-str key-via-len-seq))
           [key-choice min-via] (first (sort-by second key-via-len-seq))
+          #_ (println "key-choice:\n" (zprint.core/czprint-str key-choice))
+          #_ (println "min-via:\n" (zprint.core/czprint-str min-via))
           problem (first (filter (comp (partial = min-via) count :via)
-                           (val-map key-choice)))]
-      (cond (clojure.string/ends-with? (str (:pred problem)) "?")
-              (str (ks-phrase problem)
-                   " was not a " (map-pred (str (:pred problem))))
-            (set? (:pred problem)) (str (ks-phrase problem)
-                                        " was not recognized as valid!")
-            :else (str "what?")))))
-
+                           (val-map key-choice)))
+          #_ (println "problem1:\n" (zprint.core/czprint-str problem))
+          [key-choice2 min-via2] (second (sort-by second key-via-len-seq))
+          problem2 (first (filter (comp (partial = min-via2) count :via)
+                            (val-map key-choice2)))
+          #_ (println "problem2:\n" (zprint.core/czprint-str problem2))
+          problem-str (phrase-problem-str problem nil)
+          problem-str (if (re-find #"valid" problem-str)
+                        (let [problem-str-2 (phrase-problem-str problem2 :last)]
+                          (if (re-find #"was not a" problem-str-2)
+                            (str problem-str
+                                 " because "
+				 (lower-first
+                                 (phrase-problem-str problem2 :last)))
+                            problem-str))
+                        problem-str)]
+      problem-str)))
+			  
 (defn coerce-to-boolean
   "Examine an options map prior to validation and if :coerce-to-false
   appears as a key, scan the map for keys which are a keyword with
@@ -516,9 +569,10 @@
                  #_(.-message e))))))
   ([options] (validate-basic options nil)))
 
+; Useful for debugging, tests will not run with this defined
 #_(defn explain
     "Take an options map and explain the result of the spec.  This is
-  really here for testing purposes."
+  really only here for testing purposes."
     ([options show-problems?]
      (let [problems (s/explain-data ::options options)]
        (when show-problems? (zprint.core/czprint problems))

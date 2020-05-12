@@ -138,4 +138,16 @@
   "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n\n#?(:bb (defn zpmap\n         ([options f coll] (if (:parallel? options) (pmap f coll) (map f coll)))\n         ([options f coll1 coll2]\n          (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2)))))\n"
   (zprint-file-str range3 "junk" {:input {:range {:start 22, :end 22}}}))
 
+; No :end
+
+(expect
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n\n#?(:bb (defn zpmap\n         ([options f coll] (if (:parallel? options) (pmap f coll) (map f coll)))\n         ([options f coll1 coll2]\n          (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2)))))\n"
+  (zprint-file-str range3 "junk" {:input {:range {:start 22}}}))
+
+; No :start
+
+(expect
+  "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:bb (defn zpmap\n         ([options f coll] (if (:parallel? options) (pmap f coll) (map f coll)))\n         ([options f coll1 coll2]\n          (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2)))))\n"
+  (zprint-file-str range3 "junk" {:input {:range {:end 22}}}))
+
 

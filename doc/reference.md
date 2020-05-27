@@ -3971,6 +3971,14 @@ classic zprint formatting and still yield some level of performance
 optimization.  The optimization is greater the more deeply nested
 the code or structure which is being formatting.
 
+One 6300 line file in zprint itself formats in about 5.5s on a very old
+MacBook Air, and with `:style :prefer-hang`, formats in about 4.5s.  It doesn't
+contain any particularly challenging functions, but there is still an
+improvement.  There are about 78 more lines in the `:style :prefer-hang`
+output.  Nothing looks terrible, but there are a couple of places where
+the different "look" isn't as pleasing.  There are probably more places where
+the differnt "look" is actually slightly better.
+
 If you have some code or structures that take too long
 to format, try `:style :prefer-hang`.  If that doesn't work, you can
 always try `:style :indent-only`, which will certainly take a much shorter

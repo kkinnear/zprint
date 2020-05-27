@@ -148,6 +148,10 @@
 (s/def ::hang-flow number?)
 (s/def ::hang-flow-limit number?)
 (s/def ::hang-if-equal-flow? ::boolean)
+(s/def ::hang-accept? ::nilable-number)
+(s/def ::ha-depth-factor number?)
+(s/def ::ha-width-factor number?)
+(s/def ::hang-size number?)
 (s/def ::hang-type-flow number?)
 (s/def ::hex? ::boolean)
 (s/def ::indent number?)
@@ -214,6 +218,9 @@
 (s/def ::atom (only-keys :opt-un [::object?]))
 (s/def ::binding
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
+		      ::hang-accept
+		      ::ha-depth-factor
+		      ::ha-width-factor
                       ::indent ::justify? ::justify-hang ::justify-tuning
                       ::nl-separator?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
@@ -243,6 +250,9 @@
 (s/def ::do-in-hang? ::boolean)
 (s/def ::extend
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
+		      ::hang-accept
+		      ::ha-depth-factor
+		      ::ha-width-factor
                       ::indent ::modifiers ::nl-separator?]))
 (s/def :alt/extend (only-keys :opt-un [::modifiers]))
 (s/def ::file? ::boolean)
@@ -259,13 +269,20 @@
 (s/def ::list
   (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
                       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
+		      ::hang-accept
+		      ::ha-depth-factor
+		      ::ha-width-factor
                       ::indent-arg ::pair-hang? ::return-altered-zipper
                       ::respect-bl? ::respect-nl? ::indent-only?
                       ::indent-only-style ::replacement-string]))
+; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
   (only-keys
     :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
+	     ::hang-accept
+	     ::ha-depth-factor
+	     ::ha-width-factor
              ::hang-expand ::hang? ::indent ::indent-only? ::justify?
              ::justify-hang ::justify-tuning ::key-color ::key-value-color
              ::key-depth-color ::key-ignore ::key-ignore-silent ::key-order
@@ -274,7 +291,7 @@
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
-(s/def ::max-hang-dept number?)
+(s/def ::max-hang-depth number?)
 (s/def ::max-hang-span number?)
 (s/def ::max-length ::number-or-vector-of-numbers)
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
@@ -287,6 +304,9 @@
 (s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
+		      ::hang-accept
+		      ::ha-depth-factor
+		      ::ha-width-factor
                       ::indent ::justify? ::justify-hang ::justify-tuning
                       ::nl-separator?]))
 (s/def ::pair-fn

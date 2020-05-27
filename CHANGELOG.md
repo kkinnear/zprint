@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * `:style :prefer-hang`, which will offer massive formatting speed-up
+  for deeply nested code and structures, at the cost of output
+  that takes a few more lines than classic zprint formatting and rarely
+  looks a bit awkward.
+
+
 ### Changed
 
   * Moved to 1.0.0 per Alex's suggestion.

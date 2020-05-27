@@ -53,7 +53,14 @@
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] :tuning
-   :perf-vs-format [:url :cache-path]])
+   :perf-vs-format [:url :cache-path]
+   [:binding :hang-accept :ha-depth-factor :ha-width-factor]
+   [:extend :hang-accept :ha-depth-factor :ha-width-factor]
+   [:list :hang-accept :ha-depth-factor :ha-width-factor]
+   [:map :hang-accept :ha-depth-factor :ha-width-factor]
+   [:pair :hang-accept :ha-depth-factor :ha-width-factor]
+   [:vector-fn :hang-accept :ha-depth-factor :ha-width-factor]
+   ])
 
 ;;
 ;; ## Function style database
@@ -383,6 +390,9 @@
              :force-nl? false,
              :hang-diff 1,
              :hang-expand 2.0,
+	     :hang-accept nil
+	     :ha-depth-factor 0
+	     :ha-width-factor 0
              :hang? true,
              :indent 2,
              :justify-hang {:hang-expand 5},
@@ -422,6 +432,9 @@
             :force-nl? true,
             :hang-diff 1,
             :hang-expand 1000.0,
+	     :hang-accept nil
+	     :ha-depth-factor 0
+	     :ha-width-factor 0
             :hang? true,
             :indent 2,
             :modifiers #{"static"},
@@ -445,6 +458,9 @@
           :hang-avoid 0.5,
           :hang-diff 1,
           :hang-expand 2.0,
+	  :hang-accept nil,
+	  :ha-depth-factor 0
+	  :ha-width-factor 0
           :hang-size 100,
           :hang? true,
           :indent 2,
@@ -466,6 +482,9 @@
          ; was created and set to 0.  That certainly looks better, but
          ; wider stuff seems better with -1, so for now, we will go with that.
          :hang-adjust -1,
+	  :hang-accept nil,
+	  :ha-depth-factor 0
+	  :ha-width-factor 0
          :indent-only? false,
          :key-order nil,
          :key-ignore nil,
@@ -503,6 +522,9 @@
           :force-nl? nil,
           :hang-diff 1,
           :hang-expand 2.0,
+	  :hang-accept nil,
+	  :ha-depth-factor 0
+	  :ha-width-factor 0
           :hang? true,
           :indent 2,
           :justify-hang {:hang-expand 5},
@@ -620,6 +642,12 @@
                 :reader-cond {:hang? false},
                 :record {:hang? false}},
       :pair-nl {:pair {:indent 0, :nl-separator? true}},
+      :prefer-hang {:binding {:hang-accept 100 :ha-width-factor -600} 
+		    :extend {:hang-accept 100 :ha-width-factor -600}
+                    :list {:hang-accept 100 :ha-width-factor -300} 
+		    :map {:hang-accept 0 :ha-depth-factor 15} 
+		    :pair {:hang-accept 20 :ha-width-factor -150}
+                    :vector-fn {:hang-accept 100 :ha-width-factor -300}}
       :respect-bl {:list {:respect-bl? true},
                    :map {:respect-bl? true},
                    :vector {:respect-bl? true},
@@ -676,11 +704,16 @@
             :wrap-coll? true,
             :wrap? true,
             :indent-only? false},
+   ; Needs to have same keys as :list, since this replaces :list when
+   ; vectors are formatted as functions.
    :vector-fn {:constant-pair-min 4,
                :constant-pair? true,
                :hang-avoid 0.5,
                :hang-diff 1,
                :hang-expand 2.0,
+	      :hang-accept nil,
+	      :ha-depth-factor 0
+	      :ha-width-factor 0
                :hang-size 100,
                :hang? true,
                :indent 2,

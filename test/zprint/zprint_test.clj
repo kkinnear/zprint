@@ -917,8 +917,8 @@
 ; contains-nil?
 
 (expect nil (contains-nil? [:a :b :c :d]))
-(expect 1 (contains-nil? [:a nil :b :c :d]))
-(expect 2 (contains-nil? [:a :b nil '() :c :d]))
+(expect true (contains-nil? [:a nil :b :c :d]))
+(expect true(contains-nil? [:a :b nil '() :c :d]))
 
 (def e2 {:aaaa :bbbb, :ccc :ddddd, :ee :ffffff})
 
@@ -4694,3 +4694,44 @@ ser/collect-vars-acc %1 %2) )))"
                    "junk"
                    {:parse {:interpose nil, :left-space :keep}, :width 10}))
 
+(defn test-prefer-hang
+  "Try to bring inline comments back onto the line on which they belong."
+  [{:keys [width], :as options} style-vec]
+  (loop [cvec style-vec
+         last-out ["" nil nil]
+         out []]
+    (if-not cvec
+      (do #_(def fico out) out)
+      (let [[s c e :as element] (first cvec)
+            [_ _ ne nn :as next-element] (second cvec)
+            [_ _ le] last-out
+            new-element
+              (cond
+                (and (or (= e :indent) (= e :newline))
+                     (= ne :comment-inline))
+                  (if-not (or (= le :comment) (= le :comment-inline))
+                    ; Regular line to get the inline comment
+                    [(blanks nn) c :whitespace 25]
+                    ; Last element was a comment...
+                    ; Can't put a comment on a comment, but
+                    ; we want to indent it like the last
+                    ; comment.
+                    ; How much space before the last comment?
+                    (do #_(prn "inline:" (space-before-comment out))
+                        [(str "\n" (blanks out)) c                       
+                         :indent 41]
+                        #_element))
+                :else element)]
+        (recur (next cvec) new-element (conj out new-element))))))
+
+;;
+;; # Test :style :prefer-hang
+;;
+
+(expect
+  "(defn test-prefer-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element\n              (cond (and (or (= e :indent) (= e :newline))\n                         (= ne :comment-inline))\n                      (if-not (or (= le :comment) (= le :comment-inline))\n                        ; Regular line to get the inline comment\n                        [(blanks nn) c :whitespace 25]\n                        ; Last element was a comment...\n                        ; Can't put a comment on a comment, but\n                        ; we want to indent it like the last\n                        ; comment.\n                        ; How much space before the last comment?\n                        (do #_(prn \"inline:\" (space-before-comment out))\n                            [(str \"\\n\" (blanks out)) c :indent 41]\n                            #_element))\n                    :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+  (zprint-fn-str zprint.zprint-test/test-prefer-hang))
+
+(expect
+"(defn test-prefer-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element (cond\n                          (and (or (= e :indent) (= e :newline))\n                               (= ne :comment-inline))\n                            (if-not (or (= le :comment) (= le :comment-inline))\n                              ; Regular line to get the inline comment\n                              [(blanks nn) c :whitespace 25]\n                              ; Last element was a comment...\n                              ; Can't put a comment on a comment, but\n                              ; we want to indent it like the last\n                              ; comment.\n                              ; How much space before the last comment?\n                              (do #_(prn \"inline:\" (space-before-comment out))\n                                  [(str \"\\n\" (blanks out)) c :indent 41]\n                                  #_element))\n                          :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+(zprint-fn-str zprint.zprint-test/test-prefer-hang {:style :prefer-hang}))

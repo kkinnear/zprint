@@ -23,6 +23,7 @@
     [rewrite-clj.zip :as z]
     #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
+#_(tufte/add-basic-println-handler! {})
 
 ;;
 ;; # Utility Functions
@@ -271,11 +272,10 @@
       options)))
 
 (defn contains-nil?
-  "Scan a collection, and return the number of nils or empty collections
-  present (if any), and nil otherwise."
+  "Scan a collection, and return true if it contains any nils or empty
+  collections."
   [coll]
-  (let [n (count (filter #(if (coll? %) (empty? %) (nil? %)) coll))]
-    (when (not (zero? n)) n)))
+  (some #(if (coll? %) (empty? %) (nil? %)) coll))
 
 (defn concat-no-nil-alt
   "Concatentate multiple sequences, but if any of them are nil, return nil.
@@ -749,6 +749,29 @@
 (declare fzprint-binding-vec)
 (declare middle-element?)
 
+(defn use-hang?
+  "This routine tries to figure out if existing hang should be used without
+  even bothering to do a flow and compare them with good-enough?."
+  [caller
+   {:keys [depth width],
+    {:keys [hang-accept ha-depth-factor ha-width-factor]} caller,
+    :as options} ind hang-count hanging-line-count]
+  (when (and hanging-line-count hang-accept (pos? hang-count))
+    #_(prn "use-hang? caller:" caller "(/ ind width):" (double (/ ind width)))
+    (let [hang-accept (+ hang-accept
+                          (* depth ha-depth-factor)
+                          (* (/ ind width) ha-width-factor))]
+      (<= (/ (dec hanging-line-count) hang-count) hang-accept))))
+
+;;
+;; Performance Debugging
+;;
+
+#_(def pass-count (atom 0))
+#_(defn reset-pass-count! [] (reset! pass-count 0))
+#_(defn inc-pass-count [] (swap! pass-count inc))
+#_(defn print-pass-count [] (println "pass-count:" @pass-count))
+
 (defn fzprint-two-up
   "Print a single pair of things (though it might not be exactly a
   pair, given comments and :extend and the like), like bindings in
@@ -956,6 +979,7 @@
                                     hanging-lines
                                     (when (and (not one-line?) hang?)
                                       hanging-lines))
+		    hanging-line-count (first hanging-lines)
                     ; Don't flow if it fit, or it didn't fit and we were doing
                     ; one line on input.  Do flow if we don't have
                     ; hanging-lines
@@ -964,7 +988,7 @@
                                  "fzprint-two-up: hanging-2:"
                                  hanging-indent
                                  hanging)
-                    flow-it? (and (or (and (not hanging-lines) (not one-line?))
+                    flow-it? #_(and (or (and (not hanging-lines) (not one-line?))
                                       (not (or fit? one-line?)))
                                   ; this is for situations where the first
                                   ; element is short and so the hanging indent
@@ -974,7 +998,33 @@
                                   ; any hanging-lines, in which case we better
                                   ; do flow
                                   (or (< flow-indent hanging-indent)
-                                      (not hanging-lines)))
+                                          (not hanging-lines)))
+
+			    (or (not hanging-lines)
+				 ; TODO: figure out what this was supposed to
+				 ; be and fix it, w/out (not hanging-lines)
+                                 (and (or (and (not hanging-lines) 
+				               (not one-line?))
+                                          (not (or fit? one-line?)))
+                                  ; this is for situations where the first
+                                  ; element is short and so the hanging indent
+                                  ; is the same as the flow indent, so there
+                                  ; is
+                                  ; no point in flow -- unless we don't have
+                                  ; any hanging-lines, in which case we better
+                                  ; do flow
+                                      (or (< flow-indent hanging-indent)
+                                          (not hanging-lines))))
+
+		    flow-it? (if (use-hang? caller
+			                      options
+					      ind
+					      hang-count
+			                      hanging-line-count)
+				   false
+				   flow-it?)
+
+		    #_(inc-pass-count)
                     _ (dbg options
                            "fzprint-two-up: before flow. flow-it?"
                            flow-it?)
@@ -1548,7 +1598,7 @@
   caller knows what the fzfn does, so it has to count the items
   itself and pass it in here as zloc-count if it isn't just (zcount zloc)."
   [{:keys [one-line? force-eol-blanks?], :as options} caller hindent findent fzfn zloc-count zloc]
-  #_(dbg options "fzprint-hang:" (zstring (zfirst zloc)) "caller:" caller)
+  (dbg options "fzprint-hang: caller:" caller)
   (let [hanging (when (and (not= hindent findent)
                            ((options caller) :hang?)
                            ; If it starts with a newline, we aren't hanging
@@ -1580,7 +1630,7 @@
                    "fzprint-hang: ending: hang-count:" hang-count
                    "hanging:" hanging
                    "flow:" flow)
-            hr-good? (when (:hang? (caller options))
+            hr-good? (when hanging 
                        (good-enough? caller
                                      options
                                      :none-hang
@@ -1854,7 +1904,12 @@
 
 (declare zcomment-or-newline?)
 
-(defn count-constant-pairs
+; This, you might think, would be faster.  But in reality it is almost
+; exactly the same as the version that reverses the list.
+; And even a bit more complex to understand, so we'll leave it 
+; here for additional possible optimizations and simplifications later.
+
+#_(defn count-constant-pairs-new
   "Given a seq of zlocs, work backwards from the end, and see how
   many elements are pairs of constants (using zconstant?).  So that
   (... :a (stuff) :b (bother)) returns 4, since both :a and :b are
@@ -1870,6 +1925,86 @@
   against the constant-pair-min (which is exclusive of comments and
   newlines).  "
   [zloc-seq]
+  (let [zloc-seq (if (vector? zloc-seq) zloc-seq (into [] zloc-seq))
+        len (count zloc-seq)
+        last-element-idx (dec len)]
+    ; If we don't have at least two elements, we aren't doing anything useful
+    (if (not (pos? last-element-idx))
+      [0 0]
+      (loop [idx last-element-idx
+             element-count 0
+             paired-element-count 0
+             ; since it is reversed, we need a constant every second element
+             constant-required? nil
+             pair-size 0
+             actual-pair-size 0]
+        (let [element (nth zloc-seq idx)]
+          #_(prn "count-constant-pairs: element-count:" element-count
+                 "paired-element-count:" paired-element-count
+                 "constant-required:" constant-required?
+                 "pair-size:" pair-size
+                 "actual-pair-size:" actual-pair-size
+                 "element:" (zstring element))
+          (let [comment-or-newline? (zcomment-or-newline? element)]
+            (if (and (not comment-or-newline?)
+                     constant-required?
+                     (not (zconstant? element)))
+              ; we counted the right-hand and any comments of this pair, but
+              ; it isn't a pair so exit now with whatever we have so far
+              [(- element-count pair-size)
+               (- paired-element-count actual-pair-size)]
+              (let [element-count (inc element-count)
+                    paired-element-count (if comment-or-newline?
+                                           paired-element-count
+                                           (inc paired-element-count))
+                    pair-size (if (and constant-required?
+                                       (not comment-or-newline?))
+                                ; must be a constant, so start count over
+                                0
+                                (inc pair-size))
+                    actual-pair-size (if (and constant-required?
+                                              (not comment-or-newline?))
+                                       ; start count of actual pairs over as
+                                       ; well
+                                       0
+                                       (if comment-or-newline?
+                                         ; we are only counting actual pairs
+                                         ; here
+                                         actual-pair-size
+                                         (inc actual-pair-size)))]
+                ; Are we finished?
+                (if (zero? idx)
+                  ; Yes, remove potential elements of this pair, since we
+                  ; haven't
+                  ; seen the end of it, and return
+                  [(- element-count pair-size)
+                   (- paired-element-count actual-pair-size)]
+                  ; Not yet finished
+                  (recur (dec idx)
+                         element-count
+                         paired-element-count
+                         (if comment-or-newline?
+                           constant-required?
+                           (not constant-required?))
+                         pair-size
+                         actual-pair-size))))))))))
+
+(defn count-constant-pairs
+  "Given a seq of zlocs, work backwards from the end, and see how
+  many elements are pairs of constants (using zconstant?).  So that
+  (... :a (stuff) :b (bother)) returns 4, since both :a and :b are
+  zconstant? true. This is made more difficult by having to skip
+  comments along the way as part of the pair check, but keep track
+  of the ones we skip so the count is right in the end.  We don't
+  expect any spaces in this but newlines must be handled, because 
+  this seq should have been produced by zmap or its equivalent.
+  Returns two things: [paired-item-count actual-paired-items],
+  where paired-item-count is the number of things from the end of
+  the seq you have to trim off to get the constant pairs included,
+  and the actual-paired-items is the count of the items to be checked
+  against the constant-pair-min (which is exclusive of comments and
+  newlines)."
+  [zloc-seq]
   (loop [zloc-seq-rev (reverse zloc-seq)
          element-count 0
          paired-element-count 0
@@ -1880,10 +2015,10 @@
     (let [element (first zloc-seq-rev)]
       #_(prn "count-constant-pairs: element-count:" element-count
            "paired-element-count:" paired-element-count
-	   "constant-required:" constant-required?
-	   "pair-size:" pair-size
-	   "actual-pair-size:" actual-pair-size
-	   "element:" (zstring element))
+           "constant-required:" constant-required?
+           "pair-size:" pair-size
+           "actual-pair-size:" actual-pair-size
+           "element:" (zstring element))
       (if (empty? zloc-seq-rev)
         ; remove potential elements of this pair, since we haven't
         ; seen the end of it, and return
@@ -1975,7 +2110,228 @@
       style-vec
       (concat-no-nil style-vec [[(str "\n" (blanks ind)) :none :indent 7]]))))
 
+
+; This version does hang first, and if it passes use-hang?, it
+; doesn't bother to do flow.
+
 (defn fzprint-hang-remaining
+  "zloc-seq is a seq of zlocs of a collection.  We already know
+  that the given zloc won't fit on the current line. [Besides, we
+  ensure that if there are two things remaining anyway. ???] So
+  now, try hanging and see if that is better than flow.  Unless
+  :hang? is nil, in which case we will just flow.  hindent is
+  hang-indent, and findent is flow-indent. This should never be
+  called with :one-line because this is only called from fzprint-list*
+  after the one-line processing is done. If the hindent equals the
+  flow indent, then just do flow.  Do only zloc-count non-whitespace
+  elements of zloc-seq if it exists."
+  ([caller
+    {:keys [dbg? width],
+     {:keys [hang? constant-pair? constant-pair-min hang-avoid hang-expand
+             hang-diff nl-separator? respect-nl?]}
+       caller,
+     :as options} hindent findent zloc-seq fn-style zloc-count]
+   (when (:dbg-hang options)
+     (println (dots (:pdepth options)) "hr:" (zstring (first zloc-seq))))
+   (dbg-pr options
+           "fzprint-hang-remaining first:" (zstring (first zloc-seq))
+           "hindent:" hindent
+           "findent:" findent
+           "caller:" caller
+           "nl-separator?:" nl-separator?
+           "(count zloc-seq):" (count zloc-seq))
+   ; (in-hang options) slows things down here, for some reason
+   (let [seq-right zloc-seq
+         seq-right (if zloc-count (take zloc-count seq-right) seq-right)
+         [pair-seq non-paired-item-count]
+           (constant-pair caller options seq-right)
+         _ (dbg options
+                "fzprint-hang-remaining count pair-seq:"
+                (count pair-seq))
+         #_(dbg options
+                "fzprint-hang-remaining: *=*=*=*=*=*" (zstring (first zloc-seq))
+                "hindent:" hindent
+                "findent:" findent
+                "caller:" caller
+                "hang?" hang?
+                "hang-diff" hang-diff)
+         ; Now determine if there is any point in doing a hang, because
+         ; if the flow is beyond the expand limit, there is really no
+         ; chance that the hang is not beyond the expand limit.
+         ; This is what good-enough? does:
+         ;  (<= (/ (dec p-lines) p-count) hang-expand)
+         ;  Also need to account for the indent diffs.
+         ; Would be nice to move this into a common routine, since this
+         ; duplicates logic in good-enough?
+         ;
+         ; Yes, and this caused a problem when I put in the
+         ; hang-if-equal-flow? option in good-enough, so that now
+         ; we can't cancel the hang even though we are beyond the hang-expand
+         ; because the hang might be the same as the flow, and in that case
+         ; we don't really care how long the hang-expand is. We could make
+         ; this a feature, by having a large-ish hang-expand and having it
+         ; override hang-if-equal-flow.  If we do that, we have to reorder
+         ; the checks in good-enough to put the hang-expand check first.
+         ; I can't see any great reason for doing a flow if the hang and
+         ; flow are equal, though, so we won't do that now.  And this
+         ; code comes out.
+         ;
+         #_#_[flow flow-lines] (zat options flow) ; PT
+         _ (dbg options
+                "fzprint-hang-remaining: first hang?" hang?
+                "hang-avoid" hang-avoid
+                "findent:" findent
+                "hindent:" hindent
+                "(count seq-right):" (count seq-right)
+                "thing:" (when hang-avoid (* (- width hindent) hang-avoid)))
+         hang? (and hang?
+                    ; This is a key for "don't hang no matter what", it isn't
+                    ; about making it prettier. People call this routine with
+                    ; these values equal to ensure that it always flows.
+                    (not= hindent findent)
+                    ; This is not the original, below.
+                    ; If we are doing respect-nl?, then the count of seq-right
+                    ; is going to be a lot more, even if it doesn't end up
+                    ; looking different than before.  So, perhaps we should
+                    ; adjust hang-avoid here?  Perhaps double it or something?
+                    (or (not hang-avoid)
+                        (< (count seq-right) (* (- width hindent) hang-avoid)))
+                    ; If the first thing in the flow is a comment, maybe we
+                    ; shouldn't be hanging anything?
+                    #_(not= (nth (first flow) 2) :comment-inline) ; PT
+                    ;flow-lines
+                    ;;TODO make this uneval!!!
+                    #_(or (<= (- hindent findent) hang-diff)
+                          (<= (/ (dec (first flow-lines)) (count seq-right))
+                              hang-expand)))
+         _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
+         hanging
+           (#?@(:clj [zfuture options]
+                :cljs [do])
+            (let [hang-result
+                    (when hang?
+                      (if-not pair-seq
+                        ; There are no paired elements
+                        (fzprint-flow-seq (in-hang options)
+                                          hindent
+                                          seq-right
+                                          :force-nl
+                                          nil ;nl-first?
+                          )
+                        (if (not (zero? non-paired-item-count))
+                          (concat-no-nil
+                            ; The elements that are not paired
+                            (dbg-form options
+                                      "fzprint-hang-remaining: mapv:"
+                                      (ensure-end-w-nl
+                                        hindent
+                                        (fzprint-flow-seq
+                                          (not-rightmost (in-hang options))
+                                          hindent
+                                          (take non-paired-item-count seq-right)
+                                          :force-nl
+                                          nil ;nl-first?
+                                          )))
+                            ; The elements that are paired
+                            (dbg-form options
+                                      "fzprint-hang-remaining: fzprint-hang:"
+                                      (fzprint-pairs (in-hang options)
+                                                     hindent
+                                                     pair-seq)))
+                          ; All elements are paired
+                          (fzprint-pairs (in-hang options) hindent pair-seq))))]
+              [hang-result (style-lines options hindent hang-result)]))
+         ; We used to calculate hang-count by doing the hang an then counting
+         ; the output.  But ultimately this is simple a series of map calls
+         ; to the elements of seq-right, so we go right to the source for this
+         ; number now.  That let's us move the interpose calls above this
+         ; point.
+         [hanging [hanging-line-count :as hanging-lines]] (zat options hanging)
+	 hang-count (count seq-right)
+         flow?
+	     (not (use-hang? caller
+			    options
+			    hindent
+			    hang-count
+			    hanging-line-count))
+	#_(inc-pass-count)
+
+         flow
+           (when flow?
+             (#?@(:clj [zfuture options]
+                  :cljs [do])
+              (let [flow-result (if-not pair-seq
+                                  ; We don't have any constant pairs
+                                  (fzprint-flow-seq options
+                                                    findent
+                                                    seq-right
+                                                    :force-nl
+                                                    :nl-first)
+                                  (if (not (zero? non-paired-item-count))
+                                    ; We have constant pairs, ; but they follow
+                                    ; some stuff that isn't paired.
+                                    ; Do the elements that are not pairs
+                                    (concat-no-nil
+                                      (ensure-end-w-nl
+                                        findent
+                                        (fzprint-flow-seq
+                                          (not-rightmost options)
+                                          findent
+                                          (take non-paired-item-count seq-right)
+                                          :force-nl
+                                          :nl-first))
+                                      ; The elements that are constant pairs
+                                      (fzprint-pairs options findent pair-seq))
+                                    ; This code path is where we have all
+                                    ; constant
+                                    ; pairs.
+                                    (fzprint-pairs options findent pair-seq)))]
+                ; Skip the first line when doing the calcuation so that
+                ; good-enough doesn't change the layout from the original
+                [flow-result
+                 (style-lines
+                   options
+                   findent
+                   (if (not pair-seq) (next flow-result) flow-result))])))
+         [flow flow-lines] (when flow (zat options flow)) ; PT
+         _ (log-lines options
+                      "fzprint-hang-remaining: hanging:"
+                      hindent
+                      hanging)
+         _ (dbg options
+                "fzprint-hang-remaining: hanging-lines:" hanging-lines
+                "hang-count:" hang-count)]
+     (dbg options "fzprint-hang-remaining: flow-lines:" flow-lines)
+     (when dbg?
+       (if (zero? hang-count)
+         (println "hang-count = 0:" (str (map zstring zloc-seq)))))
+     (log-lines options "fzprint-hang-remaining: flow" findent flow)
+     ; If we did hang and not flow, then we better use it.
+     (if (and hanging-lines (not flow-lines))
+       (if (first-nl? hanging)
+         hanging
+         (concat-no-nil [[" " :none :whitespace 10]] hanging))
+       (when flow-lines
+         (if (good-enough? caller
+                           options
+                           fn-style
+                           hang-count
+                           (- hindent findent)
+                           hanging-lines
+                           flow-lines)
+           ; If hanging starts with a newline, don't put a blank at the
+           ; end of the previous line.
+           (if (first-nl? hanging)
+             hanging
+             (concat-no-nil [[" " :none :whitespace 10]] hanging))
+           (ensure-start-w-nl findent flow))))))
+  ([caller options hindent findent zloc fn-style]
+   (fzprint-hang-remaining caller options hindent findent zloc fn-style nil)))
+
+; This version overlaps hang and flow, which can run into trouble when
+; you get very deep -- it runs out of threads.  But we'll keep it here
+; just for illustrative purposes, since when it works, it is pretty fast.
+#_(defn fzprint-hang-remaining-overlap
   "zloc-seq is a seq of zlocs of a collection.  We already know
   that the given zloc won't fit on the current line. [Besides, we
   ensure that if there are two things remaining anyway. ???] So
@@ -2072,7 +2428,7 @@
          ; flow are equal, though, so we won't do that now.  And this
          ; code comes out.
          ;
-         [flow flow-lines] (zat options flow)
+     #_#_    [flow flow-lines] (zat options flow) ; PT
          _ (dbg options
                 "fzprint-hang-remaining: first hang?" hang?
                 "hang-avoid" hang-avoid
@@ -2094,7 +2450,7 @@
                         (< (count seq-right) (* (- width hindent) hang-avoid)))
                     ; If the first thing in the flow is a comment, maybe we
                     ; shouldn't be hanging anything?
-                    (not= (nth (first flow) 2) :comment-inline)
+                    #_(not= (nth (first flow) 2) :comment-inline) ; PT
                     ;flow-lines
                     ;;TODO make this uneval!!!
                     #_(or (<= (- hindent findent) hang-diff)
@@ -2143,6 +2499,7 @@
          ; number now.  That let's us move the interpose calls above this
          ; point.
          [hanging hanging-lines] (zat options hanging)
+         [flow flow-lines] (zat options flow) ; PT
          hang-count (count seq-right)
          _ (log-lines options
                       "fzprint-hang-remaining: hanging:"
@@ -4768,6 +5125,8 @@
                rightcnt
                "depth:"
                depth
+	       "in-hang?:"
+	       in-hang?
                (pr-str (zstring zloc)))
         dbg-data @fzprint-dbg
         dbg-focus? (and dbg? (= dbg-data (second (zfind-path zloc))))
@@ -4784,7 +5143,11 @@
           [["..." (zcolor-map options :none) :element]]
           [[(:max-depth-string options) (zcolor-map options :keyword)
             :element]])
+      ; Try to fix up runaway exponential time increases with very deep 
+      ; strucures.  Note this is typically only affects maps, but it would
+      ; affect lists that were not code.
       (and in-hang?
+           (not one-line?)
            (not in-code?)
            ;(> (/ indent width) 0.3)
            (or (> (- depth in-hang?) max-hang-span)

@@ -3947,6 +3947,35 @@ effective default, but `:no-hang` can be used to turn it all off
 if you wish.  If `:hang?` is off for some reason, you can use
 `:all-hang` to turn it back on.
 
+#### :prefer-hang
+
+__EXPERIMENTAL__
+
+This style does two things: it tends to prefer hangs over flows, even
+when the line-count of the hang might be more than that of a flow, and
+it tends to speed up processing -- frequently doing the same work in 80%
+of the time, and sometimes doing the same work in 25% or even 10% of
+the time as classic zprint formatting.  
+It does this by, in many cases,  accepting hangs 
+(if they work at all) without comparing how many lines they took 
+to the corresponding flow for the same expression.  This can drastically
+reduce the time required to format some code or structures, particularly 
+those that are very deeply nested.  One downside is that sometimes the
+resulting formatted code is longer than it might otherwise be when normal
+formatting is used.  The other downside is that, rarely, a lot of code
+gets pushed to the right side of the page, which can look awkward.
+
+This is implemented by some not yet documented tuning parameters, which
+have been set to try to give a formatting "look" which is similar to
+classic zprint formatting and still yield some level of performance
+optimization.  The optimization is greater the more deeply nested
+the code or structure which is being formatting.
+
+If you have some code or structures that take too long
+to format, try `:style :prefer-hang`.  If that doesn't work, you can
+always try `:style :indent-only`, which will certainly take a much shorter
+time.
+
 #### :respect-bl 
 
 Respect blank lines. 

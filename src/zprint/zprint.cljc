@@ -1169,6 +1169,12 @@
                  options)]
         #_(def jo (conj jo [justify-width justify-options]))
         (let [beginning-coll (butlast coll)
+	      ; If beginning-coll is () because there is only a single pair
+	      ; in coll, then this all works -- but only because 
+	      ; () is truthy, and zpmap returns () which is also truthy.
+	      ; I hate relying on the truthy-ness of (), but in this case
+	      ; it works out and it would be even more complicated to do
+	      ; it another way.
               beginning-remaining
                 (if one-line? (fit-within? (- width ind) beginning-coll) true)
               _ (dbg options

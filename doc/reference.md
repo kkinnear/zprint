@@ -29,6 +29,7 @@ the a variety of major source code formattng approaches.
       * [  Add newlines between `cond`, `assoc` pairs](#map-nl-pair-nl-binding-nl)
       * [  Add newlines between extend clauses](#extend-nl)
       * [  Add newlines between map pairs](#map-nl-pair-nl-binding-nl)
+      * [  Prefer hangs and improve performance for deeply nested code and data](#prefer-hang)
     * [ Options map format](#options-map-format)
       * [  Option Validation](#option-validation)
       * [  What is Configurable](#what-is-configurable)

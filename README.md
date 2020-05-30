@@ -29,6 +29,12 @@ In addition, zprint is very handy [__to use at the REPL__](./doc/types/repl.md).
   * [to format whole files](./doc/using/files.md)
   * [while using an editor](./doc/using/editor.md)
   * [at the REPL](./doc/using/repl.md)
+  * [with a team](./doc/using/team.md)
+  * [with different formatting for different projects](./doc/using/project.md)
+  * [to format a range of lines in a file](./doc/using/range.md)
+  * [to format a babashka script](./doc/using/babashka.md)
+  * [to correct indentation but not otherwise reformat a file](./doc/using/indent.md)
+  * [and have it run even faster](./doc/using/preferhang.md)
   * [from inside a Clojure(script) program](./doc/using/library.md)
 
 ## Get zprint:
@@ -76,6 +82,7 @@ Some commonly used styles:
   * [the colors used for formatting source](./doc/options/colors.md)
   * [how the second element of a pair is indented](./doc/options/pairs.md)
   * [how comments are handled](./doc/options/comments.md)
+  * [how blank lines are handled at the top level](./doc/options/toplevel.md)
   * [anything else...](./doc/reference.md#introduction-to-configuration)
 
 ## Usage
@@ -136,6 +143,7 @@ include the following library when using Clojure 1.8:
       * [  Add newlines between `cond`, `assoc` pairs](./doc/reference.md#map-nl-pair-nl-binding-nl)
       * [  Add newlines between extend clauses](./doc/reference.md#extend-nl)
       * [  Add newlines between map pairs](./doc/reference.md#map-nl-pair-nl-binding-nl)
+      * [  Prefer hangs and improve performance for deeply nested code and data](#prefer-hang)
     * [ Options map format](./doc/reference.md#options-map-format)
       * [  Option Validation](./doc/reference.md#option-validation)
       * [  What is Configurable](./doc/reference.md#what-is-configurable)

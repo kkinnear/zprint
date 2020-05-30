@@ -1,21 +1,77 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.0.0 - 2020-3-21
+## 1.0.0 - 2020-6-2
 
 ### Added
 
+  * Support for babashka scripts (or anything with a shebang as
+  the first line).  They format correctly, and now you can have
+  special configuration for scripts using `{:script {:more-options ...}}`.
+
+  * Formatting supported for ranges of input lines. 
+  `{:input {:range {:start ... :end ...}}}` to specify the lines.
+  Supported for `zprint-file-str`, uberjar, and precompiled binaries.
+  Issue #122.
+
   * `:style :prefer-hang`, which will offer massive formatting speed-up
   for deeply nested code and structures, at the cost of output
-  that takes a few more lines than classic zprint formatting and rarely
+  that takes a few more lines than classic zprint formatting and, rarely,
   looks a bit awkward.
-
 
 ### Changed
 
   * Moved to 1.0.0 per Alex's suggestion.
 
 ### Fixed
+
+  * Should comments have special treatment with `{:parse {:interpose "\n\n"}}`.
+  Yes, comments with no blank lines after them will never get any additional
+  lines from `{:parse {:interpose ...}}`.  Issue #101.
+
+  * Don't output spaces on empty lines.  Now we don't output spaces at the
+  end of any lines.  Issue #130.
+
+  * Long comment lines are split when using `:indent-only`.  Now they aren't.
+  Issue #131.
+
+  * `:respect-bl` still deletes blank lines from dependencies.  Actually,
+  `:respect-bl` has problems with vectors.  Now it doesn't.  Issue #132.
+
+  * Aligned inline comments don't work right with `{:style :respect-nl}`.
+  Now they do.  Issue #135.
+
+  * Constant pairing count is fooled by comments, newlines.  Now it isn't.
+  Issue #136.
+
+  * Last pair in a map has comment when followed by a comment.  Now it
+  doesn't.  Issue #137.
+
+  * Newline ignored when after last map element and `:respect-nl` used.
+  Fixed.  Issue #139.
+
+  * `:respect-bl` doesn't work with comments in sets.  Fixed.  Issue #139.
+
+  * Comments missing when in empty list. Fixed.  Issue #141.
+
+  * Inconsistent indent for hanging right close paren/bracket/brace.
+  If you have a comment as the last thing in a collection, the closing
+  element (paren, brace, bracket) goes by itself on the next line.  The
+  question is -- where should it go on the next line.  After a lot of
+  experimentation, decided to put it underneath the opening element.
+  See Issue #143 for some examples of why.
+
+  * `zprint-file-str` uberjar, and binaries all drop all but one trailing
+  newline.  Now all newlines at the end are saved.  Issue #144.
+
+  * Reader conditionals don't work right with `:indent-only` and `:respect-nl`.
+  Now they do.  Issue #145.
+
+  * `{:parse {:left-space :keep}}` doesn't work for comments.  Fixed.
+  Issue #145.
+
+  * When comment is the last thing in a collection, `:indent-only` adds
+  blank line before closing.
 
 ## 0.5.4 - 2020-3-21
 

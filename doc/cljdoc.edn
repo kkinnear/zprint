@@ -10,7 +10,7 @@
                  ["At the REPL" {:file "doc/using/repl.md"}]
 		 ["With a Team" {:file "doc/using/team.md"}]
 		 ["With Different Formatting for Different Projects" 
-		   {"doc/using/project.md"}]
+		   {:file "doc/using/project.md"}]
 		 ["To Format a Range of Lines in a File" 
 		   {:file "doc/using/range.md"}]
 		 ["To Format a Babashka Script" {:file "doc/using/babashka.md"}]

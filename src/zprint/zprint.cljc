@@ -5514,7 +5514,7 @@
   inline-comment-index] ...] ...].  The indexes are into the
   style-vec."
   [style-vec]
-  (def fcic style-vec)
+  #_(def fcic style-vec)
   (loop [cvec style-vec
          index 0
          last-indent 0

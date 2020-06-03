@@ -143,7 +143,7 @@ include the following library when using Clojure 1.8:
       * [  Add newlines between `cond`, `assoc` pairs](./doc/reference.md#map-nl-pair-nl-binding-nl)
       * [  Add newlines between extend clauses](./doc/reference.md#extend-nl)
       * [  Add newlines between map pairs](./doc/reference.md#map-nl-pair-nl-binding-nl)
-      * [  Prefer hangs and improve performance for deeply nested code and data](#fast-hang)
+      * [  Prefer hangs and improve performance for deeply nested code and data](./doc/reference.md#fast-hang)
     * [ Options map format](./doc/reference.md#options-map-format)
       * [  Option Validation](./doc/reference.md#option-validation)
       * [  What is Configurable](./doc/reference.md#what-is-configurable)

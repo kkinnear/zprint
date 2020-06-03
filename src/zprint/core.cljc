@@ -1114,9 +1114,9 @@
             (partial process-form rest-options zprint-fn zprint-specifier)
             [{} "" 0 0]
             (zmap-all identity forms))
-        _ (def sozf seq-of-zprint-fn)
+       #_(def sozf seq-of-zprint-fn)
         seq-of-strings (map second seq-of-zprint-fn)]
-    (def sos seq-of-strings)
+    #_(def sos seq-of-strings)
     (if interpose-str
       (apply str
         (interpose-w-comment seq-of-strings interpose-str))

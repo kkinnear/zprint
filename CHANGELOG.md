@@ -71,7 +71,7 @@ All notable changes to this project will be documented in this file.
   Issue #145.
 
   * When comment is the last thing in a collection, `:indent-only` adds
-  blank line before closing.
+  blank line before closing.  Fixed. Issue #149.
 
 ## 0.5.4 - 2020-3-21
 
@@ -84,6 +84,7 @@ All notable changes to this project will be documented in this file.
   the source, it will be "respected", and will appear in the output.
   However, all other formatting will be applied around any blank
   lines that may appear. Issue #125. 
+   
   While `:respect-nl?` was something that you might want to configure
   for formatting a single function, `:respect-bl?` is something that
   is perfectly reasonable to configure for processing whole files,
@@ -92,6 +93,7 @@ All notable changes to this project will be documented in this file.
   put blank lines inside a function definition, those blank lines
   will continue to appear in the output.  And all of the information
   will all be formatted correctly around those blank lines. 
+ 
   There is a new style: `{:style :respect-bl}` to simplify using
   this capability.
 
@@ -129,7 +131,7 @@ All notable changes to this project will be documented in this file.
   `and `0` fail to validate as they are not boolean.  Relaxing the
   validation rules would not help, as `0` is never going to be
   `false` for Clojure.
-
+ 
   In this (rather obscure) case you could set `:coerce-to-false`
   to the value that you want to be `false`.  If you do this the
   options map you specify will be searched for all values which
@@ -137,7 +139,7 @@ All notable changes to this project will be documented in this file.
   `true` or `false`), they are not changed.  If they are not boolean,
   then if they equal the value of `:coerce-to-false`, they will be
   set to `false`, and otherwise they will be set to `true`.
-
+ 
   In the example above, `{:coerce-to-false 0}` would correctly set
   the various boolean values.  Issue #111.
   

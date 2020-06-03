@@ -7,11 +7,12 @@ a number of major source code formattng approaches.
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
-## Recent Additions!
+### *Recent Additions!* 
 
- * Format babashka scripts
- * Format ranges of lines in files
- * [See all changes](./CHANGELOG.md)
+ * [Format babashka scripts](./doc/using/babashka.md)
+ * [Format ranges of lines in files](./doc/using/range.md)
+ * [Keep blank lines from input](./doc/types/respectbl.md)
+ * [All changes](./CHANGELOG.md)
 
 ## See zprint:
 

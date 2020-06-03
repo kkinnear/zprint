@@ -642,7 +642,7 @@
                 :reader-cond {:hang? false},
                 :record {:hang? false}},
       :pair-nl {:pair {:indent 0, :nl-separator? true}},
-      :prefer-hang {:binding {:hang-accept 100 :ha-width-factor -600} 
+      :fast-hang {:binding {:hang-accept 100 :ha-width-factor -600} 
 		    :extend {:hang-accept 100 :ha-width-factor -600}
                     :list {:hang-accept 100 :ha-width-factor -300} 
 		    :map {:hang-accept 0 :ha-depth-factor 15} 

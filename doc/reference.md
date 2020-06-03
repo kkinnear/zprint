@@ -29,7 +29,7 @@ the a variety of major source code formattng approaches.
       * [  Add newlines between `cond`, `assoc` pairs](#map-nl-pair-nl-binding-nl)
       * [  Add newlines between extend clauses](#extend-nl)
       * [  Add newlines between map pairs](#map-nl-pair-nl-binding-nl)
-      * [  Prefer hangs and improve performance for deeply nested code and data](#prefer-hang)
+      * [  Prefer hangs and improve performance for deeply nested code and data](#fast-hang)
     * [ Options map format](#options-map-format)
       * [  Option Validation](#option-validation)
       * [  What is Configurable](#what-is-configurable)
@@ -3948,7 +3948,7 @@ effective default, but `:no-hang` can be used to turn it all off
 if you wish.  If `:hang?` is off for some reason, you can use
 `:all-hang` to turn it back on.
 
-#### :prefer-hang
+#### :fast-hang
 
 __EXPERIMENTAL__
 
@@ -3973,15 +3973,15 @@ optimization.  The optimization is greater the more deeply nested
 the code or structure which is being formatting.
 
 One 6300 line file in zprint itself formats in about 5.5s on a very old
-MacBook Air, and with `:style :prefer-hang`, formats in about 4.5s.  It doesn't
+MacBook Air, and with `:style :fast-hang`, formats in about 4.5s.  It doesn't
 contain any particularly challenging functions, but there is still an
-improvement.  There are about 78 more lines in the `:style :prefer-hang`
+improvement.  There are about 78 more lines in the `:style :fast-hang`
 output.  Nothing looks terrible, but there are a couple of places where
 the different "look" isn't as pleasing.  There are probably more places where
 the differnt "look" is actually slightly better.
 
 If you have some code or structures that take too long
-to format, try `:style :prefer-hang`.  If that doesn't work, you can
+to format, try `:style :fast-hang`.  If that doesn't work, you can
 always try `:style :indent-only`, which will certainly take a much shorter
 time.
 

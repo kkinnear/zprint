@@ -34,7 +34,7 @@ In addition, zprint is very handy [__to use at the REPL__](./doc/types/repl.md).
   * [to format a range of lines in a file](./doc/using/range.md)
   * [to format a babashka script](./doc/using/babashka.md)
   * [to correct indentation but not otherwise reformat a file](./doc/using/indent.md)
-  * [and have it run even faster](./doc/using/preferhang.md)
+  * [and have it run even faster](./doc/using/fasthang.md)
   * [from inside a Clojure(script) program](./doc/using/library.md)
 
 ## Get zprint:
@@ -143,7 +143,7 @@ include the following library when using Clojure 1.8:
       * [  Add newlines between `cond`, `assoc` pairs](./doc/reference.md#map-nl-pair-nl-binding-nl)
       * [  Add newlines between extend clauses](./doc/reference.md#extend-nl)
       * [  Add newlines between map pairs](./doc/reference.md#map-nl-pair-nl-binding-nl)
-      * [  Prefer hangs and improve performance for deeply nested code and data](#prefer-hang)
+      * [  Prefer hangs and improve performance for deeply nested code and data](#fast-hang)
     * [ Options map format](./doc/reference.md#options-map-format)
       * [  Option Validation](./doc/reference.md#option-validation)
       * [  What is Configurable](./doc/reference.md#what-is-configurable)

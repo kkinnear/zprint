@@ -17,7 +17,7 @@
 		 ["To Correct Indentation but not otherwise Reformat a File" 
 		   {:file "doc/using/indent.md"}]
 		 ["And Have it Run Even Faster" 
-		   {:file "doc/using/preferhang.md"}]
+		   {:file "doc/using/fasthang.md"}]
                  ["From Inside a Clojure(script) Program"
                   {:file "doc/using/library.md"}]]
                 ["Get zprint" {}

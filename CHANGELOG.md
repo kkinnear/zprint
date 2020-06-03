@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
   Supported for `zprint-file-str`, uberjar, and precompiled binaries.
   Issue #122.
 
-  * `:style :prefer-hang`, which will offer massive formatting speed-up
+  * `:style :fast-hang`, which will offer massive formatting speed-up
   for deeply nested code and structures, at the cost of output
   that takes a few more lines than classic zprint formatting and, rarely,
   looks a bit awkward.

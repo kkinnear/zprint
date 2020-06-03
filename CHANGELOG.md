@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.0.0 - 2020-6-2
+## 1.0.0 - 2020-6-4
 
 ### Added
 
@@ -83,8 +83,7 @@ All notable changes to this project will be documented in this file.
   all as well.  This means that whenever a blank line appears in
   the source, it will be "respected", and will appear in the output.
   However, all other formatting will be applied around any blank
-  lines that may appear. Issue #125.
-
+  lines that may appear. Issue #125. 
   While `:respect-nl?` was something that you might want to configure
   for formatting a single function, `:respect-bl?` is something that
   is perfectly reasonable to configure for processing whole files,
@@ -92,8 +91,7 @@ All notable changes to this project will be documented in this file.
   do that, everything will operate as normal with zprint, but if you
   put blank lines inside a function definition, those blank lines
   will continue to appear in the output.  And all of the information
-  will all be formatted correctly around those blank lines.
-
+  will all be formatted correctly around those blank lines. 
   There is a new style: `{:style :respect-bl}` to simplify using
   this capability.
 

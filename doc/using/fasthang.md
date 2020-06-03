@@ -38,15 +38,15 @@ more hangs.
 
 The configuration is easy:
 ```clojure
-{:style :prefer-hang}
+{:style :fast-hang}
 ```
 
 I'd be interested in any feedback that you might have about the "look"
-of code formatted with `{:style :prefer-hang}`, as well as the perceived
+of code formatted with `{:style :fast-hang}`, as well as the perceived
 performance of zprint when using this style.  
 
 Should you have code or data that formats particularly slowly (with or
-without `{:style :prefer-hang}`), I'd be interested in hearing about that
+without `{:style :fast-hang}`), I'd be interested in hearing about that
 too.
 
 This style is __EXPERIMENTAL__ largely because I might make changes to

@@ -51,6 +51,7 @@
 		   {:file "doc/options/toplevel.md"}]
                  ["anything else..."
                   {:file "doc/reference.md"}]]
+		["Change Log" {:file "./CHANGELOG.md"}]
 		["File Comment API" {:file "doc/bang.md"}]
 		["zprint Reference" {:file "doc/reference.md"}]
 		  ]}

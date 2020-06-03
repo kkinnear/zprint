@@ -7,7 +7,7 @@ a number of major source code formattng approaches.
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
-## News!
+## Recent Additions!
 
  * Format babashka scripts
  * Format ranges of lines in files

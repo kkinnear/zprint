@@ -1149,21 +1149,30 @@
      (when new-options (set-options! new-options doc-str))
      (try
        ; Make sure to get trailing newlines by using -1
-       (let [lines (clojure.string/split file-str #"\n" -1)
+       (let [; If the filestring starts with #!, remove it and save it
+             [shebang file-str] (remove-shebang file-str)
+             lines (clojure.string/split file-str #"\n" -1)
              lines (if (:expand? (:tab (get-options)))
                      (map (partial expand-tabs (:size (:tab (get-options))))
                        lines)
                      lines)
              filestring (clojure.string/join "\n" lines)
              range-start (:start (:range (:input (get-options))))
+	     ; If shebang correct for one less line
+	     range-start (when range-start 
+	                   (if shebang (dec range-start) range-start))
              range-end (:end (:range (:input (get-options))))
+	     ; If shebang correct for one less line
+	     range-end (when range-end (if shebang (dec range-end) range-end))
              _ (when (or range-start range-end)
                  (dbg new-options
                       "zprint-file-str: range-start:" range-start
                       "range-end:" range-end))
              [actual-start actual-end] (when (or range-start range-end)
                                          (expand-range-to-top-level
-                                           filestring
+					   ; Add blank to start if we had
+					   ; a shebang to keep counts right
+					   filestring
                                            lines
                                            range-start
                                            range-end
@@ -1184,8 +1193,6 @@
                          "after count:" (count after-lines)
                          "range:" range))
              ends-with-nl? (clojure.string/ends-with? file-str "\n")
-             ; If the filestring starts with #!, remove it and save it
-             [shebang filestring] (remove-shebang filestring)
              forms (edn* (p/parse-string-all filestring))
              pmf-options {:process-bang-zprint? true}
              pmf-options (if (:interpose (:parse (get-options)))

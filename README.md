@@ -7,6 +7,12 @@ a number of major source code formattng approaches.
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
+## News!
+
+ * Format babashka scripts
+ * Format ranges of lines in files
+ * [See all changes](./CHANGELOG.md)
+
 ## See zprint:
 
   * [__classic zprint__](./doc/types/classic.md) -- ignores whitespace 

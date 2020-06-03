@@ -3956,11 +3956,11 @@ This style does two things: it tends to prefer hangs over flows, even
 when the line-count of the hang might be more than that of a flow, and
 it tends to speed up processing -- frequently doing the same work in 80%
 of the time, and sometimes doing the same work in 25% or even 10% of
-the time as classic zprint formatting.  
-It does this by, in many cases,  accepting hangs 
-(if they work at all) without comparing how many lines they took 
+the time as classic zprint formatting.  It does this by, in many cases,
+accepting hangs
+(if they work at all) without comparing how many lines they took
 to the corresponding flow for the same expression.  This can drastically
-reduce the time required to format some code or structures, particularly 
+reduce the time required to format some code or structures, particularly
 those that are very deeply nested.  One downside is that sometimes the
 resulting formatted code is longer than it might otherwise be when normal
 formatting is used.  The other downside is that, rarely, a lot of code

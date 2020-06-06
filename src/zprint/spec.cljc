@@ -68,7 +68,7 @@
 
 ; Note that actual fn-types can be [:arg1 {:style :respect-nl}] in addition
 ; to simple keywords.  These things are ripped apart during option map
-; validation and done separately.  See validate-options and 
+; validation and done separately.  See validate-options and
 ; separate-fn-map-options in config.cljc for details.
 
 (s/def ::fn-type
@@ -77,7 +77,7 @@
     :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
     :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin :indent
     :replace-w-string})
-(s/def ::fn-type-w-map 
+(s/def ::fn-type-w-map
   (s/or :general-options (s/tuple ::fn-type ::options)
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
 (s/def ::fn-specifier
@@ -218,10 +218,8 @@
 (s/def ::atom (only-keys :opt-un [::object?]))
 (s/def ::binding
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
-		      ::hang-accept
-		      ::ha-depth-factor
-		      ::ha-width-factor
-                      ::indent ::justify? ::justify-hang ::justify-tuning
+                      ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
+                      ::justify? ::justify-hang ::justify-tuning
                       ::nl-separator?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::color-map
@@ -250,10 +248,8 @@
 (s/def ::do-in-hang? ::boolean)
 (s/def ::extend
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
-		      ::hang-accept
-		      ::ha-depth-factor
-		      ::ha-width-factor
-                      ::indent ::modifiers ::nl-separator?]))
+                      ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
+                      ::modifiers ::nl-separator?]))
 (s/def :alt/extend (only-keys :opt-un [::modifiers]))
 (s/def ::file? ::boolean)
 (s/def ::fn-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
@@ -267,27 +263,23 @@
 (s/def ::indent number?)
 (s/def ::input (only-keys :opt-un [::range]))
 (s/def ::list
-  (only-keys :opt-un [::constant-pair-min ::constant-pair? ::hang-diff
-                      ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
-		      ::hang-accept
-		      ::ha-depth-factor
-		      ::ha-width-factor
-                      ::indent-arg ::pair-hang? ::return-altered-zipper
-                      ::respect-bl? ::respect-nl? ::indent-only?
-                      ::indent-only-style ::replacement-string]))
+  (only-keys
+    :opt-un [::constant-pair-min ::constant-pair? ::hang-diff ::hang-avoid
+             ::hang-expand ::hang-size ::hang? ::indent ::hang-accept
+             ::ha-depth-factor ::ha-width-factor ::indent-arg ::pair-hang?
+             ::return-altered-zipper ::respect-bl? ::respect-nl? ::indent-only?
+             ::indent-only-style ::replacement-string]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
   (only-keys
     :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
-	     ::hang-accept
-	     ::ha-depth-factor
-	     ::ha-width-factor
-             ::hang-expand ::hang? ::indent ::indent-only? ::justify?
-             ::justify-hang ::justify-tuning ::key-color ::key-value-color
-             ::key-depth-color ::key-ignore ::key-ignore-silent ::key-order
-             ::lift-ns? ::lift-ns-in-code? ::nl-separator? ::respect-bl?
-             ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
+             ::hang-accept ::ha-depth-factor ::ha-width-factor ::hang-expand
+             ::hang? ::indent ::indent-only? ::justify? ::justify-hang
+             ::justify-tuning ::key-color ::key-value-color ::key-depth-color
+             ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
+             ::lift-ns-in-code? ::nl-separator? ::respect-bl? ::respect-nl?
+             ::sort-in-code? ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -299,15 +291,13 @@
 ; Note that here we are accepting an entire options map
 ; Because of the way that validate is handled for style-maps and for
 ; option maps in the fn-map, neither of these things will be validate by
-; spec in this case.  
+; spec in this case.
 (s/def ::more-options (s/nilable ::options))
 (s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
-		      ::hang-accept
-		      ::ha-depth-factor
-		      ::ha-width-factor
-                      ::indent ::justify? ::justify-hang ::justify-tuning
+                      ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
+                      ::justify? ::justify-hang ::justify-tuning
                       ::nl-separator?]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
@@ -334,7 +324,7 @@
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::style ::style-value)
-; This is a full option map, which gets validate separately in 
+; This is a full option map, which gets validate separately in
 ; validate-style-map
 (s/def ::style-map (s/nilable (s/map-of keyword? ::options)))
 (s/def ::tab (only-keys :opt-un [::expand? ::size]))
@@ -363,16 +353,16 @@
              :alt/comment ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc?
              ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
              ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-             ::fn-map ::fn-name ::fn-obj ::force-eol-blanks? ::format ::future ::indent ::input ::list ::map
-             ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
-             ::max-hang-span ::max-length ::object ::old? ::output ::pair
-             ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
-             ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
-             ::record ::remove ::next-inner ::return-cvec? ::search-config?
-             ::set ::spaces? ::script ::spec ::style ::style-map ::tab 
-	     ::test-for-eol-blanks? ::trim-comments?
-             ::tuning :alt/uneval ::user-fn-map ::vector ::vector-fn ::version
-             ::width ::url ::zipper?]))
+             ::fn-map ::fn-name ::fn-obj ::force-eol-blanks? ::format ::future
+             ::indent ::input ::list ::map ::max-depth ::max-depth-string
+             ::max-hang-count ::max-hang-depth ::max-hang-span ::max-length
+             ::object ::old? ::output ::pair ::pair-fn ::parallel? ::parse
+             ::parse-string-all? ::parse-string? ::perf-vs-format
+             ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
+             ::next-inner ::return-cvec? ::search-config? ::set ::spaces?
+             ::script ::spec ::style ::style-map ::tab ::test-for-eol-blanks?
+             ::trim-comments? ::tuning :alt/uneval ::user-fn-map ::vector
+             ::vector-fn ::version ::width ::url ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 
@@ -451,25 +441,22 @@
 (defn phrase-problem-str
   "Take a single problem and turn it into a phrase."
   [problem last?]
-  (cond
-    (clojure.string/ends-with? (str (:pred problem)) "?")
-      (str (ks-phrase
-             (if last? (assoc problem :in [(last (:in problem))]) problem))
-           " was not a "
-           (map-pred (str (:pred problem))))
-    (set? (:pred problem))
-      (if (< (count (:pred problem)) 10)
-        (str (ks-phrase problem) " was not one of " (:pred problem))
-        (str (ks-phrase problem) " was not recognized as valid!"))
-    :else (str "what?")))
+  (cond (clojure.string/ends-with? (str (:pred problem)) "?")
+          (str (ks-phrase
+                 (if last? (assoc problem :in [(last (:in problem))]) problem))
+               " was not a " (map-pred (str (:pred problem))))
+        (set? (:pred problem))
+          (if (< (count (:pred problem)) 10)
+            (str (ks-phrase problem) " was not one of " (:pred problem))
+            (str (ks-phrase problem) " was not recognized as valid!"))
+        :else (str "what?")))
 
 (defn phrase-problem-str-alt
   "Take a single problem and turn it into a phrase."
   [problem]
   (cond (clojure.string/ends-with? (str (:pred problem)) "?")
           (str (ks-phrase problem)
-               " was not a "
-               (map-pred (str (:pred problem))))
+               " was not a " (map-pred (str (:pred problem))))
         (set? (:pred problem)) (str (ks-phrase problem)
                                     " was not recognized as valid!")
         :else (str "what?")))
@@ -489,33 +476,33 @@
                         explain-data-return)
           problem-list (remove #(= "nil?" (str (:pred %))) problem-list)
           val-map (group-by :val problem-list)
-          #_ (println "val-map:\n" (zprint.core/czprint-str val-map))
+          #_(println "val-map:\n" (zprint.core/czprint-str val-map))
           key-via-len-seq
             (map (fn [[k v]] [k (apply min (map (comp count :via) v))]) val-map)
-          #_ (println "key-via-len-seq:\n"
-                     (zprint.core/czprint-str key-via-len-seq))
+          #_(println "key-via-len-seq:\n" (zprint.core/czprint-str
+                                            key-via-len-seq))
           [key-choice min-via] (first (sort-by second key-via-len-seq))
-          #_ (println "key-choice:\n" (zprint.core/czprint-str key-choice))
-          #_ (println "min-via:\n" (zprint.core/czprint-str min-via))
+          #_(println "key-choice:\n" (zprint.core/czprint-str key-choice))
+          #_(println "min-via:\n" (zprint.core/czprint-str min-via))
           problem (first (filter (comp (partial = min-via) count :via)
                            (val-map key-choice)))
-          #_ (println "problem1:\n" (zprint.core/czprint-str problem))
+          #_(println "problem1:\n" (zprint.core/czprint-str problem))
           [key-choice2 min-via2] (second (sort-by second key-via-len-seq))
           problem2 (first (filter (comp (partial = min-via2) count :via)
                             (val-map key-choice2)))
-          #_ (println "problem2:\n" (zprint.core/czprint-str problem2))
+          #_(println "problem2:\n" (zprint.core/czprint-str problem2))
           problem-str (phrase-problem-str problem nil)
           problem-str (if (re-find #"valid" problem-str)
                         (let [problem-str-2 (phrase-problem-str problem2 :last)]
                           (if (re-find #"was not a" problem-str-2)
                             (str problem-str
-                                 " because "
-				 (lower-first
-                                 (phrase-problem-str problem2 :last)))
+                                 " because " (lower-first (phrase-problem-str
+                                                            problem2
+                                                            :last)))
                             problem-str))
                         problem-str)]
       problem-str)))
-			  
+
 (defn coerce-to-boolean
   "Examine an options map prior to validation and if :coerce-to-false
   appears as a key, scan the map for keys which are a keyword with

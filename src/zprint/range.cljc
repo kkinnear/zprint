@@ -1,6 +1,6 @@
 (ns ^:no-doc zprint.range
   (:require [clojure.string :as s]
-	    [edamame.core :refer [parse-string-all]]))
+            [edamame.core :refer [parse-string-all]]))
 
 ;;
 ;; # Handle range specification
@@ -78,10 +78,7 @@
                                        current-index
                                        (inc tries))))))))))
 
-(defn abs
-  "Return the absolute value of a number."
-  [n]
-  (if (neg? n) (- n) n)) 
+(defn abs "Return the absolute value of a number." [n] (if (neg? n) (- n) n))
 
 (defn find-row
   "Given a vector of rows, find the row that contains a line number,
@@ -104,8 +101,8 @@
   index into row-vec, and it must be the row-vec that has had nils 
   removed from it (or this routine would do that for you)."
   ([row-vec linenumber dbg? scan-size]
-   (when dbg? (println "find-row: linenumber:" linenumber
-                       "scan-size:" scan-size))
+   (when dbg?
+     (println "find-row: linenumber:" linenumber "scan-size:" scan-size))
    (let [size (count row-vec)]
      ; We are 1 based, because edamame row numbers are 1 based.
      (loop [row-vec-index (int (/ size 2))
@@ -162,16 +159,17 @@
                          filestring
                          {:all true,
                           :features #{:clj :cljs},
-                          ; Ensure that reader-conditionals have something 
-			  ; show up with meta data regardless of the 
-			  ; "features" in the reader-conditional
+                          ; Ensure that reader-conditionals have something
+                          ; show up with meta data regardless of the
+                          ; "features" in the reader-conditional
                           :read-cond (fn [expr] (with-meta [] (meta expr))),
                           :auto-resolve {:current *ns*}}))
                      ; If we can't parse it, we have set row-vec to nil, which
                      ; should cause us to format everything.
-                     (catch 
-		      #?(:clj Exception :cljs :default)
-		      e nil))
+                     (catch #?(:clj Exception
+                               :cljs :default)
+                       e
+                       nil))
         row-vec (when row-vec (into [] (remove nil? row-vec)))
         _ (when dbg? (prn row-vec))
         ; Figure out which expression start falls within, after making

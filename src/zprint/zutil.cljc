@@ -312,9 +312,8 @@
   done in the zipper so that later navigation in this area remains
   continues to work."
   [zloc]
-  (let [comment-no-nl
-	  (p/parse-string
-                  (clojure.string/replace-first (z/string zloc) "\n" ""))
+  (let [comment-no-nl (p/parse-string
+                        (clojure.string/replace-first (z/string zloc) "\n" ""))
         new-comment (replace* zloc comment-no-nl)
         new-comment (insert-right* new-comment (p/parse-string "\n"))]
     new-comment))
@@ -331,7 +330,7 @@
   (loop [nloc (down* zloc)
          blank? false
          previous-was-nl? false
-	 previous-comment? nil
+         previous-comment? nil
          out []]
     (if-not nloc
       out
@@ -358,8 +357,8 @@
                ", zloc:" (z/string nloc)
                ", length:" (length nloc)
                ", ws?" ws?
-	       ", previous-was-nl??" previous-was-nl?
-	       ", previous-comment?" previous-comment?
+               ", previous-was-nl??" previous-was-nl?
+               ", previous-comment?" previous-comment?
                ", nl? " nl?
                ", nl-len:" nl-len
                ", multi-nl?" multi-nl?
@@ -375,11 +374,11 @@
                  nl?)
                ; If we emitted something, was it a nl?  If nothing emitted,
                ; no change.
-	       (if (or result nl-to-emit) 
-		 ; Two ways to emit a nl
-	         (or (and nl? previous-comment?) emit-nl?) 
-		 previous-was-nl?)
-	       comment?
+               (if (or result nl-to-emit)
+                 ; Two ways to emit a nl
+                 (or (and nl? previous-comment?) emit-nl?)
+                 previous-was-nl?)
+               comment?
                (cond result (conj out result)
                      nl-to-emit (apply conj out nl-to-emit)
                      :else out))))))
@@ -430,8 +429,7 @@
             comment? (= (z/tag nloc) :comment)
             ; This may reset the nloc for the rest of the sequence!
             nloc (if comment? (split-newline-from-comment nloc) nloc)
-            result (when (or (not (whitespace? nloc)) comma?)
-                     (zfn nloc))
+            result (when (or (not (whitespace? nloc)) comma?) (zfn nloc))
             nl-len (when nl? (length nloc))
             multi-nl? (when nl? (> (length nloc) 1))
             ; newline thing to emit
@@ -439,11 +437,10 @@
               (when nl?
                 (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
         #_(println "zmap-w-nl-comma: tag:" (z/tag nloc))
-        (recur
-          (right* nloc)
-          (cond result (conj out result)
-                nl-to-emit (apply conj out nl-to-emit)
-                :else out))))))
+        (recur (right* nloc)
+               (cond result (conj out result)
+                     nl-to-emit (apply conj out nl-to-emit)
+                     :else out))))))
 
 (defn zmap
   "Return a vector containing the return of applying a function to 
@@ -463,9 +460,7 @@
             result (when (or (not (whitespace? nloc))
                              (and nl? previous-comment?))
                      (zfn nloc))]
-        (recur (right* nloc) 
-	       comment? 
-	       (if result (conj out result) out))))))
+        (recur (right* nloc) comment? (if result (conj out result) out))))))
 
 ; This was the original zmap before all of the changes...
 (defn zmap-alt
@@ -489,10 +484,7 @@
          i 0]
     (if-not nloc
       i
-      (recur (right* nloc) 
-             (if (not (whitespace? nloc)) 
-	       (inc i) 
-	       i)))))
+      (recur (right* nloc) (if (not (whitespace? nloc)) (inc i) i)))))
 
 ; Used in core.cljc
 (defn zmap-all

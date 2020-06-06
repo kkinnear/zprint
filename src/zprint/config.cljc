@@ -59,8 +59,7 @@
    [:list :hang-accept :ha-depth-factor :ha-width-factor]
    [:map :hang-accept :ha-depth-factor :ha-width-factor]
    [:pair :hang-accept :ha-depth-factor :ha-width-factor]
-   [:vector-fn :hang-accept :ha-depth-factor :ha-width-factor]
-   ])
+   [:vector-fn :hang-accept :ha-depth-factor :ha-width-factor]])
 
 ;;
 ;; ## Function style database
@@ -390,9 +389,9 @@
              :force-nl? false,
              :hang-diff 1,
              :hang-expand 2.0,
-	     :hang-accept nil
-	     :ha-depth-factor 0
-	     :ha-width-factor 0
+             :hang-accept nil,
+             :ha-depth-factor 0,
+             :ha-width-factor 0,
              :hang? true,
              :indent 2,
              :justify-hang {:hang-expand 5},
@@ -432,9 +431,9 @@
             :force-nl? true,
             :hang-diff 1,
             :hang-expand 1000.0,
-	     :hang-accept nil
-	     :ha-depth-factor 0
-	     :ha-width-factor 0
+            :hang-accept nil,
+            :ha-depth-factor 0,
+            :ha-width-factor 0,
             :hang? true,
             :indent 2,
             :modifiers #{"static"},
@@ -447,20 +446,20 @@
    :fn-map zfnstyle,
    :fn-name nil,
    :fn-obj {:object? false},
-   :force-eol-blanks? false
+   :force-eol-blanks? false,
    :format :on,
    :future {:object? false},
    ; This is used for {:parse {:left-space :keep}}
    :indent 0,
-   :input {:range {:start nil :end nil}},
+   :input {:range {:start nil, :end nil}},
    :list {:constant-pair-min 4,
           :constant-pair? true,
           :hang-avoid 0.5,
           :hang-diff 1,
           :hang-expand 2.0,
-	  :hang-accept nil,
-	  :ha-depth-factor 0
-	  :ha-width-factor 0
+          :hang-accept nil,
+          :ha-depth-factor 0,
+          :ha-width-factor 0,
           :hang-size 100,
           :hang? true,
           :indent 2,
@@ -482,9 +481,9 @@
          ; was created and set to 0.  That certainly looks better, but
          ; wider stuff seems better with -1, so for now, we will go with that.
          :hang-adjust -1,
-	  :hang-accept nil,
-	  :ha-depth-factor 0
-	  :ha-width-factor 0
+         :hang-accept nil,
+         :ha-depth-factor 0,
+         :ha-width-factor 0,
          :indent-only? false,
          :key-order nil,
          :key-ignore nil,
@@ -522,9 +521,9 @@
           :force-nl? nil,
           :hang-diff 1,
           :hang-expand 2.0,
-	  :hang-accept nil,
-	  :ha-depth-factor 0
-	  :ha-width-factor 0
+          :hang-accept nil,
+          :ha-depth-factor 0,
+          :ha-width-factor 0,
           :hang? true,
           :indent 2,
           :justify-hang {:hang-expand 5},
@@ -617,7 +616,7 @@
                               :else nil))),
                   :wrap? false},
                :vector-fn {:indent 1, :indent-arg 1}},
-      :indent-only {:comment {:wrap? false}
+      :indent-only {:comment {:wrap? false},
                     :list {:indent-only? true},
                     :map {:indent-only? true},
                     :set {:indent-only? true},
@@ -642,12 +641,12 @@
                 :reader-cond {:hang? false},
                 :record {:hang? false}},
       :pair-nl {:pair {:indent 0, :nl-separator? true}},
-      :fast-hang {:binding {:hang-accept 100 :ha-width-factor -600} 
-		    :extend {:hang-accept 100 :ha-width-factor -600}
-                    :list {:hang-accept 100 :ha-width-factor -300} 
-		    :map {:hang-accept 0 :ha-depth-factor 15} 
-		    :pair {:hang-accept 20 :ha-width-factor -150}
-                    :vector-fn {:hang-accept 100 :ha-width-factor -300}}
+      :fast-hang {:binding {:hang-accept 100, :ha-width-factor -600},
+                  :extend {:hang-accept 100, :ha-width-factor -600},
+                  :list {:hang-accept 100, :ha-width-factor -300},
+                  :map {:hang-accept 0, :ha-depth-factor 15},
+                  :pair {:hang-accept 20, :ha-width-factor -150},
+                  :vector-fn {:hang-accept 100, :ha-width-factor -300}},
       :respect-bl {:list {:respect-bl? true},
                    :map {:respect-bl? true},
                    :vector {:respect-bl? true},
@@ -659,7 +658,7 @@
       :sort-dependencies {:list {:return-altered-zipper [1 'defproject
                                                          sort-dependencies]}}},
    :tab {:expand? true, :size 8},
-   :test-for-eol-blanks? false
+   :test-for-eol-blanks? false,
    :trim-comments? nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
             :hang-flow 1.1,
@@ -711,9 +710,9 @@
                :hang-avoid 0.5,
                :hang-diff 1,
                :hang-expand 2.0,
-	      :hang-accept nil,
-	      :ha-depth-factor 0
-	      :ha-width-factor 0
+               :hang-accept nil,
+               :ha-depth-factor 0,
+               :ha-width-factor 0,
                :hang-size 100,
                :hang? true,
                :indent 2,

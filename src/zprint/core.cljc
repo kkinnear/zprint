@@ -1,6 +1,6 @@
 (ns zprint.core
-  #?@(:cljs [[:require-macros [zprint.macros :refer [dbg dbg-pr dbg-form
-  dbg-print]]]])
+  #?@(:cljs [[:require-macros
+              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])
   (:require #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
             clojure.string
             #?@(:cljs [[cljs.reader :refer [read-string]]])
@@ -22,8 +22,8 @@
              [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
             [zprint.sutil]
             [zprint.focus :refer [range-ssv]]
-	    [zprint.range :refer [expand-range-to-top-level split-out-range
-	                          reassemble-range]]
+            [zprint.range :refer
+             [expand-range-to-top-level split-out-range reassemble-range]]
             [rewrite-clj.parser :as p]
             #_[clojure.spec.alpha :as s])
   #?@(:clj ((:import (java.net URL URLConnection)
@@ -595,14 +595,13 @@
     (dbg rest-options "zprint-str-internal VVVVVVVVVVVVVVVV")
     (if (:parse-string-all? rest-options)
       (if (string? coll)
-	(let [result
-        (process-multiple-forms (parse-string-all-options rest-options)
-                                zprint-str-internal
-                                ":parse-string-all? call"
-                                (edn* (p/parse-string-all coll)))]
-         (dbg rest-options "zprint-str-internal ^^^ pmf ^^^ pmf ^^^ pmf ^^^")
-	 result)
-
+        (let [result (process-multiple-forms (parse-string-all-options
+                                               rest-options)
+                                             zprint-str-internal
+                                             ":parse-string-all? call"
+                                             (edn* (p/parse-string-all coll)))]
+          (dbg rest-options "zprint-str-internal ^^^ pmf ^^^ pmf ^^^ pmf ^^^")
+          result)
         (throw (#?(:clj Exception.
                    :cljs js/Error.)
                 (str ":parse-string-all? requires a string!"))))
@@ -622,10 +621,10 @@
             #_(println "accept-vec:" accept-vec)
             #_(def av accept-vec)
             #_(println "elide:" (:elide (:output options)))
-	    eol-blanks (when (:test-for-eol-blanks? options)
-	                 (find-eol-blanks options cvec-wo-empty coll nil))
-	    eol-str (when (not (empty? eol-blanks)) 
-	        (str "=======  eol-blanks: " eol-blanks))
+            eol-blanks (when (:test-for-eol-blanks? options)
+                         (find-eol-blanks options cvec-wo-empty coll nil))
+            eol-str (when (not (empty? eol-blanks))
+                      (str "=======  eol-blanks: " eol-blanks))
             inline-style-vec (if (:inline? (:comment options))
                                (fzprint-inline-comments options cvec-wo-empty)
                                cvec-wo-empty)
@@ -654,11 +653,11 @@
                           (apply str (mapv first comp-style)))
             #_(def cs color-style)]
         (dbg rest-options "zprint-str-internal ^^^^^^^^^^^^^^^^^^")
-	(if eol-str
-	  eol-str 
-        (if (:return-cvec? options) 
-	   (remove-newline-indent-locs cvec)  ; i132
-	   color-style))))))
+        (if eol-str
+          eol-str
+          (if (:return-cvec? options)
+            (remove-newline-indent-locs cvec)  ; i132
+            color-style))))))
 
 (defn ^:no-doc get-fn-source
   "Call source-fn, and if it isn't there throw an exception."
@@ -942,7 +941,7 @@
             {:comment {:wrap? false}, :zipper? true, :file? true, :drop? drop?}
             {:zipper? true, :file? true, :drop? drop?})
         internal-options (merge-deep internal-options local-options)
-        #_ (do (println "-----------------------")
+        #_(do (println "-----------------------")
               (println "form:")
               (prn (zprint.zutil/string (or (zprint.zutil/zfirst form) form)))
               (println "space-count:" space-count)
@@ -1064,8 +1063,10 @@
 
 ;; An example of what is going on here with the reductions:
 ;;
-;;zprint.core=> (zprint-file-str "\n\n(ns foo)\n;abc\n;!zprint {:format :next :width 10}\n;def\n(defn baz [])\n\n\n" "junk" {:parse {:interpose "\n\n"}})
-;;"(ns foo)\n\n;abc\n\n;!zprint {:format :next :width 10}\n\n;def\n\n(defn baz\n  [])\n"
+;;zprint.core=> (zprint-file-str "\n\n(ns foo)\n;abc\n;!zprint {:format :next
+;;:width 10}\n;def\n(defn baz [])\n\n\n" "junk" {:parse {:interpose "\n\n"}})
+;;"(ns foo)\n\n;abc\n\n;!zprint {:format :next :width 10}\n\n;def\n\n(defn baz\n
+;; [])\n"
 ;;zprint.core=> (print *1)
 ;;(ns foo)
 ;;
@@ -1075,52 +1076,150 @@
 ;;
 ;;;def
 ;;
-;;(defn baz
+;;(defn
+;;baz
 ;;  [])
 ;;nil
-;;zprint.core=> (czprint sozf)
-;;([{} "" 0 0]
-;; [{} "" 0 0]
-;; [{} "(ns foo)" 0 0]
-;; [{} "" 0 0]
-;; [{} ";abc" 0 0]
-;; [{:format :next, :width 10} ";!zprint {:format :next :width 10}" 0 1]
-;; [{:format :next, :width 10} ";def" 0 1]
-;; [{} "(defn baz\n  [])" 0 1]
-;; [{} "" 0 1])
+;;zprint.core=>
+;;(czprint
+;;sozf)
+;;([{} ""
+;;0 0]
+;; [{} ""
+;; 0 0]
+;; [{}
+;; "(ns
+;; foo)" 0
+;; 0]
+;; [{} ""
+;; 0 0]
+;; [{}
+;; ";abc"
+;; 0 0]
+;; [{:format
+;; :next,
+;; :width
+;; 10}
+;; ";!zprint
+;; {:format
+;; :next
+;; :width
+;; 10}" 0
+;; 1]
+;; [{:format
+;; :next,
+;; :width
+;; 10}
+;; ";def"
+;; 0 1]
+;; [{}
+;; "(defn
+;; baz\n
+;; [])" 0
+;; 1]
+;; [{} ""
+;; 0 1])
 ;;nil
 ;;
-;; Note that (defn baz []) came out on two lines because of {:width 10}
+;; Note
+;; that
+;; (defn
+;; baz [])
+;; came
+;; out on
+;; two
+;; lines
+;; because
+;; of
+;; {:width
+;; 10}
 
-(defn ^:no-doc process-multiple-forms
+(defn
+  ^:no-doc
+  process-multiple-forms
   "Take a sequence of forms (which are zippers of the elements of
   a file or a string containing multiple forms somewhere), and not 
   only format them for output but also handle comments containing 
   ;!zprint that affect the options-map throughout the processing."
-  [rest-options zprint-fn zprint-specifier forms]
-  (let [interpose-option (or (:interpose (:parse rest-options))
-                             (:interpose (:parse (get-options))))
-        interpose-str
-          (cond (or (nil? interpose-option) (false? interpose-option)) nil
-                (string? interpose-option) interpose-option
-                ; here is where :interpose true turns into :interpose "\n"
-                (true? interpose-option) "\n"
-                :else (throw (#?(:clj Exception.
-                                 :cljs js/Error.)
-                              (str "Unsupported {:parse {:interpose value}}: "
-                                   interpose-option))))
-        seq-of-zprint-fn
-          (reductions
-            (partial process-form rest-options zprint-fn zprint-specifier)
-            [{} "" 0 0]
-            (zmap-all identity forms))
-       #_(def sozf seq-of-zprint-fn)
-        seq-of-strings (map second seq-of-zprint-fn)]
-    #_(def sos seq-of-strings)
-    (if interpose-str
-      (apply str
-        (interpose-w-comment seq-of-strings interpose-str))
-      (apply str seq-of-strings))))
+  [rest-options
+   zprint-fn
+   zprint-specifier
+   forms]
+  (let
+    [interpose-option
+       (or
+         (:interpose
+           (:parse
+             rest-options))
+         (:interpose
+           (:parse
+             (get-options))))
+     interpose-str
+       (cond
+         (or
+           (nil?
+             interpose-option)
+           (false?
+             interpose-option))
+           nil
+         (string?
+           interpose-option)
+           interpose-option
+         ; here
+         ; is
+         ; where
+         ; :interpose
+         ; true
+         ; turns
+         ; into
+         ; :interpose
+         ; "\n"
+         (true?
+           interpose-option)
+           "\n"
+         :else
+           (throw
+             (#?(:clj
+                   Exception.
+                 :cljs
+                   js/Error.)
+              (str
+                "Unsupported {:parse {:interpose value}}: "
+                interpose-option))))
+     seq-of-zprint-fn
+       (reductions
+         (partial
+           process-form
+           rest-options
+           zprint-fn
+           zprint-specifier)
+         [{}
+          ""
+          0
+          0]
+         (zmap-all
+           identity
+           forms))
+     #_(def
+         sozf
+         seq-of-zprint-fn)
+     seq-of-strings
+       (map
+         second
+         seq-of-zprint-fn)]
+    #_(def
+        sos
+        seq-of-strings)
+    (if
+      interpose-str
+      (apply
+        str
+        (interpose-w-comment
+          seq-of-strings
+          interpose-str))
+      (apply
+        str
+        seq-of-strings))))
 
 ;;
 ;; ## Process an entire file
@@ -1158,21 +1257,21 @@
                      lines)
              filestring (clojure.string/join "\n" lines)
              range-start (:start (:range (:input (get-options))))
-	     ; If shebang correct for one less line
-	     range-start (when range-start 
-	                   (if shebang (dec range-start) range-start))
+             ; If shebang correct for one less line
+             range-start (when range-start
+                           (if shebang (dec range-start) range-start))
              range-end (:end (:range (:input (get-options))))
-	     ; If shebang correct for one less line
-	     range-end (when range-end (if shebang (dec range-end) range-end))
+             ; If shebang correct for one less line
+             range-end (when range-end (if shebang (dec range-end) range-end))
              _ (when (or range-start range-end)
                  (dbg new-options
                       "zprint-file-str: range-start:" range-start
                       "range-end:" range-end))
              [actual-start actual-end] (when (or range-start range-end)
                                          (expand-range-to-top-level
-					   ; Add blank to start if we had
-					   ; a shebang to keep counts right
-					   filestring
+                                           ; Add blank to start if we had
+                                           ; a shebang to keep counts right
+                                           filestring
                                            lines
                                            range-start
                                            range-end
@@ -1198,9 +1297,10 @@
              pmf-options (if (:interpose (:parse (get-options)))
                            (assoc pmf-options :trim-comments? true)
                            pmf-options)
-	     pmf-options (if shebang (merge-deep pmf-options 
-	                                (:more-options (:script (get-options))))
-			    pmf-options)
+             pmf-options (if shebang
+                           (merge-deep pmf-options
+                                       (:more-options (:script (get-options))))
+                           pmf-options)
              #_(def fileforms (zmap-all identity forms))
              out-str (process-multiple-forms pmf-options
                                              zprint-str-internal

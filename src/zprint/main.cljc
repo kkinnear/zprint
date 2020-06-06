@@ -237,7 +237,7 @@
             ; We could nitialize using the op-options if we haven't done
             ; so already, but if we didn't have any command line options, then
             ; there are no op-options that matter.
-            )]
+          )]
     ; If option-stderr has something in it, we have either had some
     ; kind of a problem or we have processed the switch and it has
     ; output.  In either case, if option-stderr is non-nil we need

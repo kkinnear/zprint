@@ -169,7 +169,9 @@
                           :auto-resolve {:current *ns*}}))
                      ; If we can't parse it, we have set row-vec to nil, which
                      ; should cause us to format everything.
-                     (catch Exception e nil))
+                     (catch 
+		      #?(:clj Exception :cljs :default)
+		      e nil))
         row-vec (when row-vec (into [] (remove nil? row-vec)))
         _ (when dbg? (prn row-vec))
         ; Figure out which expression start falls within, after making

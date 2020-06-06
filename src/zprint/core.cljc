@@ -1,6 +1,6 @@
 (ns zprint.core
-  ;#?@(:cljs [[:require-macros [zprint.macros :refer [dbg dbg-pr dbg-form
-  ;dbg-print]]]])
+  #?@(:cljs [[:require-macros [zprint.macros :refer [dbg dbg-pr dbg-form
+  dbg-print]]]])
   (:require #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
             clojure.string
             #?@(:cljs [[cljs.reader :refer [read-string]]])

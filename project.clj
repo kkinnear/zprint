@@ -7,17 +7,14 @@
             :year 2015}
   :plugins
     [[lein-expectations "0.0.8"] [lein-codox "0.10.3"] [lein-zprint "1.0.0"]]
-  :profiles {:dev {:dependencies [#_[expectations "2.2.0-rc1"]
-                                  #_[expectations "2.2.0-rc3"]
-				  #_[borkdude/edamame "0.0.11-alpha.1"]
-                                  [expectations "2.1.10"]
-                                  [com.taoensso/tufte "1.1.1"]
-                                  #_[org.clojure/clojurescript "1.9.946"]
-                                  ;[rum "0.10.8"];
-                                  [better-cond "1.0.1"]
-				  [zpst "0.1.6"]
-                                  [org.clojure/core.match "0.3.0-alpha5"]
-                                  #_[clojure-future-spec "1.9.0-alpha17"]]},
+  :profiles {:repl {:dependencies [#_[com.taoensso/tufte "1.1.1"]
+                                   #_[org.clojure/clojurescript "1.9.946"]
+                                   ;[rum "0.10.8"];
+                                   [better-cond "1.0.1"]
+				   #_[zpst "0.1.6"]
+                                   [org.clojure/core.match "0.3.0-alpha5"]
+                                   #_[clojure-future-spec "1.9.0-alpha17"]]},
+	     :expectations {:dependencies [[expectations "2.1.10"]]}
              :uberjar {;:aot [zprint.core zprint.main],
                        ; For 1.9.0-alpha17, use this for the :aot value
                        :aot [zprint.core zprint.main clojure.core.specs.alpha],
@@ -45,5 +42,5 @@
      [org.clojure/clojure "1.9.0"]
      #_[org.clojure/clojure "1.8.0"]
      [rewrite-cljs "0.4.5" :exclusions [[org.clojure/clojurescript]]]
-     [borkdude/edamame "0.0.11-alpha.10"]
+     [borkdude/edamame "0.0.11-alpha.12"]
      [rewrite-clj "0.6.1" :exclusions [[com.cemerick/austin]]]])

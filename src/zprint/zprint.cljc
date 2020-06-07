@@ -960,9 +960,9 @@
                     ; hang indent.
                     _ (dbg options
                            "fzprint-two-up: before hang.  hanging tried?"
-                           (and arg-1-fit-oneline?
-                                (and (not flow?)
-                                     (>= flow-indent hanging-indent))))
+                           (or arg-1-fit-oneline?
+                               (and (not flow?)
+                                    (>= flow-indent hanging-indent))))
                     hanging (when (or arg-1-fit-oneline?
                                       (and (not flow?)
                                            (>= flow-indent hanging-indent)))
@@ -987,6 +987,9 @@
                     ; one line on input.  Do flow if we don't have
                     ; hanging-lines
                     ; and we were not one-line on input.
+                    _ (dbg options
+                           "fzprint-two-up: fit?" fit?
+                           "hanging-lines:" hanging-lines)
                     _ (log-lines options
                                  "fzprint-two-up: hanging-2:"
                                  hanging-indent
@@ -3599,18 +3602,18 @@
                          r-str-vec))
       (= fn-style :extend)
         (let [zloc-seq-right-first (get-zloc-seq-right first-data)]
-          (concat-no-nil l-str-vec
-                         pre-arg-1-style-vec
-                         (fzprint* loptions (inc ind) arg-1-zloc)
-                         (prepend-nl options
-                                     (+ indent ind)
-                                     ; I think fzprint-pairs will sort out which
-                                     ; is and isn't the rightmost because of
-                                     ; two-up
-                                     (fzprint-extend options
-                                                     (+ indent ind)
-                                                     zloc-seq-right-first))
-                         r-str-vec))
+          (concat-no-nil
+            l-str-vec
+            pre-arg-1-style-vec
+            (fzprint* loptions (inc ind) arg-1-zloc)
+            (prepend-nl
+              options
+              (+ indent ind)
+              ; I think fzprint-pairs will sort out which
+              ; is and isn't the rightmost because of
+              ; two-up
+              (fzprint-extend options (+ indent ind) zloc-seq-right-first))
+            r-str-vec))
       ; needs (> len 2) but we already checked for that above in fn-style
       (or (and (= fn-style :fn) (not (zlist? arg-2-zloc)))
           (= fn-style :arg2)

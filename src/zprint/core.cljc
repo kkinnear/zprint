@@ -1065,7 +1065,8 @@
 ;;
 ;;zprint.core=> (zprint-file-str "\n\n(ns foo)\n;abc\n;!zprint {:format :next
 ;;:width 10}\n;def\n(defn baz [])\n\n\n" "junk" {:parse {:interpose "\n\n"}})
-;;"(ns foo)\n\n;abc\n\n;!zprint {:format :next :width 10}\n\n;def\n\n(defn baz\n
+;;"(ns foo)\n\n;abc\n\n;!zprint {:format :next :width 10}\n\n;def\n\n(defn
+;;baz\n
 ;; [])\n"
 ;;zprint.core=> (print *1)
 ;;(ns foo)
@@ -1089,7 +1090,8 @@
 ;; 0 0]
 ;; [{}
 ;; "(ns
-;; foo)" 0
+;; foo)"
+;; 0
 ;; 0]
 ;; [{} ""
 ;; 0 0]
@@ -1124,7 +1126,8 @@
 ;; Note
 ;; that
 ;; (defn
-;; baz [])
+;; baz
+;; [])
 ;; came
 ;; out on
 ;; two

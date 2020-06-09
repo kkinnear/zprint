@@ -1,4 +1,4 @@
-# Get zprint for macOS
+#11 Get zprint for macOS
 There exists a pre-built binary for macOS which does not require Java,
 and starts up in <50ms.
 
@@ -13,14 +13,14 @@ You may wish to name it something different so that any scripts that
 you have will use the new version without requiring a change.  We
 will assume that you have renamed it `zprint`.
 ```
-mv zprintm-1.0.0 zprint
+mv zprintm-1.0.1 zprint
 ```
 
 Note that you can always find the version of zprintm (no matter what
 you called it), by giving it the -v switch:
 ```
 ./zprint -v
-zprint-1.0.0
+zprint-1.0.1
 ```
 
 ## 3. Put zprint into a directory in your path

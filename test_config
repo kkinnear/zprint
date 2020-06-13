@@ -267,6 +267,36 @@ if [[ $output_length != "15" ]]
 
 fi
 
+# 
+# Set up for comment in zprintrc test
+#
+
+echo "{:width 40 :url {:cache-dir \"configurldir\" ;test
+:cache-secs 9}}" > ~/.zprintrc
+
+
+#
+# Try basic config with a comment in .zprintrc
+#
+
+echo "...........  basic config with comment in zprintrc test."
+
+output_length=`$command <test_config.string.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "15" ]]
+  then
+    echo "basic config with comment in zprintrc test failed to have correct count of chars, should be 15, was: $output_length"
+    $command <test_config.string.clj 
+
+fi
+
+#
+# put zprintrc back w/out a comment 
+#
+
+echo "{:width 40 :url {:cache-dir \"configurldir\" :cache-secs 9}}" > ~/.zprintrc
+
 
 # Make a local .zprintrc
 

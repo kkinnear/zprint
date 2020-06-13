@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+  * When formatting structures (not code), `(nil nil)` would output
+  only `()`.  Fixed.  Issue #150.
+
 ## 1.0.0 - 2020-6-8
 
 ### Added

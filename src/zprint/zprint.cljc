@@ -3338,6 +3338,9 @@
         len (zcount zloc)
         l-str-len (count l-str)
         indent (:indent (options caller))
+	; NOTE WELL -- don't use arg-1-zloc (or arg-2-zloc, etc.) as
+	; a condition, because it might well be legitimately nil when 
+	; formatting structures.
         [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
           (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
         #_(prn "fzprint-list* zloc-seq:" (map zstring zloc-seq))
@@ -3908,10 +3911,13 @@
       :else (concat-no-nil
               l-str-vec
               pre-arg-1-style-vec
-              (if arg-1-zloc
+	      ; Can't use arg-1-zloc here as the if test, because when
+	      ; formatting structures, arg-1-zloc might well be nil!
+              (if (not (zero? len))
                 (fzprint* loptions (+ l-str-len ind) arg-1-zloc)
                 :noseq)
-              (if arg-1-zloc
+	      ; Same here -- can't use arg-1-zloc as if test!!
+              (if (not (zero? len))
                 (let [zloc-seq-right-first (get-zloc-seq-right first-data)]
                   (if zloc-seq-right-first
                     ; We have something else to format after arg-1-zloc

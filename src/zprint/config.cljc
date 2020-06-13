@@ -1166,7 +1166,7 @@
                 ; load-string
                 (clojure.edn/read-string s)
                 ; This is something else wrong, let it go
-                (do #_(println "Exception: '" (str e) "'") (throw e)))))
+                (do #_(println "Exception: '" (str e) "' s: '" s "'") (throw e)))))
      :cljs nil))
 
 ;; Remove two files from this, make it one file at a time.`
@@ -1194,15 +1194,16 @@
                                " because " e)]))]
             (if file-error
               (if optional? nil [nil file-error full-path])
-              (try
-                (let [opts-file (if acceptfns?
-                                  (try-to-load-string (apply str lines))
-                                  (clojure.edn/read-string (apply str lines)))]
-                  [opts-file nil full-path])
-                (catch Exception e
-                  [nil
-                   (str "Unable to read configuration from file " full-path
-                        " because " e) full-path])))))
+              (try (let [opts-file (if acceptfns?
+                                     (try-to-load-string
+                                       (clojure.string/join "\n" lines))
+                                     (clojure.edn/read-string
+                                       (clojure.string/join "\n" lines)))]
+                     [opts-file nil full-path])
+                   (catch Exception e
+                     [nil
+                      (str "Unable to read configuration from file " full-path
+                           " because " e) full-path])))))
       :cljs nil))
   ([filename] (get-config-from-file filename nil nil)))
 

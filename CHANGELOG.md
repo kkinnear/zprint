@@ -2,9 +2,14 @@
 All notable changes to this project will be documented in this file. 
 
 
-## 1.0.1 - 2020-6-9
+## 1.0.1 - 2020-6-20
 
 ### Added
+
+  * Integrated new color map capabilities developed by @RingMan.  
+  Now, many more colors are available (including background colors),
+  and you can now combine ANSI color values for additional flexibility.
+  Issue #140.
 
 ### Changed
 

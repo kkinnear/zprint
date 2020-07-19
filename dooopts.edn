@@ -1,0 +1,1 @@
+{:debug false :paths {:planck "planck --compile-opts planckopts.edn"}}

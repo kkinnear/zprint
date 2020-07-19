@@ -178,7 +178,7 @@
   [x]
   (when x
     #?(:clj (= clojure.lang.Atom (class x))
-       :cljs nil)))
+       :cljs (instance? Atom x))))
 
 (defn sderef "Deref this thing." [x] (deref x))
 

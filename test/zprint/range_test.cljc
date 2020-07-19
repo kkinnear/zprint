@@ -1,14 +1,10 @@
 (ns zprint.range-test
-  (:require [expectations :refer :all]
-            [zprint.core :refer :all]
-            [zprint.core-test :refer :all]
-            [zprint.zprint :refer :all]
-            [zprint.finish :refer :all]
-            [clojure.repl :refer :all]
-            [clojure.string :as str]
-            [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z :only [edn*]]))
+  (:require [expectations.cljc.test
+             #?(:clj :refer
+                :cljs :refer-macros) [defexpect expect]]
+            [zprint.core :refer
+             [zprint-file-str set-options!]]
+            [zprint.finish :refer [cvec-to-style-vec compress-style]]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -24,6 +20,7 @@
 (set-options!
   {:configured? true, :force-eol-blanks? false, :test-for-eol-blanks? true})
 
+(defexpect range-tests
 
 ;;
 ;; # Range
@@ -151,3 +148,4 @@
   (zprint-file-str range3 "junk" {:input {:range {:end 22}}}))
 
 
+)

@@ -1,9 +1,16 @@
 
-{:aliases {:zprint {:extra-deps
-                      {org.clojure/clojure
-                         #:mvn{:version "1.9.0"},
-                       zprint #:mvn{:version
-                                      "1.0.1"}},
+{:aliases {:test {:extra-deps {olical/cljs-test-runner #:mvn{:version
+                                                                "3.7.0"}
+				 expectations/cljc-test #:mvn{:version "0.2.0"}
+				 pjstadig/humane-test-output #:mvn{:version "0.10.0"}
+								}
+
+                  :main-opts ["-m" "cljs-test-runner.main"]},
+           :zprint {:extra-deps {org.clojure/clojure #:mvn{:version "1.9.0"},
+                                 zprint #:mvn{:version "1.0.1"}
+				 },
                     :main-opts ["-m" "zprint.main"]}},
+ :paths ["src" "test" "cljs-test-runner-out/gen"]
  :deps {org.clojure/clojure #:mvn{:version "1.9.0"},
+        org.clojure/clojurescript #:mvn{:version "1.9.946"},
         zprint #:mvn{:version "1.0.1"}}}

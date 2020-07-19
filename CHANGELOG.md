@@ -13,10 +13,21 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+  * Changed from classic expectations testing framework, to 
+  local version of expectations.clojure.test after porting it to
+  Clojurescript.
+
 ### Fixed
 
   * When formatting structures (not code), `(nil nil)` would output
   only `()`.  Fixed.  Issue #150.
+
+  * Fixed comments `.zprintrc` files.  Issue #151.
+
+  * Fixed several small bugs in Clojurescript formatting:
+    - inline comments sometimes don't line up
+    - indent-only commas missing
+    - namespaced maps formatting differently in cljs from clj
 
 ## 1.0.0 - 2020-6-8
 

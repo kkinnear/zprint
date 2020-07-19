@@ -443,6 +443,12 @@
     "clojure.core/sequential?" "sequential"
     "clojure.core/number?" "number"
     "clojure.core/map?" "map"
+    "clojure.core/keyword?" "keyword"
+    "cljs.core/set?" "set"
+    "cljs.core/sequential?" "sequential"
+    "cljs.core/number?" "number"
+    "cljs.core/map?" "map"
+    "cljs.core/keyword?" "keyword"
     "map?" "map"
     "string?" "string"
     pred))

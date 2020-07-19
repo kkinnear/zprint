@@ -1,16 +1,11 @@
 (ns zprint.spec-test
-  (:require [expectations :refer :all]
-            [zprint.core :refer :all]
-            [zprint.zprint :refer :all]
-            [zprint.config :refer :all]
-            [zprint.spec :refer :all]
-            [zprint.finish :refer :all]
-            [clojure.repl :refer :all]
-            [clojure.spec.alpha :as s]
-            [clojure.string :as str]
-            [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z :only [edn*]]))
+  (:require [expectations.cljc.test
+             #?(:clj :refer
+                :cljs :refer-macros) [defexpect expect]]
+            [zprint.spec :refer [explain-more coerce-to-boolean]]
+            [zprint.core :refer [set-options!]]
+            [#?(:clj clojure.spec.alpha :cljs cljs.spec.alpha) :as s]))
+
 
 ;; Keep some of the test from wrapping so they still work
 ;!zprint {:comment {:wrap? false} :fn-map {"more-of" :arg1}}
@@ -20,6 +15,8 @@
 ;
 
 (set-options! {:configured? true})
+
+(defexpect spec-tests
 
 ;;
 ;; # Random tests, see more systematic tests below
@@ -390,40 +387,40 @@
 ; nothing happens to :b because :a is not zprint.spec/boolean
 (expect {:a :b} (coerce-to-boolean {:a :b, :coerce-to-false :b}))
 
-; :parallel? is zprint.spec/boolean so :b becomes false
-(expect {:parallel? false}
-        (coerce-to-boolean {:parallel? :b, :coerce-to-false :b}))
+; :parse-string? is zprint.spec/boolean so :b becomes false
+(expect {:parse-string? false}
+        (coerce-to-boolean {:parse-string? :b, :coerce-to-false :b}))
 
-; :parallel? is zprint.spec/boolean so :b becomes true since it is not 
+; :parse-string? is zprint.spec/boolean so :b becomes true since it is not 
 ; equal to :coerce-to-false
-(expect {:parallel? true}
-        (coerce-to-boolean {:parallel? :b, :coerce-to-false :c}))
+(expect {:parse-string? true}
+        (coerce-to-boolean {:parse-string? :b, :coerce-to-false :c}))
 
 ; same thing, and false doesn't change
-(expect {:parallel? true, :vector {:wrap? false}}
+(expect {:parse-string? true, :vector {:wrap? false}}
         (coerce-to-boolean
-          {:parallel? :b, :coerce-to-false :c, :vector {:wrap? false}}))
+          {:parse-string? :b, :coerce-to-false :c, :vector {:wrap? false}}))
 
 ; if :coerce-to-false is configured as a boolean, nothing will ever change
 ; because only non-boolean things are examined for a match to coerce-to-false
-(expect {:parallel? true, :vector {:wrap? true}}
+(expect {:parse-string? true, :vector {:wrap? true}}
         (coerce-to-boolean
-          {:parallel? :b, :coerce-to-false true, :vector {:wrap? true}}))
+          {:parse-string? :b, :coerce-to-false true, :vector {:wrap? true}}))
 
 ; you can configure :coerce-to-false with pretty much anything
-(expect {:parallel? true, :vector {:wrap? false}}
+(expect {:parse-string? true, :vector {:wrap? false}}
         (coerce-to-boolean
-          {:parallel? :b, :coerce-to-false "stuff", :vector {:wrap? "stuff"}}))
+          {:parse-string? :b, :coerce-to-false "stuff", :vector {:wrap? "stuff"}}))
 
 ; nothing matches 0, all things are boolean spec, so they all go to true
-(expect {:parallel? true, :vector {:wrap? true}}
+(expect {:parse-string? true, :vector {:wrap? true}}
         (coerce-to-boolean
-          {:parallel? :b, :coerce-to-false 0, :vector {:wrap? "stuff"}}))
+          {:parse-string? :b, :coerce-to-false 0, :vector {:wrap? "stuff"}}))
 
 ; things that do match :coerce-to-false got to false
-(expect {:parallel? true, :vector {:wrap? false}}
+(expect {:parse-string? true, :vector {:wrap? false}}
         (coerce-to-boolean
-          {:parallel? :b, :coerce-to-false 0, :vector {:wrap? 0}}))
+          {:parse-string? :b, :coerce-to-false 0, :vector {:wrap? 0}}))
 
 ;;
 ;; Some tests for some extensions to explain-more to handle deeper problems, 
@@ -440,15 +437,16 @@
 ; It also validates the style maps
 
 (expect
-  "The value of the key-sequence [:style-map :new-style :parallel?] -> :a was not a boolean"
+  "The value of the key-sequence [:style-map :new-style :parse-string?] -> :a was not a boolean"
   (explain-more (s/explain-data :zprint.spec/options
-                                {:style-map {:new-style {:parallel? :a}}})))
+                                {:style-map {:new-style {:parse-string? :a}}})))
 
 ; It also validates the new options map for :script
 
 (expect
-  "The value of the key-sequence [:script :more-options :style] -> \"stuff\" was not a clojure.core/keyword?"
+  "The value of the key-sequence [:script :more-options :style] -> \"stuff\" was not a keyword"
   (explain-more (s/explain-data :zprint.spec/options
                                 {:script {:more-options {:style "stuff"}}})))
 
 
+)

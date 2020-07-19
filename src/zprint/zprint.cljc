@@ -4880,7 +4880,7 @@
         arg-1 "Namespace"
         arg-1-indent (+ ind indent 1 (count arg-1))]
     (dbg-pr options
-            "fzprint-atom: arg-1:" arg-1
+            "fzprint-ns: arg-1:" arg-1
             "zstring arg-1:" (zstring zloc))
     (concat-no-nil l-str-vec
                    [[arg-1 (zcolor-map options :none) :element]]
@@ -4908,8 +4908,9 @@
             indent (count l-str)
             l-str-vec [[l-str (zcolor-map options l-str) :left]]
             r-str-vec (rstr-vec options ind zloc r-str)
-            arg-1 (pr-str #?(:clj (class zloc)
-                             :cljs (type zloc)))
+            arg-1 #?(:clj (pr-str (class zloc))
+                     :cljs
+                       (clojure.string/replace (pr-str (type zloc)) "/" "."))
             arg-1 (let [tokens (clojure.string/split arg-1 #"\.")]
                     (apply str (into [] (interpose "." tokens))))
             arg-1-indent (+ ind indent 1 (count arg-1))]
@@ -5268,6 +5269,10 @@
                       (first inline-comment-vec) (second inline-comment-vec)]]
                     [[zcomment (zcolor-map options :comment) :comment]])))
             (= (ztag zloc) :comma) [[zstr :none :comma]]
+	    #?@(:cljs
+	    [(and (= (ztag zloc) :whitespace)
+	         (clojure.string/includes? zstr ","))
+		 [["," :none :comma]]])
             ; Really just testing for whitespace, comments filtered above
             (zwhitespaceorcomment? zloc) [[zstr :none :whitespace 24]]
             ; At this point, having filtered out whitespace and
@@ -5314,8 +5319,23 @@
   (loop [nloc (zprint.zutil/left* zloc)
          spaces 0
          passed-nl? false]
-    (let [tnloc (ztag nloc)]
-      #_(prn "inlinecomment? tnloc:" tnloc)
+    (let
+      #?(:clj [tnloc (ztag nloc)]
+         :cljs [[tnloc spaces]
+                (let [tnloc (ztag nloc)]
+                  (if (= tnloc :whitespace)
+                    ; might be whitespace with an embedded comma in cljs
+                    (let [nstr (zstring nloc)
+                          trim-nstr (clojure.string/trimr nstr)]
+                      (if (pos? (count trim-nstr))
+                        ; it had something besides spaces in it
+                        ; we will assume a comma
+                        ;  correct things
+                        [:comma (+ spaces (- (count nstr) (count trim-nstr)))]
+                        ; it was all whitespace -- don't correct
+                        [:whitespace spaces]))
+                    [tnloc spaces]))])
+      #_(prn "inlinecomment? tnloc:" tnloc "spaces:" spaces "nloc:" (zstring nloc))
       (cond
         (nil? tnloc) nil  ; the start of the zloc
         (= tnloc :newline) (recur (zprint.zutil/left* nloc) spaces true)
@@ -5330,9 +5350,9 @@
                 (let [nloc-length-before (length-before nloc)
                       zloc-length-before (length-before zloc)]
                   #_(prn "inlinecomment?:"
-                         "nloc-length-before:" nloc-length-before
-                         "zloc-length-before:" zloc-length-before
-                         "spaces:" spaces)
+                       "nloc-length-before:" nloc-length-before
+                       "zloc-length-before:" zloc-length-before
+                       "spaces:" spaces)
                   (if (= nloc-length-before zloc-length-before)
                     ; we have a lineup
                     [spaces zloc-length-before]
@@ -5853,7 +5873,7 @@
 ;;
 
 (defrecord r [left right])
-(defn make-record [l r] (new r l r))
+(defn make-record [left right] (new r left right))
 
 ;;
 ;; End of testing functions

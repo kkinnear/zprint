@@ -163,7 +163,9 @@
 (defn znamespacedmap?
   "Is this a namespaced map?"
   [zloc]
-  (= (tag zloc) :namespaced-map))
+  #?(:clj (= (tag zloc) :namespaced-map)
+     :cljs (or (= (tag zloc) :namespaced-map)
+               (re-find #"^#:" (z/string zloc)))))
 
 (defn zcomment?
   "Returns true if this is a comment."
@@ -425,7 +427,11 @@
       out
       (let [; non-newline thing to emit
             nl? (= (z/tag nloc) :newline)
-            comma? (= (z/tag nloc) :comma)
+            comma? #?(:clj (= (z/tag nloc) :comma)
+                      :cljs (or (= (z/tag nloc) :comma)
+                                (and (= (z/tag nloc) :whitespace)
+                                     (clojure.string/includes? (z/string nloc)
+                                                               ","))))
             comment? (= (z/tag nloc) :comment)
             ; This may reset the nloc for the rest of the sequence!
             nloc (if comment? (split-newline-from-comment nloc) nloc)
@@ -436,7 +442,7 @@
             nl-to-emit
               (when nl?
                 (if multi-nl? (mapv zfn (multi-nl nl-len)) [(zfn nloc)]))]
-        #_(println "zmap-w-nl-comma: tag:" (z/tag nloc))
+        #_(prn "zmap-w-nl-comma: tag:" (z/tag nloc) (z/string nloc))
         (recur (right* nloc)
                (cond result (conj out result)
                      nl-to-emit (apply conj out nl-to-emit)

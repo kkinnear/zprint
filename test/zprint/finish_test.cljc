@@ -1,21 +1,19 @@
 (ns zprint.finish-test
-  (:require [expectations :refer :all]
-            [zprint.core :refer :all]
-            [zprint.core-test :refer :all]
-            [zprint.zprint :refer :all]
-            [zprint.config :refer :all :exclude
-             [set-options! configure-all! get-options]]
-            [zprint.finish :refer :all]
-            [clojure.string :as str]
-            [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z :only [edn*]]))
+  (:require [expectations.cljc.test
+             #?(:clj :refer
+                :cljs :refer-macros) [defexpect expect]]
+	    #?(:cljs [cljs.tools.reader :refer [read-string]])
+            [zprint.core :refer
+             [zprint-str set-options! czprint-str]]
+            [zprint.finish :refer [cvec-to-style-vec compress-style]]))
 
 ;
 ; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
 ;
 
 (set-options! {:configured? true})
+
+(defexpect finish-test
 
 ;;
 ;;
@@ -98,7 +96,7 @@
    ["]" :purple 113 1] [" " nil 114 1] ["(" :green 115 1] ["take" :blue 116 4]
    [" n v" nil 120 4] [")))" :green 124 3]])
 
-(expect xssv (cvec-to-style-vec {:style-map no-style-map} xcv))
+(expect xssv (cvec-to-style-vec {:style-map zprint.finish/no-style-map} xcv))
 (expect xcps (compress-style xssv))
 
 ;; Ensure that we only get escape sequences when we actually do colors
@@ -116,3 +114,5 @@
 (expect 15
         (count (czprint-str "(a b c)\n {:a :b}"
                             {:parse-string-all? true, :color? false})))
+
+)

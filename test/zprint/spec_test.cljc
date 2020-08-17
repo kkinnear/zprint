@@ -1,5 +1,5 @@
 (ns zprint.spec-test
-  (:require [expectations.cljc.test
+  (:require [expectations.clojure.test
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
             [zprint.spec :refer [explain-more coerce-to-boolean]]
@@ -448,5 +448,6 @@
   (explain-more (s/explain-data :zprint.spec/options
                                 {:script {:more-options {:style "stuff"}}})))
 
+(expect :zprint.spec/fn-type :arg1)
 
 )

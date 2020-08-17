@@ -1,5 +1,5 @@
 (ns zprint.rewrite-test
-  (:require [expectations.cljc.test
+  (:require [expectations.clojure.test
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
             [zprint.core :refer [set-options! zprint-file-str]]))

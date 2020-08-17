@@ -13,15 +13,17 @@
                                    #_[org.clojure/clojurescript "1.9.946"]
                                    ;[rum "0.10.8"];
                                    [better-cond "1.0.1"]
-				   [expectations/clojure-test "1.2.1"]
+				   ;[expectations/clojure-test "1.2.1"]
 				   [olical/cljs-test-runner "3.7.0"]
 				   [pjstadig/humane-test-output "0.10.0"]
 				   #_[zpst "0.1.6"]
                                    [org.clojure/core.match "0.3.0-alpha5"]
                                    #_[clojure-future-spec "1.9.0-alpha17"]]},
 
-	     :dev {:dependencies [[expectations/clojure-test "1.2.1"]
-	                          [expectations/cljc-test "0.2.0"]
+	     :dev {:dependencies [
+	                          [expectations/cljc-test "1.3.1"]
+	                          ;[expectations/clojure-test "1.2.1.kek"]
+	                          ;[expectations/cljc-test "0.2.0"]
 				  [pjstadig/humane-test-output "0.10.0"]]}
 
 	;     :expectations {:dependencies [[expectations "2.1.10"]]}

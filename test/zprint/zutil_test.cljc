@@ -1,5 +1,5 @@
 (ns zprint.zutil-test
-  (:require [expectations.cljc.test
+  (:require [expectations.clojure.test
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
             [zprint.zutil :refer [edn*]]

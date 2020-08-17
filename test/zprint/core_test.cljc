@@ -1,5 +1,5 @@
 (ns zprint.core-test
-  (:require [expectations.cljc.test
+  (:require [expectations.clojure.test
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
             #?(:cljs [cljs.test :refer-macros [deftest is]])

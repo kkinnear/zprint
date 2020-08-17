@@ -1,5 +1,5 @@
 (ns zprint.finish-test
-  (:require [expectations.cljc.test
+  (:require [expectations.clojure.test
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
 	    #?(:cljs [cljs.tools.reader :refer [read-string]])

@@ -1,23 +1,5 @@
-#_(ns zprint.config-test
-  (:require [expectations :refer :all]
-            [zprint.core :refer :all]
-            [zprint.zprint :refer :all]
-            [zprint.config :refer :all]
-            [zprint.finish :refer :all]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io]
-            [clojure.repl :refer :all]
-            [clojure.string :as str]
-            [rewrite-clj.parser :as p :only [parse-string parse-string-all]]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z :only [edn*]])
-  (:import (com.sun.net.httpserver HttpHandler HttpServer)
-           (java.net InetSocketAddress)
-           (java.io File ByteArrayOutputStream PrintStream)
-           (java.util Date)))
-
 (ns zprint.config-test
-  (:require [expectations.cljc.test
+  (:require [expectations.clojure.test
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
             [zprint.zutil :refer [edn*]]

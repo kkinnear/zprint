@@ -4655,7 +4655,8 @@
                                       pair-print-one-line)
                 one-line (when pair-print-one-line
                            (apply concat-no-nil
-                             (interpose-either [[", " (zcolor-map options :comma) :whitespace 19]]
+                             (interpose-either [["," (zcolor-map options :comma) :whitespace 19]
+			                        [" " :none :whitespace 23]]
                                                [[" " :none :whitespace 20]]
                                                (constantly comma?)
                                                pair-print-one-line)))

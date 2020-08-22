@@ -1,12 +1,12 @@
 {:aliases
-   {:cljs-runner {:extra-deps {expectations/cljc-test {:mvn/version "1.3.1"},
+   {:cljs-runner {:extra-deps {expectations/cljc-test {:mvn/version "2.0.0-SNAPSHOT"},
                                olical/cljs-test-runner {:mvn/version "3.7.0"},
                                pjstadig/humane-test-output {:mvn/version
                                                               "0.10.0"}},
                   :extra-paths ["src" "test" "cljs-test-runner-out/gen"],
                   :main-opts ["-m" "cljs-test-runner.main" "--doo-opts"
                               "dooopts.edn" "-x" "planck"]},
-    :cljtest {:extra-deps {expectations/cljc-test {:mvn/version "1.3.1"}},
+    :cljtest {:extra-deps {expectations/cljc-test {:mvn/version "2.0.0-SNAPSHOT"}},
               :extra-paths ["test"]},
     :humane {:extra-deps {pjstadig/humane-test-output {:mvn/version "0.10.0"}}},
     :runner {:extra-deps {com.cognitect/test-runner

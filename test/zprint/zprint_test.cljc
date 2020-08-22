@@ -48,12 +48,6 @@
 ; 
 ; Test with size of 20
 ;
-; with and without do
-;
-
-
-(def iftestdo
-  '(if (and :abcd :efbg) (do (list xxx yyy zzz) (list ccc ddd eee))))
 
 (def iftest '(if (and :abcd :efbg) (list xxx yyy zzz) (list ccc ddd eee)))
 
@@ -1818,9 +1812,9 @@
    ["," :none :whitespace] [" " :none :whitespace] [":deeper" :magenta :element]
    [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
    [" " :none :whitespace] [":is" :magenta :element] ["," :none :whitespace]
-   [" " :none :whitespace]
-   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
-   ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [" " :none :whitespace] [":just" :magenta :element] [" " :none :whitespace]
+   ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+   ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
    ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
@@ -1831,7 +1825,7 @@
    [")" :green :right]]
   (czprint-str
     zprint.zprint-test/key-color-tststr
-    {:parse-string? true, :map {:key-depth-color []}, :return-cvec? true}))
+	{:parse-string? true, :map {:key-depth-color []}, :return-cvec? true}))
 
 ; :key-depth-color [:blue :yellow :green]
 
@@ -1844,21 +1838,19 @@
    ["," :none :whitespace] ["\n   " :none :indent] ["\"deep\"" :blue :element]
    [" " :none :whitespace] ["{" :red :left] ["\"and\"" :yellow :element]
    [" " :none :whitespace] ["\"even\"" :red :element] ["," :none :whitespace]
-   [" " :none :whitespace]
-   [":deeper" :yellow :element] [" " :none :whitespace] ["{" :red :left]
-   ["\"that\"" :green :element] [" " :none :whitespace]
-   [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace] [":just" :green :element]
-   [" " :none :whitespace] ["\"the\"" :red :element] ["," :none :whitespace]
-   [" " :none :whitespace]
-   ["\"way\"" :green :element] [" " :none :whitespace]
-   [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
-   ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :blue :element]
-   [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
-   ["\n   " :none :indent] ["5" :blue :element] [" " :none :whitespace]
-   ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
-   ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
-   [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
-   [")" :green :right]]
+   [" " :none :whitespace] [":deeper" :yellow :element] [" " :none :whitespace]
+   ["{" :red :left] ["\"that\"" :green :element] [" " :none :whitespace]
+   [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace]
+   [":just" :green :element] [" " :none :whitespace] ["\"the\"" :red :element]
+   ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :green :element]
+   [" " :none :whitespace] [":it-is" :magenta :element] ["}" :red :right]
+   ["}" :red :right] ["," :none :whitespace] ["\n   " :none :indent]
+   ["\"def\"" :blue :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
+   ["," :none :whitespace] ["\n   " :none :indent] ["5" :blue :element]
+   [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
+   ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
+   ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
+   ["}" :red :right] [")" :green :right]]
   (czprint-str zprint.zprint-test/key-color-tststr
                {:parse-string? true,
                 :map {:key-depth-color [:blue :yellow :green]},
@@ -1878,9 +1870,9 @@
    ["," :none :whitespace] [" " :none :whitespace] [":deeper" :magenta :element]
    [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
    [" " :none :whitespace] [":is" :magenta :element] ["," :none :whitespace]
-   [" " :none :whitespace]
-   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
-   ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [" " :none :whitespace] [":just" :magenta :element] [" " :none :whitespace]
+   ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+   ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
    ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
@@ -1903,12 +1895,11 @@
    ["," :none :whitespace] ["\n   " :none :indent] ["\"deep\"" :cyan :element]
    [" " :none :whitespace] ["{" :red :left] ["\"and\"" :red :element]
    [" " :none :whitespace] ["\"even\"" :red :element] ["," :none :whitespace]
-   [" " :none :whitespace]
-   [":deeper" :magenta :element] [" " :none :whitespace] ["{" :red :left]
-   ["\"that\"" :red :element] [" " :none :whitespace] [":is" :magenta :element]
-   ["," :none :whitespace] [" " :none :whitespace] [":just" :magenta :element] [" " :none :whitespace]
-   ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace] 
-   ["\"way\"" :red :element]
+   [" " :none :whitespace] [":deeper" :magenta :element] [" " :none :whitespace]
+   ["{" :red :left] ["\"that\"" :red :element] [" " :none :whitespace]
+   [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace]
+   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
+   ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :red :element]
    [" " :none :whitespace] [":it-is" :magenta :element] ["}" :red :right]
    ["}" :red :right] ["," :none :whitespace] ["\n   " :none :indent]
    ["\"def\"" :red :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
@@ -1937,9 +1928,9 @@
    ["," :none :whitespace] [" " :none :whitespace] [":deeper" :magenta :element]
    [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
    [" " :none :whitespace] [":is" :magenta :element] ["," :none :whitespace]
-   [" " :none :whitespace]
-   [":just" :magenta :element] [" " :none :whitespace] ["\"the\"" :red :element]
-   ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
+   [" " :none :whitespace] [":just" :magenta :element] [" " :none :whitespace]
+   ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+   ["\"way\"" :red :element] [" " :none :whitespace]
    [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
    ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :cyan :element]
    [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
@@ -5069,5 +5060,49 @@ ser/collect-vars-acc %1 %2) )))"
 
 (expect "(nil\n nil)" (zprint-str '(nil nil) {:width 5}))
 
-)
+
+;;
+;; # PR 152 with colors for more elements
+;;
+
+(def element-color-tst "[true false #\"regex\" asymbol {:a :b, :c :d}]")
+
+(expect
+  [["[" :purple :left] ["true" :green :element] [" " :none :whitespace]
+   ["false" :cyan :element] [" " :none :whitespace] ["#\"regex\"" :red :element]
+   [" " :none :whitespace] ["asymbol" :magenta :element] [" " :none :whitespace]
+   ["{" :red :left] [":a" :green :element] [" " :none :whitespace]
+   [":b" :green :element] ["," :cyan :whitespace] [" " :none :whitespace]
+   [":c" :green :element] [" " :none :whitespace] [":d" :green :element]
+   ["}" :red :right] ["]" :purple :right]]
+  (czprint-str element-color-tst
+               {:parse-string? true,
+                :color-map {:comma :cyan,
+                            :symbol :magenta,
+                            :true :green,
+                            :false :cyan,
+                            :keyword :green,
+                            :regex :red},
+                :return-cvec? true}))
+
+;; Note that :char doesn't work in cljs, all chars are really strings
+
+(def char-element "\\a")
+
+#?(:clj (expect [["\\a" :blue :element]]
+                (czprint-str char-element
+                             {:parse-string? true,
+                              :color-map {:char :blue},
+                              :return-cvec? true}))
+   :cljs
+     ; Since strings are naturally red, this char is red as well
+     (expect [["\\a" :red :element]]
+             (czprint-str char-element
+                          {:parse-string? true,
+                           :color-map {:char :blue},
+                           :return-cvec? true})))
+
+
+;; End of defexpect
+ )
 

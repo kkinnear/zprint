@@ -21,7 +21,7 @@
                                    #_[clojure-future-spec "1.9.0-alpha17"]]},
 
 	     :dev {:dependencies [
-	                          [expectations/cljc-test "1.3.1"]
+	                          [expectations/cljc-test "2.0.0-SNAPSHOT"]
 	                          ;[expectations/clojure-test "1.2.1.kek"]
 	                          ;[expectations/cljc-test "0.2.0"]
 				  [pjstadig/humane-test-output "0.10.0"]]}

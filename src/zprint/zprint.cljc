@@ -5285,7 +5285,11 @@
             overflow-in-hang? (do (dbg options "fzprint*: overflow <<<<<<<<<<")
                                   nil)
             (zkeyword? zloc) [[zstr (zcolor-map options :keyword) :element]]
-            (string? (zsexpr zloc))
+
+	    :else
+	      (let [zloc-sexpr (zsexpr zloc)]
+	        (cond
+            (string? zloc-sexpr)
               [[(if string-str?
                   (str (zsexpr zloc))
                   ; zstr
@@ -5304,10 +5308,11 @@
             (true? (zsexpr zloc)) [[zstr (zcolor-map options :true) :element]]
             (false? (zsexpr zloc)) [[zstr (zcolor-map options :false) :element]]
             (char? (zsexpr zloc)) [[zstr (zcolor-map options :char) :element]]
-            (or (instance? java.util.regex.Pattern (zsexpr zloc))
+            (or (instance? #?(:clj java.util.regex.Pattern 
+	                      :cljs (type #"regex")) (zsexpr zloc))
                 (re-find #"^#\".*\"$" zstr))
               [[zstr (zcolor-map options :regex) :element]]
-            :else [[zstr (zcolor-map options :none) :element]])))))
+            :else [[zstr (zcolor-map options :none) :element]])))))))
 
 ;;
 ;; # Comment Wrap Support

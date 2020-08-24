@@ -1,20 +1,21 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-
-## 1.0.1 - 2020-6-20
+## 1.0.1 - 2020-8-24
 
 ### Added
 
   * Integrated new color map capabilities developed by @RingMan.  
   Now, many more colors are available (including background colors),
   and you can now combine ANSI color values for additional flexibility.
-  Issue #140.
+  Additionally, you can now set the colors for: `:char`, `:comma`, `false`,
+  `:regex`, `:symbol`, and `:true`.
+  Issue #140, #152..
 
 ### Changed
 
   * Changed from classic expectations testing framework, to 
-  local version of expectations.clojure.test after porting it to
+  development version of `expectations.clojure.test` after porting it to
   Clojurescript.
 
 ### Fixed
@@ -24,7 +25,8 @@ All notable changes to this project will be documented in this file.
 
   * Fixed comments `.zprintrc` files.  Issue #151.
 
-  * Fixed several small bugs in Clojurescript formatting:
+  * Fixed several small bugs in Clojurescript formatting now that
+  more complete Clojurescript tests are easily available:
     - inline comments sometimes don't line up
     - indent-only commas missing
     - namespaced maps formatting differently in cljs from clj

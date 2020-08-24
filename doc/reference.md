@@ -774,23 +774,35 @@ The key :color-map contains by default:
 
 ```clojure
  :color-map {:brace :red,
- 	    :bracket :purple,
-	    :comment :green,
-	    :deref :red,
-	    :fn :blue,
-	    :hash-brace :red,
-	    :hash-paren :green,
-	    :keyword :magenta,
-	    :nil :yellow,
-	    :none :black,
-	    :number :purple,
-	    :paren :green,
-	    :syntax-quote-paren :red
-	    :quote :red,
-	    :string :red,
-	    :uneval :magenta,
-	    :user-fn :black},
+             :bracket :purple,
+             :char :black,      ; Note Clojurescript difference below!
+             :comma :none,
+             :comment :green,
+             :deref :red,
+             :false :black,
+             :fn :blue,
+             :hash-brace :red,
+             :hash-paren :green,
+             :keyword :magenta,
+             :nil :yellow,
+             :none :black,
+             :number :purple,
+             :paren :green,
+             :quote :red,
+             :regex :black,
+             :string :red,
+             :symbol :black,
+             :syntax-quote-paren :red
+             :true :black,
+             :uneval :magenta,
+             :user-fn :black},
 ```
+Note that in Clojurescript, you cannot set a unique `:char` color value,
+as things that return true from`(char? ...)` also return true from
+`(string? ...)`, since in Clojurescript chars are simply single character 
+strings. Due to this difference, the color value for `:string` takes 
+precedence.
+
 You can change any of these to any other available value.  
 
 For example:
@@ -869,27 +881,33 @@ This is the default :uneval color map:
 
 ```clojure
 :uneval {:color-map {:brace :yellow,
-		    :bracket :yellow,
-		    :comment :green,
-		    :deref :yellow,
-		    :fn :cyan,
-		    :hash-brace :yellow,
-		    :hash-paren :yellow,
-		    :keyword :yellow,
-		    :nil :yellow,
-		    :none :yellow,
-		    :number :yellow,
-		    :paren :yellow,
-		    :syntax-quote-paren :yellow
-		    :quote :yellow,
-		    :string :yellow,
-		    :uneval :magenta,
-		    :user-fn :cyan}},
+                     :bracket :yellow,
+                     :char :magenta,  ; not available in Clojurescript, see above
+                     :comma :none,
+                     :comment :green,
+                     :deref :yellow,
+                     :false :yellow,
+                     :fn :cyan,
+                     :hash-brace :yellow,
+                     :hash-paren :yellow,
+                     :keyword :yellow,
+                     :nil :yellow,
+                     :none :yellow,
+                     :number :yellow,
+                     :paren :yellow,
+                     :quote :yellow,
+                     :regex :yellow,
+                     :string :yellow,
+                     :symbol :cyan,
+                     :syntax-quote-paren :yellow,
+                     :true :yellow,
+                     :uneval :magenta,
+                     :user-fn :cyan}},
 ```
 
 You can also change these to any of the colors specified above.
 
-Note that in this readme, the syntax coloring of Clojure code is
+Note that in this documentation, the syntax coloring of Clojure code is
 that provided by the GitHub flavored markdown, and not zprint!
 
 ### Function Classification for Pretty Printing

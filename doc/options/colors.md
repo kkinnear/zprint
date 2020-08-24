@@ -1,28 +1,41 @@
 #__ Change the colors
 
 When output is directed to an ANSI terminal, zprint will colorize both code
-and structures output.  I does this with a color map in the options map.  
+and structures output.  It does this with a color map in the options map.  
 
 The default color map:
-```
+
+```clojure
  :color-map {:brace :red,
-             :bracket :purple,
-             :comment :green,
-             :deref :red,
-             :fn :blue,
-             :hash-brace :red,
-             :hash-paren :green,
-             :keyword :magenta,
-             :nil :yellow,
-             :none :black,
-             :number :purple,
-             :paren :green,
-             :quote :red,
-             :string :red,
-             :syntax-quote-paren :red,
-             :uneval :magenta,
-             :user-fn :black},
+ 	    :bracket :purple,
+	    :char :black,      ; Note Clojurescript difference below!
+	    :comma :none,
+	    :comment :green,
+	    :deref :red,
+	    :false :black,
+	    :fn :blue,
+	    :hash-brace :red,
+	    :hash-paren :green,
+	    :keyword :magenta,
+	    :nil :yellow,
+	    :none :black,
+	    :number :purple,
+	    :paren :green,
+	    :quote :red,
+	    :regex :black,
+	    :string :red,
+	    :symbol :black,
+	    :syntax-quote-paren :red
+	    :true :black,
+	    :uneval :magenta,
+	    :user-fn :black},
 ```
+Note that in Clojurescript, you cannot set a unique `:char` color value,
+as things that return true from`(char? ...)` also return true from
+`(string? ...)`, since in Clojurescript chars are simply single character 
+strings. Due to this difference, the color value for `:string` 
+takes precedence.
+
 If you want to change the colors, simple remap something.  For example,
 to change the color of parentheses from the default green to black
 (for only this call to zprint):
@@ -103,24 +116,31 @@ The allowable colors are (including their ANSI codes for reference):
 
 When zprint finds the symbols `#_` that mark unevaluated code, it changes
 the color map to:
+
 ```
 :uneval {:color-map {:brace :yellow,
-                      :bracket :yellow,
-                      :comment :green,
-                      :deref :yellow,
-                      :fn :cyan,
-                      :hash-brace :yellow,
-                      :hash-paren :yellow,
-                      :keyword :yellow,
-                      :nil :yellow,
-                      :none :yellow,
-                      :number :yellow,
-                      :paren :yellow,
-                      :quote :yellow,
-                      :string :yellow,
-                      :syntax-quote-paren :yellow,
-                      :uneval :magenta,
-                      :user-fn :cyan}},
+                    :bracket :yellow,
+                    :char :magenta,  ; not available in Clojurescript, see above
+                    :comma :none,
+                    :comment :green,
+                    :deref :yellow,
+		    :false :yellow,
+		    :fn :cyan,
+		    :hash-brace :yellow,
+		    :hash-paren :yellow,
+		    :keyword :yellow,
+		    :nil :yellow,
+		    :none :yellow,
+		    :number :yellow,
+		    :paren :yellow,
+		    :quote :yellow,
+		    :regex :yellow,
+		    :string :yellow,
+		    :symbol :cyan,
+		    :syntax-quote-paren :yellow,
+		    :true :yellow,
+		    :uneval :magenta,
+		    :user-fn :cyan}},
 ```
 This highlights the unevaluated code.  You can change any of these colors
 as well.

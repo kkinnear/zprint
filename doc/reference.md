@@ -772,30 +772,30 @@ as it will cause the files produced to contain ANSI escape sequences.
 
 The key :color-map contains by default:
 
-```clojure
- :color-map {:brace :red,
-             :bracket :purple,
-             :char :black,      ; Note Clojurescript difference below!
-             :comma :none,
-             :comment :green,
-             :deref :red,
-             :false :black,
-             :fn :blue,
-             :hash-brace :red,
-             :hash-paren :green,
-             :keyword :magenta,
-             :nil :yellow,
-             :none :black,
-             :number :purple,
-             :paren :green,
-             :quote :red,
-             :regex :black,
-             :string :red,
-             :symbol :black,
-             :syntax-quote-paren :red
-             :true :black,
-             :uneval :magenta,
-             :user-fn :black},
+```
+:color-map {:brace :red,
+            :bracket :purple,
+            :char :black,      ; Note Clojurescript difference below!
+            :comma :none,
+            :comment :green,
+            :deref :red,
+            :false :black,
+            :fn :blue,
+            :hash-brace :red,
+            :hash-paren :green,
+            :keyword :magenta,
+            :nil :yellow,
+            :none :black,
+            :number :purple,
+            :paren :green,
+            :quote :red,
+            :regex :black,
+            :string :red,
+            :symbol :black,
+            :syntax-quote-paren :red
+            :true :black,
+            :uneval :magenta,
+            :user-fn :black},
 ```
 Note that in Clojurescript, you cannot set a unique `:char` color value,
 as things that return true from`(char? ...)` also return true from
@@ -879,7 +879,7 @@ There is also a different color map for unevaluated items,
 i.e. those prefaced with #_ and ignored by the Clojure reader.
 This is the default :uneval color map:
 
-```clojure
+```
 :uneval {:color-map {:brace :yellow,
                      :bracket :yellow,
                      :char :magenta,  ; not available in Clojurescript, see above

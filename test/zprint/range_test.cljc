@@ -56,7 +56,7 @@
 (zprint-file-str range1 "junk" {:input {:range {:start 1 :end 1}}}))
 
 (expect
-  "(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
   (zprint-file-str range1 "junk" {:input {:range {:start 0, :end 0}}}))
 
 (expect
@@ -64,11 +64,11 @@
 (zprint-file-str range1 "junk" {:input {:range {:start 0 :end 10}}}))
 
 (expect
-  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"
   (zprint-file-str range1 "junk" {:input {:range {:start 28, :end 28}}}))
 
 (expect
-  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n               \n#?(:clj (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))    \n:cljs (defn zpmap \n([options f coll] (map f coll))    \n([options f coll1 coll2] (map f coll1 coll2))))\n"
   (zprint-file-str range1 "junk" {:input {:range {:start 10, :end 20}}}))
 
 (expect
@@ -132,13 +132,13 @@
   "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:bb (defn zpmap \n([options f coll]   \n(if (:parallel? options) (pmap f coll) (map f coll)))    \n([options f coll1 coll2]   \n(if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))) \n")
 
 (expect
-  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n\n#?(:bb (defn zpmap\n         ([options f coll] (if (:parallel? options) (pmap f coll) (map f coll)))\n         ([options f coll1 coll2]\n          (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2)))))\n"
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:bb (defn zpmap\n         ([options f coll] (if (:parallel? options) (pmap f coll) (map f coll)))\n         ([options f coll1 coll2]\n          (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2)))))\n"
   (zprint-file-str range3 "junk" {:input {:range {:start 22, :end 22}}}))
 
 ; No :end
 
 (expect
-  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n\n#?(:bb (defn zpmap\n         ([options f coll] (if (:parallel? options) (pmap f coll) (map f coll)))\n         ([options f coll1 coll2]\n          (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2)))))\n"
+  "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n\"This is a test\"\n{:added 1.0 :static true}\n([x y]\n(or (list\n(list\n(list\ny\n(list x))))               \n())))\n               \n#?(:bb (defn zpmap\n         ([options f coll] (if (:parallel? options) (pmap f coll) (map f coll)))\n         ([options f coll1 coll2]\n          (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2)))))\n"
   (zprint-file-str range3 "junk" {:input {:range {:start 22}}}))
 
 ; No :start
@@ -147,5 +147,112 @@
   "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:bb (defn zpmap\n         ([options f coll] (if (:parallel? options) (pmap f coll) (map f coll)))\n         ([options f coll1 coll2]\n          (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2)))))\n"
   (zprint-file-str range3 "junk" {:input {:range {:end 22}}}))
 
+;;
+;; # Issue #154 -- problems between range and interpose, fixed by changing
+;; how range numbers are interpreted.
+;;
 
+(def i154e "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n; Comment 2\n\n(defn fn-2\n  [_]\n{:not     :quite\n       :formatted    :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))")
+
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n; Comment 2\n\n\n(defn fn-2\n  [_]\n  {:not :quite,\n   :formatted :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:style :respect-nl,
+                    :input {:range {:start 11, :end 16}},
+                    :parse {:interpose "\n\n\n"}}))
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n\n; Comment 2\n\n\n(defn fn-2\n  [_]\n  {:not :quite,\n   :formatted :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:style :respect-nl,
+                    :input {:range {:start 5, :end 16}},
+                    :parse {:interpose "\n\n\n"}}))
+
+(expect
+  "; Comment 1\n\n\n(ns test.zprint)\n\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n\n; Comment 2\n\n\n(defn fn-2\n  [_]\n  {:not :quite,\n   :formatted :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:style :respect-nl,
+                    :input {:range {:start 3, :end 16}},
+                    :parse {:interpose "\n\n\n"}}))
+
+(expect
+  "; Comment 1\n\n\n(ns test.zprint)\n\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n\n; Comment 2\n\n\n(defn fn-2\n  [_]\n  {:not :quite,\n   :formatted :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:style :respect-nl,
+                    :input {:range {:start 1, :end 16}},
+                    :parse {:interpose "\n\n\n"}}))
+
+(expect
+  "; Comment 1\n\n\n(ns test.zprint)\n\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n\n; Comment 2\n\n\n(defn fn-2\n  [_]\n  {:not :quite,\n   :formatted :properly})\n\n\n(defn fn-3\n  [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:style :respect-nl,
+                    :input {:range {:start -5, :end 100}},
+                    :parse {:interpose "\n\n\n"}}))
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n; Comment 2\n\n(defn fn-2\n  [_]\n  {:not :quite,\n   :formatted :properly})\n\n(defn fn-3\n  [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:style :respect-nl, :input {:range {:start -5, :end 100}}}))
+
+(expect
+  "; Comment 1\n\n\n(ns test.zprint)\n\n\n(defn fn-1 [arg] (println arg))\n\n\n; Comment 2\n\n\n(defn fn-2 [_] {:not :quite, :formatted :properly})\n\n\n(defn fn-3 [woo] (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:input {:range {:start -5, :end 100}},
+                    :parse {:interpose "\n\n\n"},
+                    :dbg? false}))
+
+(expect
+  "; Comment 1\n\n\n(ns test.zprint)\n\n\n(defn fn-1 [arg] (println arg))\n\n\n; Comment 2\n\n\n(defn fn-2 [_] {:not :quite, :formatted :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:input {:range {:start 1, :end 16}},
+                    :parse {:interpose "\n\n\n"}}))
+
+(expect
+  "; Comment 1\n\n\n(ns test.zprint)\n\n\n(defn fn-1 [arg] (println arg))\n\n\n; Comment 2\n\n\n(defn fn-2 [_] {:not :quite, :formatted :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:input {:range {:start 3, :end 16}},
+                    :parse {:interpose "\n\n\n"}}))
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1 [arg] (println arg))\n\n\n; Comment 2\n\n\n(defn fn-2 [_] {:not :quite, :formatted :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:input {:range {:start 5, :end 16}},
+                    :parse {:interpose "\n\n\n"}}))
+
+;;
+;; Tests for ranges that land on blank lines -- nothing happens
+;;
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n; Comment 2\n\n(defn fn-2\n  [_]\n{:not     :quite\n       :formatted    :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:input {:range {:start 16, :end 16}},
+                    :parse {:interpose "\n\n\n"}}))
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n; Comment 2\n\n(defn fn-2\n  [_]\n{:not     :quite\n       :formatted    :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:input {:range {:start 0, :end 1}},
+                    :parse {:interpose "\n\n\n"}}))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; End of defexpect
+;;
+;; All tests MUST come before this!!!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 )

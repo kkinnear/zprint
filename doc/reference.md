@@ -2516,10 +2516,34 @@ reference a single expression, the start is moved up to the first line
 beyond the previous expression, while the end is moved down to the last line
 of the expression referenced.  This is in order to encompass any 
 `;!zprint {}` directives that might appear directly before the expression.
+Note that the range will never start or end on a blank line unless
+it is the start or end of the file.
 
-In general, the start is moved to the line before the previous expression
-referenced by start and the end is moved to the last line of the expression 
-in which end falls.
+The specifics of how the line numbers are handled are: the
+start-line-number is moved to the first non-blank line after the
+previous expression, where comments are considered non-blank lines.
+If there is no previous expression the start-line-number is set to
+the beginning of the file.  The end-line-number is moved to the
+last line of the expression in which the end-line-number falls.  If
+the end-line-number does not fall inside an expression, it is moved
+up to the first previous non-blank line.  The range will never start
+or end on a blank line inside of a file.
+
+If the start-line-number is negative, it is considered to be before
+the start of the file.  If the end-line-number is negative, nothing
+will be formatted in the file.  If the end-line-number is before
+the start-line-number, it will be set to the start-line-number  A
+start-line-number beyond the end of the file will cause nothing to
+be included in the range, while an end-line-number beyond the end
+of the file will simply represent that the end of the range should
+be the end of the file.
+
+If both start-line-number and end-line-number are within the same
+gap between expressions, nothing will be formatted.
+
+Note that zprint will not leave trailing spaces on a line, but
+this is only true for lines that are part of the range -- the other lines
+are untouched.
 
 If any problems occur when trying to determine the current or previous
 expressions (since a quick parse of the entire string (file) is required

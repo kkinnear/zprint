@@ -959,6 +959,57 @@
   default-zprint-options)
 
 ;;
+;; ## Utilities for explained-set options
+;;
+
+(defn find-set
+  "If the mapentry was explicitly set, return it as {:k {:set-by x
+  :value y}}.  If the key has information below it that was explicitly
+  set, return that as [k stuff] where stuff is a seq of maps whose
+  ultimate value is {:set-by x :value y}."
+  [[k v :as mapentry]]
+  #_(println "find-set: mapentry:" mapentry)
+  (when (map? v)
+    (if (= #{:set-by :value} (into #{} (keys v)))
+      (do #_(println "found one:" {k v}) {k v})
+      (let [result (mapv find-set v)
+            result (remove nil? result)]
+        (if (not (empty? result))
+          (do #_(println "find-set: result:" [k result]) [k result]))))))
+
+(defn map-set
+  "Call find-set on all the elements of a map."
+  [options]
+  (mapv find-set options))
+
+(declare form-map)
+
+(defn extract-map
+  "Handle the three things returned from find-set, a regular map, nil,
+  or a key with a seq of things that ultimately had a set map underneath,
+  and build a map from each."
+  [m]
+  (cond (map? m) m
+        (nil? m) m
+        (seq? (first (next m)))
+          (do #_(println "extract-map: m:" m "\n(next m)" (next m))
+              {(first m) (apply merge (form-map (first (next m))))})
+        :else nil))
+
+(defn form-map
+  "Given the vector of things from map-set, reconstruct a map out of
+  the information."
+  [map-set-result]
+  #_(println map-set-result)
+  (map extract-map map-set-result))
+
+(defn only-set
+  "Take an option map, and return a new options map with only the
+  set values shows."
+  [options]
+  (apply merge (form-map (map-set options))))
+
+;;
 ;; ## Explained options, also known as the doc-map
 ;;
 
@@ -971,6 +1022,11 @@
   "Return any previously set doc-map."
   []
   (assoc (remove-keys @explained-options explain-hide-keys) :version (about)))
+
+(defn get-explained-set-options
+  "Return any previously set doc-map."
+  []
+  (only-set (get-explained-options)))
 
 (defn get-explained-all-options
   "Return any previously set doc-map complete."

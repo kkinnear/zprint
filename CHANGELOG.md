@@ -20,6 +20,15 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+  * Fixed problem with `{:input {:range {:start ... :end ...}}}`
+  and how it interacts with `{:parse {:interpose ...}}`.  The
+  `:interpose` affects blank lines, and the range specification
+  gathered unspecified and inconsistent blank lines at the start
+  and end of the range.  Now the range will have no blank lines at
+  the start or end of a range (unless it is the start or end of the
+  file), making its integration with `:interpose` much clearer.
+  Issue #154.
+
   * When formatting structures (not code), `(nil nil)` would output
   only `()`.  Fixed.  Issue #150.
 
@@ -30,6 +39,11 @@ All notable changes to this project will be documented in this file.
     - inline comments sometimes don't line up
     - indent-only commas missing
     - namespaced maps formatting differently in cljs from clj
+
+  * Fixed problem with negative start range, depending on end of range
+  could throw exception.  Also, now if start and end of range are in
+  the same gap between expressions, nothing is formatted.  Related
+  to Issue #154 above. 
 
 ## 1.0.0 - 2020-6-8
 

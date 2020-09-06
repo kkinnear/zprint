@@ -5095,14 +5095,20 @@ ser/collect-vars-acc %1 %2) )))"
                               :color-map {:char :blue},
                               :return-cvec? true}))
    :cljs
-     ; Since strings are naturally red, this char is red as well
+     ; Since strings are naturally red, this char is red as well even though
+     ; the color-map calls for blue since cljs can't tell a char from a string
+     ; and strings are checked for first.
      (expect [["\\a" :red :element]]
              (czprint-str char-element
                           {:parse-string? true,
                            :color-map {:char :blue},
                            :return-cvec? true})))
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; End of defexpect
+;;
+;; All tests MUST come before this!!!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  )
 

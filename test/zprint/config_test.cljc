@@ -8,7 +8,7 @@
             #?(:clj [clojure.string :as str])
             [zprint.core :refer [set-options! zprint-str load-options!]]
             [zprint.config :refer
-             [get-options get-explained-all-options]]
+             [get-options get-explained-all-options only-set]]
             [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z])
@@ -730,5 +730,47 @@
 (expect "{:a :b}"
         (zprint-str {:a :b} {:vector {:option-fn-first (fn [x y] {})}}))
 
+;;
+;; ## Test only-set (used in :explain-set)
+;;
 
+(expect
+  {:list {:hang? {:set-by "repl or api call 3", :value false}},
+   :parallel? {:set-by "repl or api call 4", :value false},
+   :style-map {:test {:list {:hang? {:set-by "repl or api call 2",
+                                     :value true}}}}}
+  (only-set
+    {:input {:range {:end nil, :start nil}},
+     :list {:constant-pair-min 4,
+            :constant-pair? true,
+            :hang-avoid 0.5,
+            :hang-diff 1,
+            :hang-expand 2.0,
+            :hang-size 100,
+            :hang? {:set-by "repl or api call 3", :value false},
+            :indent 2,
+            :indent-arg nil},
+     :pair-fn {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
+     :parallel? {:set-by "repl or api call 4", :value false},
+     :parse {:interpose nil, :left-space :drop},
+     :style nil,
+     :style-map {:all-hang {:extend {:hang? true},
+                            :list {:hang? true},
+                            :map {:hang? true},
+                            :pair {:hang? true},
+                            :pair-fn {:hang? true},
+                            :reader-cond {:hang? true},
+                            :record {:hang? true}},
+                 :test {:list {:hang? {:set-by "repl or api call 2",
+                                       :value true}}}},
+     :tab {:expand? true, :size 8},
+     :width 80}))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; End of defexpect
+;;
+;; All tests MUST come before this!!!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 )

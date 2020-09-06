@@ -134,13 +134,41 @@
                           (inc tries)))))))))
   ([row-vec n dbg?] (find-row row-vec n dbg? 4)))
 
+(defn next-non-blank-line
+  "Given a sequence of lines and a starting line index in that sequence,
+  return the index of the first non-blank line including or after that
+  starting line index."
+  [line-vec index]
+  (let [max-idx (dec (count line-vec))]
+    (loop [idx index]
+      (let [line (nth line-vec idx)]
+        ; Return current idx if it is non-blank or the last line
+        (if (or (not (empty? (clojure.string/trim line))) (>= idx max-idx))
+          idx
+          (recur (inc idx)))))))
+
+(defn previous-non-blank-line
+  "Given a sequence of lines and a starting line index in that sequence,
+  return the index of the first previous non-blank line including or before
+  that starting line index.  Returns -1 if no non-blank line found."
+  [line-vec index]
+  (loop [idx index]
+    (let [line (nth line-vec idx)]
+      ; Return current idx if it is non-blank 
+      (cond (not (empty? (clojure.string/trim line))) idx
+	    ; if the first line is not non-blank, then we didn't find one
+            (zero? idx) -1
+	    ; keep looking for a non-blank line
+            :else (recur (dec idx))))))
+
 (defn expand-range-to-top-level
-  "Given a sequence of lines, and a range of lines inside of them,
-  expand the range such that it covers everything from just beyond
-  the previous top level expression before the start to the end of
-  the top level expression containing the end of the range.  Returns
-  [actual-start actual-end]. Note that start, end, actual-start and
-  actual-end are all zero based line numbers."
+  "Given a string which contains lines and a vector of those lines,
+  and a range of lines inside of them, expand the range such that
+  it covers everything from the first non-blank line beyond the
+  previous top level expression before the start to the end of the
+  top level expression containing the end of the range.  Returns
+  [actual-start actual-end].  Note that start, end, actual-start
+  and actual-end are all zero based line numbers."
   ; But also note that parse-string-all (and thus row-vec) and
   ; find-row all operate with one-based line numbers!!!
   [filestring lines start end dbg?]
@@ -148,6 +176,8 @@
   (let [line-count (count lines)
         start (if (number? start) start 0)
         end (if (number? end) end line-count)
+        ; If end is before start, make them the same
+        end (if (< end start) start end)
         ; Get a vector of maps describing all top level expressions using
         ; one based line numbers.  For example:
         ; [{:col 1, :end-col 21, :end-row 7, :row 2}
@@ -171,41 +201,77 @@
                        e
                        nil))
         row-vec (when row-vec (into [] (remove nil? row-vec)))
+        ; If row-vec is nil, then we didn't parse this, so do everything
+        ; silently.
         _ (when dbg? (prn row-vec))
         ; Figure out which expression start falls within, after making
         ; it a one-based line number.  -idx are indexes into row-vec,
         ; *not* linenumbers
         start-row-idx (if row-vec (find-row row-vec (inc start) dbg?) :fail)
-        _ (when dbg? (println "start-row-idx:" start-row-idx))
+        _ (when dbg?
+            (println "expand-range-to-top-level start-row-idx:"
+                     start-row-idx
+                     (if (number? start-row-idx)
+                       (str "row:" (nth row-vec start-row-idx)
+                            "previous row:" (nth row-vec
+                                                 (max 0 (dec start-row-idx))))
+                       "")))
         actual-start
+          ; -1 is a signal to not start at the beginning unless the end is
+          ; also -1, in which case it is a signal to put everything in the
+          ; before
           (cond (= start-row-idx :fail) -1
                 (and (= start-row-idx :before-beginning) (not (neg? start))) 0
                 (= start-row-idx :before-beginning) -1
                 (= start-row-idx 0) 0
                 (= start-row-idx :beyond-end) line-count
-                ; normal case
+                ; normal case -- the line beyond the previous form
+                ; where (dec start-row-idx) is presumably the previous form
                 :else (:end-row (get row-vec (dec start-row-idx))))
+        ; Now, move actual-start to the first non-blank line after or equal to
+        ; actual-start.  But not if it is zero or negative, since we don't
+        ; want to mess with the range if it encompasses the beginning of
+        ; the file.
+        actual-start (if (or (< actual-start 1) (>= actual-start line-count))
+                       actual-start
+                       (next-non-blank-line lines actual-start))
         end-row-idx (if row-vec (find-row row-vec (inc end) dbg?) :fail)
-        _ (when dbg? (println "end-row-idx:" end-row-idx))
+        _ (when dbg?
+            (println "expand-range-to-top-level end-row-idx:"
+                     end-row-idx
+                     (if (number? end-row-idx)
+                       (str "row:" (nth row-vec end-row-idx))
+                       "")))
         actual-end (cond
                      (or (= end-row-idx :fail) (= end-row-idx :beyond-end))
-                       ; If we are beyond the end, say the end is beyond the
-                       ; last line.
+                       ; We are beyond the end or it didn't parse, say the
+                       ; end is beyond the last line.
                        line-count
                      (= end-row-idx :before-beginning)
                        ; Someone is confused here too, say the end is the
                        ; start.
-                       actual-start
+                       :do-nothing
                      :else (let [end-row (get row-vec end-row-idx)]
+                             ; end-row-idx is either the row in which end falls
+                             ; or the next row if it was between rows
+                             ; Note: :row is the start line of a row-map
+                             ;
                              ; Does end fall between two top-level expressions?
                              (if (< (inc end) (:row end-row))
-                               ; Yes, use end for lack of a better value
-                               end
+                               ; Yes -- are start and end in same gap
+                               ; between expressions?
+                               (if (= end-row-idx start-row-idx)
+                                 ; Yes, do nothing
+                                 :do-nothing
+                                 ; No, work backward to the first non-blank
+                                 ; line prior to the end
+                                 (previous-non-blank-line lines end))
                                ; No, end falls inside of an expression, so use
                                ; the end of that expression.  Make it zero
                                ; based.
                                (dec (:end-row end-row)))))
-        actual-end (if (< actual-end actual-start) actual-start actual-end)]
+        actual-start (if (= actual-end :do-nothing) -1 actual-start)
+        actual-end (if (= actual-end :do-nothing) -1 actual-end)]
     [actual-start actual-end]))
 
 ;;
@@ -216,9 +282,11 @@
   "Given lines, a sequence of lines, and a start and end of a range,
   split the sequence of lines into three parts: [before-lines range
   after-lines].  If any of these collections would be empty, return
-  an empty sequence. End must be equal to or greater than start."
+  an empty sequence. End must be equal to or greater than start. If
+  end is neg?, there will be no range."
   [lines start end]
-  (let [before start
+  (let [start (max start 0)
+        before start
         range (if (neg? end) 0 (inc (- end start)))
         after (- (dec (count lines)) end)]
     #_(println "before:" before "range:" range "after:" after)

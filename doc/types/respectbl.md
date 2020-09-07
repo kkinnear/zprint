@@ -181,12 +181,13 @@ This function was written with some blank lines in it for clarity.
 ```
 ## When to use `{:style :respect-bl]`
 If you like to use blank lines within your function definitions,
-it would be reasonable to place `{:style :respect-bl}` in your `~/.zprintrc`
-file to use it for all of your files.  Blank lines __between__ function 
-definitions (i.e., at the "top level") will always be preserved regardless 
-of style.  But if you like to use blank lines to organize your code inside
-of function definitions, then using `{:style :respect-bl}` all of the time 
-would be a reasonable thing to do.
+it would be reasonable to place `{:style :respect-bl}` in your
+`~/.zprintrc` file to use it for all of your files.  Blank lines
+__between__ function definitions (i.e., at the "top level") will
+typically be preserved regardless of style (unless you use `{:parse
+{:interpose ...}}`).  But if you like to use blank lines to organize
+your code inside of function definitions, then using `{:style
+:respect-bl}` all of the time would be a reasonable thing to do.
 
 
 

@@ -31,7 +31,7 @@ the options map: `{:parse {:interpose "\n\n\n"}}` would force two
 blank line spacing between all top level expressions when used with one
 of the standaline binaries.
 
-Generally, `:parse {:interpose ...}` is not used, but it an option if
+Generally, `:parse {:interpose ...}` is not used, but it is an option if
 you want to enforce a particular inter-expression spacing.
 
 ### How are blank lines handled inside of top level expressions
@@ -40,7 +40,8 @@ How are blank lines within function definitions (and within other
 expressions, for example `def` expressions) handled?
 
 By default classic zprint will ignore blank lines in function definitions
-and other expressions.  
+and other expressions, and place newlines (or sometimes blank lines) 
+whereever it thinks that they should go based on its configuration.  
 
 There are several options available to you if you would like blank lines
 to be kept in source.

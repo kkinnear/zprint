@@ -497,7 +497,7 @@
          :key-color nil,
          :key-depth-color nil,
          :key-value-color nil,
-         :lift-ns? true,
+         :lift-ns? false,
          :lift-ns-in-code? false,
          :force-nl? nil,
          :nl-separator? false,

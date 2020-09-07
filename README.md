@@ -11,7 +11,10 @@ a number of major source code formattng approaches.
 
  * [Format babashka scripts](./doc/using/babashka.md)
  * [Format ranges of lines in files](./doc/using/range.md)
+ * [More colors allowed in `:color-map`, and more elements can be colored](./doc/options/colors.md)
  * [Keep blank lines from input](./doc/types/respectbl.md)
+ * `{:map {:lift-ns? false}}` is now default false, see [here](./CHANGELOG.md) for why.
+ * Comments now allowed in `.zprintrc` files.
  * [All changes](./CHANGELOG.md)
 
 ## See zprint:

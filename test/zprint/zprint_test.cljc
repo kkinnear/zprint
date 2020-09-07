@@ -5142,6 +5142,16 @@ ser/collect-vars-acc %1 %2) )))"
                              :default [:none {:style :indent-only}]}}))
 
 
+;;
+;; Test that :lift-ns? is by default false
+;;
+
+(expect
+  "{:aliases {:cljs-runner {:extra-deps {expectations/cljc-test\n                                        {:mvn/version \"2.0.0-SNAPSHOT\"}}}}}"
+  (zprint-str
+    "{:aliases {:cljs-runner {:extra-deps {expectations/cljc-test {:mvn/version \"2.0.0-SNAPSHOT\"}}}}}"
+    {:parse-string? true}))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; End of defexpect

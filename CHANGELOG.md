@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.0.1 - 2020-8-24
+## 1.0.1 - 2020-9-9
 
 ### Added
 
@@ -23,6 +23,13 @@ All notable changes to this project will be documented in this file.
   * Changed from classic expectations testing framework, to 
   development version of `expectations.clojure.test` after porting it to
   Clojurescript.
+
+  * `{:map {:lift-ns? false}}` -- the default for `:map :lift-ns?` was
+  changed to false from true, largely because formatting `deps.edn` files
+  looks ugly when the `:mvn` is lifted out.  An alternative would have
+  been to only lift a namespace out of a map if there were more than
+  one key.  Please submit an issue if you feel strongly about this one
+  way or the other and we can discuss it.
 
 ### Fixed
 

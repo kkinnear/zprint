@@ -751,6 +751,12 @@
     (and lift-ns? (if in-code? lift-ns-in-code? true))
       (if ns
         ; Already lifted, leave it alone
+	;
+	; One option might be to only lift it if there is more than one
+	; key-value pair, since a lifted namespace with a single key-value
+	; pair is kind of odd.  That would solve the deps.edn problem.
+	; Note that it is not trivial to figure out how many key-value pairs
+	; there are here, since pair-seq isn't really all key-value pairs.
         [ns pair-seq]
         ; Needs a lift, if possible
         (let [strip-ns (fn [named]

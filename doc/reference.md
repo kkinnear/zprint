@@ -3294,7 +3294,7 @@ be used.  If you also have defined a `:key-color` map, any colors speciied
 in that map for specific keys will override the color that they would be
 given by the `:key-depth-color` vector.
 
-####  :lift-ns?  _true_
+####  :lift-ns?  _false_
 
 When all of the keys in a map are namespaced, and they all have the same
 key, "lift" that namespace out of the keys and make it a namespaced map.

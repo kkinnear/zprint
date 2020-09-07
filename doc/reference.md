@@ -1281,6 +1281,11 @@ map is shown below:
 Note that the function names are strings.  You can add any function
 you wish to the :fn-map, and it will be interpreted as described above.
 
+You can also add a key-value pair to the `:fn-map` where the key
+is `:default`, and the value will be used for any function which does
+not appear in the `:fn-map`, or which does appear in the `:fn-map` but
+whose value is `:none`.
+
 #### Altering the formatting inside of certain functions
 
 You can associate an options map with a function classification, and

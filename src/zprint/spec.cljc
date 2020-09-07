@@ -84,9 +84,9 @@
 ;(s/def ::boolean booleanable?)
 
 ; Note that actual fn-types can be [:arg1 {:style :respect-nl}] in addition
-; to simple keywords.  These things are ripped apart during option map
-; validation and done separately.  See validate-options and
-; separate-fn-map-options in config.cljc for details.
+; to simple keywords.  It used to be that these things were ripped apart 
+; during option map validation and done separately. Now we get spec to do
+; them for us!
 
 (s/def ::fn-type
   #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
@@ -130,7 +130,11 @@
   (s/or :boolean ::boolean
         :string string?))
 (s/def ::keep-or-drop #{:keep :drop})
-(s/def ::fn-map-value (s/nilable (s/map-of string? ::fn-specifier)))
+(s/def ::fn-map-keys #{:default})
+(s/def ::fn-map-value
+  (s/nilable (s/map-of (s/or :specific-function-name string?
+                             :generic-function-configuration ::fn-map-keys)
+                       ::fn-specifier)))
 (s/def ::number-or-vector-of-numbers
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))

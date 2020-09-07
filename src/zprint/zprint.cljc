@@ -3358,6 +3358,10 @@
         fn-style (if (and (not fn-style) fn-str)
                    (fn-map (last (clojure.string/split fn-str #"/")))
                    fn-style)
+	; If we have a fn-str and not a fn-style, see if we have a default
+	; fn-style for every function which doesn't have one explicitly set
+	fn-style (if (= fn-style :none) nil fn-style)
+	fn-style (if (and fn-str (nil? fn-style)) (:default fn-map) fn-style)
         ; Do we have a [fn-style options] vector?
         ; **** NOTE: The options map can change here, and if it does,
         ; some of the things found in it above would have to change too!

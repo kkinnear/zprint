@@ -35,7 +35,6 @@ looking at the list of functions under the key `:fn-map` in the output.
 2. Look through the [list of possible function types](../reference.md#function-classification-for-pretty-printing), and figure out which
 one best matches what you want.
 
-
 You can also change an existing function name -> function type mapping to
 have a function type of `:none`, if you wish to remove an existing mapping
 and, essentially, cause zprint to not recognize a particular function name
@@ -65,4 +64,10 @@ also appear in a command line options map (to test out the concept
 to see if it works), or in an options map in an actual call to
 zprint at the REPL.
 
+### How to change the way functions which do not appear in the `:fn-map` are formatted
+
+You can add a key-value pair to the `:fn-map` where the key
+is `:default`, and the value will be used for any function which does
+not appear in the `:fn-map`, or which does appear in the `:fn-map` but
+whose value is `:none`.
 

@@ -5104,6 +5104,44 @@ ser/collect-vars-acc %1 %2) )))"
                            :color-map {:char :blue},
                            :return-cvec? true})))
 
+
+
+
+;;
+;; Tests for :default entry to :fn-map -- Issue #155.
+;;
+
+(def i154e
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n; Comment 2\n\n(defn fn-2\n  [_]\n{:not     :quite\n       :formatted    :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))")
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n; Comment 2\n\n(defn fn-2\n  [_]\n  {:not :quite,\n   :formatted :properly})\n\n(defn fn-3\n  [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:fn-map {"defn" :none,
+                             :default [:arg1 {:style :respect-nl}]}}))
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1 [arg] (println arg))\n\n; Comment 2\n\n(defn fn-2 [_] {:not :quite, :formatted :properly})\n\n(defn fn-3 [woo] (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:fn-map {:default [:arg1 {:style :respect-nl}]}}))
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n      [arg]\n      (println arg))\n\n; Comment 2\n\n(defn fn-2\n      [_]\n      {:not :quite,\n       :formatted :properly})\n\n(defn fn-3\n      [woo]\n      (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:fn-map {"defn" :none,
+                             :default [:none {:style :respect-nl}]}}))
+
+(expect
+  "\n\n; Comment 1\n\n(ns test.zprint)\n\n(defn fn-1\n  [arg]\n  (println arg))\n\n; Comment 2\n\n(defn fn-2\n  [_]\n  {:not :quite\n   :formatted :properly})\n\n(defn fn-3 [woo]\n  (do (woo)))"
+  (zprint-file-str i154e
+                   "stuff"
+                   {:fn-map {"defn" :none,
+                             :default [:none {:style :indent-only}]}}))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; End of defexpect

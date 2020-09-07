@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
   `:regex`, `:symbol`, and `:true`.
   Issue #140, #152..
 
+  * Default function formatting -- you can now place a key in the
+  `:fn-map` of `:default`, and the function-type (and possible
+  options map) will be used for any function which does not have
+  an explicit function-type set in the `:fn-map` or whose function-type
+  in the `:fn-map` is `:none`.
+
 ### Changed
 
   * Changed from classic expectations testing framework, to 

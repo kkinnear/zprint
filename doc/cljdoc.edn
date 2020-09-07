@@ -14,8 +14,7 @@
 		 ["To Format a Range of Lines in a File" 
 		   {:file "doc/using/range.md"}]
 		 ["To Format a Babashka Script" {:file "doc/using/babashka.md"}]
-		 ["To Correct Indentation but not otherwise Reformat a File" 
-		   {:file "doc/using/indent.md"}]
+		 ["To Only Correct Indentation" {:file "doc/using/indent.md"}]
 		 ["And Have it Run Even Faster" 
 		   {:file "doc/using/fasthang.md"}]
                  ["From Inside a Clojure(script) Program"

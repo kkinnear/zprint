@@ -1,4 +1,4 @@
-#__ Change the colors
+# Change the colors
 
 When output is directed to an ANSI terminal, zprint will colorize both code
 and structures output.  It does this with a color map in the options map.  

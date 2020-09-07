@@ -1,4 +1,4 @@
-# zprint reference
+# zprint Reference
 
 __zprint__ is a library and command line tool providing a variety
 of pretty printing capabilities for both Clojure code and Clojure/EDN

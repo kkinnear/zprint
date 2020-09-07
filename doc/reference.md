@@ -655,6 +655,9 @@ with a new-line, or the resulting formatting will not be correct.
 (def c :d)
 ```
 
+Note that `zprint-file-str`, the routine used for all of the standalone
+zprint binaries, uses `:parse-string-all`.
+
 #### :parallel?
 
 As of 0.3.0, on Clojure zprint will use mutiple threads in several

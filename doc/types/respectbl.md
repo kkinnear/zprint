@@ -8,7 +8,7 @@ applied around any blank lines that may appear.
 
 Note that blank lines at the top level (i.e., outside of function
 definitions and `(def ...)` expressions) are always respected and 
-never changed.  This style extends that behavior into the actual function
+never changed (unless you use `{:parse {:interpose ...}}`).  This style extends that behavior into the actual function
 definitions.
 
 Respect blank lines has been implemeted for lists, maps, vectors, and sets.

@@ -1,12 +1,13 @@
 {:aliases
-   {:cljs-runner {:extra-deps {expectations/cljc-test {:mvn/version "2.0.0-SNAPSHOT"},
-                               olical/cljs-test-runner {:mvn/version "3.7.0"},
-                               pjstadig/humane-test-output {:mvn/version
-                                                              "0.10.0"}},
+   {:cljs-runner {:extra-deps
+                    {expectations/cljc-test {:mvn/version "2.0.0-SNAPSHOT"},
+                     olical/cljs-test-runner {:mvn/version "3.7.0"},
+                     pjstadig/humane-test-output {:mvn/version "0.10.0"}},
                   :extra-paths ["src" "test" "cljs-test-runner-out/gen"],
                   :main-opts ["-m" "cljs-test-runner.main" "--doo-opts"
                               "dooopts.edn" "-x" "planck"]},
-    :cljtest {:extra-deps {expectations/cljc-test {:mvn/version "2.0.0-SNAPSHOT"}},
+    :cljtest {:extra-deps {expectations/cljc-test {:mvn/version
+                                                     "2.0.0-SNAPSHOT"}},
               :extra-paths ["test"]},
     :humane {:extra-deps {pjstadig/humane-test-output {:mvn/version "0.10.0"}}},
     :runner {:extra-deps {com.cognitect/test-runner
@@ -14,10 +15,10 @@
                                "https://github.com/cognitect-labs/test-runner",
                              :sha "f7ef16dc3b8332b0d77bc0274578ad5270fbfedd"}},
              :main-opts ["-m" "cognitect.test-runner" "-d" "test"]},
-    :zprint {:extra-deps {org.clojure/clojure #:mvn{:version "1.9.0"},
-                          zprint #:mvn{:version "1.0.1"}},
+    :zprint {:extra-deps {org.clojure/clojure {:mvn/:version "1.9.0"},
+                          zprint {:mvn/:version "1.0.1"}},
              :main-opts ["-m" "zprint.main"]}},
- :deps {org.clojure/clojure #:mvn{:version "1.9.0"},
-        org.clojure/clojurescript #:mvn{:version "1.9.946"},
-        zprint #:mvn{:version "1.0.1"}},
+ :deps {org.clojure/clojure {:mvn/:version "1.9.0"},
+        org.clojure/clojurescript {:mvn/:version "1.9.946"},
+        zprint {:mvn/:version "1.0.1"}},
  :paths ["src" "test" "cljs-test-runner-out/gen"]}

@@ -3306,7 +3306,7 @@ ser/collect-vars-acc %1 %2) )))"
 
 ; Actually unlift something
 
-(expect "{:a :b, :c {:c/:e :f, :c/:g :h}}"
+(expect "{:a :b, :c {:c/e :f, :c/g :h}}"
         (zprint-str "{:a :b, :c #:c{:e :f :g        :h}}"
                     {:parse-string? true,
                      :map {:lift-ns? false, :unlift-ns? true}}))
@@ -3339,6 +3339,21 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str "{:a :b :c #:m{:c/e :f :x/g :h}}"
                     {:parse-string? true,
                      :map {:lift-ns? false, :unlift-ns? true}}))
+
+;;
+;; # Tests for invertability of lift-ns and unlift-ns.  You should be able
+;; to go back and forth...
+;;
+;; Issue #156.
+;;
+
+(expect
+  "{:a :b, :c {:u/e :f, :u/g :h}}"
+  (zprint-str (zprint-str "{:a :b, :c {:u/e :f, :u/g :h}}"
+                          {:parse-string? true,
+                           :map {:lift-ns? true, :unlift-ns? false}})
+              {:parse-string? true, :map {:lift-ns? false, :unlift-ns? true}}))
+
 ;; # Tests for comments mixed in with the early part of lists 
 ;;
 

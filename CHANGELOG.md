@@ -58,6 +58,11 @@ All notable changes to this project will be documented in this file.
   the same gap between expressions, nothing is formatted.  Related
   to Issue #154 above. 
 
+  * Fixed problem where `{:map {:unlift-ns? true}}` was properly distributing
+  the namespace among the various keys, but wasn't removing the colons from
+  keywords in the process, so that `{:map {:lift-ns? true}}` and `{:map
+  {:unlift-ns? true}}` were not opposites.  Now they are.  Issue #156.
+
 ## 1.0.0 - 2020-6-8
 
 ### Added

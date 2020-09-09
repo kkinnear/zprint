@@ -3329,7 +3329,7 @@ namespace across the keys.
 For example:
 ```clojure
 (zprint ":x{a :b :c :d}" {:parse-string? true :map {:lift-ns? false :unlift-ns? true}})
-{:x/:a :b, :x/:c :d}
+{:x/a :b, :x/c :d}
 ```
 
 Note that `:unlift-ns? true` only works if `:lifts-ns? false` is present,

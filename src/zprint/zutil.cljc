@@ -751,12 +751,12 @@
     (and lift-ns? (if in-code? lift-ns-in-code? true))
       (if ns
         ; Already lifted, leave it alone
-	;
-	; One option might be to only lift it if there is more than one
-	; key-value pair, since a lifted namespace with a single key-value
-	; pair is kind of odd.  That would solve the deps.edn problem.
-	; Note that it is not trivial to figure out how many key-value pairs
-	; there are here, since pair-seq isn't really all key-value pairs.
+        ;
+        ; One option might be to only lift it if there is more than one
+        ; key-value pair, since a lifted namespace with a single key-value
+        ; pair is kind of odd.  That would solve the deps.edn problem.
+        ; Note that it is not trivial to figure out how many key-value pairs
+        ; there are here, since pair-seq isn't really all key-value pairs.
         [ns pair-seq]
         ; Needs a lift, if possible
         (let [strip-ns (fn [named]
@@ -797,10 +797,8 @@
                     (recur ns (next pair-seq) (conj out pair)))))))))
     (and ns unlift-ns? (not lift-ns?))
       ; We have a namespace that was already lifted, and we want to unlift
-      ; it,
-      ; and we didn't ask to have things lifted.  That last is so that
-      ; lift-ns?
-      ; has to be false for unlift-ns? to work.
+      ; it, and we didn't ask to have things lifted.  That last is so that
+      ; lift-ns? has to be false for unlift-ns? to work.
       (loop [pair-seq pair-seq
              out []]
         (let [[k & rest-of-pair :as pair] (first pair-seq)
@@ -816,13 +814,15 @@
             [nil out]
             (cond current-ns [ns pair-seq]
                   (= (count pair) 1) (recur (next pair-seq) (conj out pair))
-                  :else (recur (next pair-seq)
-                               (conj out
-                                     ; put ns with k
-                                     (cons (edn* (n/token-node
-                                                   (symbol
-                                                     (str ns "/" (z/sexpr k)))))
-                                           rest-of-pair)))))))
+                  :else
+                    (recur
+                      (next pair-seq)
+                      (conj out
+                            ; put ns with k
+                            (cons (edn* (n/token-node
+                                          (symbol
+                                            (str ns "/" (name (z/sexpr k))))))
+                                  rest-of-pair)))))))
     :else [ns pair-seq]))
 
 ;!zprint {:vector {:respect-nl? true}}

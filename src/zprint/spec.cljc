@@ -40,12 +40,12 @@
 ;; ## Color keys
 ;;
 
-(def ansi-code (-> ansi-codes keys set))
+(def ansi-code
+  (-> ansi-codes
+      keys
+      set))
 
-(defn ansi-codes? [x]
-  (if (sequential? x)
-    (every? ansi-code x)
-    (ansi-code x)))
+(defn ansi-codes? [x] (if (sequential? x) (every? ansi-code x) (ansi-code x)))
 
 (s/def ::color ansi-codes?)
 
@@ -84,7 +84,7 @@
 ;(s/def ::boolean booleanable?)
 
 ; Note that actual fn-types can be [:arg1 {:style :respect-nl}] in addition
-; to simple keywords.  It used to be that these things were ripped apart 
+; to simple keywords.  It used to be that these things were ripped apart
 ; during option map validation and done separately. Now we get spec to do
 ; them for us!
 

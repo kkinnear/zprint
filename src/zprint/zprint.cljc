@@ -3338,9 +3338,9 @@
         len (zcount zloc)
         l-str-len (count l-str)
         indent (:indent (options caller))
-	; NOTE WELL -- don't use arg-1-zloc (or arg-2-zloc, etc.) as
-	; a condition, because it might well be legitimately nil when 
-	; formatting structures.
+        ; NOTE WELL -- don't use arg-1-zloc (or arg-2-zloc, etc.) as
+        ; a condition, because it might well be legitimately nil when
+        ; formatting structures.
         [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
           (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
         #_(prn "fzprint-list* zloc-seq:" (map zstring zloc-seq))
@@ -3358,10 +3358,10 @@
         fn-style (if (and (not fn-style) fn-str)
                    (fn-map (last (clojure.string/split fn-str #"/")))
                    fn-style)
-	; If we have a fn-str and not a fn-style, see if we have a default
-	; fn-style for every function which doesn't have one explicitly set
-	fn-style (if (= fn-style :none) nil fn-style)
-	fn-style (if (and fn-str (nil? fn-style)) (:default fn-map) fn-style)
+        ; If we have a fn-str and not a fn-style, see if we have a default
+        ; fn-style for every function which doesn't have one explicitly set
+        fn-style (if (= fn-style :none) nil fn-style)
+        fn-style (if (and fn-str (nil? fn-style)) (:default fn-map) fn-style)
         ; Do we have a [fn-style options] vector?
         ; **** NOTE: The options map can change here, and if it does,
         ; some of the things found in it above would have to change too!
@@ -3915,12 +3915,12 @@
       :else (concat-no-nil
               l-str-vec
               pre-arg-1-style-vec
-	      ; Can't use arg-1-zloc here as the if test, because when
-	      ; formatting structures, arg-1-zloc might well be nil!
+              ; Can't use arg-1-zloc here as the if test, because when
+              ; formatting structures, arg-1-zloc might well be nil!
               (if (not (zero? len))
                 (fzprint* loptions (+ l-str-len ind) arg-1-zloc)
                 :noseq)
-	      ; Same here -- can't use arg-1-zloc as if test!!
+              ; Same here -- can't use arg-1-zloc as if test!!
               (if (not (zero? len))
                 (let [zloc-seq-right-first (get-zloc-seq-right first-data)]
                   (if zloc-seq-right-first
@@ -4659,8 +4659,9 @@
                                       pair-print-one-line)
                 one-line (when pair-print-one-line
                            (apply concat-no-nil
-                             (interpose-either [["," (zcolor-map options :comma) :whitespace 19]
-			                        [" " :none :whitespace 23]]
+                             (interpose-either [["," (zcolor-map options :comma)
+                                                 :whitespace 19]
+                                                [" " :none :whitespace 23]]
                                                [[" " :none :whitespace 20]]
                                                (constantly comma?)
                                                pair-print-one-line)))
@@ -4683,7 +4684,8 @@
                       ; comma? true
                       [["," (zcolor-map options :comma) :whitespace 21]
                        [(str "\n" (blanks (inc ind))) :none :indent 32]]
-                      [["," (zcolor-map options :comma) :whitespace 22] ; Fix issue #59 -- don't
+                      [["," (zcolor-map options :comma) :whitespace 22]
+                       ; Fix issue #59 -- don't
                        ; put blanks to indent before the next \n
                        ["\n" :none :indent 33]
                        [(str "\n" (blanks (inc ind))) :none :indent 34]]
@@ -4884,9 +4886,7 @@
         r-str-vec (rstr-vec options ind zloc r-str)
         arg-1 "Namespace"
         arg-1-indent (+ ind indent 1 (count arg-1))]
-    (dbg-pr options
-            "fzprint-ns: arg-1:" arg-1
-            "zstring arg-1:" (zstring zloc))
+    (dbg-pr options "fzprint-ns: arg-1:" arg-1 "zstring arg-1:" (zstring zloc))
     (concat-no-nil l-str-vec
                    [[arg-1 (zcolor-map options :none) :element]]
                    (fzprint-hang-one :unknown
@@ -5274,49 +5274,53 @@
                       (first inline-comment-vec) (second inline-comment-vec)]]
                     [[zcomment (zcolor-map options :comment) :comment]])))
             (= (ztag zloc) :comma) [[zstr (zcolor-map options :comma) :comma]]
-	    #?@(:cljs
-	    [(and (= (ztag zloc) :whitespace)
-	         (clojure.string/includes? zstr ","))
-		 [["," (zcolor-map options :comma) :comma]]])
-            ; Really just testing for whitespace, comments filtered above
-            (zwhitespaceorcomment? zloc) [[zstr :none :whitespace 24]]
-            ; At this point, having filtered out whitespace and
-            ; comments above, now we expect zsexpr will work for all of
-            ; the remaining things.
-            ;
-            ; If we are going to overflow, and we are doing a hang, let's
-            ; stop now!
-            overflow-in-hang? (do (dbg options "fzprint*: overflow <<<<<<<<<<")
-                                  nil)
-            (zkeyword? zloc) [[zstr (zcolor-map options :keyword) :element]]
-
-	    :else
-	      (let [zloc-sexpr (zsexpr zloc)]
-	        (cond
-            (string? zloc-sexpr)
-              [[(if string-str?
-                  (str (zsexpr zloc))
-                  ; zstr
-                  (zstring zloc))
-                (if string-color string-color (zcolor-map options :string))
-                :element]]
-            (showfn? fn-map (zsexpr zloc)) [[zstr (zcolor-map options :fn)
-                                             :element]]
-            (show-user-fn? options (zsexpr zloc))
-              [[zstr (zcolor-map options :user-fn) :element]]
-            (number? (zsexpr zloc))
-              [[(if hex? (znumstr zloc hex? shift-seq) zstr)
-                (zcolor-map options :number) :element]]
-            (symbol? (zsexpr zloc)) [[zstr (zcolor-map options :symbol) :element]]
-            (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil) :element]]
-            (true? (zsexpr zloc)) [[zstr (zcolor-map options :true) :element]]
-            (false? (zsexpr zloc)) [[zstr (zcolor-map options :false) :element]]
-            (char? (zsexpr zloc)) [[zstr (zcolor-map options :char) :element]]
-            (or (instance? #?(:clj java.util.regex.Pattern 
-	                      :cljs (type #"regex")) (zsexpr zloc))
-                (re-find #"^#\".*\"$" zstr))
-              [[zstr (zcolor-map options :regex) :element]]
-            :else [[zstr (zcolor-map options :none) :element]])))))))
+            #?@(:cljs [(and (= (ztag zloc) :whitespace)
+                            (clojure.string/includes? zstr ","))
+                       [["," (zcolor-map options :comma) :comma]]])
+              ; Really just testing for whitespace, comments filtered above
+              (zwhitespaceorcomment? zloc)
+            [[zstr :none :whitespace 24]]
+              ; At this point, having filtered out whitespace and
+              ; comments above, now we expect zsexpr will work for all of
+              ; the remaining things.
+              ;
+              ; If we are going to overflow, and we are doing a hang, let's
+              ; stop now!
+              overflow-in-hang?
+            (do (dbg options "fzprint*: overflow <<<<<<<<<<") nil) (zkeyword?
+                                                                     zloc)
+            [[zstr (zcolor-map options :keyword) :element]] :else
+            (let [zloc-sexpr (zsexpr zloc)]
+              (cond
+                (string? zloc-sexpr)
+                  [[(if string-str?
+                      (str (zsexpr zloc))
+                      ; zstr
+                      (zstring zloc))
+                    (if string-color string-color (zcolor-map options :string))
+                    :element]]
+                (showfn? fn-map (zsexpr zloc)) [[zstr (zcolor-map options :fn)
+                                                 :element]]
+                (show-user-fn? options (zsexpr zloc))
+                  [[zstr (zcolor-map options :user-fn) :element]]
+                (number? (zsexpr zloc))
+                  [[(if hex? (znumstr zloc hex? shift-seq) zstr)
+                    (zcolor-map options :number) :element]]
+                (symbol? (zsexpr zloc)) [[zstr (zcolor-map options :symbol)
+                                          :element]]
+                (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil) :element]]
+                (true? (zsexpr zloc)) [[zstr (zcolor-map options :true)
+                                        :element]]
+                (false? (zsexpr zloc)) [[zstr (zcolor-map options :false)
+                                         :element]]
+                (char? (zsexpr zloc)) [[zstr (zcolor-map options :char)
+                                        :element]]
+                (or (instance? #?(:clj java.util.regex.Pattern
+                                  :cljs (type #"regex"))
+                               (zsexpr zloc))
+                    (re-find #"^#\".*\"$" zstr))
+                  [[zstr (zcolor-map options :regex) :element]]
+                :else [[zstr (zcolor-map options :none) :element]])))))))
 
 ;;
 ;; # Comment Wrap Support
@@ -5352,7 +5356,9 @@
                         ; it was all whitespace -- don't correct
                         [:whitespace spaces]))
                     [tnloc spaces]))])
-      #_(prn "inlinecomment? tnloc:" tnloc "spaces:" spaces "nloc:" (zstring nloc))
+      #_(prn "inlinecomment? tnloc:" tnloc
+             "spaces:" spaces
+             "nloc:" (zstring nloc))
       (cond
         (nil? tnloc) nil  ; the start of the zloc
         (= tnloc :newline) (recur (zprint.zutil/left* nloc) spaces true)
@@ -5367,9 +5373,9 @@
                 (let [nloc-length-before (length-before nloc)
                       zloc-length-before (length-before zloc)]
                   #_(prn "inlinecomment?:"
-                       "nloc-length-before:" nloc-length-before
-                       "zloc-length-before:" zloc-length-before
-                       "spaces:" spaces)
+                         "nloc-length-before:" nloc-length-before
+                         "zloc-length-before:" zloc-length-before
+                         "spaces:" spaces)
                   (if (= nloc-length-before zloc-length-before)
                     ; we have a lineup
                     [spaces zloc-length-before]

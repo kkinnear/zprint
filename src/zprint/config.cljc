@@ -312,7 +312,7 @@
    "defcc" :arg1-mixin,
    "defcs" :arg1-mixin,
    "defmacro" :arg1-body,
-   "defexpect" :arg1-body,
+   "defexpect" [:arg1-body {:style :respect-nl}],
    "defmethod" :arg2,
    "defmulti" :arg1-body,
    "defn" :arg1-body,
@@ -508,7 +508,7 @@
          :respect-bl? false,
          :respect-nl? false,
          :unlift-ns? false},
-   :max-depth 1000,
+   :max-depth 1000000,
    :max-depth-string "##",
    :parallel? false,
    :max-hang-count 4,
@@ -519,7 +519,7 @@
    ; unintended consequences.
    :max-hang-depth 300,
    :max-hang-span 4,
-   :max-length 1000,
+   :max-length 1000000,
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
    :output {:focus {:zloc? false, :surround nil}, :lines nil, :elide nil},
@@ -682,11 +682,11 @@
             :hang-if-equal-flow? true},
    :uneval {:color-map {:brace :yellow,
                         :bracket :yellow,
-			:char :magenta,
-			:comma :none,
+                        :char :magenta,
+                        :comma :none,
                         :comment :green,
                         :deref :yellow,
-			:false :yellow,
+                        :false :yellow,
                         :fn :cyan,
                         :hash-brace :yellow,
                         :hash-paren :yellow,
@@ -696,11 +696,11 @@
                         :number :yellow,
                         :paren :yellow,
                         :quote :yellow,
-			:regex :yellow,
+                        :regex :yellow,
                         :string :yellow,
-			:symbol :cyan,
+                        :symbol :cyan,
                         :syntax-quote-paren :yellow,
-			:true :yellow,
+                        :true :yellow,
                         :uneval :magenta,
                         :user-fn :cyan}},
    :user-fn-map {},
@@ -1234,7 +1234,8 @@
                 ; load-string
                 (clojure.edn/read-string s)
                 ; This is something else wrong, let it go
-                (do #_(println "Exception: '" (str e) "' s: '" s "'") (throw e)))))
+                (do #_(println "Exception: '" (str e) "' s: '" s "'")
+                    (throw e)))))
      :cljs nil))
 
 ;; Remove two files from this, make it one file at a time.`

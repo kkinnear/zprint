@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.0.1 - 2020-9-9
+## 1.0.1 - 2020-9-10
 
 ### Added
 
@@ -30,6 +30,13 @@ All notable changes to this project will be documented in this file.
   been to only lift a namespace out of a map if there were more than
   one key.  Please submit an issue if you feel strongly about this one
   way or the other and we can discuss it.
+
+  * Changed default `:max-depth` and `:max-length` to be 1000000
+  instead of 1000, as the `defexpect` in `zprint_test.cljc` had
+  more than 1000 `expect` entries in it!
+
+  * Changed `:fm-map` for `defexpect` to have `:style :respect-bl` so
+  that blank lines between `expect` clauses are preserved.
 
 ### Fixed
 

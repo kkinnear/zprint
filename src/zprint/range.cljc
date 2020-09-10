@@ -154,11 +154,11 @@
   [line-vec index]
   (loop [idx index]
     (let [line (nth line-vec idx)]
-      ; Return current idx if it is non-blank 
+      ; Return current idx if it is non-blank
       (cond (not (empty? (clojure.string/trim line))) idx
-	    ; if the first line is not non-blank, then we didn't find one
+            ; if the first line is not non-blank, then we didn't find one
             (zero? idx) -1
-	    ; keep looking for a non-blank line
+            ; keep looking for a non-blank line
             :else (recur (dec idx))))))
 
 (defn expand-range-to-top-level

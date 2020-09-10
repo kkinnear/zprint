@@ -8,7 +8,7 @@
   :plugins
     [[lein-doo "0.1.10"] 
     ; [lein-expectations "0.0.8"] 
-    [lein-codox "0.10.3"] [lein-zprint "1.0.0"]]
+    [lein-codox "0.10.3"] [lein-zprint "1.0.1"]]
   :profiles {:repl {:dependencies [#_[com.taoensso/tufte "1.1.1"]
                                    #_[org.clojure/clojurescript "1.9.946"]
                                    ;[rum "0.10.8"];

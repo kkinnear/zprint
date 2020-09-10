@@ -379,11 +379,11 @@
   (cond
     (= width-or-options :default) [:default (get-default-options)]
     :else
-      (let [[width-or-options special-option] (if (#{:explain :explain-set :support
-                                                     :explain-justified :help}
-                                                   width-or-options)
-                                                [nil width-or-options]
-                                                [width-or-options nil])
+      (let [[width-or-options special-option]
+              (if (#{:explain :explain-set :support :explain-justified :help}
+                   width-or-options)
+                [nil width-or-options]
+                [width-or-options nil])
             configure-errors (when-not (:configured? (get-options))
                                (configure-all!))
             width (when (number? width-or-options) width-or-options)

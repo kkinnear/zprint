@@ -25,22 +25,22 @@
 
 (defexpect zutil-tests
 
-(def zz (edn* (p/parse-string "( 0 1 2 3 4 )")))
+  (def zz (edn* (p/parse-string "( 0 1 2 3 4 )")))
 
-(expect "0" (z/string (zprint.zutil/znthnext zz 0)))
-(expect "1" (z/string (zprint.zutil/znthnext zz 1)))
-(expect "2" (z/string (zprint.zutil/znthnext zz 2)))
-(expect "3" (z/string (zprint.zutil/znthnext zz 3)))
-(expect "4" (z/string (zprint.zutil/znthnext zz 4)))
-(expect nil (z/string (zprint.zutil/znthnext zz 5)))
+  (expect "0" (z/string (zprint.zutil/znthnext zz 0)))
+  (expect "1" (z/string (zprint.zutil/znthnext zz 1)))
+  (expect "2" (z/string (zprint.zutil/znthnext zz 2)))
+  (expect "3" (z/string (zprint.zutil/znthnext zz 3)))
+  (expect "4" (z/string (zprint.zutil/znthnext zz 4)))
+  (expect nil (z/string (zprint.zutil/znthnext zz 5)))
 
-(def za (edn* (p/parse-string "(0 1 2 3 4)")))
+  (def za (edn* (p/parse-string "(0 1 2 3 4)")))
 
-(expect "0" (z/string (zprint.zutil/znthnext za 0)))
-(expect "1" (z/string (zprint.zutil/znthnext za 1)))
-(expect "2" (z/string (zprint.zutil/znthnext za 2)))
-(expect "3" (z/string (zprint.zutil/znthnext za 3)))
-(expect "4" (z/string (zprint.zutil/znthnext za 4)))
-(expect nil (z/string (zprint.zutil/znthnext za 5)))
+  (expect "0" (z/string (zprint.zutil/znthnext za 0)))
+  (expect "1" (z/string (zprint.zutil/znthnext za 1)))
+  (expect "2" (z/string (zprint.zutil/znthnext za 2)))
+  (expect "3" (z/string (zprint.zutil/znthnext za 3)))
+  (expect "4" (z/string (zprint.zutil/znthnext za 4)))
+  (expect nil (z/string (zprint.zutil/znthnext za 5)))
 
 )

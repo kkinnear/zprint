@@ -200,6 +200,7 @@ A number of folks have contributed to zprint, not all of whom
 show up on GitHub because I have integrated the code or suggestions manually.
 __Thanks for all of the great contributions!__
 
+  * Additional colors and color-map entries: @RingMan
   * `--url` and `--url-only`: @coltnz
   * Suggestion/encouragement to implement `:respect-bl`: @griffis
   * `:option-fn` and `:fn-format` for enhanced vector formatting: @milankinen

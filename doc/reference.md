@@ -4891,9 +4891,15 @@ approaches.
 
 ## Testing this library
 
-With [Leiningen](https://leiningen.org/) installed, run `lein expectations`
-from the root directory of this repo.  There are over 700 tests.  It will
-take upwards of 30 to 45 seconds for them all to run.
+### Clojure
+
+Currently, the testing framework in use is `expectations/cljc-test`
+"2.0.0-SNAPSHOT", which is in development.  This will make testing
+difficult until it is released.
+
+With [Leiningen](https://leiningen.org/) installed, run `lein test`
+from the root directory of this repo.  There are over Clojure 1000 tests.  
+It will take upwards of 30 to 45 seconds for them all to run.
 
 As an additional test of the uberjar (all in the root directory): 
 
@@ -4904,7 +4910,31 @@ As an additional test of the uberjar (all in the root directory):
     of lein-zprint which uses the current zprint library built into the
     uberjar.
   
-  * Run `./test_uberjar` 
-  
+  * `./test_uberjar` 
+
 If tests pass, the script will return with no output.
+
+Another test:
+
+  * You can also run `.test_config 1.0.1 uberjar`, (or use the current
+  version), and it will run another series of more complex tests.
+  Each test will say what it is testing.  It does produce output, but
+  the lines starting with "...." are simply a report of what is being
+  tested.  Any failures are clearly delineated as failures.
+
+### Clojurescript
+
+Requirements:
+
+  * You will have to have installed [planck](https://planck-repl.org/)
+
+  * You will need the library `expectations/cljc-test` "2.0.0-SNAPSHOT",
+  which is yet to be released.
+
+To run the Clojurescript tests, run:
+
+`clj -A:cljs-runner`
+
+There are over 900 tests.  They take a __really__ long time to execute.
+  
 

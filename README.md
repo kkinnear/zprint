@@ -201,13 +201,19 @@ show up on GitHub because I have integrated the code or suggestions manually.
 __Thanks for all of the great contributions!__
 
   * Additional colors and color-map entries: @RingMan
+  * Updated `rewrite-cljs` dependency to `0.4.5` @rundis/
+  * Readme updates: @mathiasn, @Quezion, @vemv, @arichiardi, @bhurlow, @kommen.
   * `--url` and `--url-only`: @coltnz
+  * Use `UTF-8` locale to build the native image: @mynomoto
   * Suggestion/encouragement to implement `:respect-bl`: @griffis
+  * Thread safety suggestions: @fazzone
   * `:option-fn` and `:fn-format` for enhanced vector formatting: @milankinen
   * Fixed missing require in `spec.cljc`: @Quezion
   * Corrected readme: @griffis
   * Fixed nested reader conditional: @rgould1
   * Clarified and added useful example for clj usage: @bherrmann7
+  * Sublime text plugin instructions: @ekinnear
+  * Use body indentation for the `ns` macro: @pesterhazy
   * Suggested fix for international chars and graalVM native image: @huahaiy
 
 Thanks to everyone who has contributed fixes as well as everyone who has

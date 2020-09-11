@@ -11,6 +11,6 @@ apt-get -y install libstdc++
 gu install -L $2
 whereis native-image
 native-image --version
-LC_ALL=C.UTF-8 native-image --no-server -J-Xmx4G -J-Xms2G -jar target/zprint-filter-$3 -H:Name="zprintl-$3" -H:EnableURLProtocols=https,http -H:+ReportExceptionStackTraces --report-unsupported-elements-at-runtime --initialize-at-build-time --no-fallback
+LC_ALL=C.UTF-8 native-image --no-server -J-Xmx7G -J-Xms4G -jar target/zprint-filter-$3 -H:Name="zprintl-$3" -H:EnableURLProtocols=https,http -H:+ReportExceptionStackTraces --report-unsupported-elements-at-runtime --initialize-at-build-time --no-fallback
 
 

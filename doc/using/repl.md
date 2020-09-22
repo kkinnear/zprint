@@ -21,13 +21,13 @@ in the dependencies.  For example:
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [zprint "1.0.1"]]
+                 [zprint "1.0.2"]]
   :repl-options {:init-ns zpuse.core})
 ```
 
 __Even better -- put it in the:__ 
 
-`:profiles {:dev {:dependencies [zprint "1.0.1]}}`
+`:profiles {:dev {:dependencies [zprint "1.0.2]}}`
 
 like this:
 
@@ -37,15 +37,15 @@ like this:
   :url "http://example.com/FIXME"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
-  :profiles {:dev {:dependencies [zprint "1.0.1]}}
+  :profiles {:dev {:dependencies [zprint "1.0.2]}}
   :dependencies [[org.clojure/clojure "1.10.0"]]
   :repl-options {:init-ns zpuse.core})
 ```
 
 ### deps.edn
 ```clojure
-{:deps {org.clojure/clojure #:mvn{:version "1.9.0"},
-        zprint #:mvn{:version "1.0.1"}}}
+{:deps {org.clojure/clojure {:mvn/version "1.9.0"},
+        zprint {:mvn/version "1.0.2"}}}
 ```
 ## 2. Require zprint when you run the REPL
 You need to get it availble to you when you run the REPL.
@@ -175,7 +175,7 @@ zpuse.core=>
 You can get the entire API by asking for help:
 ```clojure
 zpuse.core=> (zp/czprint nil :help)
-zprint-1.0.1
+zprint-1.0.2
 
  The basic call uses defaults, prints to stdout
 

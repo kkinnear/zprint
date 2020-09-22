@@ -17,9 +17,9 @@
                              :sha "f7ef16dc3b8332b0d77bc0274578ad5270fbfedd"}},
              :main-opts ["-m" "cognitect.test-runner" "-d" "test"]},
     :zprint {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"},
-                          zprint {:mvn/version "1.0.1"}},
+                          zprint {:mvn/version "1.0.2"}},
              :main-opts ["-m" "zprint.main"]}},
  :deps {org.clojure/clojure {:mvn/version "1.9.0"},
         org.clojure/clojurescript {:mvn/version "1.9.946"},
-        zprint {:mvn/version "1.0.1"}},
+        zprint {:mvn/version "1.0.2"}},
  :paths ["src" "test" "cljs-test-runner-out/gen"]}

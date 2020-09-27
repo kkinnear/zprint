@@ -145,6 +145,12 @@ the color map to:
 This highlights the unevaluated code.  You can change any of these colors
 as well.
 
+There is a style, `:dark-color-map` which sets both the `:color-map` and
+the `:uneval {:color-map ...}` to colors which are visible when using
+a dark background.  These may not be your favorite color choices, but at
+least things should be visible, allowing you to fine-tune the colors to
+better meet your preferences.
+
 If you wish to change the colors permanently, you can place these 
 options maps
 [anywhere an options map is accepted](../altering.md#2-get-the-options-map-recognized-by-zprint-when-formatting).

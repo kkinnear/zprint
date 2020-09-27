@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * A new style: `:dark-color-map`, which sets both the `:color-map` and
+  the `:uneval {:color-map ...}` to new colors which are at least visible
+  with a dark terminal theme.
+
 ### Changed
 
 ### Fixed

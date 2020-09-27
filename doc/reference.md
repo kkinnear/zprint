@@ -913,6 +913,12 @@ You can also change these to any of the colors specified above.
 Note that in this documentation, the syntax coloring of Clojure code is
 that provided by the GitHub flavored markdown, and not zprint!
 
+There is a style, `:dark-color-map` which sets both the `:color-map` and
+the `:uneval {:color-map ...}` to colors which are visible when using
+a dark background.  These may not be your favorite color choices, but at
+least things should be visible, allowing you to fine-tune the colors to
+better meet your preferences.
+
 ### Function Classification for Pretty Printing
 
 While most functions will pretty print without special processing,
@@ -3774,6 +3780,14 @@ that differs from the community style guide when using `{:style :community}`,
 please create an issue explaining the difference.
 
 For more discussion, see [Community](./options/community.md).
+
+#### :dark-color-map
+
+Sets both the `:color-map` and the `:uneval {:color-map ...}` to
+colors which are visible when using a dark background.  These may
+not be your favorite color choices, but at least things should be
+visible, allowing you to fine-tune the colors to better meet your
+preferences.
 
 #### :extend-nl
 

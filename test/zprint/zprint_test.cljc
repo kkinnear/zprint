@@ -4585,9 +4585,16 @@ ser/collect-vars-acc %1 %2) )))"
 
   ;; Establish that we have some difference between colored and non-colored
 
-  (expect 14 (count (zprint-str "(a :b \"c\")" {:color? false})))
+  (let [s "(a :b \"c\")"
+        cf {:color? false}
+        ct {:color? true}]
+    (expect 14 (count (zprint-str s cf)))
 
-  (expect 23 (count (zprint-str "(a :b \"c\")" {:color? true})))
+    (expect 23 (count (zprint-str s ct)))
+
+    (expect (zprint-str s cf) (str/trim-newline (with-out-str (zprint s cf))))
+
+    (expect (zprint-str s ct) (str/trim-newline (with-out-str (zprint s ct)))))
 
   ;; See if those differences match what we expect
 
@@ -4602,10 +4609,6 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect (czprint-str "(a :b \"c\")" {:color? false})
           (zprint-str "(a :b \"c\")"))
-
-  (expect 15 (count (with-out-str (zprint "(a :b \"c\")" {:color? false}))))
-
-  (expect 24 (count (with-out-str (zprint "(a :b \"c\")" {:color? true}))))
 
   ;; See if those differences match what we expect
 

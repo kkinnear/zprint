@@ -5870,24 +5870,28 @@
   "Takes a string, and expands tabs inside of the string based
   on a tab-size argument."
   ([tab-size s]
-   (apply str
-     (loop [char-seq (seq s)
-            cur-len (long 0)
-            out (transient [])]
-       (if (empty? char-seq)
-         (persistent! out)
-         (let [this-char (first char-seq)
-               tab-expansion (if (= this-char \tab)
-                               (- tab-size (mod cur-len tab-size))
-                               nil)]
-           (recur (rest char-seq)
-                  (if (= this-char \newline)
-                    0
-                    (+ cur-len (long (or tab-expansion 1))))
-                  (if tab-expansion
-                    (apply conj-it! out (seq (blanks tab-expansion)))
-                    (conj! out this-char))))))))
+   ; If we don't have tabs, don't do anything.
+   (if (clojure.string/includes? s "\t")
+     (apply str
+       (loop [char-seq (seq s)
+              cur-len (long 0)
+              out (transient [])]
+         (if (empty? char-seq)
+           (persistent! out)
+           (let [this-char (first char-seq)
+                 tab-expansion (if (= this-char \tab)
+                                 (- tab-size (mod cur-len tab-size))
+                                 nil)]
+             (recur (rest char-seq)
+                    (if (= this-char \newline)
+                      0
+                      (+ cur-len (long (or tab-expansion 1))))
+                    (if tab-expansion
+                      (apply conj-it! out (repeat tab-expansion \space))
+                      (conj! out this-char)))))))
+     s))
   ([s] (expand-tabs 8 s)))
+
 
 ;;
 ;; # Needed for expectations testing

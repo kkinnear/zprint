@@ -458,7 +458,8 @@
    ; This is used for {:parse {:left-space :keep}}
    :indent 0,
    :input {:range {:start nil, :end nil}},
-   :list {:constant-pair-min 4,
+   :list {:constant-pair-fn nil,
+          :constant-pair-min 4,
           :constant-pair? true,
           :hang-avoid 0.5,
           :hang-diff 1,
@@ -691,6 +692,17 @@
                                    (when (not= k? (:respect-nl? (:vector %1)))
                                      {:vector {:respect-nl? k?}}))}},
       :map-nl {:map {:indent 0, :nl-separator? true}},
+      :moustache {:fn-map {"app" [:none
+                                  {:list {:constant-pair-min 1,
+                                          :constant-pair-fn #(or (keyword? %)
+                                                                 (string? %)
+                                                                 (number? %)
+                                                                 (= true %)
+                                                                 (= false %)
+                                                                 (vector? %))},
+                                   :next-inner {:list {:constant-pair-min 4,
+                                                       :constant-pair-fn
+                                                         nil}}}]}},
       :no-hang {:map {:hang? false},
                 :list {:hang? false},
                 :extend {:hang? false},
@@ -1197,8 +1209,6 @@
   "If the sequence is empty, then return nil, else return the sequence."
   [empty-seq]
   (when-not (empty? empty-seq) empty-seq))
-
-(declare validate-style-map)
 
 (defn validate-options
   "Validate an options map, source-str is a descriptive phrase 

@@ -1,13 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.0.2 - 2020-9-22
+## 1.0.2 - 2020-10-22
 
 ### Added
 
   * A new style: `:dark-color-map`, which sets both the `:color-map` and
   the `:uneval {:color-map ...}` to new colors which are at least visible
   with a dark terminal theme.
+
+  * You can now change the things considered "constant" for constant-pairing.
+  If you configure a one argument function as the value of `:constant-pair-fn`,
+  it will be called with something to determine if it is a "constant", and
+  therefore should be paired up.   In this way, you can alter the pairing
+  behavior of constant-pairing.
+
+  * A new style, `:moustache`, which adds vectors to the elements to be
+  paired by constant-pairing for the function `app`.
 
 ### Changed
 

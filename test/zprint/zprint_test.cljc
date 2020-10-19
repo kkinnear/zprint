@@ -5280,6 +5280,39 @@ ser/collect-vars-acc %1 %2) )))"
       "{:aliases {:cljs-runner {:extra-deps {expectations/cljc-test {:mvn/version \"2.0.0-SNAPSHOT\"}}}}}"
       {:parse-string? true}))
 
+  ;;
+  ;; Issue #56, changes to constant pairing
+  ;;
+
+(def mapp6
+  "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comment work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       :post (m/app middle of the road\n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
+
+(expect
+  "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
+  (zprint-str
+    mapp6
+    {:parse-string? true,
+     :fn-map {"app" [:none
+                     {:list {:constant-pair-min 1,
+                             :constant-pair-fn #(or (vector? %) (keyword? %))},
+                      :next-inner {:list {:constant-pair-fn nil,
+                                          :constant-pair-min 2}}}]},
+     :width 55}))
+
+(expect
+  "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route]\n                   handler\n                   ; How do comment work?\n                   [route]\n                   (handler this\n                            is\n                            \"a\" test\n                            \"this\" is\n                            \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route]\n                    handler\n                    [route] ; What about comments here?\n                    handler))"
+  (zprint-str mapp6 {:parse-string? true, :width 55}))
+
+;; Let's see if the :style works
+
+(def mapp7
+  "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comments work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app \n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
+
+(expect
+  "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comments work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app [route] handler\n                    [route] ; What about comments here?\n                      handler))";
+  (zprint-str mapp7 {:parse-string? true, :style :moustache, :width 55}))
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

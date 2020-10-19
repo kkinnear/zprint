@@ -2728,6 +2728,216 @@ Using our previous example again:
                #(< (:ret %) (-> % :args :end))))
 ```
 
+#### :constant-pair-fn _nil_
+
+Constant pairing works by looking for constants in the n-1, n-3, ... locations
+in a list.  By default, the following are considered constants:
+
+ * keywords
+ * strings
+ * numbers
+ * true and false
+
+You can alter this behavior by specifying a function which will be called
+to determine if something is a constant.   You do this by specifying a
+`:constant-pair-fn` value.
+
+Here is an example of where this might be useful, also note the use of
+`:next-inner` to restrict the use of `:constant-pair-fn` to just the 
+top level of `m/app`:
+
+```clojure
+
+(def mapp6
+"(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comments work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       ; How do comments work here?\n       :post (m/app \n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
+
+; Let's  see what happens if we just use the default configuration.  
+; The narrow width is to force constant pairing on the second handler
+; of the :get
+
+(czprint mapp6 {:parse-string? true :width 55})
+
+(m/app :get (m/app middle1
+                   middle2
+                   middle3
+                   [route]
+                   handler
+                   ; How do comments work?
+                   [route]
+                   (handler this
+                            is
+                            "a" test
+                            "this" is
+                            "only a" test))
+       ; How do comments work here?
+       :post (m/app [route]
+                    handler
+                    [route] ; What about comments here?
+                    handler))
+
+; This is ok, but it would be nice to pair the handlers up with the routes
+; Since they fall at the end of the expressions, sounds like we could use
+; constant-pairing to force the pair behavior.
+
+; Let's see what we can do if we define our own function to determine
+; what constant-pairing will consdier a "constant"
+
+(czprint
+  mapp6
+  {:parse-string? true,
+   :fn-map {"app" [:none
+                   {:list {:constant-pair-min 1,
+                           :constant-pair-fn #(or (vector? %) (keyword? %))},
+                    :next-inner {:list {:constant-pair-fn nil,
+                                        :constant-pair-min 4}}}]},
+   :width 55})
+
+(m/app :get (m/app middle1
+                   middle2
+                   middle3
+                   [route] handler
+                   ; How do comments work?
+                   [route] (handler this
+                                    is
+                                    "a" test
+                                    "this" is
+                                    "only a" test))
+       ; How do comments work here?
+       :post (m/app [route] handler
+                    [route] ; What about comments here?
+                      handler))
+
+; Much nicer.  Note that we had to define both keywords and vectors as
+; "constants", to preserve the keyword constant-pairing.  
+; Note also the use of :next-inner to restore constant-pairing to its
+; default behavior down inside of expressions contained in `m/app`.
+
+; If we were to define a :constant-pair-fn which was equivalent to the
+; default, it would look like this:
+
+(czprint mapp6
+         {:parse-string? true,
+          :fn-map {"app" [:none
+                          {:list {:constant-pair-fn #(or (keyword? %)
+                                                         (string? %)
+                                                         (number? %)
+                                                         (= true %)
+                                                         (= false %))}}]},
+          :width 55})
+
+(m/app :get (m/app middle1
+                   middle2
+                   middle3
+                   [route]
+                   handler
+                   ; How do comments work?
+                   [route]
+                   (handler this
+                            is
+                            "a" test
+                            "this" is
+                            "only a" test))
+       ; How do comments work here?
+       :post (m/app [route]
+                    handler
+                    [route] ; What about comments here?
+                    handler))
+
+; Of course, you wouldn't do that to restore the defaults, you would 
+; set the :constant-pair-fn back to nil instead to get the default 
+; behavior.  .
+```
+
+If you wished to keep the default behavior, and have additional things
+considered "constant", you could start with the `:constant-pair-fn`
+at the end of the last example, above, and add additional elements.
+
+Here is an example where we replicate the behavior from before, where
+vectors are considered constant, but all of the existing element are
+considered constant as well:
+
+```clojure
+; This is where the :constant-pair-fn mimics the default behavior 
+
+(def mapp7
+  "(m/app :get  (m/app middle1 middle2 middle3
+                    [route] handler
+                    ; How do comments work?
+                    [route]
+        (handler this is \"a\" test \"this\" is \"only a\" test))
+       ; How do comments work here?
+       true (should be paired with true)
+       false (should be paired with false)
+       6 (should be paired with 6)
+       \"string\" (should be paired with string)
+       :post (m/app
+                    [route] handler
+                    [route] ; What about comments here?
+                    handler))")
+
+(czprint mapp7
+         {:parse-string? true,
+          :fn-map {"app" [:none
+                          {:list {:constant-pair-fn #(or (keyword? %)
+                                                         (string? %)
+                                                         (number? %)
+                                                         (= true %)
+                                                         (= false %))}}]},
+          :width 55})
+
+(m/app :get (m/app middle1
+                   middle2
+                   middle3
+                   [route]
+                   handler
+                   ; How do comments work?
+                   [route]
+                   (handler this is "a" test "this" is "only a" test))
+       ; How do comments work here?
+       true (should be paired with true)
+       false (should be paired with false)
+       6 (should be paired with 6)
+       "string" (should be paired with string)
+       :post (m/app [route]
+                    handler
+                    [route] ; What about comments here?
+                    handler))
+
+; This is where the :constant-pair-fn which mimics the default behavior
+; has been extended to include vectors as "constants".
+
+(czprint mapp7
+         {:parse-string? true,
+          :fn-map {"app" [:none
+                          {:list {:constant-pair-min 1,
+                                  :constant-pair-fn #(or (keyword? %)
+                                                         (string? %)
+                                                         (number? %)
+                                                         (= true %)
+                                                         (= false %)
+                                                         (vector? %))}}]},
+          :width 55})
+
+(m/app :get (m/app middle1
+                   middle2
+                   middle3
+                   [route] handler
+                   ; How do comments work?
+                   [route] (handler this
+                                    is
+                                    "a" test
+                                    "this" is
+                                    "only a" test))
+       ; How do comments work here?
+       true (should be paired with true)
+       false (should be paired with false)
+       6 (should be paired with 6)
+       "string" (should be paired with string)
+       :post (m/app [route] handler
+                    [route] ; What about comments here?
+                      handler))
+```
+
 #### :return-altered-zipper _nil_
 
 __EXPERIMENTAL__
@@ -4061,6 +4271,21 @@ Some examples:
  :m :n,
  :o {:p {:q :r, :s :t}}}
 ```
+
+#### :moustache
+
+This style is designed to format moustache, self described as
+"Moustache is a micro web framework/internal DSL to wire Ring
+handlers and middlewares.".  The only thing this style does is to
+make the function `app` have a broader definition of what constitutes
+a "constant" for constant-pairing.  It adds vectors to the things
+that are paired up, even though they aren't constants.  It only adds
+vectors to the list of things that are paired up for the top level of
+the function `app`, otherwise constant-pairing operates as normal for
+expressions down inside the `app` function.
+
+This style also gives one example of how to use the `:constant-pair-fn`
+to solve real problems.
 
 #### :no-hang, :all-hang
 

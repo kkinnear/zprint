@@ -152,6 +152,7 @@
 (s/def ::comma? ::boolean)
 (s/def ::constant-pair? ::boolean)
 (s/def ::constant-pair-min number?)
+(s/def ::constant-pair-fn (s/nilable fn?))
 (s/def ::count? ::boolean)
 (s/def ::directory (s/nilable string?))
 (s/def ::docstring? ::boolean)
@@ -286,7 +287,7 @@
 (s/def ::input (only-keys :opt-un [::range]))
 (s/def ::list
   (only-keys
-    :opt-un [::constant-pair-min ::constant-pair? ::hang-diff ::hang-avoid
+    :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair? ::hang-diff ::hang-avoid
              ::hang-expand ::hang-size ::hang? ::indent ::hang-accept
              ::ha-depth-factor ::ha-width-factor ::indent-arg ::pair-hang?
              ::return-altered-zipper ::respect-bl? ::respect-nl? ::indent-only?
@@ -310,10 +311,6 @@
 (s/def ::max-length ::number-or-vector-of-numbers)
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
-; Note that here we are accepting an entire options map
-; Because of the way that validate is handled for style-maps and for
-; option maps in the fn-map, neither of these things will be validate by
-; spec in this case.
 (s/def ::more-options (s/nilable ::options))
 (s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
 (s/def ::pair
@@ -336,7 +333,7 @@
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
                       :alt/extend]))
-(s/def ::next-inner zany?)
+(s/def ::next-inner (s/nilable ::options))
 (s/def ::return-cvec? ::boolean)
 (s/def ::script (only-keys :opt-un [::more-options]))
 (s/def ::set
@@ -346,8 +343,6 @@
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::style ::style-value)
-; This is a full option map, which gets validate separately in
-; validate-style-map
 (s/def ::style-map (s/nilable (s/map-of keyword? ::options)))
 (s/def ::tab (only-keys :opt-un [::expand? ::size]))
 (s/def ::trim-comments? ::boolean)

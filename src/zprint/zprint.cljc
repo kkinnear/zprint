@@ -29,6 +29,9 @@
 ;; # Utility Functions
 ;;
 
+; Interestingly, this is faster than (apply str (repeat n \space)) by
+; about 30%.
+
 (defn blanks
   "Produce a blank string of desired size."
   [n]
@@ -39,12 +42,19 @@
   [n]
   (apply str (repeat n ".")))
 
+; This is about 10% faster than:
+;
+;(defn conj-it!-orig
+;  "Make a version of conj! that take multiple arguments."
+;  [& rest]
+;  (loop [out (first rest)
+;         more (next rest)]
+;    (if more (recur (conj! out (first more)) (next more)) out)))
+
 (defn conj-it!
-  "Make a version of conj! that take multiple arguments."
-  [& rest]
-  (loop [out (first rest)
-         more (next rest)]
-    (if more (recur (conj! out (first more)) (next more)) out)))
+  "Make a version of conj! that takes multiple arguments."
+  [to & rest]
+  (reduce conj! to rest))
 
 (defn split-lf
   "Do split for newlines, instead of using regular expressions."
@@ -2004,20 +2014,20 @@
 
 (defn count-constant-pairs
   "Given a seq of zlocs, work backwards from the end, and see how
-  many elements are pairs of constants (using zconstant?).  So that
-  (... :a (stuff) :b (bother)) returns 4, since both :a and :b are
-  zconstant? true. This is made more difficult by having to skip
-  comments along the way as part of the pair check, but keep track
-  of the ones we skip so the count is right in the end.  We don't
-  expect any spaces in this but newlines must be handled, because 
-  this seq should have been produced by zmap or its equivalent.
-  Returns two things: [paired-item-count actual-paired-items],
-  where paired-item-count is the number of things from the end of
-  the seq you have to trim off to get the constant pairs included,
-  and the actual-paired-items is the count of the items to be checked
-  against the constant-pair-min (which is exclusive of comments and
-  newlines)."
-  [zloc-seq]
+  many elements are pairs of constants (using zconstant? or the
+  supplied constant-pair-fn).  So that (... :a (stuff) :b (bother))
+  returns 4, since both :a and :b are zconstant? true. This is made
+  more difficult by having to skip comments along the way as part
+  of the pair check, but keep track of the ones we skip so the count
+  is right in the end.  We don't expect any spaces in this but
+  newlines must be handled, because this seq should have been
+  produced by zmap or its equivalent.  Returns two things:
+  [paired-item-count actual-paired-items], where paired-item-count
+  is the number of things from the end of the seq you have to trim
+  off to get the constant pairs included, and the actual-paired-items
+  is the count of the items to be checked against the constant-pair-min
+  (which is exclusive of comments and newlines)."
+  [constant-pair-fn zloc-seq]
   (loop [zloc-seq-rev (reverse zloc-seq)
          element-count 0
          paired-element-count 0
@@ -2037,9 +2047,12 @@
         ; seen the end of it, and return
         [(- element-count pair-size) (- paired-element-count actual-pair-size)]
         (let [comment-or-newline? (zcomment-or-newline? element)]
+          #_(prn (zsexpr element))
           (if (and (not comment-or-newline?)
                    constant-required?
-                   (not (zconstant? element)))
+                   (if constant-pair-fn
+                     (not (constant-pair-fn (zsexpr element)))
+                     (not (zconstant? element))))
             ; we counted the right-hand and any comments of this pair, but it
             ; isn't a pair so exit now with whatever we have so far
             [(- element-count pair-size)
@@ -2068,10 +2081,11 @@
   "Argument is a zloc-seq.  Output is a [pair-seq non-paired-item-count],
   if any.  If there are no pair-seqs, pair-seq must be nil, not an
   empty seq.  This will largely ignore newlines and comments."
-  [caller {{:keys [constant-pair? constant-pair-min]} caller, :as options}
+  [caller {{:keys [constant-pair? constant-pair-fn constant-pair-min]} caller, :as options}
    zloc-seq]
   (if constant-pair?
     (let [[paired-item-count actual-paired-items] (count-constant-pairs
+						    constant-pair-fn
                                                     zloc-seq)
           non-paired-item-count (- (count zloc-seq) paired-item-count)
           _ (dbg options
@@ -5891,7 +5905,6 @@
                       (conj! out this-char)))))))
      s))
   ([s] (expand-tabs 8 s)))
-
 
 ;;
 ;; # Needed for expectations testing

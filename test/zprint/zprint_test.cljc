@@ -5315,11 +5315,17 @@ ser/collect-vars-acc %1 %2) )))"
 ;;
 ;; Line endings
 ;;
+;; zprint-file-str
 
 (def lendu "(this is a\ntest this is\nonly a test ; comment\n stuff\n bother)")
 (def lendd
   "(this is a\r\ntest this is\r\nonly a test ; comment\r\n stuff\r\n bother)")
 (def lendr "(this is a\rtest this is\ronly a test ; comment\r stuff\r bother)")
+
+(def lendmu "(this is)\n (a test) \n (this is) ; a comment \n (only a test\n)")
+(def lendmd
+  "(this is)\r\n (a test) \r\n (this is) ; a comment \r\n (only a test\r\n)")
+(def lendmr "(this is)\r (a test) \r (this is) ; a comment \r (only a test\r)")
 
 (expect
   "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test ; comment\n      stuff\n      bother)"
@@ -5332,6 +5338,44 @@ ser/collect-vars-acc %1 %2) )))"
 (expect
   "(this is\r      a\r      test\r      this\r      is\r      only\r      a\r      test ; comment\r      stuff\r      bother)"
   (zprint-file-str lendr "stuff" {}))
+
+(expect "(this is)\n(a test)\n(this is); a comment\n(only a test)"
+        (zprint-file-str lendmu "stuff" {}))
+
+(expect "(this is)\r\n(a test)\r\n(this is); a comment\r\n(only a test)"
+        (zprint-file-str lendmd "stuff" {}))
+
+(expect "(this is)\r(a test)\r(this is); a comment\r(only a test)"
+        (zprint-file-str lendmr "stuff" {}))
+
+;;
+;; parse-string?
+;;
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test ; comment\n      stuff\n      bother)"
+  (zprint-str lendu {:parse-string? true}))
+
+(expect
+  "(this is\r\n      a\r\n      test\r\n      this\r\n      is\r\n      only\r\n      a\r\n      test ; comment\r\n      stuff\r\n      bother)"
+  (zprint-str lendd {:parse-string? true}))
+
+(expect
+  "(this is\r      a\r      test\r      this\r      is\r      only\r      a\r      test ; comment\r      stuff\r      bother)"
+  (zprint-str lendr {:parse-string? true}))
+
+;;
+;; parse-string-all?
+;;
+
+(expect "(this is)\n(a test)\n(this is)\n; a comment\n(only a test)"
+        (zprint-str lendmu {:parse-string-all? true}))
+
+(expect "(this is)\r\n(a test)\r\n(this is)\r\n; a comment\r\n(only a test)"
+        (zprint-str lendmd {:parse-string-all? true}))
+
+(expect "(this is)\r(a test)\r(this is)\r; a comment\r(only a test)"
+        (zprint-str lendmr {:parse-string-all? true}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

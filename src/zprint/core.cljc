@@ -286,15 +286,23 @@
 
 (defn ^:no-doc get-zipper
   "If it is a zipper or a string, return a zipper, else return nil.
-  Always trims whitespace (including nl) off of strings before parsing!"
+  Always trims whitespace (including nl) off of strings before parsing!
+  Returns [zloc line-ending-str], with line-ending-str nil if x was a
+  zipper."
   [options x]
   (if (string? x)
-    (let [x (if (:expand? (:tab options))
-              (expand-tabs (:size (:tab options)) x)
-              x)
+    (let [[line-ending lines] (determine-ending-split-lines x)
+          lines (if (:expand? (:tab options))
+                  (map (partial expand-tabs (:size (:tab options))) lines)
+                  lines)
+          ; Glue lines back together with \n line ending, to work around
+          ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
+          ; the rewrite-clj parse would "convert" them all to \n for us,
+          ; which is really what we need anyway.
+          x (clojure.string/join "\n" lines)
           n (p/parse-string (clojure.string/trim x))]
-      (when n (edn* n)))
-    (when (zipper? x) x)))
+      (when n [(edn* n) line-ending]))
+    (when (zipper? x) [x nil])))
 
 ;;
 ;; # Interface into zprint.zprint namespace
@@ -303,19 +311,20 @@
 
 (defn ^:no-doc fzprint-style
   "Do a basic zprint and output the style vector and the options used for
-  further processing: [<style-vec> options]"
+  further processing: [<style-vec> options line-ending]"
   [coll options]
-  (let [[input options]
+  (let [[input options line-ending]
           (cond (:zipper? options)
                   #?(:clj (if (zipper? coll)
-                            [coll options]
+                            [coll options nil]
                             (throw (Exception. (str
                                                  "Collection is not a zipper"
                                                  " yet :zipper? specified!"))))
-                     :cljs [coll options])
+                     :cljs [coll options nil])
                 (:parse-string? options)
                   (if (string? coll)
-                    [(get-zipper options coll) options]
+                    (let [[form line-end] (get-zipper options coll)]
+                      [form options line-end])
                     (throw (#?(:clj Exception.
                                :cljs js/Error.)
                             (str "Collection is not a string yet"
@@ -325,12 +334,13 @@
                   ; focus.  First, we have to find the root and path
                   ; of the zloc.
                   (let [[root path] (find-root-and-path-nw coll)]
-                    [root (assoc-in options [:output :focus :path] path)])
-                :else [nil options])
+                    [root (assoc-in options [:output :focus :path] path) nil])
+                :else [nil options nil])
         z-type (if input :zipper :sexpr)
         input (or input coll)]
-    (cond (nil? input) [[["nil" (zcolor-map options :nil) :element]] options]
-          (:drop? options) [[["" :none]] options]
+    (cond (nil? input) [[["nil" (zcolor-map options :nil) :element]] options
+                        line-ending]
+          (:drop? options) [[["" :none]] options line-ending]
           ;(if (or (nil? input) (:drop? options))
           ;  (and (:spaces? options)
           ;       (:file? options)
@@ -354,8 +364,7 @@
               #_(def coreopt options)
               [(if (= z-type :zipper)
                  (zprint.zutil/zredef-call fzprint-fn)
-                 (zprint.sutil/sredef-call fzprint-fn))
-               options]))))
+                 (zprint.sutil/sredef-call fzprint-fn)) options line-ending]))))
 
 #?(:clj (declare get-docstring-spec))
 
@@ -459,7 +468,8 @@
   number, the fourth (if any) must be a map.  The internal-options
   is either an empty map or {:parse-string? true} for the -fn
   functions, and cannot be overridden by an options argument. Returns
-  a vector with the style-vec and the options used: [<style-vec> options]"
+  a vector with the style-vec and the options used: 
+  [<style-vec> options line-ending]"
   [coll special-option actual-options]
   (if special-option
     (case special-option
@@ -598,24 +608,40 @@
     (dbg rest-options "zprint-str-internal VVVVVVVVVVVVVVVV")
     (if (:parse-string-all? rest-options)
       (if (string? coll)
-        (let [result (process-multiple-forms (parse-string-all-options
+        (let [[line-ending lines] (determine-ending-split-lines coll)
+              current-options (merge-deep (get-options) rest-options)
+              lines (if (:expand? (:tab current-options))
+                      (map (partial expand-tabs (:size (:tab current-options)))
+                        lines)
+                      lines)
+              ; Glue lines back together with \n line ending, to work around
+              ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
+              ; the rewrite-clj parse would "convert" them all to \n for us,
+              ; which is really what we need anyway.
+              coll (clojure.string/join "\n" lines)
+              result (process-multiple-forms (parse-string-all-options
                                                rest-options)
                                              zprint-str-internal
                                              ":parse-string-all? call"
-                                             (edn* (p/parse-string-all coll)))]
+                                             (edn* (p/parse-string-all coll)))
+              str-w-line-endings
+                (if (or (nil? line-ending) (= line-ending "\n"))
+                  result
+                  (clojure.string/replace result "\n" line-ending))]
           (dbg rest-options "zprint-str-internal ^^^ pmf ^^^ pmf ^^^ pmf ^^^")
-          result)
+          str-w-line-endings)
         (throw (#?(:clj Exception.
                    :cljs js/Error.)
                 (str ":parse-string-all? requires a string!"))))
       (let [actual-options (determine-options rest-options)
-            [cvec options] (zprint* coll special-option actual-options)
+            [cvec options line-ending]
+              (zprint* coll special-option actual-options)
             #_(println "special-option:" special-option
                        "actual-options:" (apply sorted-map
                                            (flatten (seq actual-options)))
                        "\n\n\noptions:" (apply sorted-map
                                           (flatten (seq options))))
-	    #_(def aopt actual-options)
+            #_(def aopt actual-options)
             cvec-wo-empty cvec
             #_(def cvwoe cvec-wo-empty)
             focus-vec (if-let [path (:path (:focus (:output options)))]
@@ -655,13 +681,17 @@
             color-style (if (or accept-vec focus-vec (:color? options))
                           (color-comp-vec comp-style)
                           (apply str (mapv first comp-style)))
-            #_(def cs color-style)]
+            #_(def cs color-style)
+            str-w-line-endings
+              (if (or (nil? line-ending) (= line-ending "\n"))
+                color-style
+                (clojure.string/replace color-style "\n" line-ending))]
         (dbg rest-options "zprint-str-internal ^^^^^^^^^^^^^^^^^^")
         (if eol-str
           eol-str
           (if (:return-cvec? options)
             (remove-newline-indent-locs cvec)  ; i132
-            color-style))))))
+            str-w-line-endings))))))
 
 (defn ^:no-doc get-fn-source
   "Call source-fn, and if it isn't there throw an exception."

@@ -6,21 +6,26 @@ All notable changes to this project will be documented in this file.
 ### Added
 
   * A new style: `:dark-color-map`, which sets both the `:color-map` and
-  the `:uneval {:color-map ...}` to new colors which are at least visible
-  with a dark terminal theme.
+  the `:uneval {:color-map ...}` to new colors which may not be your favorites,
+  but are at least visible with a dark terminal theme.
 
   * You can now change the things considered "constant" for constant-pairing.
   If you configure a one argument function as the value of `:constant-pair-fn`,
   it will be called with something to determine if it is a "constant", and
   therefore should be paired up.   In this way, you can alter the pairing
-  behavior of constant-pairing.
+  behavior of constant-pairing.  Issue #56.
 
   * A new style, `:moustache`, which adds vectors to the elements to be
-  paired by constant-pairing for the function `app`.
+  paired by constant-pairing for the function `app`.  Issue #56.
 
 ### Changed
 
 ### Fixed
+
+  * All standard line endings (e.g., `\n` `\r\n` and `\r`) are now 
+  fully supported in all aspects of zprint. The line ending is determined
+  by what zprint sees in the first 2000 characters of the string or file.
+  Issue #150.
 
 ## 1.0.1 - 2020-9-22
 

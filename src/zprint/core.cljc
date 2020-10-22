@@ -9,7 +9,7 @@
     [zprint.zprint :as zprint :refer
      [fzprint blanks line-count max-width line-widths expand-tabs zcolor-map
       fzprint-wrap-comments fzprint-inline-comments
-      fzprint-align-inline-comments]]
+      fzprint-align-inline-comments determine-ending-split-lines]]
     [zprint.finish :refer
      [cvec-to-style-vec compress-style no-style-map color-comp-vec
       handle-lines]]
@@ -615,6 +615,7 @@
                                            (flatten (seq actual-options)))
                        "\n\n\noptions:" (apply sorted-map
                                           (flatten (seq options))))
+	    #_(def aopt actual-options)
             cvec-wo-empty cvec
             #_(def cvwoe cvec-wo-empty)
             focus-vec (if-let [path (:path (:focus (:output options)))]
@@ -1138,11 +1139,15 @@
        ; Make sure to get trailing newlines by using -1
        (let [; If the filestring starts with #!, remove it and save it
              [shebang file-str] (remove-shebang file-str)
-             lines (clojure.string/split file-str #"\n" -1)
+             [line-ending lines] (determine-ending-split-lines file-str)
              lines (if (:expand? (:tab (get-options)))
                      (map (partial expand-tabs (:size (:tab (get-options))))
                        lines)
                      lines)
+	     ; Glue lines back together with \n line ending, to work around
+	     ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
+	     ; the rewrite-clj parse would "convert" them all to \n for us,
+	     ; which is really what we need anyway.
              filestring (clojure.string/join "\n" lines)
              range-start (:start (:range (:input (get-options))))
              ; If shebang correct for one less line
@@ -1162,8 +1167,6 @@
                      lines)
              [actual-start actual-end] (when (or range-start range-end)
                                          (expand-range-to-top-level
-                                           ; Add blank to start if we had
-                                           ; a shebang to keep counts right
                                            filestring
                                            lines
                                            range-start
@@ -1205,10 +1208,14 @@
              out-str (if range
                        (reassemble-range before-lines out-str after-lines)
                        out-str)
-             out-str (if shebang (str shebang "\n" out-str) out-str)]
-         (if (and ends-with-nl? (not (clojure.string/ends-with? out-str "\n")))
-           (str out-str "\n")
-           out-str))
+             out-str (if shebang (str shebang "\n" out-str) out-str)
+             out-str (if (and ends-with-nl?
+                              (not (clojure.string/ends-with? out-str "\n")))
+                       (str out-str "\n")
+                       out-str)]
+         (if (= line-ending "\n")
+           out-str
+           (clojure.string/replace out-str "\n" line-ending)))
        (finally (reset-options! original-options original-doc-map)))))
   ([file-str zprint-specifier new-options]
    (zprint-file-str file-str

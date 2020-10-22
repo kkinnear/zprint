@@ -5907,6 +5907,31 @@
   ([s] (expand-tabs 8 s)))
 
 ;;
+;; # Line Endings
+;;
+
+(defn determine-ending-split-lines
+  "Given a string, find the line ending that is predominent in the beginning
+  of the string, and split the string into separate lines.  Returns 
+  [line-ending-string vector-of-lines]"
+  [s]
+  (if (clojure.string/includes? s "\r")
+    ; Figure out the line endings
+    (let [lines (clojure.string/split s #"\r\n|\r|\n" -1)
+          first-lines (clojure.string/split (subs s 0 (min (count s) 2000))
+                                            #"\r")
+          #_ (prn "first-lines:" first-lines)
+          nl-count
+            (reduce #(if (clojure.string/starts-with? %2 "\n") (inc %1) %1)
+              0
+              first-lines)
+          #_ (prn "nl-count:" nl-count)
+          line-ending (if (>= nl-count (/ (count first-lines) 2)) "\r\n" "\r")]
+      [line-ending lines])
+    ; If no \r, then we assume \n line endings
+    ["\n" (clojure.string/split s #"\n" -1)]))
+
+;;
 ;; # Needed for expectations testing
 ;;
 ;; Seems defrecord doesn't work in test environment, which is pretty odd.

@@ -5312,6 +5312,26 @@ ser/collect-vars-acc %1 %2) )))"
   "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comments work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app [route] handler\n                    [route] ; What about comments here?\n                      handler))";
   (zprint-str mapp7 {:parse-string? true, :style :moustache, :width 55}))
 
+;;
+;; Line endings
+;;
+
+(def lendu "(this is a\ntest this is\nonly a test ; comment\n stuff\n bother)")
+(def lendd
+  "(this is a\r\ntest this is\r\nonly a test ; comment\r\n stuff\r\n bother)")
+(def lendr "(this is a\rtest this is\ronly a test ; comment\r stuff\r bother)")
+
+(expect
+  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test ; comment\n      stuff\n      bother)"
+  (zprint-file-str lendu "stuff" {}))
+
+(expect
+  "(this is\r\n      a\r\n      test\r\n      this\r\n      is\r\n      only\r\n      a\r\n      test ; comment\r\n      stuff\r\n      bother)"
+  (zprint-file-str lendd "stuff" {}))
+
+(expect
+  "(this is\r      a\r      test\r      this\r      is\r      only\r      a\r      test ; comment\r      stuff\r      bother)"
+  (zprint-file-str lendr "stuff" {}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

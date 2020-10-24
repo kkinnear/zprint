@@ -2743,7 +2743,7 @@ to determine if something is a constant.   You do this by specifying a
 `:constant-pair-fn` value.
 
 Here is an example of where this might be useful, also note the use of
-`:next-inner` to restrict the use of `:constant-pair-fn` to just the 
+`:next-inner` to restrict the use of `:constant-pair-fn` to just the
 top level of `m/app`:
 
 ```clojure
@@ -2751,7 +2751,7 @@ top level of `m/app`:
 (def mapp6
 "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comments work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       ; How do comments work here?\n       :post (m/app \n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
 
-; Let's  see what happens if we just use the default configuration.  
+; Let's  see what happens if we just use the default configuration.
 ; The narrow width is to force constant pairing on the second handler
 ; of the :get
 
@@ -2808,7 +2808,7 @@ top level of `m/app`:
                       handler))
 
 ; Much nicer.  Note that we had to define both keywords and vectors as
-; "constants", to preserve the keyword constant-pairing.  
+; "constants", to preserve the keyword constant-pairing.
 ; Note also the use of :next-inner to restore constant-pairing to its
 ; default behavior down inside of expressions contained in `m/app`.
 
@@ -2843,8 +2843,8 @@ top level of `m/app`:
                     [route] ; What about comments here?
                     handler))
 
-; Of course, you wouldn't do that to restore the defaults, you would 
-; set the :constant-pair-fn back to nil instead to get the default 
+; Of course, you wouldn't do that to restore the defaults, you would
+; set the :constant-pair-fn back to nil instead to get the default
 ; behavior.  .
 ```
 
@@ -2857,7 +2857,7 @@ vectors are considered constant, but all of the existing element are
 considered constant as well:
 
 ```clojure
-; This is where the :constant-pair-fn mimics the default behavior 
+; This is where the :constant-pair-fn mimics the default behavior
 
 (def mapp7
   "(m/app :get  (m/app middle1 middle2 middle3

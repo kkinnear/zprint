@@ -5128,7 +5128,7 @@ made to them.  Anything you can see with the `:explain` option can
 be changed by set-options! or by any of the other configuration
 approaches.
 
-## Testing this library
+## Testing and Development
 
 ### Clojure
 
@@ -5136,8 +5136,13 @@ Currently, the testing framework in use is `expectations/cljc-test`
 "2.0.0-SNAPSHOT", which is in development.  This will make testing
 difficult until it is released.
 
-With [Leiningen](https://leiningen.org/) installed, run `lein test`
-from the root directory of this repo.  There are over Clojure 1000 tests.  
+With [Leiningen](https://leiningen.org/) installed, run
+
+```
+lein with-profile expectations test
+```
+
+from the root directory of this repo.  There are over 1000 Clojure tests.  
 It will take upwards of 30 to 45 seconds for them all to run.
 
 As an additional test of the uberjar (all in the root directory): 

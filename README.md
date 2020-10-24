@@ -9,7 +9,7 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
- * [More flexible constant-pairing](./doc/reference.md#constantpairfn)
+ * [More flexible constant-pairing](./doc/reference.md#constant-pair-fn-nil)
  * [Format babashka scripts](./doc/using/babashka.md)
  * [Format ranges of lines in files](./doc/using/range.md)
  * [More colors allowed in `:color-map`, and more elements can be colored](./doc/options/colors.md)
@@ -194,6 +194,10 @@ include the following library when using Clojure 1.8:
       * [:vector](./doc/reference.md#vector)
       * [:vector-fn](./doc/reference.md#vector-fn)
 
+### Testing and Development
+
+Information on testing and development can be found 
+[here](./doc/reference.md#testing-and-development).
 
 ### Contributors
 

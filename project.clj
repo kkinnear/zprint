@@ -18,7 +18,7 @@
                                    [org.clojure/core.match "0.3.0-alpha5"]
                                    #_[clojure-future-spec "1.9.0-alpha17"]]},
 
-	     :dev {:dependencies [
+	     :expectations {:dependencies [
 	                          [expectations/cljc-test "2.0.0-SNAPSHOT"]
 				  [pjstadig/humane-test-output "0.10.0"]]}
 

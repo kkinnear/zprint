@@ -4435,6 +4435,12 @@ An example from clojure.core:
 ```
 For more examples, see [Respect Blank Lines](./types/respectbl.md).
 
+#### :respect-bl-off
+
+Set `:respect-bl` to false in all of the places where `:respect-bl` set
+it to true.  Useful in `:next-inner` to turn `:respect-bl` off when processing
+the rest of an expression. 
+
 #### :respect-nl 
 
 This will cause zprint to respect incoming newlines. If this is enabled,
@@ -4528,6 +4534,11 @@ Some examples of classic zprint, `:respect-nl`, and `:indent-only`:
     stuff foo))
 
 ```
+#### :respect-nl-off
+
+Set `:respect-nl` to false in all of the places where `:respect-nl` set
+it to true.  Useful in `:next-inner` to turn `:respect-nl` off when processing
+the rest of an expression. 
 
 #### :sort-dependencies
 

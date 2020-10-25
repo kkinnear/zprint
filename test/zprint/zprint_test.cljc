@@ -5284,98 +5284,103 @@ ser/collect-vars-acc %1 %2) )))"
   ;; Issue #56, changes to constant pairing
   ;;
 
-(def mapp6
-  "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comment work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       :post (m/app middle of the road\n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
+  (def mapp6
+    "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comment work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       :post (m/app middle of the road\n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
 
-(expect
-  "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
-  (zprint-str
-    mapp6
-    {:parse-string? true,
-     :fn-map {"app" [:none
-                     {:list {:constant-pair-min 1,
-                             :constant-pair-fn #(or (vector? %) (keyword? %))},
-                      :next-inner {:list {:constant-pair-fn nil,
-                                          :constant-pair-min 2}}}]},
-     :width 55}))
+  (expect
+    "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
+    (zprint-str
+      mapp6
+      {:parse-string? true,
+       :fn-map {"app" [:none
+                       {:list {:constant-pair-min 1,
+                               :constant-pair-fn #(or (vector? %)
+                                                      (keyword? %))},
+                        :next-inner {:list {:constant-pair-fn nil,
+                                            :constant-pair-min 2}}}]},
+       :width 55}))
 
-(expect
-  "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route]\n                   handler\n                   ; How do comment work?\n                   [route]\n                   (handler this\n                            is\n                            \"a\" test\n                            \"this\" is\n                            \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route]\n                    handler\n                    [route] ; What about comments here?\n                    handler))"
-  (zprint-str mapp6 {:parse-string? true, :width 55}))
+  (expect
+    "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route]\n                   handler\n                   ; How do comment work?\n                   [route]\n                   (handler this\n                            is\n                            \"a\" test\n                            \"this\" is\n                            \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route]\n                    handler\n                    [route] ; What about comments here?\n                    handler))"
+    (zprint-str mapp6 {:parse-string? true, :width 55}))
 
-;; Let's see if the :style works
+  ;; Let's see if the :style works
 
-(def mapp7
-  "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comments work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app \n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
+  (def mapp7
+    "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comments work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app \n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
 
-(expect
-  "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comments work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app [route] handler\n                    [route] ; What about comments here?\n                      handler))";
-  (zprint-str mapp7 {:parse-string? true, :style :moustache, :width 55}))
+  (expect
+    "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comments work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app [route] handler\n                    [route] ; What about comments here?\n                      handler))";
+    (zprint-str mapp7 {:parse-string? true, :style :moustache, :width 55}))
 
-;;
-;; Line endings
-;;
-;; zprint-file-str
+  ;;
+  ;; Line endings
+  ;;
+  ;; zprint-file-str
 
-(def lendu "(this is a\ntest this is\nonly a test ; comment\n stuff\n bother)")
-(def lendd
-  "(this is a\r\ntest this is\r\nonly a test ; comment\r\n stuff\r\n bother)")
-(def lendr "(this is a\rtest this is\ronly a test ; comment\r stuff\r bother)")
+  (def lendu
+    "(this is a\ntest this is\nonly a test ; comment\n stuff\n bother)")
+  (def lendd
+    "(this is a\r\ntest this is\r\nonly a test ; comment\r\n stuff\r\n bother)")
+  (def lendr
+    "(this is a\rtest this is\ronly a test ; comment\r stuff\r bother)")
 
-(def lendmu "(this is)\n (a test) \n (this is) ; a comment \n (only a test\n)")
-(def lendmd
-  "(this is)\r\n (a test) \r\n (this is) ; a comment \r\n (only a test\r\n)")
-(def lendmr "(this is)\r (a test) \r (this is) ; a comment \r (only a test\r)")
+  (def lendmu
+    "(this is)\n (a test) \n (this is) ; a comment \n (only a test\n)")
+  (def lendmd
+    "(this is)\r\n (a test) \r\n (this is) ; a comment \r\n (only a test\r\n)")
+  (def lendmr
+    "(this is)\r (a test) \r (this is) ; a comment \r (only a test\r)")
 
-(expect
-  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test ; comment\n      stuff\n      bother)"
-  (zprint-file-str lendu "stuff" {}))
+  (expect
+    "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test ; comment\n      stuff\n      bother)"
+    (zprint-file-str lendu "stuff" {}))
 
-(expect
-  "(this is\r\n      a\r\n      test\r\n      this\r\n      is\r\n      only\r\n      a\r\n      test ; comment\r\n      stuff\r\n      bother)"
-  (zprint-file-str lendd "stuff" {}))
+  (expect
+    "(this is\r\n      a\r\n      test\r\n      this\r\n      is\r\n      only\r\n      a\r\n      test ; comment\r\n      stuff\r\n      bother)"
+    (zprint-file-str lendd "stuff" {}))
 
-(expect
-  "(this is\r      a\r      test\r      this\r      is\r      only\r      a\r      test ; comment\r      stuff\r      bother)"
-  (zprint-file-str lendr "stuff" {}))
+  (expect
+    "(this is\r      a\r      test\r      this\r      is\r      only\r      a\r      test ; comment\r      stuff\r      bother)"
+    (zprint-file-str lendr "stuff" {}))
 
-(expect "(this is)\n(a test)\n(this is); a comment\n(only a test)"
-        (zprint-file-str lendmu "stuff" {}))
+  (expect "(this is)\n(a test)\n(this is); a comment\n(only a test)"
+          (zprint-file-str lendmu "stuff" {}))
 
-(expect "(this is)\r\n(a test)\r\n(this is); a comment\r\n(only a test)"
-        (zprint-file-str lendmd "stuff" {}))
+  (expect "(this is)\r\n(a test)\r\n(this is); a comment\r\n(only a test)"
+          (zprint-file-str lendmd "stuff" {}))
 
-(expect "(this is)\r(a test)\r(this is); a comment\r(only a test)"
-        (zprint-file-str lendmr "stuff" {}))
+  (expect "(this is)\r(a test)\r(this is); a comment\r(only a test)"
+          (zprint-file-str lendmr "stuff" {}))
 
-;;
-;; parse-string?
-;;
+  ;;
+  ;; parse-string?
+  ;;
 
-(expect
-  "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test ; comment\n      stuff\n      bother)"
-  (zprint-str lendu {:parse-string? true}))
+  (expect
+    "(this is\n      a\n      test\n      this\n      is\n      only\n      a\n      test ; comment\n      stuff\n      bother)"
+    (zprint-str lendu {:parse-string? true}))
 
-(expect
-  "(this is\r\n      a\r\n      test\r\n      this\r\n      is\r\n      only\r\n      a\r\n      test ; comment\r\n      stuff\r\n      bother)"
-  (zprint-str lendd {:parse-string? true}))
+  (expect
+    "(this is\r\n      a\r\n      test\r\n      this\r\n      is\r\n      only\r\n      a\r\n      test ; comment\r\n      stuff\r\n      bother)"
+    (zprint-str lendd {:parse-string? true}))
 
-(expect
-  "(this is\r      a\r      test\r      this\r      is\r      only\r      a\r      test ; comment\r      stuff\r      bother)"
-  (zprint-str lendr {:parse-string? true}))
+  (expect
+    "(this is\r      a\r      test\r      this\r      is\r      only\r      a\r      test ; comment\r      stuff\r      bother)"
+    (zprint-str lendr {:parse-string? true}))
 
-;;
-;; parse-string-all?
-;;
+  ;;
+  ;; parse-string-all?
+  ;;
 
-(expect "(this is)\n(a test)\n(this is)\n; a comment\n(only a test)"
-        (zprint-str lendmu {:parse-string-all? true}))
+  (expect "(this is)\n(a test)\n(this is)\n; a comment\n(only a test)"
+          (zprint-str lendmu {:parse-string-all? true}))
 
-(expect "(this is)\r\n(a test)\r\n(this is)\r\n; a comment\r\n(only a test)"
-        (zprint-str lendmd {:parse-string-all? true}))
+  (expect "(this is)\r\n(a test)\r\n(this is)\r\n; a comment\r\n(only a test)"
+          (zprint-str lendmd {:parse-string-all? true}))
 
-(expect "(this is)\r(a test)\r(this is)\r; a comment\r(only a test)"
-        (zprint-str lendmr {:parse-string-all? true}))
+  (expect "(this is)\r(a test)\r(this is)\r; a comment\r(only a test)"
+          (zprint-str lendmr {:parse-string-all? true}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

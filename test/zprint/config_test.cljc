@@ -458,10 +458,10 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-sequence (atom 1)]
                 (load-options! nil (.toURL options-file))
-                (while (not (.exists cache-file))    ;default 5 min
-                                                     ;cache
-                                                     ;created async in
-                                                     ;ms
+                (while (not (.exists cache-file)) ;default 5 min
+                                                  ;cache
+                                                  ;created async in
+                                                  ;ms
                        (Thread/sleep 10))
                 (spit options-file (print-str {:max-depth 33})) ;unused
                                                                 ;remote

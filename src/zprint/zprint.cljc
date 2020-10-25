@@ -2081,12 +2081,12 @@
   "Argument is a zloc-seq.  Output is a [pair-seq non-paired-item-count],
   if any.  If there are no pair-seqs, pair-seq must be nil, not an
   empty seq.  This will largely ignore newlines and comments."
-  [caller {{:keys [constant-pair? constant-pair-fn constant-pair-min]} caller, :as options}
-   zloc-seq]
+  [caller
+   {{:keys [constant-pair? constant-pair-fn constant-pair-min]} caller,
+    :as options} zloc-seq]
   (if constant-pair?
-    (let [[paired-item-count actual-paired-items] (count-constant-pairs
-						    constant-pair-fn
-                                                    zloc-seq)
+    (let [[paired-item-count actual-paired-items]
+            (count-constant-pairs constant-pair-fn zloc-seq)
           non-paired-item-count (- (count zloc-seq) paired-item-count)
           _ (dbg options
                  "constant-pair: non-paired-items:" non-paired-item-count
@@ -5920,12 +5920,12 @@
     (let [lines (clojure.string/split s #"\r\n|\r|\n" -1)
           first-lines (clojure.string/split (subs s 0 (min (count s) 2000))
                                             #"\r")
-          #_ (prn "first-lines:" first-lines)
+          #_(prn "first-lines:" first-lines)
           nl-count
             (reduce #(if (clojure.string/starts-with? %2 "\n") (inc %1) %1)
               0
               first-lines)
-          #_ (prn "nl-count:" nl-count)
+          #_(prn "nl-count:" nl-count)
           line-ending (if (>= nl-count (/ (count first-lines) 2)) "\r\n" "\r")]
       [line-ending lines])
     ; If no \r, then we assume \n line endings

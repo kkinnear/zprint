@@ -338,8 +338,8 @@
                 :else [nil options nil])
         z-type (if input :zipper :sexpr)
         input (or input coll)]
-    (cond (nil? input) [[["nil" (zcolor-map options :nil) :element]] options
-                        line-ending]
+    (cond (nil? input)
+            [[["nil" (zcolor-map options :nil) :element]] options line-ending]
           (:drop? options) [[["" :none]] options line-ending]
           ;(if (or (nil? input) (:drop? options))
           ;  (and (:spaces? options)
@@ -364,7 +364,9 @@
               #_(def coreopt options)
               [(if (= z-type :zipper)
                  (zprint.zutil/zredef-call fzprint-fn)
-                 (zprint.sutil/sredef-call fzprint-fn)) options line-ending]))))
+                 (zprint.sutil/sredef-call fzprint-fn))
+               options
+               line-ending]))))
 
 #?(:clj (declare get-docstring-spec))
 
@@ -1174,10 +1176,10 @@
                      (map (partial expand-tabs (:size (:tab (get-options))))
                        lines)
                      lines)
-	     ; Glue lines back together with \n line ending, to work around
-	     ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
-	     ; the rewrite-clj parse would "convert" them all to \n for us,
-	     ; which is really what we need anyway.
+             ; Glue lines back together with \n line ending, to work around
+             ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
+             ; the rewrite-clj parse would "convert" them all to \n for us,
+             ; which is really what we need anyway.
              filestring (clojure.string/join "\n" lines)
              range-start (:start (:range (:input (get-options))))
              ; If shebang correct for one less line

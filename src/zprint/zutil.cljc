@@ -469,7 +469,7 @@
         (recur (right* nloc) comment? (if result (conj out result) out))))))
 
 ; This was the original zmap before all of the changes...
-(defn zmap-alt
+#_(defn zmap-alt
   "Return a vector containing the return of applying a function to 
   every non-whitespace zloc inside of zloc."
   [zfn zloc]

@@ -475,16 +475,6 @@
             (str (ks-phrase problem) " was not recognized as valid!"))
         :else (str "what?")))
 
-(defn phrase-problem-str-alt
-  "Take a single problem and turn it into a phrase."
-  [problem]
-  (cond (clojure.string/ends-with? (str (:pred problem)) "?")
-          (str (ks-phrase problem)
-               " was not a " (map-pred (str (:pred problem))))
-        (set? (:pred problem)) (str (ks-phrase problem)
-                                    " was not recognized as valid!")
-        :else (str "what?")))
-
 (defn lower-first
   "Lowercase the first character of a string."
   [s]

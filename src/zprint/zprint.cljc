@@ -289,7 +289,7 @@
   [coll]
   (some #(if (coll? %) (empty? %) (nil? %)) coll))
 
-(defn concat-no-nil-alt
+#_(defn concat-no-nil-alt
   "Concatentate multiple sequences, but if any of them are nil, return nil.
   This version is 15-20% slower than the version below. Keeping it around
   just for illustrative purposes."

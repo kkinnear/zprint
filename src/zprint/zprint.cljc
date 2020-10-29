@@ -5077,6 +5077,11 @@
                         "("
                         ")"
                         (rightmost options)
+			; Here is where we might adjust the indent, but if
+			; we do it here (since this looks like a list), we
+			; also have to deal with it when the map code is
+			; doing the next thing (like :cljs after :clj). If
+			; you just (dec indent) here you break 14 tests.
                         (+ indent ind)
                         floc
                         nil)

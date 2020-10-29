@@ -312,8 +312,7 @@
    "defcc" :arg1-mixin,
    "defcs" :arg1-mixin,
    "defmacro" :arg1-body,
-   "defexpect" [:arg1-body
-                {:style :respect-bl, :next-inner {:style :respect-bl-off}}],
+   "defexpect" [:arg1-body {:style :respect-nl}]
    "defmethod" :arg2,
    "defmulti" :arg1-body,
    "defn" :arg1-body,

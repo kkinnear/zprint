@@ -290,17 +290,17 @@
   (some #(if (coll? %) (empty? %) (nil? %)) coll))
 
 #_(defn concat-no-nil-alt
-  "Concatentate multiple sequences, but if any of them are nil, return nil.
+    "Concatentate multiple sequences, but if any of them are nil, return nil.
   This version is 15-20% slower than the version below. Keeping it around
   just for illustrative purposes."
-  [& rest]
-  (loop [coll rest
-         out (transient [])]
-    (let [c (first coll)]
-      (if-not c
-        (persistent! out)
-        (when (or (and (coll? c) (not (empty? c))) (not (nil? c)))
-          (recur (next coll) (conj! out c)))))))
+    [& rest]
+    (loop [coll rest
+           out (transient [])]
+      (let [c (first coll)]
+        (if-not c
+          (persistent! out)
+          (when (or (and (coll? c) (not (empty? c))) (not (nil? c)))
+            (recur (next coll) (conj! out c)))))))
 
 (defn concat-no-nil-pre-noseq
   "Concatentate multiple sequences, but if any of them are nil or empty
@@ -5077,11 +5077,11 @@
                         "("
                         ")"
                         (rightmost options)
-			; Here is where we might adjust the indent, but if
-			; we do it here (since this looks like a list), we
-			; also have to deal with it when the map code is
-			; doing the next thing (like :cljs after :clj). If
-			; you just (dec indent) here you break 14 tests.
+                        ; Here is where we might adjust the indent, but if
+                        ; we do it here (since this looks like a list), we
+                        ; also have to deal with it when the map code is
+                        ; doing the next thing (like :cljs after :clj). If
+                        ; you just (dec indent) here you break 14 tests.
                         (+ indent ind)
                         floc
                         nil)

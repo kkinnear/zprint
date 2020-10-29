@@ -470,17 +470,17 @@
 
 ; This was the original zmap before all of the changes...
 #_(defn zmap-alt
-  "Return a vector containing the return of applying a function to 
+    "Return a vector containing the return of applying a function to 
   every non-whitespace zloc inside of zloc."
-  [zfn zloc]
-  (loop [nloc (down* zloc)
-         out []]
-    (if-not nloc
-      out
-      (recur (right* nloc)
-             (if-let [result (when (not (whitespace? nloc)) (zfn nloc))]
-               (conj out result)
-               out)))))
+    [zfn zloc]
+    (loop [nloc (down* zloc)
+           out []]
+      (if-not nloc
+        out
+        (recur (right* nloc)
+               (if-let [result (when (not (whitespace? nloc)) (zfn nloc))]
+                 (conj out result)
+                 out)))))
 
 (defn zcount
   "Return the count of non-whitespace elements in zloc.  Comments are

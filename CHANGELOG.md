@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.0.2 - 2020-10-22
+## 1.0.2 - 2020-10-31
 
 ### Added
 
@@ -19,6 +19,10 @@ All notable changes to this project will be documented in this file.
   paired by constant-pairing for the function `app`.  Issue #56.
 
 ### Changed
+
+  * Once again, changed `project.clj` dependency and profile organization
+  to try to keep the generated `pom.xml` something that `cljdoc` can
+  digest successfully.
 
 ### Fixed
 

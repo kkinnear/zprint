@@ -629,4 +629,35 @@
     "#!/usr/bin/env bb\n\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0, :static true}\n  ([x y] (or (list (list (list y (list x)))) ())))\n\n\n"
     (zprint-file-str sb2 "junk" {:input {:range {:start 9, :end 9}}}))
 
+  ;;
+  ;; Test for proper handling of comment API failure, Issue #160
+  ;;
+
+#?(:clj
+     (expect
+       "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: java.lang.RuntimeException: EOF while reading"
+       (try
+         (zprint-file-str
+           "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
+           "stuff"
+           {})
+         (catch Exception e (str e))))
+   :cljs
+     (expect
+       "Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"Unexpected EOF while reading item 1 of map.\", :data {:type :reader-exception, :ex-kind :eof}}"
+       (try
+         (zprint-file-str
+           "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
+           "stuff"
+           {})
+         (catch :default e (str e)))))
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;
+  ;; End of defexpect
+  ;;
+  ;; All tests MUST come before this!!!
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 )

@@ -892,7 +892,7 @@
 ;; ## Parse a comment to see if it has an options map in it
 ;;
 
-(defn ^:no-doc get-options-from-comment
+(defn ^:no-doc get-options-from-comment-alt
   "s is string containing a comment.  See if it starts out ;!zprint
   (with any number of ';' allowed), and if it does, attempt to parse
   it as an options-map.  Return [options error-str] with only one
@@ -910,6 +910,26 @@
            (str "Unable to create zprint options-map from: '" possible-options
                 "' found in !zprint directive number: " zprint-num
                 " because: " e)])))))
+
+(defn ^:no-doc get-options-from-comment
+  "s is string containing a comment.  See if it starts out ;!zprint
+  (with any number of ';' allowed), and if it does, attempt to parse
+  it as an options-map.  Return [options error-str] with only one
+  of the two populated if it started with ;!zprint, and nil otherwise."
+  [zprint-num s]
+  (let [s-onesemi (clojure.string/replace s #"^;+" ";")
+        comment-split (clojure.string/split s-onesemi #"^;!zprint ")]
+    (when-let [possible-options (second comment-split)]
+      (try [(read-string possible-options) nil]
+           (catch #?(:clj Exception
+                     :cljs :default)
+             e
+             (throw (#?(:clj Exception.
+                        :cljs js/Error.)
+                     (str "Unable to create zprint options-map from: '"
+                            possible-options
+                          "' found in !zprint directive number: " zprint-num
+                          " because: " e))))))))
 
 ;;
 ;; ## Process the sequences of forms in a file

@@ -15,15 +15,38 @@ There are several ways to use zprint to format entire source files.
   * Available for macOS and Linux
   * Does not require Java -- available as standalone binaries
   * Accepts source on stdin, produces formatted source on stdout
+  * Will also format named files "in place"
   * Reads configuration from `~/.zprintrc`
   * Accepts options map on command line
 
 ```
 zprintm '{:width 90}` < myfile.clj > myfile.out.clj
 ```
+or
+```
+zprintm '{:width 90}' -w myfile.clj
+```
+will read myfile.clj, format the source, and write the result back into
+myfile.clj
+
+You can also format all of the clojure files in a directory with:
+```
+zprint -w *.clj
+```
+This will format each of the .clj files, and if there are any errors,
+it will report the error for that file, and continue on processing
+the rest of the files.  If there are errors formatting any file, the
+contents of that file remain unchanged.
+
 __Get prebuilt binaries for__:  
   * [macOS](../getting/macos.md)
   * [Linux](../getting/linux.md)
+
+As you might expect:
+```
+zprint -h
+```
+is your friend!
 
 ## 2. Java Uberjar
   * Works anywhere you can install Java
@@ -38,6 +61,22 @@ Uberjar example:
 ```
 java -jar zprint-filter '{:width 90}' < myfile.clj > myfile.out.clj
 ```
+or
+```
+java -jar zprint-filter '{:width 90}' -w myfile.clj
+```
+will read myfile.clj, format the source, and write the result back into
+myfile.clj
+
+You can also format all of the clojure files in a directory with:
+```
+java -jar zprint-filter -w *.clj
+```
+This will format each of the .clj files, and if there are any errors,
+it will report the error for that file, and continue on processing
+the rest of the files.  If there are errors formatting any file, the
+contents of that file remain unchanged.
+
 __Get the__: 
   * [uberjar](../getting/uberjar.md) _starts in several seconds_
   * [accelerated uberjar](../getting/appcds.md) _starts in about 1s_
@@ -75,7 +114,7 @@ the high performance prebuilt binaries -- #1, above) the
 startup much faster and run as fast once it has started.
 
 ## 4. Lein zprint
-  * Leiningen plugin: `[lein-zprint "0.5.n"]`
+  * Leiningen plugin: `[lein-zprint "1.0.2"]`
   * Accepts configuration from `:zprint` key in project.clj
   * Will (optionally) replace existing source files with reformatted versions
   * Reads configuration from `~/.zprintrc`
@@ -163,7 +202,7 @@ defaults, both took about 5 seconds to process a large file (5241 loc).
 The difference is that zprintm-0.5.4 did this with the normal defaults, that
 is, it produced code formatted to look as good or better than hand formatted
 code since hangs were enabled by default.  The defaults for zprint-clj are 
-`{:style :no-hang}`, so the code was
+`{:style :no-hang}`, so the resulting formatting was
 not as nice.  The same file run through zprint-clj with `--hang`, to generate
 output equivalent to zprintm-0.5.4 took about 12 seconds.
 

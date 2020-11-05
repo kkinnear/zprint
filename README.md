@@ -9,6 +9,7 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
+ * [In-place formatting by file name](./doc/using/files.md), `-w file.clj`
  * [More flexible constant-pairing](./doc/reference.md#constant-pair-fn-nil)
  * [Format babashka scripts](./doc/using/babashka.md)
  * [Format ranges of lines in files](./doc/using/range.md)

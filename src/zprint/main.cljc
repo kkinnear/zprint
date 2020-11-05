@@ -22,7 +22,9 @@
     [(:version (get-options))
      ""
      " zprint <options-map> <input-file >output-file"
-     " zprint <switches <input-file >output-file"
+     " zprint <switches> <input-file >output-file"
+     " zprint -w intput-and-output-file(s)"
+     " zprint <options-map> -w intput-and-output-file(s)"
      ""
      " Where zprint is any of:"
      ""
@@ -49,10 +51,61 @@
      "  -v  --version      Output the version of zprint."
      "  -e  --explain      Output configuration, showing where"
      "                     non-default values (if any) came from."
+     "  -w  --write FILE   read, format, and write to FILE (or FILEs),"
+     "                     -w *.clj is supported."
      ""
-     " You can have either an <options-map> or <switches>, but not both!"
+     " The -w switch is the only switch where you may also have an options map!"
      ""]))
 
+(defn format-file
+  "Take a single argument, a filename string, and format it.
+  Read from the file, then rewrite the file with the formatted source.
+  Return an exit-status, either 0 if successful, or 1 if there were
+  problems.  In the event of problems, don't change the contents of
+  the file, but output text describing the problem to stderr."
+  [filename]
+  (let [[exit-status in-str format-str format-stderr]
+          (as-> [0 nil nil nil] running-status
+            (let [[exit-status in-str format-str format-stderr] running-status]
+              (try [0 (slurp filename) nil nil]
+                   (catch Exception e
+                     [1 nil nil
+                      (str "Failed to open file " filename " because: " e)])))
+            (let [[exit-status in-str format-str format-stderr] running-status]
+              (if (= exit-status 1)
+                ; We are done, move on
+                running-status
+                (try [0 nil (zprint-file-str in-str filename) nil]
+                     (catch Exception e
+                       [1 nil nil
+                        (str "Failed to format file: " filename
+                             " because " e)]))))
+            ;
+            ; See comment in -main about graalVM issues with this code
+            ;
+            ; Write whatever is supposed to go to stdout
+            (let [[exit-status in-str format-str format-stderr] running-status]
+              (if (= exit-status 1)
+                ; We are done, move on
+                running-status
+                (try (let [^java.io.Writer w (clojure.java.io/writer filename)]
+                       (.write w (str format-str))
+                       (.flush w)
+                       (.close w)
+                       [0 nil nil nil])
+                     (catch Exception e
+                       [1 nil nil
+                        (str "Failed to write output file: " filename
+                             " because " e)]))))
+            ; Write whatever is supposed to go to stderr, if anything
+            (let [[exit-status in-str format-str format-stderr] running-status]
+              (when format-stderr
+                (let [^java.io.Writer w (clojure.java.io/writer *err*)]
+                  (.write w (str format-stderr "\n"))
+                  (.flush w)))
+              ; We don't change the running-status because we wrote to stderr
+              running-status))]
+    exit-status))
 
 ;;
 ;; # Main
@@ -65,14 +118,29 @@
   ; Turn off multi-zprint locking since graalvm can't handle it, and
   ; we only do one zprint at a time here in the uberjar.
   (zprint.redef/remove-locking)
-  (let [options (first args)
+  (let [options? (and (first args)
+                      (clojure.string/starts-with? (clojure.string/trim (first
+                                                                          args))
+                                                   "{"))
+        write-switch (if options? (second args) (first args))
+        write? (or (= "-w" write-switch) (= "--write" write-switch))
+        files (when write? (if options? (nnext args) (next args)))
+        ; Now that we have the --write/-w stuff out of the way, process
+        ; switches and options, having first removed the --write/-w stuff,
+        ; if any
+        args (if write? (if options? (take 1 args) nil) args)
+        options (first args)
+        #_(prn "args:" args)
+        #_(println)
+        #_(prn "options?" options? "write?" write? "files:" files)
         ; Some people wanted a zprint that didn't take configuration.
         ; If you say "--default" or "-d", that is what you get.
-        ; --default or -s means that you get no configuration read from
+        ; --default or -d means that you get no configuration read from
         ; $HOME/.zprintrc or anywhere else.  You get the defaults.
         ;
         ; Basic support for "-s" or "--standard" is baked in, but
         ; not turned on.
+        arg-count (count args)
         version? (or (= options "--version") (= options "-v"))
         help? (or (= options "--help") (= options "-h"))
         explain? (or (= options "--explain") (= options "-e"))
@@ -84,6 +152,9 @@
                      :default nil)
         valid-switch?
           (or version? help? explain? default? standard? url? url-only?)
+        arg-count-ok? (cond (or version? help? explain? default? standard?)
+                              (= arg-count 1)
+                            (or url? url-only?) (= arg-count 2))
         [option-status exit-status option-stderr op-options]
           ; [option-status exit-status option-stderr op-options]
           ; options-status :incomplete
@@ -97,22 +168,36 @@
             (if (and (not (clojure.string/blank? options))
                      (not valid-switch?)
                      (clojure.string/starts-with? options "-"))
-              [:complete
-               1
-               (str "Unrecognized switch: '" options "'" "\n" main-help-str)
-               {}]
+              [:complete 1
+               (str "Unrecognized switch: '" options "'" "\n" main-help-str) {}]
               running-status)
+            ; Handle switches with extraneous data
+            (let [[option-status exit-status option-stderr op-options]
+                    running-status]
+              (if (= option-status :complete)
+                running-status
+                ; Does this swtich have too much data
+                (if (and valid-switch? (not arg-count-ok?))
+                  [:complete 1
+                   (str "Error processing switch '"
+                        options
+                        "', providing "
+                        (dec arg-count)
+                        " additional argument"
+                        (if (= (dec arg-count) 1) "" "s")
+                        " was incorrect!"
+                        "\n"
+                        main-help-str) {}]
+                  running-status)))
             ; Handle switches
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
               (if (= option-status :complete)
                 running-status
                 (if (or version? help?)
-                  [:complete
-                   0
+                  [:complete 0
                    (cond version? (:version (get-options))
-                         help? main-help-str)
-                   op-options]
+                         help? main-help-str) op-options]
                   running-status)))
             ; If this is not a switch, get any operational options off
             ; of the command line
@@ -125,14 +210,12 @@
                 (try
                   [:incomplete 0 nil (select-op-options (read-string options))]
                   (catch Exception e
-                    [:complete
-                     1
+                    [:complete 1
                      (str "Failed to use command line operational options: '"
                           options
                           "' because: "
                           e
-                          ".")
-                     {}]))))
+                          ".") {}]))))
             ; Get all of the operational-options (op-options),
             ; merging in any that were on the command line
             (let [[option-status exit-status option-stderr op-options]
@@ -171,9 +254,7 @@
                 (if explain?
                   ; Force set-options to configure using op-options
                   (do (set-options! {} "" op-options)
-                      [:complete
-                       0
-                       (zprint-str (get-explained-options))
+                      [:complete 0 (zprint-str (get-explained-options))
                        op-options])
                   running-status)))
             ; If --url try to load the args - along with other args
@@ -226,18 +307,20 @@
                                    op-options)
                      [:complete 0 nil op-options]
                      (catch Exception e
-                       [:complete
-                        1
+                       [:complete 1
                         (str "Failed to use command line options: '"
                              options
                              "' because: "
                              e
-                             ".")
-                        {}]))))
+                             ".") {}]))))
             ; We could nitialize using the op-options if we haven't done
             ; so already, but if we didn't have any command line options, then
             ; there are no op-options that matter.
           )]
+    #_(prn "option-status" option-status
+           "exit-status" exit-status
+           "option-stderr" option-stderr
+           "op-options" op-options)
     ; If option-stderr has something in it, we have either had some
     ; kind of a problem or we have processed the switch and it has
     ; output.  In either case, if option-stderr is non-nil we need
@@ -250,39 +333,48 @@
           (shutdown-agents)
           (System/exit exit-status))
       ; Do whatever formatting we should do
-      (let [in-str (slurp *in*)
-            [format-status stdout-str format-stderr]
-              (try [0 (zprint-file-str in-str "<stdin>") nil]
-                   (catch Exception e [1 in-str (str "Failed to zprint: " e)]))]
-        ;
-        ; We used to do this: (spit *out* fmt-str) and it worked fine
-        ; in the uberjar, presumably because the JVM eats any errors on
-        ; close when it is exiting.  But when using clj, spit will close
-        ; stdout, and when clj closes stdout there is an error and it will
-        ; bubble up to the top level.
-        ;
-        ; Now, we write and flush explicitly, sidestepping that particular
-        ; problem. In part because there are plenty of folks that say that
-        ; closing stdout is a bad idea.
-        ;
-        ; Getting this to work with graalvm was a pain.  In particular,
-        ; w/out the (str ...) around fmt-str, graalvm would error out
-        ; with an "unable to find a write function" error.  You could
-        ; get around this by offering graalvm a reflectconfig file, but
-        ; that is just one more file that someone needs to have to be
-        ; able to make this work.  You could also get around this (probably)
-        ; by type hinting fmt-str, though I didn't try that.
-        ;
-        ; Write whatever is supposed to go to stdout
-        (let [^java.io.Writer w (clojure.java.io/writer *out*)]
-          (.write w (str stdout-str))
-          (.flush w))
-        ; Write whatever is supposed to go to stderr, if any
-        (when format-stderr
-          (let [^java.io.Writer w (clojure.java.io/writer *err*)]
-            (.write w (str format-stderr "\n"))
-            (.flush w)))
-        ; Since we did :parallel? we need to shut down the pmap threadpool
-        ; so the process will end!
-        (shutdown-agents)
-        (System/exit format-status)))))
+      (if write?
+        ; We have one or more filenames to deal with
+        (let [total-exit-status (reduce #(+ %1 (format-file %2)) 0 files)]
+          #_(prn "total-exit-status:" total-exit-status)
+          (shutdown-agents)
+          (System/exit (if (> total-exit-status 0) 1 0)))
+        ; We are operating on stdin and stdout
+        (let [in-str (slurp *in*)
+              [format-status stdout-str format-stderr]
+                (try [0 (zprint-file-str in-str "<stdin>") nil]
+                     (catch Exception e
+                       [1 in-str (str "Failed to zprint: " e)]))]
+          ;
+          ; We used to do this: (spit *out* fmt-str) and it worked fine
+          ; in the uberjar, presumably because the JVM eats any errors on
+          ; close when it is exiting.  But when using clj, spit will close
+          ; stdout, and when clj closes stdout there is an error and it will
+          ; bubble up to the top level.
+          ;
+          ; Now, we write and flush explicitly, sidestepping that particular
+          ; problem. In part because there are plenty of folks that say that
+          ; closing stdout is a bad idea.
+          ;
+          ; Getting this to work with graalvm was a pain.  In particular,
+          ; w/out the (str ...) around fmt-str, graalvm would error out
+          ; with an "unable to find a write function" error.  You could
+          ; get around this by offering graalvm a reflectconfig file, but
+          ; that is just one more file that someone needs to have to be
+          ; able to make this work.  You could also get around this (probably)
+          ; by type hinting fmt-str, though I didn't try that.
+          ;
+          ; Write whatever is supposed to go to stdout
+          (let [^java.io.Writer w (clojure.java.io/writer *out*)]
+            (.write w (str stdout-str))
+            (.flush w))
+          ; Write whatever is supposed to go to stderr, if any
+          (when format-stderr
+            (let [^java.io.Writer w (clojure.java.io/writer *err*)]
+              (.write w (str format-stderr "\n"))
+              (.flush w)))
+          ; Since we did :parallel? we need to shut down the pmap threadpool
+          ; so the process will end!
+          (shutdown-agents)
+          (System/exit format-status))))))
+

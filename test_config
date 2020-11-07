@@ -440,9 +440,9 @@ echo "...........  -h test"
 output_length=`$command -h 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "31" ]]
+if [[ $output_length != "35" ]]
   then
-    echo "-h test failed to have correct count of chars, should be 31, was: $output-length"
+    echo "-h test failed to have correct count of chars, should be 35, was: $output_length"
     $command -h
 fi
 
@@ -576,6 +576,136 @@ if [[ $output_length != $expected_length ]]
     echo "fn on command line test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command '{:vector {:option-fn-first (fn [x y] {})}}' <test_config.string.clj 
 fi
+
+
+#
+# -w tests
+#
+
+# Put in a reasonable (and different than before) .zprintrc
+
+echo "{:width 80}" > ~/.zprintrc
+
+echo "...........  -w test with one file"
+
+cp test_config.map.clj test_config.map1.clj
+$command -w test_config.map1.clj 2> test_config.stderr.out > test_config.stdout.out
+output_length=`cat test_config.map1.clj test_config.stderr.out test_config.stdout.out | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "-w length is $output_length"
+if [[ $output_length != "66" ]]
+  then
+    echo "-w test failed to have correct count of chars, should be 66, was: $output_length"
+    cat test_config.map1.clj test_config.stderr.out test_config.stdout.out
+    wc -c test_config.map1.clj test_config.stderr.out test_config.stdout.out
+
+fi
+rm test_config.stdout.out
+rm test_config.stderr.out
+rm test_config.map1.clj
+
+#
+# -w with multiple files
+#
+
+echo "...........  -w test with two files"
+
+cp test_config.map.clj test_config.map1.clj
+cp test_config.map.clj test_config.map2.clj
+$command -w test_config.map1.clj test_config.map2.clj 2> test_config.stderr.out > test_config.stdout.out
+output_length=`cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "-w length is $output_length"
+if [[ $output_length != "132" ]]
+  then
+    echo "-w test failed to have correct count of chars, should be 132, was: $output_length"
+    cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
+    wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
+
+fi
+rm test_config.stdout.out
+rm test_config.stderr.out
+rm test_config.map1.clj
+rm test_config.map2.clj
+
+#
+# -w with multiple files, one of which doesn't exist
+#
+
+echo "...........  -w test with three files, one of which doesn't exist"
+
+cp test_config.map.clj test_config.map1.clj
+cp test_config.map.clj test_config.map2.clj
+$command -w test_config.map1.clj test_config.missing.clj test_config.map2.clj 2> test_config.stderr.out > test_config.stdout.out
+output_length=`cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "-w length is $output_length"
+if [[ $output_length != "268" ]]
+  then
+    echo "-w test failed to have correct count of chars, should be 268, was: $output_length"
+    cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
+    wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
+
+fi
+rm test_config.stdout.out
+rm test_config.stderr.out
+rm test_config.map1.clj
+rm test_config.map2.clj
+
+#
+# -w with two files, the first of which is read-only
+#
+
+echo "...........  -w test with two files, the first which is read-only"
+
+cp test_config.map.clj test_config.map1.clj
+chmod -w test_config.map1.clj
+cp test_config.map.clj test_config.map2.clj
+$command -w test_config.map1.clj test_config.map2.clj 2> test_config.stderr.out > test_config.stdout.out
+output_length=`cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "-w length is $output_length"
+if [[ $output_length != "257" ]]
+  then
+    echo "-w test failed to have correct count of chars, should be 257, was: $output_length"
+    cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
+    wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
+
+fi
+rm test_config.stdout.out
+rm test_config.stderr.out
+rm -rf test_config.map1.clj
+rm test_config.map2.clj
+
+#
+# -w with two files, the first of which will fails to format
+#
+
+echo "...........  -w test with two files, the first which fails to format"
+
+echo ";!zprint {:format" >test_config.map1.clj
+echo "{:this :is :a :test :thix :is :only :a :test :foo :bar :baz}" >>test_config.map1.clj
+cp test_config.map1.clj test_config.map1.clj.save
+cp test_config.map.clj test_config.map2.clj
+$command -w test_config.map1.clj test_config.map2.clj 2> test_config.stderr.out > test_config.stdout.out
+diff test_config.map1.clj test_config.map1.clj.save >test_config.diff.out
+output_length=`cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "-w length is $output_length"
+if [[ $output_length != "364" ]]
+  then
+    echo "-w test failed to have correct count of chars, should be 364, was: $output_length"
+    cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
+    wc -c test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
+
+fi
+rm test_config.stdout.out
+rm test_config.stderr.out
+rm test_config.diff.out
+rm test_config.map1.clj
+rm test_config.map1.clj.save
+rm test_config.map2.clj
+
 
 #
 # Clean up

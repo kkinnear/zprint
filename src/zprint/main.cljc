@@ -69,17 +69,21 @@
             (let [[exit-status in-str format-str format-stderr] running-status]
               (try [0 (slurp filename) nil nil]
                    (catch Exception e
-                     [1 nil nil
+                     [1
+                      nil
+                      nil
                       (str "Failed to open file " filename " because: " e)])))
             (let [[exit-status in-str format-str format-stderr] running-status]
               (if (= exit-status 1)
                 ; We are done, move on
                 running-status
-                (try [0 nil (zprint-file-str in-str filename) nil]
-                     (catch Exception e
-                       [1 nil nil
-                        (str "Failed to format file: " filename
-                             " because " e)]))))
+                (try
+                  [0 nil (zprint-file-str in-str filename) nil]
+                  (catch Exception e
+                    [1
+                     nil
+                     nil
+                     (str "Failed to format file: " filename " because " e)]))))
             ;
             ; See comment in -main about graalVM issues with this code
             ;
@@ -94,7 +98,9 @@
                        (.close w)
                        [0 nil nil nil])
                      (catch Exception e
-                       [1 nil nil
+                       [1
+                        nil
+                        nil
                         (str "Failed to write output file: " filename
                              " because " e)]))))
             ; Write whatever is supposed to go to stderr, if anything
@@ -168,8 +174,10 @@
             (if (and (not (clojure.string/blank? options))
                      (not valid-switch?)
                      (clojure.string/starts-with? options "-"))
-              [:complete 1
-               (str "Unrecognized switch: '" options "'" "\n" main-help-str) {}]
+              [:complete
+               1
+               (str "Unrecognized switch: '" options "'" "\n" main-help-str)
+               {}]
               running-status)
             ; Handle switches with extraneous data
             (let [[option-status exit-status option-stderr op-options]
@@ -178,7 +186,8 @@
                 running-status
                 ; Does this swtich have too much data
                 (if (and valid-switch? (not arg-count-ok?))
-                  [:complete 1
+                  [:complete
+                   1
                    (str "Error processing switch '"
                         options
                         "', providing "
@@ -187,7 +196,8 @@
                         (if (= (dec arg-count) 1) "" "s")
                         " was incorrect!"
                         "\n"
-                        main-help-str) {}]
+                        main-help-str)
+                   {}]
                   running-status)))
             ; Handle switches
             (let [[option-status exit-status option-stderr op-options]
@@ -195,9 +205,11 @@
               (if (= option-status :complete)
                 running-status
                 (if (or version? help?)
-                  [:complete 0
+                  [:complete
+                   0
                    (cond version? (:version (get-options))
-                         help? main-help-str) op-options]
+                         help? main-help-str)
+                   op-options]
                   running-status)))
             ; If this is not a switch, get any operational options off
             ; of the command line
@@ -210,12 +222,14 @@
                 (try
                   [:incomplete 0 nil (select-op-options (read-string options))]
                   (catch Exception e
-                    [:complete 1
+                    [:complete
+                     1
                      (str "Failed to use command line operational options: '"
                           options
                           "' because: "
                           e
-                          ".") {}]))))
+                          ".")
+                     {}]))))
             ; Get all of the operational-options (op-options),
             ; merging in any that were on the command line
             (let [[option-status exit-status option-stderr op-options]
@@ -254,7 +268,9 @@
                 (if explain?
                   ; Force set-options to configure using op-options
                   (do (set-options! {} "" op-options)
-                      [:complete 0 (zprint-str (get-explained-options))
+                      [:complete
+                       0
+                       (zprint-str (get-explained-options))
                        op-options])
                   running-status)))
             ; If --url try to load the args - along with other args
@@ -307,12 +323,14 @@
                                    op-options)
                      [:complete 0 nil op-options]
                      (catch Exception e
-                       [:complete 1
+                       [:complete
+                        1
                         (str "Failed to use command line options: '"
                              options
                              "' because: "
                              e
-                             ".") {}]))))
+                             ".")
+                        {}]))))
             ; We could nitialize using the op-options if we haven't done
             ; so already, but if we didn't have any command line options, then
             ; there are no op-options that matter.

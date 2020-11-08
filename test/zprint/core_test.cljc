@@ -633,24 +633,24 @@
   ;; Test for proper handling of comment API failure, Issue #160
   ;;
 
-#?(:clj
-     (expect
-       "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: java.lang.RuntimeException: EOF while reading"
-       (try
-         (zprint-file-str
-           "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
-           "stuff"
-           {})
-         (catch Exception e (str e))))
-   :cljs
-     (expect
-       "Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"Unexpected EOF while reading item 1 of map.\", :data {:type :reader-exception, :ex-kind :eof}}"
-       (try
-         (zprint-file-str
-           "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
-           "stuff"
-           {})
-         (catch :default e (str e)))))
+  #?(:clj
+       (expect
+         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: java.lang.RuntimeException: EOF while reading"
+         (try
+           (zprint-file-str
+             "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
+             "stuff"
+             {})
+           (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"Unexpected EOF while reading item 1 of map.\", :data {:type :reader-exception, :ex-kind :eof}}"
+         (try
+           (zprint-file-str
+             "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
+             "stuff"
+             {})
+           (catch :default e (str e)))))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

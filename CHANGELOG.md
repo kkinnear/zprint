@@ -1,9 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.0.2 - 2020-10-31
+## 1.0.2 - 2020-11-10
 
 ### Added
+
+  * A new swtich for the uberjar and pre-built binaries: `-w` and `--write`.
+  This performs in-place formatting, reading the file, formatting it, and 
+  re-writing it in place.  It will work for one file or a set of file.
+  For instance: `$ zprint -w *.clj` will format all of the `.clj` files
+  in the current directory.  If any of the files have errors, the contents
+  of that file are left unchanged, an error it written to stderr, and
+  the exit-status is set to 1.  This runs faster (possibly much faster)
+  than `lein zprint`, and does essentially the same thing. Issue #159.
 
   * A new style: `:dark-color-map`, which sets both the `:color-map` and
   the `:uneval {:color-map ...}` to new colors which may not be your favorites,
@@ -25,6 +34,10 @@ All notable changes to this project will be documented in this file.
   digest successfully.
 
 ### Fixed
+
+  * If a file doesn't format correctly (perhaps because of a mal-formed
+  ;!zprint directive), the file is unchanged, the error is sent to stderr,
+  and the exit-status is 1.  Issue #160.
 
   * All standard line endings (e.g., `\n` `\r\n` and `\r`) are now 
   fully supported in all aspects of zprint. The line ending is determined

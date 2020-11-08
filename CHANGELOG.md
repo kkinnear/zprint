@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
   re-writing it in place.  It will work for one file or a set of file.
   For instance: `$ zprint -w *.clj` will format all of the `.clj` files
   in the current directory.  If any of the files have errors, the contents
-  of that file are left unchanged, an error it written to stderr, and
+  of that file are left unchanged, an error is written to stderr, and
   the exit-status is set to 1.  This runs faster (possibly much faster)
   than `lein zprint`, and does essentially the same thing. Issue #159.
 

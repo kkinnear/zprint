@@ -1,4 +1,4 @@
-(defproject zprint "1.0.2"
+(defproject zprint "1.1"
   :description "Pretty print zippers and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License",
@@ -13,6 +13,7 @@
                            [better-cond "1.0.1"]
                            [olical/cljs-test-runner "3.7.0"]
                            [pjstadig/humane-test-output "0.10.0"]
+                           [borkdude/sci "0.1.1-alpha.9"]
                            #_[zpst "0.1.6"]
                            [org.clojure/core.match "0.3.0-alpha5"]
                            #_[clojure-future-spec "1.9.0-alpha17"]]},

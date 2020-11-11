@@ -1,13 +1,15 @@
-#11 Get zprint for macOS
+# Get zprint for macOS
 There exists a pre-built binary for macOS which does not require Java,
 and starts up in <50ms.
 
-## 1. Go to the latest release for zprint
+## Download from GitHub
+
+### 1. Go to the latest release for zprint
 You can find the latest release [here](https://github.com/kkinnear/zprint/releases/latest).
-## 2. Download zprintm from the above directory
+### 2. Download zprintm from the above directory
 The macOS pre-built binary is named `zprintm-0.x.y`, where `x.y` varies.
 Click on this to download it.
-## 3. Name zprint whatever you want
+### 3. Name zprint whatever you want
 The downloaded version of zprintm always has the version in the name.
 You may wish to name it something different so that any scripts that
 you have will use the new version without requiring a change.  We
@@ -23,11 +25,21 @@ you called it), by giving it the -v switch:
 zprint-1.0.2
 ```
 
-## 3. Put zprint into a directory in your path
+### 4. Put zprint into a directory in your path
 To be able to run zprint it needs to be in a directory that appears in
 your path.
 
-## 4. Test it with `-e`
+## Install from Homebrew
+
+zprint is available as a [Homebrew Cask](https://formulae.brew.sh/cask/zprint):
+
+```
+brew cask install zprint
+```
+
+## Usage
+
+### 1. Test it with `-e`
 
 ```
 zprint -e
@@ -54,7 +66,7 @@ all of the configuration options and their current values.  Toward the
 end, it will include a key `:version` which should be the version that
 you just downloaded.
 
-## 5. Try it
+### 2. Try it
 The zprint program you have installed will accept Clojure source on stdin
 and produce formatted Clojure source on stdout.  It will also 
 accept an options map on the command line.  Note the need for single quotes

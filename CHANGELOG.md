@@ -1,13 +1,29 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.1 - 2020-11-11
+## 1.1.0 - 2020-11-24
 
 ### Added
 
 ### Changed
 
+  * In Issue #124 I added the ability to have inline functions defined
+  in some `.zprintrc` files, but not all of them.  In addition, the
+  graalVM binarie didn't support function definitions at all in any
+  `.zprintrc` files.  Now you can define functions in any `.zprintrc`
+  files, regardless of the binary you are using.  This is not a 
+  security issue because the inline function definitions are defined
+  and executed with the "Small Clojure Interpreter", `sci`.  In addition
+  these `.zprintrc` files will work in the pre-built graalVM binaries.
+
 ### Fixed
+
+  * Fixed two subtle hang flow problems, Issue #163.
+
+  * Cleaned up `:fn-map` entries for `->` and `->>` to not allow constant
+  pairing at the top level of these functions, since they may well have
+  keywords listed as functions.  It is still enabled down a level inside 
+  either function. Issue #164.
 
 ## 1.0.2 - 2020-11-10
 

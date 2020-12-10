@@ -199,6 +199,7 @@
 (s/def ::location (s/nilable string?))
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::nl-separator? ::boolean)
+(s/def ::nl-separator-all? ::boolean)
 (s/def ::object? ::boolean)
 (s/def ::pair-hang? ::boolean)
 (s/def ::parallel?
@@ -285,6 +286,7 @@
 (s/def ::future (only-keys :opt-un [::object?]))
 (s/def ::indent number?)
 (s/def ::input (only-keys :opt-un [::range]))
+; When you modify list, you are also modifying vector-fn (see below)
 (s/def ::list
   (only-keys
     :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair? ::hang-diff
@@ -317,7 +319,7 @@
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
                       ::justify? ::justify-hang ::justify-tuning
-                      ::nl-separator?]))
+                      ::nl-separator? ::nl-separator-all?]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
 (s/def ::parse (only-keys :opt-un [::interpose ::left-space]))

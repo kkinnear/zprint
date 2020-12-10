@@ -15,7 +15,7 @@
       zkeyword? zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot
       zsymbol? znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zfind
       zmap-w-nl zmap-w-nl-comma ztake-append znextnws-w-nl znextnws
-      znamespacedmap? zmap-w-bl zseqnws-w-bl]]
+      znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]
     [zprint.ansi :refer [color-str]]
     [zprint.config :refer [validate-options merge-deep]]
     [zprint.zutil :refer [add-spec-to-docstring]]
@@ -2051,7 +2051,9 @@
           (if (and (not comment-or-newline?)
                    constant-required?
                    (if constant-pair-fn
-                     (not (constant-pair-fn (zsexpr element)))
+		     ; If we can't call sexpr on it, it isn't a constant
+                     (not (when (zsexpr? element)
+		            (constant-pair-fn (zsexpr element))))
                      (not (zconstant? element))))
             ; we counted the right-hand and any comments of this pair, but it
             ; isn't a pair so exit now with whatever we have so far
@@ -3944,7 +3946,9 @@
                                      caller
                                      (noarg1 options fn-style)
                                      arg-1-indent
-                                     (+ indent ind indent-adj)
+				     ; Removed indent-adj because it caused
+				     ; several problems, issue #163
+                                     (+ indent ind #_indent-adj)
                                      ; Can't do this, because
                                      ; hang-remaining
                                      ; doesn't take a seq
@@ -4479,10 +4483,10 @@
 
 (defn interpose-either-nl-hf
   "Do very specialized interpose, but different seps depending on pred-fn
-  return and nl-separator?. This assumes that sep-* does one line, and
-  sep-*-nl does two lines."
+  return and nl-separator? and nl-separator-all?. This assumes that 
+  sep-* does one line, and sep-*-nl does two lines."
   [sep-comma sep-comma-nl sep sep-nl
-   {:keys [nl-separator? nl-separator-flow?], :as suboptions} ;nl-separator?
+   {:keys [nl-separator? nl-separator-all?], :as suboptions} ;nl-separator?
    comma? coll]
   #_(prn "ienf: sep:" sep "comma?" comma? "coll:" coll)
   (loop [coll coll
@@ -4570,7 +4574,9 @@
                 ;     To do this, you look for whether or not the
                 ;     return
                 ;     from fzprint-map-two-up said it was a flow
+		(or
                 (and nl-separator? (= hangflow :flow))
+		nl-separator-all?)
                 nil ;first?
                 0 ;newline-count
               )))))))
@@ -4579,7 +4585,7 @@
   "Put a single or double line between pairs returned from
   fzprint-map-two-up.  The second argument is the map resulting
   from (:map options) or (:pair options) or whatever.  It should
-  have :nl-separator? and :nl-separator-flow? in it."
+  have :nl-separator? and :nl-separator-all? in it."
   [suboptions ind coll]
   (interpose-either-nl-hf nil
                           nil
@@ -5294,7 +5300,9 @@
                     [[zcomment (zcolor-map options :comment) :comment]])))
             (= (ztag zloc) :comma) [[zstr (zcolor-map options :comma) :comma]]
             #?@(:cljs [(and (= (ztag zloc) :whitespace)
-                            (clojure.string/includes? zstr ","))
+                            (clojure.string/includes? zstr ","))])
+            #?@(:cljs [
+
                        [["," (zcolor-map options :comma) :comma]]])
               ; Really just testing for whitespace, comments filtered above
               (zwhitespaceorcomment? zloc)

@@ -164,9 +164,9 @@ echo "...........  --url, with URL not a valid Clojure map, and no cache"
 output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep ERROR | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "108" ]]
+if [[ $output_length != "140" ]]
   then
-    echo "--url test failed to have correct count of chars, should be 108, was: $output_length"
+    echo "--url test failed to have correct count of chars, should be 140, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -219,23 +219,23 @@ fi
 
 
 #
-# URL file with fn included, should fail
+# URL file with fn included, should pass as of 1.1
 #
 
 # remove cache
 rm -rf ~/.zprint/configurldir
 
-# URL config file containing fn, which should not work
+# URL config file containing fn, which should now work since we use sci
 echo "{:vector {:option-fn-first (fn [x y] {})}}" > test_config.edn
 
-echo "...........  --url-only, with valid URL, invalid file w/fn, and no cache"
+echo "...........  --url-only, with valid URL, file w/fn, and no cache"
 
-output_lines=`$command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep "was not a clojure.core/fn?" | wc -l`
-output_lines=`echo "${output_lines}" | sed -e 's/^[[:space:]]*//'`
-#echo "lines is $output_lines"
-if [[ $output_lines != "1" ]]
+output_length=`$command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "66" ]]
   then
-    echo "--url with fn test failed to have correct count of lines, should be 1, was: $output_lines"
+    echo "--url with fn test failed to have correct count of characters, should be 66, was: $output_length"
     $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -491,29 +491,19 @@ fi
 # Configure some strange .zprintrc files to test fns in zprintrc files
 #
 
-echo "...........  fn in ~/.zprintrc file test (works for uberjar, fails for graalvm)"
+echo "...........  fn using (fn ...) in ~/.zprintrc file test"
 
 # ~/.zprintrc gets a fn
 echo "{:vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
 # no ./.zprintrc
 rm -rf ./.zprintrc
 
-output_length=`$command -e 2>&1| grep :option-fn-first | grep ":set-by" | wc -l`
+output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-# For the uberjar, this should work.  We will assume that to start.
+# As of 1.1, we expect this to work in both uberjar and graalvm versions
 expected_length=1
-# For the graalvm binaries, this should not work!
-if [[ $2 == "graalvm-mac" ]]
-  then
-    expected_length=0
-  else
-    if [[ $2 == "graalvm-linux" ]]
-      then
-        expected_length=0
-    fi
-fi
 
 if [[ $output_length != $expected_length ]]
   then
@@ -521,24 +511,47 @@ if [[ $output_length != $expected_length ]]
     $command -e
 fi
 
+echo "...........  fn using #(...) in ~/.zprintrc file test"
+
+# ~/.zprintrc gets a fn
+echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" > ~/.zprintrc
+# no ./.zprintrc
+rm -rf ./.zprintrc
+
+output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+# As of 1.1, we expect this to work in both uberjar and graalvm versions
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command -e
+fi
+
+
 #
 # Configure some strange .zprintrc files to test fns in zprintrc files
 #
 
-echo "...........  fn is invalid in ./.zprintrc file test"
+echo "...........  fn is valid in ./.zprintrc file test"
 
-# ~/.zprintrc gets a fn
-echo "{:cwd-zprintrc? true :vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
+# ~/.zprintrc does not get a fn
+echo "{:cwd-zprintrc? true :vector {:option-fn-first nil}}" > ~/.zprintrc
 
-# ./.zprintrc get a fn too, which should fail
+# ./.zprintrc gets a fn, which should pass as of 1.1
 echo "{:vector {:option-fn-first (fn [x y] {})}}" > ./.zprintrc
 
-output_length=`$command -e 2>&1| grep :cwd-zprintrc? | grep "was not a clojure.core/fn?" | wc -l`
+
+output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
+
 if [[ $output_length != "1" ]]
   then
-    echo "fn is invalid in ./.zprintrc test failed to have correct count of lines, should be 1, was: $output_length"
+    echo "fn is valid in ./.zprintrc test failed to have correct count of lines, should be 1, was: $output_length"
     $command -e
 fi
 
@@ -546,7 +559,7 @@ fi
 # Fns on the command line
 #
 
-echo "...........  fn on command line test (works for uberjar, fails for graalvm)"
+echo "...........  fn using (fn [x y] ...) on command line test"
 
 # ~/.zprintrc gets a fn
 echo "{:vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
@@ -558,18 +571,29 @@ output_length=`$command '{:vector {:option-fn-first (fn [x y] {})}}' <test_confi
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-# For the uberjar, this should work.  We will assume that to start.
+# As of 1.1, this should work for every version
 expected_length=1
-# For the graalvm binaries, this should not work!
-if [[ $2 == "graalvm-mac" ]]
+
+if [[ $output_length != $expected_length ]]
   then
-    expected_length=0
-  else
-    if [[ $2 == "graalvm-linux" ]]
-      then
-        expected_length=0
-    fi
+    echo "fn on command line test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command '{:vector {:option-fn-first (fn [x y] {})}}' <test_config.string.clj 
 fi
+
+echo "...........  fn using #(...) on command line test"
+
+# ~/.zprintrc gets a fn
+echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" > ~/.zprintrc
+
+# No ./.zprintrc
+rm -rf ./.zprintrc
+
+output_length=`$command '{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}' <test_config.string.clj 2>&1| grep "Hello World!" |  wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+# As of 1.1, this should work for every version
+expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
@@ -662,12 +686,17 @@ cp test_config.map.clj test_config.map1.clj
 chmod -w test_config.map1.clj
 cp test_config.map.clj test_config.map2.clj
 $command -w test_config.map1.clj test_config.map2.clj 2> test_config.stderr.out > test_config.stdout.out
+cp test_config.stderr.out test_config.stderr.out.orig
+rm test_config.stderr.out
+# Remove stuff between parens at the end, which varies by operating system.
+sed 's/([^()]*)//g' <test_config.stderr.out.orig >test_config.stderr.out
+rm test_config.stderr.out.orig
 output_length=`cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "-w length is $output_length"
-if [[ $output_length != "257" ]]
+if [[ $output_length != "238" ]]
   then
-    echo "-w test failed to have correct count of chars, should be 257, was: $output_length"
+    echo "-w test failed to have correct count of chars, should be 238, was: $output_length"
     cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
 
@@ -692,9 +721,9 @@ diff test_config.map1.clj test_config.map1.clj.save >test_config.diff.out
 output_length=`cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "-w length is $output_length"
-if [[ $output_length != "364" ]]
+if [[ $output_length != "468" ]]
   then
-    echo "-w test failed to have correct count of chars, should be 364, was: $output_length"
+    echo "-w test failed to have correct count of chars, should be 468, was: $output_length"
     cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
 
@@ -706,6 +735,85 @@ rm test_config.map1.clj
 rm test_config.map1.clj.save
 rm test_config.map2.clj
 
+#
+# local .zprintrc having a fn that is actually used
+#
+
+echo "...........  local .zprintrc having a fn that is used"
+
+#
+# Create necessary files
+#
+
+echo "(m/app :get  (m/app middle1 middle2 middle3" > test_config.source.clj
+echo "                    [route] handler" >>test_config.source.clj
+echo "                    [longer route]" >> test_config.source.clj
+echo "        (handler this is a :test this :is only :a test))" >> test_config.source.clj
+echo "       ; How do comments work here?" >> test_config.source.clj
+echo "       true (should be paired with true)" >> test_config.source.clj
+echo "       false (should be paired with false)" >> test_config.source.clj
+echo "       6 (should be paired with 6)" >> test_config.source.clj
+echo "       \"string\" (should be paired with \"string\")" >> test_config.source.clj
+echo "       :post (m/app" >> test_config.source.clj
+echo "                    [a really long route] handler" >> test_config.source.clj
+echo "                    [route] " >> test_config.source.clj
+echo "                    handler))" >> test_config.source.clj
+
+echo "{:search-config? true}" > ~/.zprintrc
+
+echo "{:fn-map {\"app\"," > .zprintrc
+echo "          [:none" >> .zprintrc
+echo "           {:list {:constant-pair-fn #(or (keyword? %)" >> .zprintrc
+echo "                                          (string? %)" >> .zprintrc
+echo "                                          (number? %)" >> .zprintrc
+echo "                                          (= true %)" >> .zprintrc
+echo "                                          (= false %)" >> .zprintrc
+echo "                                          (vector? %))," >> .zprintrc
+echo "                   :constant-pair-min 1}," >> .zprintrc
+echo "            :next-inner {:list {:constant-pair-fn nil, :constant-pair-min 4}," >> .zprintrc
+echo "                         :pair {:justify? false}}," >> .zprintrc
+echo "            :pair {:justify? true}}]}}" >> .zprintrc
+
+echo "(m/app :get     (m/app middle1" > test_config.out.clj
+echo "                       middle2" >> test_config.out.clj
+echo "                       middle3" >> test_config.out.clj
+echo "                       [route]        handler" >> test_config.out.clj
+echo "                       [longer route] (handler" >> test_config.out.clj
+echo "                                        this" >> test_config.out.clj
+echo "                                        is" >> test_config.out.clj
+echo "                                        a" >> test_config.out.clj
+echo "                                        :test this" >> test_config.out.clj
+echo "                                        :is only" >> test_config.out.clj
+echo "                                        :a test))" >> test_config.out.clj
+echo "       ; How do comments work here?" >> test_config.out.clj
+echo "       true     (should be paired with true)" >> test_config.out.clj
+echo "       false    (should be paired with false)" >> test_config.out.clj
+echo "       6        (should be paired with 6)" >> test_config.out.clj
+echo "       \"string\" (should be paired with \"string\")" >> test_config.out.clj
+echo "       :post    (m/app [a really long route] handler" >> test_config.out.clj
+echo "                       [route]               handler))" >> test_config.out.clj
+
+#
+# Do test
+#
+
+$command '{:width 60}' <test_config.source.clj 2> test_config.stderr.out > test_config.stdout.clj
+diff test_config.stdout.clj test_config.out.clj >test_config.diff.out
+output_length=`cat test_config.stdout.clj test_config.diff.out test_config.stderr.out | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+if [[ $output_length != "792" ]]
+  then
+    echo "local .zprintrc having a fn that is used failed to have correct count of chars, should be 792, was: $output_length"
+    cat test_config.stdout.clj test_config.diff.out test_config.stderr.out
+    wc -c test_config.stdout.clj test_config.diff.out test_config.stderr.out
+
+fi
+rm test_config.stdout.clj
+rm test_config.stderr.out
+rm test_config.diff.out
+rm test_config.source.clj
+rm test_config.out.clj
 
 #
 # Clean up

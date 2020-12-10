@@ -48,6 +48,12 @@
                  ["how comments are handled" {:file "doc/options/comments.md"}]
 		 ["how blank lines are handled at the top level"
 		   {:file "doc/options/toplevel.md"}]
+		 ["how vectors are formatted based on their content" 
+		   {:file "doc/options/vectors.md"}]
+		 ["how constants are defined when formatting constant pairs"
+		   {:file "doc/options/constantpairs.md"}]
+		 ["the options map by defining functions to format based on content"
+		   {:file "doc/options/optionfns.md"}]
                  ["anything else..."
                   {:file "doc/reference.md"}]]
 		["Change Log" {:file "CHANGELOG.md"}]

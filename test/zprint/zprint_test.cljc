@@ -14,11 +14,9 @@
              [line-count max-width line-lengths make-record contains-nil?
               map-ignore blanks]]
             [zprint.zutil :refer [edn*]]
-            #_[zprint.config :refer :all :exclude
-               [set-options! configure-all! get-options]]
+	    [zprint.config :refer [merge-deep]]
             #?@(:clj ([clojure.repl :refer [source-fn]]))
             [zprint.core-test :refer [trim-gensym-regex x8]]
-            #_[zprint.finish :refer :all]
             [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z]))
@@ -4930,7 +4928,9 @@ ser/collect-vars-acc %1 %2) )))"
           (zprint-str "#{a\n;commentx\n\nb ;commenty\n\n}"
                       {:parse-string? true, :set {:respect-bl? true}}))
 
-  (expect "#(a ;commentx\n\n   b ;commenty\n\n )"
+  ; This used to have the ;commentx on the same line as the "a", but
+  ; you can't hang a comment that didn't come in as an inline comment.
+  (expect "#(a\n   ;commentx\n\n   b ;commenty\n\n )"
           (zprint-str "#(a\n;commentx\n\nb ;commenty\n\n)"
                       {:parse-string? true, :list {:respect-bl? true}}))
 
@@ -4951,7 +4951,7 @@ ser/collect-vars-acc %1 %2) )))"
           (zprint-str "#{a\n;commentx\n\nb ;commenty\n}"
                       {:parse-string? true, :set {:respect-bl? true}}))
 
-  (expect "#(a ;commentx\n\n   b ;commenty\n )"
+  (expect "#(a\n   ;commentx\n\n   b ;commenty\n )"
           (zprint-str "#(a\n;commentx\n\nb ;commenty\n)"
                       {:parse-string? true, :list {:respect-bl? true}}))
 
@@ -5381,6 +5381,65 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect "(this is)\r(a test)\r(this is)\r; a comment\r(only a test)"
           (zprint-str lendmr {:parse-string-all? true}))
+
+  ;;
+  ;; New style
+  ;;
+
+(def style-m1
+  {:fn-map {"app" [:none
+                   {:list {:constant-pair-min 1,
+                           :constant-pair-fn #(or (keyword? %)
+                                                  (string? %)
+                                                  (number? %)
+                                                  (= true %)
+                                                  (= false %)
+                                                  (vector? %))},
+                    :pair {:justify? true},
+                    :next-inner {:list {:constant-pair-min 4,
+                                        :constant-pair-fn nil},
+                                 :pair {:justify? false}}}]}})
+
+(def mapp9
+  "(m/app :get  (m/app middle1 middle2 middle3 
+                    [route] handler 
+                    [longer route]  
+        (handler this is \"a\" test \"this\" is \"only a\" test)) 
+       ; How do comments work here? 
+       true (should be paired with true) 
+       false (should be paired with false) 
+       6 (should be paired with 6) 
+       \"string\" (should be paired with string) 
+       :post (m/app  
+                    [a really long route] handler 
+                    [route]  
+                    handler))")
+
+(expect
+  "(m/app :get     (m/app middle1\n                       middle2\n                       middle3\n                       [route]        handler\n                       [longer route] (handler this is \"a\" test \"this\" is \"only a\" test))\n       ; How do comments work here?\n       true     (should be paired with true)\n       false    (should be paired with false)\n       6        (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post    (m/app [a really long route] handler [route] handler))"
+  (zprint-str mapp9 (merge-deep style-m1 {:parse-string? true, :width 100})))
+
+  ;;
+  ;; Problems with hang and flow and anon-fn's  It was hanging :ret in the
+  ;; second < thing.
+  ;;
+
+(expect
+  "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(< :ret\n         :stuff\n         (this is a test this is only a test)\n         (more of a test when will it ever be long enough)\n         :bother))"
+  (zprint-str
+    "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(<\n         :ret \n\t :stuff\n\t (this is a test, this is only a test)\n\t (more of a test, when will it ever be long enough)\n\t :bother))"
+    {:parse-string? true}))
+
+  ;;
+  ;; Clean up -> so that it doesn't constant-pair top level things.
+  ;;
+
+(expect
+  "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(< (:ret %)\n         (-> %\n             :args\n             :stuff\n             :bother\n             :lots\n             (of stuff\n                 that\n                 is\n                 long\n                 enough\n                 that\n                 it\n                 doesn't\n                 fit\n                 on\n                 one\n                 line\n                 and\n                 :should be\n                 :paired up)\n             :keywords\n             :end)))"
+  (zprint-str
+    "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(<\n         (:ret %)\n         (-> %\n             :args\n\t     :stuff\n\t     :bother\n\t     :lots\n\t     (of stuff that is long enough that it doesn't fit on one line and :should be :paired up)\n\t     :keywords\n             :end)))"
+    {:parse-string? true}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

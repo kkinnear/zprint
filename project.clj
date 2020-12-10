@@ -5,7 +5,7 @@
             :url "https://opensource.org/licenses/MIT",
             :key "mit",
             :year 2015}
-  :plugins [[lein-doo "0.1.10"] [lein-codox "0.10.3"] [lein-zprint "1.0.2"]]
+  :plugins [[lein-doo "0.1.10"] [lein-codox "0.10.3"] [lein-zprint "1.0.2"] [lein-cljfmt "0.7.0"]]
   :profiles
     {:repl {:dependencies [#_[com.taoensso/tufte "1.1.1"]
                            #_[org.clojure/clojurescript "1.9.946"]
@@ -13,7 +13,6 @@
                            [better-cond "1.0.1"]
                            [olical/cljs-test-runner "3.7.0"]
                            [pjstadig/humane-test-output "0.10.0"]
-                           [borkdude/sci "0.1.1-alpha.9"]
                            #_[zpst "0.1.6"]
                            [org.clojure/core.match "0.3.0-alpha5"]
                            #_[clojure-future-spec "1.9.0-alpha17"]]},
@@ -44,10 +43,12 @@
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],
           :metadata {:doc/format :markdown}}
   :dependencies
-    [#_[org.clojure/clojure "1.10.0"]
+    [[org.clojure/clojure "1.10.2-alpha4"]
+    #_[org.clojure/clojure "1.10.0"]
      #_[org.clojure/clojure "1.10.2-alpha1"]
-     [org.clojure/clojure "1.9.0"]
+     #_[org.clojure/clojure "1.9.0"]
      #_[org.clojure/clojure "1.8.0"]
      [rewrite-cljs "0.4.5" :exclusions [[org.clojure/clojurescript]]]
-     [borkdude/edamame "0.0.11-alpha.12"]
+     [borkdude/edamame "0.0.11-alpha.15"]
+     [borkdude/sci "0.1.1-alpha.9"]
      [rewrite-clj "0.6.1" :exclusions [[com.cemerick/austin]]]])

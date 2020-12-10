@@ -280,6 +280,7 @@
     zprint.zfns/znumstr snumstr
     zprint.zfns/zcomment? (constantly false)
     zprint.zfns/zsexpr identity
+    zprint.zfns/zsexpr? (constantly true)
     zprint.zfns/zseqnws sseqnws
     zprint.zfns/zseqnws-w-nl sseqnws
     zprint.zfns/zseqnws-w-bl sseqnws

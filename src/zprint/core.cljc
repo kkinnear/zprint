@@ -24,6 +24,7 @@
     [zprint.focus :refer [range-ssv]]
     [zprint.range :refer
      [expand-range-to-top-level split-out-range reassemble-range]]
+    [sci.core :as sci]
     [rewrite-clj.parser :as p]
     #_[clojure.spec.alpha :as s])
   #?@(:clj ((:import (java.net URL URLConnection)
@@ -175,7 +176,8 @@
                               url-as-filename))
              cache-item (if (and (.exists cache) (not (zero? (.length cache))))
                           (try (-> (slurp cache)
-                                   (clojure.edn/read-string))
+				   (sci/eval-string)
+                                   #_(clojure.edn/read-string))
                                (catch Exception e (.delete cache) nil)))
              active-cache? (and cache-item
                                 (> (:expires cache-item)
@@ -198,7 +200,8 @@
                                                 (.setConnectTimeout 1000)
                                                 (.connect))
                    remote-opts (some-> (slurp (.getInputStream remote-conn))
-                                       (clojure.edn/read-string))]
+				       (sci/eval-string)
+                                       #_(clojure.edn/read-string))]
                (if remote-opts
                  (do
                    ;2> no valid cache, remote used, async best-effort cache
@@ -911,11 +914,11 @@
                 "' found in !zprint directive number: " zprint-num
                 " because: " e)])))))
 
-(defn ^:no-doc get-options-from-comment
+(defn ^:no-doc get-options-from-comment-alt-new
   "s is string containing a comment.  See if it starts out ;!zprint
   (with any number of ';' allowed), and if it does, attempt to parse
-  it as an options-map.  Return [options error-str] with only one
-  of the two populated if it started with ;!zprint, and nil otherwise."
+  it as an options-map.  Return [options error-str] with only options
+  populated if it works, and throw an exception if it doesn't work."
   [zprint-num s]
   (let [s-onesemi (clojure.string/replace s #"^;+" ";")
         comment-split (clojure.string/split s-onesemi #"^;!zprint ")]
@@ -924,6 +927,32 @@
            (catch #?(:clj Exception
                      :cljs :default)
              e
+	     ; If it doesn't work, don't return an error-str, throw an
+	     ; Exception!
+             (throw (#?(:clj Exception.
+                        :cljs js/Error.)
+                     (str "Unable to create zprint options-map from: '"
+                            possible-options
+                          "' found in !zprint directive number: " zprint-num
+                          " because: " e))))))))
+
+(defn ^:no-doc get-options-from-comment
+  "s is string containing a comment.  See if it starts out ;!zprint
+  (with any number of ';' allowed), and if it does, attempt to parse
+  it as an options-map.  Return [options error-str] with only options
+  populated if it works, and throw an exception if it doesn't work.
+  Use sci/eval-string to create sandboxed functions if any exist in
+  the options map."
+  [zprint-num s]
+  (let [s-onesemi (clojure.string/replace s #"^;+" ";")
+        comment-split (clojure.string/split s-onesemi #"^;!zprint ")]
+    (when-let [possible-options (second comment-split)]
+      (try [(sci/eval-string possible-options) nil]
+           (catch #?(:clj Exception
+                     :cljs :default)
+             e
+	     ; If it doesn't work, don't return an error-str, throw an
+	     ; Exception!
              (throw (#?(:clj Exception.
                         :cljs js/Error.)
                      (str "Unable to create zprint options-map from: '"

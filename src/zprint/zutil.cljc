@@ -837,6 +837,7 @@
     zprint.zfns/zbyte-array? (constantly false)
     zprint.zfns/zcomment? zcomment?
     zprint.zfns/zsexpr sexpr
+    zprint.zfns/zsexpr? zsexpr?
     zprint.zfns/zseqnws zseqnws
     zprint.zfns/zseqnws-w-nl zseqnws-w-nl
     zprint.zfns/zseqnws-w-bl zseqnws-w-bl

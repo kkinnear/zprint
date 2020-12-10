@@ -9,6 +9,9 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
+ * Fns in options maps now safely supported in all `.zprintrc` files, using `sci` 
+ * Fns in options maps now supported in all prebuilt graalVM binaries.
+ * Colorize edn ouput to an ANSI terminal: `$ zprint '{:color? true}' <file.edn`
  * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
  * Output colorized, formatted source to terminal: `$ zprint '{:color? true}' <file.clj`
  * [More flexible constant-pairing](./doc/reference.md#constant-pair-fn-nil)
@@ -96,6 +99,9 @@ Some commonly used styles:
   * [how the second element of a pair is indented](./doc/options/pairs.md)
   * [how comments are handled](./doc/options/comments.md)
   * [how blank lines are handled at the top level](./doc/options/toplevel.md)
+  * [how vectors are formatted based on their content](./doc/options/vectors.md)
+  * [how constants are defined when formatting constant pairs](./doc/options/constantpairs.md)
+  * [the options map by defining functions to format based on content](./doc/options/optionfns.md)
   * [anything else...](./doc/reference.md#introduction-to-configuration)
 
 ## Usage

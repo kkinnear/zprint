@@ -11,6 +11,7 @@
 (def zbyte-array? nil)
 (def zcomment? nil)
 (def zsexpr nil)
+(def zsexpr? nil)
 (def zseqnws nil)
 (def zseqnws-w-nl nil)
 (def zseqnws-w-bl nil)

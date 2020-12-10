@@ -5,6 +5,7 @@
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
             [zprint.rewrite :refer [sort-dependencies]]
+	    [sci.core :as sci]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader)
@@ -287,8 +288,12 @@
 ;;
 
 (def zfnstyle
-  {"->" :noarg1-body,
-   "->>" :force-nl-body,
+  {"->" [:noarg1-body
+         {:list {:constant-pair? false},
+          :next-inner {:list {:constant-pair? true}}}],
+   "->>" [:force-nl-body
+          {:list {:constant-pair? false},
+           :next-inner {:list {:constant-pair? true}}}],
    ":import" :force-nl-body,
    ":require" :force-nl-body,
    "=" :hang,
@@ -458,6 +463,8 @@
    ; This is used for {:parse {:left-space :keep}}
    :indent 0,
    :input {:range {:start nil, :end nil}},
+   ; When you change :list, you should also change :vector-fn, since it 
+   ; becomes the current :list when 
    :list {:constant-pair-fn nil,
           :constant-pair-min 4,
           :constant-pair? true,
@@ -789,7 +796,8 @@
             :indent-only? false},
    ; Needs to have same keys as :list, since this replaces :list when
    ; vectors are formatted as functions.
-   :vector-fn {:constant-pair-min 4,
+   :vector-fn {:constant-pair-fn nil,
+               :constant-pair-min 4,
                :constant-pair? true,
                :hang-avoid 0.5,
                :hang-diff 1,
@@ -1285,6 +1293,16 @@
 ;;
 
 (defn try-to-load-string
+  "Read an options map from a string using sci/eval-string to read
+  in the structure, and to create sandboxed function for any functions
+  defined in the options-map (i.e. in the string).  Any failures
+  from eval-string are not caught and propagate back up the call
+  stack."
+  [s]
+  #?(:clj (sci/eval-string s)
+     :cljs nil))
+
+(defn try-to-load-string-alt
   "Read an options map from a string.  Try to use load-string so that
   functions defined in the options map will be correctly defined, but
   if that fails (for two specific reasons), then back off to use read-string
@@ -1317,6 +1335,38 @@
   [options-from-file error-string full-path-of-file].  It is acceptable to
   not have a file if optional? is truthy, but if the file exists, then 
   regardless of optional?, errors are detected and reported."
+  ([filename optional?]
+   #?(:clj
+        (when filename
+          (let [filestr (str filename)
+                the-file (java.io.File. filestr)
+                full-path (.getCanonicalPath the-file)
+                #_(println "get-config-from-file: filename:" filename
+                           "full-path:" full-path)
+                [lines file-error]
+                  (try (let [lines (file-line-seq-file filename)] [lines nil])
+                       (catch Exception e
+                         [nil
+                          (str "Unable to open configuration file " full-path
+                               " because " e)]))]
+            (if file-error
+              (if optional? nil [nil file-error full-path])
+              (try (let [opts-file (try-to-load-string
+                                     (clojure.string/join "\n" lines))]
+                     [opts-file nil full-path])
+                   (catch Exception e
+                     [nil
+                      (str "Unable to read configuration from file " full-path
+                           " because " e) full-path])))))
+      :cljs nil))
+  ([filename] (get-config-from-file filename nil)))
+
+(defn get-config-from-file-alt
+  "Read in an options map from one file or another file. Possibly neither of
+  them exist, which is fine if optional? is truthy. Return
+  [options-from-file error-string full-path-of-file].  It is acceptable to
+  not have a file if optional? is truthy, but if the file exists, then 
+  regardless of optional?, errors are detected and reported."
   ([filename optional? acceptfns?]
    #?(:clj
         (when filename
@@ -1344,15 +1394,15 @@
                       (str "Unable to read configuration from file " full-path
                            " because " e) full-path])))))
       :cljs nil))
-  ([filename] (get-config-from-file filename nil nil)))
+  ([filename] (get-config-from-file-alt filename nil nil)))
 
 (defn get-config-from-path
   "Take a vector of filenames, and look in exactly one directory for
   all of the filenames.  Return the [option-map error-str full-file-path]
   from get-config-from-file for the first one found, or nil if none found."
-  [filename-vec file-sep dir-vec acceptfns?]
+  [filename-vec file-sep dir-vec]
   (let [dirspec (apply str (interpose file-sep dir-vec))
-        config-vec (some #(get-config-from-file % :optional acceptfns?)
+        config-vec (some #(get-config-from-file % :optional)
                          (map (partial str dirspec file-sep) filename-vec))]
     config-vec))
 
@@ -1361,9 +1411,10 @@
   filenames in filename-vec in the directory specified by dir-vec.
   When one is found, return (using reduced) the [option-map error-str
   full-file-path] from get-config-from-file, or nil if none are
-  found.  Will not accept fns from any of the files."
+  found.  Will now accept fns from any of the files since using
+  sci/eval-string."
   [filename-vec file-sep dir-vec _]
-  (let [config-vec (get-config-from-path filename-vec file-sep dir-vec nil)]
+  (let [config-vec (get-config-from-path filename-vec file-sep dir-vec)]
     (if config-vec
       (reduced config-vec)
       (if (= ["."] dir-vec) [".."] (concat [".."] dir-vec)))))
@@ -1391,7 +1442,7 @@
   "Read in an options map from a string."
   [map-string]
   (when map-string
-    (try (let [opts-map (read-string map-string)] [opts-map nil])
+    (try (let [opts-map (sci/eval-string map-string)] [opts-map nil])
          (catch #?(:clj Exception
                    :cljs :default)
            e
@@ -1525,7 +1576,7 @@
                                   file-separator
                                   [home]
                                   ; Do accept fns from this file
-                                  :acceptfns))
+                                  #_:acceptfns))
         [updated-map new-doc-map rc-errors]
           (config-and-validate (str "Home directory file: " rc-filename)
                                default-doc-map
@@ -1566,7 +1617,7 @@
                                   file-separator
                                   ["."]
                                   ; Do not accept fns from this file
-                                  nil))
+                                  #_nil))
         [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
           (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
                                search-doc-map

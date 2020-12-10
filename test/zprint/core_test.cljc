@@ -635,7 +635,7 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: java.lang.RuntimeException: EOF while reading"
+         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: clojure.lang.ExceptionInfo: EOF while reading, expected } to match { at [1,1] {:type :sci.error/parse, :line 2, :column 1, :phase \"parse\", :file nil}" 
          (try
            (zprint-file-str
              "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
@@ -644,7 +644,7 @@
            (catch Exception e (str e))))
      :cljs
        (expect
-         "Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"Unexpected EOF while reading item 1 of map.\", :data {:type :reader-exception, :ex-kind :eof}}"
+"Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :sci.error/parse, :line 2, :column 1, :phase \"parse\", :file nil}, :cause #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :edamame/error, :line 2, :column 1}}}"
          (try
            (zprint-file-str
              "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"

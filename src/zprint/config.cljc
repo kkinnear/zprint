@@ -1302,30 +1302,6 @@
   #?(:clj (sci/eval-string s)
      :cljs nil))
 
-(defn try-to-load-string-alt
-  "Read an options map from a string.  Try to use load-string so that
-  functions defined in the options map will be correctly defined, but
-  if that fails (for two specific reasons), then back off to use read-string
-  instead.  Any failures from read-string are not caught and propagate
-  back up the call stack."
-  [s]
-  #?(:clj (try
-            (load-string s)
-            (catch Exception e
-              (if (or (clojure.string/includes?
-                        (str e)
-                        "Unsupported method java.lang.ClassLoader.defineClass")
-                      (clojure.string/includes?
-                        (str e)
-                        "Could not locate clojure/spec/alpha__init.class"))
-                ; This must be graalVM complaining about the eval in
-                ; load-string
-                (clojure.edn/read-string s)
-                ; This is something else wrong, let it go
-                (do #_(println "Exception: '" (str e) "' s: '" s "'")
-                    (throw e)))))
-     :cljs nil))
-
 ;; Remove two files from this, make it one file at a time.`
 ;; Do the whole file here.
 
@@ -1360,41 +1336,6 @@
                            " because " e) full-path])))))
       :cljs nil))
   ([filename] (get-config-from-file filename nil)))
-
-(defn get-config-from-file-alt
-  "Read in an options map from one file or another file. Possibly neither of
-  them exist, which is fine if optional? is truthy. Return
-  [options-from-file error-string full-path-of-file].  It is acceptable to
-  not have a file if optional? is truthy, but if the file exists, then 
-  regardless of optional?, errors are detected and reported."
-  ([filename optional? acceptfns?]
-   #?(:clj
-        (when filename
-          (let [filestr (str filename)
-                the-file (java.io.File. filestr)
-                full-path (.getCanonicalPath the-file)
-                #_(println "get-config-from-file: filename:" filename
-                           "full-path:" full-path)
-                [lines file-error]
-                  (try (let [lines (file-line-seq-file filename)] [lines nil])
-                       (catch Exception e
-                         [nil
-                          (str "Unable to open configuration file " full-path
-                               " because " e)]))]
-            (if file-error
-              (if optional? nil [nil file-error full-path])
-              (try (let [opts-file (if acceptfns?
-                                     (try-to-load-string
-                                       (clojure.string/join "\n" lines))
-                                     (clojure.edn/read-string
-                                       (clojure.string/join "\n" lines)))]
-                     [opts-file nil full-path])
-                   (catch Exception e
-                     [nil
-                      (str "Unable to read configuration from file " full-path
-                           " because " e) full-path])))))
-      :cljs nil))
-  ([filename] (get-config-from-file-alt filename nil nil)))
 
 (defn get-config-from-path
   "Take a vector of filenames, and look in exactly one directory for

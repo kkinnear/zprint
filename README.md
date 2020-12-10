@@ -9,9 +9,8 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
- * Fns in options maps now safely supported in all `.zprintrc` files, using `sci` 
- * Fns in options maps now supported in all prebuilt graalVM binaries.
- * Colorize edn ouput to an ANSI terminal: `$ zprint '{:color? true}' <file.edn`
+ * Functions in options maps now safely supported in all `.zprintrc` files, using `sci` 
+ * Functions in options maps now supported in all prebuilt graalVM binaries.
  * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
  * Output colorized, formatted source to terminal: `$ zprint '{:color? true}' <file.clj`
  * [More flexible constant-pairing](./doc/reference.md#constant-pair-fn-nil)
@@ -19,8 +18,6 @@ a number of major source code formattng approaches.
  * [Format ranges of lines in files](./doc/using/range.md)
  * [More colors allowed in `:color-map`, and more elements can be colored](./doc/options/colors.md)
  * [Keep blank lines from input](./doc/types/respectbl.md)
- * `{:map {:lift-ns? false}}` is now default false, see [here](./CHANGELOG.md) for why.
- * Comments now allowed in `.zprintrc` files.
  * [All changes](./CHANGELOG.md)
 
 ## See zprint:

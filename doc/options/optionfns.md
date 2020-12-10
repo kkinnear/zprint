@@ -26,7 +26,7 @@ Additionally, some environments (e.g., the graalVM binaries) don't
 accept new function definitions once they are compiled.
 
 The solution to both of these issues is to use the sandboxed Clojure
-interpreter, `sci` to define and execute these functions.  
+interpreter, `sci` to define and execute these functions.
 This allows zprint to accept function definitions
 in any available `.zprintrc` file, as well as options maps loaded
 using the `--url` or `--url-only` switches or from the command line.
@@ -34,7 +34,7 @@ Any function defined in an options map cannot reference the file
 system or do anything else that outside of the `sci` sandbox in
 which it is operating.
 
-WHen defining in-line functions in an options map, `sci` will support
+When defining in-line functions in an options map, `sci` will support
 either the `(fn [x] ...)` form of function definition, or the `#(...)`
 form of function definition.
 

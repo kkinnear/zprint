@@ -2217,7 +2217,7 @@ Additionally, some environments (e.g., the graalVM binaries) don't
 accept new function definitions once they are compiled.
 
 The solution to both of these issues is to use the sandboxed Clojure
-interpreter, `sci` to define and execute these functions.  
+interpreter, `sci` to define and execute these functions.
 This allows zprint to accept function definitions
 in any available `.zprintrc` file, as well as options maps loaded
 using the `--url` or `--url-only` switches or from the command line.
@@ -2323,9 +2323,6 @@ accept the `.zprintrc` file call to change the current options map.
 Note that `sci` is used only when reading options maps from `.zprintrc`
 files.  It is not used when the options map is changed by using the
 `set-options!` call when using zprint as a library or at the REPL.
-
-There are a several  configuration parameters that are meaningful
-across a number of formatting types.
 
 # Configurable Elements
 ______

@@ -8,8 +8,10 @@ One of the executable functions, `:option-fn-first` makes the
 first element of every vector available to a user-defined function,
 and that user-defined function is responsible for returning any
 desired changes to the options map to be used while formatting
-only this specific vector.  The actual calling sequence is
+only this specific vector.  The actual calling sequence is:
+```clojure
 (fn [current-options-map first-non-whitespace-non-comment-element] ...).
+```
 
 Conceptually, this is pretty simple, as it allows you to essentially 
 hand-format a vector where the first data element is a keyword.

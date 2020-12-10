@@ -94,10 +94,10 @@ $ cat > deps.edn <<< $'
                       {org.clojure/clojure
                          {:mvn/version "1.9.0"},
                        zprint {:mvn/version
-                                      "1.1"}},
+                                      "1.1.0"}},
                     :main-opts ["-m" "zprint.main"]}},
  :deps {org.clojure/clojure {:mvn/version "1.9.0"},
-        zprint {:mvn/version "1.1"}}}'
+        zprint {:mvn/version "1.1.0"}}}'
 $ clj -A:zprint < deps.edn
 $ clj -m zprint.main <deps.edn
 ```
@@ -114,7 +114,7 @@ the high performance prebuilt binaries -- #1, above) the
 startup much faster and run as fast once it has started.
 
 ## 4. Lein zprint
-  * Leiningen plugin: `[lein-zprint "1.1"]`
+  * Leiningen plugin: `[lein-zprint "1.1.0"]`
   * Accepts configuration from `:zprint` key in project.clj
   * Will (optionally) replace existing source files with reformatted versions
   * Reads configuration from `~/.zprintrc`
@@ -127,7 +127,7 @@ lein zprint '{:width 90}' src/myproj/*.clj
 Processing file: src/myproj/myfile.clj
 Processing file: src/myproj/myotherfile.clj
 ```
-__Get it__: put `[lein-zprint "1.1"]` in the vector that is the value of
+__Get it__: put `[lein-zprint "1.1.0"]` in the vector that is the value of
 the `:plugins` key in `project.clj`:
 
 ```clojure
@@ -136,7 +136,7 @@ the `:plugins` key in `project.clj`:
   :url "http://example.com/FIXME"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
-  :plugins [[lein-zprint "1.1"]]
+  :plugins [[lein-zprint "1.1.0"]]
   :dependencies [[org.clojure/clojure "1.10.0"]]
   :repl-options {:init-ns zpuse.core})
 ```

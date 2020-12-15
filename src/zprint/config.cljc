@@ -379,6 +379,7 @@
    "with-local-vars" :binding,
    "with-meta" :arg1-body,
    "with-open" :binding,
+   "with-out-str" :none-body,
    "with-redefs" :binding,
    "with-redefs-fn" :arg1-body})
 
@@ -1243,16 +1244,17 @@
 ;; # Style
 ;;
 
-(defn apply-one-style
-  "Take a [doc-string [existing-map doc-map error-str] style-name]
+(defn apply-one-style-alt
+  "Take a [doc-string new-map [existing-map doc-map error-str] style-name]
   and produce a new [existing-map doc-map error-str] from the style defined
-  in the existing map."
-  [doc-string [existing-map doc-map error-str] style-name]
+  in the new-map if it exists, or the existing-map if it doesn't."
+  [doc-string new-map [existing-map doc-map error-str] style-name]
   (if (or (= style-name :not-specified) (nil? style-name))
     [existing-map doc-map nil]
     (let [style-map (if (= style-name :default)
                       (get-default-options)
-                      (get-in existing-map [:style-map style-name]))]
+                      (or (get-in new-map [:style-map style-name])
+		          (get-in existing-map [:style-map style-name])))]
       (if style-map
         (let [updated-map (merge-deep existing-map style-map)]
           [updated-map
@@ -1263,19 +1265,120 @@
                            updated-map)) nil])
         [existing-map doc-map (str "Style '" style-name "' not found!")]))))
 
+(declare apply-style)
+(defn apply-one-style-alt1
+  "Take a [doc-string new-map [existing-map doc-map error-str] style-name]
+  and produce a new [updated-map doc-map error-str] from the style defined
+  in the new-map if it exists, or the existing-map if it doesn't."
+  [doc-string new-map [existing-map doc-map error-str] style-name]
+  (if (or (= style-name :not-specified) (nil? style-name))
+    [existing-map doc-map nil]
+    (let [style-map (if (= style-name :default)
+                      (get-default-options)
+                      (or (get-in new-map [:style-map style-name])
+                          (get-in existing-map [:style-map style-name])))]
+      (if style-map
+        (let [updated-map (merge-deep existing-map style-map)
+              updated-doc-map
+                (when doc-map
+                  (diff-deep-ks (str doc-string " specified :style " style-name)
+                                doc-map
+                                (key-seq style-map)
+                                updated-map))]
+	  ; Apply any recursive styles 
+          (apply-style doc-string updated-doc-map updated-map new-map))
+        [existing-map doc-map (str "Style '" style-name "' not found!")]))))
+
+(defn apply-one-style
+  "Take a [doc-string new-map [existing-map doc-map error-str] style-name]
+  and produce a new [existing-map doc-map error-str] from the style defined
+  in the new-map if it exists, or the existing-map if it doesn't."
+  [doc-string new-map [existing-map doc-map error-str] style-name]
+  (if (or (= style-name :not-specified) (nil? style-name))
+    [existing-map doc-map nil]
+    (let [style-map (if (= style-name :default)
+                      (get-default-options)
+                      (or (get-in new-map [:style-map style-name])
+                          (get-in existing-map [:style-map style-name])))]
+      (if style-map
+        (let [updated-map (merge-deep existing-map style-map)
+              updated-map (assoc updated-map
+                            :styles-applied (conj
+                                              (if (:styles-applied updated-map)
+                                                (:styles-applied updated-map)
+                                                [])
+                                              style-name))
+              doc-map (when doc-map
+                        (assoc doc-map
+                          :styles-applied (:styles-applied updated-map)))]
+          [updated-map
+           (when doc-map
+             (diff-deep-ks (str doc-string " specified :style " style-name)
+                           doc-map
+                           (key-seq style-map)
+                           updated-map)) nil])
+        [existing-map doc-map (str "Style '" style-name "' not found!")]))))
+
 (defn apply-style
   "Given an existing-map and a new-map, if the new-map specifies a
-  style, apply it if it exists.  Otherwise do nothing. Return
-  [updated-map new-doc-map error-string]"
+  style, apply it if it exists, looking first in the new-map for the style
+  and then in the existing-map for the style.  Otherwise do nothing. 
+  Return [updated-map new-doc-map error-string]"
+  ([doc-string doc-map existing-map new-map styles-applied]
+   (let [style-name (get new-map :style :not-specified)]
+     (if (or (= style-name :not-specified) (nil? style-name))
+       [existing-map doc-map nil]
+       (if (some #(= % style-name) styles-applied)
+         ; We have already done this style
+         (throw (#?(:clj Exception.
+                    :cljs js/Error.)
+                 (str "Circular style error: style " style-name
+                      " has already been applied: " styles-applied)))
+         (let [[updated-map new-doc-map error-string]
+                 (if (not (coll? style-name))
+                   (apply-one-style doc-string
+                                    new-map
+                                    [existing-map doc-map nil]
+                                    style-name)
+                   (reduce (partial apply-one-style doc-string new-map)
+                     [existing-map doc-map nil]
+                     style-name))
+               another-style-name (get updated-map :style :not-specified)]
+           ; Do we have a style invocation in the updated-map?
+           (if (or (= another-style-name :not-specified)
+                   (nil? another-style-name))
+             [updated-map new-doc-map error-string]
+             ; Yes, we have a style invocation in the updated-map, so Move
+             ; the style invocation from the updated-map to the new-map, and
+             ; keep at it until we don't have a style in the updated-map
+             (recur doc-string
+                    new-doc-map
+                    (dissoc updated-map :style)
+                    (assoc new-map :style another-style-name)
+                    (reduce conj
+                      styles-applied
+                      (if (keyword? style-name) [style-name] style-name)))))))))
+  ([doc-string doc-map existing-map new-map]
+   (apply-style doc-string doc-map existing-map new-map [])))
+
+(defn apply-style-alt
+  "Given an existing-map and a new-map, if the new-map specifies a
+  style, apply it if it exists, looking first in the new-map for the style
+  and then in the existing-map for the style.  Otherwise do nothing. 
+  Return [updated-map new-doc-map error-string]"
   [doc-string doc-map existing-map new-map]
   (let [style-name (get new-map :style :not-specified)]
     (if (or (= style-name :not-specified) (nil? style-name))
       [existing-map doc-map nil]
       (if (not (coll? style-name))
-        (apply-one-style doc-string [existing-map doc-map nil] style-name)
-        (reduce (partial apply-one-style doc-string)
+        (apply-one-style doc-string 
+	                 new-map 
+			 [existing-map doc-map nil] 
+			 style-name)
+        (reduce (partial apply-one-style doc-string new-map)
           [existing-map doc-map nil]
           style-name)))))
+
 
 ;;
 ;; # File Access
@@ -1468,6 +1571,9 @@
           ; do style early, so other things in new-map can override it
           [updated-map new-doc-map style-errors]
             (apply-style doc-string new-doc-map existing-map new-map)
+	   ; Now that we've done the style, remove it so that the doc-map
+	   ; doesn't get overridden
+	   new-map (dissoc new-map :style)
           errors (if style-errors (str errors " " style-errors) errors)
           new-updated-map (merge-deep updated-map new-map)
           new-doc-map (diff-deep-ks doc-string
@@ -1491,6 +1597,10 @@
   Returns [new-map doc-map errors]"
   [cli-opts cli-errors op-options]
   #_(println "config-and-validate-all!")
+  ;
+  ; NOTE WELL: When adding sections to the validation below, all of the
+  ; error strings *must* appear in the list at the end.
+  ;
   (let [default-map (get-default-options)
         default-doc-map (get-default-explained-all-options)
         ;
@@ -1533,7 +1643,6 @@
           (when (and (or (:search-config? updated-map)
                          (:search-config? op-options))
                      file-separator)
-            ; Do not accept functions from any files found
             (scan-up-dir-tree [zprintrc zprintedn] file-separator))
         [search-rcfile search-errors-rcfile search-filename]
           (when (not= home-config search-config)
@@ -1601,7 +1710,7 @@
                            :cljs nil)
         [opts-configfile errors-configfile config-filename]
           (when config-filename (get-config-from-file config-filename))
-        [updated-map new-doc-map config-errors]
+        [updated-map new-doc-map config-file-errors]
           (config-and-validate (str "Config file: " config-filename)
                                new-doc-map
                                updated-map
@@ -1611,7 +1720,7 @@
         ;
         [opts-configmap errors-configmap] (get-config-from-map (:config-map
                                                                  cli-opts))
-        [updated-map new-doc-map config-errors]
+        [updated-map new-doc-map config-map-errors]
           (config-and-validate (str "Config map:" (:config-map cli-opts))
                                new-doc-map
                                updated-map
@@ -1628,6 +1737,7 @@
         ;
         ; Process errors together
         ;
+	; NOTE WELL: All of the errors above must appear in this list!
         all-errors (apply str
                      (interpose "\n"
                        (filter identity
@@ -1635,10 +1745,13 @@
                                rc-errors
                                cwd-errors-rcfile
                                cwd-rc-errors
+			       search-errors-rcfile
+			       search-rc-errors
                                env-errors
                                prop-errors
                                errors-configfile
-                               config-errors
+                               config-file-errors
+                               config-map-errors
                                cli-errors
                                op-option-errors))))
         all-errors (if (empty? all-errors) nil all-errors)]

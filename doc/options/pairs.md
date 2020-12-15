@@ -4,7 +4,7 @@ Part of the reason for zprint's existence revolves around the
 current approach to indenting used for `cond` clauses, `let` binding vectors,
 and maps and other things with pairs (extend and reader conditionals).
 
-Back in the day some of the key functions that include pairs, e.g.
+Historically, some of the key functions that include pairs, e.g.
 `cond` and `let`, had their pairs nested in parentheses.  Clojure doesn't
 follow this convention, which does create cleaner looking code in
 the usual case, when the second part of the pair is short and fits
@@ -20,7 +20,82 @@ find them bothersome, so by default zprint will indent the
 second part of these pairs by 2 columns (controlled by `{:pair {:indent 2}}`
 for `cond` and `{:binding {:indent 2}}` for binding functions).
 
-Here is an example of both approaches:
+Here is a simple example of the difference, where the width has been narrowed
+in order to force the second element onto the next line in each case:
+```clojure
+; Here is what you get with the default zprint format with a normal width.
+
+(czprint-fn pair-indent {:width 80})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond (nil? a) (list d)
+        (nil? b) (list c d a b)
+        :else (list a b c d)))
+
+; Here is what you get with the community formatting and a normal width.
+; There is no difference between these two.
+
+(czprint-fn pair-indent {:style :community :width 80})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond (nil? a) (list d)
+        (nil? b) (list c d a b)
+        :else (list a b c d)))
+
+; Here is the default zprint formatting, when the second element of a
+; cond pair is indented when it formats onto the next line due to the 
+; narrow width.
+
+(czprint-fn pair-indent {:width 22})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond
+    (nil? a) (list d)
+    (nil? b)
+      (list c d a b)
+    :else
+      (list a b c d)))
+
+; Here is the community formatting, where the second element of a
+; cond pair is aligned with the first element when it formats onto the
+; next line due to the narrow width.
+
+(czprint-fn pair-indent {:style :community :width 22})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond
+    (nil? a) (list d)
+    (nil? b)
+    (list c d a b)
+    :else
+    (list a b c d)))
+
+; Some peope like to separate the pairs that end up on the next line
+; with a blank line
+
+(czprint-fn pair-indent {:style [:community :pair-nl] :width 22})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond
+    (nil? a) (list d)
+    (nil? b)
+    (list c d a b)
+
+    :else
+    (list a b c d)))
+
+```
+Here is a realistic and more complex example of both approaches:
 
 ```clojure
 (czprint-fn cond-let)
@@ -80,5 +155,3 @@ when calling zprint (specify that in your `.zprintrc` file, perhaps).
 
 You can change the indent from the default of 2 to 0 individually
 in `:binding`, `:map`, or `:pair` if you want to tune it in more detail.
-
-

@@ -4086,10 +4086,20 @@ enclosing the styles in a vector, for example:
 When multiple styles are specified, they are applied in the order
 given.
 
-Note that styles are applied before the rest of the elements
-of a options map, so that you can override elements of the style
-that you wish to change by specifying an explicit element in the
-options map.
+There are three phases of processing an options map:
+
+  1. Any changes to the `:style-map` are processed first.
+  2. If a `:style` is specified, the changes to the style map associated
+  with that `:style` are processed.
+  3. The remaining changes to the options map are processed.
+
+So, you can define a new `:style` in the `:style-map`, and then use
+it with `:style`, and then override some of its settings -- all in
+the same `.zprintrc` or `set-options!` call.
+
+You can also define one style in terms of another style.  You will receive
+an exception if you specify a `:style` which uses another style and ends up 
+using the same style twice in the same invocation.
 
 ### Available Styles:
 
@@ -4702,9 +4712,10 @@ map in an individual call to zprint.
 You might wish to define several styles with different color-maps,
 perhaps, allowing you to alter the colors more easily.
 
-You cannot define a style and apply it in the same configuration
-pass, as styles are applied before the rest of the configuration
-in a options map.
+You can define a style and apply it in the same `.zprintrc` file
+or `set-options!` call, as the `:style-map` changes are processed
+before the `:style` changes.  Both are processed before the remaining
+changes in the options map.
 
 ______
 ## :tab

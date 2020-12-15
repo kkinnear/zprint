@@ -3941,11 +3941,21 @@
                 (let [zloc-seq-right-first (get-zloc-seq-right first-data)]
                   (if zloc-seq-right-first
                     ; We have something else to format after arg-1-zloc
-                    (if (and arg-1-indent (not= fn-style :flow))
+                    (if #_(and arg-1-indent (not= fn-style :flow))
+		        arg-1-indent
+		      ; Use fzprint-hang-remaining for :flow as well, with
+		      ; hindent = findent to force flow, so that constant
+		      ; pairing is done for :flow functions.
                       (let [result (fzprint-hang-remaining
                                      caller
                                      (noarg1 options fn-style)
-                                     arg-1-indent
+                                     #_arg-1-indent
+				     (if (= fn-style :flow)
+					; If the fn-type is :flow, make the
+					; hindent = findent so that it will
+					; flow
+				        (+ indent ind)
+					arg-1-indent)
 				     ; Removed indent-adj because it caused
 				     ; several problems, issue #163
                                      (+ indent ind #_indent-adj)

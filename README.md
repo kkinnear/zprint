@@ -9,14 +9,15 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
- * Functions in options maps now safely supported in all `.zprintrc` files, using `sci` 
- * Functions in options maps now supported in all prebuilt graalVM binaries.
+ * [Functions in options maps now safely supported in all `.zprintrc` files, using `sci`.](./doc/options/optionfns.md) 
+ * Functions in options maps now supported in all distributed graalVM binaries!
+ * [You can now define a style and use it in the same `.zprintrc`.](./doc/reference.md#style-and-style-map)  You can also define one style in terms of another.
  * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
  * Output colorized, formatted source to terminal: `$ zprint '{:color? true}' <file.clj`
  * [More flexible constant-pairing](./doc/reference.md#constant-pair-fn-nil)
  * [Format babashka scripts](./doc/using/babashka.md)
  * [Format ranges of lines in files](./doc/using/range.md)
- * [More colors allowed in `:color-map`, and more elements can be colored](./doc/options/colors.md)
+ * [{`:style :dark-color-map`} when using dark terminals](./doc/reference.md#dark-color-map)
  * [Keep blank lines from input](./doc/types/respectbl.md)
  * [All changes](./CHANGELOG.md)
 

@@ -345,6 +345,7 @@
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::style ::style-value)
+(s/def ::styles-applied (s/nilable ::vec-or-list-of-keyword))
 (s/def ::style-map (s/nilable (s/map-of keyword? ::options)))
 (s/def ::tab (only-keys :opt-un [::expand? ::size]))
 (s/def ::trim-comments? ::boolean)
@@ -379,7 +380,7 @@
              ::parse-string-all? ::parse-string? ::perf-vs-format
              ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
              ::next-inner ::return-cvec? ::search-config? ::set ::spaces?
-             ::script ::spec ::style ::style-map ::tab ::test-for-eol-blanks?
+             ::script ::spec ::style ::styles-applied ::style-map ::tab ::test-for-eol-blanks?
              ::trim-comments? ::tuning :alt/uneval ::user-fn-map ::vector
              ::vector-fn ::version ::width ::url ::zipper?]))
 

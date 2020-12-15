@@ -46,7 +46,13 @@ if [[ -f "./.zprintrc" ]]
     mv ./.zprintrc ./.zprintrc.save
 fi
 
-echo "If you ^c out of this test, be sure and clean up ~/.zprintrc and ./.zprintrc!"
+if [[ -f "./.zprint.edn" ]]
+  then
+    echo "Saving ./.zprint.edn ./.zprint.edn.save"
+    mv ./.zprint.edn ./.zprint.edn.save
+fi
+
+echo "If you ^c out of this test, be sure and clean up ~/.zprintrc, ./.zprintrc and ./.zprint.edn!"
 
 #
 # Create new, narrow, ~/.zprintrc
@@ -457,9 +463,9 @@ echo "...........  -e test"
 output_length=`$command -e 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "536" ]]
+if [[ $output_length != "547" ]]
   then
-    echo "-e test failed to have correct count of lines, should be 536, was: $output_length"
+    echo "-e test failed to have correct count of lines, should be 547, was: $output_length"
     $command -e
 fi
 
@@ -530,6 +536,143 @@ if [[ $output_length != $expected_length ]]
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command -e
 fi
+
+echo "...........  fn using #(...) in .zprintrc file with file not found since no :cwd-zprintrc? or :search-config?"
+
+# .zprintrc gets a fn
+echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
+# no ~/.zprintrc
+rm -rf ~/.zprintrc
+
+output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+expected_length=0
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command -e
+fi
+
+echo "...........  fn using #(...) in .zprintrc file with file found since :search-config?"
+
+# .zprintrc gets a fn
+echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
+echo "{:search-config? true}" > ~/.zprintrc
+
+output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+# As of 1.1, we expect this to work in both uberjar and graalvm versions
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command -e
+fi
+
+echo "...........  fn using #(...) in .zprintrc file with file found since :cwd-zprintrc?"
+
+# .zprintrc gets a fn
+echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
+echo "{:cwd-zprintrc? true}" > ~/.zprintrc
+
+output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+# As of 1.1, we expect this to work in both uberjar and graalvm versions
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command -e
+fi
+
+
+echo "...........  local .zprintrc file that does not parse found with :search-config?"
+
+# .zprintrc gets a bad file
+echo "{:vector :stuff {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
+echo "{:search-config? true}" > ~/.zprintrc
+
+output_length=`$command -e 2>&1| grep "Unable to read configuration from file" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command -e
+fi
+
+
+echo "...........  local .zprintrc file that does not parse found with :cwd-zprintrc?"
+
+# .zprintrc gets a bad file
+echo "{:vector :stuff {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
+echo "{:cwd-zprintrc? true}" > ~/.zprintrc
+
+output_length=`$command -e 2>&1| grep "Unable to read configuration from file" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command -e
+fi
+
+echo "...........  local .zprintrc file with bad data found with :search-config?"
+
+# .zprintrc gets a bad file
+echo "{:vectorxxx {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
+echo "{:search-config? true}" > ~/.zprintrc
+
+output_length=`$command -e 2>&1| grep "was not recognized as valid" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command -e
+fi
+
+
+echo "...........  local .zprintrc file with bad data found with :cwd-zprintrc?"
+
+# .zprintrc gets a bad file
+echo "{:vectorxxx {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
+echo "{:cwd-zprintrc? true}" > ~/.zprintrc
+
+output_length=`$command -e 2>&1| grep "was not recognized as valid" | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command -e
+fi
+
+
+
+
+
 
 
 #
@@ -707,7 +850,7 @@ rm -rf test_config.map1.clj
 rm test_config.map2.clj
 
 #
-# -w with two files, the first of which will fails to format
+# -w with two files, the first of which fails to format
 #
 
 echo "...........  -w test with two files, the first which fails to format"
@@ -844,3 +987,15 @@ if [[  -e "./.zprintrc.save" ]]
     echo "Restoring ./.zprintrc"
     mv ./.zprintrc.save ./.zprintrc
 fi
+
+#
+# Restore ./.zprint.edn if we saved one
+#
+
+rm -rf ./.zprint.edn
+if [[  -e "./.zprint.edn.save" ]]
+  then
+    echo "Restoring ./.zprint.edn"
+    mv ./.zprint.edn.save ./.zprint.edn
+fi
+

@@ -5,18 +5,31 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * You can now define a style by changing the `:style-map` and invoke
+  (i.e. utilize) the style in the same `.zprintrc` or the same call
+  to `set-options!`.
+
 ### Changed
 
-  * In Issue #124 I added the ability to have inline functions defined
+  * In Issue #124 we added the ability to have inline functions defined
   in some `.zprintrc` files, but not all of them.  In addition, the
   graalVM binarie didn't support function definitions at all in any
   `.zprintrc` files.  Now you can define functions in any `.zprintrc`
   files, regardless of the binary you are using.  This is not a 
   security issue because the inline function definitions are defined
-  and executed with the "Small Clojure Interpreter", `sci`.  In addition
+  and executed with the "Small Clojure Interpreter", `sci`.  In addition,
   these `.zprintrc` files will work in the pre-built graalVM binaries.
 
+  * The `:flow` function type (in the `:fn-map`) now supports constant
+  pairing.
+
+  * The `:moustache` style has been split into two part and changed to
+  include justification for the pairs.
+
 ### Fixed
+
+  * Error found but not reported in `.zprintrc` and `.zprint.edn` files
+  found with `:search-config? true`.  Issue #167.
 
   * Fixed two subtle hang flow problems, Issue #163.
 

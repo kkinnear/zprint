@@ -17,10 +17,10 @@
                    (java.io File ByteArrayOutputStream PrintStream)
                    (java.util Date))))
 
-;; Keep some of the test from wrapping so they still work
+;; Keep some of the tests from wrapping so they still work
 ;; and format more-of more readably.
 
-;!zprint {:comment {:wrap? false} :fn-map {"more-of" [:arg1 {:fn-force-nl #{:arg1} :list {:constant-pair-min 2}}]}}         
+;!zprint {:comment {:wrap? false} :fn-map {"more-of" [:arg1-pair {:fn-force-nl #{:arg1-pair} :list {:constant-pair-min 2}}]}}         
 
 
 ;
@@ -254,6 +254,65 @@
                                    {:extend {:modifiers #{"stuff"}}}}})
       (set-options! {:style :tst-style-1})
       (get-options)))
+
+  ; Define a new style and apply it in the same set-options! call
+
+(expect
+  (more-of options
+    #{"static" "stuff"} (:modifiers (:extend options)))
+  (with-redefs [zprint.config/configured-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-sequence (atom 1)]
+    (set-options! {:style :tst-style-1,
+                   :style-map {:tst-style-1 {:extend {:modifiers #{"stuff"}}}}})
+    (get-options)))
+
+  ; Define a new style and use it to define another style and then use
+  ; that second style
+
+(expect
+  (more-of options #{"static" "stuff"} (:modifiers (:extend options)))
+  (with-redefs [zprint.config/configured-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-sequence (atom 1)]
+    (set-options! {:style :tst-style-2,
+                   :style-map {:tst-style-1 {:extend {:modifiers #{"stuff"}}},
+                               :tst-style-2 {:style :tst-style-1}}})
+    (get-options)))
+
+    ; Define two styles that reference each other, and see if we get an
+    ; exception
+
+(expect
+  #?(:clj Exception
+     :cljs js/Error)
+  (with-redefs [zprint.config/configured-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-sequence (atom 1)]
+    (set-options! {:style-map {:x {:style :y}, :y {:style :x}}, :style :x})
+    (get-options)))
+
+    ; Define three styles that reference each other in a circle, and see if 
+    ; we get an exception
+
+(expect
+  #?(:clj Exception
+     :cljs js/Error)
+  (with-redefs [zprint.config/configured-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-sequence (atom 1)]
+    (set-options! {:style-map {:x {:style :y}, :y {:style :z}, :z {:style :x}},
+                   :style :x})
+    (get-options)))
+
 
   ; Remove a set element
 

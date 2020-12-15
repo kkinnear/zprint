@@ -40,8 +40,9 @@ This difference is reflected in the `:style :community`:
 ```
 This change to the defaults for zprint does several things:
 
-  * Do not indent the second element of a pair when you have to flow 
-  the pair.
+  * Do not indent the second element of a pair when the second element
+  of the pair does not fit on the same line as the first and must be
+  started on the line under the first element.
 
   * Do not format some functions specially to make them more understandable.
 
@@ -52,7 +53,83 @@ This change to the defaults for zprint does several things:
 
 You can read lots about this [here](./pairs.md).
 
-Here is an example of the difference:
+Here is a simple example of the difference, where the width has been narrowed
+in order to force the second element onto the next line in each case:
+```clojure
+; Here is what you get with the default zprint format with a normal width.
+
+(czprint-fn pair-indent {:width 80})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond (nil? a) (list d)
+        (nil? b) (list c d a b)
+        :else (list a b c d)))
+
+; Here is what you get with the community formatting and a normal width.
+; There is no difference between these two.
+
+(czprint-fn pair-indent {:style :community :width 80})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond (nil? a) (list d)
+        (nil? b) (list c d a b)
+        :else (list a b c d)))
+
+; Here is the default zprint formatting, when the second element of a
+; cond pair is indented when it formats onto the next line due to the 
+; narrow width.
+
+(czprint-fn pair-indent {:width 22})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond
+    (nil? a) (list d)
+    (nil? b)
+      (list c d a b)
+    :else
+      (list a b c d)))
+
+; Here is the community formatting, where the second element of a
+; cond pair is aligned with the first element when it formats onto the
+; next line due to the narrow width.
+
+(czprint-fn pair-indent {:style :community :width 22})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond
+    (nil? a) (list d)
+    (nil? b)
+    (list c d a b)
+    :else
+    (list a b c d)))
+
+; Some peope like to separate the pairs that end up on the next line
+; with a blank line
+
+(czprint-fn pair-indent {:style [:community :pair-nl] :width 22})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond
+    (nil? a) (list d)
+    (nil? b)
+    (list c d a b)
+
+    :else
+    (list a b c d)))
+
+```
+
+Here is a more realistic example of the difference:
 
 ```clojure
 (czprint-fn cond-let)
@@ -102,7 +179,7 @@ At some point, the "community standards" for Clojure source formatting
 made a distinction between "body functions" and "argument functions",
 and wanted "argument functions" to have an indent of 1, and "body functions"
 to have an indent of 2.  The theory seemed to be that "body functions"
-were functions which had executable forms in them, oftern (though not
+were functions which had executable forms in them, often (though not
 always) of indeterminate number.  "Argument functions", on the other
 hand, had arguments (typically a fixed number) which were values and
 not primarily executable forms.  
@@ -113,8 +190,87 @@ types, and will also accept a value for `:indent-arg`, which (if non-nil)
 will be used as the indent for argument functions (which is 
 everything that is not explicitly classified as a body function).
 
-Here is an example that illustrates the different indent for a body
-function as well as the indent for the second element of a pair:
+Here is a simple (and contrived) example that illustrates the difference
+between the default zprint indent of 2 for all lists with a symbol as the
+first element, and the community formatting which has different indents
+for different types of functions:
+
+```clojure
+; Note: if you don't restrict the width, both {:style :community} and the
+; default zprint formatting are identical
+
+; The default formatting with restricted width to force things onto 
+; subsequent lines
+
+(czprint-fn body-indent {:width 16})
+(defn
+  body-indent
+  "An example showing how indent for body fns differs from argument fns."
+  [thing
+   something-else
+   ala bala
+   portokala]
+  ; Body functions
+  (when thing
+    (something-else))
+  (with-out-str
+    (prn "Hi")
+    (prn "You"))
+  ; Argument functions
+  (filter even?
+    (list
+      (range
+        1
+        10)
+      (range
+        100
+        1000)))
+  (or
+    ala
+    (list
+      bala
+      ala
+      bala)
+    portokala))
+
+; The community formatting, also with restricted width.  The body functions
+; don't change, but look at filter, or, list (the first one), and range -- the 
+; indent on all of these functions is one less than that above.
+
+(czprint-fn body-indent {:style :community :width 16})
+
+(defn
+  body-indent
+  "An example showing how indent for body fns differs from argument fns."
+  [thing
+   something-else
+   ala bala
+   portokala]
+  ; Body functions
+  (when thing
+    (something-else))
+  (with-out-str
+    (prn "Hi")
+    (prn "You"))
+  ; Argument functions
+  (filter
+   even?
+   (list
+    (range 1 10)
+    (range
+     100
+     1000)))
+  (or
+   ala
+   (list bala
+         ala
+         bala)
+   portokala))
+```
+
+Here is a more realistic (and more confusing) example that illustrates 
+the different indent for a body function as well as the indent for the 
+second element of a pair:
 
 ```clojure
 (czprint-fn with-open)

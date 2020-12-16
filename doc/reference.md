@@ -2103,6 +2103,7 @@ Also works with `:pair` functions
 ```
 
 #### :nl-separator? _false_
+#### :nl-separator-all? _false_
 
 This will put a blank line between any pair where the right part of a pair
 was formatted with a flow. Some examples:
@@ -2181,8 +2182,42 @@ was formatted with a flow. Some examples:
 
  :m :n,
  :o {:p {:q :r, :s :t}}}
-```
 
+; You can force a new line between all pairs, regardless of whether or
+; not the second element flowed onto the next line
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 30 :map {:nl-separator-all? true :hang? false :indent 0}})
+
+{:a :b,
+
+ :c
+ {:e :f, :g :h, :i :j, :k :l},
+
+ :m :n,
+
+ :o {:p {:q :r, :s :t}}}
+
+; Another look with a blank line between every pair
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 30 :map {:nl-separator-all? true :hang? false}})
+
+{:a :b,
+
+ :c
+   {:e :f,
+
+    :g :h,
+
+    :i :j,
+
+    :k :l},
+
+ :m :n,
+
+ :o {:p {:q :r, :s :t}}}
+
+
+```
 
 #### :justify? _false_
 
@@ -4418,6 +4453,43 @@ Some examples:
  :m :n,
  :o {:p {:q :r, :s :t}}}
 ```
+#### :map-nl-all, :pair-nl-all, :binding-nl-all
+
+These are convenience styles which simply allow you to set `{:indent
+0 :nl-separator-all? true}` for each of the associated format elements.
+They simply exist to save you some typing if these styles are
+favorites of yours.  This will add a blank line between any pairs.
+
+Some examples:
+
+```clojure
+; If we have :nl-separator? true, but nothing flows onto the next line, then
+; there are no blank lines
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 40 :map {:nl-separator? true}})
+
+{:a :b,
+ :c {:e :f, :g :h, :i :j, :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; But if :nl-separator-all? is true, you always get blank lines between pairs
+; regardless of whether or not anythig flowed!
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 40 :map {:nl-separator-all? true}})
+
+{:a :b,
+
+ :c {:e :f, :g :h, :i :j, :k :l},
+
+ :m :n,
+
+ :o {:p {:q :r, :s :t}}}
+```
+
+This operates similarly for bindings (i.e., `let`, etc.) using 
+`:style :binding-nl-all` and for pairs (i.e., things in `cond`, 
+as well as constant pairs) when using ':style :pair-nl-all`.
 
 #### :moustache
 

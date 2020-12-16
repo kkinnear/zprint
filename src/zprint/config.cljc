@@ -403,7 +403,8 @@
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
              :justify? false,
-             :nl-separator? false},
+             :nl-separator? false
+	     :nl-separator-all? false},
    :cache {:directory ".zprint", :location "HOME"},
    :color? false,
    :color-map {:brace :red,
@@ -510,6 +511,7 @@
          :lift-ns-in-code? false,
          :force-nl? nil,
          :nl-separator? false,
+         :nl-separator-all? false,
          :flow? false,
          :justify? false,
          :justify-hang {:hang-expand 5},
@@ -544,7 +546,8 @@
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
           :justify? false,
-          :nl-separator? false},
+          :nl-separator? false
+	  :nl-separator-all? false},
    :pair-fn {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
    :parse {:interpose nil, :left-space :drop},
    :parse-string-all? false,
@@ -598,6 +601,7 @@
             "clojure.core/unquote" [:replace-w-string {}
                                     {:list {:replacement-string "~"}}]}},
       :binding-nl {:binding {:indent 0, :nl-separator? true}},
+      :binding-nl-all {:binding {:indent 0, :nl-separator-all? true}},
       :community {:binding {:indent 0},
                   :fn-map {"apply" :none,
                            "assoc" :none,
@@ -700,6 +704,7 @@
                                    (when (not= k? (:respect-nl? (:vector %1)))
                                      {:vector {:respect-nl? k?}}))}},
       :map-nl {:map {:indent 0, :nl-separator? true}},
+      :map-nl-all {:map {:indent 0, :nl-separator-all? true}},
       :moustache {:fn-map {"app" [:none
                                   {:list {:constant-pair-min 1,
                                           :constant-pair-fn #(or (keyword? %)
@@ -719,6 +724,7 @@
                 :reader-cond {:hang? false},
                 :record {:hang? false}},
       :pair-nl {:pair {:indent 0, :nl-separator? true}},
+      :pair-nl-all {:pair {:indent 0, :nl-separator-all? true}},
       :fast-hang {:binding {:hang-accept 100, :ha-width-factor -600},
                   :extend {:hang-accept 100, :ha-width-factor -600},
                   :list {:hang-accept 100, :ha-width-factor -300},

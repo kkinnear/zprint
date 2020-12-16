@@ -12,6 +12,7 @@ a number of major source code formattng approaches.
  * [Functions in options maps now safely supported in all `.zprintrc` files, using `sci`.](./doc/options/optionfns.md) 
  * Functions in options maps now supported in all distributed graalVM binaries!
  * [You can now define a style and use it in the same `.zprintrc`.](./doc/reference.md#style-and-style-map)  You can also define one style in terms of another.
+ * `{:style :pair-nl-all}` will always give you a blank line between `cond` pairs, likewise `:map-nl-all` and `:binding-nl-all` will do the same for maps and bindings.
  * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
  * Output colorized, formatted source to terminal: `$ zprint '{:color? true}' <file.clj`
  * [More flexible constant-pairing](./doc/reference.md#constant-pair-fn-nil)

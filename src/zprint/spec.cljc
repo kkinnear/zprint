@@ -243,7 +243,7 @@
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
                       ::justify? ::justify-hang ::justify-tuning
-                      ::nl-separator?]))
+                      ::nl-separator? ::nl-separator-all?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::color-map
   (only-keys :opt-un [::brace ::bracket ::char ::comma ::comment ::deref ::false
@@ -303,8 +303,8 @@
              ::hang? ::indent ::indent-only? ::justify? ::justify-hang
              ::justify-tuning ::key-color ::key-value-color ::key-depth-color
              ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
-             ::lift-ns-in-code? ::nl-separator? ::respect-bl? ::respect-nl?
-             ::sort-in-code? ::sort? ::unlift-ns?]))
+             ::lift-ns-in-code? ::nl-separator? ::nl-separator-all? 
+	     ::respect-bl? ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)

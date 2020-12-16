@@ -112,7 +112,7 @@ in order to force the second element onto the next line in each case:
     (list a b c d)))
 
 ; Some peope like to separate the pairs that end up on the next line
-; with a blank line
+; with a blank line, though this isn't community endorsed
 
 (czprint-fn pair-indent {:style [:community :pair-nl] :width 22})
 
@@ -127,6 +127,22 @@ in order to force the second element onto the next line in each case:
     :else
     (list a b c d)))
 
+; Some people like to separate all of the pairs with a blank line,
+; though this too isn't community endorsed
+
+(czprint-fn pair-indent {:style [:community :pair-nl-all] :width 22})
+
+(defn pair-indent
+  "An exmple showing how pairs are indented."
+  [a b c d]
+  (cond
+    (nil? a) (list d)
+
+    (nil? b)
+    (list c d a b)
+
+    :else
+    (list a b c d)))
 ```
 
 Here is a more realistic example of the difference:

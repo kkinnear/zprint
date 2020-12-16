@@ -5440,6 +5440,29 @@ ser/collect-vars-acc %1 %2) )))"
     "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(<\n         (:ret %)\n         (-> %\n             :args\n\t     :stuff\n\t     :bother\n\t     :lots\n\t     (of stuff that is long enough that it doesn't fit on one line and :should be :paired up)\n\t     :keywords\n             :end)))"
     {:parse-string? true}))
 
+   ;;
+   ;; Tests for :nl-separator-all?
+   ;;
+
+(expect
+  "{:a :b,\n\n :c {:e :f, :g :h, :i :j, :k :l},\n\n :m :n,\n\n :o {:p {:q :r, :s :t}}}"
+  (zprint-str
+    {:a :b, :c {:e :f, :g :h, :i :j, :k :l}, :m :n, :o {:p {:q :r, :s :t}}}
+    {:width 40, :map {:nl-separator-all? true}}))
+
+
+
+(expect "(let [a b\n\n      c d\n\n      e f\n\n      g h]\n  nil)"
+        (zprint-str
+          "(let [a b c d e f g h] nil)"
+          {:parse-string? true, :width 20, :binding {:nl-separator-all? true}}))
+
+
+(expect "(cond a b\n\n      c d\n\n      e f\n\n      g h)"
+        (zprint-str
+          "(cond a b c d e f g h)"
+          {:parse-string? true, :width 20, :pair {:nl-separator-all? true}}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

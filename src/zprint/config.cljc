@@ -705,17 +705,18 @@
                                      {:vector {:respect-nl? k?}}))}},
       :map-nl {:map {:indent 0, :nl-separator? true}},
       :map-nl-all {:map {:indent 0, :nl-separator-all? true}},
-      :moustache {:fn-map {"app" [:none
-                                  {:list {:constant-pair-min 1,
-                                          :constant-pair-fn #(or (keyword? %)
-                                                                 (string? %)
-                                                                 (number? %)
-                                                                 (= true %)
-                                                                 (= false %)
-                                                                 (vector? %))},
-                                   :next-inner {:list {:constant-pair-min 4,
-                                                       :constant-pair-fn
-                                                         nil}}}]}},
+      :moustache {:fn-map {"app" [:flow {:style :vector-pairs}]}},
+      :vector-pairs  {:list {:constant-pair-min 1,
+			     :constant-pair-fn #(or (keyword? %)
+					            (string? %)
+						    (number? %)
+						    (= true %)
+						    (= false %)
+						    (vector? %))}
+		      :pair {:justify? true},
+		      :next-inner {:list {:constant-pair-min 4,
+					  :constant-pair-fn nil}
+				   :pair {:justify? false}}}
       :no-hang {:map {:hang? false},
                 :list {:hang? false},
                 :extend {:hang? false},

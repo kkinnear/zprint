@@ -5309,9 +5309,10 @@ ser/collect-vars-acc %1 %2) )))"
   (def mapp7
     "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comments work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app \n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
 
-  (expect
-    "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comments work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app [route] handler\n                    [route] ; What about comments here?\n                      handler))";
-    (zprint-str mapp7 {:parse-string? true, :style :moustache, :width 55}))
+
+ (expect
+"(m/app\n  :get     (m/app\n             middle1\n             middle2\n             middle3\n             [route] handler\n             ; How do comments work?\n             [route] (handler this is \"a\" test \"this\" is \"only a\" test))\n  ; How do comments work here?\n  true     (should be paired with true)\n  false    (should be paired with false)\n  6        (should be paired with 6)\n  \"string\" (should be paired with string)\n  :post    (m/app\n             [route] handler\n             [route] ; What about comments here?\n               handler))"
+ (zprint-str mapp7 {:parse-string? true, :style :moustache}))
 
   ;;
   ;; Line endings

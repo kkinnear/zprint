@@ -3969,11 +3969,11 @@
                                 "fzprint-list*: r-str-vec:" r-str-vec
                                 "result:" result)
                         result)
-                      ; This might be a collection as the first thing, or it
-                      ; might be a :flow type.  Do different indents for these.
-                      (let [local-indent (if (= fn-style :flow)
-                                           (+ indent ind)
-                                           (+ default-indent ind indent-adj))]
+                      ; This is collection as the first thing. Used to handle
+		      ; :flow here as well, but now it goes through
+		      ; fzprint-hang-remaining with hindent = findent so that
+		      ; constant pairing works for flow.
+                      (let [local-indent (+ default-indent ind indent-adj)]
                         (concat-no-nil ;[[(str "\n" (blanks local-indent)) :none
                                        ;:indent]]
                           (fzprint-flow-seq (noarg1 options fn-style)

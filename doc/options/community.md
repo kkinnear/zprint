@@ -79,7 +79,7 @@ in order to force the second element onto the next line in each case:
         (nil? b) (list c d a b)
         :else (list a b c d)))
 
-; Here is the default zprint formatting, when the second element of a
+; Here is the default zprint formatting, where the second element of a
 ; cond pair is indented when it formats onto the next line due to the 
 ; narrow width.
 
@@ -111,7 +111,7 @@ in order to force the second element onto the next line in each case:
     :else
     (list a b c d)))
 
-; Some peope like to separate the pairs that end up on the next line
+; Some people like to separate the pairs that end up on the next line
 ; with a blank line, though this isn't community endorsed
 
 (czprint-fn pair-indent {:style [:community :pair-nl] :width 22})
@@ -335,12 +335,13 @@ second element of a pair:
 ```
 
 Look at the indent of "with-open only allows Symbols in bindings".  It
-is different.  In the first example, all lists in code are indented by
+is different.  In the first example, all lists in code with symbols as 
+their first element are indented by
 2.  In the second, only known body functions are indented by 2 when formatted
-with a flow.  Note that unless you tell zprint that functions that you 
-define are "body" functions by making them at least `:none-body` in the
-`:fn-map`, then whenever your functions are formatted with a flow they
-will be indented by 1, not 2 spaces.
+with a flow.  Note that when using `{:style :community}`, unless you tell 
+zprint that functions that you define are "body" functions by making 
+them at least `:none-body` in the `:fn-map`, then whenever your functions 
+are formatted with a flow they will be indented by 1, not 2 spaces.
 
 
 ## How to get community endorsed formatting?

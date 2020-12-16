@@ -2103,7 +2103,6 @@ Also works with `:pair` functions
 ```
 
 #### :nl-separator? _false_
-#### :nl-separator-all? _false_
 
 This will put a blank line between any pair where the right part of a pair
 was formatted with a flow. Some examples:
@@ -2182,42 +2181,52 @@ was formatted with a flow. Some examples:
 
  :m :n,
  :o {:p {:q :r, :s :t}}}
-
-; You can force a new line between all pairs, regardless of whether or
-; not the second element flowed onto the next line
-
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 30 :map {:nl-separator-all? true :hang? false :indent 0}})
-
-{:a :b,
-
- :c
- {:e :f, :g :h, :i :j, :k :l},
-
- :m :n,
-
- :o {:p {:q :r, :s :t}}}
-
-; Another look with a blank line between every pair
-
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 30 :map {:nl-separator-all? true :hang? false}})
-
-{:a :b,
-
- :c
-   {:e :f,
-
-    :g :h,
-
-    :i :j,
-
-    :k :l},
-
- :m :n,
-
- :o {:p {:q :r, :s :t}}}
-
-
 ```
+#### :nl-separator-all? _false_
+
+This will put a blank line between any pair, regardless of how the 
+second element of the pair was formatted.  Some examples:
+
+```clojure
+; The default approach, when the value (or any second element of a pair)
+; doesn't fit on the same line as the key (or first element).
+; The second element in this case is indented for clarity.
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 32})
+
+{:a :b,
+ :c
+   {:e :f, :g :h, :i :j, :k :l},
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; :nl-separator? will give you a blank line only after every second element 
+; that didn't fit on the same line as the first element.
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 32 :map {:nl-separator? true}})
+
+{:a :b,
+ :c
+   {:e :f, :g :h, :i :j, :k :l},
+
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; :nl-separator-all? will give you a blank line between every pair of elements,
+; regardless of how they fit onto the lines.
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 32 :map {:nl-separator-all? true}})
+
+{:a :b,
+
+ :c
+   {:e :f, :g :h, :i :j, :k :l},
+
+ :m :n,
+
+ :o {:p {:q :r, :s :t}}}
+```
+This works independently for `:pair`, `:binding`, and `:map`.
 
 #### :justify? _false_
 
@@ -4463,24 +4472,39 @@ favorites of yours.  This will add a blank line between any pairs.
 Some examples:
 
 ```clojure
-; If we have :nl-separator? true, but nothing flows onto the next line, then
-; there are no blank lines
+; The default approach to handling a value (or second element of a pair) that 
+; doesn't fit on the same line as a key (or first element).
+; The second element in this case is indented for clarity.
 
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 40 :map {:nl-separator? true}})
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 32})
 
 {:a :b,
- :c {:e :f, :g :h, :i :j, :k :l},
+ :c
+   {:e :f, :g :h, :i :j, :k :l},
  :m :n,
  :o {:p {:q :r, :s :t}}}
 
-; But if :nl-separator-all? is true, you always get blank lines between pairs
-; regardless of whether or not anythig flowed!
+; If you want a blank line after every value that doesn't fit on the same
+; line as the associated key.  Note that :map-nl (and all of the -nl styles)
+; also set :indent 0.
 
-(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 40 :map {:nl-separator-all? true}})
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 32 :style :map-nl})
+
+{:a :b,
+ :c
+ {:e :f, :g :h, :i :j, :k :l},
+
+ :m :n,
+ :o {:p {:q :r, :s :t}}}
+
+; If you want a blank line between every pair, also with :indent 0, as above.
+
+(czprint {:a :b :c {:e :f :g :h :i :j :k :l} :m :n :o {:p {:q :r :s :t}}} {:width 32 :style :map-nl-all})
 
 {:a :b,
 
- :c {:e :f, :g :h, :i :j, :k :l},
+ :c
+ {:e :f, :g :h, :i :j, :k :l},
 
  :m :n,
 
@@ -4489,7 +4513,7 @@ Some examples:
 
 This operates similarly for bindings (i.e., `let`, etc.) using 
 `:style :binding-nl-all` and for pairs (i.e., things in `cond`, 
-as well as constant pairs) when using ':style :pair-nl-all`.
+as well as constant pairs) when using `:style :pair-nl-all`.
 
 #### :moustache
 

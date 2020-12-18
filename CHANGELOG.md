@@ -9,7 +9,19 @@ All notable changes to this project will be documented in this file.
   (i.e. utilize) the style in the same `.zprintrc` or the same call
   to `set-options!`.
 
+  * Several new variants of the `-w` and `--write` switches on the
+  distributed pre-built binaries. These report on which files
+  are being processed (`-lw` and `--list-write`), which
+  files changed (`-cw` and `--changed-write`), or both
+  (`-lcw` and `--list-changed-write`).
+
 ### Changed
+
+  * The distributed, pre-built binaries now will not replace an existing
+  file with an unchanged file when using the `-w` (`--write`) switch,
+  or any of its variants (see above).  Previously they re-wrote the input 
+  file with the formatted output regardless of whether or not it changed.  
+  Now they do not write unchanged data back into the file.
 
   * In Issue #124 we added the ability to have inline functions defined
   in some `.zprintrc` files, but not all of them.  In addition, the

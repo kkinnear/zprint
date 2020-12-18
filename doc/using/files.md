@@ -27,7 +27,7 @@ or
 zprintm '{:width 90}' -w myfile.clj
 ```
 will read myfile.clj, format the source, and write the result back into
-myfile.clj
+myfile.clj if it is different than the source.
 
 You can also format all of the clojure files in a directory with:
 ```
@@ -37,6 +37,20 @@ This will format each of the .clj files, and if there are any errors,
 it will report the error for that file, and continue on processing
 the rest of the files.  If there are errors formatting any file, the
 contents of that file remain unchanged.
+
+You can "list" the files processed, and see which ones "changed", using
+the "-lcw" switch:
+```
+zprint -lcw *.clj
+```
+Both "-cw" to show you only the files that changed, and "-lw" to show
+you which files are being processed with no information on which ones
+changed, are also supported:
+```
+zprint -cw *.clj
+
+zprint -lw *.clj
+```
 
 __Get prebuilt binaries for__:  
   * [macOS](../getting/macos.md)

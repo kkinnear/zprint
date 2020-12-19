@@ -35,7 +35,7 @@
           "java -jar zprint-filter-"
           (second (clojure.string/split (:version (get-options)) #"-")))
      ""
-     " <options-map> is a Clojure map containing zprint options."
+     " <options-map> is a Clojure map containing zprint options. Must be first."
      "               Note that since it contains spaces, it must be"
      "               wrapped in quotes, for example:"
      "               '{:width 120}'"
@@ -43,7 +43,7 @@
      "               Use the -e switch to see the total options"
      "               map, which will show you what is configurable."
      ""
-     " <switches> which do no formatting:"
+     " <switches> which do no formatting, only one allowed:"
      ""
      "  -h  --help         Output this help text."
      "  -v  --version      Output the version of zprint."
@@ -54,21 +54,41 @@
      ""
      "  -d  --default      Accept no configuration input."
      "  -u  --url URL      Load options from URL."
-     "      --url-only URL Load only options found from URL, ignore all others."
+     "      --url-only URL Load only options found from URL,"
+     "                     ignore all .zprintrc, .zprint.edn files."
      ""
-     " <switches> which format named files:  May follow a configuration switch"
-     "                                       or an options map, but not both"
+     " <switches> which process named files:  May follow a configuration switch"
+
+     "                                        or an options map, but not both!"
      ""
      "  -w  --write FILE                read, format, and write to FILE (or FILEs),"
      "                                  -w *.clj is supported."
-     "  -lw  --list-write FILE          like -w, but indicate which files processed."
-     "  -cw  --changed-write FILE       like -w, but indicate which files changed."
-     "  -lcw --list-changed-write FILE  like -w, but indicate files both processed"
-     "                                  and changed."
+     "  -c  --check FILE                read and check format of FILE (or FILEs)"
+     "                                  -c *.clj is supported."
      ""
-     " The -w switch is the only switch where you may also have an options map!"
+     " Variations on -w, --write and -c, -check:"
+     ""
+     "  -lw  --list-write      FILE  like -w, but indicate which files processed."
+     "  -fw  --formatted-write FILE  like -w, but indicate which files changed."
+     "  -sw  --summary-write   FILE  like -w, but include a summary of the number"
+     "                               of files processed and how many required a"
+     "                               format change, as well as any errors."
+     ""
+     " Combinations are allowed, w/write and c/check must always be last,"
+     " and order matters for -- switches.  Examples:"
+     ""
+     "   -lfw, -lfsw, -fsw, -flw, -sflw, etc." 
+     "   --list-formatted-write, --list-formatted-summary-write, etc."
+     ""
+     " All combinations of -w and --write switches are also allowed "
+     " with -c and --check switches:"
+     ""
+     "   -lfc, -lfsc, -fsc, -flc, -sflc, etc." 
+     "   --list-formatted-check, --list-formatted-summary-check, etc."
+     ""
+     " The -w and -c switches are the only switches where you may also"
+     " have an options map!"
      ""]))
-
 
 (defn write-to-stderr
   "Take a string, and write it to stderr."
@@ -78,60 +98,71 @@
     (.flush w)))
 
 (defn format-file
-  "Take a single argument, a filename string, and format it.
-  Read from the file, then rewrite the file with the formatted source.
-  Return an exit-status, either 0 if successful, or 1 if there were
-  problems.  In the event of problems, don't change the contents of
-  the file, but output text describing the problem to stderr."
-  [filename list? changed?]
-  (let [[exit-status in-str format-str format-stderr]
-          (as-> [0 nil nil nil] running-status
-            (let [[exit-status in-str format-str format-stderr] running-status]
+  "Take a single argument, a filename string, and format it.  Read
+  from the file, then rewrite the file with the formatted source.
+  Return [exit-status required-format], where exit-status is
+  either 0 if successful, or 1 if there were problems, and
+  required-format is 0 if not, 1 if it did.  In the event of
+  problems, don't change the contents of the file, but output text
+  describing the problem to stderr."
+  [filename check? list? formatted?]
+  (let [[exit-status required-format in-str format-str format-stderr]
+          (as-> [0 0 nil nil nil] running-status
+            (let [[exit-status required-format in-str format-str format-stderr]
+                    running-status]
               (when list? (write-to-stderr (str "Processing file " filename)))
-              (try [0 (slurp filename) nil nil]
+              (try [0 0 (slurp filename) nil nil]
                    (catch Exception e
-                     [1 nil nil
+                     [1 0 nil nil
                       (str "Failed to open file " filename " because: " e)])))
-            (let [[exit-status in-str format-str format-stderr] running-status]
+            (let [[exit-status required-format in-str format-str format-stderr]
+                    running-status]
               (if (= exit-status 1)
                 ; We are done, move on
                 running-status
-                (try [0 in-str (zprint-file-str in-str filename) nil]
+                (try [0 0 in-str (zprint-file-str in-str filename) nil]
                      (catch Exception e
-                       [1 nil nil
+                       [1 0 nil nil
                         (str "Failed to format file: " filename
                              " because " e)]))))
             ;
             ; See comment in -main about graalVM issues with this code
             ;
             ; Write whatever is supposed to go to stdout
-            (let [[exit-status in-str format-str format-stderr] running-status]
+            (let [[exit-status required-format in-str format-str format-stderr]
+                    running-status]
               (if (= exit-status 1)
                 ; We are done, move on
                 running-status
                 ; Did we actually change anything?
                 (if (not= in-str format-str)
                   ; Yes, write it out
-                  (try
-                    (let [^java.io.Writer w (clojure.java.io/writer filename)]
-                      (.write w (str format-str))
-                      (.flush w)
-                      (.close w)
-                      (when changed?
-                        (write-to-stderr (str "Formatted file " filename)))
-                      [0 nil nil nil])
-                    (catch Exception e
-                      [1 nil nil
-                       (str "Failed to write output file: " filename
-                            " because " e)]))
-                  ; No, just move on
-                  [0 nil nil nil])))
+                  (if check?
+                    (do (when formatted?
+                          (write-to-stderr (str "Formatting required in file "
+                                                filename)))
+                        [0 1 nil nil nil])
+                    (try
+                      (let [^java.io.Writer w (clojure.java.io/writer filename)]
+                        (.write w (str format-str))
+                        (.flush w)
+                        (.close w)
+                        (when formatted?
+                          (write-to-stderr (str "Formatted file " filename)))
+                        [0 1 nil nil nil])
+                      (catch Exception e
+                        [1 1 nil nil
+                         (str "Failed to write output file: " filename
+                              " because " e)])))
+                  ; No, we didn't actually change anything, just move on
+                  [0 0 nil nil nil])))
             ; Write whatever is supposed to go to stderr, if anything
-            (let [[exit-status in-str format-str format-stderr] running-status]
+            (let [[exit-status required-format in-str format-str format-stderr]
+                    running-status]
               (when format-stderr (write-to-stderr format-stderr))
               ; We don't change the running-status because we wrote to stderr
               running-status))]
-    exit-status))
+    [exit-status required-format]))
 
 (defn elements-before-last-switch
   "Given the args from the command line, find the last arg that
@@ -154,6 +185,11 @@
              "count-before-last-switch" count-before-last-switch)
     count-before-last-switch))
 
+(defn pair-sum
+  "Sum two vector pairs."
+  [[a b] [c d]]
+  [(+ a c) (+ b d)])
+
 ;;
 ;; # Main
 ;;
@@ -168,36 +204,47 @@
   (let [before-last-switch (elements-before-last-switch args)
         last-switch-in-seq (when before-last-switch
                              (nthnext args before-last-switch))
-        possible-write-switch (when before-last-switch
-                                (first last-switch-in-seq))
-        write? (#{"-w" "--write" "-lw" "-cw" "-lcw" "-clw"
-                  "--list-changed-write" "--changed-list-write" "--list-write"
-                  "--changed-write"}
-                possible-write-switch)
-        changed? (when write?
-                   (clojure.string/includes? possible-write-switch "c"))
-        list? (when write? (clojure.string/includes? possible-write-switch "l"))
-        files (when write? (next last-switch-in-seq))
-        args (if write? (take before-last-switch args) args)
-        #_#_options?
-          (and (first args)
-               (clojure.string/starts-with? (clojure.string/trim (first args))
-                                            "{"))
-        #_#_write-switch (if options? (second args) (first args))
-        #_#_write? (or (= "-w" write-switch) (= "--write" write-switch))
-        #_#_files (when write? (if options? (nnext args) (next args)))
-        ; Now that we have the --write/-w stuff out of the way, process
-        ; switches and options, having first removed the --write/-w stuff,
-        ; if any
-        #_#_args (if write? (if options? (take 1 args) nil) args)
+        possible-wc-switch (when before-last-switch
+                             (clojure.string/trim (first last-switch-in-seq)))
+        write-set #{"-w" "-lw" "-lfw" "-lsw" "-lfsw" "-fw" "-fsw" "-sw" "-flw"
+                    "-flsw" "-fslw" "-sfw" "-slw" "-sflw" "-slfw" "--write"
+                    "--list-write" "--list-formatted-write"
+                    "--list-format-write" "--list-formatted-summary-write"
+                    "--formatted-write" "--list-format-summary-write"
+                    "--format-write" "--formatted-summary-write"
+                    "--summary-write" "--format-summary-write"}
+        check-set #{"-c" "-lc" "-lfc" "-lsc" "-lfsc" "-fc" "-fsc" "-sc" "-flc"
+                    "-flsc" "-fslc" "-sfc" "-slc" "-sflc" "-slfc" "--check"
+                    "--list-check" "--list-formatted-check"
+                    "--list-format-check" "--list-formatted-summary-check"
+                    "--formatted-check" "--list-format-summary-check"
+                    "--format-check" "--formatted-summary-check"
+                    "--format-summary-check" "--summary-check"}
+        write? (write-set possible-wc-switch)
+        check? (check-set possible-wc-switch)
+        [list? formatted? summary?]
+          (when (or write? check?)
+            (if (clojure.string/starts-with? possible-wc-switch "--")
+              [(clojure.string/includes? possible-wc-switch "list")
+               (or (clojure.string/includes? possible-wc-switch "formatted")
+                   (clojure.string/includes? possible-wc-switch "format"))
+               (clojure.string/includes? possible-wc-switch "summary")]
+              [(clojure.string/includes? possible-wc-switch "l")
+               (clojure.string/includes? possible-wc-switch "f")
+               (clojure.string/includes? possible-wc-switch "s")]))
+        files (when (or write? check?) (next last-switch-in-seq))
+	; Remove write or check switch and files, if any
+        args (if (or write? check?) (take before-last-switch args) args)
         options (first args)
         _ (prn "args:" args)
         _ (println)
         _ (prn "before-last-switch:" before-last-switch
-               "possible-write-switch:" possible-write-switch
+               "possible-wc-switch:" possible-wc-switch
                "write?" write?
+               "check?" check?
                "list?" list?
-               "changed?" changed?
+               "formatted?" formatted?
+               "summary?" summary?
                "files:" files)
         ; Some people wanted a zprint that didn't take configuration.
         ; If you say "--default" or "-d", that is what you get.
@@ -245,7 +292,7 @@
                 running-status
                 ; Do we have a options, and if so, is that all?
                 (if (and options
-		         (not (clojure.string/starts-with? options "-"))
+                         (not (clojure.string/starts-with? options "-"))
                          (not arg-count-ok?))
                   ; No, we have something that could be options, and other
                   ; stuff after it, which is not allowed.  If we had -w
@@ -430,14 +477,41 @@
           #_(shutdown-agents)
           #_(System/exit exit-status))
       ; Do whatever formatting we should do
-      (if write?
+      (if (or write? check?)
         ; We have one or more filenames to deal with
-        (let [total-exit-status
-                (reduce #(+ %1 (format-file %2 list? changed?)) 0 files)]
-          #_(prn "total-exit-status:" total-exit-status)
+        (let [[total-exit-status total-required-format]
+                (reduce #(pair-sum %1 (format-file %2 check? list? formatted?))
+                  [0 0]
+                  files)
+              file-count (count files)]
+          (prn "total-exit-status:" total-exit-status
+               "total-required-format:" total-required-format)
+          (when summary?
+            (write-to-stderr
+              (str
+                "Processed "
+                file-count
+                " file"
+                (if (> file-count 1) "s, " ", ")
+                (if (pos? total-exit-status)
+                  (str "with "
+                       total-exit-status
+                       " error"
+                       (if (> total-exit-status 1) "s" "")
+                       ", ")
+                  "")
+                (if (pos? total-required-format) total-required-format "none")
+                " of which "
+                (if check? "require" "required")
+                " formatting.")))
           ;;;  NOTE FIX THIS ONE TOO
           #_(shutdown-agents)
-          #_(System/exit (if (> total-exit-status 0) 1 0)))
+          #_(System/exit (if write?
+                           (if (> total-exit-status 0) 1 0)
+                           ; For check? we return the number of files that
+                           ; needed formatting, even though we didn't
+                           ; actually format them, and the errors as well
+                           (+ total-required-format total-exit-status))))
         ; We are operating on stdin and stdout
         (let [in-str (slurp *in*)
               [format-status stdout-str format-stderr]

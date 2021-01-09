@@ -32,8 +32,8 @@
        zlock-enable is true, because graalvm will compile with the
        following code, but will throw an exception since it is
        unable to find the unlock method."
-       [^ReentrantLock x & body]
-       `(let [lockee# ~x]
+       [x & body]
+       `(let [^ReentrantLock lockee# ~x]
           (try (if @zlock-enable (. lockee# (lock)))
                ~@body
                (if @zlock-enable (. lockee# (unlock)))

@@ -104,9 +104,12 @@ echo "...........  --url"
 output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "197" ]]
+
+expected_length=197
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "--url test failed to have correct count of chars, should be 197, was: $output_length"
+    echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -122,9 +125,12 @@ echo "...........  --url, with URL missing, see if cache works"
 output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "197" ]]
+
+expected_length=197
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "--url test failed to have correct count of chars, should be 197, was: $output_length"
+    echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -136,9 +142,12 @@ echo "...........  --url, with URL missing, see if expired cache works"
 output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "323" ]]
+
+expected_length=323
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "--url test failed to have correct count of chars, should be 323, was: $output_length"
+    echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -150,9 +159,12 @@ echo "...........  --url, with URL missing, and no cache"
 output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep ERROR | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "128" ]]
+
+expected_length=214
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "--url test failed to have correct count of chars, should be 128, was: $output_length"
+    echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -170,9 +182,12 @@ echo "...........  --url, with URL not a valid Clojure map, and no cache"
 output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep ERROR | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "140" ]]
+
+expected_length=226
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "--url test failed to have correct count of chars, should be 140, was: $output_length"
+    echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -188,9 +203,12 @@ echo "...........  --url, with URL not a valid zprint options map, and no cache"
 output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | grep ERROR | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "246" ]]
+
+expected_length=396
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "--url test failed to have correct count of chars, should be 246, was: $output_length"
+    echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -209,16 +227,21 @@ output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 output_lines=`echo "${output_lines}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 #echo "lines is $output_lines"
-if [[ $output_length != "192" ]]
+
+expected_length=192
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "--url test failed to have correct count of chars, should be 192, was: $output_length"
+    echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
 
-if [[ $output_lines != "1" ]]
+expected_line_length=1
+
+if [[ $output_lines != $expected_line_length ]]
   then
-    echo "--url test failed to have correct count of lines, should be 1, was: $output_lines"
+    echo "--url test failed to have correct count of lines, should be $expected_line_length, was: $output_lines"
     $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -239,9 +262,12 @@ echo "...........  --url-only, with valid URL, file w/fn, and no cache"
 output_length=`$command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "66" ]]
+
+expected_length=66
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "--url with fn test failed to have correct count of characters, should be 66, was: $output_length"
+    echo "--url with fn test failed to have correct count of characters, should be $expected_length, was: $output_length"
     $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
 fi
@@ -266,9 +292,12 @@ echo "...........  basic config test."
 output_length=`$command <test_config.string.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "15" ]]
+
+expected_length=15
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "basic config test failed to have correct count of chars, should be 15, was: $output_length"
+    echo "basic config test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command <test_config.string.clj 
 
 fi
@@ -290,9 +319,12 @@ echo "...........  basic config with comment in zprintrc test."
 output_length=`$command <test_config.string.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "15" ]]
+
+expected_length=15
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "basic config with comment in zprintrc test failed to have correct count of chars, should be 15, was: $output_length"
+    echo "basic config with comment in zprintrc test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command <test_config.string.clj 
 
 fi
@@ -317,9 +349,12 @@ echo "...........  {:cwd-zprintrc? true} on command line test"
 output_length=`$command '{:cwd-zprintrc? true}' <test_config.string.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "24" ]]
+
+expected_length=24
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "{:cwd-zprintrc? true} test failed to have correct count of chars, should be 24, was: $output_length"
+    echo "{:cwd-zprintrc? true} test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command '{:cwd-zprintrc? true}' <test_config.string.clj 
 
 fi
@@ -333,9 +368,12 @@ echo "...........  {:search-config? true} on command line test"
 output_length=`$command '{:search-config? true}' <test_config.string.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "24" ]]
+
+expected_length=24
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "{:search-config? true} test failed to have correct count of chars, should be 24, was: $output_length"
+    echo "{:search-config? true} test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command '{:search-config? true}' <test_config.string.clj 
 
 fi
@@ -349,9 +387,12 @@ echo "...........  ~/.zprintrc being used test"
 output_length=`$command <test_config.map.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "71" ]]
+
+expected_length=71
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "~/.zprintrc being used test failed to have correct count of chars, should be 71, was: $output_length"
+    echo "~/.zprintrc being used test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command <test_config.map.clj 
 
 fi
@@ -365,9 +406,12 @@ echo "...........  -d test -- ~/.zprintrc should not be used"
 output_length=`$command -d <test_config.map.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "66" ]]
+
+expected_length=66
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "-d test -- ~/.zprintrc should not be used test failed to have correct count of chars, should be 66, was: $output_length"
+    echo "-d test -- ~/.zprintrc should not be used test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command -d <test_config.map.clj 
 
 fi
@@ -386,9 +430,12 @@ echo "...........  bad ~/.zprintrc, invalid Clojure map test"
 output_length=`$command <test_config.string.clj 2>&1| grep "EOF while reading" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "1" ]]
+
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "bad ~/.zprintrc (invalid Clojure map) test failed to have correct count of lines after grep for 'EOF while reading', should be 1, was: $output_length"
+    echo "bad ~/.zprintrc (invalid Clojure map) test failed to have correct count of lines after grep for 'EOF while reading', should be $expected_length, was: $output_length"
     $command <test_config.string.clj 
 
 fi
@@ -407,9 +454,12 @@ output_length=`$command <test_config.string.clj 2>&1| grep "the key :widthxxx wa
 
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "1" ]]
+
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "invalid zprint options map in ~/.zprintrc test failed to have correct count of chars, should be 1, was: $output_length"
+    echo "invalid zprint options map in ~/.zprintrc test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command <test_config.string.clj 
 
 fi
@@ -446,9 +496,12 @@ echo "...........  -h test"
 output_length=`$command -h 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "35" ]]
+
+expected_length=67
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "-h test failed to have correct count of chars, should be 35, was: $output_length"
+    echo "-h test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command -h
 fi
 
@@ -463,9 +516,12 @@ echo "...........  -e test"
 output_length=`$command -e 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "561" ]]
+
+expected_length=562
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "-e test failed to have correct count of lines, should be 561, was: $output_length"
+    echo "-e test failed to have correct count of lines, should be 562, was: $output_length"
     $command -e
 fi
 
@@ -487,9 +543,12 @@ echo "{:parallel? :stuff :coerce-to-false :stuff :width 500}" > ./.zprintrc
 output_length=`$command -e 2>&1| grep :parallel? | grep ":value false" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "1" ]]
+
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
   then
-    echo ":coerce-to-false test failed to have correct count of lines, should be 1, was: $output_length"
+    echo ":coerce-to-false test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command -e
 fi
 
@@ -537,7 +596,7 @@ if [[ $output_length != $expected_length ]]
     $command -e
 fi
 
-echo "...........  fn using #(...) in .zprintrc file with file not found since no :cwd-zprintrc? or :search-config?"
+echo "...........  fn using #(...) in .zprintrc, not used since no :cwd-zprintrc? or :search-config?"
 
 # .zprintrc gets a fn
 echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
@@ -692,9 +751,11 @@ output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | w
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-if [[ $output_length != "1" ]]
+expected_length=1
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "fn is valid in ./.zprintrc test failed to have correct count of lines, should be 1, was: $output_length"
+    echo "fn is valid in ./.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command -e
 fi
 
@@ -760,7 +821,10 @@ $command -w test_config.map1.clj 2> test_config.stderr.out > test_config.stdout.
 output_length=`cat test_config.map1.clj test_config.stderr.out test_config.stdout.out | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "-w length is $output_length"
-if [[ $output_length != "66" ]]
+
+expected_length=66
+
+if [[ $output_length != $expected_length ]]
   then
     echo "-w test failed to have correct count of chars, should be 66, was: $output_length"
     cat test_config.map1.clj test_config.stderr.out test_config.stdout.out
@@ -783,9 +847,12 @@ $command -w test_config.map1.clj test_config.map2.clj 2> test_config.stderr.out 
 output_length=`cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "-w length is $output_length"
-if [[ $output_length != "132" ]]
+
+expected_length=132
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "-w test failed to have correct count of chars, should be 132, was: $output_length"
+    echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
 
@@ -807,9 +874,12 @@ $command -w test_config.map1.clj test_config.missing.clj test_config.map2.clj 2>
 output_length=`cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "-w length is $output_length"
-if [[ $output_length != "268" ]]
+
+expected_length=268
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "-w test failed to have correct count of chars, should be 268, was: $output_length"
+    echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
 
@@ -837,9 +907,12 @@ rm test_config.stderr.out.orig
 output_length=`cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "-w length is $output_length"
-if [[ $output_length != "238" ]]
+
+expected_length=238
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "-w test failed to have correct count of chars, should be 238, was: $output_length"
+    echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
 
@@ -864,9 +937,12 @@ diff test_config.map1.clj test_config.map1.clj.save >test_config.diff.out
 output_length=`cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "-w length is $output_length"
-if [[ $output_length != "468" ]]
+
+expected_length=468
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "-w test failed to have correct count of chars, should be 468, was: $output_length"
+    echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
 
@@ -945,9 +1021,12 @@ diff test_config.stdout.clj test_config.out.clj >test_config.diff.out
 output_length=`cat test_config.stdout.clj test_config.diff.out test_config.stderr.out | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
-if [[ $output_length != "792" ]]
+
+expected_length=792
+
+if [[ $output_length != $expected_length ]]
   then
-    echo "local .zprintrc having a fn that is used failed to have correct count of chars, should be 792, was: $output_length"
+    echo "local .zprintrc having a fn that is used failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.stdout.clj test_config.diff.out test_config.stderr.out
     wc -c test_config.stdout.clj test_config.diff.out test_config.stderr.out
 

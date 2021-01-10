@@ -180,7 +180,7 @@
                                    ; No switch
                                    nil
                                    (- len (inc switch-count)))]
-    (println "len:" len
+    #_(println "len:" len
              "switch-count:" switch-count
              "count-before-last-switch" count-before-last-switch)
     count-before-last-switch))
@@ -189,6 +189,72 @@
   "Sum two vector pairs."
   [[a b] [c d]]
   [(+ a c) (+ b d)])
+
+(defn parse-switches
+  "Look for all switches, other than the ones that process named files.
+  Return [[version? help? explain? default? standard? url? url-only?]
+          url-arg error-string]"
+  [arg-seq check? write?]
+  (let [arg-count (count arg-seq)
+        check-or-write? (or check? write?)]
+    (loop [args arg-seq
+           [version? help? explain? default? standard? url? url-only?] nil
+           url-arg nil
+           error-string nil]
+      (if (or (nil? args) error-string)
+        [[version? help? explain? default? standard? url? url-only?] url-arg
+         (if error-string
+           error-string
+           (cond
+             (and (or version? help? default? standard?) (> arg-count 1))
+               (str "Switch '"
+                    (first arg-seq)
+                    "' cannot appear with any other switches or arguments.")
+             (and check-or-write? (or version? help? explain?))
+               (str "Switch '" (first arg-seq)
+                    "' cannot appear with any variant of "
+                      (if check? "--check" "--write"))
+             (and url? url-only?)
+               "Switches url and url-only cannot appear together"
+             (and (or url? url-only?) (nil? url-arg))
+               (str "Switch "
+                    (if url? "-u or --url" "--url-only")
+                    " requires an argument")
+             :else nil))]
+        (let [next-arg (clojure.string/trim (first args))
+              valid-switch? (#{"--version" "-v" "--help" "-h" "--explain" "-e"
+                               "--default" "-d" "--standard" "-s" "--url" "-u"
+                               "--url-only"}
+                             next-arg)
+              version? (or version? (= next-arg "--version") (= next-arg "-v"))
+              help? (or help? (= next-arg "--help") (= next-arg "-h"))
+              explain? (or explain? (= next-arg "--explain") (= next-arg "-e"))
+              default? (or default? (= next-arg "--default") (= next-arg "-d"))
+              standard?
+                (or standard? (= next-arg "--standard") (= next-arg "-s"))
+              url? #?(:clj (or url? (= next-arg "--url") (= next-arg "-u"))
+                      :default nil)
+              url-only? #?(:clj (or url-only? (= next-arg "--url-only"))
+                           :default nil)
+              url-arg (when (or url? url-only?) (second args))]
+          (recur (if url-arg (nnext args) (next args))
+                 [version? help? explain? default? standard? url? url-only?]
+                 url-arg
+                 (when (not valid-switch?)
+                   (str "Unknown switch '" next-arg "'"))))))))
+
+(defn bool-to-switch
+  "Turn the booleans into switches."
+  [[version? help? explain? default? standard? url? url-only?]]
+  (clojure.string/join ", "
+                       (cond-> []
+                         version? (conj "-v or --version")
+                         help? (conj "-h or --help")
+                         explain? (conj "-e or --explain")
+                         default? (conj "-d or --default")
+                         standard? (conj "-s or --standard")
+                         url? (conj "-u or --url")
+                         url-only? (conj "-url-only"))))
 
 ;;
 ;; # Main
@@ -201,7 +267,9 @@
   ; Turn off multi-zprint locking since graalvm can't handle it, and
   ; we only do one zprint at a time here in the uberjar.
   (zprint.redef/remove-locking)
-  (let [before-last-switch (elements-before-last-switch args)
+  (let [debug? (and args (= (first args) ":debug"))
+        args (if debug? (next args) args)
+        before-last-switch (elements-before-last-switch args)
         last-switch-in-seq (when before-last-switch
                              (nthnext args before-last-switch))
         possible-wc-switch (when before-last-switch
@@ -233,42 +301,36 @@
                (clojure.string/includes? possible-wc-switch "f")
                (clojure.string/includes? possible-wc-switch "s")]))
         files (when (or write? check?) (next last-switch-in-seq))
-	; Remove write or check switch and files, if any
+        ; Remove write or check switch and files, if any
         args (if (or write? check?) (take before-last-switch args) args)
-        options (first args)
-        _ (prn "args:" args)
-        _ (println)
-        _ (prn "before-last-switch:" before-last-switch
+        args (if (empty? args) nil args)
+        ; Do we have an options map?  If we have one, it must be first.
+        possible-options (and args (clojure.string/trim (first args)))
+        options (when (and possible-options
+                           (clojure.string/starts-with? possible-options "{"))
+                  possible-options)
+        ; Remove options from args
+        args (if options (next args) args)
+        #_(prn "before-last-switch:" before-last-switch
                "possible-wc-switch:" possible-wc-switch
+               "debug?" debug?
                "write?" write?
                "check?" check?
                "list?" list?
                "formatted?" formatted?
                "summary?" summary?
                "files:" files)
-        ; Some people wanted a zprint that didn't take configuration.
-        ; If you say "--default" or "-d", that is what you get.
-        ; --default or -d means that you get no configuration read from
-        ; $HOME/.zprintrc or anywhere else.  You get the defaults.
-        ;
-        ; Basic support for "-s" or "--standard" is baked in, but
-        ; not turned on.
-        arg-count (count args)
-        version? (or (= options "--version") (= options "-v"))
-        help? (or (= options "--help") (= options "-h"))
-        explain? (or (= options "--explain") (= options "-e"))
-        default? (or (= options "--default") (= options "-d"))
-        standard? (or (= options "--standard") (= options "-s"))
-        url? #?(:clj (or (= options "--url") (= options "-u"))
-                :default nil)
-        url-only? #?(:clj (= options "--url-only")
-                     :default nil)
-        valid-switch?
-          (or version? help? explain? default? standard? url? url-only?)
-        arg-count-ok? (cond (or version? help? explain? default? standard?)
-                              (= arg-count 1)
-                            (or url? url-only?) (= arg-count 2)
-                            :else (= arg-count 1))
+        #_(println)
+        #_(prn "options:" options "args:" args)
+        #_(println)
+        [[version? help? explain? default? standard? url? url-only?] url-arg
+         error-string]
+          (parse-switches args check? write?)
+        #_(prn "bool-to-switch:" (bool-to-switch [version? help? explain?
+                                                  default? standard? url?
+                                                  url-only?])
+               "url-arg:" url-arg
+               "error-string:" error-string)
         [option-status exit-status option-stderr op-options]
           ; [option-status exit-status option-stderr op-options]
           ; options-status :incomplete
@@ -278,55 +340,51 @@
           ; op-options are options which don't affect formatting but do
           ; affect how things operate.
           (as-> [:incomplete 0 nil {}] running-status
-            ; Is this an invalid switch?
-            (if (and (not (clojure.string/blank? options))
-                     (not valid-switch?)
-                     (clojure.string/starts-with? options "-"))
-              [:complete 1
-               (str "Unrecognized switch: '" options "'" "\n" main-help-str) {}]
-              running-status)
-            ; Handle options with extraneous data
+            ; Was there a problem parsing the switches?
+            (if error-string [:complete 1 error-string {}] running-status)
+            ; Handle having an options map options with incorrect switch
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
               (if (= option-status :complete)
                 running-status
-                ; Do we have a options, and if so, is that all?
+                ; Do we have a options and a switch that doesn't work with it?
+                ; options and explain? or url? are the only allowed switch
+                ; combinations
                 (if (and options
-                         (not (clojure.string/starts-with? options "-"))
-                         (not arg-count-ok?))
-                  ; No, we have something that could be options, and other
-                  ; stuff after it, which is not allowed.  If we had -w
-                  ; it would have been removed before this.
+                         (or version? help? default? standard? url-only?))
+                  ; No, we have something that appears to be options, and
+                  ; a switch after which is not allowed with options.
                   [:complete 1
                    (str "Error processing command line '"
-                        (clojure.string/join " " args)
-                        "', providing "
-                        arg-count
-                        " argument"
-                        (if (= (dec arg-count) 1) "" "s")
-                        " was incorrect!"
+                        (clojure.string/join " " (into [options] args))
+                        "', providing an options map and the switch "
+                        (bool-to-switch [version? help? nil default? standard?
+                                         nil url-only?])
+                        #_switches
+                        " is not allowed!"
                         "\n"
                         main-help-str) {}]
                   running-status)))
             ; Handle switches with extraneous data
-            (let [[option-status exit-status option-stderr op-options]
-                    running-status]
-              (if (= option-status :complete)
-                running-status
-                ; Does this switch have too much data
-                (if (and valid-switch? (not arg-count-ok?))
-                  [:complete 1
-                   (str "Error processing switch '"
-                        options
-                        "', providing "
-                        (dec arg-count)
-                        " additional argument"
-                        (if (= (dec arg-count) 1) "" "s")
-                        " was incorrect!"
-                        "\n"
-                        main-help-str) {}]
-                  running-status)))
-            ; Handle switches
+            #_(let [[option-status exit-status option-stderr op-options]
+                      running-status]
+                (if (= option-status :complete)
+                  running-status
+                  ; Does this switch have too much data
+                  (if nil
+                    #_(and valid-switch? (not arg-count-ok?))
+                    [:complete 1
+                     (str "Error processing switch '"
+                          #_switches
+                          "', providing "
+                          #_(dec arg-count)
+                          " additional argument"
+                          (if nil #_(= (dec arg-count) 1) "" "s")
+                          " was incorrect!"
+                          "\n"
+                          main-help-str) {}]
+                    running-status)))
+            ; Handle version and help switches
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
               (if (= option-status :complete)
@@ -336,13 +394,10 @@
                    (cond version? (:version (get-options))
                          help? main-help-str) op-options]
                   running-status)))
-            ; If this is not a switch, get any operational options off
-            ; of the command line
+            ; If we have options, get any operational-options out of them
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
-              (if (or (= option-status :complete)
-                      valid-switch?
-                      (empty? options))
+              (if (or (= option-status :complete) (empty? options))
                 running-status
                 (try
                   [:incomplete 0 nil (select-op-options (read-string options))]
@@ -371,6 +426,7 @@
                                                            new-map)
                                  "\ncolor:" (:color? (get-options))
                                  "\nerrors:" errors)
+                      ; Add op-options to new-map, for a more complete set
                       new-map (select-op-options (merge-deep new-map
                                                              op-options))]
                   #_(println "post merge"
@@ -379,29 +435,16 @@
                              "\nerrors:" errors)
                   (if errors
                     [:complete 1 errors nil]
+                    ; TODO: Why are we doing select-op-options here?
                     [:incomplete 0 nil (select-op-options new-map)]))))
-            ; We now have the op-options, so process -e to explain what
-            ; we have for a configuration from the various command files.
-            ; This won't include any command-line options since we either
-            ; do switches or command-line options.
-            (let [[option-status exit-status option-stderr op-options]
-                    running-status]
-              (if (= option-status :complete)
-                running-status
-                (if explain?
-                  ; Force set-options to configure using op-options
-                  (do (set-options! {} "" op-options)
-                      [:complete 0 (zprint-str (get-explained-options))
-                       op-options])
-                  running-status)))
             ; If --url try to load the args - along with other args
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
               (if (= option-status :complete)
                 running-status
                 (if url?
-                  #?(:clj (try (load-options! op-options (second args))
-                               [:complete 0 nil op-options]
+                  #?(:clj (try (load-options! op-options url-arg)
+                               [:incomplete 0 nil op-options]
                                (catch Exception e
                                  [:complete 1
                                   (str "Unable to process --url switch value: '"
@@ -417,8 +460,8 @@
                 (if url-only?
                   #?(:clj (try
                             (set-options! {:configured? true})
-                            (load-options! op-options (second args))
-                            [:complete 0 nil op-options]
+                            (load-options! op-options url-arg)
+                            [:incomplete 0 nil op-options]
                             (catch Exception e
                               [:complete 1
                                (str
@@ -437,11 +480,11 @@
                             standard? (set-options! {:configured? true,
                                                      #_:style,
                                                      #_:standard}))
-                      [:complete 0 nil op-options])
+                      [:incomplete 0 nil op-options])
                   [:incomplete 0 nil op-options])))
             ; Configure any command line options.  If we get here, that
-            ; is all that is left to do -- all switches have been handled
-            ; at this point and we would be complete by now.
+            ; is all that is left to do -- all switches except -e have
+            ; been handled at this point.
             (let [[option-status exit-status option-stderr op-options]
                     running-status]
               (if (or (= option-status :complete) (empty? options))
@@ -450,14 +493,28 @@
                 (try (set-options! (try-to-load-string options)
                                    "command-line options"
                                    op-options)
-                     [:complete 0 nil op-options]
+                     [:incomplete 0 nil op-options]
                      (catch Exception e
                        [:complete 1
-                        (str "Failed to use command line options: '"
+                        (str "Failed to use options map on the command line: '"
                              options
                              "' because: "
                              e
                              ".") {}]))))
+            ; We now have all options configured, so process -e to explain what
+            ; we have for a configuration from the various command files
+            ; and switches.
+            (let [[option-status exit-status option-stderr op-options]
+                    running-status]
+              (if (= option-status :complete)
+                running-status
+                (if explain?
+                  ; Force set-options to configure using op-options
+                  ; in case they havent' configured before
+                  (do (set-options! {} "" op-options)
+                      [:complete 0 (zprint-str (get-explained-options))
+                       op-options])
+                  running-status)))
             ; We could nitialize using the op-options if we haven't done
             ; so already, but if we didn't have any command line options, then
             ; there are no op-options that matter.
@@ -473,9 +530,7 @@
     ; option-stderr is nil, the exit status has no meaning.
     (if option-stderr
       (do (write-to-stderr option-stderr)
-          ;;;;; NOTE FIX THIS AND THE END TOO!!!
-          #_(shutdown-agents)
-          #_(System/exit exit-status))
+          (when (not debug?) (shutdown-agents) (System/exit exit-status)))
       ; Do whatever formatting we should do
       (if (or write? check?)
         ; We have one or more filenames to deal with
@@ -484,7 +539,7 @@
                   [0 0]
                   files)
               file-count (count files)]
-          (prn "total-exit-status:" total-exit-status
+          #_(prn "total-exit-status:" total-exit-status
                "total-required-format:" total-required-format)
           (when summary?
             (write-to-stderr
@@ -502,49 +557,49 @@
                   "")
                 (if (pos? total-required-format) total-required-format "none")
                 " of which "
-                (if check? "require" "required")
+                (if check? (if (< total-required-format 2) "requires" "require") "required")
                 " formatting.")))
-          ;;;  NOTE FIX THIS ONE TOO
-          #_(shutdown-agents)
-          #_(System/exit (if write?
+          (when (not debug?)
+            (shutdown-agents)
+            (System/exit (if write?
                            (if (> total-exit-status 0) 1 0)
                            ; For check? we return the number of files that
                            ; needed formatting, even though we didn't
                            ; actually format them, and the errors as well
-                           (+ total-required-format total-exit-status))))
+                           (+ total-required-format total-exit-status)))))
         ; We are operating on stdin and stdout
-        (let [in-str (slurp *in*)
-              [format-status stdout-str format-stderr]
-                (try [0 (zprint-file-str in-str "<stdin>") nil]
-                     (catch Exception e
-                       [1 in-str (str "Failed to zprint: " e)]))]
-          ;
-          ; We used to do this: (spit *out* fmt-str) and it worked fine
-          ; in the uberjar, presumably because the JVM eats any errors on
-          ; close when it is exiting.  But when using clj, spit will close
-          ; stdout, and when clj closes stdout there is an error and it will
-          ; bubble up to the top level.
-          ;
-          ; Now, we write and flush explicitly, sidestepping that particular
-          ; problem. In part because there are plenty of folks that say that
-          ; closing stdout is a bad idea.
-          ;
-          ; Getting this to work with graalvm was a pain.  In particular,
-          ; w/out the (str ...) around fmt-str, graalvm would error out
-          ; with an "unable to find a write function" error.  You could
-          ; get around this by offering graalvm a reflectconfig file, but
-          ; that is just one more file that someone needs to have to be
-          ; able to make this work.  You could also get around this (probably)
-          ; by type hinting fmt-str, though I didn't try that.
-          ;
-          ; Write whatever is supposed to go to stdout
-          (let [^java.io.Writer w (clojure.java.io/writer *out*)]
-            (.write w (str stdout-str))
-            (.flush w))
-          ; Write whatever is supposed to go to stderr, if any
-          (when format-stderr (write-to-stderr format-stderr))
-          ; Since we did :parallel? we need to shut down the pmap threadpool
-          ; so the process will end!
-          ;;; NOTE THERE ARE THREE EXITS TO BE FIXED
-          #_(shutdown-agents)
-          #_(System/exit format-status))))))
+        (when (not debug?)
+          (let [in-str (slurp *in*)
+                [format-status stdout-str format-stderr]
+                  (try [0 (zprint-file-str in-str "<stdin>") nil]
+                       (catch Exception e
+                         [1 in-str (str "Failed to zprint: " e)]))]
+            ;
+            ; We used to do this: (spit *out* fmt-str) and it worked fine
+            ; in the uberjar, presumably because the JVM eats any errors on
+            ; close when it is exiting.  But when using clj, spit will close
+            ; stdout, and when clj closes stdout there is an error and it will
+            ; bubble up to the top level.
+            ;
+            ; Now, we write and flush explicitly, sidestepping that particular
+            ; problem. In part because there are plenty of folks that say that
+            ; closing stdout is a bad idea.
+            ;
+            ; Getting this to work with graalvm was a pain.  In particular,
+            ; w/out the (str ...) around fmt-str, graalvm would error out
+            ; with an "unable to find a write function" error.  You could
+            ; get around this by offering graalvm a reflectconfig file, but
+            ; that is just one more file that someone needs to have to be
+            ; able to make this work.  You could also get around this (probably)
+            ; by type hinting fmt-str, though I didn't try that.
+            ;
+            ; Write whatever is supposed to go to stdout
+            (let [^java.io.Writer w (clojure.java.io/writer *out*)]
+              (.write w (str stdout-str))
+              (.flush w))
+            ; Write whatever is supposed to go to stderr, if any
+            (when format-stderr (write-to-stderr format-stderr))
+            ; Since we did :parallel? we need to shut down the pmap threadpool
+            ; so the process will end!
+            (shutdown-agents)
+            (System/exit format-status)))))))

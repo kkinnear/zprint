@@ -194,7 +194,7 @@
                 "\nactive-cache?:" active-cache?)
          (if active-cache?
            ;1> cached, non expired version of url used
-           (set-options! (:options cache-item))
+           (set-options! (:options cache-item) (str "cached options from " url))
            (try
              (let [^URLConnection remote-conn (doto (.openConnection url)
                                                 (.setConnectTimeout 1000)
@@ -205,7 +205,7 @@
                (if remote-opts
                  (do
                    ;2> no valid cache, remote used, async best-effort cache
-                   (set-options! remote-opts)
+                   (set-options! remote-opts (str "options from " url))
                    (.. (Executors/newSingleThreadExecutor)
                        (submit
                          (reify
@@ -247,7 +247,7 @@
                (if cache-item
                  (do
                    ;4> expired cache but remote failed, use cache
-                   (set-options! (:options cache-item))
+                   (set-options! (:options cache-item) (str "cached, but expired, options from " url))
                    (.println
                      System/err
                      (format

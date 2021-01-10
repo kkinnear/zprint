@@ -124,9 +124,10 @@
 
 (defn showfn?
   "Show this thing as a function?"
-  [fn-map f]
-  (when (not (string? f))
-    (let [f-str (str f)]
+  [{:keys [fn-map color?], :as options} f]
+  (when (and color? (not (string? f)))
+    (let [f-str (str f)
+          fn-map (:fn-map options)]
       (or (fn-map f-str)
           (re-find #"clojure" f-str)
           (if (symbol? f)
@@ -146,10 +147,9 @@
 (defn show-user-fn?
   "Show this thing as a user defined function?  Assumes that we
   have already handled any clojure defined functions!"
-  [options f]
-  (when (not (string? f))
-    (let [f-str (str f)
-          user-fn-map (:user-fn-map options)]
+  [{:keys [user-fn-map color?], :as options} f]
+  (when (and color? (not (string? f)))
+    (let [f-str (str f)]
       (or (get user-fn-map f-str)
           (if (symbol? f)
             ; This is necessary because f can be a symbol that
@@ -709,8 +709,12 @@
 (defn zcolor-map
   "Look up the thing in the zprint-color-map.  Accepts keywords or
   strings."
-  [{:keys [color-map], :as options} key-or-str]
-  (color-map (if (keyword? key-or-str) key-or-str (str->key key-or-str))))
+  [{:keys [color-map color?], :as options} key-or-str]
+  ; If we aren't doing color, don't even bother to do the lookup
+  (if color?
+  (color-map (if (keyword? key-or-str) key-or-str (str->key key-or-str)))
+  :none
+  ))
 
 
 ;;
@@ -5175,7 +5179,7 @@
 
 (defn fzprint*
   "The pretty print part of fzprint."
-  [{:keys [width rightcnt fn-map hex? shift-seq dbg? dbg-print? in-hang?
+  [{:keys [width rightcnt hex? shift-seq dbg? dbg-print? in-hang?
            one-line? string-str? string-color depth max-depth trim-comments?
            in-code? max-hang-depth max-hang-span max-hang-count next-inner],
     :as options} indent zloc]
@@ -5336,7 +5340,7 @@
                       (zstring zloc))
                     (if string-color string-color (zcolor-map options :string))
                     :element]]
-                (showfn? fn-map (zsexpr zloc)) [[zstr (zcolor-map options :fn)
+                (showfn? options (zsexpr zloc)) [[zstr (zcolor-map options :fn)
                                                  :element]]
                 (show-user-fn? options (zsexpr zloc))
                   [[zstr (zcolor-map options :user-fn) :element]]

@@ -5,7 +5,7 @@ very useful to use a common formatting tool such as zprint.  There are
 three issues in this environment:
 
 [1. Decide if you want all files to be formatted identically](#1-decide-if-you-want-all-files-to-be-formatted-identically)  
-[2. Ensure that all members of your group use zprint the same way](#2-ensure-that-all-members-of-your-group-use-zprint-the-same-way)
+[2. Ensure that all members of your group use zprint the same way](#2-ensure-that-all-members-of-your-group-use-zprint-the-same-way)  
 [3. Check to see if the files are formatted correctly](#3-check-to-see-if-files-are-formatted-correctly)
 
 
@@ -79,17 +79,21 @@ encounters files that are not formatted as it would if asked to format the
 file. 
 
 To format all `.clj` files in the current directory:
+
 ```
 % zprint -w *.clj
+
 ```
 To check all `.clj` files in the current directory, exiting with an exit
 status equal to the number of files that require formatting:
+
 ```
 % zprint -c *.clj
 ```
 
 There are additional options to each switch, for instance this will
 output a summary of the results when all of the files are processed:
+
 ```
 % zprint -sw *.clj
 % zprint -sc *.clj

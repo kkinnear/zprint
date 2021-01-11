@@ -34,7 +34,7 @@ You can also format all of the clojure files in a directory with:
 ```
 zprint -w *.clj
 ```
-This will format each of the .clj files, and if there are any errors,
+This will format each of the `.clj` files, and if there are any errors,
 it will report the error for that file, and continue on processing
 the rest of the files.  If there are errors formatting any file, the
 contents of that file remain unchanged.  The exit status is contains
@@ -57,21 +57,23 @@ must be combined with the `-w` or `-c` switches to be recognized.
 They are (shown combined with the `-w` switch here, but they also
 work with `-c`):
 
-  `-lw`   List the files being processed before they are opened
-  `-fw`   report on all files that needed to be Formatted
-  `-sw`   output a Summary when processing is completed
+  - `-lw`   __L__ist the files being processed before they are opened
+  - `-fw`   report on all files that needed to be __F__ormatted
+  - `-sw`   output a __S__ummary when processing is completed
 
-  These can be combined:
+These can be combined:
 
-  `-lfsw` List files as they are processed, output about those that
-          required Formatting, and output a Summary at the end of
-	  the entire operation.
+  `-lfsw` __L__ist files as they are processed, output about 
+         those that required __F__ormatting, and output 
+         a __S__ummary at the end of the entire operation.
 
-The exit status is unchanged by any of these additional switches.
-For `-w` it is the number of files where there was some failure of formatting.
-For `-c` it is the number of files requiring formattting. 
+The exit status is unchanged by any of these additional switches:
+
+  - for `-w` it is the number of files where there was some failure of formatting
+  - for `-c` it is the number of files requiring formattting
 
 For example:
+
 ```
 % ./zprintm-1.1.0 -lfsc src/zprint/*.cljc
 Processing file src/zprint/ansi.cljc
@@ -101,6 +103,7 @@ The exit status was 5 following the above operation.
 
 Here is another example, using the same files, where the formatting
 width is changed to 90:
+
 ```
  % ./zprintm-1.1.0 '{:width 90}' -lfsc src/zprint/*.cljc
 Processing file src/zprint/ansi.cljc
@@ -149,6 +152,76 @@ As you might expect:
 zprint -h
 ```
 is your friend!
+
+```
+ % ./zprintm-1.1.0 -h
+zprint-1.1.0
+
+ zprint <options-map> <input-file >output-file
+ zprint <switches> <input-file >output-file
+ zprint -w input-and-output-file(s)
+ zprint <options-map> -w input-and-output-file(s)
+ zprint <switches> -w input-and-output-file(s)
+
+ Where zprint is any of:
+
+  zprintm-1.1.0
+  zprintl-1.1.0
+  java -jar zprint-filter-1.1.0
+
+ <options-map> is a Clojure map containing zprint options. Must be first.
+               Note that since it contains spaces, it must be
+               wrapped in quotes, for example:
+               '{:width 120}'
+
+               Use the -e switch to see the total options
+               map, which will show you what is configurable.
+
+ <switches> which do no formatting, only one allowed:
+
+  -h  --help         Output this help text.
+  -v  --version      Output the version of zprint.
+  -e  --explain      Output configuration, showing where
+                     non-default values (if any) came from.
+
+ <switches> which control configuration, only one allowed:
+
+  -d  --default      Accept no configuration input.
+  -u  --url URL      Load options from URL.
+      --url-only URL Load only options found from URL,
+                     ignore all .zprintrc, .zprint.edn files.
+
+ <switches> which process named files:  May follow a configuration switch
+                                        or an options map, but not both!
+
+  -w  --write FILE                read, format, and write to FILE (or FILEs),
+                                  -w *.clj is supported.
+  -c  --check FILE                read and check format of FILE (or FILEs)
+                                  -c *.clj is supported.
+
+ Variations on -w, --write and -c, -check:
+
+  -lw  --list-write      FILE  like -w, but indicate which files processed.
+  -fw  --formatted-write FILE  like -w, but indicate which files changed.
+  -sw  --summary-write   FILE  like -w, but include a summary of the number
+                               of files processed and how many required a
+                               format change, as well as any errors.
+
+ Combinations are allowed, w/write and c/check must always be last,
+ and order matters for -- switches.  Examples:
+
+   -lfw, -lfsw, -fsw, -flw, -sflw, etc.
+   --list-formatted-write, --list-formatted-summary-write, etc.
+
+ All combinations of -w and --write switches are also allowed
+ with -c and --check switches:
+
+   -lfc, -lfsc, -fsc, -flc, -sflc, etc.
+   --list-formatted-check, --list-formatted-summary-check, etc.
+
+ The -w and -c switches are the only switches where you may also
+ have an options map!
+```
 
 ## 2. Java Uberjar
   * Works anywhere you can install Java

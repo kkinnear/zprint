@@ -1,3 +1,8 @@
+;!zprint {:comment {:wrap? false} :reader-cond {:indent -3} :fn-map {"more-of" :arg1-pair "defexpect" [:arg1-body {:style :respect-nl :next-inner {:style :respect-nl-off}}] "do" [:none-body {:style :respect-nl :next-inner {:style :respect-nl-off}}] }}         
+
+;;; This whole file is only interesting in Clojure, not Clojurescript, since
+;;; we are testing the uberjar command switch processing and the file access
+
 (ns zprint.main-test
   (:require [expectations.clojure.test
              #?(:clj :refer
@@ -5,8 +10,8 @@
             #?(:cljs [cljs.test :refer-macros [deftest is]])
             #?(:clj [clojure.test :refer [deftest is]])
             #?(:cljs [cljs.tools.reader :refer [read-string]])
-            [zprint.main :refer [-main]]
-            [clojure.java.shell :refer [sh]]
+            #?(:clj [zprint.main :refer [-main]])
+            #?(:clj [clojure.java.shell :refer [sh]])
             [clojure.string :refer [split join]]
             [zprint.core :refer
              [zprint-str set-options! czprint-str zprint-file-str]]
@@ -34,12 +39,9 @@
 
 (set-options! {:configured? true})
 
-;!zprint {:comment {:wrap? false} :reader-cond {:indent -3} :fn-map {"more-of" :arg1-pair "defexpect" [:arg1-body {:style :respect-nl :next-inner {:style :respect-nl-off}}] "do" [:none-body {:style :respect-nl :next-inner {:style :respect-nl-off}}] }}         
-
-;;; This whole file is only interesting in Clojure, not Clojurescript, since
-;;; we are testing the uberjar command switch processing and the file access
 
 #?(:clj
+
 (defexpect main-tests
 
   ;; Emit a file we can test with into the current directory

@@ -2,10 +2,11 @@
 
 When developing Clojure(script) software in a team environment, it can be
 very useful to use a common formatting tool such as zprint.  There are
-two issues in this environment:
+three issues in this environment:
 
 [1. Decide if you want all files to be formatted identically](#1-decide-if-you-want-all-files-to-be-formatted-identically)  
 [2. Ensure that all members of your group use zprint the same way](#2-ensure-that-all-members-of-your-group-use-zprint-the-same-way)
+[3. Check to see if the files are formatted correctly](#3-check-to-see-if-files-are-formatted-correctly)
 
 
 ## 1. Decide if you want all files to be formatted identically
@@ -68,3 +69,33 @@ simpler solution.
 
 Look [here](project.md) for information about how to keep zprint
 configuration information local to a project.
+
+## 3. Check to see if files are formatted correctly
+
+As part of a build or commit process you can use zprint to enforce a particular
+format in source files by formatting all files.  You can also use zprint
+to check the format of files and exit with a non-zero exit status if it
+encounters files that are not formatted as it would if asked to format the
+file. 
+
+To format all `.clj` files in the current directory:
+```
+% zprint -w *.clj
+```
+To check all `.clj` files in the current directory, exiting with an exit
+status equal to the number of files that require formatting:
+```
+% zprint -c *.clj
+```
+
+There are additional options to each switch, for instance this will
+output a summary of the results when all of the files are processed:
+```
+% zprint -sw *.clj
+% zprint -sc *.clj
+```
+See [this discussion](files.md) about using the pre-built binaries for 
+more useful details on the several options for use with `-w` and `-c` 
+switches.
+
+

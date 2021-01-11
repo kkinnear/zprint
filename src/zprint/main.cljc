@@ -7,6 +7,10 @@
       select-op-options vec-str-to-str merge-deep try-to-load-string]])
   #?(:clj (:gen-class)))
 
+
+;!zprint {:comment {:wrap? false} :reader-cond {:indent -3}}
+;!zprint {:vector {:wrap? false}}
+
 ;;
 ;; This is the root namespace to run zprint as an uberjar
 ;;
@@ -15,7 +19,6 @@
 ;; java -jar zprint-filter {<options-map-if-any>} <infile >outfile
 ;;
 
-;!zprint {:vector {:wrap? false}}
 
 (def main-help-str
   (vec-str-to-str
@@ -90,13 +93,16 @@
      " have an options map!"
      ""]))
 
+#?(:clj
 (defn write-to-stderr
   "Take a string, and write it to stderr."
   [s]
   (let [^java.io.Writer w (clojure.java.io/writer *err*)]
     (.write w (str s "\n"))
     (.flush w)))
+    )
 
+#?(:clj
 (defn format-file
   "Take a single argument, a filename string, and format it.  Read
   from the file, then rewrite the file with the formatted source.
@@ -163,6 +169,8 @@
               ; We don't change the running-status because we wrote to stderr
               running-status))]
     [exit-status required-format]))
+
+)
 
 (defn elements-before-last-switch
   "Given the args from the command line, find the last arg that
@@ -260,6 +268,7 @@
 ;; # Main
 ;;
 
+#?(:clj
 (defn -main
   "Read a file from stdin, format it, and write it to sdtout.  
   Process as fast as we can using :parallel?"
@@ -603,3 +612,11 @@
             ; so the process will end!
             (shutdown-agents)
             (System/exit format-status)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; End of #?(:clj ...)
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+)
+

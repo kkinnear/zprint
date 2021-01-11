@@ -15,7 +15,7 @@ There are several ways to use zprint to format entire source files.
   * Available for macOS and Linux
   * Does not require Java -- available as standalone binaries
   * Accepts source on stdin, produces formatted source on stdout
-  * Will also format named files "in place"
+  * Will also format or check format on named files "in place"
   * Reads configuration from `~/.zprintrc`
   * Accepts options map on command line
 
@@ -26,8 +26,9 @@ or
 ```
 zprintm '{:width 90}' -w myfile.clj
 ```
-will read myfile.clj, format the source, and write the result back into
-myfile.clj if it is different than the source.
+will read myfile.clj, format the source for a width of 90 characters
+(the default is 80), and write the result back into myfile.clj if
+it is different than the source.
 
 You can also format all of the clojure files in a directory with:
 ```
@@ -36,21 +37,108 @@ zprint -w *.clj
 This will format each of the .clj files, and if there are any errors,
 it will report the error for that file, and continue on processing
 the rest of the files.  If there are errors formatting any file, the
-contents of that file remain unchanged.
+contents of that file remain unchanged.  The exit status is contains
+the number of files with errors.
 
-You can "list" the files processed, and see which ones "changed", using
-the "-lcw" switch:
+Similarly, you can check the formatting on any files with the `-c`
+switch:
 ```
-zprint -lcw *.clj
+zprint -c *.clj
 ```
-Both "-cw" to show you only the files that changed, and "-lw" to show
-you which files are being processed with no information on which ones
-changed, are also supported:
-```
-zprint -cw *.clj
+will check the formatting on all of the files with a `.clj` extension
+in the current directory.  The exit status will be the number of files
+which require formatting.
 
-zprint -lw *.clj
+For both the `-w` and `-c` switches (which "write" and "check" the
+specified files, respectively), there are additional options that
+can be specified to produce explanatory output.  These options
+must be combined with the `-w` or `-c` switches to be recognized.
+
+They are (shown combined with the `-w` switch here, but they also
+work with `-c`):
+
+  `-lw`   List the files being processed before they are opened
+  `-fw`   report on all files that needed to be Formatted
+  `-sw`   output a Summary when processing is completed
+
+  These can be combined:
+
+  `-lfsw` List files as they are processed, output about those that
+          required Formatting, and output a Summary at the end of
+	  the entire operation.
+
+The exit status is unchanged by any of these additional switches.
+For `-w` it is the number of files where there was some failure of formatting.
+For `-c` it is the number of files requiring formattting. 
+
+For example:
 ```
+% ./zprintm-1.1.0 -lfsc src/zprint/*.cljc
+Processing file src/zprint/ansi.cljc
+Processing file src/zprint/config.cljc
+Formatting required in file src/zprint/config.cljc
+Processing file src/zprint/core.cljc
+Formatting required in file src/zprint/core.cljc
+Processing file src/zprint/finish.cljc
+Processing file src/zprint/focus.cljc
+Processing file src/zprint/macros.cljc
+Processing file src/zprint/main.cljc
+Formatting required in file src/zprint/main.cljc
+Processing file src/zprint/range.cljc
+Processing file src/zprint/redef.cljc
+Processing file src/zprint/rewrite.cljc
+Processing file src/zprint/smacros.cljc
+Processing file src/zprint/spec.cljc
+Formatting required in file src/zprint/spec.cljc
+Processing file src/zprint/sutil.cljc
+Processing file src/zprint/zfns.cljc
+Processing file src/zprint/zprint.cljc
+Formatting required in file src/zprint/zprint.cljc
+Processing file src/zprint/zutil.cljc
+Processed 16 files, 5 of which require formatting.
+```
+The exit status was 5 following the above operation.
+
+Here is another example, using the same files, where the formatting
+width is changed to 90:
+```
+ % ./zprintm-1.1.0 '{:width 90}' -lfsc src/zprint/*.cljc
+Processing file src/zprint/ansi.cljc
+Processing file src/zprint/config.cljc
+Formatting required in file src/zprint/config.cljc
+Processing file src/zprint/core.cljc
+Formatting required in file src/zprint/core.cljc
+Processing file src/zprint/finish.cljc
+Formatting required in file src/zprint/finish.cljc
+Processing file src/zprint/focus.cljc
+Formatting required in file src/zprint/focus.cljc
+Processing file src/zprint/macros.cljc
+Formatting required in file src/zprint/macros.cljc
+Processing file src/zprint/main.cljc
+Formatting required in file src/zprint/main.cljc
+Processing file src/zprint/range.cljc
+Formatting required in file src/zprint/range.cljc
+Processing file src/zprint/redef.cljc
+Formatting required in file src/zprint/redef.cljc
+Processing file src/zprint/rewrite.cljc
+Formatting required in file src/zprint/rewrite.cljc
+Processing file src/zprint/smacros.cljc
+Processing file src/zprint/spec.cljc
+Formatting required in file src/zprint/spec.cljc
+Processing file src/zprint/sutil.cljc
+Formatting required in file src/zprint/sutil.cljc
+Processing file src/zprint/zfns.cljc
+Processing file src/zprint/zprint.cljc
+Formatting required in file src/zprint/zprint.cljc
+Processing file src/zprint/zutil.cljc
+Formatting required in file src/zprint/zutil.cljc
+Processed 16 files, 13 of which require formatting.
+```
+Despite being previously formatted for a width of 80, not all
+of the files formatted differently for a width of 90, though 
+all but 3 did.  Those three are short files with nothing that
+would change were they formatted for a width of 90.
+
 
 __Get prebuilt binaries for__:  
   * [macOS](../getting/macos.md)

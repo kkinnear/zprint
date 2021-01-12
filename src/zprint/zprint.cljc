@@ -712,9 +712,8 @@
   [{:keys [color-map color?], :as options} key-or-str]
   ; If we aren't doing color, don't even bother to do the lookup
   (if color?
-  (color-map (if (keyword? key-or-str) key-or-str (str->key key-or-str)))
-  :none
-  ))
+    (color-map (if (keyword? key-or-str) key-or-str (str->key key-or-str)))
+    :none))
 
 
 ;;
@@ -2055,9 +2054,9 @@
           (if (and (not comment-or-newline?)
                    constant-required?
                    (if constant-pair-fn
-		     ; If we can't call sexpr on it, it isn't a constant
+                     ; If we can't call sexpr on it, it isn't a constant
                      (not (when (zsexpr? element)
-		            (constant-pair-fn (zsexpr element))))
+                            (constant-pair-fn (zsexpr element))))
                      (not (zconstant? element))))
             ; we counted the right-hand and any comments of this pair, but it
             ; isn't a pair so exit now with whatever we have so far
@@ -3946,22 +3945,22 @@
                   (if zloc-seq-right-first
                     ; We have something else to format after arg-1-zloc
                     (if #_(and arg-1-indent (not= fn-style :flow))
-		        arg-1-indent
-		      ; Use fzprint-hang-remaining for :flow as well, with
-		      ; hindent = findent to force flow, so that constant
-		      ; pairing is done for :flow functions.
+                      arg-1-indent
+                      ; Use fzprint-hang-remaining for :flow as well, with
+                      ; hindent = findent to force flow, so that constant
+                      ; pairing is done for :flow functions.
                       (let [result (fzprint-hang-remaining
                                      caller
                                      (noarg1 options fn-style)
                                      #_arg-1-indent
-				     (if (= fn-style :flow)
-					; If the fn-type is :flow, make the
-					; hindent = findent so that it will
-					; flow
-				        (+ indent ind)
-					arg-1-indent)
-				     ; Removed indent-adj because it caused
-				     ; several problems, issue #163
+                                     (if (= fn-style :flow)
+                                       ; If the fn-type is :flow, make the
+                                       ; hindent = findent so that it will
+                                       ; flow
+                                       (+ indent ind)
+                                       arg-1-indent)
+                                     ; Removed indent-adj because it caused
+                                     ; several problems, issue #163
                                      (+ indent ind #_indent-adj)
                                      ; Can't do this, because
                                      ; hang-remaining
@@ -3974,9 +3973,9 @@
                                 "result:" result)
                         result)
                       ; This is collection as the first thing. Used to handle
-		      ; :flow here as well, but now it goes through
-		      ; fzprint-hang-remaining with hindent = findent so that
-		      ; constant pairing works for flow.
+                      ; :flow here as well, but now it goes through
+                      ; fzprint-hang-remaining with hindent = findent so that
+                      ; constant pairing works for flow.
                       (let [local-indent (+ default-indent ind indent-adj)]
                         (concat-no-nil ;[[(str "\n" (blanks local-indent)) :none
                                        ;:indent]]
@@ -4588,9 +4587,7 @@
                 ;     To do this, you look for whether or not the
                 ;     return
                 ;     from fzprint-map-two-up said it was a flow
-		(or
-                (and nl-separator? (= hangflow :flow))
-		nl-separator-all?)
+                (or (and nl-separator? (= hangflow :flow)) nl-separator-all?)
                 nil ;first?
                 0 ;newline-count
               )))))))
@@ -5179,9 +5176,9 @@
 
 (defn fzprint*
   "The pretty print part of fzprint."
-  [{:keys [width rightcnt hex? shift-seq dbg? dbg-print? in-hang?
-           one-line? string-str? string-color depth max-depth trim-comments?
-           in-code? max-hang-depth max-hang-span max-hang-count next-inner],
+  [{:keys [width rightcnt hex? shift-seq dbg? dbg-print? in-hang? one-line?
+           string-str? string-color depth max-depth trim-comments? in-code?
+           max-hang-depth max-hang-span max-hang-count next-inner],
     :as options} indent zloc]
   (let [avail (- width indent)
         ; note that depth affects how comments are printed, toward the end
@@ -5315,53 +5312,51 @@
             (= (ztag zloc) :comma) [[zstr (zcolor-map options :comma) :comma]]
             #?@(:cljs [(and (= (ztag zloc) :whitespace)
                             (clojure.string/includes? zstr ","))])
-            #?@(:cljs [
-
-                       [["," (zcolor-map options :comma) :comma]]])
-              ; Really just testing for whitespace, comments filtered above
-              (zwhitespaceorcomment? zloc)
-            [[zstr :none :whitespace 24]]
-              ; At this point, having filtered out whitespace and
-              ; comments above, now we expect zsexpr will work for all of
-              ; the remaining things.
-              ;
-              ; If we are going to overflow, and we are doing a hang, let's
-              ; stop now!
-              overflow-in-hang?
-            (do (dbg options "fzprint*: overflow <<<<<<<<<<") nil) (zkeyword?
-                                                                     zloc)
-            [[zstr (zcolor-map options :keyword) :element]] :else
-            (let [zloc-sexpr (zsexpr zloc)]
-              (cond
-                (string? zloc-sexpr)
-                  [[(if string-str?
-                      (str (zsexpr zloc))
-                      ; zstr
-                      (zstring zloc))
-                    (if string-color string-color (zcolor-map options :string))
-                    :element]]
-                (showfn? options (zsexpr zloc)) [[zstr (zcolor-map options :fn)
+              #?@(:cljs [[["," (zcolor-map options :comma) :comma]]])
+            ; Really just testing for whitespace, comments filtered above
+            (zwhitespaceorcomment? zloc) [[zstr :none :whitespace 24]]
+            ; At this point, having filtered out whitespace and
+            ; comments above, now we expect zsexpr will work for all of
+            ; the remaining things.
+            ;
+            ; If we are going to overflow, and we are doing a hang, let's
+            ; stop now!
+            overflow-in-hang? (do (dbg options "fzprint*: overflow <<<<<<<<<<")
+                                  nil)
+            (zkeyword? zloc) [[zstr (zcolor-map options :keyword) :element]]
+            :else (let [zloc-sexpr (zsexpr zloc)]
+                    (cond (string? zloc-sexpr)
+                            [[(if string-str?
+                                (str (zsexpr zloc))
+                                ; zstr
+                                (zstring zloc))
+                              (if string-color
+                                string-color
+                                (zcolor-map options :string)) :element]]
+                          (showfn? options (zsexpr zloc))
+                            [[zstr (zcolor-map options :fn) :element]]
+                          (show-user-fn? options (zsexpr zloc))
+                            [[zstr (zcolor-map options :user-fn) :element]]
+                          (number? (zsexpr zloc))
+                            [[(if hex? (znumstr zloc hex? shift-seq) zstr)
+                              (zcolor-map options :number) :element]]
+                          (symbol? (zsexpr zloc))
+                            [[zstr (zcolor-map options :symbol) :element]]
+                          (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil)
                                                  :element]]
-                (show-user-fn? options (zsexpr zloc))
-                  [[zstr (zcolor-map options :user-fn) :element]]
-                (number? (zsexpr zloc))
-                  [[(if hex? (znumstr zloc hex? shift-seq) zstr)
-                    (zcolor-map options :number) :element]]
-                (symbol? (zsexpr zloc)) [[zstr (zcolor-map options :symbol)
-                                          :element]]
-                (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil) :element]]
-                (true? (zsexpr zloc)) [[zstr (zcolor-map options :true)
-                                        :element]]
-                (false? (zsexpr zloc)) [[zstr (zcolor-map options :false)
-                                         :element]]
-                (char? (zsexpr zloc)) [[zstr (zcolor-map options :char)
-                                        :element]]
-                (or (instance? #?(:clj java.util.regex.Pattern
-                                  :cljs (type #"regex"))
-                               (zsexpr zloc))
-                    (re-find #"^#\".*\"$" zstr))
-                  [[zstr (zcolor-map options :regex) :element]]
-                :else [[zstr (zcolor-map options :none) :element]])))))))
+                          (true? (zsexpr zloc))
+                            [[zstr (zcolor-map options :true) :element]]
+                          (false? (zsexpr zloc))
+                            [[zstr (zcolor-map options :false) :element]]
+                          (char? (zsexpr zloc))
+                            [[zstr (zcolor-map options :char) :element]]
+                          (or (instance? #?(:clj java.util.regex.Pattern
+                                            :cljs (type #"regex"))
+                                         (zsexpr zloc))
+                              (re-find #"^#\".*\"$" zstr))
+                            [[zstr (zcolor-map options :regex) :element]]
+                          :else [[zstr (zcolor-map options :none)
+                                  :element]])))))))
 
 ;;
 ;; # Comment Wrap Support

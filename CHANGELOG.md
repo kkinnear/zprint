@@ -1,9 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.1.0 - 2021-1-18
+## 1.1.0 - 2021-1-16
 
 ### Added
+
+  * Several new, simpler, and clearer examples in the community documentation.
+  Issue #165.
+
+  * New options `:nl-separator-all?` for `:binding`, `:map`, and `:pair`.
+  These are similar to `:nl-separator?`, but where `:nl-separator?` will
+  place a blank line after a pair only when the right element of the pair
+  was placed on the line below the left element, `:nl-separator-all?` will
+  always place a blank line after every pair, regardless of where the right
+  element of the pair ended up.  There are also new styles `:binding-nl-all`,
+  `:map-nl-all`, and `:pair-nl-all` which can be used to configure this 
+  approach for the respective elements (and set `:indent 0` so it looks like
+  you probably expect).  :Issue #165.
 
   * You can now define a style by changing the `:style-map` and invoke
   (i.e. utilize) the style in the same `.zprintrc` or the same call

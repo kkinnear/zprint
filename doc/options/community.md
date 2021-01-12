@@ -3,7 +3,7 @@
 There have been several efforts over the years to develop some
 standards for how well formatted Clojure source code should look.
 One of these efforts has been the development of a 
-[Clojure style guide](https://github.com/bbatsov/clojure-style-guide) 
+[Clojure style guide] (https://guide.clojure.style)
 otherwise known as the "community standards".
 
 There is sufficient flexibility in zprint to support the community
@@ -21,7 +21,9 @@ are used by almost everyone, and most of them are indeed the default
 configuration for zprint.  But there are a few differences between
 the default zprint configuration and the community standards.
 
-This difference is reflected in the `:style :community`:
+This difference is reflected in the `:style :community`, which when specified
+will alter the default configuration so that zprint will format code to the
+community standards:
 
 ```clojure
     :community {:binding {:indent 0},
@@ -38,7 +40,7 @@ This difference is reflected in the `:style :community`:
                 :map {:indent 0},
                 :pair {:indent 0}},
 ```
-This change to the defaults for zprint does several things:
+This change to the defaults for zprint changes several things:
 
   * Do not indent the second element of a pair when the second element
   of the pair does not fit on the same line as the first and must be
@@ -47,7 +49,9 @@ This change to the defaults for zprint does several things:
   * Do not format some functions specially to make them more understandable.
 
   * Treat "body" functions and "argument" function differently in the way
-  that indentation is performed for these functions.
+  that indentation is performed for these functions.  In my explorations
+  on GitHub, this is probably the least frequently followed of the
+  community formatting standards.
 
 ### Do not indent the second element of a pair
 

@@ -57,15 +57,15 @@ must be combined with the `-w` or `-c` switches to be recognized.
 They are (shown combined with the `-w` switch here, but they also
 work with `-c`):
 
-  - `-lw`   __L__ist the files being processed before they are opened
-  - `-fw`   report on all files that needed to be __F__ormatted
-  - `-sw`   output a __S__ummary when processing is completed
+  - `-lw`   List the files being processed before they are opened
+  - `-fw`   report on all files that needed to be Formatted
+  - `-sw`   output a Summary when processing is completed
 
 These can be combined:
 
-  `-lfsw` __L__ist files as they are processed, output about 
-         those that required __F__ormatting, and output 
-         a __S__ummary at the end of the entire operation.
+  `-lfsw` List files as they are processed, output about 
+          those that required Formatting, and output 
+          a Summary at the end of the entire operation.
 
 The exit status is unchanged by any of these additional switches:
 
@@ -181,8 +181,10 @@ zprint-1.1.0
 
   -h  --help         Output this help text.
   -v  --version      Output the version of zprint.
-  -e  --explain      Output configuration, showing where
-                     non-default values (if any) came from.
+  -e  --explain      Output non-default configuration values, showing
+                     where any non-default values where set.
+      --explain-all  Output full configuration, including all default
+                     values, while showing where non-default values set.
 
  <switches> which control configuration, only one allowed:
 
@@ -219,7 +221,7 @@ zprint-1.1.0
    -lfc, -lfsc, -fsc, -flc, -sflc, etc.
    --list-formatted-check, --list-formatted-summary-check, etc.
 
- The -w and -c switches are the only switches where you may also
+ The -w ,-c, and -e switches are the only switches where you may also
  have an options map!
 ```
 

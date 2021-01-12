@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.1.0 - 2020-11-24
+## 1.1.0 - 2021-1-18
 
 ### Added
 
@@ -9,18 +9,31 @@ All notable changes to this project will be documented in this file.
   (i.e. utilize) the style in the same `.zprintrc` or the same call
   to `set-options!`.
 
-  * Several new variants of the `-w` and `--write` switches on the
-  distributed pre-built binaries. These report on which files
-  are being processed (`-lw` and `--list-write`), which
-  files changed (`-cw` and `--changed-write`), or both
-  (`-lcw` and `--list-changed-write`).
+  * Several new switches and variants of the existing `-w` and `--write` 
+  switches on the distributed pre-built binaries and the uberjar. 
+  You can now "check" files (without changing them) with the `-c` and `--check`
+  switches.  Both the `-c` and `-w` switches can take modifiers, shown
+  here modifying the `-w` switch (and they work with `-c` as well):
+
+    - `-lw` like `-w`, but indicate which files processed
+    - `-fw` like `-w`, but indicate which files changed
+    - `-sw` like `-w`, but include a summary of the number of files processed and how many required a format change, as well as any errors
+
+  You can combine these, as in `-lfsw` as well.
+  See [here](./doc/using/files.md) for full details, or type 
+  `zprint -h` for help.
 
 ### Changed
+
+  * The `-e` and `--explain` switches on the pre-built binaries and the
+  uberjar will now only report the vales in the options map that 
+  differ from the defaults.  If you wish to see the entire options map,
+  you can use `--explain-all`.
 
   * The distributed, pre-built binaries now will not replace an existing
   file with an unchanged file when using the `-w` (`--write`) switch,
   or any of its variants (see above).  Previously they re-wrote the input 
-  file with the formatted output regardless of whether or not it changed.  
+  file with the formatted output regardless of whether or not it changed.
   Now they do not write unchanged data back into the file.
 
   * In Issue #124 we added the ability to have inline functions defined
@@ -37,6 +50,9 @@ All notable changes to this project will be documented in this file.
 
   * The `:moustache` style has been split into two part and changed to
   include justification for the pairs.
+
+  * Changed the `:fn-map` for `defexpect` to use `:style :respect-nl` only
+  at the top level of the `defexpect`.
 
 ### Fixed
 

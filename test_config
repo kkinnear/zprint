@@ -497,7 +497,7 @@ output_length=`$command -h 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-expected_length=67
+expected_length=69
 
 if [[ $output_length != $expected_length ]]
   then
@@ -506,24 +506,39 @@ if [[ $output_length != $expected_length ]]
 fi
 
 #
-# Test -e switch (explain output)
+# Test --explain-all switch (explain output)
 #
 #   Of course, it needs to be fixed when we change the config options map
 #
 
-echo "...........  -e test"
+echo "...........  --explain-all test"
 
-output_length=`$command -e 2>&1 >/dev/null | wc -l`
+output_length=`$command --explain-all 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-expected_length=562
+expected_length=565
 
 if [[ $output_length != $expected_length ]]
   then
-    echo "-e test failed to have correct count of lines, should be 562, was: $output_length"
-    $command -e
+    echo "--explain-all test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command --explain-all
 fi
+
+echo "...........  --explain test"
+
+output_length=`$command '{:color? false}' --explain 2>&1 >/dev/null | wc -l`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+expected_length=16
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "--explain test failed to have correct count of lines, should be $expected_length, was: $output_length"
+    $command '{:color? false}' --explain
+fi
+
 
 #
 # Test :coerce-to-false
@@ -540,7 +555,7 @@ echo "{:cwd-zprintrc? 1 :coerce-to-false 0 :parallel? \"junk\"}" > ~/.zprintrc
 echo "{:parallel? :stuff :coerce-to-false :stuff :width 500}" > ./.zprintrc
 
 
-output_length=`$command -e 2>&1| grep :parallel? | grep ":value false" | wc -l`
+output_length=`$command --explain-all 2>&1| grep :parallel? | grep ":value false" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -549,7 +564,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo ":coerce-to-false test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 #
@@ -563,7 +578,7 @@ echo "{:vector {:option-fn-first (fn [x y] {})}}" > ~/.zprintrc
 # no ./.zprintrc
 rm -rf ./.zprintrc
 
-output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`$command --explain-all 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -573,7 +588,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 echo "...........  fn using #(...) in ~/.zprintrc file test"
@@ -583,7 +598,7 @@ echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" > ~/.zprintrc
 # no ./.zprintrc
 rm -rf ./.zprintrc
 
-output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`$command --explain-all 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -593,7 +608,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 echo "...........  fn using #(...) in .zprintrc, not used since no :cwd-zprintrc? or :search-config?"
@@ -603,7 +618,7 @@ echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
 # no ~/.zprintrc
 rm -rf ~/.zprintrc
 
-output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`$command --explain-all 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -612,7 +627,7 @@ expected_length=0
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 echo "...........  fn using #(...) in .zprintrc file with file found since :search-config?"
@@ -621,7 +636,7 @@ echo "...........  fn using #(...) in .zprintrc file with file found since :sear
 echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
 echo "{:search-config? true}" > ~/.zprintrc
 
-output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`$command --explain-all 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -631,7 +646,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 echo "...........  fn using #(...) in .zprintrc file with file found since :cwd-zprintrc?"
@@ -640,7 +655,7 @@ echo "...........  fn using #(...) in .zprintrc file with file found since :cwd-
 echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
 echo "{:cwd-zprintrc? true}" > ~/.zprintrc
 
-output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`$command --explain-all 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -650,7 +665,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 
@@ -660,7 +675,7 @@ echo "...........  local .zprintrc file that does not parse found with :search-c
 echo "{:vector :stuff {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
 echo "{:search-config? true}" > ~/.zprintrc
 
-output_length=`$command -e 2>&1| grep "Unable to read configuration from file" | wc -l`
+output_length=`$command --explain-all 2>&1| grep "Unable to read configuration from file" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -669,7 +684,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 
@@ -679,7 +694,7 @@ echo "...........  local .zprintrc file that does not parse found with :cwd-zpri
 echo "{:vector :stuff {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
 echo "{:cwd-zprintrc? true}" > ~/.zprintrc
 
-output_length=`$command -e 2>&1| grep "Unable to read configuration from file" | wc -l`
+output_length=`$command --explain-all 2>&1| grep "Unable to read configuration from file" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -688,7 +703,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 echo "...........  local .zprintrc file with bad data found with :search-config?"
@@ -697,7 +712,7 @@ echo "...........  local .zprintrc file with bad data found with :search-config?
 echo "{:vectorxxx {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
 echo "{:search-config? true}" > ~/.zprintrc
 
-output_length=`$command -e 2>&1| grep "was not recognized as valid" | wc -l`
+output_length=`$command --explain-all 2>&1| grep "was not recognized as valid" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -706,7 +721,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 
@@ -716,7 +731,7 @@ echo "...........  local .zprintrc file with bad data found with :cwd-zprintrc?"
 echo "{:vectorxxx {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
 echo "{:cwd-zprintrc? true}" > ~/.zprintrc
 
-output_length=`$command -e 2>&1| grep "was not recognized as valid" | wc -l`
+output_length=`$command --explain-all 2>&1| grep "was not recognized as valid" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -725,7 +740,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 
@@ -747,7 +762,7 @@ echo "{:cwd-zprintrc? true :vector {:option-fn-first nil}}" > ~/.zprintrc
 echo "{:vector {:option-fn-first (fn [x y] {})}}" > ./.zprintrc
 
 
-output_length=`$command -e 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
+output_length=`$command --explain-all 2>&1| grep -A 3 :option-fn-first | grep ":set-by" | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
@@ -756,7 +771,7 @@ expected_length=1
 if [[ $output_length != $expected_length ]]
   then
     echo "fn is valid in ./.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
-    $command -e
+    $command --explain-all
 fi
 
 #

@@ -3,8 +3,9 @@
     [zprint.core :refer
      [zprint-str czprint zprint-file-str set-options! load-options!]]
     [zprint.config :refer
-     [get-options get-explained-options config-and-validate-all
-      select-op-options vec-str-to-str merge-deep try-to-load-string]])
+     [get-options get-explained-options get-explained-set-options
+      config-and-validate-all select-op-options vec-str-to-str merge-deep 
+      try-to-load-string]])
   #?(:clj (:gen-class)))
 
 
@@ -50,8 +51,10 @@
      ""
      "  -h  --help         Output this help text."
      "  -v  --version      Output the version of zprint."
-     "  -e  --explain      Output configuration, showing where"
-     "                     non-default values (if any) came from."
+     "  -e  --explain      Output non-default configuration values, showing"
+     "                     where any non-default values where set."
+     "      --explain-all  Output full configuration, including all default"
+     "                     values, while showing where non-default values set."
      ""
      " <switches> which control configuration, only one allowed:"
      ""
@@ -200,17 +203,20 @@
 
 (defn parse-switches
   "Look for all switches, other than the ones that process named files.
-  Return [[version? help? explain? default? standard? url? url-only?]
+  Return [[version? help? explain? explain-all? default? standard? url? url-only?]
           url-arg error-string]"
   [arg-seq check? write?]
   (let [arg-count (count arg-seq)
         check-or-write? (or check? write?)]
     (loop [args arg-seq
-           [version? help? explain? default? standard? url? url-only?] nil
+           [version? help? explain? explain-all? default? standard? url?
+            url-only?]
+             nil
            url-arg nil
            error-string nil]
       (if (or (nil? args) error-string)
-        [[version? help? explain? default? standard? url? url-only?] url-arg
+        [[version? help? explain? explain-all? default? standard? url?
+          url-only?] url-arg
          (if error-string
            error-string
            (cond
@@ -218,7 +224,7 @@
                (str "Switch '"
                     (first arg-seq)
                     "' cannot appear with any other switches or arguments.")
-             (and check-or-write? (or version? help? explain?))
+             (and check-or-write? (or version? help? explain? explain-all?))
                (str "Switch '" (first arg-seq)
                     "' cannot appear with any variant of "
                       (if check? "--check" "--write"))
@@ -231,12 +237,13 @@
              :else nil))]
         (let [next-arg (clojure.string/trim (first args))
               valid-switch? (#{"--version" "-v" "--help" "-h" "--explain" "-e"
-                               "--default" "-d" "--standard" "-s" "--url" "-u"
-                               "--url-only"}
+                               "--explain-all" "--default" "-d" "--standard"
+                               "-s" "--url" "-u" "--url-only"}
                              next-arg)
               version? (or version? (= next-arg "--version") (= next-arg "-v"))
               help? (or help? (= next-arg "--help") (= next-arg "-h"))
               explain? (or explain? (= next-arg "--explain") (= next-arg "-e"))
+              explain-all? (or explain-all? (= next-arg "--explain-all"))
               default? (or default? (= next-arg "--default") (= next-arg "-d"))
               standard?
                 (or standard? (= next-arg "--standard") (= next-arg "-s"))
@@ -246,19 +253,21 @@
                            :default nil)
               url-arg (when (or url? url-only?) (second args))]
           (recur (if url-arg (nnext args) (next args))
-                 [version? help? explain? default? standard? url? url-only?]
+                 [version? help? explain? explain-all? default? standard? url?
+                  url-only?]
                  url-arg
                  (when (not valid-switch?)
                    (str "Unknown switch '" next-arg "'"))))))))
 
 (defn bool-to-switch
   "Turn the booleans into switches."
-  [[version? help? explain? default? standard? url? url-only?]]
+  [[version? help? explain? explain-all? default? standard? url? url-only?]]
   (clojure.string/join ", "
                        (cond-> []
                          version? (conj "-v or --version")
                          help? (conj "-h or --help")
                          explain? (conj "-e or --explain")
+			 explain-all? (conj "--explain-all")
                          default? (conj "-d or --default")
                          standard? (conj "-s or --standard")
                          url? (conj "-u or --url")
@@ -332,10 +341,11 @@
         #_(println)
         #_(prn "options:" options "args:" args)
         #_(println)
-        [[version? help? explain? default? standard? url? url-only?] url-arg
+        [[version? help? explain? explain-all? default? standard? url? url-only?] url-arg
          error-string]
           (parse-switches args check? write?)
         #_(prn "bool-to-switch:" (bool-to-switch [version? help? explain?
+						  explain-all?
                                                   default? standard? url?
                                                   url-only?])
                "url-arg:" url-arg
@@ -521,10 +531,24 @@
                   ; Force set-options to configure using op-options
                   ; in case they havent' configured before
                   (do (set-options! {} "" op-options)
+                      [:complete 0 (zprint-str (get-explained-set-options))
+                       op-options])
+                  running-status)))
+            ; We now have all options configured, so process -explain-all 
+	    ; to explain what we have for a configuration from the various 
+	    ; command files and switches.
+            (let [[option-status exit-status option-stderr op-options]
+                    running-status]
+              (if (= option-status :complete)
+                running-status
+                (if explain-all?
+                  ; Force set-options to configure using op-options
+                  ; in case they havent' configured before
+                  (do (set-options! {} "" op-options)
                       [:complete 0 (zprint-str (get-explained-options))
                        op-options])
                   running-status)))
-            ; We could nitialize using the op-options if we haven't done
+            ; We could initialize using the op-options if we haven't done
             ; so already, but if we didn't have any command line options, then
             ; there are no op-options that matter.
           )]

@@ -33,16 +33,26 @@ your path.
 
 zprint is available as a [Homebrew Cask](https://formulae.brew.sh/cask/zprint):
 
+### 1. See if it is the version you want
+
 ```
-brew cask install zprint
+brew info --cask zprint
+```
+
+If this is the version you want, then ...
+
+### 2. Install it from Homebrew
+
+```
+brew install --cask zprint
 ```
 
 ## Usage
 
-### 1. Test it with `-e`
+### 1. Test it with `--explain-all`
 
 ```
-zprint -e
+zprint --explain-all
 {:agent {:object? false},
  :array {:hex? false, :indent 1, :object? false, :wrap? true},
  :atom {:object? false},
@@ -57,14 +67,25 @@ zprint -e
 [...]
 ```
 
-The `-e` switch will output the configuration zprint will use when
+The `--explain-all` switch will output the configuration zprint will use when
 run. For any values that are not the default, this will include where that
 value came from (for instance, if you set something in your `~/.zprintrc`, 
-that information will appear in the `-e` output). 
-If you run `zprint -e`, it should output a very large map showing
+that information will appear in the `--explain-all` output). 
+If you run `zprint --explain-all`, it should output a very large map showing
 all of the configuration options and their current values.  Toward the
 end, it will include a key `:version` which should be the version that
 you just downloaded.
+
+If you use the `-e` switch, you will see just the configuration options that
+are different from the defaults, if any:
+
+```
+zprint -e
+{:width {:set-by "Home directory file: /Users/kkinnear/.zprintrc", :value 80}}
+```
+
+Here you see that I had an options map containing `{:width 80}` in my
+`~/.zprintrc` file.
 
 ### 2. Try it
 The zprint program you have installed will accept Clojure source on stdin
@@ -77,4 +98,24 @@ zprint '{:width 90}' < myfile.clj
 ```
 This will output a formatted version of `myfile.clj` to the controlling
 terminal, fit into 90 (instead of the default 80) columns of output.
+
+You can check a file's formatting with `-c`:
+
+```
+zprint -lfsc myfile.clj
+```
+You can format a file in place, rewriting it with reformatted source:
+
+```
+zprint -lfsw myfile.clj
+```
+
+See the [detailed instructions](../using/files.md) on using the prebuilt
+binaries (and uberjar) for more information.
+
+```
+zprint -h
+```
+
+may also be helpful.
 

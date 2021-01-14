@@ -22,7 +22,11 @@ There are several ways to use zprint to format entire source files.
 ```
 zprintm '{:width 90}` < myfile.clj > myfile.out.clj
 ```
-or
+will read myfile.clj, format the source for a width of 90 characters
+(the default is 80), and write the result back into myfile.out.clj.
+
+Alternatively:
+
 ```
 zprintm '{:width 90}' -w myfile.clj
 ```
@@ -31,9 +35,11 @@ will read myfile.clj, format the source for a width of 90 characters
 it is different than the source.
 
 You can also format all of the clojure files in a directory with:
+
 ```
 zprint -w *.clj
 ```
+
 This will format each of the `.clj` files, and if there are any errors,
 it will report the error for that file, and continue on processing
 the rest of the files.  If there are errors formatting any file, the
@@ -42,9 +48,11 @@ the number of files with errors.
 
 Similarly, you can check the formatting on any files with the `-c`
 switch:
+
 ```
 zprint -c *.clj
 ```
+
 will check the formatting on all of the files with a `.clj` extension
 in the current directory.  The exit status will be the number of files
 which require formatting.

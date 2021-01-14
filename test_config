@@ -1093,3 +1093,9 @@ if [[  -e "./.zprint.edn.save" ]]
     mv ./.zprint.edn.save ./.zprint.edn
 fi
 
+#
+# Get rid of any log files from the python server
+#
+
+rm -rf 1
+

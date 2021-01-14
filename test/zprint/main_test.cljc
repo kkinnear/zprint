@@ -152,7 +152,7 @@
       (expect
         (more-of result
           1 (:exit result)
-          "Processing file ttt_test.clj\nFormatting required in file ttt_test.clj\nProcessed 1 file, 1 of which require formatting.\n"
+          "Processing file ttt_test.clj\nFormatting required in file ttt_test.clj\nProcessed 1 file, 1 of which requires formatting.\n"
             (:err result)
           "" (:out result))
         (sh "java" "-jar" target-uberjar "-lfsc" "ttt_test.clj"))
@@ -172,7 +172,7 @@
       (expect
         (more-of result
           0 (:exit result)
-          "Processing file ttt_test.clj\nProcessed 1 file, none of which require formatting.\n"
+          "Processing file ttt_test.clj\nProcessed 1 file, none of which requires formatting.\n"
             (:err result)
           "" (:out result))
         (sh "java" "-jar" target-uberjar "-lfsc" "ttt_test.clj"))

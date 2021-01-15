@@ -1304,7 +1304,8 @@
 
   ;!zprint {:format :skip}
   ; Something strange going on with source-fn and :clj!
-  #?(:clj (deftype Typetest [cnt _meta]
+  #?(:clj 
+  (deftype Typetest [cnt _meta]
             clojure.lang.IHashEq
               (hasheq [this] (list this))
             clojure.lang.Counted
@@ -1536,7 +1537,8 @@
 
   ;!zprint {:format :skip}
   ; Something strange going on with source-fn and :clj!
-  #?(:clj (deftype Typetest1 [cnt _meta]
+  #?(:clj 
+  (deftype Typetest1 [cnt _meta]
             clojure.lang.IHashEq
               (hasheq [this]
                 (list this)
@@ -1610,7 +1612,8 @@
 
   ;!zprint {:format :skip}
   ; Something strange going on with defn/def source-fn and :clj!
-  #?(:clj (defn zctest8x
+  #?(:clj 
+  (defn zctest8x
             []
             (let [a (list 'with 'arguments)
                   foo nil

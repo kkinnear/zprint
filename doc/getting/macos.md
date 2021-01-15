@@ -34,7 +34,7 @@ your path.
 zprint is available as a [Homebrew Cask](https://formulae.brew.sh/cask/zprint):
 
 ```
-brew cask install zprint
+brew install --cask zprint
 ```
 
 ## Usage

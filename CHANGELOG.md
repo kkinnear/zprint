@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * Documentation for `brew install --cask zprint`.  Pull request #161.
+
   * Several new, simpler, and clearer examples in the community documentation.
   Issue #165.
 
@@ -37,6 +39,9 @@ All notable changes to this project will be documented in this file.
   `zprint -h` for help.
 
 ### Changed
+
+  * Type hint in `redef.cljc` to allow library build in graalVM 20.2.0.
+  Pull request #171.
 
   * The `-e` and `--explain` switches on the pre-built binaries and the
   uberjar will now only report the vales in the options map that 

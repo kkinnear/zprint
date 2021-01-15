@@ -459,68 +459,59 @@
 
 
   (comment
-
     ; None of this would work with clojurescript!
-
     (def fs
       (mapv slurp
         ["src/zprint/core.cljc" "src/zprint/zutil.cljc"
          "src/zprint/ansi.cljc"]))
-
-    (expect
-      nil
-      (redef-state [zprint.zfns zprint.config]
-                   (reset! zprint.redef/ztype [:none 0])
-                   #_(clear-bindings zprint.zutil/zipper-binding-map)
-                   (try
-                     (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
-                     (catch Exception e
-                       (do #_(clear-bindings zprint.zutil/zipper-binding-map)
-                           (reset! zprint.redef/ztype [:none 0])
-                           (str "Failed to pass test to run multiple zprints "
-                                "in the same JVM simultaneouls!")))
-                     (finally (redef-state [zprint.zfns zprint.config] nil)))))
-    (expect
-      nil
-      (redef-state [zprint.zfns zprint.config]
-                   (reset! zprint.redef/ztype [:none 0])
-                   #_(clear-bindings zprint.zutil/zipper-binding-map)
-                   (try
-                     (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
-                     (catch Exception e
-                       (do #_(clear-bindings zprint.zutil/zipper-binding-map)
-                           (reset! zprint.redef/ztype [:none 0])
-                           (str "Failed to pass test to run multiple zprints "
-                                "in the same JVM simultaneouls!")))
-                     (finally (redef-state [zprint.zfns zprint.config] nil)))))
-    (expect
-      nil
-      (redef-state [zprint.zfns zprint.config]
-                   (reset! zprint.redef/ztype [:none 0])
-                   #_(clear-bindings zprint.zutil/zipper-binding-map)
-                   (try
-                     (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
-                     (catch Exception e
-                       (do #_(clear-bindings zprint.zutil/zipper-binding-map)
-                           (reset! zprint.redef/ztype [:none 0])
-                           (str "Failed to pass test to run multiple zprints "
-                                "in the same JVM simultaneouls!")))
-                     (finally (redef-state [zprint.zfns zprint.config] nil)))))
+    (expect nil
+            (redef-state
+              [zprint.zfns zprint.config]
+              (reset! zprint.redef/ztype [:none 0])
+              #_(clear-bindings zprint.zutil/zipper-binding-map)
+              (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
+                   (catch Exception e
+                     (do #_(clear-bindings zprint.zutil/zipper-binding-map)
+                         (reset! zprint.redef/ztype [:none 0])
+                         (str "Failed to pass test to run multiple zprints "
+                              "in the same JVM simultaneouls!")))
+                   (finally (redef-state [zprint.zfns zprint.config] nil)))))
+    (expect nil
+            (redef-state
+              [zprint.zfns zprint.config]
+              (reset! zprint.redef/ztype [:none 0])
+              #_(clear-bindings zprint.zutil/zipper-binding-map)
+              (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
+                   (catch Exception e
+                     (do #_(clear-bindings zprint.zutil/zipper-binding-map)
+                         (reset! zprint.redef/ztype [:none 0])
+                         (str "Failed to pass test to run multiple zprints "
+                              "in the same JVM simultaneouls!")))
+                   (finally (redef-state [zprint.zfns zprint.config] nil)))))
+    (expect nil
+            (redef-state
+              [zprint.zfns zprint.config]
+              (reset! zprint.redef/ztype [:none 0])
+              #_(clear-bindings zprint.zutil/zipper-binding-map)
+              (try (doall (pr-str (pmap #(zprint-file-str % "x") fs)) nil)
+                   (catch Exception e
+                     (do #_(clear-bindings zprint.zutil/zipper-binding-map)
+                         (reset! zprint.redef/ztype [:none 0])
+                         (str "Failed to pass test to run multiple zprints "
+                              "in the same JVM simultaneouls!")))
+                   (finally (redef-state [zprint.zfns zprint.config] nil)))))
     ;;
     ;; Make sure next tests don't have a problem with the bindings
     ;;
     ;; Try *really* hard to clean things up after failure so that it doesn't
     ;; cascade into other tests.
     ;;
-
     (expect nil
             (redef-state [zprint.zfns zprint.config]
                          (Thread/sleep 1000)
                          (reset! zprint.redef/ztype [:none 0])
                          #_(clear-bindings zprint.zutil/zipper-binding-map)
-                         nil))
-
-  )
+                         nil)))
 
   ;;
   ;; Test to see if we get exception when trying to use zprint on either a
@@ -635,7 +626,7 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: clojure.lang.ExceptionInfo: EOF while reading, expected } to match { at [1,1] {:type :sci.error/parse, :line 2, :column 1, :phase \"parse\", :file nil}" 
+         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: clojure.lang.ExceptionInfo: EOF while reading, expected } to match { at [1,1] {:type :sci.error/parse, :line 2, :column 1, :phase \"parse\", :file nil}"
          (try
            (zprint-file-str
              "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
@@ -644,7 +635,7 @@
            (catch Exception e (str e))))
      :cljs
        (expect
-"Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :sci.error/parse, :line 2, :column 1, :phase \"parse\", :file nil}, :cause #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :edamame/error, :line 2, :column 1}}}"
+         "Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :sci.error/parse, :line 2, :column 1, :phase \"parse\", :file nil}, :cause #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :edamame/error, :line 2, :column 1}}}"
          (try
            (zprint-file-str
              "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"

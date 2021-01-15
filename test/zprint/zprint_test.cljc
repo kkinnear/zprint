@@ -14,7 +14,7 @@
              [line-count max-width line-lengths make-record contains-nil?
               map-ignore blanks]]
             [zprint.zutil :refer [edn*]]
-	    [zprint.config :refer [merge-deep]]
+            [zprint.config :refer [merge-deep]]
             #?@(:clj ([clojure.repl :refer [source-fn]]))
             [zprint.core-test :refer [trim-gensym-regex x8]]
             [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
@@ -83,16 +83,16 @@
   #?(:clj (def y2 (source-fn 'zprint.zprint/partition-all-2-nc)))
   #?(:clj (expect (trim-gensym-regex (read-string y2))
                   (trim-gensym-regex
-                    (read-string
-                      (zprint-str y2
-                                  {:parallel? false, :parse-string? true})))))
+                    (read-string (zprint-str y2
+                                             {:parallel? false,
+                                              :parse-string? true})))))
 
   #?(:clj (def y3 (source-fn 'zprint.zprint/fzprint-list*)))
   #?(:clj (expect (trim-gensym-regex (read-string y3))
                   (trim-gensym-regex
-                    (read-string
-                      (zprint-str y3
-                                  {:parallel? false, :parse-string? true})))))
+                    (read-string (zprint-str y3
+                                             {:parallel? false,
+                                              :parse-string? true})))))
 
 
   ;;
@@ -133,21 +133,19 @@
                                             :parallel? true,
                                             :parse-string? true}))))
 
-  #?(:clj (expect
-            (trim-gensym-regex (read-string y2))
-            (trim-gensym-regex
-              (read-string (zprint-str y2
-                                       {:style :justified,
-                                        :parallel? true,
-                                        :parse-string? true})))))
+  #?(:clj (expect (trim-gensym-regex (read-string y2))
+                  (trim-gensym-regex
+                    (read-string (zprint-str y2
+                                             {:style :justified,
+                                              :parallel? true,
+                                              :parse-string? true})))))
 
-  #?(:clj (expect
-            (trim-gensym-regex (read-string y3))
-            (trim-gensym-regex
-              (read-string (zprint-str y3
-                                       {:style :justified,
-                                        :parallel? true,
-                                        :parse-string? true})))))
+  #?(:clj (expect (trim-gensym-regex (read-string y3))
+                  (trim-gensym-regex
+                    (read-string (zprint-str y3
+                                             {:style :justified,
+                                              :parallel? true,
+                                              :parse-string? true})))))
 
   (expect (trim-gensym-regex (read-string fzprint-list*str))
           (trim-gensym-regex (read-string (zprint-str fzprint-list*str
@@ -247,8 +245,7 @@
      [":ccccccccccc" :purple :element] ["\n          " :none :whitespace]
      [":ddddddddddddd" :purple :element] [",\n        " :none :whitespace]
      [":eeee" :purple :element] [" " :none :whitespace]
-     [":ffff" :purple :element]
-     ["}" :red :right]])
+     [":ffff" :purple :element] ["}" :red :right]])
 
   (expect [20 20 25 20] (line-lengths {} 7 ll))
 
@@ -351,15 +348,13 @@
   #?(:clj (expect "[01 02 03 04 80]" (zprint-str ba {:array {:hex? true}})))
 
   #?(:clj (def ba1
-            (byte-array
-              [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-               23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41
-               42 43 44 45 46 47 48 49 50]))
+            (byte-array [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
+                         22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
+                         40 41 42 43 44 45 46 47 48 49 50]))
      :cljs (def ba1
-             (int-array
-               [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-                23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41
-                42 43 44 45 46 47 48 49 50])))
+             (int-array [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
+                         22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
+                         40 41 42 43 44 45 46 47 48 49 50])))
 
   #?(:clj (expect 51 (max-width (zprint-str ba1 51 {:array {:hex? true}}))))
   #?(:clj (expect 3 (line-count (zprint-str ba1 51 {:array {:hex? true}}))))
@@ -736,15 +731,13 @@
           (zprint.zprint/expand-tabs 8
                                      "this is a taba\ttest to see if it works"))
 
-  (expect "this is a tababc        test to see if it works"
-          (zprint.zprint/expand-tabs
-            8
-            "this is a tababc\ttest to see if it works"))
+  (expect
+    "this is a tababc        test to see if it works"
+    (zprint.zprint/expand-tabs 8 "this is a tababc\ttest to see if it works"))
 
-  (expect "this is a tabab test to see if it works"
-          (zprint.zprint/expand-tabs
-            8
-            "this is a tabab\ttest to see if it works"))
+  (expect
+    "this is a tabab test to see if it works"
+    (zprint.zprint/expand-tabs 8 "this is a tabab\ttest to see if it works"))
 
   ;;
   ;; # File Handling
@@ -822,12 +815,12 @@
                  :reader-cond
                    {:force-nl? false, :sort? nil, :key-order [:clj :cljs]}}))
 
-  (expect "#?(:cljs (list :a :b)\n   :clj (list :c :d))"
-          (zprint-str
-            "#?(:cljs (list :a :b) :clj (list :c :d))"
-            {:parse-string? true,
-             :reader-cond
-               {:force-nl? true, :sort? nil, :key-order [:clj :cljs]}}))
+  (expect
+    "#?(:cljs (list :a :b)\n   :clj (list :c :d))"
+    (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+                {:parse-string? true,
+                 :reader-cond
+                   {:force-nl? true, :sort? nil, :key-order [:clj :cljs]}}))
 
   (expect
     "#?(:clj (list :c :d) :cljs (list :a :b))"
@@ -1311,14 +1304,13 @@
 
   ;!zprint {:format :skip}
   ; Something strange going on with source-fn and :clj!
-  #?(:clj
-       (deftype Typetest [cnt _meta]
-         clojure.lang.IHashEq
-           (hasheq [this] (list this))
-         clojure.lang.Counted
-           (count [_] cnt)
-         clojure.lang.IMeta
-           (meta [_] _meta)))
+  #?(:clj (deftype Typetest [cnt _meta]
+            clojure.lang.IHashEq
+              (hasheq [this] (list this))
+            clojure.lang.Counted
+              (count [_] cnt)
+            clojure.lang.IMeta
+              (meta [_] _meta)))
 
   (def Typeteststr
     "(deftype Typetest [cnt _meta]
@@ -1544,17 +1536,16 @@
 
   ;!zprint {:format :skip}
   ; Something strange going on with source-fn and :clj!
-  #?(:clj
-       (deftype Typetest1 [cnt _meta]
-         clojure.lang.IHashEq
-           (hasheq [this]
-             (list this)
-             (list this this)
-             (list this this this this))
-         clojure.lang.Counted
-           (count [_] cnt)
-         clojure.lang.IMeta
-           (meta [_] _meta)))
+  #?(:clj (deftype Typetest1 [cnt _meta]
+            clojure.lang.IHashEq
+              (hasheq [this]
+                (list this)
+                (list this this)
+                (list this this this this))
+            clojure.lang.Counted
+              (count [_] cnt)
+            clojure.lang.IMeta
+              (meta [_] _meta)))
 
   (def Typetest1str
     "(deftype Typetest1 [cnt _meta]
@@ -1619,26 +1610,25 @@
 
   ;!zprint {:format :skip}
   ; Something strange going on with defn/def source-fn and :clj!
-  #?(:clj
-       (defn zctest8x
-         []
-         (let [a (list 'with 'arguments)
-               foo nil
-               bar true
-               baz "stuff"
-               other 1
-               bother 2
-               stuff 3
-               now 4
-               output 5
-               b 3
-               c 5
-               this "is"]
-           (cond (or foo bar baz) (format output now)
-                 :let [stuff (and bother foo bar)
-                       bother (or other output foo)]
-                 (and a b c (bother this)) (format other stuff))
-           (list a :b :c "d"))))
+  #?(:clj (defn zctest8x
+            []
+            (let [a (list 'with 'arguments)
+                  foo nil
+                  bar true
+                  baz "stuff"
+                  other 1
+                  bother 2
+                  stuff 3
+                  now 4
+                  output 5
+                  b 3
+                  c 5
+                  this "is"]
+              (cond (or foo bar baz) (format output now)
+                    :let [stuff (and bother foo bar)
+                          bother (or other output foo)]
+                    (and a b c (bother this)) (format other stuff))
+              (list a :b :c "d"))))
 
   (def zctest8xstr
     "(defn zctest8x
@@ -1831,20 +1821,17 @@
   (expect
     [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
      ["key-color-tst" :black :element] ["\n  " :none :indent]
-     ["[" :purple :left]
-     ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
-     [":abc" :magenta :element] ["\n     " :none :indent]
+     ["[" :purple :left] ["]" :purple :right] ["\n  " :none :indent]
+     ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
      [";stuff" :green :comment] ["\n     " :none :newline]
      [":bother" :magenta :element] ["," :none :whitespace]
-     ["\n   " :none :indent]
-     ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
-     ["\"and\"" :red :element] [" " :none :whitespace]
-     ["\"even\"" :red :element]
-     ["," :none :whitespace] [" " :none :whitespace]
-     [":deeper" :magenta :element]
-     [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
-     [" " :none :whitespace] [":is" :magenta :element] ["," :none :whitespace]
-     [" " :none :whitespace] [":just" :magenta :element] [" " :none :whitespace]
+     ["\n   " :none :indent] ["\"deep\"" :red :element] [" " :none :whitespace]
+     ["{" :red :left] ["\"and\"" :red :element] [" " :none :whitespace]
+     ["\"even\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":deeper" :magenta :element] [" " :none :whitespace] ["{" :red :left]
+     ["\"that\"" :red :element] [" " :none :whitespace]
+     [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":just" :magenta :element] [" " :none :whitespace]
      ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
      ["\"way\"" :red :element] [" " :none :whitespace]
      [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
@@ -1864,29 +1851,26 @@
   (expect
     [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
      ["key-color-tst" :black :element] ["\n  " :none :indent]
-     ["[" :purple :left]
-     ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
-     [":abc" :blue :element] ["\n     " :none :indent]
-     [";stuff" :green :comment]
-     ["\n     " :none :newline] [":bother" :magenta :element]
-     ["," :none :whitespace] ["\n   " :none :indent] ["\"deep\"" :blue :element]
-     [" " :none :whitespace] ["{" :red :left] ["\"and\"" :yellow :element]
-     [" " :none :whitespace] ["\"even\"" :red :element] ["," :none :whitespace]
-     [" " :none :whitespace] [":deeper" :yellow :element]
-     [" " :none :whitespace]
-     ["{" :red :left] ["\"that\"" :green :element] [" " :none :whitespace]
+     ["[" :purple :left] ["]" :purple :right] ["\n  " :none :indent]
+     ["{" :red :left] [":abc" :blue :element] ["\n     " :none :indent]
+     [";stuff" :green :comment] ["\n     " :none :newline]
+     [":bother" :magenta :element] ["," :none :whitespace]
+     ["\n   " :none :indent] ["\"deep\"" :blue :element] [" " :none :whitespace]
+     ["{" :red :left] ["\"and\"" :yellow :element] [" " :none :whitespace]
+     ["\"even\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":deeper" :yellow :element] [" " :none :whitespace] ["{" :red :left]
+     ["\"that\"" :green :element] [" " :none :whitespace]
      [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace]
      [":just" :green :element] [" " :none :whitespace] ["\"the\"" :red :element]
      ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :green :element]
      [" " :none :whitespace] [":it-is" :magenta :element] ["}" :red :right]
      ["}" :red :right] ["," :none :whitespace] ["\n   " :none :indent]
      ["\"def\"" :blue :element] [" " :none :whitespace]
-     ["\"ghi\"" :red :element]
-     ["," :none :whitespace] ["\n   " :none :indent] ["5" :blue :element]
-     [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
-     ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-     ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
-     ["}" :red :right] [")" :green :right]]
+     ["\"ghi\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+     ["5" :blue :element] [" " :none :whitespace] ["\"five\"" :red :element]
+     ["," :none :whitespace] ["\n   " :none :indent] ["[" :purple :left]
+     ["\"hi\"" :red :element] ["]" :purple :right] [" " :none :whitespace]
+     ["\"there\"" :red :element] ["}" :red :right] [")" :green :right]]
     (czprint-str zprint.zprint-test/key-color-tststr
                  {:parse-string? true,
                   :map {:key-depth-color [:blue :yellow :green]},
@@ -1897,20 +1881,17 @@
   (expect
     [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
      ["key-color-tst" :black :element] ["\n  " :none :indent]
-     ["[" :purple :left]
-     ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
-     [":abc" :magenta :element] ["\n     " :none :indent]
+     ["[" :purple :left] ["]" :purple :right] ["\n  " :none :indent]
+     ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
      [";stuff" :green :comment] ["\n     " :none :newline]
      [":bother" :magenta :element] ["," :none :whitespace]
-     ["\n   " :none :indent]
-     ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
-     ["\"and\"" :red :element] [" " :none :whitespace]
-     ["\"even\"" :red :element]
-     ["," :none :whitespace] [" " :none :whitespace]
-     [":deeper" :magenta :element]
-     [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
-     [" " :none :whitespace] [":is" :magenta :element] ["," :none :whitespace]
-     [" " :none :whitespace] [":just" :magenta :element] [" " :none :whitespace]
+     ["\n   " :none :indent] ["\"deep\"" :red :element] [" " :none :whitespace]
+     ["{" :red :left] ["\"and\"" :red :element] [" " :none :whitespace]
+     ["\"even\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":deeper" :magenta :element] [" " :none :whitespace] ["{" :red :left]
+     ["\"that\"" :red :element] [" " :none :whitespace]
+     [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":just" :magenta :element] [" " :none :whitespace]
      ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
      ["\"way\"" :red :element] [" " :none :whitespace]
      [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
@@ -1930,29 +1911,27 @@
   (expect
     [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
      ["key-color-tst" :black :element] ["\n  " :none :indent]
-     ["[" :purple :left]
-     ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
-     [":abc" :blue :element] ["\n     " :none :indent]
-     [";stuff" :green :comment]
-     ["\n     " :none :newline] [":bother" :magenta :element]
-     ["," :none :whitespace] ["\n   " :none :indent] ["\"deep\"" :cyan :element]
-     [" " :none :whitespace] ["{" :red :left] ["\"and\"" :red :element]
-     [" " :none :whitespace] ["\"even\"" :red :element] ["," :none :whitespace]
-     [" " :none :whitespace] [":deeper" :magenta :element]
-     [" " :none :whitespace]
-     ["{" :red :left] ["\"that\"" :red :element] [" " :none :whitespace]
+     ["[" :purple :left] ["]" :purple :right] ["\n  " :none :indent]
+     ["{" :red :left] [":abc" :blue :element] ["\n     " :none :indent]
+     [";stuff" :green :comment] ["\n     " :none :newline]
+     [":bother" :magenta :element] ["," :none :whitespace]
+     ["\n   " :none :indent] ["\"deep\"" :cyan :element] [" " :none :whitespace]
+     ["{" :red :left] ["\"and\"" :red :element] [" " :none :whitespace]
+     ["\"even\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":deeper" :magenta :element] [" " :none :whitespace] ["{" :red :left]
+     ["\"that\"" :red :element] [" " :none :whitespace]
      [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace]
      [":just" :magenta :element] [" " :none :whitespace]
-     ["\"the\"" :red :element]
-     ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :red :element]
-     [" " :none :whitespace] [":it-is" :magenta :element] ["}" :red :right]
-     ["}" :red :right] ["," :none :whitespace] ["\n   " :none :indent]
-     ["\"def\"" :red :element] [" " :none :whitespace] ["\"ghi\"" :red :element]
-     ["," :none :whitespace] ["\n   " :none :indent] ["5" :green :element]
-     [" " :none :whitespace] ["\"five\"" :red :element] ["," :none :whitespace]
-     ["\n   " :none :indent] ["[" :purple :left] ["\"hi\"" :red :element]
-     ["]" :purple :right] [" " :none :whitespace] ["\"there\"" :red :element]
-     ["}" :red :right] [")" :green :right]]
+     ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     ["\"way\"" :red :element] [" " :none :whitespace]
+     [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
+     ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
+     [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
+     ["\n   " :none :indent] ["5" :green :element] [" " :none :whitespace]
+     ["\"five\"" :red :element] ["," :none :whitespace] ["\n   " :none :indent]
+     ["[" :purple :left] ["\"hi\"" :red :element] ["]" :purple :right]
+     [" " :none :whitespace] ["\"there\"" :red :element] ["}" :red :right]
+     [")" :green :right]]
     (czprint-str zprint.zprint-test/key-color-tststr
                  {:parse-string? true,
                   :map {:key-color {:abc :blue, "deep" :cyan, 5 :green}},
@@ -1964,20 +1943,17 @@
   (expect
     [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
      ["key-color-tst" :black :element] ["\n  " :none :indent]
-     ["[" :purple :left]
-     ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
-     [":abc" :magenta :element] ["\n     " :none :indent]
+     ["[" :purple :left] ["]" :purple :right] ["\n  " :none :indent]
+     ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
      [";stuff" :green :comment] ["\n     " :none :newline]
      [":bother" :magenta :element] ["," :none :whitespace]
-     ["\n   " :none :indent]
-     ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
-     ["\"and\"" :red :element] [" " :none :whitespace]
-     ["\"even\"" :red :element]
-     ["," :none :whitespace] [" " :none :whitespace]
-     [":deeper" :magenta :element]
-     [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
-     [" " :none :whitespace] [":is" :magenta :element] ["," :none :whitespace]
-     [" " :none :whitespace] [":just" :magenta :element] [" " :none :whitespace]
+     ["\n   " :none :indent] ["\"deep\"" :red :element] [" " :none :whitespace]
+     ["{" :red :left] ["\"and\"" :red :element] [" " :none :whitespace]
+     ["\"even\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":deeper" :magenta :element] [" " :none :whitespace] ["{" :red :left]
+     ["\"that\"" :red :element] [" " :none :whitespace]
+     [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":just" :magenta :element] [" " :none :whitespace]
      ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
      ["\"way\"" :red :element] [" " :none :whitespace]
      [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
@@ -2046,24 +2022,19 @@
   (expect
     [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
      ["key-color-tst" :black :element] ["\n  " :none :indent]
-     ["[" :purple :left]
-     ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
-     [":abc" :magenta :element] ["\n     " :none :indent]
+     ["[" :purple :left] ["]" :purple :right] ["\n  " :none :indent]
+     ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
      [";stuff" :green :comment] ["\n     " :none :newline]
      [":bother" :magenta :element] ["," :none :whitespace]
-     ["\n   " :none :indent]
-     ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
-     ["\"and\"" :red :element] [" " :none :whitespace]
-     ["\"even\"" :red :element]
-     ["," :none :whitespace] [" " :none :whitespace]
-     [":deeper" :magenta :element]
-     [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
-     [" " :none :whitespace] [":is" :magenta :element] ["," :none :whitespace]
-     [" " :none :whitespace]
+     ["\n   " :none :indent] ["\"deep\"" :red :element] [" " :none :whitespace]
+     ["{" :red :left] ["\"and\"" :red :element] [" " :none :whitespace]
+     ["\"even\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":deeper" :magenta :element] [" " :none :whitespace] ["{" :red :left]
+     ["\"that\"" :red :element] [" " :none :whitespace]
+     [":is" :magenta :element] ["," :none :whitespace] [" " :none :whitespace]
      [":just" :magenta :element] [" " :none :whitespace]
-     ["\"the\"" :red :element]
-     ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :red :element]
-     [" " :none :whitespace]
+     ["\"the\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     ["\"way\"" :red :element] [" " :none :whitespace]
      [":it-is" :magenta :element] ["}" :red :right] ["}" :red :right]
      ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
      [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
@@ -2080,23 +2051,18 @@
   (expect
     [["(" :green :left] ["defn" :blue :element] [" " :none :whitespace]
      ["key-color-tst" :black :element] ["\n  " :none :indent]
-     ["[" :purple :left]
-     ["]" :purple :right] ["\n  " :none :indent] ["{" :red :left]
-     [":abc" :magenta :element] ["\n     " :none :indent]
+     ["[" :purple :left] ["]" :purple :right] ["\n  " :none :indent]
+     ["{" :red :left] [":abc" :magenta :element] ["\n     " :none :indent]
      [";stuff" :green :comment] ["\n     " :none :newline]
      [":bother" :magenta :element] ["," :none :whitespace]
-     ["\n   " :none :indent]
-     ["\"deep\"" :red :element] [" " :none :whitespace] ["{" :red :left]
-     ["\"and\"" :red :element] [" " :none :whitespace]
-     ["\"even\"" :red :element]
-     ["," :none :whitespace] [" " :none :whitespace]
-     [":deeper" :magenta :element]
-     [" " :none :whitespace] ["{" :red :left] ["\"that\"" :red :element]
-     [" " :none :whitespace] [":is" :blue :element] ["," :none :whitespace]
-     [" " :none :whitespace]
-     [":just" :blue :element] [" " :none :whitespace] ["\"the\"" :red :element]
-     ["," :none :whitespace] [" " :none :whitespace] ["\"way\"" :red :element]
-     [" " :none :whitespace]
+     ["\n   " :none :indent] ["\"deep\"" :red :element] [" " :none :whitespace]
+     ["{" :red :left] ["\"and\"" :red :element] [" " :none :whitespace]
+     ["\"even\"" :red :element] ["," :none :whitespace] [" " :none :whitespace]
+     [":deeper" :magenta :element] [" " :none :whitespace] ["{" :red :left]
+     ["\"that\"" :red :element] [" " :none :whitespace] [":is" :blue :element]
+     ["," :none :whitespace] [" " :none :whitespace] [":just" :blue :element]
+     [" " :none :whitespace] ["\"the\"" :red :element] ["," :none :whitespace]
+     [" " :none :whitespace] ["\"way\"" :red :element] [" " :none :whitespace]
      [":it-is" :blue :element] ["}" :red :right] ["}" :red :right]
      ["," :none :whitespace] ["\n   " :none :indent] ["\"def\"" :red :element]
      [" " :none :whitespace] ["\"ghi\"" :red :element] ["," :none :whitespace]
@@ -3250,23 +3216,18 @@
   (comment
     ; Does defproject inhibit the wrapping of elements of a vector (which it is
     ; configured to do)?
-
     (expect
       "(defproject name version\n  :test :this\n  :stuff [:aaaaa\n          :bbbbbbb\n          :ccccccccc\n          :ddddddd\n          :eeeeeee])"
       (redef-state [zprint.config] (zprint-str dp 50 {:parse-string? true})))
-
     ; If we remove that configuration, will it stop inhibiting the wrapping of vector
     ; elements?
-
     (expect
       "(defproject name version\n  :test :this\n  :stuff [:aaaaa :bbbbbbb :ccccccccc :ddddddd\n          :eeeeeee])"
       (redef-state [zprint.config]
                    (zprint-str dp
                                50
                                {:parse-string? true,
-                                :fn-map {"defproject" :arg2-pair}})))
-
-  )
+                                :fn-map {"defproject" :arg2-pair}}))))
 
   (expect "{a 1}" (zprint-str "{a 1}" {:parse-string? true}))
 
@@ -3409,13 +3370,12 @@ ser/collect-vars-acc %1 %2) )))"
   ;; Issue #156.
   ;;
 
-  (expect
-    "{:a :b, :c {:u/e :f, :u/g :h}}"
-    (zprint-str (zprint-str "{:a :b, :c {:u/e :f, :u/g :h}}"
-                            {:parse-string? true,
-                             :map {:lift-ns? true, :unlift-ns? false}})
-                {:parse-string? true,
-                 :map {:lift-ns? false, :unlift-ns? true}}))
+  (expect "{:a :b, :c {:u/e :f, :u/g :h}}"
+          (zprint-str (zprint-str "{:a :b, :c {:u/e :f, :u/g :h}}"
+                                  {:parse-string? true,
+                                   :map {:lift-ns? true, :unlift-ns? false}})
+                      {:parse-string? true,
+                       :map {:lift-ns? false, :unlift-ns? true}}))
 
   ;; # Tests for comments mixed in with the early part of lists
   ;;
@@ -3715,10 +3675,9 @@ ser/collect-vars-acc %1 %2) )))"
           (zprint-str "{:a :b \n :c \n {:g \n :h :i \n\n :j} \n\n :e \n\n\n :f}"
                       {:parse-string? true, :map {:respect-bl? false}}))
 
-  (expect
-    "{:a :b,\n :c {:g :h,\n     :i\n\n       :j},\n\n :e\n\n\n   :f}"
-    (zprint-str "{:a :b \n :c \n {:g \n :h :i \n\n :j} \n\n :e \n\n\n :f}"
-                {:parse-string? true, :map {:respect-bl? true}}))
+  (expect "{:a :b,\n :c {:g :h,\n     :i\n\n       :j},\n\n :e\n\n\n   :f}"
+          (zprint-str "{:a :b \n :c \n {:g \n :h :i \n\n :j} \n\n :e \n\n\n :f}"
+                      {:parse-string? true, :map {:respect-bl? true}}))
 
   (expect
     "{:a :b,\n :c\n   {:g\n      :h,\n    :i\n\n      :j},\n\n :e\n\n\n   :f}"
@@ -3879,9 +3838,8 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(as-> (list :a) x\n  (repeat 5 x)\n  (do (println x) x)\n  (nth x 2))"
-    (zprint-str
-      "(as-> (list :a) x (repeat 5 x) (do (println x) x) (nth x 2))"
-      {:parse-string? true, :width 20}))
+    (zprint-str "(as-> (list :a) x (repeat 5 x) (do (println x) x) (nth x 2))"
+                {:parse-string? true, :width 20}))
 
   ;;
   ;; :arg2 test that includes test for handling third argument correctly
@@ -4396,10 +4354,10 @@ ser/collect-vars-acc %1 %2) )))"
           (zprint-str "#{;stuff\n\n :a :b :c ;bother\n\n :d ;foo\n\n :e :f}"
                       {:parse-string? true, :style :indent-only}))
 
-  (expect
-    "#{:a\n\n  :b\n  :c #{:a :b\n\n       :c\n       :d :e :f}\n  :e :f}"
-    (zprint-str "#{:a \n\n :b \n :c #{:a :b \n\n :c \n :d :e :f} \n :e :f}"
-                {:parse-string? true, :style :indent-only}))
+  (expect "#{:a\n\n  :b\n  :c #{:a :b\n\n       :c\n       :d :e :f}\n  :e :f}"
+          (zprint-str
+            "#{:a \n\n :b \n :c #{:a :b \n\n :c \n :d :e :f} \n :e :f}"
+            {:parse-string? true, :style :indent-only}))
 
 
 
@@ -4526,32 +4484,30 @@ ser/collect-vars-acc %1 %2) )))"
                  :vector {:option-fn #(if (= (first %3) 'this)
                                         {:vector {:fn-format :force-nl}})}}))
 
-  (expect "[this [is a\n       test this\n       is only]\n  (a test)]"
-          (zprint-str "[this [is a test this is only] (a test)]"
-                      {:parse-string? true,
-                       :vector {:option-fn #(if (= (first %3) 'this)
-                                              {:vector {:fn-format
-                                                          :binding}})}}))
+  (expect
+    "[this [is a\n       test this\n       is only]\n  (a test)]"
+    (zprint-str "[this [is a test this is only] (a test)]"
+                {:parse-string? true,
+                 :vector {:option-fn #(if (= (first %3) 'this)
+                                        {:vector {:fn-format :binding}})}}))
 
   (expect "[:arg1-force-nl :a\n  :b :c\n  :d :e\n  :f :g]"
           (zprint-str [:arg1-force-nl :a :b :c :d :e :f :g]
                       {:parse-string? false,
                        :vector {:option-fn #(do {:vector {:fn-format
-                                                            (first
-                                                              %3)}})}}))
-  (expect "[:arg2 a b\n  c\n  d\n  e\n  f\n  g]"
-          (zprint-str "[:arg2 a b c d e f g]"
-                      {:parse-string? true,
-                       :vector {:option-fn #(do
-                                              {:vector {:fn-format (first %3)},
-                                               :fn-force-nl #{(first %3)}})}}))
+                                                            (first %3)}})}}))
+  (expect
+    "[:arg2 a b\n  c\n  d\n  e\n  f\n  g]"
+    (zprint-str "[:arg2 a b c d e f g]"
+                {:parse-string? true,
+                 :vector {:option-fn #(do {:vector {:fn-format (first %3)},
+                                           :fn-force-nl #{(first %3)}})}}))
 
   (expect "[:force-nl :a\n           :b :c\n           :d :e\n           :f :g]"
           (zprint-str [:force-nl :a :b :c :d :e :f :g]
                       {:parse-string? false,
                        :vector {:option-fn #(do {:vector {:fn-format
-                                                            (first
-                                                              %3)}})}}))
+                                                            (first %3)}})}}))
 
   (expect
     "[:pair a\n       b\n       c\n       d\n       e\n       f\n       g]"
@@ -4564,8 +4520,7 @@ ser/collect-vars-acc %1 %2) )))"
           (zprint-str "[:pair-fn a b c d e f g]"
                       {:parse-string? true,
                        :vector {:option-fn #(do {:vector {:fn-format
-                                                            (first
-                                                              %3)}})}}))
+                                                            (first %3)}})}}))
 
   ;;
   ;; # Issue #113
@@ -4587,11 +4542,8 @@ ser/collect-vars-acc %1 %2) )))"
         cf {:color? false}
         ct {:color? true}]
     (expect 14 (count (zprint-str s cf)))
-
     (expect 23 (count (zprint-str s ct)))
-
     (expect (zprint-str s cf) (str/trim-newline (with-out-str (zprint s cf))))
-
     (expect (zprint-str s ct) (str/trim-newline (with-out-str (zprint s ct)))))
 
   ;; See if those differences match what we expect
@@ -4693,12 +4645,12 @@ ser/collect-vars-acc %1 %2) )))"
           (zprint-str "(quote a)" {:parse-string? true, :style :backtranslate}))
 
   ; Should change, since we explicitly did this for zippers
-  (expect "'a"
-          (zprint-str "(quote a)"
-                      {:parse-string? true,
-                       :fn-map {"quote" [:replace-w-string
-                                         {:list {:replacement-string "'"}}
-                                         {}]}}))
+  (expect
+    "'a"
+    (zprint-str "(quote a)"
+                {:parse-string? true,
+                 :fn-map {"quote" [:replace-w-string
+                                   {:list {:replacement-string "'"}} {}]}}))
 
 
   (expect "#'a" (zprint-str '(var a) {:style :backtranslate}))
@@ -4706,12 +4658,12 @@ ser/collect-vars-acc %1 %2) )))"
   (expect "(var a)"
           (zprint-str "(var a)" {:parse-string? true, :style :backtranslate}))
 
-  (expect "#'a"
-          (zprint-str "(var a)"
-                      {:parse-string? true,
-                       :fn-map {"var" [:replace-w-string
-                                       {:list {:replacement-string "#'"}}
-                                       {}]}}))
+  (expect
+    "#'a"
+    (zprint-str "(var a)"
+                {:parse-string? true,
+                 :fn-map {"var" [:replace-w-string
+                                 {:list {:replacement-string "#'"}} {}]}}))
 
 
   (expect "@a" (zprint-str '(clojure.core/deref a) {:style :backtranslate}))
@@ -4723,10 +4675,9 @@ ser/collect-vars-acc %1 %2) )))"
   (expect "@a"
           (zprint-str "(clojure.core/deref a)"
                       {:parse-string? true,
-                       :fn-map {"clojure.core/deref" [:replace-w-string
-                                                      {:list
-                                                         {:replacement-string
-                                                            "@"}} {}]}}))
+                       :fn-map {"clojure.core/deref"
+                                  [:replace-w-string
+                                   {:list {:replacement-string "@"}} {}]}}))
 
 
   (expect "~a" (zprint-str '(clojure.core/unquote a) {:style :backtranslate}))
@@ -4875,10 +4826,9 @@ ser/collect-vars-acc %1 %2) )))"
           (zprint-str "{a\nb\n}"
                       {:parse-string? true, :map {:respect-nl? true}}))
 
-  (expect
-    "{a b\n\n}"
-    (zprint-str "{a\nb\n\n}"
-                {:parse-string? true, :map {:respect-bl? true}}))
+  (expect "{a b\n\n}"
+          (zprint-str "{a\nb\n\n}"
+                      {:parse-string? true, :map {:respect-bl? true}}))
 
 
   ;;
@@ -5196,13 +5146,12 @@ ser/collect-vars-acc %1 %2) )))"
   (expect
     [["[" :purple :left] ["true" :green :element] [" " :none :whitespace]
      ["false" :cyan :element] [" " :none :whitespace]
-     ["#\"regex\"" :red :element]
-     [" " :none :whitespace] ["asymbol" :magenta :element]
-     [" " :none :whitespace]
-     ["{" :red :left] [":a" :green :element] [" " :none :whitespace]
-     [":b" :green :element] ["," :cyan :whitespace] [" " :none :whitespace]
-     [":c" :green :element] [" " :none :whitespace] [":d" :green :element]
-     ["}" :red :right] ["]" :purple :right]]
+     ["#\"regex\"" :red :element] [" " :none :whitespace]
+     ["asymbol" :magenta :element] [" " :none :whitespace] ["{" :red :left]
+     [":a" :green :element] [" " :none :whitespace] [":b" :green :element]
+     ["," :cyan :whitespace] [" " :none :whitespace] [":c" :green :element]
+     [" " :none :whitespace] [":d" :green :element] ["}" :red :right]
+     ["]" :purple :right]]
     (czprint-str element-color-tst
                  {:parse-string? true,
                   :color-map {:comma :cyan,
@@ -5289,16 +5238,15 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
-    (zprint-str
-      mapp6
-      {:parse-string? true,
-       :fn-map {"app" [:none
-                       {:list {:constant-pair-min 1,
-                               :constant-pair-fn #(or (vector? %)
-                                                      (keyword? %))},
-                        :next-inner {:list {:constant-pair-fn nil,
-                                            :constant-pair-min 2}}}]},
-       :width 55}))
+    (zprint-str mapp6
+                {:parse-string? true,
+                 :fn-map {"app" [:none
+                                 {:list {:constant-pair-min 1,
+                                         :constant-pair-fn #(or (vector? %)
+                                                                (keyword? %))},
+                                  :next-inner {:list {:constant-pair-fn nil,
+                                                      :constant-pair-min 2}}}]},
+                 :width 55}))
 
   (expect
     "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route]\n                   handler\n                   ; How do comment work?\n                   [route]\n                   (handler this\n                            is\n                            \"a\" test\n                            \"this\" is\n                            \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route]\n                    handler\n                    [route] ; What about comments here?\n                    handler))"
@@ -5310,9 +5258,9 @@ ser/collect-vars-acc %1 %2) )))"
     "(m/app :get  (m/app middle1 middle2 middle3\n                    [route] handler\n\t\t    ; How do comments work?\n                    [route] \n        (handler this is \"a\" test \"this\" is \"only a\" test) \n\t\t    )\n       ; How do comments work here?\n       true (should be paired with true)\n       false (should be paired with false)\n       6 (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post (m/app \n                    [route] handler\n                    [route] ; What about comments here?\n\t\t    handler))")
 
 
- (expect
-"(m/app\n  :get     (m/app\n             middle1\n             middle2\n             middle3\n             [route] handler\n             ; How do comments work?\n             [route] (handler this is \"a\" test \"this\" is \"only a\" test))\n  ; How do comments work here?\n  true     (should be paired with true)\n  false    (should be paired with false)\n  6        (should be paired with 6)\n  \"string\" (should be paired with string)\n  :post    (m/app\n             [route] handler\n             [route] ; What about comments here?\n               handler))"
- (zprint-str mapp7 {:parse-string? true, :style :moustache}))
+  (expect
+    "(m/app\n  :get     (m/app\n             middle1\n             middle2\n             middle3\n             [route] handler\n             ; How do comments work?\n             [route] (handler this is \"a\" test \"this\" is \"only a\" test))\n  ; How do comments work here?\n  true     (should be paired with true)\n  false    (should be paired with false)\n  6        (should be paired with 6)\n  \"string\" (should be paired with string)\n  :post    (m/app\n             [route] handler\n             [route] ; What about comments here?\n               handler))"
+    (zprint-str mapp7 {:parse-string? true, :style :moustache}))
 
   ;;
   ;; Line endings
@@ -5387,22 +5335,22 @@ ser/collect-vars-acc %1 %2) )))"
   ;; New style
   ;;
 
-(def style-m1
-  {:fn-map {"app" [:none
-                   {:list {:constant-pair-min 1,
-                           :constant-pair-fn #(or (keyword? %)
-                                                  (string? %)
-                                                  (number? %)
-                                                  (= true %)
-                                                  (= false %)
-                                                  (vector? %))},
-                    :pair {:justify? true},
-                    :next-inner {:list {:constant-pair-min 4,
-                                        :constant-pair-fn nil},
-                                 :pair {:justify? false}}}]}})
+  (def style-m1
+    {:fn-map {"app" [:none
+                     {:list {:constant-pair-min 1,
+                             :constant-pair-fn #(or (keyword? %)
+                                                    (string? %)
+                                                    (number? %)
+                                                    (= true %)
+                                                    (= false %)
+                                                    (vector? %))},
+                      :pair {:justify? true},
+                      :next-inner {:list {:constant-pair-min 4,
+                                          :constant-pair-fn nil},
+                                   :pair {:justify? false}}}]}})
 
-(def mapp9
-  "(m/app :get  (m/app middle1 middle2 middle3 
+  (def mapp9
+    "(m/app :get  (m/app middle1 middle2 middle3 
                     [route] handler 
                     [longer route]  
         (handler this is \"a\" test \"this\" is \"only a\" test)) 
@@ -5416,53 +5364,54 @@ ser/collect-vars-acc %1 %2) )))"
                     [route]  
                     handler))")
 
-(expect
-  "(m/app :get     (m/app middle1\n                       middle2\n                       middle3\n                       [route]        handler\n                       [longer route] (handler this is \"a\" test \"this\" is \"only a\" test))\n       ; How do comments work here?\n       true     (should be paired with true)\n       false    (should be paired with false)\n       6        (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post    (m/app [a really long route] handler [route] handler))"
-  (zprint-str mapp9 (merge-deep style-m1 {:parse-string? true, :width 100})))
+  (expect
+    "(m/app :get     (m/app middle1\n                       middle2\n                       middle3\n                       [route]        handler\n                       [longer route] (handler this is \"a\" test \"this\" is \"only a\" test))\n       ; How do comments work here?\n       true     (should be paired with true)\n       false    (should be paired with false)\n       6        (should be paired with 6)\n       \"string\" (should be paired with string)\n       :post    (m/app [a really long route] handler [route] handler))"
+    (zprint-str mapp9 (merge-deep style-m1 {:parse-string? true, :width 100})))
 
   ;;
   ;; Problems with hang and flow and anon-fn's  It was hanging :ret in the
   ;; second < thing.
   ;;
 
-(expect
-  "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(< :ret\n         :stuff\n         (this is a test this is only a test)\n         (more of a test when will it ever be long enough)\n         :bother))"
-  (zprint-str
-    "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(<\n         :ret \n\t :stuff\n\t (this is a test, this is only a test)\n\t (more of a test, when will it ever be long enough)\n\t :bother))"
-    {:parse-string? true}))
+  (expect
+    "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(< :ret\n         :stuff\n         (this is a test this is only a test)\n         (more of a test when will it ever be long enough)\n         :bother))"
+    (zprint-str
+      "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(<\n         :ret \n\t :stuff\n\t (this is a test, this is only a test)\n\t (more of a test, when will it ever be long enough)\n\t :bother))"
+      {:parse-string? true}))
 
   ;;
   ;; Clean up -> so that it doesn't constant-pair top level things.
   ;;
 
-(expect
-  "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(< (:ret %)\n         (-> %\n             :args\n             :stuff\n             :bother\n             :lots\n             (of stuff\n                 that\n                 is\n                 long\n                 enough\n                 that\n                 it\n                 doesn't\n                 fit\n                 on\n                 one\n                 line\n                 and\n                 :should be\n                 :paired up)\n             :keywords\n             :end)))"
-  (zprint-str
-    "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(<\n         (:ret %)\n         (-> %\n             :args\n\t     :stuff\n\t     :bother\n\t     :lots\n\t     (of stuff that is long enough that it doesn't fit on one line and :should be :paired up)\n\t     :keywords\n             :end)))"
-    {:parse-string? true}))
+  (expect
+    "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(< (:ret %)\n         (-> %\n             :args\n             :stuff\n             :bother\n             :lots\n             (of stuff\n                 that\n                 is\n                 long\n                 enough\n                 that\n                 it\n                 doesn't\n                 fit\n                 on\n                 one\n                 line\n                 and\n                 :should be\n                 :paired up)\n             :keywords\n             :end)))"
+    (zprint-str
+      "(and #(>= (:ret %)\n          (-> %\n              :args\n              :start))\n     #(<\n         (:ret %)\n         (-> %\n             :args\n\t     :stuff\n\t     :bother\n\t     :lots\n\t     (of stuff that is long enough that it doesn't fit on one line and :should be :paired up)\n\t     :keywords\n             :end)))"
+      {:parse-string? true}))
 
-   ;;
-   ;; Tests for :nl-separator-all?
-   ;;
+  ;;
+  ;; Tests for :nl-separator-all?
+  ;;
 
-(expect
-  "{:a :b,\n\n :c {:e :f, :g :h, :i :j, :k :l},\n\n :m :n,\n\n :o {:p {:q :r, :s :t}}}"
-  (zprint-str
-    {:a :b, :c {:e :f, :g :h, :i :j, :k :l}, :m :n, :o {:p {:q :r, :s :t}}}
-    {:width 40, :map {:nl-separator-all? true}}))
-
-
-
-(expect "(let [a b\n\n      c d\n\n      e f\n\n      g h]\n  nil)"
-        (zprint-str
-          "(let [a b c d e f g h] nil)"
-          {:parse-string? true, :width 20, :binding {:nl-separator-all? true}}))
+  (expect
+    "{:a :b,\n\n :c {:e :f, :g :h, :i :j, :k :l},\n\n :m :n,\n\n :o {:p {:q :r, :s :t}}}"
+    (zprint-str
+      {:a :b, :c {:e :f, :g :h, :i :j, :k :l}, :m :n, :o {:p {:q :r, :s :t}}}
+      {:width 40, :map {:nl-separator-all? true}}))
 
 
-(expect "(cond a b\n\n      c d\n\n      e f\n\n      g h)"
-        (zprint-str
-          "(cond a b c d e f g h)"
-          {:parse-string? true, :width 20, :pair {:nl-separator-all? true}}))
+
+  (expect "(let [a b\n\n      c d\n\n      e f\n\n      g h]\n  nil)"
+          (zprint-str "(let [a b c d e f g h] nil)"
+                      {:parse-string? true,
+                       :width 20,
+                       :binding {:nl-separator-all? true}}))
+
+
+  (expect "(cond a b\n\n      c d\n\n      e f\n\n      g h)"
+          (zprint-str
+            "(cond a b c d e f g h)"
+            {:parse-string? true, :width 20, :pair {:nl-separator-all? true}}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

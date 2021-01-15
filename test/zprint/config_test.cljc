@@ -185,29 +185,27 @@
             (set-options! {:style :extend-nl})
             (get-options)))
 
-  (expect
-    (more-of options
-      true (:nl-separator? (:map options))
-      0 (:indent (:map options)))
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
-      (set-options! {:style :map-nl})
-      (get-options)))
+  (expect (more-of options
+            true (:nl-separator? (:map options))
+            0 (:indent (:map options)))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)]
+            (set-options! {:style :map-nl})
+            (get-options)))
 
-  (expect
-    (more-of options
-      true (:nl-separator? (:pair options))
-      0 (:indent (:pair options)))
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
-      (set-options! {:style :pair-nl})
-      (get-options)))
+  (expect (more-of options
+            true (:nl-separator? (:pair options))
+            0 (:indent (:pair options)))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)]
+            (set-options! {:style :pair-nl})
+            (get-options)))
 
   (expect (more-of options
             true (:nl-separator? (:binding options))
@@ -228,134 +226,128 @@
 
   (expect
     (more-of options
-      {:extend {:modifiers #{"stuff"}}}
-      (:tst-style-1 (:style-map options)))
+      {:extend {:modifiers #{"stuff"}}} (:tst-style-1 (:style-map options)))
     (with-redefs [zprint.config/configured-options
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-options
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-sequence (atom 1)]
-      (set-options! {:style-map {:tst-style-1
-                                   {:extend {:modifiers #{"stuff"}}}}})
+      (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
+                                                          #{"stuff"}}}}})
       (get-options)))
 
   ; Apply a new style (which adds a set element)
 
-  (expect
-    (more-of options
-      #{"static" "stuff"}
-      (:modifiers (:extend options)))
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
-      (set-options! {:style-map {:tst-style-1
-                                   {:extend {:modifiers #{"stuff"}}}}})
-      (set-options! {:style :tst-style-1})
-      (get-options)))
+  (expect (more-of options
+            #{"static" "stuff"} (:modifiers (:extend options)))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)]
+            (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
+                                                                #{"stuff"}}}}})
+            (set-options! {:style :tst-style-1})
+            (get-options)))
 
   ; Define a new style and apply it in the same set-options! call
 
-(expect
-  (more-of options
-    #{"static" "stuff"} (:modifiers (:extend options)))
-  (with-redefs [zprint.config/configured-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-sequence (atom 1)]
-    (set-options! {:style :tst-style-1,
-                   :style-map {:tst-style-1 {:extend {:modifiers #{"stuff"}}}}})
-    (get-options)))
+  (expect (more-of options
+            #{"static" "stuff"} (:modifiers (:extend options)))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)]
+            (set-options! {:style :tst-style-1,
+                           :style-map {:tst-style-1 {:extend {:modifiers
+                                                                #{"stuff"}}}}})
+            (get-options)))
 
   ; Define a new style and use it to define another style and then use
   ; that second style
 
-(expect
-  (more-of options #{"static" "stuff"} (:modifiers (:extend options)))
-  (with-redefs [zprint.config/configured-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-sequence (atom 1)]
-    (set-options! {:style :tst-style-2,
-                   :style-map {:tst-style-1 {:extend {:modifiers #{"stuff"}}},
-                               :tst-style-2 {:style :tst-style-1}}})
-    (get-options)))
-
-    ; Define two styles that reference each other, and see if we get an
-    ; exception
-
-(expect
-  #?(:clj Exception
-     :cljs js/Error)
-  (with-redefs [zprint.config/configured-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-sequence (atom 1)]
-    (set-options! {:style-map {:x {:style :y}, :y {:style :x}}, :style :x})
-    (get-options)))
-
-    ; Define three styles that reference each other in a circle, and see if 
-    ; we get an exception
-
-(expect
-  #?(:clj Exception
-     :cljs js/Error)
-  (with-redefs [zprint.config/configured-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-sequence (atom 1)]
-    (set-options! {:style-map {:x {:style :y}, :y {:style :z}, :z {:style :x}},
-                   :style :x})
-    (get-options)))
-
-
-  ; Remove a set element
-
   (expect
     (more-of options
-      #{"stuff"}
-      (:modifiers (:extend options)))
+      #{"static" "stuff"} (:modifiers (:extend options)))
     (with-redefs [zprint.config/configured-options
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-options
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-sequence (atom 1)]
-      (set-options! {:style-map {:tst-style-1
-                                   {:extend {:modifiers #{"stuff"}}}}})
-      (set-options! {:style :tst-style-1})
-      (set-options! {:remove {:extend {:modifiers #{"static"}}}})
+      (set-options! {:style :tst-style-2,
+                     :style-map {:tst-style-1 {:extend {:modifiers #{"stuff"}}},
+                                 :tst-style-2 {:style :tst-style-1}}})
       (get-options)))
+
+  ; Define two styles that reference each other, and see if we get an
+  ; exception
+
+  (expect
+    #?(:clj Exception
+       :cljs js/Error)
+    (with-redefs [zprint.config/configured-options
+                    (atom zprint.config/default-zprint-options)
+                  zprint.config/explained-options
+                    (atom zprint.config/default-zprint-options)
+                  zprint.config/explained-sequence (atom 1)]
+      (set-options! {:style-map {:x {:style :y}, :y {:style :x}}, :style :x})
+      (get-options)))
+
+  ; Define three styles that reference each other in a circle, and see if
+  ; we get an exception
+
+  (expect #?(:clj Exception
+             :cljs js/Error)
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)]
+            (set-options! {:style-map
+                             {:x {:style :y}, :y {:style :z}, :z {:style :x}},
+                           :style :x})
+            (get-options)))
+
+
+  ; Remove a set element
+
+  (expect (more-of options
+            #{"stuff"} (:modifiers (:extend options)))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)]
+            (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
+                                                                #{"stuff"}}}}})
+            (set-options! {:style :tst-style-1})
+            (set-options! {:remove {:extend {:modifiers #{"static"}}}})
+            (get-options)))
 
   ; Do the explained-options work?
 
   ; Add and remove something
 
-  (expect
-    (more-of options
-      #{"stuff"}
-      (:value (:modifiers (:extend options))))
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
-      (set-options! {:style-map {:tst-style-1
-                                   {:extend {:modifiers #{"stuff"}}}}})
-      (set-options! {:style :tst-style-1})
-      (set-options! {:remove {:extend {:modifiers #{"static"}}}})
-      (get-explained-all-options)))
+  (expect (more-of options
+            #{"stuff"} (:value (:modifiers (:extend options))))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)]
+            (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
+                                                                #{"stuff"}}}}})
+            (set-options! {:style :tst-style-1})
+            (set-options! {:remove {:extend {:modifiers #{"static"}}}})
+            (get-explained-all-options)))
 
   ; Add without style
 
   (expect (more-of options
             #{:force-nl :flow :noarg1 :noarg1-body :force-nl-body :binding
               :arg1-force-nl :flow-body}
-            (:value (:fn-force-nl options)))
+              (:value (:fn-force-nl options)))
           (with-redefs [zprint.config/configured-options
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
@@ -371,25 +363,20 @@
   ; Does defproject have an options map, and is it correct?
 
   (expect (more-of options
-            true
-            (vector? ((:fn-map options) "defproject"))
-            {:vector {:wrap? false}}
-            (second ((:fn-map options) "defproject")))
+            true (vector? ((:fn-map options) "defproject"))
+            {:vector {:wrap? false}} (second ((:fn-map options) "defproject")))
           (with-redefs [zprint.config/configured-options
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-sequence (atom 1)]
-
             (get-options)))
 
   ; Can we set an options map on let?
 
   (expect (more-of options
-            true
-            (vector? ((:fn-map options) "let"))
-            {:width 99}
-            (second ((:fn-map options) "let")))
+            true (vector? ((:fn-map options) "let"))
+            {:width 99} (second ((:fn-map options) "let")))
           (with-redefs [zprint.config/configured-options
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
@@ -424,8 +411,7 @@
                   zprint.config/explained-sequence (atom 1)]
       (set-options!
         {:fn-map {"xx" [:arg1-body
-                        {:fn-map {":export"
-                                    [:flow {:list {:hang true}}]}}]}})
+                        {:fn-map {":export" [:flow {:list {:hang true}}]}}]}})
       (get-options)))
 
   ;; Test config loading via URL
@@ -480,26 +466,25 @@
                 (get-options)))))
 
   ; Extend with set-options
-  #?(:clj
-       (expect
-         (more-of options
-           2 (get options :max-depth)
-           22 (get options :max-length))
-         (let [options-file (File/createTempFile "load-options" "2")
-               cache-file (io/file url-cache-path
-                                   (str "nohost_"
-                                        (hash (str (.toURL options-file)))))]
-           (.delete cache-file)
-           (spit options-file (print-str {:max-depth 2}))
-           (with-redefs [zprint.config/configured-options
-                           (atom zprint.config/default-zprint-options)
-                         zprint.config/explained-options
-                           (atom zprint.config/default-zprint-options)
-                         zprint.config/explained-sequence (atom 1)]
-             (set-options! {:max-length 22})
-             (load-options! nil (.toURL options-file))
-             ;(.delete cache-file)
-             (get-options)))))
+  #?(:clj (expect
+            (more-of options
+              2 (get options :max-depth)
+              22 (get options :max-length))
+            (let [options-file (File/createTempFile "load-options" "2")
+                  cache-file (io/file url-cache-path
+                                      (str "nohost_"
+                                           (hash (str (.toURL options-file)))))]
+              (.delete cache-file)
+              (spit options-file (print-str {:max-depth 2}))
+              (with-redefs [zprint.config/configured-options
+                              (atom zprint.config/default-zprint-options)
+                            zprint.config/explained-options
+                              (atom zprint.config/default-zprint-options)
+                            zprint.config/explained-sequence (atom 1)]
+                (set-options! {:max-length 22})
+                (load-options! nil (.toURL options-file))
+                ;(.delete cache-file)
+                (get-options)))))
 
   ; Cached
   #?(:clj (expect
@@ -547,8 +532,7 @@
                 (while (not (.exists cache-file)) (Thread/sleep 10))
                 ; expired cache
                 (spit cache-file
-                      (print-str {:expires 0,
-                                  :options {:max-depth 4}}))
+                      (print-str {:expires 0, :options {:max-depth 4}}))
                 ;used remote
                 (spit options-file (print-str {:max-depth 44}))
                 (load-options! nil (.toURL options-file))
@@ -623,9 +607,8 @@
   #?(:clj (expect
             (more-of [options std-err]
               7 (get options :max-depth)
-              true (some? (re-matches
-                            #"WARN: using expired cache config for.*"
-                            (str/trim std-err))))
+              true (some? (re-matches #"WARN: using expired cache config for.*"
+                                      (str/trim std-err))))
             (let [options-file (File/createTempFile "load-options" "7")
                   cache-file (io/file url-cache-path
                                       (str "nohost_"
@@ -640,8 +623,7 @@
                             zprint.config/explained-sequence (atom 1)]
                 ; expire cache
                 (spit cache-file
-                      (print-str {:expires 0,
-                                  :options {:max-depth 7}}))
+                      (print-str {:expires 0, :options {:max-depth 7}}))
                 ; break url
                 (.delete options-file)               ;break url
                 (try (load-options! nil (.toURL options-file))
@@ -746,16 +728,16 @@
   ;; Issue #111
   ;;
 
-  (expect (more-of options
-            false (boolean (:to-string? (:record options))))
-          (with-redefs [zprint.config/configured-options
-                          (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-options
-                          (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
-            (set-options! {:coerce-to-false 'stuff,
-                           :record {:to-string? 'stuff}})
-            (get-options)))
+  (expect
+    (more-of options
+      false (boolean (:to-string? (:record options))))
+    (with-redefs [zprint.config/configured-options
+                    (atom zprint.config/default-zprint-options)
+                  zprint.config/explained-options
+                    (atom zprint.config/default-zprint-options)
+                  zprint.config/explained-sequence (atom 1)]
+      (set-options! {:coerce-to-false 'stuff, :record {:to-string? 'stuff}})
+      (get-options)))
 
 
   ;;
@@ -779,22 +761,21 @@
                                              {:stuff :bother}]}})
             (get-options)))
 
-  (expect
-    #?(:clj Exception
-       :cljs js/Error)
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
-      (set-options! {:fn-map {"quote" [:replace-w-string
-                                       {:list {:replacement-string
-                                                 "'"}} {:width 20}
-                                       ; This is incorrect, and should
-                                       ; force an Exception -- can't have
-                                       ; more than two maps.
-                                       {}]}})
-      (get-options)))
+  (expect #?(:clj Exception
+             :cljs js/Error)
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)]
+            (set-options!
+              {:fn-map {"quote" [:replace-w-string
+                                 {:list {:replacement-string "'"}} {:width 20}
+                                 ; This is incorrect, and should
+                                 ; force an Exception -- can't have
+                                 ; more than two maps.
+                                 {}]}})
+            (get-options)))
 
 
   ;;

@@ -41,7 +41,6 @@
 
 
 #?(:clj
-
 (defexpect main-tests
 
   ;; Emit a file we can test with into the current directory
@@ -109,11 +108,10 @@
 
   (expect zero? (:exit (sh "chmod" "-w" "tt2_test.clj")))
 
-  (expect 
-"Processing file ttt_test.clj\nProcessing file tt2_test.clj\nFailed to write output file: tt2_test.clj because java.io.FileNotFoundException: tt2_test.clj (Permission denied)\nProcessed 2 files, with 1 error, 1 of which required formatting.\n"
-          (with-out-str (binding [*err* *out*]
-                          (-main ":debug" "-lfsw"
-                                 "ttt_test.clj" "tt2_test.clj"))))
+  (expect
+    "Processing file ttt_test.clj\nProcessing file tt2_test.clj\nFailed to write output file: tt2_test.clj because java.io.FileNotFoundException: tt2_test.clj (Permission denied)\nProcessed 2 files, with 1 error, 1 of which required formatting.\n"
+    (with-out-str (binding [*err* *out*]
+                    (-main ":debug" "-lfsw" "ttt_test.clj" "tt2_test.clj"))))
 
   (expect zero? (:exit (sh "chmod" "+w" "tt2_test.clj")))
 

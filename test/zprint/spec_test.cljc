@@ -113,8 +113,7 @@
     (explain-more (s/explain-data :zprint.spec/options {:parse-string? 0})))
   (expect
     "The value of the key-sequence [:parse-string?] -> :a was not a boolean"
-    (explain-more (s/explain-data :zprint.spec/options
-                                  {:parse-string? :a})))
+    (explain-more (s/explain-data :zprint.spec/options {:parse-string? :a})))
   (expect
     "The value of the key-sequence [:parse-string?] -> \"a\" was not a boolean"
     (explain-more (s/explain-data :zprint.spec/options {:parse-string? "a"})))
@@ -127,8 +126,7 @@
                                   {:parse-string? {:a :b}})))
   (expect
     "The value of the key-sequence [:parse-string?] -> a was not a boolean"
-    (explain-more (s/explain-data :zprint.spec/options
-                                  {:parse-string? 'a})))
+    (explain-more (s/explain-data :zprint.spec/options {:parse-string? 'a})))
   (expect
     "The value of the key-sequence [:parse-string?] -> #{:a} was not a boolean"
     (explain-more (s/explain-data :zprint.spec/options {:parse-string? #{:a}})))
@@ -150,8 +148,7 @@
                                         {:fn-force-nl [:a]})))
   (expect
     "The value of the key-sequence [:fn-force-nl] -> {:a :b} was not a set"
-    (explain-more (s/explain-data :zprint.spec/options
-                                  {:fn-force-nl {:a :b}})))
+    (explain-more (s/explain-data :zprint.spec/options {:fn-force-nl {:a :b}})))
   (expect "The value of the key-sequence [:fn-force-nl] -> a was not a set"
           (explain-more (s/explain-data :zprint.spec/options
                                         {:fn-force-nl 'a})))
@@ -211,23 +208,20 @@
 
   (expect
     "The value of the key-sequence [:map :indent] -> \"a\" was not a number"
-    (explain-more (s/explain-data :zprint.spec/options
-                                  {:map {:indent "a"}})))
+    (explain-more (s/explain-data :zprint.spec/options {:map {:indent "a"}})))
   (expect "The value of the key-sequence [:map :indent] -> :a was not a number"
           (explain-more (s/explain-data :zprint.spec/options
                                         {:map {:indent :a}})))
   (expect
     "The value of the key-sequence [:map :indent] -> [:a] was not a number"
-    (explain-more (s/explain-data :zprint.spec/options
-                                  {:map {:indent [:a]}})))
+    (explain-more (s/explain-data :zprint.spec/options {:map {:indent [:a]}})))
   (expect
     "The value of the key-sequence [:map :indent] -> {:a :b} was not a number"
     (explain-more (s/explain-data :zprint.spec/options
                                   {:map {:indent {:a :b}}})))
   (expect
     "The value of the key-sequence [:map :indent] -> #{:a} was not a number"
-    (explain-more (s/explain-data :zprint.spec/options
-                                  {:map {:indent #{:a}}})))
+    (explain-more (s/explain-data :zprint.spec/options {:map {:indent #{:a}}})))
   (expect "The value of the key-sequence [:map :indent] -> a was not a number"
           (explain-more (s/explain-data :zprint.spec/options
                                         {:map {:indent 'a}})))
@@ -244,8 +238,7 @@
                                         {:list {:hang? :a}})))
   (expect
     "The value of the key-sequence [:list :hang?] -> [:a] was not a boolean"
-    (explain-more (s/explain-data :zprint.spec/options
-                                  {:list {:hang? [:a]}})))
+    (explain-more (s/explain-data :zprint.spec/options {:list {:hang? [:a]}})))
   (expect
     "The value of the key-sequence [:list :hang?] -> {:a :b} was not a boolean"
     (explain-more (s/explain-data :zprint.spec/options
@@ -432,10 +425,10 @@
             {:parse-string? :b, :coerce-to-false true, :vector {:wrap? true}}))
 
   ; you can configure :coerce-to-false with pretty much anything
-  (expect
-    {:parse-string? true, :vector {:wrap? false}}
-    (coerce-to-boolean
-      {:parse-string? :b, :coerce-to-false "stuff", :vector {:wrap? "stuff"}}))
+  (expect {:parse-string? true, :vector {:wrap? false}}
+          (coerce-to-boolean {:parse-string? :b,
+                              :coerce-to-false "stuff",
+                              :vector {:wrap? "stuff"}}))
 
   ; nothing matches 0, all things are boolean spec, so they all go to true
   (expect {:parse-string? true, :vector {:wrap? true}}

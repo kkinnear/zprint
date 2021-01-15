@@ -242,8 +242,8 @@
 (s/def ::binding
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::justify? ::justify-hang ::justify-tuning
-                      ::nl-separator? ::nl-separator-all?]))
+                      ::justify? ::justify-hang ::justify-tuning ::nl-separator?
+                      ::nl-separator-all?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::color-map
   (only-keys :opt-un [::brace ::bracket ::char ::comma ::comment ::deref ::false
@@ -303,8 +303,8 @@
              ::hang? ::indent ::indent-only? ::justify? ::justify-hang
              ::justify-tuning ::key-color ::key-value-color ::key-depth-color
              ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
-             ::lift-ns-in-code? ::nl-separator? ::nl-separator-all? 
-	     ::respect-bl? ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
+             ::lift-ns-in-code? ::nl-separator? ::nl-separator-all?
+             ::respect-bl? ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -318,8 +318,8 @@
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::justify? ::justify-hang ::justify-tuning
-                      ::nl-separator? ::nl-separator-all?]))
+                      ::justify? ::justify-hang ::justify-tuning ::nl-separator?
+                      ::nl-separator-all?]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
 (s/def ::parse (only-keys :opt-un [::interpose ::left-space]))
@@ -369,20 +369,20 @@
 
 (s/def ::options
   (only-keys
-    :opt-un [::agent ::array ::atom ::binding ::cache ::color? ::color-map
-             :alt/comment ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc?
-             ::dbg-bug? ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop?
-             ::extend ::file? ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-             ::fn-map ::fn-name ::fn-obj ::force-eol-blanks? ::format ::future
-             ::indent ::input ::list ::map ::max-depth ::max-depth-string
-             ::max-hang-count ::max-hang-depth ::max-hang-span ::max-length
-             ::object ::old? ::output ::pair ::pair-fn ::parallel? ::parse
-             ::parse-string-all? ::parse-string? ::perf-vs-format
-             ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
-             ::next-inner ::return-cvec? ::search-config? ::set ::spaces?
-             ::script ::spec ::style ::styles-applied ::style-map ::tab ::test-for-eol-blanks?
-             ::trim-comments? ::tuning :alt/uneval ::user-fn-map ::vector
-             ::vector-fn ::version ::width ::url ::zipper?]))
+    :opt-un
+      [::agent ::array ::atom ::binding ::cache ::color? ::color-map
+       :alt/comment ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc? ::dbg-bug?
+       ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend ::file?
+       ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name
+       ::fn-obj ::force-eol-blanks? ::format ::future ::indent ::input ::list
+       ::map ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
+       ::max-hang-span ::max-length ::object ::old? ::output ::pair ::pair-fn
+       ::parallel? ::parse ::parse-string-all? ::parse-string? ::perf-vs-format
+       ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
+       ::next-inner ::return-cvec? ::search-config? ::set ::spaces? ::script
+       ::spec ::style ::styles-applied ::style-map ::tab ::test-for-eol-blanks?
+       ::trim-comments? ::tuning :alt/uneval ::user-fn-map ::vector ::vector-fn
+       ::version ::width ::url ::zipper?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

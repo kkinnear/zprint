@@ -176,7 +176,7 @@
                               url-as-filename))
              cache-item (if (and (.exists cache) (not (zero? (.length cache))))
                           (try (-> (slurp cache)
-				   (sci/eval-string)
+                                   (sci/eval-string)
                                    #_(clojure.edn/read-string))
                                (catch Exception e (.delete cache) nil)))
              active-cache? (and cache-item
@@ -200,7 +200,7 @@
                                                 (.setConnectTimeout 1000)
                                                 (.connect))
                    remote-opts (some-> (slurp (.getInputStream remote-conn))
-				       (sci/eval-string)
+                                       (sci/eval-string)
                                        #_(clojure.edn/read-string))]
                (if remote-opts
                  (do
@@ -247,7 +247,8 @@
                (if cache-item
                  (do
                    ;4> expired cache but remote failed, use cache
-                   (set-options! (:options cache-item) (str "cached, but expired, options from " url))
+                   (set-options! (:options cache-item)
+                                 (str "cached, but expired, options from " url))
                    (.println
                      System/err
                      (format
@@ -910,8 +911,8 @@
            (catch #?(:clj Exception
                      :cljs :default)
              e
-	     ; If it doesn't work, don't return an error-str, throw an
-	     ; Exception!
+             ; If it doesn't work, don't return an error-str, throw an
+             ; Exception!
              (throw (#?(:clj Exception.
                         :cljs js/Error.)
                      (str "Unable to create zprint options-map from: '"

@@ -5,7 +5,7 @@
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
             [zprint.rewrite :refer [sort-dependencies]]
-	    [sci.core :as sci]
+            [sci.core :as sci]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader)
@@ -317,8 +317,8 @@
    "defcc" :arg1-mixin,
    "defcs" :arg1-mixin,
    "defmacro" :arg1-body,
-   "defexpect" [:arg1-body {:style :respect-nl 
-                            :next-inner {:style :respect-nl-off}}],
+   "defexpect" [:arg1-body
+                {:style :respect-nl, :next-inner {:style :respect-nl-off}}],
    "defmethod" :arg2,
    "defmulti" :arg1-body,
    "defn" :arg1-body,
@@ -404,8 +404,8 @@
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
              :justify? false,
-             :nl-separator? false
-	     :nl-separator-all? false},
+             :nl-separator? false,
+             :nl-separator-all? false},
    :cache {:directory ".zprint", :location "HOME"},
    :color? false,
    :color-map {:brace :red,
@@ -466,8 +466,8 @@
    ; This is used for {:parse {:left-space :keep}}
    :indent 0,
    :input {:range {:start nil, :end nil}},
-   ; When you change :list, you should also change :vector-fn, since it 
-   ; becomes the current :list when 
+   ; When you change :list, you should also change :vector-fn, since it
+   ; becomes the current :list when
    :list {:constant-pair-fn nil,
           :constant-pair-min 4,
           :constant-pair? true,
@@ -547,8 +547,8 @@
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
           :justify? false,
-          :nl-separator? false
-	  :nl-separator-all? false},
+          :nl-separator? false,
+          :nl-separator-all? false},
    :pair-fn {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
    :parse {:interpose nil, :left-space :drop},
    :parse-string-all? false,
@@ -707,17 +707,17 @@
       :map-nl {:map {:indent 0, :nl-separator? true}},
       :map-nl-all {:map {:indent 0, :nl-separator-all? true}},
       :moustache {:fn-map {"app" [:flow {:style :vector-pairs}]}},
-      :vector-pairs  {:list {:constant-pair-min 1,
-			     :constant-pair-fn #(or (keyword? %)
-					            (string? %)
-						    (number? %)
-						    (= true %)
-						    (= false %)
-						    (vector? %))}
-		      :pair {:justify? true},
-		      :next-inner {:list {:constant-pair-min 4,
-					  :constant-pair-fn nil}
-				   :pair {:justify? false}}}
+      :vector-pairs {:list {:constant-pair-min 1,
+                            :constant-pair-fn #(or (keyword? %)
+                                                   (string? %)
+                                                   (number? %)
+                                                   (= true %)
+                                                   (= false %)
+                                                   (vector? %))},
+                     :pair {:justify? true},
+                     :next-inner {:list {:constant-pair-min 4,
+                                         :constant-pair-fn nil},
+                                  :pair {:justify? false}}},
       :no-hang {:map {:hang? false},
                 :list {:hang? false},
                 :extend {:hang? false},
@@ -1262,7 +1262,7 @@
     (let [style-map (if (= style-name :default)
                       (get-default-options)
                       (or (get-in new-map [:style-map style-name])
-		          (get-in existing-map [:style-map style-name])))]
+                          (get-in existing-map [:style-map style-name])))]
       (if style-map
         (let [updated-map (merge-deep existing-map style-map)]
           [updated-map
@@ -1293,7 +1293,7 @@
                                 doc-map
                                 (key-seq style-map)
                                 updated-map))]
-	  ; Apply any recursive styles 
+          ; Apply any recursive styles
           (apply-style doc-string updated-doc-map updated-map new-map))
         [existing-map doc-map (str "Style '" style-name "' not found!")]))))
 
@@ -1379,10 +1379,10 @@
     (if (or (= style-name :not-specified) (nil? style-name))
       [existing-map doc-map nil]
       (if (not (coll? style-name))
-        (apply-one-style doc-string 
-	                 new-map 
-			 [existing-map doc-map nil] 
-			 style-name)
+        (apply-one-style doc-string
+                         new-map
+                         [existing-map doc-map nil]
+                         style-name)
         (reduce (partial apply-one-style doc-string new-map)
           [existing-map doc-map nil]
           style-name)))))
@@ -1579,9 +1579,9 @@
           ; do style early, so other things in new-map can override it
           [updated-map new-doc-map style-errors]
             (apply-style doc-string new-doc-map existing-map new-map)
-	   ; Now that we've done the style, remove it so that the doc-map
-	   ; doesn't get overridden
-	   new-map (dissoc new-map :style)
+          ; Now that we've done the style, remove it so that the doc-map
+          ; doesn't get overridden
+          new-map (dissoc new-map :style)
           errors (if style-errors (str errors " " style-errors) errors)
           new-updated-map (merge-deep updated-map new-map)
           new-doc-map (diff-deep-ks doc-string
@@ -1745,7 +1745,7 @@
         ;
         ; Process errors together
         ;
-	; NOTE WELL: All of the errors above must appear in this list!
+        ; NOTE WELL: All of the errors above must appear in this list!
         all-errors (apply str
                      (interpose "\n"
                        (filter identity
@@ -1753,8 +1753,8 @@
                                rc-errors
                                cwd-errors-rcfile
                                cwd-rc-errors
-			       search-errors-rcfile
-			       search-rc-errors
+                               search-errors-rcfile
+                               search-rc-errors
                                env-errors
                                prop-errors
                                errors-configfile

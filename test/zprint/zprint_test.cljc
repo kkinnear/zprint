@@ -1302,16 +1302,14 @@
     (zprint-str "(let [a b c d e f] (list a b c d e f))"
                 {:parse-string? true, :binding {:flow? true}}))
 
-  ;!zprint {:format :skip}
-  ; Something strange going on with source-fn and :clj!
-  #?(:clj 
-  (deftype Typetest [cnt _meta]
-            clojure.lang.IHashEq
-              (hasheq [this] (list this))
-            clojure.lang.Counted
-              (count [_] cnt)
-            clojure.lang.IMeta
-              (meta [_] _meta)))
+  #?(:clj  ; Keep the deftype on the next line
+       (deftype Typetest [cnt _meta]
+         clojure.lang.IHashEq
+           (hasheq [this] (list this))
+         clojure.lang.Counted
+           (count [_] cnt)
+         clojure.lang.IMeta
+           (meta [_] _meta)))
 
   (def Typeteststr
     "(deftype Typetest [cnt _meta]
@@ -1534,20 +1532,17 @@
   ;; # :extend -- support :hang? for :extend
   ;;
 
-
-  ;!zprint {:format :skip}
-  ; Something strange going on with source-fn and :clj!
-  #?(:clj 
-  (deftype Typetest1 [cnt _meta]
-            clojure.lang.IHashEq
-              (hasheq [this]
-                (list this)
-                (list this this)
-                (list this this this this))
-            clojure.lang.Counted
-              (count [_] cnt)
-            clojure.lang.IMeta
-              (meta [_] _meta)))
+  #?(:clj  ; Keep the deftype on the next line
+       (deftype Typetest1 [cnt _meta]
+         clojure.lang.IHashEq
+           (hasheq [this]
+             (list this)
+             (list this this)
+             (list this this this this))
+         clojure.lang.Counted
+           (count [_] cnt)
+         clojure.lang.IMeta
+           (meta [_] _meta)))
 
   (def Typetest1str
     "(deftype Typetest1 [cnt _meta]
@@ -1610,28 +1605,26 @@
   ;; # Test a variant form of cond with :nl-separator?
   ;;
 
-  ;!zprint {:format :skip}
-  ; Something strange going on with defn/def source-fn and :clj!
-  #?(:clj 
-  (defn zctest8x
-            []
-            (let [a (list 'with 'arguments)
-                  foo nil
-                  bar true
-                  baz "stuff"
-                  other 1
-                  bother 2
-                  stuff 3
-                  now 4
-                  output 5
-                  b 3
-                  c 5
-                  this "is"]
-              (cond (or foo bar baz) (format output now)
-                    :let [stuff (and bother foo bar)
-                          bother (or other output foo)]
-                    (and a b c (bother this)) (format other stuff))
-              (list a :b :c "d"))))
+  #?(:clj  ; Keep the defn off the same line.
+       (defn zctest8x
+         []
+         (let [a (list 'with 'arguments)
+               foo nil
+               bar true
+               baz "stuff"
+               other 1
+               bother 2
+               stuff 3
+               now 4
+               output 5
+               b 3
+               c 5
+               this "is"]
+           (cond (or foo bar baz) (format output now)
+                 :let [stuff (and bother foo bar)
+                       bother (or other output foo)]
+                 (and a b c (bother this)) (format other stuff))
+           (list a :b :c "d"))))
 
   (def zctest8xstr
     "(defn zctest8x

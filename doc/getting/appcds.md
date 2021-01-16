@@ -5,6 +5,17 @@ and has no external dependencies.  It starts up rather slowly, but
 you can accelerate its startup a lot by using appcds (application class
 data sharing) in the JVM.
 
+__NOTE:__ This script is only known to work for Oracle Java 8.  In particular,
+it does *not* work for:
+
+```
+% java -version
+openjdk version "1.8.0_275"
+OpenJDK Runtime Environment (Zulu 8.50.0.1017-CA-macos-aarch64) (build 1.8.0_275-b01)
+OpenJDK 64-Bit Server VM (Zulu 8.50.0.1017-CA-macos-aarch64) (build 25.275-b01, mixed mode)
+``` 
+which is an ARM OpenJDK that otherwise works fine on Apple M1 silicon.
+
 There is a script which automates the setup for appcds for the zprint uberjar.
 
 Follow these steps to use this script:

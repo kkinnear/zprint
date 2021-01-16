@@ -7,20 +7,17 @@
                   :main-opts ["-m" "cljs-test-runner.main" "--doo-opts"
                               "dooopts.edn" "-x" "planck"]},
     :cljtest {:extra-deps {expectations/cljc-test {:mvn/version
-                                                      "2.0.0-SNAPSHOT"}},
+                                                     "2.0.0-SNAPSHOT"}},
               :extra-paths ["test"]},
-    :humane {:extra-deps {pjstadig/humane-test-output {:mvn/version
-                                                          "0.10.0"}}},
+    :humane {:extra-deps {pjstadig/humane-test-output {:mvn/version "0.10.0"}}},
     :runner {:extra-deps {com.cognitect/test-runner
                             {:git/url
                                "https://github.com/cognitect-labs/test-runner",
                              :sha "f7ef16dc3b8332b0d77bc0274578ad5270fbfedd"}},
              :main-opts ["-m" "cognitect.test-runner" "-d" "test"]},
-    :zprint {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"},
-                          zprint/zprint {:mvn/version "1.1.0"}},
-             :main-opts ["-m" "zprint.main"]}},
+    :zprint {:main-opts ["-m" "zprint.main"]}},
  :deps {#_#_org.clojure/clojure {:mvn/version "1.9.0"},
         #_#_org.clojure/clojurescript {:mvn/version "1.9.946"},
-	org.clojure/clojure {:mvn/version "1.10.2-alpha4"}
+        org.clojure/clojure {:mvn/version "1.10.2-alpha4"},
         zprint/zprint {:mvn/version "1.1.0"}},
  :paths ["src" "test" "cljs-test-runner-out/gen"]}

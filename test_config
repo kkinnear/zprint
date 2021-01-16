@@ -953,7 +953,7 @@ output_length=`cat test_config.map1.clj test_config.diff.out test_config.map2.cl
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "-w length is $output_length"
 
-expected_length=468
+expected_length=532
 
 if [[ $output_length != $expected_length ]]
   then

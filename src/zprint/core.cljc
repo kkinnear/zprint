@@ -702,11 +702,7 @@
 (defn ^:no-doc get-fn-source
   "Call source-fn, and if it isn't there throw an exception."
   [fn-name]
-  (or (try #?(:clj (source-fn fn-name))
-           (catch #?(:clj Exception
-                     :cljs :default)
-             e
-             nil))
+  (or #?(:clj (try (source-fn fn-name) (catch Exception e nil)))
       (throw (#?(:clj Exception.
                  :cljs js/Error.)
               (str "No definition found for a function named: " fn-name)))))

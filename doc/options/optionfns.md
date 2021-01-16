@@ -45,55 +45,57 @@ use in a function declared in an options map are as listed below,
 indexed by the namespace in which they appear.  The namespace
 `:macro` is used for the special forms interpreted by `sci`.
 ```clojure
-{:macros #{. and as-> case comment declare def defmacro defn do doseq
+{:macros #{. and case comment declare def defmacro defn do doseq
            expand-constructor expand-dot* fn fn* for if import in-ns lazy-seq
-           let loop macroexpand macroexpand-1 new ns or resolve set! try var},
+           let loop new ns or resolve set! try var},
  clojure.core
-   #{* *' *err* *file* *in* *ns* *out* *print-length* *print-level* *print-meta*
-     *print-namespace-maps* + +' - -' -> ->> -reified-methods .. / < <= = == >
-     >= add-watch aget alength alias all-ns alter-meta! alter-var-root ancestors
-     any? apply array-map aset assert assoc assoc! assoc-in associative? atom
-     bean bigdec bigint biginteger binding binding-conveyor-fn bit-and
-     bit-and-not bit-flip bit-not bit-or bit-set bit-shift-left bit-shift-right
-     bit-test bit-xor boolean boolean-array boolean? booleans bound?
-     bounded-count butlast byte byte-array bytes bytes? cat char char-array
-     char-escape-string char-name-string char? chars chunk chunk-append
-     chunk-buffer chunk-cons chunk-first chunk-next chunk-rest chunked-seq?
-     class class? coll? comp comparator compare compare-and-set! complement
-     completing concat cond cond-> cond->> condp conj conj! cons constantly
-     contains? count counted? cycle dec dec' decimal? dedupe defmethod defmulti
-     defn- defonce defprotocol defrecord delay deliver denominator deref derive
-     descendants disj dissoc distinct distinct? doall dorun dotimes doto double
-     double-array double? doubles drop drop-last drop-while eduction empty
-     empty? ensure-reduced enumeration-seq eval even? every-pred every? ex-cause
-     ex-data ex-info ex-message extend extend-protocol extend-type extends?
-     false? ffirst filter filterv find find-ns find-var first flatten float
-     float-array float? floats flush fn? fnext fnil format frequencies gensym
-     get get-in get-method get-thread-binding-frame-impl group-by has-root-impl
+   #{* *' *1 *2 *3 *e *err* *file* *in* *ns* *out* *print-length* *print-level*
+     *print-meta* *print-namespace-maps* + +' - -' -> ->> -new-dynamic-var
+     -new-var -reified-methods .. / < <= = == > >= add-watch aget alength alias
+     all-ns alter-meta! alter-var-root ancestors any? apply array-map as-> aset
+     assert assoc assoc! assoc-in associative? atom bean bigdec bigint
+     biginteger binding binding-conveyor-fn bit-and bit-and-not bit-flip bit-not
+     bit-or bit-set bit-shift-left bit-shift-right bit-test bit-xor boolean
+     boolean-array boolean? booleans bound? bounded-count butlast byte
+     byte-array bytes bytes? cat char char-array char-escape-string
+     char-name-string char? chars chunk chunk-append chunk-buffer chunk-cons
+     chunk-first chunk-next chunk-rest chunked-seq? class class? coll? comment
+     comp comparator compare compare-and-set! complement completing concat cond
+     cond-> cond->> condp conj conj! cons constantly contains? count counted?
+     cycle dec dec' decimal? dedupe defmethod defmulti defn- defonce defprotocol
+     defrecord delay deliver denominator deref derive descendants disj dissoc
+     distinct distinct? doall dorun dotimes doto double double-array double?
+     doubles drop drop-last drop-while eduction empty empty? ensure-reduced
+     enumeration-seq eval even? every-pred every? ex-cause ex-data ex-info
+     ex-message extend extend-protocol extend-type extends? false? ffirst filter
+     filterv find find-ns find-var first flatten float float-array float? floats
+     flush fn? fnext fnil format frequencies gensym get get-in get-method
+     get-thread-binding-frame-impl get-thread-bindings group-by has-root-impl
      hash hash-map hash-set hash-unordered-coll ident? identical? identity
      if-let if-not if-some ifn? inc inc' indexed? inst? instance? int int-array
      int? integer? interleave intern interpose into into-array ints isa? iterate
      iterator-seq juxt keep keep-indexed key keys keyword keyword? last lazy-cat
      letfn line-seq list list* list? load-string long long-array longs
-     make-array make-hierarchy map map-entry? map-indexed map? mapcat mapv max
-     max-key memoize merge merge-with meta methods min min-key mod
-     multi-fn-add-method-impl multi-fn-impl multi-fn?-impl munge name namespace
-     namespace-munge nat-int? neg-int? neg? newline next nfirst nil? nnext not
-     not-any? not-empty not-every? not= ns-aliases ns-imports ns-interns ns-map
-     ns-name ns-publics ns-refers ns-resolve ns-unmap nth nthnext nthrest num
-     number? numerator object-array odd? parents partial partition partition-all
-     partition-by peek persistent! pop pop-thread-bindings pos-int? pos? pr
-     pr-str prefer-method prefers print print-dup print-method print-str printf
-     println prn prn-str promise protocol-type-impl push-thread-bindings
-     qualified-ident? qualified-keyword? qualified-symbol? quot rand rand-int
-     rand-nth random-sample range ratio? rational? rationalize re-find re-groups
-     re-matcher re-matches re-pattern re-seq read read-line read-string
-     realized? record? reduce reduce-kv reduced reduced? reductions refer reify
-     reify* rem remove remove-all-methods remove-method remove-ns remove-watch
-     repeat repeatedly replace replicate require requiring-resolve reset!
-     reset-meta! reset-thread-binding-frame-impl reset-vals! resolve rest
-     reverse reversible? rseq rsubseq run! satisfies? second select-keys seq
-     seq? seqable? seque sequence sequential? set set? short short-array shorts
+     macroexpand macroexpand-1 make-array make-hierarchy map map-entry?
+     map-indexed map? mapcat mapv max max-key memoize merge merge-with meta
+     methods min min-key mod multi-fn-add-method-impl multi-fn-impl
+     multi-fn?-impl munge name namespace namespace-munge nat-int? neg-int? neg?
+     newline next nfirst nil? nnext not not-any? not-empty not-every? not=
+     ns-aliases ns-imports ns-interns ns-map ns-name ns-publics ns-refers
+     ns-resolve ns-unmap nth nthnext nthrest num number? numerator object-array
+     odd? parents partial partition partition-all partition-by peek persistent!
+     pop pop-thread-bindings pos-int? pos? pr pr-str prefer-method prefers print
+     print-dup print-method print-str printf println prn prn-str promise
+     protocol-type-impl push-thread-bindings qualified-ident? qualified-keyword?
+     qualified-symbol? quot rand rand-int rand-nth random-sample range ratio?
+     rational? rationalize re-find re-groups re-matcher re-matches re-pattern
+     re-seq read read-line read-string realized? record? reduce reduce-kv
+     reduced reduced? reductions refer reify reify* rem remove
+     remove-all-methods remove-method remove-ns remove-watch repeat repeatedly
+     replace replicate require requiring-resolve reset! reset-meta!
+     reset-thread-binding-frame-impl reset-vals! resolve rest reverse
+     reversible? rseq rsubseq run! satisfies? second select-keys seq seq?
+     seqable? seque sequence sequential? set set? short short-array shorts
      shuffle simple-ident? simple-keyword? simple-symbol? some some-> some->>
      some-fn some? sort sort-by sorted-map sorted-map-by sorted-set
      sorted-set-by sorted? special-symbol? split-at split-with str string? subs
@@ -106,10 +108,10 @@ indexed by the namespace in which they appear.  The namespace
      unchecked-multiply-int unchecked-negate unchecked-negate-int
      unchecked-remainder-int unchecked-short unchecked-subtract
      unchecked-subtract-int underive unquote unreduced unsigned-bit-shift-right
-     update update-in uri? use uuid? val vals var? vary-meta vec vector vector?
-     volatile! vreset! vswap! when when-first when-let when-not when-some while
-     with-bindings with-in-str with-meta with-open with-out-str with-redefs
-     with-redefs-fn xml-seq zero? zipmap},
+     update update-in uri? use uuid? val vals var-get var-set var? vary-meta vec
+     vector vector? volatile! vreset! vswap! when when-first when-let when-not
+     when-some while with-bindings with-in-str with-local-vars with-meta
+     with-open with-out-str with-redefs with-redefs-fn xml-seq zero? zipmap},
  clojure.edn #{read read-string},
  clojure.lang #{IAtom IAtom2 IDeref compareAndSet deref reset resetVals swap
                 swapVals},

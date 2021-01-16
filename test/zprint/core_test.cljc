@@ -635,7 +635,7 @@
            (catch Exception e (str e))))
      :cljs
        (expect
-         "Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :sci.error/parse, :line 2, :column 1, :phase \"parse\", :file nil}, :cause #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :edamame/error, :line 2, :column 1}}}"
+         "Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :sci.error/parse, :line 2, :column 1, :edamame/expected-delimiter \"}\", :edamame/opened-delimiter \"{\", :phase \"parse\", :file nil}, :cause #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :edamame/error, :line 2, :column 1, :edamame/expected-delimiter \"}\", :edamame/opened-delimiter \"{\"}}}"
          (try
            (zprint-file-str
              "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"

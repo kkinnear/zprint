@@ -12,7 +12,8 @@
               #?@(:clj [czprint-fn czprint-fn-str zprint-fn-str zprint-fn])]]
             [zprint.zprint :refer
              [line-count max-width line-lengths make-record contains-nil?
-              map-ignore blanks]]
+              map-ignore]]
+	    [zprint.comment :refer [blanks]]
             [zprint.zutil :refer [edn*]]
             [zprint.config :refer [merge-deep]]
             #?@(:clj ([clojure.repl :refer [source-fn]]))

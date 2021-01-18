@@ -7,12 +7,14 @@
     #?@(:cljs [[cljs.reader :refer [read-string]]])
     #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])
     [zprint.zprint :as zprint :refer
-     [fzprint blanks line-count max-width line-widths expand-tabs zcolor-map
-      fzprint-wrap-comments fzprint-inline-comments
-      fzprint-align-inline-comments determine-ending-split-lines]]
+     [fzprint line-count max-width line-widths expand-tabs zcolor-map
+      determine-ending-split-lines]]
     [zprint.finish :refer
      [cvec-to-style-vec compress-style no-style-map color-comp-vec
       handle-lines]]
+    [zprint.comment :refer
+     [fzprint-inline-comments fzprint-wrap-comments
+      fzprint-align-inline-comments blanks]]
     [zprint.config :as config :refer
      [config-set-options! get-options config-configure-all! reset-options!
       help-str get-explained-options get-explained-set-options

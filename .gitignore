@@ -20,6 +20,7 @@ zprintm-*
 /issues
 /perf
 /cljs-test-runner-out
+/archive
 install-clj-kondo
 graalvm.token.txt
 package-lock.json

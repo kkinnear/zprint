@@ -43,7 +43,7 @@ helptext="Usage: ./appcds zprint-filter output-command-name"
 
 if [[ -z "$1" ]]
 	then
-	echo "Missing first required argument: zprint-filter-file (e.g. zprint-filter-1.1.0)"
+	echo "Missing first required argument: zprint-filter-file (e.g. zprint-filter-1.2.0)"
 	echo "$helptext"
 	exit 1
 fi 

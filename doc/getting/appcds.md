@@ -44,7 +44,7 @@ zprint-filter in about a second.
 ## 5. Try it with `-v`
 ```
 % zprint -v
-zprint-1.1.0
+zprint-1.2.0
 ```
 This will also demonstrate the time it takes to start up the uberjar
 with appcds.

@@ -13,14 +13,14 @@ You may wish to name it something different so that any scripts that
 you have will use the new version without requiring a change.  We
 will assume that you have renamed it `zprint-filter`.
 ```
-mv zprint-filter-1.1.0 zprint-filter
+mv zprint-filter-1.2.0 zprint-filter
 ```
 
 Note that you can always find the version of zprint-filter (no matter what
 you called it), by giving it the -v switch:
 ```
 java -jar zprint-filter -v
-zprint-1.1.0
+zprint-1.2.0
 ```
 
 ## 3. Test it with `-e`

@@ -676,8 +676,10 @@
   ; treatment.
   (expect
     "(defn zctest3\n  \"Test comment forcing things\"\n  [x]\n  (cond\n    (and (list ;\n           (identity \"stuff\")\n           \"bother\"))\n      x\n    :else (or :a :b :c)))"
-    ;  "(defn zctest3\n  \"Test comment forcing things\"\n  [x]\n  (cond\n    (and
-    ;  (list ;\n               (identity \"stuff\")\n               \"bother\"))\n
+    ;  "(defn zctest3\n  \"Test comment forcing things\"\n  [x]\n  (cond\n
+    ;  (and
+    ;  (list ;\n               (identity \"stuff\")\n
+    ;  \"bother\"))\n
     ;       x\n    :else (or :a :b :c)))"
     (zprint-str zprint.zprint-test/zctest3str
                 40
@@ -909,10 +911,14 @@
                   (clojure.string/replace (zprint-str ag) #"\@[0-9a-f]*" "")))
 
   #?(:clj (def agf (agent [:c :d])))
-  #?(:clj (send agf + 5))
 
-  #?(:clj (expect "#<Agent FAILED [:c :d]>"
-                  (clojure.string/replace (zprint-str agf) #"\@[0-9a-f]*" "")))
+  #?(:clj (expect
+            "#<Agent FAILED [:c :d]>"
+            (do (send agf + 5)
+		; Wait a bit for the send to get to the agent and for the
+		; agent to fail
+                (Thread/sleep 100)
+                (clojure.string/replace (zprint-str agf) #"\@[0-9a-f]*" ""))))
 
   ;;
   ;; # Sorting maps in code
@@ -1155,8 +1161,10 @@
 
   ;;
   ;; Test equal size hang and flow should hang, particularly issue in
-  ;; fzprint-hang-remaining where it was messing that up unless hang-expand was 4.0
-  ;; instead of the 2.0.  This *should* hang up next to the do, not flow under the do.
+  ;; fzprint-hang-remaining where it was messing that up unless hang-expand was
+  ;; 4.0
+  ;; instead of the 2.0.  This *should* hang up next to the do, not flow under
+  ;; the do.
   ;;
 
   (expect
@@ -1756,7 +1764,8 @@
     (zprint-str zprint.zprint-test/zextend-tst1 {:extend {:flow? true}}))
 
   ;
-  ; What happens if the modifier and the first element don't fit on the same line?
+  ; What happens if the modifier and the first element don't fit on the same
+  ; line?
   ;
 
   (expect
@@ -2011,7 +2020,8 @@
   ;;
   ;; # key-value-color
   ;;
-  ;; When you find this key, use the color map associated with it when formatting
+  ;; When you find this key, use the color map associated with it when
+  ;; formatting
   ;; the value.
   ;;
 
@@ -2613,7 +2623,8 @@
   ;;
   ;; Change format for the rest of the file (or rest of the string)
   ;;
-  ;; Note that the next test depends on this one (where the next one ensures that
+  ;; Note that the next test depends on this one (where the next one ensures
+  ;; that
   ;; the values set into the options map in this test don't bleed out into the
   ;; the environment beyond this call to zprint-file-str).
   ;;
@@ -3215,7 +3226,8 @@
     (expect
       "(defproject name version\n  :test :this\n  :stuff [:aaaaa\n          :bbbbbbb\n          :ccccccccc\n          :ddddddd\n          :eeeeeee])"
       (redef-state [zprint.config] (zprint-str dp 50 {:parse-string? true})))
-    ; If we remove that configuration, will it stop inhibiting the wrapping of vector
+    ; If we remove that configuration, will it stop inhibiting the wrapping of
+    ; vector
     ; elements?
     (expect
       "(defproject name version\n  :test :this\n  :stuff [:aaaaa :bbbbbbb :ccccccccc :ddddddd\n          :eeeeeee])"
@@ -5023,7 +5035,8 @@ ser/collect-vars-acc %1 %2) )))"
       {:parse-string? true, :style :indent-only}))
 
   ;;
-  ;; This is related to the #145 issue, but it is about :prefix-tags.  The bigger
+  ;; This is related to the #145 issue, but it is about :prefix-tags.  The
+  ;; bigger
   ;; issue was that there were a lot of caller's that didn't have respect
   ;; or indent configured.
 

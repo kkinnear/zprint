@@ -1,4 +1,3 @@
-# argument 1 = location of graalvm for Linux
-# argument 2 = file name of native-image .jar
+# argument 1 = version of docker graalvm to use
 # argument 2 = version of zprint (n.m.p) to build (must be target/zprint-filter-n.m.p)
-docker run --rm -it -v `pwd`:/app/ danny02/graalvm bash /app/zprintl.sh $1 $2 $3
+docker run --rm -it -v `pwd`:/app/ docker.pkg.github.com/graalvm/container/community:$1 bash /app/zprintl.sh $2

@@ -13,7 +13,7 @@
             [zprint.zprint :refer
              [line-count max-width line-lengths make-record contains-nil?
               map-ignore]]
-	    [zprint.comment :refer [blanks]]
+            [zprint.comment :refer [blanks]]
             [zprint.zutil :refer [edn*]]
             [zprint.config :refer [merge-deep]]
             #?@(:clj ([clojure.repl :refer [source-fn]]))
@@ -916,8 +916,8 @@
   #?(:clj (expect
             "#<Agent FAILED [:c :d]>"
             (do (send agf + 5)
-		; Wait a bit for the send to get to the agent and for the
-		; agent to fail
+                ; Wait a bit for the send to get to the agent and for the
+                ; agent to fail
                 (Thread/sleep 100)
                 (clojure.string/replace (zprint-str agf) #"\@[0-9a-f]*" ""))))
 
@@ -5427,9 +5427,9 @@ ser/collect-vars-acc %1 %2) )))"
   ;; Missing code!  Issue #173
   ;;
 
-(expect "(fn [x]\n  (bar)\n)"
-        (zprint-str "(fn [x]\n  (bar)\n   )\n"
-                    {:parse-string? true, :list {:respect-nl? true}}))
+  (expect "(fn [x]\n  (bar)\n)"
+          (zprint-str "(fn [x]\n  (bar)\n   )\n"
+                      {:parse-string? true, :list {:respect-nl? true}}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

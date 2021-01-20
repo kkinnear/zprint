@@ -1,13 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.1.1 - 2021-1-18
+## 1.1.1 - 2021-1-20
 
 ### Added
 
 ### Changed
 
 ### Fixed
+
+  * In a very obscure case, requiring use of {:list {:respect-nl?
+  true}}, and a hanging final parenthesis, a very short, unnamed
+  anonymous function would disappear. This is clearly a very serious issue
+  despite the number of specific conditions required to provoke it. Issue #173.
 
 ## 1.1.0 - 2021-1-16
 

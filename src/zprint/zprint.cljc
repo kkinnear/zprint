@@ -2313,14 +2313,9 @@
                    ;   (next flow-result)
                    ;   flow-result)
                    ;
-                   ; It wouuld be interesting to figure out how this
-                   ; happened originally.  But it is vitally
-                   ; necessary unless good-enough is changed to
-                   ; alter the numbers.  Which might be the better
-                   ; approach, since we are ignoring one line here.
-                   (if (and (not pair-seq) (> (count flow-result) 1))
-                     (next flow-result)
-                     flow-result))])))
+                   ; Now we do a similar thing -- as long as flow-result
+                   ; has more than one thing, below when we call good-enough.
+                   flow-result)])))
          [flow flow-lines] (when flow (zat options flow)) ; PT
          _ (log-lines options
                       "fzprint-hang-remaining: hanging:"
@@ -2340,13 +2335,32 @@
          hanging
          (concat-no-nil [[" " :none :whitespace 10]] hanging))
        (when flow-lines
-         (if (good-enough? caller
-                           options
-                           fn-style
-                           hang-count
-                           (- hindent findent)
-                           hanging-lines
-                           flow-lines)
+         (if (good-enough?
+               caller
+               options
+               fn-style
+               hang-count
+               (- hindent findent)
+               hanging-lines
+               ; If we have more than one line in the flow
+               ; and we didn't have any constant pairs,
+               ; then decrease the line count for the flow.
+               ; This seems to be necessary based on the results,
+               ; but it can't be done in good-enough in all cases,
+               ; because it breaks lots of stuff.  This was
+               ; previously done above, in the call to style-lines,
+               ; where we just skipped the first line.  That
+               ; seems like a bad idea, so we now just create
+               ; a new flow-lines to cover this situation.
+               ; This was provoked by Issue #173 where we lost
+               ; code when there was only one thing in flow-result,
+               ; and we skipped that thing, causing style-lines
+               ; to return nil and the whole thing disappeared.
+               (if (and (not pair-seq) (> (first flow-lines) 1))
+                 [(dec (first flow-lines)) (second flow-lines)
+                  (nth flow-lines 2)]
+                 flow-lines)
+               #_flow-lines)
            ; If hanging starts with a newline, don't put a blank at the
            ; end of the previous line.
            (if (first-nl? hanging)

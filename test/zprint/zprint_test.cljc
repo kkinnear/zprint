@@ -5423,6 +5423,13 @@ ser/collect-vars-acc %1 %2) )))"
             "(cond a b c d e f g h)"
             {:parse-string? true, :width 20, :pair {:nl-separator-all? true}}))
 
+  ;;
+  ;; Missing code!  Issue #173
+  ;;
+
+(expect "(fn [x]\n  (bar)\n)"
+        (zprint-str "(fn [x]\n  (bar)\n   )\n"
+                    {:parse-string? true, :list {:respect-nl? true}}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

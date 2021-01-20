@@ -2303,7 +2303,24 @@
                  (style-lines
                    options
                    findent
-                   (if (not pair-seq) (next flow-result) flow-result))])))
+                   ; Issue #173 -- the following code caused code to
+                   ; disappear, because if there was just one thing
+                   ; in flow-result, then it would be empty and
+                   ; style-lines would return nil, causing neither
+                   ; hang nor flow to be used.
+                   ;
+                   ; (if (not pair-seq)
+                   ;   (next flow-result)
+                   ;   flow-result)
+                   ;
+                   ; It wouuld be interesting to figure out how this
+                   ; happened originally.  But it is vitally
+                   ; necessary unless good-enough is changed to
+                   ; alter the numbers.  Which might be the better
+                   ; approach, since we are ignoring one line here.
+                   (if (and (not pair-seq) (> (count flow-result) 1))
+                     (next flow-result)
+                     flow-result))])))
          [flow flow-lines] (when flow (zat options flow)) ; PT
          _ (log-lines options
                       "fzprint-hang-remaining: hanging:"
@@ -2625,11 +2642,17 @@
   [caller options ind [_ _ current-count zloc-seq :as next-data]]
   (let [starting-count (inc current-count)
         nloc-seq (nthnext zloc-seq starting-count)]
+    (dbg-pr options
+            "fzprint-up-to-next-zloc: starting-count:" starting-count
+            "zloc-seq:" (map zstring zloc-seq))
     (if-not (= (:ztype options) :zipper)
       [:noseq (first nloc-seq) starting-count zloc-seq]
       (let [[pre-next-zloc-seq next-zloc next-count] (gather-up-to-next-zloc
                                                        nloc-seq)
             next-count (+ starting-count next-count)]
+        (dbg-pr options
+                "fzprint-up-to-next-zloc: next-count:" next-count
+                "pre-next-zloc-seq:" (map zstring pre-next-zloc-seq))
         (if (empty? pre-next-zloc-seq)
           ; The normal case -- nothing before the first interesting zloc
           [:noseq next-zloc next-count zloc-seq]
@@ -2695,7 +2718,7 @@
     (let [zloc-seq (nthnext zloc-seq (inc next-count))]
       #_(prn "get-zloc-seq-right: next-count:" next-count
              "zloc-seq:" (map zstring zloc-seq))
-      (dbg-pr "get-zloc-seq-right:" (map zstring zloc-seq))
+      #_(dbg-pr options "get-zloc-seq-right:" (map zstring zloc-seq))
       zloc-seq)))
 
 
@@ -3557,8 +3580,11 @@
                                          (+ ind indent)
                                          second-data)
               #_(prn "pre-arg-1-style-vec:" pre-arg-1-style-vec)
+              #_(prn "arg-1-zloc:" (zstring arg-1-zloc))
               #_(prn "pre-arg-2-style-vec:" pre-arg-2-style-vec)
+              #_(prn "arg-2-zloc:" (zstring arg-2-zloc))
               #_(prn "pre-arg-3-style-vec:" pre-arg-3-style-vec)
+              #_(prn "arg-3-zloc:" (zstring arg-3-zloc))
               zloc-seq-right-third (get-zloc-seq-right third-data)
               second-element (fzprint-hang-one
                                caller

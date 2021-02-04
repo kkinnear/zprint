@@ -57,6 +57,17 @@
     [(subs s 0 next-lf) (subs s (inc next-lf))]
     [s]))
 
+(defn option-fn-name
+  "Given an option-fn, call it with no arguments to see if it returns its
+  name.  To be used only in exceptions."
+  [option-fn]
+  (try (let [option-fn-name (option-fn)]
+         (when (string? option-fn-name) (str " named " option-fn-name)))
+       (catch #?(:clj Exception
+                 :cljs :default)
+         e
+         nil)))
+
 ;;
 ;; # Use pmap when we have it
 ;;
@@ -3275,6 +3286,10 @@
             return)
           zloc)))))
 
+(declare guided-wrap)
+(declare lazy-sexpr-seq)
+(declare internal-validate)
+
 (defn fzprint-list*
   "Print a list, which might be a list or an anon fn.  
   Lots of work to make a list look good, as that is typically code. 
@@ -3309,15 +3324,40 @@
         ; maybe, someday, so we could hang next to it.
         ; But for now, this will do.
         arg-1-indent-alt? (and arg-1-coll? fn-style)
+        ; Expand fn-str to really be the thing to look up in the fn-map
         fn-str (if-not arg-1-coll? (zstring arg-1-zloc))
-        fn-style (or fn-style (fn-map fn-str) (user-fn-map fn-str))
-        ; if we don't have a function style, let's see if we can get
-        ; one by removing the namespacing
+        ; If we don't have a fn-str, then we might have a fn-type.
+        fn-type (when-not fn-str
+                  (cond (zlist? arg-1-zloc) :list
+                        ; Note that in structures, a record is also a map
+                        (zrecord? arg-1-zloc) :record
+                        (zmap? arg-1-zloc) :map
+                        (zvector? arg-1-zloc) :vector
+                        (zset? arg-1-zloc) :set
+                        (zarray? arg-1-zloc) :array
+                        (zatom? arg-1-zloc) :atom
+                        :else nil))
+        ; Look up the fn-str in both fn-maps, and then if we don't get
+        ; something, look up the fn-type in both maps.
+        fn-style (or fn-style
+                     (fn-map fn-str)
+                     (user-fn-map fn-str)
+                     (fn-map fn-type)
+                     (user-fn-map fn-type))
+        ; if we don't have a function style after all of that, let's see
+        ; if we can get one by removing the namespacing.
+        ; This will not interact with the fn-type because if we have a
+        ; fn-str then we don't have a fn-type!
         fn-style (if (and (not fn-style) fn-str)
                    (fn-map (last (clojure.string/split fn-str #"/")))
                    fn-style)
         ; If we have a fn-str and not a fn-style, see if we have a default
+        ; for functions which were not set explicitly to :none
+        fn-style
+          (if (and fn-str (nil? fn-style)) (:default-not-none fn-map) fn-style)
+        ; If we have a fn-str and not a fn-style, see if we have a default
         ; fn-style for every function which doesn't have one explicitly set
+        ; or where it was :none
         fn-style (if (= fn-style :none) nil fn-style)
         fn-style (if (and fn-str (nil? fn-style)) (:default fn-map) fn-style)
         ; Do we have a [fn-style options] vector?
@@ -3349,12 +3389,43 @@
                          (second fn-style)
                          (nth fn-style 2)))))
             options)
-        ; If we messed with the options, then find new stuff.  This will
-        ; probably change only zloc-seq because of :respect-nl? or :indent-only?
+        ; Do we have an option-fn to call and maybe get a new options
+        ; map.  We might have developed this from the options map in
+        ; the vector above.  In fact, we hope so, because otherwise we
+        ; are calling an option-fn on every list, which will be a
+        ; terrible performance hit!
+        option-fn (:option-fn (options caller))
+        new-options
+          (when option-fn
+            (let [nws-seq (remove zwhitespaceorcomment? (zseqnws zloc))
+                  nws-count (count nws-seq)
+                  sexpr-seq (lazy-sexpr-seq nws-seq)]
+              (internal-validate
+                (option-fn options nws-count sexpr-seq)
+                (str ":list :option-fn" (option-fn-name option-fn)
+                     " called with an sexpr of length " nws-count))))
+        _ (when option-fn
+            (dbg-pr options "fzprint-list* option-fn new options" new-options))
+        options (merge-deep options new-options)
+        ; If we came in with a :fn-style, then if it hasn't changed, this
+        ; will do nothing.  If we calculated a new one in the option-fn,
+        ; this will pick it up, else we will use the one that we figured
+        ; out above.
+        fn-style (or (:fn-style options) fn-style)
+        guide (:guide options)
+        options (dissoc options :guide)
+        _ (when guide (dbg-pr options "fzprint-list* guide:" guide))
+        ; If we have a :guide value, then we are going to use it no
+        ; matter the fn-style we had before.
+        fn-style (if guide :guided fn-style)
+        ; If we messed with the options for any of two reasons, then find
+        ; new stuff.  This will probably change only zloc-seq because
+        ; of :respect-nl? or :indent-only?
         [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
-          (if (vector? fn-style)
+          (if (or (vector? fn-style) new-options)
             (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
             first-data)
+        ; Get rid of the any vector surrounding the fn-style.
         ; Don't do this too soon, as multiple things are driven off of
         ; (vector? fn-style), above
         fn-style (if (vector? fn-style) (first fn-style) fn-style)
@@ -3455,6 +3526,10 @@
         new-ind (+ indent ind)
         one-line-ind (+ l-str-len ind)
         options (if fn-style (dissoc options :fn-style) options)
+        ; Keep track of who has called us
+        options (assoc options
+                  :call-stack (cons [(or fn-str fn-type) fn-style]
+                                    (:call-stack options)))
         loptions (not-rightmost options)
         roptions options
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
@@ -3862,6 +3937,29 @@
                                                     (+ indent ind)
                                                     zloc-seq-right-second))
                         r-str-vec)))
+      (= fn-style :guided)
+        (let [zloc-count (count zloc-seq)]
+          #_(prn ":guided!")
+          (concat-no-nil l-str-vec
+                         pre-arg-1-style-vec
+                         #_(fzprint* loptions (inc ind) arg-1-zloc)
+                         (#_guided-wrap-alt
+                          guided-wrap
+                          :vector
+                          options
+                          (+ indent ind)
+                          guide
+                          zloc-seq)
+                         #_(fzprint-hang (assoc-in options
+                                           [:pair :respect-nl?]
+                                           (:respect-nl? (caller options)))
+                                         :pair-fn
+                                         arg-1-indent
+                                         (+ indent ind)
+                                         fzprint-pairs
+                                         zloc-count
+                                         zloc-seq-right-first)
+                         r-str-vec))
       ; Unspecified seq, might be a fn, might not.
       ; If (first zloc) is a seq, we won't have an
       ; arg-1-indent.  In that case, just flow it
@@ -4005,20 +4103,23 @@
                             fit? (+ cur-ind len 1)
                             newline? ind
                             :else (+ ind len 1))]
-              #_(prn "------ this-seq:" this-seq
-                     "lines:" lines
-                     "linecnt:" linecnt
-                     "multi?" multi?
-                     "newline?:" newline?
-                     "previous-newline?:" previous-newline?
-                     "linecnt:" linecnt
-                     "max-width:" max-width
-                     "last-width:" last-width
-                     "len:" len
-                     "cur-ind:" cur-ind
-                     "new-ind:" new-ind
-                     "width:" width
-                     "fit?" fit?)
+              #_(prn "------ this-seq:" this-seq)
+              #_(println
+                "lines:" lines
+                "\nlinecnt:" linecnt
+                "\nmulti?" multi?
+                "\nnewline?:" newline?
+                "\ncomment?" comment?
+                "\ncomment-inline?" comment-inline?
+                "\nprevious-newline?:" previous-newline?
+                "\nlinecnt:" linecnt
+                "\nmax-width:" max-width
+                "\nlast-width:" last-width
+                "\nlen:" len
+                "\ncur-ind:" cur-ind
+                "\nnew-ind:" new-ind
+                "\nwidth:" width
+                "\nfit?" fit?)
               ; need to figure out what to do with a comment,
               ; want to force next line to not fit whether or not
               ; this line fit.  Comments are already multi-line, and
@@ -4048,17 +4149,885 @@
                              (blanks
                                ; Figure out what the next thing is
                                (let [this-seq-next (first (next cur-seq))
-                                     newline? (when this-seq-next
-                                                (= (nth (first this-seq-next) 2)
-                                                   :newline))]
-                                 ; If it is a newline, don't put any blanks on
-                                 ; this line
-                                 (if newline? 0 (dec new-ind))))) :none :indent
-                        21]]
+                                     newline-next?
+                                       (when this-seq-next
+                                         (= (nth (first this-seq-next) 2)
+                                            :newline))]
+                                 ; If the next thing is a newline,
+                                 ; don't put any blanks on this line
+                                 (if newline-next? 0 (dec new-ind))))) :none
+                        :indent 21]]
                       ; Unclear if a prepend-nl would be useful here...
                       (if previous-newline?
                         (concat-no-nil [[" " :none :whitespace 16]] this-seq)
                         (prepend-nl options ind this-seq)))))))))))))
+
+(defn count-comments-and-newlines
+  "Given a seq from fzprint-seq, count the newlines and contiguous comments
+  at the beginning of the list.  A comment preceded by a newline or comment
+  doesn't count."
+  [coll-print]
+  (loop [cur-seq coll-print
+         previous-comment? false
+         previous-newline? false
+         comment-and-newline-count 0]
+    (if-not cur-seq
+      comment-and-newline-count
+      (let [element-type (nth (ffirst cur-seq) 2)
+            comment? (or (= element-type :comment)
+                         (= element-type :comment-inline))
+            newline? (= element-type :newline)]
+        (if-not (or newline? comment?)
+          comment-and-newline-count
+          (recur (next cur-seq)
+                 comment?
+                 newline?
+                 (if comment?
+                   (if previous-newline?
+		     ; Don't count the newline preceding a comment
+		     (dec comment-and-newline-count)
+		     comment-and-newline-count)
+                   (inc comment-and-newline-count))))))))
+
+(defn count-comments-and-newlines-alt
+  "Given a seq from fzprint-seq, count the newlines and contiguous comments
+  at the beginning of the list.  A comment preceded by a newline or comment
+  doesn't count."
+  [coll-print]
+  (loop [cur-seq coll-print
+         previous-comment? false
+	 previous-newline? false
+         comment-and-newline-count 0]
+    (if-not cur-seq
+      comment-and-newline-count
+      (let [element-type (nth (ffirst cur-seq) 2)
+            comment? (or (= element-type :comment)
+                         (= element-type :comment-inline))
+            newline? (= element-type :newline)]
+        (if-not (or newline? comment?)
+          comment-and-newline-count
+          (recur (next cur-seq)
+                 comment?
+		 newline?
+                 (if (or (and comment? previous-comment?)
+		         (and comment? previous-newline?))
+                   comment-and-newline-count
+                   (inc comment-and-newline-count))))))))
+
+
+(defn guided-output
+  "Return information to be added to the output vector along
+  with other information [param-map previous-data out]."
+  ; [caller options next-seq next-guide cur-seq cur-zloc cur-index guide-seq
+  ;  index param-map mark-map previous-data out]
+  [caller
+   {:keys [width rightcnt],
+    {:keys [wrap-after-multi? respect-nl?]} caller,
+    :as options} next-seq next-guide cur-seq cur-zloc cur-index guide-seq index
+   {:keys [excess-guided-newline-count align-key last-cur-index rightcnt cur-ind
+           ind spaces],
+    :as param-map} mark-map
+   [previous-newline? previous-guided-newline? unguided-newline-out?
+    previous-comment? :as previous-data] out]
+  (let [guided-newline? (= next-guide :newline)
+        comment? (= (nth (first next-seq) 2) :comment)
+        comment-inline? (= (nth (first next-seq) 2) :comment-inline)
+        newline? (or (= (nth (first next-seq) 2) :newline) guided-newline?)
+        ; next-seq might be nil, in which case several of these things
+        ; are nil
+        multi? (when next-seq (> (count next-seq) 1))
+        _ (dbg-pr options "guided-output: ind:" ind "next-seq:" next-seq)
+        [linecnt max-width lines] (when next-seq
+                                    (style-lines options ind next-seq))
+        last-width (last lines)
+        ; This is the length of the last line, not the length of the widest
+        ; line, though it might be.  That would be using max-width instead.
+        ; But we only check the length to see if it fits if it is a one
+        ; line multi?, so in that case, len will be the length of the longest
+        ; line by definition.
+        len (if last-width (max 0 (- last-width ind)) 0)
+        width (if (= index last-cur-index) (- width rightcnt) width)
+        align-ind (when align-key (get mark-map align-key))
+        align-spaces (when align-ind (max 0 (- align-ind cur-ind)))
+        ; If it is multi? and (> linecnt 1), then it doesn't fit at present.
+        ; If that ever changed, we would need to check the widest line, not
+        ; just the last line as we are doing now.  Plus, we would need check
+        ; the widest line against the width, and the last line against the
+        ; rightcnt adjusted width as well to ensure a fit.
+        ;
+        ; If one line and fits, should fit.
+        fit? (and (not newline?)
+                  (or (zero? index) (not comment?))
+                  (or (zero? index)
+                      (and (if multi? (= linecnt 1) true)
+                           (<= (+ (or align-ind cur-ind) len) width))))
+        ; Calculate new location on the line, which is the end of the thing
+        ; we are outputing now.
+        new-ind
+          (cond
+            ; Comments cause an overflow of the size
+            (or comment? comment-inline?) (inc width)
+            (and multi? (> linecnt 1) (not wrap-after-multi?)) (inc width)
+            fit? (+ cur-ind
+                    len
+                    (or align-spaces spaces (if previous-newline? 0 1))
+                    #_1)
+            newline? ind
+            :else
+              #_(throw (#?(:clj Exception.
+                           :cljs js/Error.)
+                        (str
+                          ":else when calculating new-ind"
+                          "\nfit? " fit?
+                          "\nnewline? " newline?
+                          "\nind: " ind
+                          "\ncur-ind: " cur-ind
+                          "\nmulti? " multi?
+                          "\nalign-spaces: " align-spaces
+                          "\nspaces: " spaces
+                          "\ncomment? " comment?
+                          "\ncomment-inline? " comment-inline?
+                          "\nlinecnt " linecnt
+                          "\nwidth " width
+                          "\nwrap-after-multi? " wrap-after-multi?
+                          "\nprevious-newline? " previous-newline?
+                          "\nprevious-guided-newline? " previous-guided-newline?
+                          "\nunguided-newline-out? " unguided-newline-out?
+                          "\nprevious-comment? " previous-comment?
+                          "\nlen: " len)))
+              ; the new last character is the length of the last line
+              ; plus the ind
+              (+ ind len)
+            #_(+ ind len 1))]
+    (comment (prn "------ out:" out)
+             (prn "------ next-guide:" next-guide)
+             (prn "------ next-seq:" next-seq)
+             (prn " ")
+             (prn "------ mark-map:" mark-map)
+             ;"(first cur-seq)" (first cur-seq)
+             (println
+               "index:" index
+               "\ncur-index:" cur-index
+               "\nnewline?:" newline?
+               "\nexcess-guided-newline-count:" excess-guided-newline-count
+               "\nprevious-newline?" previous-newline?
+               "\nunguided-newline-out?" unguided-newline-out?
+               "\nprevious-comment?" previous-comment?
+               "\nalign-key:" align-key
+               "\nalign-ind:" align-ind
+               "\nalign-spaces:" align-spaces
+               "\nspaces:" spaces
+               "\nmulti?" multi?
+               "\nlines:" lines
+               "\nlinecnt:" linecnt
+               "\nmax-width:" max-width
+               "\nlast-width:" last-width
+               "\nlen:" len
+               "\ncur-ind:" cur-ind
+               "\nnew-ind:" new-ind
+               "\nwidth:" width
+               "\nfit?" fit?))
+    [;
+     ; param-map
+     ;
+     ; Get rid of one-time parameters and update things that have
+     ; changed
+     (assoc (dissoc param-map :excess-guided-newline-count :align-key :spaces)
+       :cur-ind new-ind)
+     ;
+     ; previous-data
+     ;
+     [; previous-newline?
+      newline?
+      ; previous-guided-newline?
+      guided-newline?
+      ; unguided-newline-out?
+      (and (not guided-newline?)
+           (not (and previous-comment? newline?))
+           (and (not fit?) (or newline? (not previous-newline?))))
+      ; previous-comment?
+      (or comment? comment-inline?)]
+     ;
+     ; out
+     ;
+     (concat
+       out
+       (if fit?
+         ; Note that newlines don't fit
+         (if (not (zero? index))
+           ; Separate from previous thing by one space.
+           ; Of course, this might now not fit?  We did check
+           ; before.
+           #_(concat-no-nil [[" " :none :whitespace 15]] next-seq)
+           ; spaces from align have precedence over just random spaces
+           (concat-no-nil [[(blanks (or align-spaces
+                                        spaces
+                                        (if previous-newline? ind 1)
+                                        #_1)) :none :whitespace 15]]
+                          next-seq)
+           ; This might be nil, but that's ok
+           next-seq)
+         (if newline?
+           (concat-no-nil
+             ; If we have excess-guided-newline-count, then
+             ; output it now.  These newlines have no spaces
+             ; after them, so they should not be used to start
+             ; a line with something else on it!  We dec because
+             ; the next thing is a guarenteed newline.
+             (if (and excess-guided-newline-count
+                      (pos? (dec excess-guided-newline-count)))
+               (repeat (dec excess-guided-newline-count) ["\n" :indent 22])
+               :noseq)
+             [[(str "\n"
+                    #_(blanks
+                        ; Figure out what the next thing is
+                        ; If this is a pair, that's a bit dicey?
+                        (let [next-seq-next (first (next cur-seq))
+                              newline-next? (when next-seq-next
+                                              (= (nth (first next-seq-next) 2)
+                                                 :newline))]
+                          ; If the next thing is a newline,
+                          ; don't put any blanks on this line
+                          (if newline-next? 0 (dec new-ind))))) :none :indent
+               21]])
+           ; This doesn't fit, and isn't a newline
+           ; Do we need a newline, or do we already have one
+           ; we could use?
+           ;
+           ; This will be a problem, as the simple case says
+           ; "Sure, we can use a guided newline here."
+           ; Don't let a comment come after a guided-newline
+           (if (and previous-newline?
+                    (not (and comment? previous-guided-newline?)))
+             ; We have just done a newline that we can use.
+             #_(concat-no-nil [[" " :none :whitespace 16]] next-seq)
+             (concat-no-nil [[(blanks (if previous-newline? ind 1)) #_" " :none
+                              :whitespace 16]]
+                            next-seq)
+             (prepend-nl options ind next-seq)))))]))
+
+(defn comment-or-newline?
+  "Is this element in the output from fzprint-seq a comment or a newline?"
+  [element]
+  (let [element-type (nth (first element) 2)]
+    (or (= element-type :comment)
+        (= element-type :comment-inline)
+        (= element-type :newline))))
+
+(defn guided-wrap
+  "Given a zloc-seq wrap the elements to the right margin 
+  but be guided by the guide seq."
+  [caller
+   {:keys [width rightcnt],
+    {:keys [wrap-after-multi? respect-nl?]} caller,
+    :as options} ind guide zloc-seq]
+  #_(prn "guided-wrap:" (map zstring zloc-seq))
+  (let [rightcnt (fix-rightcnt rightcnt)
+        coll-print (fzprint-seq options ind zloc-seq)
+        last-cur-index (dec (count coll-print))]
+    (loop [cur-seq coll-print
+           cur-zloc zloc-seq
+           cur-index 0
+           guide-seq guide
+           index 0
+           param-map {:cur-ind ind,
+                      :ind ind,
+                      :pair-seq nil,
+                      :pair-indent 0,
+                      :last-cur-index last-cur-index,
+                      :rightcnt rightcnt}
+           mark-map {}
+           [previous-newline? previous-guided-newline? unguided-newline-out?
+            previous-comment? :as previous-data]
+             nil
+           ; transient here slows things down, interestingly enough
+           out []]
+      ; We can't just check for cur-seq here, or any pairs we might be
+      ; accumulating will be lost, since :pair-end has to come beyond
+      ; the last :element that finished cur-seq
+      (if-not (or guide-seq cur-seq)
+        (do (dbg-pr options "guided-wrap: out:" out)
+            #_(prn "guided-wrap out:" out)
+            out)
+        (if (> index 50)
+          out
+          (let [#_(prn "=====> (first guide-seq):" (first guide-seq)
+                       " param-map:" (assoc (dissoc param-map :pair-seq)
+                                       :pair-seq-len (count (:pair-seq
+                                                              param-map))))
+                ; If we are out of guide-seq, but we still have cur-seq
+                ; which we must because of the if-not above, then keep
+                ; doing elements in guide-seq for as long as we have cur-seq
+                ;
+                ; TODO: Change this to [:element], or it will fail when
+                ; the guide-seq runs out.  But it can be nice to have it
+                ; fail for debugging.
+                guide-seq (or guide-seq :element #_[:element])
+                ; First, look into what we have coming up in the sequence
+                ; we are formatting
+                comment? (= (nth (ffirst cur-seq) 2) :comment)
+                comment-inline? (= (nth (ffirst cur-seq) 2) :comment-inline)
+                next-newline? (= (nth (ffirst cur-seq) 2) :newline)]
+            (cond
+              (and (:pair-seq param-map) (= (first guide-seq) :element))
+                ; we are accumulating pairs from cur-zloc
+                ; we assume that cur-seq and cur-zloc line up 1-1
+                ; and we only accept :element between :pair-start and
+                ; :pair-end
+                ;
+                ; First, split off any comments or newlines off of the
+                ; front of cur-seq and do the same for zloc-seq
+                (let [[comments-or-newlines-cur-seq remaining-cur-seq]
+                        (split-with comment-or-newline? cur-seq)
+                      ; Split zloc-seq the same way as cur-seq
+                      [comments-or-newlines-cur-zloc remaining-cur-zloc]
+                        (split-at (count comments-or-newlines-cur-seq) cur-zloc)
+                      pair-seq (:pair-seq param-map)
+                      ; Add the comments and newlines from cur-zloc to pair-seq
+                      pair-seq (into []
+                                     (concat pair-seq
+                                             comments-or-newlines-cur-zloc))
+                      ; Do one more :element off of zloc-seq
+                      pair-seq (conj pair-seq (first remaining-cur-zloc))]
+                  (recur (next remaining-cur-seq)
+                         (next remaining-cur-zloc)
+                         (+ cur-index (count comments-or-newlines-cur-zloc) 1)
+                         (next guide-seq)
+                         (inc index)
+                         (assoc param-map :pair-seq pair-seq)
+                         mark-map
+                         previous-data
+                         out))
+              (= (first guide-seq) :pair-end)
+                ; output accumulated pairs
+                (if (:pair-seq param-map)
+                  (let [next-pair-seq (fzprint-pairs (in-hang options)
+                                                     ind
+                                                     #_pair-hindent
+                                                     (:pair-seq param-map))
+                        param-map (dissoc param-map :pair-seq)
+                        [new-param-map new-previous-data new-out]
+                          (guided-output caller
+                                         options
+                                         next-pair-seq
+                                         (first guide-seq)
+                                         cur-seq
+                                         cur-zloc
+                                         cur-index
+                                         guide-seq
+                                         index
+                                         param-map
+                                         mark-map
+                                         previous-data
+                                         out)]
+                    (recur cur-seq
+                           cur-zloc
+                           cur-index
+                           (next guide-seq)
+                           (inc index)
+                           new-param-map
+                           mark-map
+                           new-previous-data
+                           new-out))
+                  (throw
+                    (#?(:clj Exception.
+                        :cljs js/Error.)
+                     (str ":pair-end without preceding :pair-begin!"))))
+              (:pair-seq param-map)
+                ; we are accumulating pairs, but we didn't get either :element
+                ; or :pair-end
+                (throw (#?(:clj Exception.
+                           :cljs js/Error.)
+                        (str "Only :element allowed between :pair-begin "
+                             " and :pair-end.  Instead found: "
+                             (first guide-seq))))
+              ;
+              ; process things that absorb information out of guide-seq
+              ; without changing next-seq
+              ;
+              (:guided-newline-count param-map)
+                ; we are currently counting newlines, see if we have more
+                ; or if we should output any excess that we have counted
+                (if (= (first guide-seq) :newline)
+                  ; we have another :newline, just count it
+                  (recur cur-seq
+                         cur-zloc
+                         cur-index
+                         (next guide-seq)
+                         (inc index)
+                         (assoc param-map
+                           :guided-newline-count (inc (:guided-newline-count
+                                                        param-map)))
+                         mark-map
+                         previous-data
+                         out)
+                  ; we are counting guided-newlines, and we have found a guide
+                  ; that is not a :newline, so we need to determine the number
+                  ; of excess guided-newlines we have, by counting the actual
+                  ; newlines and comparing them
+                  (let [#_(prn ":guided-newline-count "
+                               (:guided-newline-count param-map))
+                        comment-and-newline-count (count-comments-and-newlines
+                                                    cur-seq)
+                        guided-newline-count (:guided-newline-count param-map)
+                        excess-guided-newline-count
+                          (max 0
+                               (- guided-newline-count
+                                  comment-and-newline-count))
+                        param-map (dissoc param-map :guided-newline-count)
+                        param-map (if (pos? excess-guided-newline-count)
+                                    (assoc param-map
+                                      :excess-guided-newline-count
+                                        excess-guided-newline-count)
+                                    param-map)
+                        ; If we have excess-guided-newline-count then do
+                        ; output right now, fake a guided newline to make
+                        ; this happen
+                        [new-param-map new-previous-data new-out]
+                          (if (pos? excess-guided-newline-count)
+                            (guided-output caller
+                                           options
+                                           (first cur-seq)
+                                           :newline ;guide-seq
+                                           cur-seq
+                                           cur-zloc
+                                           cur-index
+                                           guide-seq
+                                           index
+                                           param-map
+                                           mark-map
+                                           previous-data
+                                           out)
+                            [param-map previous-data out])]
+                    (recur cur-seq
+                           cur-zloc
+                           cur-index
+                           ; don't move forward, as we were dealing with
+                           ; the end of a previous set of :newlines
+                           guide-seq
+                           (inc index)
+                           new-param-map
+                           mark-map
+                           new-previous-data
+                           new-out)))
+              (and (= (first guide-seq) :newline) unguided-newline-out?)
+                ; skip a guided newline if we had an unguided-newline-out
+                ; on the last output
+                (recur cur-seq
+                       cur-zloc
+                       cur-index
+                       (next guide-seq)
+                       (inc index)
+                       param-map
+                       mark-map
+                       [previous-newline? previous-guided-newline?
+                        ;unguided-newline-out?
+                        nil previous-comment?]
+                       out)
+              (= (first guide-seq) :newline)
+                ; start counting guided newlines
+                (recur cur-seq
+                       cur-zloc
+                       cur-index
+                       (next guide-seq)
+                       (inc index)
+                       (assoc param-map :guided-newline-count 1)
+                       mark-map
+                       previous-data
+                       out)
+              (= (first guide-seq) :pair-begin)
+                ; create an empty seq to accumulate pairs
+                (recur cur-seq
+                       cur-zloc
+                       cur-index
+                       (next guide-seq)
+                       (inc index)
+                       (assoc param-map :pair-seq [])
+                       mark-map
+                       previous-data
+                       out)
+              (= (first guide-seq) :mark)
+                ; put the cur-ind into the mark map with key the next
+                ; guide-seq
+                (recur cur-seq
+                       cur-zloc
+                       cur-index
+                       ; skip an extra to account for the mark key
+                       (nnext guide-seq)
+                       (inc index)
+                       param-map
+                       (assoc mark-map
+                         (first (next guide-seq))
+                           (+ (:cur-ind param-map) (or (:spaces param-map) 1)))
+                       previous-data
+                       out)
+              (= (first guide-seq) :spaces)
+                ; save the spaces for when we actually do output
+                (recur cur-seq
+                       cur-zloc
+                       cur-index
+                       ; skip an extra to account for the spaces count
+                       (nnext guide-seq)
+                       (inc index)
+                       (assoc param-map :spaces (first (next guide-seq)))
+                       mark-map
+                       previous-data
+                       out)
+              ;
+              ;  Start looking at cur-seq
+              ;
+              (or comment? comment-inline? next-newline?)
+                ; Do unguided output, moving cur-seq without changing
+                ; guide-seq
+                (let [[new-param-map new-previous-data new-out]
+                        (guided-output caller
+                                       options
+                                       (first cur-seq)
+                                       (first guide-seq) ; unknown
+                                       cur-seq
+                                       cur-zloc
+                                       cur-index
+                                       guide-seq
+                                       index
+                                       param-map
+                                       mark-map
+                                       previous-data
+                                       out)]
+                  (recur (next cur-seq)
+                         (next cur-zloc)
+                         (inc cur-index)
+                         guide-seq
+                         (inc index)
+                         new-param-map
+                         mark-map
+                         new-previous-data
+                         new-out))
+              (= (first guide-seq) :element-align)
+                ; Do guided output, moving both cur-seq and guide-seq
+                ; Find the align-key, and then do an :element
+                (let [align-key (first (next guide-seq))
+                      param-map (assoc param-map :align-key align-key)
+                      [new-param-map new-previous-data new-out]
+                        (guided-output caller
+                                       options
+                                       (first cur-seq)
+                                       :element
+                                       cur-seq
+                                       cur-zloc
+                                       cur-index
+                                       guide-seq
+                                       index
+                                       param-map
+                                       mark-map
+                                       previous-data
+                                       out)]
+                  (recur (next cur-seq)
+                         (next cur-zloc)
+                         (inc cur-index)
+                         ; skip an extra to account for the align-key
+                         (nnext guide-seq)
+                         (inc index)
+                         new-param-map
+                         mark-map
+                         new-previous-data
+                         new-out))
+              (= (first guide-seq) :element)
+                ; Do basic guided output, moving both cur-seq and guide-seq
+                (let [[new-param-map new-previous-data new-out]
+                        (guided-output caller
+                                       options
+                                       (first cur-seq)
+                                       (first guide-seq)
+                                       cur-seq
+                                       cur-zloc
+                                       cur-index
+                                       guide-seq
+                                       index
+                                       param-map
+                                       mark-map
+                                       previous-data
+                                       out)]
+                  (recur (next cur-seq)
+                         (next cur-zloc)
+                         (inc cur-index)
+                         (next guide-seq)
+                         (inc index)
+                         new-param-map
+                         mark-map
+                         new-previous-data
+                         new-out))
+              ;
+              ; Something we didn't expect is going on here
+              ; TODO: Fix this for realistic error reporting
+              ;
+              :else (throw (#?(:clj Exception.
+                               :cljs js/Error.)
+                            (str "Unknown values: guide-seq:" (first guide-seq)
+                                 "cur-seq:" (first cur-seq)))))))))))
+
+(defn guided-wrap-alt
+  "Given a zloc-seq wrap the elements to the right margin 
+  but be guided by the guide seq."
+  [caller
+   {:keys [width rightcnt],
+    {:keys [wrap-after-multi? respect-nl?]} caller,
+    :as options} ind guide zloc-seq]
+  (prn "guided-wrap:" (map zstring zloc-seq))
+  (let [rightcnt (fix-rightcnt rightcnt)
+        coll-print (fzprint-seq options ind zloc-seq)
+        last-index (dec (count coll-print))]
+    (loop [cur-seq coll-print
+           cur-zloc zloc-seq
+           guide-seq guide
+           cur-ind ind
+           index 0
+           previous-newline? false
+           previous-guided-newline? false
+           unguided-newline-out? false
+           previous-comment? false
+           pair-seq nil
+           pair-hindent 0
+           mark-map {}
+           ; transient here slows things down, interestingly enough
+           out []]
+      (if-not guide-seq
+        #_cur-seq
+        (do (dbg-pr options "guided-wrap: out:" out)
+            (prn "guided-wrap out:" out)
+            out)
+        (if (> index 50)
+          out
+          (let [comment? (= (nth (ffirst cur-seq) 2) :comment)
+                comment-inline? (= (nth (ffirst cur-seq) 2) :comment-inline)
+                next-newline? (= (nth (ffirst cur-seq) 2) :newline)
+                next-guided-newline? (= (first guide-seq) :newline)
+                ; We are going to deal with both :newline and :mark
+                ; here.  We don't expect a :mark and then a :newline,
+                ; so we process the :newline first
+                ; Should we skip a guided-newline because we had one
+                ; internally generated last time??
+                guide-seq (if (and unguided-newline-out? next-guided-newline?)
+                            (next guide-seq)
+                            guide-seq)
+                ; If it is a mark or spaces, absorb the information and then
+                ; skip over it.
+                [guide-seq new-mark-map spaces]
+                  (cond (= (first guide-seq) :mark)
+                          (let [mark-key (first (next guide-seq))]
+                            [(nnext guide-seq)
+                             (assoc mark-map mark-key (inc cur-ind))])
+                        (= (first guide-seq) :spaces)
+                          (let [space-count (first (next guide-seq))]
+                            [(nnext guide-seq) mark-map space-count])
+                        :else [guide-seq mark-map nil])
+                next-guided-newline? (= (first guide-seq) :newline)
+                [next-guide guide-seq excess-guided-newline-count]
+                  (if next-guided-newline?
+                    ; count newlines and remove them
+                    (let [[newline-seq remaining-seq]
+                            (split-with #(= % :newline) guide-seq)
+                          comment-and-newline-count (count-comments-and-newlines
+                                                      cur-seq)]
+                      (prn "(count newline-seq):" (count newline-seq)
+                           "(count-comments-and-newlines cur-seq):"
+                             comment-and-newline-count)
+                      [nil remaining-seq
+                       (max 0
+                            (- (count newline-seq) comment-and-newline-count))])
+                    ; If we have a comment wait on the next guide
+                    ; and also if we have a newline but no matching guide
+                    [(when (not (or comment?
+                                    comment-inline?
+                                    (and next-newline? previous-comment?)
+                                    (and next-newline?
+                                         (not next-guided-newline?))))
+                       (first guide-seq)) guide-seq 0])
+                guided-newline? (or (= next-guide :newline)
+                                    (pos? excess-guided-newline-count))
+                align? (= next-guide :element-align)
+                ; If we have align?, get the key
+                [next-guide align-key] (if align?
+                                         (let [align-key-value
+                                                 (first (next guide-seq))]
+                                           [(next guide-seq) align-key-value])
+                                         [next-guide nil])
+                pair-begin? (= next-guide :pair-begin)
+                pair-end? (= next-guide :pair-end)
+                ; Get the next thing if we can
+                ; What happens if if we have next-newline and :pair-begin
+                ; together?
+                next-seq (when (and (zero? excess-guided-newline-count)
+                                    (or (= next-guide :element)
+                                        align?
+                                        comment?
+                                        comment-inline?
+                                        next-newline?))
+                           (first cur-seq))
+                next-zloc (when next-seq (first cur-zloc))
+                ; Collect pairs and process them if we are done
+                [new-pair-seq next-seq next-zloc]
+                  (cond (and pair-seq (not pair-end?))
+                          [(conj pair-seq next-zloc) nil nil]
+                        (and pair-seq pair-end?) [nil
+                                                  (fzprint-pairs (in-hang
+                                                                   options)
+                                                                 ind
+                                                                 #_pair-hindent
+                                                                 pair-seq) nil]
+                        :else [nil next-seq next-zloc])
+                multi? (when next-seq (> (count next-seq) 1))
+                _ (dbg-pr options "guided-wrap: ind:" ind "next-seq:" next-seq)
+                [linecnt max-width lines] (when next-seq
+                                            (style-lines options ind next-seq))
+                last-width (last lines)
+                len (if last-width (max 0 (- last-width ind)) 0)
+                newline? (or (= (nth (first next-seq) 2) :newline)
+                             guided-newline?)
+                width (if (= index last-index) (- width rightcnt) width)
+                align-ind (when align? (get mark-map align-key))
+                align-spaces (when align-ind (max 0 (- align-ind cur-ind)))
+                ; need to check size, and if one line and fits, should fit
+                fit? (and (not newline?)
+                          (or (zero? index) (not comment?))
+                          (or (zero? index)
+                              (and (if multi? (= linecnt 1) true)
+                                   (<= (+ (or align-ind cur-ind) len) width))))
+                ; Calculate new location on the line
+                new-ind (cond
+                          ; Comments cause an overflow of the size
+                          (or comment? comment-inline?) (inc width)
+                          (and multi? (> linecnt 1) (not wrap-after-multi?))
+                            width
+                          fit? (+ cur-ind len 1)
+                          newline? ind
+                          :else (+ ind len 1))]
+            (prn "------ out:" out)
+            (prn "------ next-guide:" next-guide)
+            (prn "------ next-seq:" next-seq)
+            (prn "------ next-zloc:" (zstring next-zloc))
+            (prn "------ pair-seq:" (map zstring pair-seq))
+            (prn "----------- (nil? pair-seq):" (nil? pair-seq))
+            (prn "------ new-pair-seq:" (map zstring new-pair-seq))
+            (prn " ")
+            (prn "------ new-mark-map:" new-mark-map)
+            ;"(first cur-seq)" (first cur-seq)
+            (println
+              "index:" index
+              "\nlines:" lines
+              "\nlinecnt:" linecnt
+              "\nmulti?" multi?
+              "\nnewline?:" newline?
+              "\nexcess-guided-newline-count:" excess-guided-newline-count
+              "\nprevious-newline?" previous-newline?
+              "\nunguided-newline-out?" unguided-newline-out?
+              "\nprevious-comment?" previous-comment?
+              "\npair-begin?" pair-begin?
+              "\npair-end?" pair-end?
+              "\npair-hindent" pair-hindent
+              "\nalign?" align?
+              "\nalign-key:" align-key
+              "\nalign-ind:" align-ind
+              "\nalign-spaces:" align-spaces
+	      "\nspaces:" spaces
+              "\nlinecnt:" linecnt
+              "\nmax-width:" max-width
+              "\nlast-width:" last-width
+              "\nlen:" len
+              "\ncur-ind:" cur-ind
+              "\nnew-ind:" new-ind
+              "\nwidth:" width
+              "\nfit?" fit?)
+            ; need to figure out what to do with a comment,
+            ; want to force next line to not fit whether or not
+            ; this line fit.  Comments are already multi-line, and
+            ; it is really not clear what multi? does in this routine
+            (recur (if (or (and next-seq (not pair-end?))
+                           (and (not pair-end?)
+                                (or (not (empty? pair-seq))
+                                    (not (empty? new-pair-seq)))))
+                     (next cur-seq)
+                     cur-seq)
+                   (if (or (and next-seq (not pair-end?))
+                           (and (not pair-end?)
+                                (or (not (empty? pair-seq))
+                                    (not (empty? new-pair-seq)))))
+                     (next cur-zloc)
+                     cur-zloc)
+                   (if next-guide
+                     (or (next guide-seq) (when cur-seq [:element]))
+                     guide-seq)
+                   new-ind
+                   (inc index)
+                   ; Try to preserve previous-newline? across the acquisition
+                   ; and formatting of a pair set
+                   (if (or pair-begin? (not (nil? pair-seq)))
+                     (or newline? previous-newline?)
+                     newline?)
+                   ;newline?
+                   guided-newline?
+                   ; unguided-newline-out?
+                   (and (not guided-newline?)
+                        (not (and previous-comment? newline?))
+                        (and (not fit?) (or newline? (not previous-newline?))))
+                   (or comment? comment-inline?)
+                   (cond pair-begin? []
+                         pair-end? nil
+                         :else new-pair-seq)
+                   (if pair-begin? (dec new-ind) (if pair-seq pair-hindent 0))
+                   new-mark-map
+                   ; TODO: concat-no-nil fails here, why?
+                   (concat
+                     out
+                     (if fit?
+                       ; Note that newlines don't fit
+                       (if (not (zero? index))
+                         ; Separate from previous thing by one space.
+                         ; Of course, this might now not fit?  We did check
+                         ; before.
+                         #_(concat-no-nil [[" " :none :whitespace 15]] next-seq)
+                         (concat-no-nil [[(blanks (or align-spaces spaces 1)) :none
+                                          :whitespace 15]]
+                                        next-seq)
+                         ; This might be nil, but that's ok
+                         next-seq)
+                       (if newline?
+                         (concat-no-nil
+                           ; If we have excess-guided-newline-count, then
+                           ; output it now.  These newlines have no spaces
+                           ; after them, so they should not be used to start
+                           ; a line with something else on it!  We dec because
+                           ; the next thing is a guarenteed newline.
+                           (if (pos? (dec excess-guided-newline-count))
+                             (repeat (dec excess-guided-newline-count)
+                                     ["\n" :indent 22])
+                             :noseq)
+                           [[(str "\n"
+                                  (blanks
+                                    ; Figure out what the next thing is
+                                    ; If this is a pair, that's a bit dicey?
+                                    (let [next-seq-next (first (next cur-seq))
+                                          newline-next?
+                                            (when next-seq-next
+                                              (= (nth (first next-seq-next) 2)
+                                                 :newline))]
+                                      ; If the next thing is a newline,
+                                      ; don't put any blanks on this line
+                                      (if newline-next? 0 (dec new-ind)))))
+                             :none :indent 21]])
+                         ; This doesn't fit, and isn't a newline
+                         ; Do we need a newline, or do we already have one
+                         ; we could use?
+                         ;
+                         ; This will be a problem, as the simple case says
+                         ; "Sure, we can use a guided newline here."
+                         ; Don't let a comment come after a guided-newline
+                         (if (and previous-newline?
+                                  (not (and comment? previous-guided-newline?)))
+                           ; We have just done a newline that we can use.
+                           (concat-no-nil [[" " :none :whitespace 16]] next-seq)
+                           (prepend-nl options ind next-seq))))))))))))
+
+
 
 (defn remove-nl
   "Remove any [_ _ :newline] from the seq."
@@ -4115,8 +5084,9 @@
                         (let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
                           (internal-validate
                             (option-fn-first options first-sexpr)
-                            (str ":vector :option-fn-first called with "
-                                 first-sexpr))))
+                            (str ":vector :option-fn-first" (option-fn-name
+                                                              option-fn-first)
+                                 " called with " first-sexpr))))
           _ (when option-fn-first
               (dbg-pr options
                       "fzprint-vec* option-fn-first new options"
@@ -4129,8 +5099,8 @@
                     sexpr-seq (lazy-sexpr-seq nws-seq)]
                 (internal-validate
                   (option-fn options nws-count sexpr-seq)
-                  (str ":vector :option-fn called with sexpr count "
-                       nws-count))))
+                  (str ":vector :option-fn" (option-fn-name option-fn)
+                       " called with and sexpr of length " nws-count))))
           _ (when option-fn
               (dbg-pr options "fzprint-vec* option-fn new options" new-options))
           {{:keys [wrap-coll? wrap? binding? respect-bl? respect-nl? sort?

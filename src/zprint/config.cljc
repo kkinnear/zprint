@@ -483,6 +483,7 @@
           :indent-arg nil,
           :indent-only? false,
           :indent-only-style :input-hang,
+          :option-fn nil,
           :pair-hang? true,
           :respect-bl? false,
           :respect-nl? false,
@@ -676,16 +677,17 @@
                                   :list {:hang? false, :indent-arg 1}}]}},
       :hiccup {:vector
                  {:option-fn
-                    (fn [opts n exprs]
-                      (let [hiccup? (and (>= n 2)
-                                         (or (keyword? (first exprs))
-                                             (symbol? (first exprs)))
-                                         (map? (second exprs)))]
-                        (cond (and hiccup? (not (:fn-format (:vector opts))))
-                                {:vector {:fn-format :arg1-force-nl}}
-                              (and (not hiccup?) (:fn-format (:vector opts)))
-                                {:vector {:fn-format nil}}
-                              :else nil))),
+                    (fn ([] "hiccup-option-fn")
+                        ([opts n exprs]
+                         (let [hiccup? (and (>= n 2)
+                                            (or (keyword? (first exprs))
+                                                (symbol? (first exprs)))
+                                            (map? (second exprs)))]
+                           (cond (and hiccup? (not (:fn-format (:vector opts))))
+                                   {:vector {:fn-format :arg1-force-nl}}
+                                 (and (not hiccup?) (:fn-format (:vector opts)))
+                                   {:vector {:fn-format nil}}
+                                 :else nil)))),
                   :wrap? false},
                :vector-fn {:indent 1, :indent-arg 1}},
       :indent-only {:comment {:wrap? false},
@@ -699,11 +701,13 @@
       :justified {:binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
-      :keyword-respect-nl {:vector
-                             {:option-fn-first
-                                #(let [k? (keyword? %2)]
-                                   (when (not= k? (:respect-nl? (:vector %1)))
-                                     {:vector {:respect-nl? k?}}))}},
+      :keyword-respect-nl
+        {:vector {:option-fn-first
+                    (fn ([] "keyword-respect-nl-option-fn-first")
+                        ([options element]
+                         (let [k? (keyword? element)]
+                           (when (not= k? (:respect-nl? (:vector options)))
+                             {:vector {:respect-nl? k?}}))))}},
       :map-nl {:map {:indent 0, :nl-separator? true}},
       :map-nl-all {:map {:indent 0, :nl-separator-all? true}},
       :moustache {:fn-map {"app" [:flow {:style :vector-pairs}]}},

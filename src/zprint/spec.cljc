@@ -93,7 +93,7 @@
     :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair
     :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
     :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin :indent
-    :replace-w-string})
+    :replace-w-string :guided})
 (s/def ::fn-type-w-map
   (s/or :general-options (s/tuple ::fn-type ::options)
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
@@ -115,6 +115,9 @@
   (s/nilable (s/coll-of (s/or :number number?
                               :range (s/coll-of number? :kind sequential?))
                         :kind sequential?)))
+(s/def ::guide-seq
+  (s/nilable (s/coll-of (s/or :number number?
+                              :keyword keyword?))))
 (s/def ::path-seq
   (s/nilable (s/coll-of (s/coll-of number? :kind sequential?)
                         :kind sequential?)))
@@ -130,7 +133,8 @@
   (s/or :boolean ::boolean
         :string string?))
 (s/def ::keep-or-drop #{:keep :drop})
-(s/def ::fn-map-keys #{:default})
+(s/def ::fn-map-keys #{:default :default-not-none :list :map :vector :set
+                       :array :atom :record})
 (s/def ::fn-map-value
   (s/nilable (s/map-of (s/or :specific-function-name string?
                              :generic-function-configuration ::fn-map-keys)
@@ -292,6 +296,7 @@
     :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair? ::hang-diff
              ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
              ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent-arg
+	     ::option-fn
              ::pair-hang? ::return-altered-zipper ::respect-bl? ::respect-nl?
              ::indent-only? ::indent-only-style ::replacement-string]))
 ; vector-fn needs to accept exactly the same things as list
@@ -313,6 +318,7 @@
 (s/def ::max-length ::number-or-vector-of-numbers)
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
+(s/def ::guide ::guide-seq)
 (s/def ::more-options (s/nilable ::options))
 (s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
 (s/def ::pair
@@ -382,7 +388,7 @@
        ::next-inner ::return-cvec? ::search-config? ::set ::spaces? ::script
        ::spec ::style ::styles-applied ::style-map ::tab ::test-for-eol-blanks?
        ::trim-comments? ::tuning :alt/uneval ::user-fn-map ::vector ::vector-fn
-       ::version ::width ::url ::zipper?]))
+       ::version ::width ::url ::zipper? ::guide]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

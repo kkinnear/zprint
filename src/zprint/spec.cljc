@@ -89,11 +89,11 @@
 ; them for us!
 
 (s/def ::fn-type
-  #{:binding :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
+  #{:binding :binding-vector :arg1 :arg1-body :arg1-pair-body :arg1-pair :pair :hang :extend
     :arg1-extend :fn :arg1-> :noarg1-body :noarg1 :arg2 :arg2-extend :arg2-pair
     :arg2-fn :none :none-body :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow
     :flow-body :force-nl-body :force-nl :pair-fn :arg1-mixin :arg2-mixin :indent
-    :replace-w-string :guided})
+    :replace-w-string :guided :arg1-force-nl-body :arg2-extend-body})
 (s/def ::fn-type-w-map
   (s/or :general-options (s/tuple ::fn-type ::options)
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
@@ -111,6 +111,9 @@
         :number number?
         :keyword keyword?))
 (s/def ::constant-seq (s/coll-of ::constant :kind sequential?))
+(s/def ::call-stack-frame map?
+  #_(s/or :basic-frame (s/tuple string? ::fn-specifier)
+        :frame-w-data (s/tuple string? ::fn-specifier map?)))
 (s/def ::line-seq
   (s/nilable (s/coll-of (s/or :number number?
                               :range (s/coll-of number? :kind sequential?))
@@ -133,6 +136,7 @@
   (s/or :boolean ::boolean
         :string string?))
 (s/def ::keep-or-drop #{:keep :drop})
+; A :keyword is a fn, so it is already allowed
 (s/def ::fn-map-keys #{:default :default-not-none :list :map :vector :set
                        :array :atom :record})
 (s/def ::fn-map-value
@@ -249,6 +253,7 @@
                       ::justify? ::justify-hang ::justify-tuning ::nl-separator?
                       ::nl-separator-all?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
+(s/def ::call-stack (s/nilable (s/coll-of ::call-stack-frame :kind list?)))
 (s/def ::color-map
   (only-keys :opt-un [::brace ::bracket ::char ::comma ::comment ::deref ::false
                       ::fn ::hash-brace ::hash-paren ::keyword ::nil ::none
@@ -376,7 +381,7 @@
 (s/def ::options
   (only-keys
     :opt-un
-      [::agent ::array ::atom ::binding ::cache ::color? ::color-map
+      [::agent ::array ::atom ::binding ::cache ::call-stack ::color? ::color-map
        :alt/comment ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc? ::dbg-bug?
        ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend ::file?
        ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name

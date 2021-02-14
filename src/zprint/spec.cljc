@@ -164,6 +164,7 @@
 (s/def ::count? ::boolean)
 (s/def ::directory (s/nilable string?))
 (s/def ::docstring? ::boolean)
+(s/def ::dbg-s-set (s/nilable (s/coll-of keyword? :kind set?)))
 (s/def ::elide (s/nilable string?))
 (s/def ::end (s/nilable number?))
 (s/def ::expand? ::boolean)
@@ -267,6 +268,7 @@
 (s/def ::cwd-zprintrc? ::boolean)
 (s/def ::search-config? ::boolean)
 (s/def ::dbg? ::boolean)
+(s/def ::dbg-s ::dbg-s-set)
 (s/def ::force-eol-blanks? ::boolean)
 (s/def ::test-for-eol-blanks? ::boolean)
 (s/def ::dbg-local? ::boolean)
@@ -382,7 +384,7 @@
   (only-keys
     :opt-un
       [::agent ::array ::atom ::binding ::cache ::call-stack ::color? ::color-map
-       :alt/comment ::configured? ::dbg? ::dbg-local? ::cwd-zprintrc? ::dbg-bug?
+       :alt/comment ::configured? ::dbg? ::dbg-s ::dbg-local? ::cwd-zprintrc? ::dbg-bug?
        ::dbg-print? ::dbg-ge ::delay ::do-in-hang? ::drop? ::extend ::file?
        ::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name
        ::fn-obj ::force-eol-blanks? ::format ::future ::indent ::input ::list

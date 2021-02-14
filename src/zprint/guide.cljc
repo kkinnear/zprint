@@ -241,7 +241,7 @@
        {:list {:option-fn nil}}
        (let [lt (nth sexpr (if docstring? 3 2))
              lt? (= (str lt) "<")
-             mixin-indent (if lt? 2 0)
+             mixin-indent (if lt? 2 1)
              beginning-guide [:element :element :newline]
              beginning-guide (if docstring?
                                (concat beginning-guide [:element :newline])
@@ -255,7 +255,46 @@
              #_(println "middle-element-count:" middle-element-count)
              middle-guide (concat middle-guide
                                   (repeat (dec middle-element-count)
-                                          [:spaces 4 :element :newline]))
+                                          [:spaces mixin-indent :element
+                                           :newline]))
+             end-element-count (count args-and-after)
+             end-guide [:element
+                        (repeat (dec end-element-count) [:newline :element])]
+             guide (concat beginning-guide middle-guide end-guide)
+             guide (flatten guide)
+             #_(println "rumguide: guide:" guide)]
+         {:guide guide, :next-inner {:list {:option-fn nil}}})))))
+
+(defn rumguide-1
+  "Assumes that this is rum/defcs or something similar."
+  ([] "rumguide")
+  ([options len sexpr]
+   (let [docstring? (string? (nth sexpr 2))
+         [up-to-arguments args-and-after]
+           (split-with #(not (or (vector? %)
+                                 (and (list? %) (vector? (first %)))))
+                       sexpr)
+         #_(println "rumguide: up-to-arguments:" up-to-arguments
+                    "\nargs-and-after:" args-and-after)]
+     (if (empty? args-and-after)
+       {:list {:option-fn nil}}
+       (let [lt (nth sexpr (if docstring? 3 2))
+             lt? (= (str lt) "<")
+             beginning-guide [:element :element :newline]
+             beginning-guide (if docstring?
+                               (concat beginning-guide [:element :newline])
+                               beginning-guide)
+             middle-element-count
+               (- (count up-to-arguments) 2 (if docstring? 1 0) (if lt? 1 0))
+             middle-guide (if (pos? middle-element-count)
+                            (if lt?
+                              [:element :mark 1 :element :newline]
+                              [:mark 1 :element :newline])
+                            [])
+             #_(println "middle-element-count:" middle-element-count)
+             middle-guide (concat middle-guide
+                                  (repeat (dec middle-element-count)
+                                          [:element-align 1 :newline]))
              end-element-count (count args-and-after)
              end-guide [:element
                         (repeat (dec end-element-count) [:newline :element])]

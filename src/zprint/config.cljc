@@ -47,7 +47,7 @@
   [:cache :cwd-zprintrc? :parallel? :search-config? :url])
 
 (def explain-hide-keys
-  [:configured? :dbg-print? :dbg? :force-eol-blanks? :do-in-hang? :drop? :dbg-ge
+  [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop? :dbg-ge
    :file? :spaces? :process-bang-zprint? :trim-comments? :zipper? :indent
    :remove :return-cvec? :test-for-eol-blanks?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
@@ -438,6 +438,7 @@
    :dbg-ge nil,
    :dbg-print? nil,
    :dbg? nil,
+   :dbg-s nil,
    :delay {:object? false},
    :do-in-hang? true,
    :drop? nil,

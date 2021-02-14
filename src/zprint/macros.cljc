@@ -11,6 +11,18 @@
   [options & rest]
   `(when (:dbg? ~options) (println (:dbg-indent ~options) ~@rest)))
 
+(defmacro dbg-s-pr
+  "Output debugging print with pr, if this one is selected."
+  [options sel & rest]
+  `(when (or (~sel (:dbg-s ~options)) (:dbg? ~options))
+     (println (:dbg-indent ~options) (pr-str ~@rest))))
+
+(defmacro dbg-s
+  "Output debugging print with println if this one is selected."
+  [options sel & rest]
+  `(when (or (~sel (:dbg-s ~options)) (:dbg? ~options))
+     (println (:dbg-indent ~options) ~@rest)))
+
 (defmacro dbg-form
   "Output debugging print with println, and always return value."
   [options id form]

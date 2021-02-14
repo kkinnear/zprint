@@ -1,28 +1,30 @@
 (ns ^:no-doc zprint.zprint
   #?@(:cljs [[:require-macros
-              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])
-  (:require
-    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])
-    [clojure.string :as s]
-    [zprint.finish :refer [newline-vec]]
-    [zprint.zfns :refer
-     [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zseqnws-w-nl
-      zfocus-style zstart zfirst zfirst-no-comment zsecond znthnext zcount zmap
-      zanonfn? zfn-obj? zfocus zfind-path zwhitespace? zlist?
-      zcount-zloc-seq-nc-nws zvector? zmap? zset? zcoll? zuneval? zmeta? ztag
-      zlast zarray? zatom? zderef zrecord? zns? zobj-to-vec zexpandarray
-      znewline? zwhitespaceorcomment? zmap-all zpromise? zfuture? zdelay?
-      zkeyword? zconstant? zagent? zreader-macro? zarray-to-shift-seq zdotdotdot
-      zsymbol? znil? zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zfind
-      zmap-w-nl zmap-w-nl-comma ztake-append znextnws-w-nl znextnws
-      znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]
-    [zprint.comment :refer [blanks inlinecomment? length-before]]
-    [zprint.ansi :refer [color-str]]
-    [zprint.config :refer [validate-options merge-deep]]
-    [zprint.zutil :refer [add-spec-to-docstring]]
-    [rewrite-clj.parser :as p]
-    [rewrite-clj.zip :as z]
-    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
+              [zprint.macros :refer
+               [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
+  (:require #?@(:clj [[zprint.macros :refer
+                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+            [clojure.string :as s]
+            [zprint.finish :refer [newline-vec]]
+            [zprint.zfns :refer
+             [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws zseqnws-w-nl
+              zfocus-style zstart zfirst zfirst-no-comment zsecond znthnext
+              zcount zmap zanonfn? zfn-obj? zfocus zfind-path zwhitespace?
+              zlist? zcount-zloc-seq-nc-nws zvector? zmap? zset? zcoll? zuneval?
+              zmeta? ztag zlast zarray? zatom? zderef zrecord? zns? zobj-to-vec
+              zexpandarray znewline? zwhitespaceorcomment? zmap-all zpromise?
+              zfuture? zdelay? zkeyword? zconstant? zagent? zreader-macro?
+              zarray-to-shift-seq zdotdotdot zsymbol? znil?
+              zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns zfind
+              zmap-w-nl zmap-w-nl-comma ztake-append znextnws-w-nl znextnws
+              znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]
+            [zprint.comment :refer [blanks inlinecomment? length-before]]
+            [zprint.ansi :refer [color-str]]
+            [zprint.config :refer [validate-options merge-deep]]
+            [zprint.zutil :refer [add-spec-to-docstring]]
+            [rewrite-clj.parser :as p]
+            [rewrite-clj.zip :as z]
+            #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 #_(tufte/add-basic-println-handler! {})
 
@@ -4316,10 +4318,11 @@
         ; next-seq might be nil, in which case several of these things
         ; are nil
         multi? (when next-seq (> (count next-seq) 1))
-        _ (dbg-pr options
-                  "guided-output: ind:" ind
-                  "index:" index
-                  "next-seq:" next-seq)
+        _ (dbg-s-pr options
+                    :guide
+                    "guided-output: ind:" ind
+                    "index:" index
+                    "next-seq:" next-seq)
         [linecnt max-width lines]
           (when next-seq (style-lines options cur-ind #_ind next-seq))
         last-width (last lines)
@@ -4360,10 +4363,14 @@
                   (and multi? (> linecnt 1) (not wrap-after-multi?)) (inc width)
                   fit? (+ cur-ind
                           len
+                          ; TODO: This can't be right for align stuff, can it?
                           (or align-spaces
                               spaces
                               (if (or previous-newline? (zero? index)) 0 1))
                           #_1)
+                  ; When this is (+ indent ind), that is part of what  makes
+                  ; :spaces after a newline be "spaces beyond the indent",
+                  ; not "spaces instead of the indent".
                   newline? (+ indent ind)
                   #_ind
                   :else
@@ -4398,14 +4405,14 @@
         param-map (if (or comment? (and previous-comment? newline?))
                     param-map
                     (dissoc param-map :spaces))]
-    (dbg-pr options "guided-output: ------ out:" out)
-    (dbg-pr options "guided-output; ------ next-guide:" next-guide)
-    (dbg-pr options "guided-output: ------ next-seq:" next-seq)
-    (dbg-pr options "guided-output: ------ mark-map:" mark-map)
+    (dbg-s-pr options :guide "guided-output: ------ out:" out)
+    (dbg-s-pr options :guide "guided-output; ------ next-guide:" next-guide)
+    (dbg-s-pr options :guide "guided-output: ------ next-seq:" next-seq)
+    (dbg-s-pr options :guide "guided-output: ------ mark-map:" mark-map)
     ;"(first cur-seq)" (first cur-seq)
-    (dbg-pr
+    (dbg-s
       options
-      "guided-output:"
+      :guide "guided-output:"
       "\nindex:" index
       "\ncur-index:" cur-index
       "\nnewline?:" newline?
@@ -4464,10 +4471,20 @@
            #_(concat-no-nil [[" " :none :whitespace 15]] next-seq)
            ; spaces from align have precedence over just random spaces
            (concat-no-nil
-             [[(blanks (or align-spaces
-                           spaces
-                           (if previous-newline? #_ind (+ indent ind) 1)
-                           #_1)) :none :whitespace 15]]
+             ; Ensure that despite alignment, we don't let two things run
+             ; together!
+             [[(blanks
+                 (max 1
+                      (or (when align-spaces
+                            (if previous-newline? align-ind align-spaces))
+                          ; If spaces come after a newline, they are beyond
+                          ; the indent, and do not replace the indent.
+                          ; That is why (+ spaces cur-ind) and not
+                          ; (+ spaces ind)
+                          (when spaces
+                            (if previous-newline? (+ spaces cur-ind) spaces))
+                          (if previous-newline? #_ind (+ indent ind) 1)
+                          #_1))) :none :whitespace 25]]
              next-seq)
            ; This might be nil, but that's ok
            next-seq)
@@ -4557,7 +4574,7 @@
                                pairs-flow)))]
     ; Maybe (+ indent ind) and not ind for pairs-flow, but why doesn't
     ; it work at all?
-    (dbg-pr options
+    (dbg-s-pr options :guide
             "guide-pairs: pairs-hang:" pairs-hang
             "pairs-flow:" pairs-flow
             "ind:" ind
@@ -4582,7 +4599,7 @@
   (let [rightcnt (fix-rightcnt rightcnt)
         coll-print (fzprint-seq options (+ indent ind) zloc-seq)
         last-cur-index (dec (count coll-print))]
-    (dbg-pr options "fzprint-guide: ind:" ind "guide:" guide)
+    (dbg-s-pr options :guide "fzprint-guide: ind:" ind "guide:" guide)
     (when-not guide
       (throw (#?(:clj Exception.
                  :cljs js/Error.)
@@ -4611,17 +4628,18 @@
       ; the last :element that finished cur-seq
       ;(if-not (or guide-seq cur-seq))
       (if (or (not (or guide-seq cur-seq)) (nil? out))
-        (do (dbg-pr options "fzprint-guide: out:" out)
+        (do (dbg-s-pr options :guide "fzprint-guide: out:" out)
             #_(prn "fzprint-guide out:" out)
             out)
         (if (> index 50)
           out
-          (let [_ (dbg-pr options
-                          "fzprint-guide: =====> (first guide-seq):"
-                            (first guide-seq)
-                          "\nfzprint-guide: param-map:"
-                            (assoc (dissoc param-map :pair-seq)
-                              :pair-seq-len (count (:pair-seq param-map))))
+          (let [_ (dbg-s options
+                         :guide
+                         "fzprint-guide: =====> (first guide-seq):" (first
+                                                                      guide-seq)
+                         "\nfzprint-guide: param-map:"
+                           (assoc (dissoc param-map :pair-seq)
+                             :pair-seq-len (count (:pair-seq param-map))))
                 ; If we are out of guide-seq, but we still have cur-seq
                 ; which we must because of the if-not above, then keep
                 ; doing elements in guide-seq for as long as we have cur-seq
@@ -4676,9 +4694,10 @@
                                          ; hang-pairs
                                          (:pair-hindent param-map)
                                          (:pair-seq param-map))
-                        _ (dbg-pr options
-                                  ":pair-end: :in-hang?" (:in-hang? options)
-                                  "next-pair-seq:" next-pair-seq)
+                        _ (dbg-s-pr options
+                                    :guide
+                                    ":pair-end: :in-hang?" (:in-hang? options)
+                                    "next-pair-seq:" next-pair-seq)
                         param-map (dissoc param-map :pair-seq)
                         [new-param-map new-previous-data new-out]
                           (when (not (empty? next-pair-seq))
@@ -4740,8 +4759,10 @@
                   ; that is not a :newline, so we need to determine the number
                   ; of excess guided-newlines we have, by counting the actual
                   ; newlines and comparing them
-                  (let [#_(prn ":guided-newline-count "
-                               (:guided-newline-count param-map))
+                  (let [_ (dbg-s-pr options
+                                    :guide
+                                    "fzprint-guide: :guided-newline-count "
+                                    (:guided-newline-count param-map))
                         comment-and-newline-count (count-comments-and-newlines
                                                     cur-seq)
                         guided-newline-count (:guided-newline-count param-map)
@@ -4840,6 +4861,7 @@
                        out)
               (= (first guide-seq) :spaces)
                 ; save the spaces for when we actually do output
+                ; note that spaces after a newline are beyond the indent
                 (recur cur-seq
                        cur-zloc
                        cur-index

@@ -59,6 +59,21 @@
     [(subs s 0 next-lf) (subs s (inc next-lf))]
     [s]))
 
+(defn internal-validate
+  "Validate an options map that was returned from some internal configuration
+  expression or configuration.  Either returns the options map or throws
+  an error."
+  [options error-str]
+  (let [errors (validate-options options)
+        errors (when errors
+                 (str "Options resulting from " error-str
+                      " had these errors: " errors))]
+    (if (not (empty? errors))
+      (throw (#?(:clj Exception.
+                 :cljs js/Error.)
+              errors))
+      options)))
+
 (defn option-fn-name
   "Given an option-fn, call it with no arguments to see if it returns its
   name.  To be used only in exceptions or other times when performance is
@@ -70,6 +85,44 @@
                  :cljs :default)
          e
          nil)))
+
+(defn call-option-fn
+  "Call an option-fn and return a validated map of just the new options."
+  [caller options option-fn zloc]
+  (let [sexpr-seq (zsexpr zloc)]
+    (internal-validate
+      (try (option-fn options (count sexpr-seq) sexpr-seq)
+           (catch #?(:clj Exception
+                     :cljs :default)
+             e
+             (throw (#?(:clj Exception.
+                        :cljs js/Error.)
+                     (str " When " caller
+                          " called an option-fn" (option-fn-name option-fn)
+                          " it failed because: " e)))))
+      (str caller
+           " :option-fn" (option-fn-name option-fn)
+           " called with an sexpr of length " (count sexpr-seq)))))
+
+(defn call-option-fn-first
+  "Call an option-fn-first with just the first thing in the zloc, and
+  then return a validated map of just the new options."
+  [caller options option-fn-first zloc]
+  (let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
+    (internal-validate (try (option-fn-first options first-sexpr)
+                            (catch #?(:clj Exception
+                                      :cljs :default)
+                              e
+                              (throw (#?(:clj Exception.
+                                         :cljs js/Error.)
+                                      (str "When " caller
+                                           " called an option-fn-first"
+                                             (option-fn-name option-fn-first)
+                                           " with '" first-sexpr
+                                           "' failed because: " e)))))
+                       (str caller
+                            " :option-fn-first" (option-fn-name option-fn-first)
+                            " called with " first-sexpr))))
 
 ;;
 ;; # Use pmap when we have it
@@ -3298,7 +3351,6 @@
 
 (declare fzprint-guide)
 (declare lazy-sexpr-seq)
-(declare internal-validate)
 
 (defn fzprint-list*
   "Print a list, which might be a list or an anon fn.  
@@ -3413,7 +3465,9 @@
 	; Add a call-stack frame for where we are now.  This is tentative,
 	; as we may need to update the fn-style later, since it isn't fully
 	; finalized yet.  But we need to have something for a potential
-	; option-fn to use.
+	; option-fn to use.  If we keep this short (i.e., probably 8 or
+	; less pairs), then it should be an array-map, not a hash-map,
+	; which should be about as performant as a vector.
         options (assoc options
                   :call-stack (conj (:call-stack options)
 		                    {:tag (ztag zloc)
@@ -3423,7 +3477,8 @@
 				     :zfirst-info (or fn-str fn-type)}))
         new-options
           (when option-fn
-            (let [nws-seq (remove zwhitespaceorcomment? (zseqnws zloc))
+	    (call-option-fn caller options option-fn zloc)
+            #_(let [nws-seq (remove zwhitespaceorcomment? (zseqnws zloc))
                   nws-count (count nws-seq)
 		  #_ (prn "zsexpr?" (zsexpr? zloc))
 		  #_ (prn "zsexpr: " (zsexpr zloc))
@@ -5233,21 +5288,6 @@
   [coll]
   (remove #(= (nth (first %) 2) :newline) coll))
 
-(defn internal-validate
-  "Validate an options map that was returned from some internal configuration
-  expression or configuration.  Either returns the options map or throws
-  an error."
-  [options error-str]
-  (let [errors (validate-options options)
-        errors (when errors
-                 (str "Options resulting from " error-str
-                      " had these errors: " errors))]
-    (if (not (empty? errors))
-      (throw (#?(:clj Exception.
-                 :cljs js/Error.)
-              errors))
-      options)))
-
 (defn lazy-sexpr-seq
   [nws-seq]
   (if (seq nws-seq)
@@ -5287,12 +5327,15 @@
 				     :zloc zloc}))
 
           new-options (when option-fn-first
-                        (let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
+			(call-option-fn-first caller options option-fn-first zloc)
+                        #_(let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
                           (internal-validate
                             (option-fn-first options first-sexpr)
                             (str ":vector :option-fn-first" (option-fn-name
                                                               option-fn-first)
-                                 " called with " first-sexpr))))
+                                 " called with " first-sexpr)))
+				 
+				 )
           _ (when option-fn-first
               (dbg-pr options
                       "fzprint-vec* option-fn-first new options"
@@ -5300,19 +5343,7 @@
           options (merge-deep options new-options)
           new-options
             (when option-fn
-              (let [nws-seq (remove zwhitespaceorcomment? (zseqnws zloc))
-                    nws-count (count nws-seq)
-                    sexpr-seq (lazy-sexpr-seq nws-seq)
-		  ; TODO: FIX THIS
-		  options (assoc options
-		                :l-str l-str
-				:r-str r-str)
-		    
-		    ]
-                (internal-validate
-                  (option-fn options nws-count sexpr-seq)
-                  (str ":vector :option-fn" (option-fn-name option-fn)
-                       " called with and sexpr of length " nws-count))))
+	      (call-option-fn caller options option-fn zloc))
           _ (when option-fn
               (dbg-pr options "fzprint-vec* option-fn new options" new-options))
         #_ (println "\nfirst in vector:" (zstring (zfirst zloc))

@@ -2572,6 +2572,40 @@
               (catch :default e (str e)))))
 
   ;;
+  ;; # Error's in option-fn's
+  ;;
+
+(expect
+  "java.lang.Exception:  When :list called an option-fn named test it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+  (try (zprint "(a b c)"
+               {:parse-string? true,
+                :list {:option-fn (fn ([] "test")
+                                      ([options len sexpr] (+ :a 0)))}})
+       (catch Exception e (str e))))
+
+(expect
+  "java.lang.Exception:  When :list called an option-fn it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+  (try (zprint "(a b c)"
+               {:parse-string? true,
+                :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
+       (catch Exception e (str e))))
+
+(expect
+  "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+  (try (zprint "[:a :b :c]"
+               {:parse-string? true,
+                :vector {:option-fn-first (fn ([options sexpr] (+ :a 0)))}})
+       (catch Exception e (str e))))
+
+(expect
+  "java.lang.Exception: When :vector called an option-fn-first named test with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+  (try (zprint "[:a :b :c]"
+               {:parse-string? true,
+                :vector {:option-fn-first (fn ([] "test")
+                                              ([options sexpr] (+ :a 0)))}})
+       (catch Exception e (str e))))
+
+  ;;
   ;; # zprint-file-str tests
   ;;
 

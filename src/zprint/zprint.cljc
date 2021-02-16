@@ -3527,9 +3527,6 @@
         options (dissoc options :guide)
         #_(println "\nguide after:" guide "\nguide options:" (:guide options))
         _ (when guide (dbg-pr options "fzprint-list* guide:" guide))
-        ; If we have a :guide value, then we are going to use it no
-        ; matter the fn-style we had before.
-        fn-style (if guide :guided fn-style)
         ; If we messed with the options for any of two reasons, then find
         ; new stuff.  This will probably change only zloc-seq because
         ; of :respect-nl? or :indent-only?
@@ -3584,6 +3581,12 @@
         ; set indent based on fn-style
         indent (if (body-set fn-style) indent (or indent-arg indent))
         indent (+ indent (dec l-str-len))
+        ; If we have a :guide value, then we are going to use it no
+        ; matter the fn-style we had before.  Note that we kept the
+	; original fn-style around long enough to get the indent figured
+	; out, immediately above.  And we went to :guided in time to 
+	; cause one-line-ok? to be false, immediately below.
+        fn-style (if guide :guided fn-style)
         one-line-ok? (allow-one-line? options len fn-style)
         one-line-ok? (when-not indent-only? one-line-ok?)
         one-line-ok? (if (= fn-style :guided) nil one-line-ok?)
@@ -4080,19 +4083,10 @@
           #_(prn ":guided!")
           (concat-no-nil l-str-vec
                          pre-arg-1-style-vec
-                         #_(fzprint* loptions (inc ind) arg-1-zloc)
-                         #_(#_guided-wrap-alt
-                            fzprint-guide
-                            :vector
-                            options
-                            (+ indent ind)
-                            guide
-                            zloc-seq)
                          (fzprint-guide
                            ; TODO: FIX THIS
-                           #_caller
-                           #_:vector
-                           :list
+                           caller
+                           #_:list
                            options
                            ; this is where we are w/out any indent
                            ind
@@ -4101,15 +4095,6 @@
                            local-indent
                            guide
                            zloc-seq)
-                         #_(fzprint-hang (assoc-in options
-                                           [:pair :respect-nl?]
-                                           (:respect-nl? (caller options)))
-                                         :pair-fn
-                                         arg-1-indent
-                                         (+ indent ind)
-                                         fzprint-pairs
-                                         zloc-count
-                                         zloc-seq-right-first)
                          r-str-vec))
       ; Unspecified seq, might be a fn, might not.
       ; If (first zloc) is a seq, we won't have an
@@ -4414,7 +4399,10 @@
         ; If one line and fits, should fit.
         fit? (and (not newline?)
                   (not indent?)
-	  (not comment-inline?)
+                  ; Inline comments don't fit because they need to be on a line
+                  ; by themselves so that the inline-comment fixup routines can
+                  ; do the right thing with them.
+                  (not comment-inline?)
                   (or (zero? index) (not comment?))
                   (or (zero? index)
                       ; hang-pairs

@@ -224,6 +224,31 @@
                               :element-align 1 :element-align 2]],
                :width 80}))
 
+; See that the default indent when we use :style :community is 1
+
+(expect "(stuff\n (caller\n  aaaa bbbb\n  ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 15,
+                     :style :community}))
+
+; And that "body" function can be guided and end up with indent 2
+
+(expect "(stuff\n (caller\n   aaaa bbbb\n   ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 15,
+                     :style :community,
+                     :fn-map {"caller" :none-body}}))
+
   ;;
   ;; # rodguide
   ;;

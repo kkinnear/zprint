@@ -121,6 +121,7 @@
 (s/def ::guide-seq
   (s/nilable (s/coll-of (s/or :number number?
                               :keyword keyword?))))
+(s/def ::guide-debug-seq (s/tuple keyword? number? ::guide-seq))
 (s/def ::path-seq
   (s/nilable (s/coll-of (s/coll-of number? :kind sequential?)
                         :kind sequential?)))
@@ -326,6 +327,7 @@
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
 (s/def ::guide ::guide-seq)
+(s/def ::guide-debug ::guide-debug-seq)
 (s/def ::more-options (s/nilable ::options))
 (s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
 (s/def ::pair
@@ -395,7 +397,7 @@
        ::next-inner ::return-cvec? ::search-config? ::set ::spaces? ::script
        ::spec ::style ::styles-applied ::style-map ::tab ::test-for-eol-blanks?
        ::trim-comments? ::tuning :alt/uneval ::user-fn-map ::vector ::vector-fn
-       ::version ::width ::url ::zipper? ::guide]))
+       ::version ::width ::url ::zipper? ::guide ::guide-debug]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

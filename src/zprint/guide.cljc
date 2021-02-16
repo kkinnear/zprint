@@ -40,6 +40,7 @@
      ; wouldn't be here if we weren't.  Is the next one up the stack defn?
      (when (= fn-str "defn")
        ; Yes!
+       #_(println "rodvecguide:" (first sexpr))
        (let [basic-guide (repeat (count sexpr) :element)
              final-guide (interpose :newline basic-guide)]
          {:guide final-guide})))))
@@ -165,8 +166,7 @@
 
 (defn jvectorguide
   "Look at the information in the call stack, and if we see jrequire one
-  level up, try to outut a guide to justify the first thing in the vector.
-  We will set :fn-format to :guided and return a :guide to make this work."
+  level up, try to outut a guide to justify the first thing in the vector."
   ([] "jvectorguide")
   ([options len sexpr]
    #_(println "\n+++++>" (first sexpr)
@@ -188,10 +188,9 @@
          #_(println "first-len:" first-len)
          #_(println "spaces-needed:" spaces-needed)
          #_(println "guide:" guide)
-         {:vector {:fn-format :guided},
-	  :pair {:justify? true}
+         {:pair {:justify? true},
           :guide guide,
-          :next-inner {:vector {:fn-format nil} :pair {:justify? false}}})))))
+          :next-inner {:vector {:option-fn nil}, :pair {:justify? false}}})))))
 
 (defn jrequireguide
   "Justify the first things in a series of require vectors."

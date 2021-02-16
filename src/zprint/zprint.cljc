@@ -4937,6 +4937,32 @@
                        mark-map
                        previous-data
                        out)
+
+              (= (first guide-seq) :indent)
+                ; save a new indent value in param-map
+                (recur cur-seq
+                       cur-zloc
+                       cur-index
+                       ; skip an extra to account for the spaces count
+                       (nnext guide-seq)
+                       (inc index)
+                       (assoc param-map :indent (first (next guide-seq)))
+                       mark-map
+                       previous-data
+                       out)
+              (= (first guide-seq) :indent-reset)
+                ; put the indent back where it was originally
+                (recur cur-seq
+                       cur-zloc
+                       cur-index
+                       ; skip an extra to account for the spaces count
+                       (next guide-seq)
+                       (inc index)
+                       (assoc param-map :indent local-indent)
+                       mark-map
+                       previous-data
+                       out)
+
               ;
               ;  Start looking at cur-seq
               ;

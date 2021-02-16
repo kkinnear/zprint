@@ -249,6 +249,32 @@
                      :style :community,
                      :fn-map {"caller" :none-body}}))
 
+
+;;
+;; # :indent and :indent-reset
+;;
+
+(expect
+  "(stuff (caller aaaa\n               bbbb\n               ccc\n         dddddd))"
+  (zprint-str
+    "(stuff (caller aaaa bbbb ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :element :newline :indent 8 :element :newline
+                    :element :indent-reset :newline :element]],
+     :width 80}))
+
+(expect "(stuff (caller aaaa\n        bbbb\n        ccc\n         dddddd))"
+        (zprint-str
+          "(stuff (caller aaaa bbbb ccc dddddd))"
+          {:parse-string? true,
+           :list {:respect-nl? false},
+           :guide-debug [:list 2
+                         [:element :element :newline :indent 1 :element :newline
+                          :element :indent-reset :newline :element]],
+           :width 80}))
+
   ;;
   ;; # rodguide
   ;;

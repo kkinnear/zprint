@@ -275,6 +275,20 @@
                           :element :indent-reset :newline :element]],
            :width 80}))
 
+;;
+;; Comment as the first thing in a list
+;;
+
+(expect
+  "(stuff (;comment\n        caller\n         aaaa\n         bbbb\n         ccc\n         dddddd))"
+  (zprint-str "(stuff (;comment\n  caller aaaa bbbb ccc dddddd))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :newline :element :newline :element
+                              :newline :element :newline :element]],
+               :width 80}))
+
   ;;
   ;; # rodguide
   ;;
@@ -1245,7 +1259,7 @@
                                    {:list {:option-fn rumguide}}]}}))
 
   (expect
-    "(;comment 1\n ;comment 1\n  rum/defcs ;comment 2\n  component\n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n  rum/static\n    rum/reactive\n  ;comment 6\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    "(;comment 1\n rum/defcs ;comment 2\n  component\n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n  rum/static\n    rum/reactive\n  ;comment 6\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
     (zprint-str cz8x1
                 {:parse-string? true,
                  :fn-map {"defcs" [:arg1-force-nl

@@ -4082,7 +4082,6 @@
                 (if arg-1-indent indent (+ default-indent indent-adj))]
           #_(prn ":guided!")
           (concat-no-nil l-str-vec
-                         pre-arg-1-style-vec
                          (fzprint-guide
                            ; TODO: FIX THIS
                            caller
@@ -4359,9 +4358,10 @@
   [caller
    {:keys [width rightcnt],
     {:keys [wrap-after-multi? respect-nl?]} caller,
-    :as options} next-seq next-guide cur-seq cur-zloc cur-index guide-seq index
+    :as options} next-seq next-guide cur-seq cur-zloc cur-index guide-seq
+   guide-index index
    {:keys [excess-guided-newline-count align-key last-cur-index rightcnt cur-ind
-           ind indent spaces],
+           ind indent spaces one-line-ind],
     :as param-map} mark-map
    [previous-newline? previous-guided-newline? unguided-newline-out?
     previous-comment? :as previous-data] out]
@@ -4373,11 +4373,12 @@
         ; next-seq might be nil, in which case several of these things
         ; are nil
         multi? (when next-seq (> (count next-seq) 1))
-        _ (dbg-s-pr options
-                    :guide
-                    "guided-output: ind:" ind
-                    "index:" index
-                    "next-seq:" next-seq)
+        _ (dbg-s options
+                 :guide
+                 "guided-output: ind:" ind
+                 "index:" index
+                 "cur-index:" cur-index
+                 "guide-index:" guide-index)
         [linecnt max-width lines]
           (when next-seq (style-lines options cur-ind #_ind next-seq))
         last-width (last lines)
@@ -4430,7 +4431,11 @@
                   ; When this is (+ indent ind), that is part of what  makes
                   ; :spaces after a newline be "spaces beyond the indent",
                   ; not "spaces instead of the indent".
-                  newline? (+ indent ind)
+                  ; Also, if (zero? guided-index), then we have put some stuff
+                  ; before the first :element in the guide.  The first element
+                  ; should be indented as if it were still on the same line
+                  ; as the l-str, and one-line-ind is that indent.
+                  newline? (if (zero? guide-index) one-line-ind (+ indent ind))
                   #_ind
                   :else
                     #_(throw (#?(:clj Exception.
@@ -4464,9 +4469,16 @@
         param-map (if (or comment? (and previous-comment? newline?))
                     param-map
                     (dissoc param-map :spaces))]
-    (dbg-s-pr options :guide "guided-output: ------ out:" out)
+    (dbg-s options
+           :guide
+           "guided-output: ------ incoming out:"
+           #_out
+           ((:dzprint options) {} (into [] out)))
     (dbg-s-pr options :guide "guided-output; ------ next-guide:" next-guide)
-    (dbg-s-pr options :guide "guided-output: ------ next-seq:" next-seq)
+    (dbg-s options
+           :guide
+           "guided-output: ------ next-seq:"
+           ((:dzprint options) {} next-seq))
     (dbg-s-pr options :guide "guided-output: ------ mark-map:" mark-map)
     ;"(first cur-seq)" (first cur-seq)
     (dbg-s
@@ -4519,78 +4531,100 @@
      ;
      ; out
      ;
-     (concat
-       out
-       (if fit?
-         ; Note that newlines don't fit
-         (if (not (zero? index))
-           ; Separate from previous thing by one space.
-           ; Of course, this might now not fit?  We did check
-           ; before.
-           #_(concat-no-nil [[" " :none :whitespace 15]] next-seq)
-           ; spaces from align have precedence over just random spaces
-           (concat-no-nil
-             ; Ensure that despite alignment, we don't let two things run
-             ; together!
-             [[(blanks
-                 (max 1
-                      (or (when align-spaces
-                            (if previous-newline? align-ind align-spaces))
-                          ; If spaces come after a newline, they are beyond
-                          ; the indent, and do not replace the indent.
-                          ; That is why (+ spaces cur-ind) and not
-                          ; (+ spaces ind)
-                          (when spaces
-                            (if previous-newline? (+ spaces cur-ind) spaces))
-                          (if previous-newline? #_ind (+ indent ind) 1)
-                          #_1))) :none :whitespace 25]]
-             next-seq)
-           ; This might be nil, but that's ok
-           next-seq)
-         (if newline?
-           (concat-no-nil
-             ; If we have excess-guided-newline-count, then
-             ; output it now.  These newlines have no spaces
-             ; after them, so they should not be used to start
-             ; a line with something else on it!  We dec because
-             ; the next thing is a guarenteed newline.
-             (if (and excess-guided-newline-count
-                      (pos? (dec excess-guided-newline-count)))
-               (repeat (dec excess-guided-newline-count) ["\n" :indent 22])
-               :noseq)
-             [[(str "\n"
-                    #_(blanks
-                        ; Figure out what the next thing is
-                        ; If this is a pair, that's a bit dicey?
-                        (let [next-seq-next (first (next cur-seq))
-                              newline-next? (when next-seq-next
-                                              (= (nth (first next-seq-next) 2)
-                                                 :newline))]
-                          ; If the next thing is a newline,
-                          ; don't put any blanks on this line
-                          (if newline-next? 0 (dec new-ind))))) :none :indent
-               21]])
-           ; This doesn't fit, and isn't a newline
-           ; Do we need a newline, or do we already have one
-           ; we could use?
-           ;
-           ; This will be a problem, as the simple case says
-           ; "Sure, we can use a guided newline here."
-           ; Don't let a comment come after a guided-newline
-           (if (and previous-newline?
-                    (not (and comment? previous-guided-newline?)))
-             ; We have just done a newline that we can use.
-             #_(concat-no-nil [[" " :none :whitespace 16]] next-seq)
-             (concat-no-nil [[(blanks
-                                (if previous-newline? #_ind (+ indent ind) 1))
-                              #_" " :none :whitespace 16]]
-                            next-seq)
-             ; Do we already have a newline at the beginning of a bunch of
-             ; output?
-             (if indent?
-               ; Yes, don't prepend another newline
-               next-seq
-               (prepend-nl options (+ indent ind) next-seq))))))]))
+     (let [guided-output-out
+             (concat
+               out
+               (if fit?
+                 ; Note that newlines don't fit
+                 (if (not (zero? index))
+                   ; Separate from previous thing by one space.
+                   ; Of course, this might now not fit?  We did check
+                   ; before.
+                   #_(concat-no-nil [[" " :none :whitespace 15]] next-seq)
+                   ; spaces from align have precedence over just random spaces
+                   (concat-no-nil
+                     ; Ensure that despite alignment, we don't let two things
+                     ; run
+                     ; together!
+                     [[(blanks
+                         (max
+                           1
+                           (or
+                             (when align-spaces
+                               (if previous-newline? align-ind align-spaces))
+                             ; If spaces come after a newline, they are beyond
+                             ; the indent, and do not replace the indent.
+                             ; That is why (+ spaces cur-ind) and not
+                             ; (+ spaces ind)
+                             (when spaces
+                               (if previous-newline? (+ spaces cur-ind) spaces))
+                             (if previous-newline?
+                               #_ind
+                               ; If we are on our first :element, indent as much
+                               ; as the l-str regardless of anything else
+                               ; You might think cur-ind would work, but that
+                               ; has problems since sometimes it is (inc width),
+                               ; and it also messes up :index a bit.
+                               (if (zero? guide-index)
+                                 one-line-ind
+                                 (+ indent ind))
+                               1)
+                             #_1))) :none :whitespace 25]]
+                     next-seq)
+                   ; This might be nil, but that's ok
+                   next-seq)
+                 (if newline?
+                   (concat-no-nil
+                     ; If we have excess-guided-newline-count, then
+                     ; output it now.  These newlines have no spaces
+                     ; after them, so they should not be used to start
+                     ; a line with something else on it!  We dec because
+                     ; the next thing is a guarenteed newline.
+                     (if (and excess-guided-newline-count
+                              (pos? (dec excess-guided-newline-count)))
+                       (repeat (dec excess-guided-newline-count)
+                               ["\n" :indent 22])
+                       :noseq)
+                     [[(str "\n"
+                            #_(blanks
+                                ; Figure out what the next thing is
+                                ; If this is a pair, that's a bit dicey?
+                                (let [next-seq-next (first (next cur-seq))
+                                      newline-next?
+                                        (when next-seq-next
+                                          (= (nth (first next-seq-next) 2)
+                                             :newline))]
+                                  ; If the next thing is a newline,
+                                  ; don't put any blanks on this line
+                                  (if newline-next? 0 (dec new-ind))))) :none
+                       :indent 21]])
+                   ; This doesn't fit, and isn't a newline
+                   ; Do we need a newline, or do we already have one
+                   ; we could use?
+                   ;
+                   ; This will be a problem, as the simple case says
+                   ; "Sure, we can use a guided newline here."
+                   ; Don't let a comment come after a guided-newline
+                   (if (and previous-newline?
+                            (not (and comment? previous-guided-newline?)))
+                     ; We have just done a newline that we can use.
+                     #_(concat-no-nil [[" " :none :whitespace 16]] next-seq)
+                     (concat-no-nil
+                       [[(blanks (if previous-newline? #_ind (+ indent ind) 1))
+                         #_" " :none :whitespace 16]]
+                       next-seq)
+                     ; Do we already have a newline at the beginning of a bunch
+                     ; of
+                     ; output?
+                     (if indent?
+                       ; Yes, don't prepend another newline
+                       next-seq
+                       (prepend-nl options (+ indent ind) next-seq))))))]
+       (dbg-s options
+              :guide
+              "guided-output returned out:"
+              ((:dzprint options) {} (into [] guided-output-out)))
+       guided-output-out)]))
 
 (defn comment-or-newline?
   "Is this element in the output from fzprint-seq a comment or a newline?"
@@ -4660,6 +4694,7 @@
          "fzprint-guide: entry:" (zstring (first zloc-seq))
          "caller:" caller
          "ind:" ind
+         "cur-ind:" cur-ind
          "local-indent:" local-indent
          "guide:" guide)
   (let [rightcnt (fix-rightcnt rightcnt)
@@ -4674,9 +4709,11 @@
            cur-zloc zloc-seq
            cur-index 0
            guide-seq guide
+           guide-index 0
            index 0
            param-map {:cur-ind cur-ind,
                       :ind ind,
+                      :one-line-ind cur-ind,
                       :indent local-indent,
                       :pair-seq nil,
                       :pair-hindent 0,
@@ -4693,7 +4730,10 @@
       ; the last :element that finished cur-seq
       ;(if-not (or guide-seq cur-seq))
       (if (or (not (or guide-seq cur-seq)) (nil? out))
-        (do (dbg-s-pr options :guide "fzprint-guide: out:" out)
+        (do (dbg-s options
+                   :guide
+                   "fzprint-guide: out:"
+                   ((:dzprint options) {} (into [] out)))
             #_(prn "fzprint-guide out:" out)
             out)
         (if (> index 50)
@@ -4703,8 +4743,10 @@
                          "fzprint-guide: =====> (first guide-seq):" (first
                                                                       guide-seq)
                          "\nfzprint-guide: param-map:"
-                           (assoc (dissoc param-map :pair-seq)
-                             :pair-seq-len (count (:pair-seq param-map))))
+                           ((:dzprint options)
+                             {}
+                             (assoc (dissoc param-map :pair-seq)
+                               :pair-seq-len (count (:pair-seq param-map)))))
                 ; If we are out of guide-seq, but we still have cur-seq
                 ; which we must because of the if-not above, then keep
                 ; doing elements in guide-seq for as long as we have cur-seq
@@ -4743,6 +4785,7 @@
                          (next remaining-cur-zloc)
                          (+ cur-index (count comments-or-newlines-cur-zloc) 1)
                          (next guide-seq)
+                         (inc guide-index)
                          (inc index)
                          (assoc param-map :pair-seq pair-seq)
                          mark-map
@@ -4774,6 +4817,7 @@
                                            cur-zloc
                                            cur-index
                                            guide-seq
+                                           guide-index
                                            index
                                            param-map
                                            mark-map
@@ -4783,6 +4827,7 @@
                            cur-zloc
                            cur-index
                            (next guide-seq)
+                           (inc guide-index)
                            (inc index)
                            new-param-map
                            mark-map
@@ -4813,6 +4858,7 @@
                          cur-zloc
                          cur-index
                          (next guide-seq)
+                         (inc guide-index)
                          (inc index)
                          (assoc param-map
                            :guided-newline-count (inc (:guided-newline-count
@@ -4854,6 +4900,7 @@
                                            cur-zloc
                                            cur-index
                                            guide-seq
+                                           guide-index
                                            index
                                            param-map
                                            mark-map
@@ -4866,6 +4913,7 @@
                            ; don't move forward, as we were dealing with
                            ; the end of a previous set of :newlines
                            guide-seq
+                           guide-index
                            (inc index)
                            new-param-map
                            mark-map
@@ -4878,6 +4926,7 @@
                        cur-zloc
                        cur-index
                        (next guide-seq)
+                       (inc guide-index)
                        (inc index)
                        param-map
                        mark-map
@@ -4891,6 +4940,7 @@
                        cur-zloc
                        cur-index
                        (next guide-seq)
+                       (inc guide-index)
                        (inc index)
                        (assoc param-map :guided-newline-count 1)
                        mark-map
@@ -4902,6 +4952,7 @@
                        cur-zloc
                        cur-index
                        (next guide-seq)
+                       (inc guide-index)
                        (inc index)
                        (assoc param-map
                          :pair-seq []
@@ -4917,6 +4968,7 @@
                        cur-index
                        ; skip an extra to account for the mark key
                        (nnext guide-seq)
+                       (+ 2 guide-index)
                        (inc index)
                        param-map
                        (assoc mark-map
@@ -4932,12 +4984,12 @@
                        cur-index
                        ; skip an extra to account for the spaces count
                        (nnext guide-seq)
+                       (+ 2 guide-index)
                        (inc index)
                        (assoc param-map :spaces (first (next guide-seq)))
                        mark-map
                        previous-data
                        out)
-
               (= (first guide-seq) :indent)
                 ; save a new indent value in param-map
                 (recur cur-seq
@@ -4945,6 +4997,7 @@
                        cur-index
                        ; skip an extra to account for the spaces count
                        (nnext guide-seq)
+                       (+ 2 guide-index)
                        (inc index)
                        (assoc param-map :indent (first (next guide-seq)))
                        mark-map
@@ -4957,12 +5010,12 @@
                        cur-index
                        ; skip an extra to account for the spaces count
                        (next guide-seq)
+                       (inc guide-index)
                        (inc index)
                        (assoc param-map :indent local-indent)
                        mark-map
                        previous-data
                        out)
-
               ;
               ;  Start looking at cur-seq
               ;
@@ -4978,6 +5031,7 @@
                                        cur-zloc
                                        cur-index
                                        guide-seq
+                                       guide-index
                                        index
                                        param-map
                                        mark-map
@@ -4987,6 +5041,7 @@
                          (next cur-zloc)
                          (inc cur-index)
                          guide-seq
+                         guide-index
                          (inc index)
                          new-param-map
                          mark-map
@@ -5006,6 +5061,7 @@
                                        cur-zloc
                                        cur-index
                                        guide-seq
+                                       guide-index
                                        index
                                        param-map
                                        mark-map
@@ -5016,6 +5072,7 @@
                          (inc cur-index)
                          ; skip an extra to account for the align-key
                          (nnext guide-seq)
+                         (+ 2 guide-index)
                          (inc index)
                          new-param-map
                          mark-map
@@ -5032,6 +5089,7 @@
                                        cur-zloc
                                        cur-index
                                        guide-seq
+                                       guide-index
                                        index
                                        param-map
                                        mark-map
@@ -5041,6 +5099,7 @@
                          (next cur-zloc)
                          (inc cur-index)
                          (next guide-seq)
+                         (inc guide-index)
                          (inc index)
                          new-param-map
                          mark-map

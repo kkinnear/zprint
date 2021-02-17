@@ -311,6 +311,37 @@
     (when (zipper? x) [x nil])))
 
 ;;
+;; # Internal version of zprint for debugging output
+;;
+
+(declare zprint-str-internal)
+
+(defn dzprint-zipper
+  "If we are running in zipper mode, do an internal version of zprint
+  on a structure."
+  [options coll]
+  (let [coll-str (pr-str coll)]
+    (try (str "\n"
+              (zprint-str-internal (merge-deep {:parse-string? true} options)
+                                   coll-str))
+         ; If it doesn't work for some reason, just output the string
+         (catch #?(:clj Exception
+                   :cljs :default)
+           e
+           coll-str))))
+
+(defn dzprint-sexpr
+  "If we are running in zipper mode, do an internal version of zprint
+  on a structure."
+  [options coll]
+  (try (str "\n" (zprint-str-internal options coll))
+       ; If it doesn't work for some reason, just output the string
+       (catch #?(:clj Exception
+                 :cljs :default)
+         e
+         (pr-str coll))))
+
+;;
 ;; # Interface into zprint.zprint namespace
 ;;
 ;!zprint {:format :next :vector {:wrap? false}}
@@ -343,6 +374,7 @@
                     [root (assoc-in options [:output :focus :path] path) nil])
                 :else [nil options nil])
         z-type (if input :zipper :sexpr)
+	dzprint (if (= z-type :zipper) dzprint-zipper dzprint-sexpr)
         input (or input coll)]
     (cond (nil? input)
             [[["nil" (zcolor-map options :nil) :element]] options line-ending]
@@ -358,7 +390,7 @@
           ;
           ;[[["nil" (zcolor-map options :nil) :element]] options]
           :else
-            (let [options (assoc options :ztype z-type)
+            (let [options (assoc options :ztype z-type :dzprint dzprint)
                   fzprint-fn (partial fzprint
                                       options
                                       (if (and (:file? options)

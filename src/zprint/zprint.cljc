@@ -140,6 +140,33 @@
                (= (:depth options) (second debug-vector)))
         (nth debug-vector 2)))))
 
+(defn condense
+  [depth [out accumulated-string current-depth] [s _ what :as element]]
+  (let [new-depth (cond (= what :left) (inc current-depth)
+                        (= what :right) (dec current-depth)
+                        :else current-depth)
+        accumulating? (> current-depth depth)
+        start-accumulating? (> new-depth depth)
+        new-accumulated-string (if (or accumulating? start-accumulating?)
+                                 (str accumulated-string s)
+                                 accumulated-string)
+        next-accumulated-string
+          (if start-accumulating? new-accumulated-string "")]
+	  
+    [(cond (and accumulating? (not start-accumulating?))
+             (conj out new-accumulated-string)
+           (and accumulating? start-accumulating?) out
+           (and (not accumulating?) (not start-accumulating?)) (conj out
+                                                                     element)
+           (and (not accumulating?) start-accumulating?) out
+           :else (println "shouldn't be an else")) next-accumulated-string
+     new-depth]))
+        
+(defn condense-depth
+  "Take a style vec, and condense everything above the given depth."
+  [depth coll]
+  (first (reduce (partial condense depth) [[] "" 1] coll)))
+
 ;;
 ;; # Use pmap when we have it
 ;;
@@ -4469,16 +4496,27 @@
         param-map (if (or comment? (and previous-comment? newline?))
                     param-map
                     (dissoc param-map :spaces))]
-    (dbg-s options
-           :guide
-           "guided-output: ------ incoming out:"
-           #_out
-           ((:dzprint options) {} (into [] out)))
+    (dbg-s
+      options
+      :guide
+      "guided-output: ------ incoming out:"
+      #_out
+      ((:dzprint options)
+        {}
+        (into []
+              #_out
+              (let [out-len (count out)
+                    out-drop (int (* 0.8 out-len))
+                    out-drop
+                      (if (< (- out-len out-drop) 10) (- out-len 10) out-drop)]
+                #_(concat [(str "dropped " out-drop " elements")]
+                          (drop out-drop out))
+                (condense-depth 1 out)))))
     (dbg-s-pr options :guide "guided-output; ------ next-guide:" next-guide)
     (dbg-s options
            :guide
            "guided-output: ------ next-seq:"
-           ((:dzprint options) {} next-seq))
+           ((:dzprint options) {} (condense-depth 1 next-seq)))
     (dbg-s-pr options :guide "guided-output: ------ mark-map:" mark-map)
     ;"(first cur-seq)" (first cur-seq)
     (dbg-s
@@ -4532,25 +4570,22 @@
      ; out
      ;
      (let [guided-output-out
-             (concat
-               out
-               (if fit?
-                 ; Note that newlines don't fit
-                 (if (not (zero? index))
-                   ; Separate from previous thing by one space.
-                   ; Of course, this might now not fit?  We did check
-                   ; before.
-                   #_(concat-no-nil [[" " :none :whitespace 15]] next-seq)
-                   ; spaces from align have precedence over just random spaces
-                   (concat-no-nil
-                     ; Ensure that despite alignment, we don't let two things
-                     ; run
-                     ; together!
-                     [[(blanks
-                         (max
-                           1
-                           (or
-                             (when align-spaces
+             (if fit?
+               ; Note that newlines don't fit
+               (if (not (zero? index))
+                 ; Separate from previous thing by one space.
+                 ; Of course, this might now not fit?  We did check
+                 ; before.
+                 #_(concat-no-nil [[" " :none :whitespace 15]] next-seq)
+                 ; spaces from align have precedence over just random spaces
+                 (concat-no-nil
+                   ; Ensure that despite alignment, we don't let two things
+                   ; run
+                   ; together!
+                   [[(blanks
+                       (max
+                         1
+                         (or (when align-spaces
                                (if previous-newline? align-ind align-spaces))
                              ; If spaces come after a newline, they are beyond
                              ; the indent, and do not replace the indent.
@@ -4570,61 +4605,62 @@
                                  (+ indent ind))
                                1)
                              #_1))) :none :whitespace 25]]
-                     next-seq)
-                   ; This might be nil, but that's ok
                    next-seq)
-                 (if newline?
+                 ; This might be nil, but that's ok
+                 next-seq)
+               (if newline?
+                 (concat-no-nil
+                   ; If we have excess-guided-newline-count, then
+                   ; output it now.  These newlines have no spaces
+                   ; after them, so they should not be used to start
+                   ; a line with something else on it!  We dec because
+                   ; the next thing is a guarenteed newline.
+                   (if (and excess-guided-newline-count
+                            (pos? (dec excess-guided-newline-count)))
+                     (repeat (dec excess-guided-newline-count)
+                             ["\n" :indent 22])
+                     :noseq)
+                   [[(str "\n"
+                          #_(blanks
+                              ; Figure out what the next thing is
+                              ; If this is a pair, that's a bit dicey?
+                              (let [next-seq-next (first (next cur-seq))
+                                    newline-next?
+                                      (when next-seq-next
+                                        (= (nth (first next-seq-next) 2)
+                                           :newline))]
+                                ; If the next thing is a newline,
+                                ; don't put any blanks on this line
+                                (if newline-next? 0 (dec new-ind))))) :none
+                     :indent 21]])
+                 ; This doesn't fit, and isn't a newline
+                 ; Do we need a newline, or do we already have one
+                 ; we could use?
+                 ;
+                 ; This will be a problem, as the simple case says
+                 ; "Sure, we can use a guided newline here."
+                 ; Don't let a comment come after a guided-newline
+                 (if (and previous-newline?
+                          (not (and comment? previous-guided-newline?)))
+                   ; We have just done a newline that we can use.
+                   #_(concat-no-nil [[" " :none :whitespace 16]] next-seq)
                    (concat-no-nil
-                     ; If we have excess-guided-newline-count, then
-                     ; output it now.  These newlines have no spaces
-                     ; after them, so they should not be used to start
-                     ; a line with something else on it!  We dec because
-                     ; the next thing is a guarenteed newline.
-                     (if (and excess-guided-newline-count
-                              (pos? (dec excess-guided-newline-count)))
-                       (repeat (dec excess-guided-newline-count)
-                               ["\n" :indent 22])
-                       :noseq)
-                     [[(str "\n"
-                            #_(blanks
-                                ; Figure out what the next thing is
-                                ; If this is a pair, that's a bit dicey?
-                                (let [next-seq-next (first (next cur-seq))
-                                      newline-next?
-                                        (when next-seq-next
-                                          (= (nth (first next-seq-next) 2)
-                                             :newline))]
-                                  ; If the next thing is a newline,
-                                  ; don't put any blanks on this line
-                                  (if newline-next? 0 (dec new-ind))))) :none
-                       :indent 21]])
-                   ; This doesn't fit, and isn't a newline
-                   ; Do we need a newline, or do we already have one
-                   ; we could use?
-                   ;
-                   ; This will be a problem, as the simple case says
-                   ; "Sure, we can use a guided newline here."
-                   ; Don't let a comment come after a guided-newline
-                   (if (and previous-newline?
-                            (not (and comment? previous-guided-newline?)))
-                     ; We have just done a newline that we can use.
-                     #_(concat-no-nil [[" " :none :whitespace 16]] next-seq)
-                     (concat-no-nil
-                       [[(blanks (if previous-newline? #_ind (+ indent ind) 1))
-                         #_" " :none :whitespace 16]]
-                       next-seq)
-                     ; Do we already have a newline at the beginning of a bunch
-                     ; of
-                     ; output?
-                     (if indent?
-                       ; Yes, don't prepend another newline
-                       next-seq
-                       (prepend-nl options (+ indent ind) next-seq))))))]
-       (dbg-s options
-              :guide
-              "guided-output returned out:"
-              ((:dzprint options) {} (into [] guided-output-out)))
-       guided-output-out)]))
+                     [[(blanks (if previous-newline? #_ind (+ indent ind) 1))
+                       #_" " :none :whitespace 16]]
+                     next-seq)
+                   ; Do we already have a newline at the beginning of a bunch
+                   ; of
+                   ; output?
+                   (if indent?
+                     ; Yes, don't prepend another newline
+                     next-seq
+                     (prepend-nl options (+ indent ind) next-seq)))))]
+       (dbg-s
+         options
+         :guide
+         "guided-output returned additional out:"
+         ((:dzprint options) {} (into [] (condense-depth 1 guided-output-out))))
+       (concat out guided-output-out))]))
 
 (defn comment-or-newline?
   "Is this element in the output from fzprint-seq a comment or a newline?"
@@ -4733,7 +4769,7 @@
         (do (dbg-s options
                    :guide
                    "fzprint-guide: out:"
-                   ((:dzprint options) {} (into [] out)))
+                   ((:dzprint options) {} (into [] (condense-depth 1 out))))
             #_(prn "fzprint-guide out:" out)
             out)
         (if (> index 50)

@@ -133,7 +133,7 @@
                      :width 12}))
 
   (expect
-    "(caller aaaa\n            bbbb          ccc          ddddd\n            eeeee         fff\n  ;comment 1\n                                       ggg\n            hhh           iii          jjj\n            kkk           lll ;comment 2\n                                       mmm\n            nnn           ooo          ppp)"
+"(caller aaaa\n            bbbb          ccc          ddddd\n            eeeee         fff\n                                       ;comment 1\n                                       ggg\n            hhh           iii          jjj\n            kkk           lll ;comment 2\n                                       mmm\n            nnn           ooo          ppp)"
     (zprint-str
       "(caller aaaa bbbb ccc ddddd eeeee fff \n;comment 1\n \nggg hhh iii jjj kkk lll ;comment 2\n\n mmm nnn ooo ppp)"
       {:parse-string? true,
@@ -164,7 +164,7 @@
                      :width 80}))
 
 (expect
-  "(caller aaaa          bbbb          ccc          ddddd\n                      eeeee         fff\n  ;comment 1\n                                                 ggg\n                      hhh           iii          jjj\n                      kkk           lll ;comment 2\n                                                 mmm\n                      nnn           ooo          ppp)"
+"(caller aaaa          bbbb          ccc          ddddd\n                      eeeee         fff\n                                                 ;comment 1\n                                                 ggg\n                      hhh           iii          jjj\n                      kkk           lll ;comment 2\n                                                 mmm\n                      nnn           ooo          ppp)"
   (zprint-str
     "(caller aaaa bbbb ccc ddddd eeeee fff \n;comment 1\n \nggg hhh iii jjj kkk lll ;comment 2\n\n mmm nnn ooo ppp)"
     {:parse-string? true,
@@ -249,6 +249,44 @@
                      :style :community,
                      :fn-map {"caller" :none-body}}))
 
+; Do comments take on the spacing of the following :element?
+
+(expect
+  "(;comment 1\n caller\n  xxx\n  ;comment x\n  yyy\n       aaaa\n       ;comment 2\n       bbbb\n       ;comment 3\n       ccc\n       dddddd)"
+  (zprint-str
+    "(;comment 1\n  caller xxx \n;comment x\n yyy aaaa \n;comment 2\n bbbb \n;comment 3\n ccc dddddd)"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 1
+                   [:element :newline :element :newline :element :newline
+                    :spaces 5 :mark 1 :element :newline :spaces 5 :element
+                    :newline :element-align 1 :newline :element-align 1]],
+     :width 80}))
+
+(expect
+  "(stuff (;comment 1\n        caller\n         xxx\n         ;comment x\n         yyy\n              aaaa\n              ;comment 2\n              bbbb\n              ;comment 3\n              ccc\n              dddddd))"
+  (zprint-str
+    "(stuff (;comment 1\n  caller xxx \n;comment x\n yyy aaaa \n;comment 2\n bbbb \n;comment 3\n ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :element :newline
+                    :spaces 5 :mark 1 :element :newline :spaces 5 :element
+                    :newline :element-align 1 :newline :element-align 1]],
+     :width 80}))
+
+(expect
+  "(stuff (;comment 1\n        caller\n             sss\n             ;comment :indent 6\n             ttt\n         xxx\n         ;comment :indent-reset\n         yyy\n              aaaa\n              ;comment :element-align 1\n              bbbb\n              ;comment :spaces 5\n              ccc\n              dddddd))"
+  (zprint-str
+    "(stuff (;comment 1\n  caller sss \n;comment :indent 6\n ttt xxx \n;comment :indent-reset \n yyy aaaa \n;comment :element-align 1\n bbbb \n;comment :spaces 5\n ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :newline :indent 6 :element :newline :element
+                    :indent-reset :newline :element :newline :element :newline
+                    :spaces 5 :mark 1 :element :newline :spaces 5 :element
+                    :newline :element-align 1 :newline :element-align 1]],
+     :width 80}))
 
 ;;
 ;; # :indent and :indent-reset
@@ -1253,13 +1291,12 @@
 
   (expect
     "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   \"this\" [is a test],\n   :c [this is a very long vector how do you suppose it will work]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
-    #_"(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   \"this\" [is a test],\n   :c [this is a very long vector how do you suppose it will work]}\n    rum/static\n    rum/reactive\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
     (zprint-str cz9
                 {:fn-map {"defcs" [:arg1-force-nl
                                    {:list {:option-fn rumguide}}]}}))
 
   (expect
-    "(;comment 1\n rum/defcs ;comment 2\n  component\n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n  rum/static\n    rum/reactive\n  ;comment 6\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+"(;comment 1\n rum/defcs ;comment 2\n  component\n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n  rum/static\n    rum/reactive\n    ;comment 6\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
     (zprint-str cz8x1
                 {:parse-string? true,
                  :fn-map {"defcs" [:arg1-force-nl

@@ -4351,30 +4351,6 @@
 		     comment-and-newline-count)
                    (inc comment-and-newline-count))))))))
 
-(defn count-comments-and-newlines-alt
-  "Given a seq from fzprint-seq, count the newlines and contiguous comments
-  at the beginning of the list.  A comment preceded by a newline or comment
-  doesn't count."
-  [coll-print]
-  (loop [cur-seq coll-print
-         previous-comment? false
-	 previous-newline? false
-         comment-and-newline-count 0]
-    (if-not cur-seq
-      comment-and-newline-count
-      (let [element-type (nth (ffirst cur-seq) 2)
-            comment? (or (= element-type :comment)
-                         (= element-type :comment-inline))
-            newline? (= element-type :newline)]
-        (if-not (or newline? comment?)
-          comment-and-newline-count
-          (recur (next cur-seq)
-                 comment?
-		 newline?
-                 (if (or (and comment? previous-comment?)
-		         (and comment? previous-newline?))
-                   comment-and-newline-count
-                   (inc comment-and-newline-count))))))))
 
 
 (defn guided-output
@@ -4654,13 +4630,37 @@
                    (if indent?
                      ; Yes, don't prepend another newline
                      next-seq
-                     (prepend-nl options (+ indent ind) next-seq)))))]
+                     (prepend-nl options
+                                 ; This code is related to the code under fint?
+                                 ; above, but without previous-newline?, 
+				 ; as that is assumed since we are calling 
+				 ; prepend-nl.  
+				 ;
+				 ; Note that this is largely for ensuring 
+				 ; that non-inline comments end up indented 
+				 ; to match the indentation of the next
+				 ; :element or :elment-align
+                                 (max 1
+                                      (or (when align-spaces align-ind)
+                                          (when spaces (+ spaces indent ind))
+                                          ; If we are on our first :element,
+                                          ; indent as much as the l-str 
+					  ; regardless of anything else
+                                          ; You might think cur-ind would work,
+                                          ; but that has problems since 
+					  ; sometimes it is (inc width),
+                                          ; and it also messes up :index a bit.
+                                          (if (zero? guide-index)
+                                            one-line-ind
+                                            (+ indent ind))))
+                                 next-seq)))))]
        (dbg-s
          options
          :guide
          "guided-output returned additional out:"
          ((:dzprint options) {} (into [] (condense-depth 1 guided-output-out))))
        (concat out guided-output-out))]))
+
 
 (defn comment-or-newline?
   "Is this element in the output from fzprint-seq a comment or a newline?"
@@ -4716,6 +4716,7 @@
     ; If we use pairs-flow, we need to put a newline first
     ; but first we need to actualy get some data out of it.
     (or pairs-hang pairs-flow)))
+
 
 (defn fzprint-guide
   "Given a zloc-seq wrap the elements to the right margin 
@@ -5055,10 +5056,22 @@
               ;
               ;  Start looking at cur-seq
               ;
+              ; At this point, the only guides left are :element and
+              ; :element-align, so we must be sitting on one of them.
+              ; All of the others are (and must be) processed above.
+              ;
               (or comment? comment-inline? next-newline?)
                 ; Do unguided output, moving cur-seq without changing
                 ; guide-seq
-                (let [[new-param-map new-previous-data new-out]
+                (let [align? (= (first guide-seq) :element-align)
+                      ; Find the align-key, and then ensure that a comment
+		      ; is indented like the subsequent :element or 
+		      ; :element-align is indented.
+                      align-key (when align? (first (next guide-seq)))
+                      param-map (if align?
+                                  (assoc param-map :align-key align-key)
+                                  param-map)
+                      [new-param-map new-previous-data new-out]
                         (guided-output caller
                                        options
                                        (first cur-seq)
@@ -5076,6 +5089,8 @@
                   (recur (next cur-seq)
                          (next cur-zloc)
                          (inc cur-index)
+                         ; We may have used information from guide-seq, but
+                         ; we didn't "consume" it yet.
                          guide-seq
                          guide-index
                          (inc index)

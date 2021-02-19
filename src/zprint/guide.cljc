@@ -226,7 +226,8 @@
 ;; 
 
 (defn rumguide
-  "Assumes that this is rum/defcs or something similar."
+  "Assumes that this is rum/defcs or something similar. Implement :arg1-mixin
+  with guides using :spaces."
   ([] "rumguide")
   ([options len sexpr]
    (let [docstring? (string? (nth sexpr 2))
@@ -265,7 +266,8 @@
          {:guide guide, :next-inner {:list {:option-fn nil}}})))))
 
 (defn rumguide-1
-  "Assumes that this is rum/defcs or something similar."
+  "Assumes that this is rum/defcs or something similar. Implement :arg1-mixin
+  with guides using :element-align"
   ([] "rumguide")
   ([options len sexpr]
    (let [docstring? (string? (nth sexpr 2))
@@ -287,8 +289,8 @@
                (- (count up-to-arguments) 2 (if docstring? 1 0) (if lt? 1 0))
              middle-guide (if (pos? middle-element-count)
                             (if lt?
-                              [:element :mark 1 :element :newline]
-                              [:mark 1 :element :newline])
+                              [:element :mark 1 :element-align 1 :newline]
+                              [:mark 1 :element-align 1 :newline])
                             [])
              #_(println "middle-element-count:" middle-element-count)
              middle-guide (concat middle-guide
@@ -301,6 +303,47 @@
              guide (flatten guide)
              #_(println "rumguide: guide:" guide)]
          {:guide guide, :next-inner {:list {:option-fn nil}}})))))
+
+(defn rumguide-2
+  "Assumes that this is rum/defcs or something similar. Implement :arg1-mixin
+  with guides using :indent.  This is probably the simplest and therefore the
+  best of them all."
+  ([] "rumguide")
+  ([options len sexpr]
+   (let [docstring? (string? (nth sexpr 2))
+         [up-to-arguments args-and-after]
+           (split-with #(not (or (vector? %)
+                                 (and (list? %) (vector? (first %)))))
+                       sexpr)
+         #_(println "rumguide: up-to-arguments:" up-to-arguments
+                    "\nargs-and-after:" args-and-after)]
+     (if (empty? args-and-after)
+       {:list {:option-fn nil}}
+       (let [lt (nth sexpr (if docstring? 3 2))
+             lt? (= (str lt) "<")
+             beginning-guide [:element :element :newline]
+             beginning-guide (if docstring?
+                               (concat beginning-guide [:element :newline])
+                               beginning-guide)
+             middle-element-count
+               (- (count up-to-arguments) 2 (if docstring? 1 0) (if lt? 1 0))
+             middle-guide (if (pos? middle-element-count)
+                            (if lt?
+                              [:element :indent 4 :element :newline]
+                              [:indent 4 :element :newline])
+                            [])
+             #_(println "middle-element-count:" middle-element-count)
+             middle-guide (concat middle-guide
+                                  (repeat (dec middle-element-count)
+                                          [:element :newline]))
+             end-element-count (count args-and-after)
+             end-guide [:indent-reset :element
+                        (repeat (dec end-element-count) [:newline :element])]
+             guide (concat beginning-guide middle-guide end-guide)
+             guide (flatten guide)
+             #_(println "rumguide: guide:" guide)]
+         {:guide guide, :next-inner {:list {:option-fn nil}}})))))
+
 
 ; Do this to use the above:
 ;

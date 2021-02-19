@@ -10,7 +10,7 @@
               zprint-file-str zprint czprint]]
             [zprint.guide :refer
              [rodguide moustacheguide areguide jrequireguide rumguide
-              rumguide-1]]))
+              rumguide-1 rumguide-2]]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -1388,6 +1388,24 @@
     "(stuff (rum/defcs component\n         \"This is a component with a doc-string!  How unusual...\"\n         < rum/static\n           rum/reactive\n           (rum/local 0 :count)\n           (rum/local \"\" :text)\n         ([state label]\n          (let [count-atom (:count state) text-atom (:text state)] [:div]))\n         ([state] (component state nil))))"
     (zprint-str cz8a
                 {:fn-map {"defcs" [:guided {:list {:option-fn rumguide-1}}]}}))
+
+; rumguide-1 using alignment better handles even comments in odd places
+
+(expect
+  "(;comment 1\n rum/defcs ;comment 2\n  component\n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n    rum/static\n    rum/reactive\n    ;comment 6\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz8x1
+              {:parse-string? true,
+               :fn-map {"defcs" [:arg1-force-nl
+                                 {:list {:option-fn rumguide-1}}]}}))
+
+; rumguide-2 implement :arg1-mixin using :indent
+
+(expect
+  "(;comment 1\n rum/defcs ;comment 2\n  component\n  ;comment 3\n  \"This is a component with a doc-string!  How unusual...\"\n  ;comment 4\n  < ;comment 5\n    rum/static\n    rum/reactive\n    ;comment 6\n    (rum/local 0 :count)\n    (rum/local \"\" :text)\n  ;comment 7\n  [state label]\n  ;comment 8\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+  (zprint-str cz8x1
+              {:parse-string? true,
+               :fn-map {"defcs" [:arg1-force-nl
+                                 {:list {:option-fn rumguide-2}}]}}))
 
 
 

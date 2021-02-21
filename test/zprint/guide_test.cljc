@@ -275,10 +275,11 @@
                     :newline :element-align 1 :newline :element-align 1]],
      :width 80}))
 
+
 (expect
-  "(stuff (;comment 1\n        caller\n             sss\n             ;comment :indent 6\n             ttt\n         xxx\n         ;comment :indent-reset\n         yyy\n              aaaa\n              ;comment :element-align 1\n              bbbb\n              ;comment :spaces 5\n              ccc\n              dddddd))"
+  "(stuff (;comment 1\n        caller\n             sss\n             ;comment :indent 6\n             ttt\n         xxx\n         ;comment :indent-reset\n         yyy\n              aaaa\n              ;comment :spaces 5\n              bbbb\n              ;comment :element-align 1\n              ccc\n              dddddd))"
   (zprint-str
-    "(stuff (;comment 1\n  caller sss \n;comment :indent 6\n ttt xxx \n;comment :indent-reset \n yyy aaaa \n;comment :element-align 1\n bbbb \n;comment :spaces 5\n ccc dddddd))"
+    "(stuff (;comment 1\n  caller sss \n;comment :indent 6\n ttt xxx \n;comment :indent-reset \n yyy aaaa \n;comment :spaces 5\n bbbb \n;comment :element-align 1\n ccc dddddd))"
     {:parse-string? true,
      :list {:respect-nl? false},
      :guide-debug [:list 2
@@ -287,6 +288,7 @@
                     :spaces 5 :mark 1 :element :newline :spaces 5 :element
                     :newline :element-align 1 :newline :element-align 1]],
      :width 80}))
+
 
 ;;
 ;; # :indent and :indent-reset
@@ -326,6 +328,137 @@
                              [:element :newline :element :newline :element
                               :newline :element :newline :element]],
                :width 80}))
+
+; Forget spaces if we have a following :newline in the guide
+
+(expect "(stuff (caller\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :spaces 5 :newline :element
+                                    :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? false}}))
+
+;;
+;; # respect-nl
+;;
+
+(expect "(stuff (caller\n              aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :list {:respect-nl? true},
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :element
+                                    :newline :spaces 5 :element]],
+                     :width 80}))
+
+(expect "(stuff (caller\n\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? false}}))
+
+(expect "(stuff (caller\n\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? true}}))
+
+(expect "(stuff (caller\n\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n\n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? true}}))
+
+(expect "(stuff (caller\n\n\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n\n\n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? true}}))
+
+(expect "(stuff (caller\n\n\n         aaaa\n\n              bbbb))"
+        (zprint-str "(stuff (caller \n\n\n aaaa \n\n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? true}}))
+
+;;
+;; :respect-nl? in pairs
+;;
+
+(expect "(stuff (caller aaaa bbbb\n               ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb \n ccc dddddd))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 27,
+                     :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller aaaa bbbb\n               ccc\n                 dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb \n ccc \n dddddd))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :pair-begin :element :element :element
+                              :element :pair-end]],
+               :width 27,
+               :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller aaaa bbbb\n\n               ccc\n                 dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb \n\n ccc \n dddddd))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :pair-begin :element :element :element
+                              :element :pair-end]],
+               :width 27,
+               :list {:respect-nl? true}}))
+
+;;
+;; Empty :pair-begin :pair-end sequence
+;;
+
+(expect
+  "(stuff (caller aaaa bbbb\n               ccc dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb \n\n ccc \n dddddd))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :pair-begin :pair-end :pair-begin
+                              :element :element :element :element :pair-end]],
+               :width 80,
+               :list {:respect-nl? false}}))
+
+;;
+;; what happens when fzprint-seq returns [] because something didn't fit?
+;;
+
+(expect
+  "(stuff\n  [caller aaaa\n   (this is a (test this is (only a test))) a b\n   c])"
+  (zprint-str
+    "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
+    {:parse-string? true,
+     :guide-debug [:vector 2
+                   [:element :element :element :element :element :element]],
+     :list {:respect-nl? false},
+     :width 47}))
+
 
   ;;
   ;; # rodguide
@@ -402,6 +535,43 @@
   (rod7 a b c nil))
   ([a b] (rod7 a b nil nil)))")
 
+(def rod7a
+" 
+(defn rod7a 
+  \"Thus illustrating the rules of defn.\" 
+  ([a b c d] 
+   
+  (cond (nil? a) (list d) 
+        (nil? b) (list c d a b) 
+        :else (list a b c d))) 
+        ; This is a comment 
+        ; actually, a two line one 
+  ([a b c]  ; this is an embedded comment 
+  (rod7a a b c nil)) 
+   
+  ([a b]  
+  (rod7a a b nil nil)))")
+
+(def rod7b
+" 
+(defn rod7b 
+  \"Thus illustrating the rules of defn.\" 
+  ([a b c d] 
+
+  (cond (nil? a) (list d) 
+        (nil? b) (list c d a b) 
+
+        :else (list a b c d))) 
+        ; This is a comment 
+        ; actually, a two line one 
+  ([a b c]  ; this is an embedded comment 
+  (rod7b a b c nil))  
+    
+   
+  ([a b]  
+   
+  (rod7b a b nil nil)))")
+
   (expect
     "(defn rod1\n  \"An exmple showing how pairs are indented.\"\n  [a b c d]\n  (cond (nil? a) (list d)\n        (nil? b) (list c d a b)\n        :else (list a b c d)))"
     (zprint-str rod1
@@ -444,6 +614,38 @@
     (zprint-str rod7
                 {:parse-string? true,
                  :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]}}))
+
+;;
+;; :respect-nl? true
+;;
+
+(expect
+  "(defn rod7a\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ; This is a comment\n  ; actually, a two line one\n  ([a b c]  ; this is an embedded comment\n   (rod7a a b c nil))\n\n  ([a b]\n   (rod7a a b nil nil)))"
+  (zprint-str rod7a
+              {:parse-string? true,
+               :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]},
+               :list {:respect-nl? false}}))
+
+(expect
+  "(defn rod7a\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ; This is a comment\n  ; actually, a two line one\n  ([a b c]  ; this is an embedded comment\n   (rod7a a b c nil))\n\n  ([a b]\n   (rod7a a b nil nil)))"
+  (zprint-str rod7a
+              {:parse-string? true,
+               :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]},
+               :list {:respect-nl? true}}))
+
+(expect
+  "(defn rod7b\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ; This is a comment\n  ; actually, a two line one\n  ([a b c]  ; this is an embedded comment\n   (rod7b a b c nil))\n\n  ([a b]\n   (rod7b a b nil nil)))"
+  (zprint-str rod7b
+              {:parse-string? true,
+               :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]},
+               :list {:respect-nl? false}}))
+
+(expect
+  "(defn rod7b\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n\n         :else (list a b c d)))\n\n  ; This is a comment\n  ; actually, a two line one\n  ([a b c]  ; this is an embedded comment\n   (rod7b a b c nil))\n\n\n  ([a b]\n\n   (rod7b a b nil nil)))"
+  (zprint-str rod7b
+              {:parse-string? true,
+               :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]},
+               :list {:respect-nl? true}}))
 
   ;;
   ;; # moustacheguide

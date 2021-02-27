@@ -374,7 +374,7 @@
                     [root (assoc-in options [:output :focus :path] path) nil])
                 :else [nil options nil])
         z-type (if input :zipper :sexpr)
-	dzprint (if (= z-type :zipper) dzprint-zipper dzprint-sexpr)
+        dzprint (if (= z-type :zipper) dzprint-zipper dzprint-sexpr)
         input (or input coll)]
     (cond (nil? input)
             [[["nil" (zcolor-map options :nil) :element]] options line-ending]
@@ -390,7 +390,9 @@
           ;
           ;[[["nil" (zcolor-map options :nil) :element]] options]
           :else
-            (let [options (assoc options :ztype z-type :dzprint dzprint)
+            (let [options (assoc options
+                            :ztype z-type
+                            :dzprint dzprint)
                   fzprint-fn (partial fzprint
                                       options
                                       (if (and (:file? options)

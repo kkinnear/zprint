@@ -2575,35 +2575,35 @@
   ;; # Error's in option-fn's
   ;;
 
-(expect
-  "java.lang.Exception:  When :list called an option-fn named test it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-  (try (zprint "(a b c)"
-               {:parse-string? true,
-                :list {:option-fn (fn ([] "test")
-                                      ([options len sexpr] (+ :a 0)))}})
-       (catch Exception e (str e))))
+  (expect
+    "java.lang.Exception:  When :list called an option-fn named test it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+    (try (zprint "(a b c)"
+                 {:parse-string? true,
+                  :list {:option-fn (fn ([] "test")
+                                        ([options len sexpr] (+ :a 0)))}})
+         (catch Exception e (str e))))
 
-(expect
-  "java.lang.Exception:  When :list called an option-fn it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-  (try (zprint "(a b c)"
-               {:parse-string? true,
-                :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
-       (catch Exception e (str e))))
+  (expect
+    "java.lang.Exception:  When :list called an option-fn it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+    (try (zprint "(a b c)"
+                 {:parse-string? true,
+                  :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
+         (catch Exception e (str e))))
 
-(expect
-  "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-  (try (zprint "[:a :b :c]"
-               {:parse-string? true,
-                :vector {:option-fn-first (fn ([options sexpr] (+ :a 0)))}})
-       (catch Exception e (str e))))
+  (expect
+    "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+    (try (zprint "[:a :b :c]"
+                 {:parse-string? true,
+                  :vector {:option-fn-first (fn ([options sexpr] (+ :a 0)))}})
+         (catch Exception e (str e))))
 
-(expect
-  "java.lang.Exception: When :vector called an option-fn-first named test with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-  (try (zprint "[:a :b :c]"
-               {:parse-string? true,
-                :vector {:option-fn-first (fn ([] "test")
-                                              ([options sexpr] (+ :a 0)))}})
-       (catch Exception e (str e))))
+  (expect
+    "java.lang.Exception: When :vector called an option-fn-first named test with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+    (try (zprint "[:a :b :c]"
+                 {:parse-string? true,
+                  :vector {:option-fn-first (fn ([] "test")
+                                                ([options sexpr] (+ :a 0)))}})
+         (catch Exception e (str e))))
 
   ;;
   ;; # zprint-file-str tests
@@ -5464,6 +5464,68 @@ ser/collect-vars-acc %1 %2) )))"
   (expect "(fn [x]\n  (bar)\n)"
           (zprint-str "(fn [x]\n  (bar)\n   )\n"
                       {:parse-string? true, :list {:respect-nl? true}}))
+
+  ;;
+  ;; :wrap for lists, now using wrap-zmap
+  ;;
+
+  ; this should just fit
+
+  (expect "(stuff (caller aaaa bbb\n         ccc))"
+          (zprint-str "(stuff (caller aaaa bbb ccc))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :fn-map {"caller" :wrap, "this" :wrap},
+                       :width 23}))
+
+
+  ; this should not fit
+
+  (expect "(stuff (caller aaaa\n         bbb ccc))"
+          (zprint-str "(stuff (caller aaaa bbb ccc))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :fn-map {"caller" :wrap, "this" :wrap},
+                       :width 22}))
+
+  ; longer version of the same thing
+
+  (expect
+    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo\n         ppp qqq rrr sss ttt uuu vvv))"
+    (zprint-str
+      "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :fn-map {"caller" :wrap, "this" :wrap},
+       :width 75}))
+
+  (expect
+    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn\n         ooo ppp qqq rrr sss ttt uuu vvv))"
+    (zprint-str
+      "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :fn-map {"caller" :wrap, "this" :wrap},
+       :width 74}))
+
+  (expect
+    "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test))) a\n    b c))"
+    (zprint-str
+      "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :fn-map {"caller" :wrap, "this" :wrap},
+       :width 46}))
+
+  (expect
+    "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test)))\n    a b c))"
+    (zprint-str
+      "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :fn-map {"caller" :wrap, "this" :wrap},
+       :width 45}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

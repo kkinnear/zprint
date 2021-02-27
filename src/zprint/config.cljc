@@ -47,9 +47,9 @@
   [:cache :cwd-zprintrc? :parallel? :search-config? :url])
 
 (def explain-hide-keys
-  [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop? :dbg-ge
-   :file? :spaces? :process-bang-zprint? :trim-comments? :zipper? :indent
-   :remove :return-cvec? :test-for-eol-blanks?
+  [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
+   :dbg-ge :file? :spaces? :process-bang-zprint? :trim-comments? :zipper?
+   :indent :remove :return-cvec? :test-for-eol-blanks?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
@@ -286,6 +286,15 @@
 ;; map to show up as "functions", but don't actually trigger showfn
 ;; to represent them as such.
 ;;
+;; :wrap
+;;
+;; Do what we do for vectors for a list -- just wrap to the right margin.
+;; This also looks at :wrap? and :wrap-coll? in :list to decide how to
+;; process things.
+;;
+;; (foo (bar a b c) (baz d e f))
+;;
+;;
 
 (def zfnstyle
   {"->" [:noarg1-body
@@ -488,7 +497,9 @@
           :pair-hang? true,
           :respect-bl? false,
           :respect-nl? false,
-          :replacement-string nil},
+          :replacement-string nil,
+          :wrap-coll? true,
+          :wrap-after-multi? true},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,

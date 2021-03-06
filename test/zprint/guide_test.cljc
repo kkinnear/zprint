@@ -9,8 +9,8 @@
              [zprint-str set-options! zprint-str-internal czprint-str
               zprint-file-str zprint czprint]]
             [zprint.guide :refer
-             [rodguide moustacheguide areguide jrequireguide rumguide rumguide-1
-              rumguide-2]]))
+             [rodguide moustacheguide areguide jrequireguide rumguide
+              rumguide-1 rumguide-2]]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -32,753 +32,757 @@
   ;; # Basic guide tests, not using an :option-fn
   ;;
 
-  (expect "(stuff (caller aaaa bbbb\n               ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 27}))
+(expect "(stuff (caller aaaa bbbb\n               ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 27}))
+
+(expect
+  "(stuff (caller aaaa bbbb\n               ccc\n                 dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :pair-begin :element :element :element
+                              :element :pair-end]],
+               :width 26}))
+
+(expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 24}))
+
+(expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 21}))
+
+(expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 22}))
+
+(expect "(stuff\n  (caller aaaa bbbb\n          ccc\n            dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 20}))
+
+(expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 19}))
+
+(expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 16}))
+
+(expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc\n      dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 15}))
+
+(expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc\n      dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 13}))
+
+(expect "(stuff\n  (caller\n    aaaa\n      bbbb\n    ccc\n      dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 12}))
 
   (expect
-    "(stuff (caller aaaa bbbb\n               ccc\n                 dddddd))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :pair-begin :element :element :element
-                                :element :pair-end]],
-                 :width 26}))
-
-  (expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 24}))
-
-  (expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 21}))
-
-  (expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 22}))
-
-  (expect "(stuff\n  (caller aaaa bbbb\n          ccc\n            dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 20}))
-
-  (expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 19}))
-
-  (expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 16}))
-
-  (expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc\n      dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 15}))
-
-  (expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc\n      dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 13}))
-
-  (expect "(stuff\n  (caller\n    aaaa\n      bbbb\n    ccc\n      dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 12}))
-
-  (expect
-    "(caller aaaa\n            bbbb          ccc          ddddd\n            eeeee         fff\n                                       ;comment 1\n                                       ggg\n            hhh           iii          jjj\n            kkk           lll ;comment 2\n                                       mmm\n            nnn           ooo          ppp)"
+"(caller aaaa\n            bbbb          ccc          ddddd\n            eeeee         fff\n                                       ;comment 1\n                                       ggg\n            hhh           iii          jjj\n            kkk           lll ;comment 2\n                                       mmm\n            nnn           ooo          ppp)"
     (zprint-str
       "(caller aaaa bbbb ccc ddddd eeeee fff \n;comment 1\n \nggg hhh iii jjj kkk lll ;comment 2\n\n mmm nnn ooo ppp)"
       {:parse-string? true,
        :list {:respect-nl? false},
-       :guide-debug [:list 1
-                     [:element :element :newline :spaces 10 :mark 1 :element
-                      :spaces 10 :mark 2 :element :spaces 10 :mark 3 :element
-                      :newline :element-align 1 :element-align 2 :element-align
-                      3 :newline :element-align 1 :element-align 2
-                      :element-align 3 :newline :element-align 1 :element-align
-                      2 :element-align 3 :newline :element-align 1
-                      :element-align 2 :element-align 3]],
+       :guide-debug [:list 1 [:element :element :newline :spaces 10 :mark 1 :element :spaces 10
+               :mark 2 :element :spaces 10 :mark 3 :element :newline
+               :element-align 1 :element-align 2 :element-align 3 :newline
+               :element-align 1 :element-align 2 :element-align 3 :newline
+               :element-align 1 :element-align 2 :element-align 3 :newline
+               :element-align 1 :element-align 2 :element-align 3]],
        :width 80}))
 
-  (expect
-    "(caller     aaaa bbbb ccc\n            dddddd)"
-    (zprint-str "(caller aaaa bbbb ccc dddddd)"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 1
-                               [:element :spaces 5 :mark 2 :element :element
-                                :element :newline :element-align 2]],
-                 :width 80}))
+  (expect "(caller     aaaa bbbb ccc\n            dddddd)"
+          (zprint-str "(caller aaaa bbbb ccc dddddd)"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :guide-debug [:list 1 [:element :spaces 5 :mark 2 :element :element
+                               :element :newline :element-align 2]],
+                       :width 80}))
 
-  (expect
-    "(stuff (caller     aaaa bbbb ccc\n                   dddddd))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :spaces 5 :mark 2 :element :element
-                                :element :newline :element-align 2]],
-                 :width 80}))
+(expect "(stuff (caller     aaaa bbbb ccc\n                   dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :spaces 5 :mark 2 :element :element
+                                    :element :newline :element-align 2]],
+                     :width 80}))
 
-  (expect
-    "(caller aaaa          bbbb          ccc          ddddd\n                      eeeee         fff\n                                                 ;comment 1\n                                                 ggg\n                      hhh           iii          jjj\n                      kkk           lll ;comment 2\n                                                 mmm\n                      nnn           ooo          ppp)"
-    (zprint-str
-      "(caller aaaa bbbb ccc ddddd eeeee fff \n;comment 1\n \nggg hhh iii jjj kkk lll ;comment 2\n\n mmm nnn ooo ppp)"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :guide-debug [:list 1
-                     [:element :element :spaces 10 :mark 1 :element :spaces 10
-                      :mark 2 :element :spaces 10 :mark 3 :element :newline
-                      :element-align 1 :element-align 2 :element-align 3
-                      :newline :element-align 1 :element-align 2 :element-align
-                      3 :newline :element-align 1 :element-align 2
-                      :element-align 3 :newline :element-align 1 :element-align
-                      2 :element-align 3]],
-       :width 80}))
+(expect
+"(caller aaaa          bbbb          ccc          ddddd\n                      eeeee         fff\n                                                 ;comment 1\n                                                 ggg\n                      hhh           iii          jjj\n                      kkk           lll ;comment 2\n                                                 mmm\n                      nnn           ooo          ppp)"
+  (zprint-str
+    "(caller aaaa bbbb ccc ddddd eeeee fff \n;comment 1\n \nggg hhh iii jjj kkk lll ;comment 2\n\n mmm nnn ooo ppp)"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 1
+                   [:element :element :spaces 10 :mark 1 :element :spaces 10
+                    :mark 2 :element :spaces 10 :mark 3 :element :newline
+                    :element-align 1 :element-align 2 :element-align 3 :newline
+                    :element-align 1 :element-align 2 :element-align 3 :newline
+                    :element-align 1 :element-align 2 :element-align 3 :newline
+                    :element-align 1 :element-align 2 :element-align 3]],
+     :width 80}))
 
-  (expect
-    "(stuff (caller aaaa\n                   bbbb\n                   eeeee))"
-    (zprint-str "(stuff (caller aaaa bbbb eeeee))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :element :newline :spaces 10 :mark 1
-                                :element :newline :element-align 1]],
-                 :width 80}))
+(expect
+  "(stuff (caller aaaa\n                   bbbb\n                   eeeee))"
+  (zprint-str "(stuff (caller aaaa bbbb eeeee))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :spaces 10 :mark 1
+                              :element :newline :element-align 1]],
+               :width 80}))
 
   ; Ensure that, even though we are asking for alignment, we don't let two
   ; things run together
 
-  (expect
-    "(stuff (caller aaaa\n                   bbbb   ccc\n                   eeeeee fff))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc eeeeee fff))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :element :newline :spaces 10 :mark 1
-                                :element :spaces 3 :mark 2 :element :newline
-                                :element-align 1 :element-align 2]],
-                 :width 80}))
-
-  (expect
-    "(stuff (caller aaaa\n                   bbbb   ccc\n                   eeeeeee fff))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc eeeeeee fff))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :element :newline :spaces 10 :mark 1
-                                :element :spaces 3 :mark 2 :element :newline
-                                :element-align 1 :element-align 2]],
-                 :width 80}))
-
-  (expect
-    "(stuff (caller aaaa\n                   bbbb   ccc\n                   eeeeeeeeeee fff))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc eeeeeeeeeee fff))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :element :newline :spaces 10 :mark 1
-                                :element :spaces 3 :mark 2 :element :newline
-                                :element-align 1 :element-align 2]],
-                 :width 80}))
-
-  ; See that the default indent when we use :style :community is 1
-
-  (expect "(stuff\n (caller\n  aaaa bbbb\n  ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 15,
-                       :style :community}))
-
-  ; And that "body" function can be guided and end up with indent 2
-
-  (expect "(stuff\n (caller\n   aaaa bbbb\n   ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 15,
-                       :style :community,
-                       :fn-map {"caller" :none-body}}))
-
-  ; Do comments take on the spacing of the following :element?
-
-  (expect
-    "(;comment 1\n caller\n  xxx\n  ;comment x\n  yyy\n       aaaa\n       ;comment 2\n       bbbb\n       ;comment 3\n       ccc\n       dddddd)"
-    (zprint-str
-      "(;comment 1\n  caller xxx \n;comment x\n yyy aaaa \n;comment 2\n bbbb \n;comment 3\n ccc dddddd)"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :guide-debug [:list 1
-                     [:element :newline :element :newline :element :newline
-                      :spaces 5 :mark 1 :element :newline :spaces 5 :element
-                      :newline :element-align 1 :newline :element-align 1]],
-       :width 80}))
-
-  (expect
-    "(stuff (;comment 1\n        caller\n         xxx\n         ;comment x\n         yyy\n              aaaa\n              ;comment 2\n              bbbb\n              ;comment 3\n              ccc\n              dddddd))"
-    (zprint-str
-      "(stuff (;comment 1\n  caller xxx \n;comment x\n yyy aaaa \n;comment 2\n bbbb \n;comment 3\n ccc dddddd))"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :element :newline
-                      :spaces 5 :mark 1 :element :newline :spaces 5 :element
-                      :newline :element-align 1 :newline :element-align 1]],
-       :width 80}))
-
-
-  (expect
-    "(stuff (;comment 1\n        caller\n             sss\n             ;comment :indent 6\n             ttt\n         xxx\n         ;comment :indent-reset\n         yyy\n              aaaa\n              ;comment :spaces 5\n              bbbb\n              ;comment :element-align 1\n              ccc\n              dddddd))"
-    (zprint-str
-      "(stuff (;comment 1\n  caller sss \n;comment :indent 6\n ttt xxx \n;comment :indent-reset \n yyy aaaa \n;comment :spaces 5\n bbbb \n;comment :element-align 1\n ccc dddddd))"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :guide-debug [:list 2
-                     [:element :newline :indent 6 :element :newline :element
-                      :indent-reset :newline :element :newline :element :newline
-                      :spaces 5 :mark 1 :element :newline :spaces 5 :element
-                      :newline :element-align 1 :newline :element-align 1]],
-       :width 80}))
-
-
-  ;;
-  ;; # :indent and :indent-reset
-  ;;
-
-  (expect
-    "(stuff (caller aaaa\n               bbbb\n               ccc\n         dddddd))"
-    (zprint-str
-      "(stuff (caller aaaa bbbb ccc dddddd))"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :guide-debug [:list 2
-                     [:element :element :newline :indent 8 :element :newline
-                      :element :indent-reset :newline :element]],
-       :width 80}))
-
-  (expect "(stuff (caller aaaa\n        bbbb\n        ccc\n         dddddd))"
-          (zprint-str
-            "(stuff (caller aaaa bbbb ccc dddddd))"
-            {:parse-string? true,
-             :list {:respect-nl? false},
-             :guide-debug [:list 2
-                           [:element :element :newline :indent 1 :element
-                            :newline :element :indent-reset :newline :element]],
-             :width 80}))
-
-  ;;
-  ;; Comment as the first thing in a list
-  ;;
-
-  (expect
-    "(stuff (;comment\n        caller\n         aaaa\n         bbbb\n         ccc\n         dddddd))"
-    (zprint-str "(stuff (;comment\n  caller aaaa bbbb ccc dddddd))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :newline :element :newline :element
-                                :newline :element :newline :element]],
-                 :width 80}))
-
-  ; Forget spaces if we have a following :newline in the guide
-
-  (expect "(stuff (caller\n         aaaa\n              bbbb))"
-          (zprint-str "(stuff (caller \n aaaa \n bbbb))"
-                      {:parse-string? true,
-                       :guide-debug [:list 2
-                                     [:element :spaces 5 :newline :element
-                                      :newline :spaces 5 :element]],
-                       :width 80,
-                       :list {:respect-nl? false}}))
-
-  ;;
-  ;; # respect-nl
-  ;;
-
-  (expect "(stuff (caller\n              aaaa\n              bbbb))"
-          (zprint-str "(stuff (caller \n aaaa \n bbbb))"
-                      {:parse-string? true,
-                       :list {:respect-nl? true},
-                       :guide-debug [:list 2
-                                     [:element :newline :spaces 5 :element
-                                      :newline :spaces 5 :element]],
-                       :width 80}))
-
-  (expect "(stuff (caller\n\n         aaaa\n              bbbb))"
-          (zprint-str "(stuff (caller \n aaaa \n bbbb))"
-                      {:parse-string? true,
-                       :guide-debug [:list 2
-                                     [:element :newline :spaces 5 :newline
-                                      :element :newline :spaces 5 :element]],
-                       :width 80,
-                       :list {:respect-nl? false}}))
-
-  (expect "(stuff (caller\n\n         aaaa\n              bbbb))"
-          (zprint-str "(stuff (caller \n aaaa \n bbbb))"
-                      {:parse-string? true,
-                       :guide-debug [:list 2
-                                     [:element :newline :spaces 5 :newline
-                                      :element :newline :spaces 5 :element]],
-                       :width 80,
-                       :list {:respect-nl? true}}))
-
-  (expect "(stuff (caller\n\n         aaaa\n              bbbb))"
-          (zprint-str "(stuff (caller \n\n aaaa \n bbbb))"
-                      {:parse-string? true,
-                       :guide-debug [:list 2
-                                     [:element :newline :spaces 5 :newline
-                                      :element :newline :spaces 5 :element]],
-                       :width 80,
-                       :list {:respect-nl? true}}))
-
-  (expect "(stuff (caller\n\n\n         aaaa\n              bbbb))"
-          (zprint-str "(stuff (caller \n\n\n aaaa \n bbbb))"
-                      {:parse-string? true,
-                       :guide-debug [:list 2
-                                     [:element :newline :spaces 5 :newline
-                                      :element :newline :spaces 5 :element]],
-                       :width 80,
-                       :list {:respect-nl? true}}))
-
-  (expect "(stuff (caller\n\n\n         aaaa\n\n              bbbb))"
-          (zprint-str "(stuff (caller \n\n\n aaaa \n\n bbbb))"
-                      {:parse-string? true,
-                       :guide-debug [:list 2
-                                     [:element :newline :spaces 5 :newline
-                                      :element :newline :spaces 5 :element]],
-                       :width 80,
-                       :list {:respect-nl? true}}))
-
-  ;;
-  ;; :respect-nl? in pairs
-  ;;
-
-  (expect "(stuff (caller aaaa bbbb\n               ccc dddddd))"
-          (zprint-str "(stuff (caller aaaa bbbb \n ccc dddddd))"
-                      {:parse-string? true,
-                       :guide-debug [:list 2
-                                     [:element :pair-begin :element :element
-                                      :element :element :pair-end]],
-                       :width 27,
-                       :list {:respect-nl? true}}))
-
-  (expect
-    "(stuff (caller aaaa bbbb\n               ccc\n                 dddddd))"
-    (zprint-str "(stuff (caller aaaa bbbb \n ccc \n dddddd))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :pair-begin :element :element :element
-                                :element :pair-end]],
-                 :width 27,
-                 :list {:respect-nl? true}}))
-
-  (expect
-    "(stuff (caller aaaa bbbb\n\n               ccc\n                 dddddd))"
-    (zprint-str "(stuff (caller aaaa bbbb \n\n ccc \n dddddd))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :pair-begin :element :element :element
-                                :element :pair-end]],
-                 :width 27,
-                 :list {:respect-nl? true}}))
-
-  ;;
-  ;; Empty :pair-begin :pair-end sequence
-  ;;
-
-  (expect
-    "(stuff (caller aaaa bbbb\n               ccc dddddd))"
-    (zprint-str "(stuff (caller aaaa bbbb \n\n ccc \n dddddd))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :pair-begin :pair-end :pair-begin
-                                :element :element :element :element :pair-end]],
-                 :width 80,
-                 :list {:respect-nl? false}}))
-
-  ;;
-  ;; what happens when fzprint-seq returns [] because something didn't fit?
-  ;;
-
-  (expect
-    "(stuff\n  [caller aaaa\n   (this is a (test this is (only a test))) a b\n   c])"
-    (zprint-str
-      "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
-      {:parse-string? true,
-       :guide-debug [:vector 2
-                     [:element :element :element :element :element :element]],
-       :list {:respect-nl? false},
-       :width 47}))
-
-  ;;
-  ;; wrap-after-multi in vectors
-  ;;
-
-  (expect
-    "(stuff\n  [caller aaaa\n   (this is\n         a\n         (test this is (only a test))) a b\n   c])"
-    (zprint-str
-      "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
-      {:parse-string? true,
-       :guide-debug [:vector 2
-                     [:element :element :element :element :element :element]],
-       :list {:respect-nl? false},
-       :width 42}))
-
-  ;;
-  ;; See if guides fit right
-  ;;
-
-  (expect
-    "(stuff\n  [caller aaaa\n   (this is\n         a\n         (test this is (only a test)))\n   a b c])"
-    (zprint-str
-      "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
-      {:parse-string? true,
-       :guide-debug [:vector 2
-                     [:element :element :element :element :element :element]],
-       :list {:respect-nl? false},
-       :width 39}))
-
-
-  (expect
-    "(stuff\n  [caller aaaa\n   (this is\n         a\n         (test this is (only a test))) a\n   b c])"
-    (zprint-str
-      "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
-      {:parse-string? true,
-       :guide-debug [:vector 2
-                     [:element :element :element :element :element :element]],
-       :list {:respect-nl? false},
-       :width 40}))
-
-
-  ;;
-  ;; Work on newlines and comments, guided and not
-  ;;
-
-  (expect
-    "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str
-      "(stuff (caller \n ;comment 1 \n aaaa \n bbbb))"
-      {:parse-string? true,
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :spaces 5 :element]],
-       :width 80,
-       :list {:respect-nl? false}}))
-
-  (expect
-    "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str
-      "(stuff (caller \n ;comment 1 \n aaaa \n bbbb))"
-      {:parse-string? true,
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :spaces 5 :element]],
-       :width 80,
-       :list {:respect-nl? true}}))
-
-  (expect
-    "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str
-      "(stuff (caller \n\n ;comment 1 \n aaaa \n bbbb))"
-      {:parse-string? true,
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :spaces 5 :element]],
-       :width 80,
-       :list {:respect-nl? false}}))
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str
-      "(stuff (caller \n\n ;comment 1 \n aaaa \n bbbb))"
-      {:parse-string? true,
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :spaces 5 :element]],
-       :width 80,
-       :list {:respect-nl? true}}))
-
-  (expect
-    "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str
-      "(stuff (caller \n ;comment 1 \n\n aaaa \n bbbb))"
-      {:parse-string? true,
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :spaces 5 :element]],
-       :width 80,
-       :list {:respect-nl? false}}))
-
-  (expect
-    "(stuff (caller\n         ;comment 1\n\n         aaaa\n              bbbb))"
-    (zprint-str
-      "(stuff (caller \n ;comment 1 \n\n aaaa \n bbbb))"
-      {:parse-string? true,
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :spaces 5 :element]],
-       :width 80,
-       :list {:respect-nl? true}}))
-
-  (expect
-    "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str
-      "(stuff (caller \n\n ;comment 1 \n\n aaaa \n bbbb))"
-      {:parse-string? true,
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :spaces 5 :element]],
-       :width 80,
-       :list {:respect-nl? false}}))
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n\n         aaaa\n              bbbb))"
-    (zprint-str
-      "(stuff (caller \n\n ;comment 1 \n\n aaaa \n bbbb))"
-      {:parse-string? true,
-       :guide-debug [:list 2
-                     [:element :newline :element :newline :spaces 5 :element]],
-       :width 80,
-       :list {:respect-nl? true}}))
-
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n\n ;comment 1 \n\n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? false}}))
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n\n ;comment 1 \n\n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? true}}))
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n ;comment 1 \n\n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? false}}))
-
-  ; This one is a bit odd, in that the blank line goes below the comment, but
-  ; it isn't wrong, as that is where it was in the incoming string so the
-  ; user must have wanted it to be there.
-  (expect
-    "(stuff (caller\n         ;comment 1\n\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n ;comment 1 \n\n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? true}}))
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n ;comment 1 \n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? true}}))
-
-  ; This is a bit odd too, in that we have a guided blank line and in the
-  ; comments we don't have any blank lines, so the guided blank line goes
-  ; in front of the comments since it has to go somewhere, and in the front
-  ; is seriously better than going at the end.
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n ;comment 1 \n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? true}}))
-
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n         ;comment 2\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n ;comment 1 \n ;comment 2 \n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? true}}))
-
-  (expect
-    "(stuff (caller\n         ;comment 1\n\n         ;comment 2\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n ;comment 1 \n\n ;comment 2 \n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? true}}))
-
-
-  (expect
-    "(stuff (caller\n         ;comment 1\n         ;comment 2\n\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n ;comment 1 \n ;comment 2 \n\n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :element :newline
-                                :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? true}}))
-
-
-  (expect
-    "(stuff (caller\n\n         ;comment 1\n         ;comment 2\n\n         aaaa\n              bbbb))"
-    (zprint-str "(stuff (caller \n ;comment 1 \n ;comment 2 \n\n aaaa \n bbbb))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :newline :newline :newline :element
-                                :newline :spaces 5 :element]],
-                 :width 80,
-                 :list {:respect-nl? true}}))
-
-  ;;
-  ;; Ensure that one-line can still work for guides.
-  ;;
-
-  (expect
-    "(stuff\n  (caller\n    aaaa\n    (this is\n          a\n          (test this is (only a test)))\n    a\n    b\n    c))"
-    (zprint-str
-      "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
-      {:parse-string? true,
-       :guide-debug [:list 5 [:element :element :element]],
-       :list {:respect-nl? false},
-       :width 39}))
-
-  ;;
-  ;; Pairs just fit right, as fitting is done by fzprint-pairs, not
-  ;; guided-output
-  ;;
-
-  (expect
-    "(stuff (caller aaaa left\n                      riiiiiiiight\n                    left2 right))"
-    (zprint-str "(stuff (caller aaaa left riiiiiiiight left2 right))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :element :pair-begin :element :element
-                                :element :element :pair-end]],
-                 :list {:respect-nl? false},
-                 :width 34}))
-
-  (expect
-    "(stuff (caller aaaa\n         left riiiiiiiight\n         left2 right))"
-    (zprint-str "(stuff (caller aaaa left riiiiiiiight left2 right))"
-                {:parse-string? true,
-                 :guide-debug [:list 2
-                               [:element :element :pair-begin :element :element
-                                :element :element :pair-end]],
-                 :list {:respect-nl? false},
-                 :width 33}))
-
-  (expect
-    "(caller aaaa left\n               riiiiiiiight\n             left2 right)"
-    (zprint-str "(caller aaaa left riiiiiiiight left2 right)"
-                {:parse-string? true,
-                 :guide-debug [:list 1
-                               [:element :element :pair-begin :element :element
-                                :element :element :pair-end]],
-                 :list {:respect-nl? false},
-                 :width 27}))
-
-  (expect "(caller aaaa\n  left riiiiiiiight\n  left2 right)"
-          (zprint-str "(caller aaaa left riiiiiiiight left2 right)"
-                      {:parse-string? true,
-                       :guide-debug [:list 1
-                                     [:element :element :pair-begin :element
-                                      :element :element :element :pair-end]],
-                       :list {:respect-nl? false},
-                       :width 26}))
-
-  ;;
-  ;; Ensure that something that is supposed to be on a line by iteself (due to
-  ;; the guide) will be on a line by itself.
-  ;;
-  (expect
-    "(stuff (caller aaaa bbbb\n         iii))"
-    (zprint-str
-      "(stuff (caller aaaa bbbb iii))"
-      {:parse-string? true,
-       :guide-debug [:list 2 [:element :element :element :newline :element]],
-       :list {:respect-nl? false},
-       :width 24}))
-
-  (expect
-    "(stuff (caller aaaa\n         bbbb\n         iii))"
-    (zprint-str
-      "(stuff (caller aaaa bbbb iii))"
-      {:parse-string? true,
-       :guide-debug [:list 2 [:element :element :element :newline :element]],
-       :list {:respect-nl? false},
-       :width 23}))
+(expect
+  "(stuff (caller aaaa\n                   bbbb   ccc\n                   eeeeee fff))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc eeeeee fff))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :spaces 10 :mark 1
+                              :element :spaces 3 :mark 2 :element :newline
+                              :element-align 1 :element-align 2]],
+               :width 80}))
+
+(expect
+  "(stuff (caller aaaa\n                   bbbb   ccc\n                   eeeeeee fff))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc eeeeeee fff))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :spaces 10 :mark 1
+                              :element :spaces 3 :mark 2 :element :newline
+                              :element-align 1 :element-align 2]],
+               :width 80}))
+
+(expect
+  "(stuff (caller aaaa\n                   bbbb   ccc\n                   eeeeeeeeeee fff))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc eeeeeeeeeee fff))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :spaces 10 :mark 1
+                              :element :spaces 3 :mark 2 :element :newline
+                              :element-align 1 :element-align 2]],
+               :width 80}))
+
+; See that the default indent when we use :style :community is 1
+
+(expect "(stuff\n (caller\n  aaaa bbbb\n  ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 15,
+                     :style :community}))
+
+; And that "body" function can be guided and end up with indent 2
+
+(expect "(stuff\n (caller\n   aaaa bbbb\n   ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 15,
+                     :style :community,
+                     :fn-map {"caller" :none-body}}))
+
+; Do comments take on the spacing of the following :element?
+
+(expect
+  "(;comment 1\n caller\n  xxx\n  ;comment x\n  yyy\n       aaaa\n       ;comment 2\n       bbbb\n       ;comment 3\n       ccc\n       dddddd)"
+  (zprint-str
+    "(;comment 1\n  caller xxx \n;comment x\n yyy aaaa \n;comment 2\n bbbb \n;comment 3\n ccc dddddd)"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 1
+                   [:element :newline :element :newline :element :newline
+                    :spaces 5 :mark 1 :element :newline :spaces 5 :element
+                    :newline :element-align 1 :newline :element-align 1]],
+     :width 80}))
+
+(expect
+  "(stuff (;comment 1\n        caller\n         xxx\n         ;comment x\n         yyy\n              aaaa\n              ;comment 2\n              bbbb\n              ;comment 3\n              ccc\n              dddddd))"
+  (zprint-str
+    "(stuff (;comment 1\n  caller xxx \n;comment x\n yyy aaaa \n;comment 2\n bbbb \n;comment 3\n ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :element :newline
+                    :spaces 5 :mark 1 :element :newline :spaces 5 :element
+                    :newline :element-align 1 :newline :element-align 1]],
+     :width 80}))
+
+
+(expect
+  "(stuff (;comment 1\n        caller\n             sss\n             ;comment :indent 6\n             ttt\n         xxx\n         ;comment :indent-reset\n         yyy\n              aaaa\n              ;comment :spaces 5\n              bbbb\n              ;comment :element-align 1\n              ccc\n              dddddd))"
+  (zprint-str
+    "(stuff (;comment 1\n  caller sss \n;comment :indent 6\n ttt xxx \n;comment :indent-reset \n yyy aaaa \n;comment :spaces 5\n bbbb \n;comment :element-align 1\n ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :newline :indent 6 :element :newline :element
+                    :indent-reset :newline :element :newline :element :newline
+                    :spaces 5 :mark 1 :element :newline :spaces 5 :element
+                    :newline :element-align 1 :newline :element-align 1]],
+     :width 80}))
+
+
+;;
+;; # :indent and :indent-reset
+;;
+
+(expect
+  "(stuff (caller aaaa\n               bbbb\n               ccc\n         dddddd))"
+  (zprint-str
+    "(stuff (caller aaaa bbbb ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :element :newline :indent 8 :element :newline
+                    :element :indent-reset :newline :element]],
+     :width 80}))
+
+(expect "(stuff (caller aaaa\n        bbbb\n        ccc\n         dddddd))"
+        (zprint-str
+          "(stuff (caller aaaa bbbb ccc dddddd))"
+          {:parse-string? true,
+           :list {:respect-nl? false},
+           :guide-debug [:list 2
+                         [:element :element :newline :indent 1 :element :newline
+                          :element :indent-reset :newline :element]],
+           :width 80}))
+
+;;
+;; Comment as the first thing in a list
+;;
+
+(expect
+  "(stuff (;comment\n        caller\n         aaaa\n         bbbb\n         ccc\n         dddddd))"
+  (zprint-str "(stuff (;comment\n  caller aaaa bbbb ccc dddddd))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :newline :element :newline :element
+                              :newline :element :newline :element]],
+               :width 80}))
+
+; Forget spaces if we have a following :newline in the guide
+
+(expect "(stuff (caller\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :spaces 5 :newline :element
+                                    :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? false}}))
+
+;;
+;; # respect-nl
+;;
+
+(expect "(stuff (caller\n              aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :list {:respect-nl? true},
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :element
+                                    :newline :spaces 5 :element]],
+                     :width 80}))
+
+(expect "(stuff (caller\n\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? false}}))
+
+(expect "(stuff (caller\n\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? true}}))
+
+(expect "(stuff (caller\n\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n\n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? true}}))
+
+(expect "(stuff (caller\n\n\n         aaaa\n              bbbb))"
+        (zprint-str "(stuff (caller \n\n\n aaaa \n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? true}}))
+
+(expect "(stuff (caller\n\n\n         aaaa\n\n              bbbb))"
+        (zprint-str "(stuff (caller \n\n\n aaaa \n\n bbbb))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :spaces 5 :newline
+                                    :element :newline :spaces 5 :element]],
+                     :width 80,
+                     :list {:respect-nl? true}}))
+
+;;
+;; :respect-nl? in pairs
+;;
+
+(expect "(stuff (caller aaaa bbbb\n               ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb \n ccc dddddd))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end]],
+                     :width 27,
+                     :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller aaaa bbbb\n               ccc\n                 dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb \n ccc \n dddddd))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :pair-begin :element :element :element
+                              :element :pair-end]],
+               :width 27,
+               :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller aaaa bbbb\n\n               ccc\n                 dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb \n\n ccc \n dddddd))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :pair-begin :element :element :element
+                              :element :pair-end]],
+               :width 27,
+               :list {:respect-nl? true}}))
+
+;;
+;; Empty :pair-begin :pair-end sequence
+;;
+
+(expect
+  "(stuff (caller aaaa bbbb\n               ccc dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb \n\n ccc \n dddddd))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :pair-begin :pair-end :pair-begin
+                              :element :element :element :element :pair-end]],
+               :width 80,
+               :list {:respect-nl? false}}))
+
+;;
+;; what happens when fzprint-seq returns [] because something didn't fit?
+;;
+
+(expect
+  "(stuff\n  [caller aaaa\n   (this is a (test this is (only a test))) a b\n   c])"
+  (zprint-str
+    "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
+    {:parse-string? true,
+     :guide-debug [:vector 2
+                   [:element :element :element :element :element :element]],
+     :list {:respect-nl? false},
+     :width 47}))
+
+;;
+;; wrap-after-multi in vectors
+;;
+
+(expect
+  "(stuff\n  [caller aaaa\n   (this is\n         a\n         (test this is (only a test))) a b\n   c])"
+  (zprint-str
+    "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
+    {:parse-string? true,
+     :guide-debug [:vector 2
+                   [:element :element :element :element :element :element]],
+     :list {:respect-nl? false},
+     :width 42}))
+
+;;
+;; See if guides fit right
+;;
+
+(expect
+  "(stuff\n  [caller aaaa\n   (this is\n         a\n         (test this is (only a test)))\n   a b c])"
+  (zprint-str
+    "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
+    {:parse-string? true,
+     :guide-debug [:vector 2
+                   [:element :element :element :element :element :element]],
+     :list {:respect-nl? false},
+     :width 39}))
+
+
+(expect
+  "(stuff\n  [caller aaaa\n   (this is\n         a\n         (test this is (only a test))) a\n   b c])"
+  (zprint-str
+    "(stuff [caller aaaa (this is a (test this is (only a test))) a b c])"
+    {:parse-string? true,
+     :guide-debug [:vector 2
+                   [:element :element :element :element :element :element]],
+     :list {:respect-nl? false},
+     :width 40}))
+
+
+;;
+;; Work on newlines and comments, guided and not
+;;
+
+(expect
+  "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str
+    "(stuff (caller \n ;comment 1 \n aaaa \n bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :spaces 5 :element]],
+     :width 80,
+     :list {:respect-nl? false}}))
+
+(expect
+  "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str
+    "(stuff (caller \n ;comment 1 \n aaaa \n bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :spaces 5 :element]],
+     :width 80,
+     :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str
+    "(stuff (caller \n\n ;comment 1 \n aaaa \n bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :spaces 5 :element]],
+     :width 80,
+     :list {:respect-nl? false}}))
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str
+    "(stuff (caller \n\n ;comment 1 \n aaaa \n bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :spaces 5 :element]],
+     :width 80,
+     :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str
+    "(stuff (caller \n ;comment 1 \n\n aaaa \n bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :spaces 5 :element]],
+     :width 80,
+     :list {:respect-nl? false}}))
+
+(expect
+  "(stuff (caller\n         ;comment 1\n\n         aaaa\n              bbbb))"
+  (zprint-str
+    "(stuff (caller \n ;comment 1 \n\n aaaa \n bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :spaces 5 :element]],
+     :width 80,
+     :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str
+    "(stuff (caller \n\n ;comment 1 \n\n aaaa \n bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :spaces 5 :element]],
+     :width 80,
+     :list {:respect-nl? false}}))
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n\n         aaaa\n              bbbb))"
+  (zprint-str
+    "(stuff (caller \n\n ;comment 1 \n\n aaaa \n bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :newline :element :newline :spaces 5 :element]],
+     :width 80,
+     :list {:respect-nl? true}}))
+
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n\n ;comment 1 \n\n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? false}}))
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n\n ;comment 1 \n\n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n ;comment 1 \n\n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? false}}))
+
+; This one is a bit odd, in that the blank line goes below the comment, but
+; it isn't wrong, as that is where it was in the incoming string so the
+; user must have wanted it to be there.
+(expect
+  "(stuff (caller\n         ;comment 1\n\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n ;comment 1 \n\n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n ;comment 1 \n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? true}}))
+
+; This is a bit odd too, in that we have a guided blank line and in the
+; comments we don't have any blank lines, so the guided blank line goes
+; in front of the comments since it has to go somewhere, and in the front
+; is seriously better than going at the end.
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n ;comment 1 \n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? true}}))
+
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n         ;comment 2\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n ;comment 1 \n ;comment 2 \n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? true}}))
+
+(expect
+  "(stuff (caller\n         ;comment 1\n\n         ;comment 2\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n ;comment 1 \n\n ;comment 2 \n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? true}}))
+
+
+(expect
+  "(stuff (caller\n         ;comment 1\n         ;comment 2\n\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n ;comment 1 \n ;comment 2 \n\n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :element :newline
+                              :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? true}}))
+
+
+(expect
+  "(stuff (caller\n\n         ;comment 1\n         ;comment 2\n\n         aaaa\n              bbbb))"
+  (zprint-str "(stuff (caller \n ;comment 1 \n ;comment 2 \n\n aaaa \n bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :newline :element
+                              :newline :spaces 5 :element]],
+               :width 80,
+               :list {:respect-nl? true}}))
+
+;;
+;; Ensure that one-line can still work for guides.
+;;
+
+(expect
+  "(stuff\n  (caller\n    aaaa\n    (this is\n          a\n          (test this is (only a test)))\n    a\n    b\n    c))"
+  (zprint-str
+    "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
+    {:parse-string? true,
+     :guide-debug [:list 5 [:element :element :element]],
+     :list {:respect-nl? false},
+     :width 39}))
+
+;;
+;; Pairs just fit right, as fitting is done by fzprint-pairs, not 
+;; guided-output
+;;
+
+(expect
+  "(stuff (caller aaaa left\n                      riiiiiiiight\n                    left2 right))"
+  (zprint-str "(stuff (caller aaaa left riiiiiiiight left2 right))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :element :pair-begin :element :element
+                              :element :element :pair-end]],
+               :list {:respect-nl? false},
+               :width 34}))
+
+(expect
+  "(stuff (caller aaaa\n         left riiiiiiiight\n         left2 right))"
+  (zprint-str "(stuff (caller aaaa left riiiiiiiight left2 right))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :element :pair-begin :element :element
+                              :element :element :pair-end]],
+               :list {:respect-nl? false},
+               :width 33}))
+
+(expect
+  "(caller aaaa left\n               riiiiiiiight\n             left2 right)"
+  (zprint-str "(caller aaaa left riiiiiiiight left2 right)"
+              {:parse-string? true,
+               :guide-debug [:list 1
+                             [:element :element :pair-begin :element :element
+                              :element :element :pair-end]],
+               :list {:respect-nl? false},
+               :width 27}))
+
+(expect "(caller aaaa\n  left riiiiiiiight\n  left2 right)"
+        (zprint-str "(caller aaaa left riiiiiiiight left2 right)"
+                    {:parse-string? true,
+                     :guide-debug [:list 1
+                                   [:element :element :pair-begin :element
+                                    :element :element :element :pair-end]],
+                     :list {:respect-nl? false},
+                     :width 26}))
+
+;;
+;; Ensure that something that is supposed to be on a line by iteself (due to
+;; the guide) will be on a line by itself.
+;;
+(expect "(stuff (caller aaaa bbbb\n         iii))"
+        (zprint-str "(stuff (caller aaaa bbbb iii))"
+                    {:parse-string? true,
+                     :guide-debug
+                       [:list 2 [:element :element :element :newline :element]],
+                     :list {:respect-nl? false},
+                     :width 24}))
+
+(expect "(stuff (caller aaaa\n         bbbb\n         iii))"
+        (zprint-str "(stuff (caller aaaa bbbb iii))"
+                    {:parse-string? true,
+                     :guide-debug
+                       [:list 2 [:element :element :element :newline :element]],
+                     :list {:respect-nl? false},
+                     :width 23}))
+
+;;
+;; A bug where spaces would cause the right margin to be violated
+;;
+
+(expect
+  "(stuff (caller aaaa\n                             iii))"
+  (zprint-str "(stuff (caller aaaa iii))"
+              {:parse-string? true,
+               :guide-debug [:list 2 [:element :element :spaces 20 :element]],
+               :list {:respect-nl? false},
+               :width 36}))
 
   ;;
   ;; # rodguide

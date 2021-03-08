@@ -784,6 +784,20 @@
                :list {:respect-nl? false},
                :width 36}))
 
+;;
+;; Ensure that we are using the right index (i.e., the element-index) when
+;; we are doing the beginning of line thing
+;;
+
+(expect "(stuff (;comment\n        caller aaaa bbbb\n         iii))"
+        (zprint-str
+          "(stuff (;comment\n caller aaaa bbbb iii))"
+          {:parse-string? true,
+           :guide-debug
+             [:list 2 [:indent 2 :element :element :element :newline :element]],
+           :list {:respect-nl? false},
+           :width 28}))
+
   ;;
   ;; # rodguide
   ;;

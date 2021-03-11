@@ -6362,7 +6362,7 @@
                   newline?
                     (if (zero? element-index) one-line-ind (+ indent ind))
                   :else last-width)
-        param-map (dissoc param-map :excess-guided-newline-count :align-key)
+        param-map (dissoc param-map :excess-guided-newline-count #_:align-key)
         param-map (assoc param-map :cur-ind new-ind)]
     ; We used to forget about spaces here in some situations, but
     ; really we only wanted to forget about them after :element or
@@ -6504,7 +6504,11 @@
                            output-seq))))))]
        (dbg-s options
               :guide
-              (color-str "guided-output returned additional out:" :bright-blue)
+              (color-str 
+	        (str "guided-output returned additional out:" 
+		(when (nil? guided-output-out)
+		  " - ALTOGETHER FAILED TO FIT!")) 	
+		:bright-blue)
               ((:dzprint options)
                 {:color? true}
                 guided-output-out
@@ -6910,7 +6914,7 @@
                              element-index
                              (inc index)
                              ; Forget spaces on every guided :newline
-                             (dissoc param-map :spaces)
+                             (dissoc param-map :spaces :align-key)
                              mark-map
                              [previous-newline? previous-guided-newline?
                               ;unguided-newline-out?
@@ -7015,7 +7019,8 @@
                                          (inc (:guided-newline-count param-map))
                                        :cur-ind (+ (:indent param-map)
                                                    (:ind param-map)))
-                                     :spaces)
+                                     :spaces
+				     :align-key)
                              mark-map
                              previous-data
                              out))
@@ -7118,7 +7123,8 @@
                                      :guided-newline-count 1
                                      :cur-ind (+ (:ind param-map)
                                                  (:indent param-map)))
-                                   :spaces)
+                                   :spaces
+				   :align-key)
                            mark-map
                            previous-data
                            out))
@@ -7225,29 +7231,6 @@
                            mark-map
                            new-previous-data
                            new-out))
-                #_#_(and (or (= (first guide-seq) :element-align)
-                             (= (first guide-seq) :element))
-                         (empty? (first cur-seq)))
-                  ; We had a failure to fit -- we had a problem doing
-                  ; when we did the fzprint-seq at the start.  Figure this
-                  ; out once for both :element and :element-align and then
-                  ; they don't have to worry about it.
-                  (do (dbg-s
-                        options
-                        :guide
-                        (color-str
-                          "fzprint-guide: === failure to fit found in cur-seq"
-                          :bright-red))
-                      (recur (next cur-seq)
-                             (next cur-zloc)
-                             (inc cur-index)
-                             (next guide-seq)
-                             (inc element-index)
-                             (inc index)
-                             param-map
-                             mark-map
-                             previous-data
-                             nil))
                 (= (first guide-seq) :element-align)
                   ; Do guided output, moving both cur-seq and guide-seq
                   ; Find the align-key, and then do an :element
@@ -7304,7 +7287,7 @@
                            (inc element-index)
                            (inc index)
                            ; forget spaces after :element or :element-align
-                           (dissoc new-param-map :spaces)
+                           (dissoc new-param-map :spaces :align-key)
                            mark-map
                            new-previous-data
                            new-out))
@@ -7358,7 +7341,7 @@
                            (inc element-index)
                            (inc index)
                            ; forget spaces after :element or :element-align
-                           (dissoc new-param-map :spaces)
+                           (dissoc new-param-map :spaces :align-key)
                            mark-map
                            new-previous-data
                            new-out))

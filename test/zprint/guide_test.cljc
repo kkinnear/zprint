@@ -798,6 +798,49 @@
            :list {:respect-nl? false},
            :width 28}))
 
+;;
+;; Spaces before a set of pairs
+;;
+
+(expect
+  "(caller aaaa          bbbb cccc\n                      ddddddd eeeeee\n                      fffffff gggg)"
+  (zprint-str
+    "(caller aaaa bbbb cccc ddddddd eeeeee fffffff gggg)"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element :spaces 10 :pair-begin :element :element
+                    :element :element :element :element :pair-end]],
+     :list {:respect-nl? false},
+     :width 36}))
+
+;;
+;; Accurate next line cur-ind
+;;
+
+(expect
+  "(caller aaaa\n  bbbb cccc\n            ddddddd\n  eeeeee fffffff\n  gggg)"
+  (zprint-str "(caller aaaa bbbb cccc ddddddd eeeeee fffffff gggg)"
+              {:parse-string? true,
+               :guide-debug [:list 1
+                             [:element :element :element :element :spaces 10
+                              :element :element :element :element]],
+               :list {:respect-nl? false},
+               :width 16}))
+
+;;
+;; If we had spaces before an element on "this" line and it didn't fit,
+;; forget the spaces when we put it on the next line
+;;
+
+(expect "(stuff (caller aaaa\n         bbbb\n         eeeee))"
+        (zprint-str "(stuff (caller aaaa bbbb eeeee))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :element :spaces 10 :element
+                                    :newline :element]],
+                     :width 32}))
+
   ;;
   ;; # rodguide
   ;;

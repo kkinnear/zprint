@@ -267,7 +267,7 @@
 
 (defn rumguide-1
   "Assumes that this is rum/defcs or something similar. Implement :arg1-mixin
-  with guides using :element-align"
+  with guides using :align"
   ([] "rumguide")
   ([options len sexpr]
    (let [docstring? (string? (nth sexpr 2))
@@ -289,13 +289,13 @@
                (- (count up-to-arguments) 2 (if docstring? 1 0) (if lt? 1 0))
              middle-guide (if (pos? middle-element-count)
                             (if lt?
-                              [:element :mark 1 :element-align 1 :newline]
-                              [:mark 1 :element-align 1 :newline])
+                              [:element :mark 1 :align 1 :element :newline]
+                              [:mark 1 :align 1 :element :newline])
                             [])
              #_(println "middle-element-count:" middle-element-count)
              middle-guide (concat middle-guide
                                   (repeat (dec middle-element-count)
-                                          [:element-align 1 :newline]))
+                                          [:align 1 :element :newline]))
              end-element-count (count args-and-after)
              end-guide [:element
                         (repeat (dec end-element-count) [:newline :element])]

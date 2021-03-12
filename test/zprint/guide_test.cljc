@@ -140,10 +140,10 @@
        :list {:respect-nl? false},
        :guide-debug [:list 1 [:element :element :newline :spaces 10 :mark 1 :element :spaces 10
                :mark 2 :element :spaces 10 :mark 3 :element :newline
-               :element-align 1 :element-align 2 :element-align 3 :newline
-               :element-align 1 :element-align 2 :element-align 3 :newline
-               :element-align 1 :element-align 2 :element-align 3 :newline
-               :element-align 1 :element-align 2 :element-align 3]],
+               :align 1 :element :align 2 :element :align 3  :element :newline
+               :align 1  :element :align 2 :element :align 3 :element :newline
+               :align 1 :element :align 2 :element :align 3 :element :newline
+               :align 1 :element :align 2 :element :align 3 :element]],
        :width 80}))
 
   (expect "(caller     aaaa bbbb ccc\n            dddddd)"
@@ -151,7 +151,7 @@
                       {:parse-string? true,
                        :list {:respect-nl? false},
                        :guide-debug [:list 1 [:element :spaces 5 :mark 2 :element :element
-                               :element :newline :element-align 2]],
+                               :element :newline :align 2 :element]],
                        :width 80}))
 
 (expect "(stuff (caller     aaaa bbbb ccc\n                   dddddd))"
@@ -160,22 +160,23 @@
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
                                    [:element :spaces 5 :mark 2 :element :element
-                                    :element :newline :element-align 2]],
+                                    :element :newline :align 2 :element]],
                      :width 80}))
 
 (expect
-"(caller aaaa          bbbb          ccc          ddddd\n                      eeeee         fff\n                                                 ;comment 1\n                                                 ggg\n                      hhh           iii          jjj\n                      kkk           lll ;comment 2\n                                                 mmm\n                      nnn           ooo          ppp)"
+  "(caller aaaa          bbbb          ccc          ddddd\n                      eeeee         fff\n                                                 ;comment 1\n                                                 ggg\n                      hhh           iii          jjj\n                      kkk           lll ;comment 2\n                                                 mmm\n                      nnn           ooo          ppp)"
   (zprint-str
     "(caller aaaa bbbb ccc ddddd eeeee fff \n;comment 1\n \nggg hhh iii jjj kkk lll ;comment 2\n\n mmm nnn ooo ppp)"
     {:parse-string? true,
      :list {:respect-nl? false},
      :guide-debug [:list 1
                    [:element :element :spaces 10 :mark 1 :element :spaces 10
-                    :mark 2 :element :spaces 10 :mark 3 :element :newline
-                    :element-align 1 :element-align 2 :element-align 3 :newline
-                    :element-align 1 :element-align 2 :element-align 3 :newline
-                    :element-align 1 :element-align 2 :element-align 3 :newline
-                    :element-align 1 :element-align 2 :element-align 3]],
+                    :mark 2 :element :spaces 10 :mark 3 :element :newline :align
+                    1 :element :align 2 :element :align 3 :element :newline
+                    :align 1 :element :align 2 :element :align 3 :element
+                    :newline :align 1 :element :align 2 :element :align 3
+                    :element :newline :align 1 :element :align 2 :element :align
+                    3 :element]],
      :width 80}))
 
 (expect
@@ -185,7 +186,7 @@
                :list {:respect-nl? false},
                :guide-debug [:list 2
                              [:element :element :newline :spaces 10 :mark 1
-                              :element :newline :element-align 1]],
+                              :element :newline :align 1 :element]],
                :width 80}))
 
   ; Ensure that, even though we are asking for alignment, we don't let two
@@ -199,7 +200,7 @@
                :guide-debug [:list 2
                              [:element :element :newline :spaces 10 :mark 1
                               :element :spaces 3 :mark 2 :element :newline
-                              :element-align 1 :element-align 2]],
+                              :align 1 :element :align 2 :element]],
                :width 80}))
 
 (expect
@@ -210,7 +211,7 @@
                :guide-debug [:list 2
                              [:element :element :newline :spaces 10 :mark 1
                               :element :spaces 3 :mark 2 :element :newline
-                              :element-align 1 :element-align 2]],
+                              :align 1 :element :align 2 :element]],
                :width 80}))
 
 (expect
@@ -221,7 +222,7 @@
                :guide-debug [:list 2
                              [:element :element :newline :spaces 10 :mark 1
                               :element :spaces 3 :mark 2 :element :newline
-                              :element-align 1 :element-align 2]],
+                              :align 1 :element :align 2 :element]],
                :width 80}))
 
 ; See that the default indent when we use :style :community is 1
@@ -260,7 +261,7 @@
      :guide-debug [:list 1
                    [:element :newline :element :newline :element :newline
                     :spaces 5 :mark 1 :element :newline :spaces 5 :element
-                    :newline :element-align 1 :newline :element-align 1]],
+                    :newline :align 1 :element :newline :align 1 :element]],
      :width 80}))
 
 (expect
@@ -272,21 +273,21 @@
      :guide-debug [:list 2
                    [:element :newline :element :newline :element :newline
                     :spaces 5 :mark 1 :element :newline :spaces 5 :element
-                    :newline :element-align 1 :newline :element-align 1]],
+                    :newline :align 1 :element :newline :align 1 :element]],
      :width 80}))
 
 
 (expect
-  "(stuff (;comment 1\n        caller\n             sss\n             ;comment :indent 6\n             ttt\n         xxx\n         ;comment :indent-reset\n         yyy\n              aaaa\n              ;comment :spaces 5\n              bbbb\n              ;comment :element-align 1\n              ccc\n              dddddd))"
+  "(stuff (;comment 1\n        caller\n             sss\n             ;comment :indent 6\n             ttt\n         xxx\n         ;comment :indent-reset\n         yyy\n              aaaa\n              ;comment :spaces 5\n              bbbb\n              ;comment :align 1\n              ccc\n              dddddd))"
   (zprint-str
-    "(stuff (;comment 1\n  caller sss \n;comment :indent 6\n ttt xxx \n;comment :indent-reset \n yyy aaaa \n;comment :spaces 5\n bbbb \n;comment :element-align 1\n ccc dddddd))"
+    "(stuff (;comment 1\n  caller sss \n;comment :indent 6\n ttt xxx \n;comment :indent-reset \n yyy aaaa \n;comment :spaces 5\n bbbb \n;comment :align 1\n ccc dddddd))"
     {:parse-string? true,
      :list {:respect-nl? false},
      :guide-debug [:list 2
                    [:element :newline :indent 6 :element :newline :element
                     :indent-reset :newline :element :newline :element :newline
                     :spaces 5 :mark 1 :element :newline :spaces 5 :element
-                    :newline :element-align 1 :newline :element-align 1]],
+                    :newline :align 1  :element :newline :align 1 :element]],
      :width 80}))
 
 
@@ -818,7 +819,10 @@
 ;;
 
 (expect
-  "(caller aaaa\n  bbbb cccc\n            ddddddd\n  eeeeee fffffff\n  gggg)"
+  "(caller aaaa\n  bbbb cccc\n  ddddddd eeeeee\n  fffffff gggg)"
+  ; This used to be the expected value before we started dropping any
+  ; alignments for the next-line output if they didn't fit
+  #_"(caller aaaa\n  bbbb cccc\n            ddddddd\n  eeeeee fffffff\n  gggg)"
   (zprint-str "(caller aaaa bbbb cccc ddddddd eeeeee fffffff gggg)"
               {:parse-string? true,
                :guide-debug [:list 1
@@ -840,6 +844,33 @@
                                    [:element :element :spaces 10 :element
                                     :newline :element]],
                      :width 32}))
+
+;;
+;; Handle alignment that doesn't fit by forgetting the alignment
+;;
+
+(expect
+  "(stuff\n  (caller aaaa\n              bbbb\n    ccc ddd   eeeeeeeee\n    fff))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc ddd  eeeeeeeee fff))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :spaces 10 :mark 1
+                              :element :newline :element :element :align 1
+                              :element :newline :element]],
+               :width 23}))
+
+
+(expect
+  "(stuff\n  (caller aaaa\n              bbbb\n    ccc ddd\n    eeeeeeeee\n    fff))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc ddd  eeeeeeeee fff))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :spaces 10 :mark 1
+                              :element :newline :element :element :align 1
+                              :element :newline :element]],
+               :width 22}))
 
   ;;
   ;; # rodguide

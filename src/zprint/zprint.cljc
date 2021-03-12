@@ -6159,12 +6159,12 @@
   ; [caller options incoming-seq zloc next-guide cur-index guide-seq
   ;  index multi-fit? param-map mark-map previous-data out]
   [caller
-   {:keys [width rightcnt],
+   {:keys [width rightcnt one-line?],
     {:keys [wrap-after-multi? respect-nl?]} caller,
     :as options} incoming-pairs zloc rightmost-zloc? next-guide #_cur-seq
    #_cur-zloc cur-index guide-seq element-index index multi-fit?
    {:keys [excess-guided-newline-count align-key last-cur-index rightcnt cur-ind
-           ind indent spaces one-line-ind],
+           ind indent spaces one-line-ind pair-seq],
     :as param-map} mark-map
    [previous-newline? previous-guided-newline? unguided-newline-out?
     previous-comment? :as previous-data] out]
@@ -6172,7 +6172,11 @@
   ; are no decisions to make about which one to use.
   (let [guided-newline? (= next-guide :newline)
         ; incoming-pairs is [pair-ind pair-result]
-        [pair-ind incoming-seq] incoming-pairs
+	do-pairs? (= next-guide :pair-end)
+	; TODO: REMOVE THIS
+	multi-fit? do-pairs?
+	; Forget incoming pairs
+        incoming-seq nil
         ; incoming-seq is the incoming sequence, if any.  The only thing that
         ; is incoming at present is the pair information.
         incoming-seq (if guided-newline? [["\n" :none :newline]] incoming-seq)
@@ -6181,7 +6185,7 @@
         ;
         ; There are two fundemental approaches here -- this-line and next-line.
         ; We will use fzprint* to see if something fits on this line
-        ; in some cases, though not in all.  We also may have an 
+        ; in some cases, though not in all.  We also may have an
         ; incoming-seq which might fit on this line and might need to go to
         ; the next line. The pairs code looks at previous-newline? and
         ; doesn't try the current line if it is set.
@@ -6189,9 +6193,9 @@
         ; These values are true for this and next line.
         options (if rightmost-zloc? options (not-rightmost options))
         align-ind (when align-key (get mark-map align-key))
-	; Find out how big the incoming pairs (or guided-newline) is
+        ; Find out how big the incoming pairs (or guided-newline) is
         incoming-lines
-          (style-lines options (or pair-ind (+ indent ind)) incoming-seq)
+          (style-lines options (or #_pair-ind (+ indent ind)) incoming-seq)
         ; This is only true for this line, not next line.
         align-spaces (when align-ind (max 0 (- align-ind cur-ind)))
         ; There are two key values for the this-line and next-line calls
@@ -6204,33 +6208,40 @@
         ; no actual spaces to the right of it.  If we don't, then we are
         ; somewhere on the line, and just have to put some spaces between
         ; where we are and where the next thing begins.
-	;
+        ;
         regular-space (if (or previous-newline? (zero? element-index)) 0 1)
         additional-spaces (or align-spaces spaces 0)
         beyond-cur-ind (max additional-spaces regular-space)
-	; How many spaces to the right of what is already there?
-	; Note that if we had a previous-newline, we don't really have cur-ind
-	; spaces there at this time, so we need to account for that.
+        ; How many spaces to the right of what is already there?
+        ; Note that if we had a previous-newline, we don't really have cur-ind
+        ; spaces there at this time, so we need to account for that.
         this-spaces
           (if previous-newline? (+ beyond-cur-ind cur-ind) beyond-cur-ind)
         this-ind (+ beyond-cur-ind cur-ind)
-        try-this? (and zloc
+        try-this? (and (or zloc do-pairs?)
                        (not previous-newline?)
                        (not guided-newline?)
                        (< cur-ind width)
                        (< this-ind width))
-        this-result (when try-this? (fzprint* (in-hang options) this-ind zloc))
+        this-result (when try-this? 
+		       (if do-pairs?
+	                 (fzprint-pairs (in-hang options) this-ind pair-seq)
+	                 (fzprint* (in-hang options) this-ind zloc)
+		       ))
         this-lines (style-lines options this-ind this-result)
-	; this-multi? says that there is more than one thing in this-result, 
-	; not that it is multi-line!!
+        ; this-multi? says that there is more than one thing in this-result,
+        ; not that it is multi-line!!
         this-multi? (when this-result (> (count this-result) 1))
-	; this-linecnt has the number of lines in this-result.
+        ; this-linecnt has the number of lines in this-result.
         this-linecnt (when this-lines (first this-lines))
         ; This says that we either didn't try a this or we did and the
         ; this didn't fit.
-        this-fit? (and zloc
+        this-fit? (and (or zloc do-pairs?)
                        (and (not (empty? this-result))
-                            (if this-multi? (<= this-linecnt 1) true)))
+                            (if this-multi? 
+			      (or multi-fit?
+				  (<= this-linecnt 1)) 
+			      true)))
         ; output-seq is either the results of the this-line fzprint* or the
         ; incoming sequence.
         output-seq (or this-result incoming-seq)
@@ -6244,48 +6255,77 @@
                            (= (nth (first output-seq) 2) :comment))
                       ; We tried a this, and it didn't fit.
                       (and try-this? (not this-fit?)))
-        _ (dbg-s options
+        #_(dbg-s options
                  :guide
                  "guided-output: this-lines:" this-lines
                  "this-multi?" this-multi?
                  "this-linecnt:" this-linecnt
                  "this-ind:" this-ind
+                 "try-this?" try-this?
                  "this-fit?" this-fit?
                  "fail-fit?" fail-fit?)
-	; If we tried it and it didn't fit, forget about any spaces before
-	; we try it on the next line
-	spaces (when spaces
-	         (if (and try-this? (not this-fit?))
-		   0
-		   spaces))
-	; If we tried it and it didn't fit, forget about any alignment before
-	; we try it on the next line
-	align-ind (when align-ind
-	             (if (and try-this? (not this-fit?))
-		         nil
-			 align-ind))
-	; next-ind is the place we will base the fzprint* call on, and in
-	; this case it is also the number of spaces we will need to put 
-	; out there before placing the return from fzprint*.
+        ; If we tried it and it didn't fit, forget about any spaces before
+        ; we try it on the next line
+        spaces (when spaces (if (and try-this? (not this-fit?)) nil spaces))
+        ; If we tried it and it didn't fit, forget about any alignment before
+        ; we try it on the next line
+        align-ind (when align-ind
+                    (if (and try-this? (not this-fit?)) nil align-ind))
+        ; next-ind is the place we will base the fzprint* call on, and in
+        ; this case it is also the number of spaces we will need to put
+        ; out there before placing the return from fzprint*.
         next-ind (or align-ind
                      (+ (if (zero? element-index) one-line-ind (+ indent ind))
                         (or spaces 0)))
+        ; If we have some kind of alignment, that is, align-ind or spaces,
+        ; and we didn't even try it with this-fzprint*, then we need to
+        ; see if it fits on the next line too, and if not, then do it
+        ; without any alignment for real.  But only if we aren't already
+        ; in-hang?
+        early-next-ind next-ind
+        test-fit?
+          (and (not try-this?) (or align-ind spaces) (not (:in-hang? options)))
+        ; We are going to do something on the next line.
+        try-next? (and (or zloc do-pairs?) (not this-fit?) (not output-newline?))
+        ; If we didn't try a this-line fzprint*, and we have some kind
+        ; of slightly optional alignment, then see if it fits with the
+        ; alignment on the next line.
+        next-result (when (and test-fit? try-next?)
+		      (if do-pairs?
+                        (fzprint-pairs (in-hang options) next-ind pair-seq)
+                        (fzprint* (in-hang options) next-ind zloc)
+		      )
+		      )
+        first-next-result next-result
+        ; We did the test-fit? and it didn't fit, so forget any alignment
+        ; or spaces -- or not.
+        next-ind (if (and try-next? test-fit? (empty? next-result))
+                   (if (zero? element-index) one-line-ind (+ indent ind))
+                   next-ind)
         ; See how it would fit if it were on the next line and we don't
         ; have a this that fit (either because we didn't try the this
         ; or because we did and the result didn't fit)
         ; Also don't flow if the this generated a newline.
-        next-result (when (and zloc (not this-fit?) (not output-newline?))
-                      (fzprint* options next-ind zloc))
+        next-result (if (and try-next? (empty? next-result))
+		      (if do-pairs?
+                        (fzprint-pairs options next-ind pair-seq)
+                        (fzprint* options next-ind zloc)
+		      )
+                      next-result)
         next-lines (style-lines options next-ind next-result)
-        _ (dbg-s options
+        #_(dbg-s options
                  :guide
                  "guided-output: next-lines:" next-lines
+                 "first-next-result:" first-next-result
+                 "early-next-ind:" early-next-ind
                  "next-ind:" next-ind
+                 "test-fit?" test-fit?
+                 "try-next?" try-next?
                  "(+ indent ind):" (+ indent ind)
                  "beyond-cur-ind:" beyond-cur-ind
                  "cur-ind:" cur-ind
                  "element-index:" element-index)
-        _ (dbg-s options
+        #_(dbg-s options
                  :guide
                  "guided-output: next?" (not (empty? next-result))
                  "this?" (not (empty? this-result)))
@@ -6301,10 +6341,10 @@
         indent? (= (nth (first output-seq) 2) :indent)
         ; output-seq might be nil, in which case several of these things
         ; are nil
-	; multi? says that there is more than one thing in output-seq, not
-	; it is multi-line!!
+        ; multi? says that there is more than one thing in output-seq, not
+        ; it is multi-line!!
         multi? (when output-seq (> (count output-seq) 1))
-        _ (dbg-s options
+        #_(dbg-s options
                  :guide
                  "guided-output: ind:" ind
                  "index:" index
@@ -6334,9 +6374,9 @@
                   ; Comments cause an overflow of the size, forcing the next
                   ; thing onto a new line
                   (or comment? comment-inline?) (inc width)
-                  ; If is multi-line, and we have more than one line, and 
-		  ; we don't allow anything after a multi-line thing on 
-		  ; the same line, then force the next thing onto a new line
+                  ; If is multi-line, and we have more than one line, and
+                  ; we don't allow anything after a multi-line thing on
+                  ; the same line, then force the next thing onto a new line
                   (and multi? (> linecnt 1) (not wrap-after-multi?)) (inc width)
                   ; If it is multi-line, and it is more than one line, and
                   ; we *do* allow things after the last line, then the length
@@ -6350,15 +6390,15 @@
                   ; before the first :element in the guide.  The first element
                   ; should be indented as if it were still on the same line
                   ; as the l-str, and one-line-ind is that indent.
-		  ;
-		  ; Just be aware that this is something of a lie, since 
-		  ; if we have a newline there really isn't anything on the
-		  ; line after it, since we can't take the chance that we
-		  ; might not have another newline next and we can't do 
-		  ; trailing newlines.  So the next call to guided-ouput
-		  ; needs to understand that cur-ind is the number of spaces
-		  ; that we wish were after a newline but aren't actually
-		  ; there.  
+                  ;
+                  ; Just be aware that this is something of a lie, since
+                  ; if we have a newline there really isn't anything on the
+                  ; line after it, since we can't take the chance that we
+                  ; might not have another newline next and we can't do
+                  ; trailing newlines.  So the next call to guided-ouput
+                  ; needs to understand that cur-ind is the number of spaces
+                  ; that we wish were after a newline but aren't actually
+                  ; there.
                   newline?
                     (if (zero? element-index) one-line-ind (+ indent ind))
                   :else last-width)
@@ -6390,27 +6430,74 @@
     (dbg-s options
            :guide
            "guided-output: ------ output-seq:"
-           ((:dzprint options) {} (condense-depth 1 output-seq)))
+           (color-str ((:dzprint options) {} (condense-depth 1 output-seq))
+                      :green))
     (dbg-s-pr options :guide "guided-output: ------ mark-map:" mark-map)
     ;"(first cur-seq)" (first cur-seq)
     (dbg-s
       options
-      :guide "guided-output:"
-      "\nindex:" index
-      "\ncur-index:" cur-index
-      "\nnewline?:" newline?
-      "\nexcess-guided-newline-count:" excess-guided-newline-count
-      "\nprevious-newline?" previous-newline?
-      "\nunguided-newline-out?" unguided-newline-out?
-      "\nprevious-comment?" previous-comment?
-      "\nalign-key:" align-key
-      "\nalign-ind:" align-ind
-      "\nalign-spaces:" align-spaces
-      "\nspaces:" spaces
-      "\nthis-spaces:" this-spaces
-      "\nregular-space:" regular-space
-      "\nadditional-spaces:" additional-spaces
-      "\nbeyond-cur-ind:" beyond-cur-ind
+      :guide
+      "guided-output:"
+      "\nindex:"
+      index
+      "\ncur-index:"
+      cur-index
+      "\none-line?" one-line?
+      "\ndo-pairs?" do-pairs?
+      "\nnewline?:"
+      newline?
+      "\nexcess-guided-newline-count:"
+      excess-guided-newline-count
+      "\nprevious-newline?"
+      previous-newline?
+      "\nunguided-newline-out?"
+      unguided-newline-out?
+      "\nprevious-comment?"
+      previous-comment?
+      "\nalign-key:"
+      align-key
+      "\nalign-ind:"
+      align-ind
+      "\nalign-spaces:"
+      align-spaces
+      "\nspaces:"
+      spaces
+      "\nTHIS:"
+      ""
+      "\n this-lines:"
+      this-lines
+      "\n this-ind:"
+      this-ind
+      "\n this-spaces:"
+      this-spaces
+      "\n this-multi?"
+      this-multi?
+      "\n this-linecnt:"
+      this-linecnt
+      "\n try-this?"
+      try-this?
+      "\n this-fit?"
+      this-fit?
+      "\n fail-fit?"
+      fail-fit?
+      "\n regular-space:"
+      regular-space
+      "\n additional-spaces:"
+      additional-spaces
+      "\n beyond-cur-ind:"
+      beyond-cur-ind
+      "\nNEXT:"
+      ""
+      "\n next-lines:"
+      next-lines
+      "\n try-next?"
+      try-next?
+      "\n test-fit?"
+      test-fit?
+      "\n early-next-ind:"
+      early-next-ind
+      "\n next-ind:" next-ind
+      "\n (+ indent ind):" (+ indent ind)
       "\nmulti?" multi?
       "\nmulti-fit?" multi-fit?
       "\nlines:" lines
@@ -6450,9 +6537,8 @@
              (if fit?
                ; Note that newlines don't fit
                (if (not (zero? index))
-                 (concat-no-nil
-                   [[(blanks this-spaces) :none :whitespace 25]]
-                   output-seq)
+                 (concat-no-nil [[(blanks this-spaces) :none :whitespace 25]]
+                                output-seq)
                  ; This might be nil, but that's ok
                  output-seq)
                (if newline?
@@ -6489,35 +6575,32 @@
                      ; Yes, don't prepend another newline
                      output-seq
                      (do (dbg-s options :guide "guided-output: prepend-nl:")
-                         (prepend-nl
-                           options
-                           ; This code is related to the code under
-                           ; fit? above, but without previous-newline?,
-                           ; as that is assumed since we are calling
-                           ; prepend-nl.
-                           ;
-                           ; Note that this is largely for ensuring
-                           ; that non-inline comments end up indented
-                           ; to match the indentation of the next
-                           ; :element or :elment-align
-                           next-ind
-                           output-seq))))))]
+                         (prepend-nl options
+                                     ; This code is related to the code under
+                                     ; fit? above, but without
+                                     ; previous-newline?,
+                                     ; as that is assumed since we are calling
+                                     ; prepend-nl.
+                                     ;
+                                     ; Note that this is largely for ensuring
+                                     ; that non-inline comments end up indented
+                                     ; to match the indentation of the next
+                                     ; :element or :elment-align
+                                     next-ind
+                                     output-seq))))))]
        (dbg-s options
               :guide
-              (color-str 
-	        (str "guided-output returned additional out:" 
-		(when (nil? guided-output-out)
-		  " - ALTOGETHER FAILED TO FIT!")) 	
-		:bright-blue)
+              (color-str (str "guided-output returned additional out:"
+                              (when (nil? guided-output-out)
+                                " - ALTOGETHER FAILED TO FIT!"))
+                         :bright-blue)
               ((:dzprint options)
                 {:color? true}
                 guided-output-out
                 #_(into [] (condense-depth 1 guided-output-out))))
-       ; If we have a nil guided-output-out, we don't add it on, we 
+       ; If we have a nil guided-output-out, we don't add it on, we
        ; return a nil which will stop everything!
-       (when guided-output-out
-       (concat out guided-output-out))
-       )]))
+       (when guided-output-out (concat out guided-output-out)))]))
 
 
 (defn comment-or-newline?
@@ -6533,7 +6616,7 @@
   test, just to try to get it to actually fit. 
   Called with: [options param-map previous-data]
   Returns next-pair-seq which might be nil if we were already in-hang."
-  [{:keys [in-hang?], :as options}
+  [{:keys [in-hang? one-line?], :as options}
    {:keys [excess-guided-newline-count rightcnt cur-ind ind indent spaces
            pair-seq],
     :as param-map}
@@ -6569,6 +6652,8 @@
            "guide-pairs: pairs-hang:"
              ((:dzprint options) {} (into [] pairs-hang))
            "\n  pairs-flow:" ((:dzprint options) {} (into [] pairs-flow))
+	   "in-hang?" in-hang?
+	   "one-line?" one-line?
            "ind:" ind
            "cur-ind:" cur-ind
            "hang-ind:" hang-ind
@@ -6672,6 +6757,554 @@
     [multi-fit? result]))
 
 (defn fzprint-guide
+  "Given a zloc-seq wrap the elements to the right margin 
+  and be guided by the guide seq."
+  [caller
+   {:keys [width rightcnt one-line?],
+    {:keys [wrap-after-multi? respect-nl? indent]} caller,
+    :as options} ind cur-ind local-indent guide zloc-seq]
+  (dbg-s options
+         :guide
+         "fzprint-guide: entry:" (zstring (first zloc-seq))
+         "caller:" caller
+         "ind:" ind
+         "cur-ind:" cur-ind
+         "local-indent:" local-indent
+         "guide:" (color-str (pr-str guide) :bright-red))
+  ; If it is one-line? and we have any :newlines in the guide, we are
+  ; finished now
+  (if (and one-line? (some #{:newline} guide))
+    ; We clearly aren't going to output a single line
+    (do (dbg-s options
+               :guide
+               "fzprint-guide: returned nil - one-line? is true and guide"
+               "has :newline!")
+        nil)
+    (let [rightcnt (fix-rightcnt rightcnt)
+          last-cur-index (dec (count zloc-seq #_coll-print))]
+      (when-not guide
+        (throw (#?(:clj Exception.
+                   :cljs js/Error.)
+                (str "No guide but fn-style is :guide for this sequence: "
+                     (mapv zstring zloc-seq)))))
+      (loop [cur-zloc zloc-seq
+             cur-index 0
+             guide-seq guide
+             element-index 0
+             index 0
+             param-map {:cur-ind cur-ind,
+                        :ind ind,
+                        :one-line-ind cur-ind,
+                        :indent local-indent,
+                        :pair-seq nil,
+                        :last-cur-index last-cur-index,
+                        :rightcnt rightcnt}
+             mark-map {}
+             [previous-newline? previous-guided-newline? unguided-newline-out?
+              previous-comment? :as previous-data]
+               nil
+             ; transient here slows things down, interestingly enough
+             out []]
+        ; We can't just check for cur-seq here, or any pairs we might be
+        ; accumulating will be lost, since :pair-end has to come beyond
+        ; the last :element that finished cur-seq
+        ;(if-not (or guide-seq cur-seq))
+        (if (or (not (or guide-seq cur-zloc)) (nil? out))
+          (do (dbg-s options
+                     :guide
+                     "fzprint-guide: out:"
+                     ((:dzprint options) {} (into [] (condense-depth 1 out))))
+              out)
+          (if (> index 50)
+            out
+            (let [_ (dbg-s options
+                           :guide
+                           "\n\nfzprint-guide: =====> (first guide-seq):"
+                             (first guide-seq)
+                           "\nfzprint-guide: initial param-map:"
+                             ((:dzprint options)
+                               {}
+                               (assoc (dissoc param-map :pair-seq)
+                                 :pair-seq-len (count (:pair-seq param-map)))))
+                  ; If we are out of guide-seq, but we still have cur-seq
+                  ; which we must because of the if-not above, then keep
+                  ; doing elements in guide-seq for as long as we have cur-seq
+                  ;
+                  ; TODO: Change this to [:element], or it will fail when
+                  ; the guide-seq runs out.  But it can be nice to have it
+                  ; fail for debugging.
+                  guide-seq (or guide-seq :element #_[:element])
+                  ; First, look into what we have coming up in the sequence
+                  ; we are formatting
+                  comment? (= (ztag (first cur-zloc)) :comment)
+                  ; always used together
+                  comment-inline? comment?
+                  next-newline? (= (ztag (first cur-zloc)) :newline)
+                  rightmost-zloc? (not (next cur-zloc))]
+              (cond
+                (and (:pair-seq param-map) (= (first guide-seq) :element))
+                  ; we are accumulating pairs from cur-zloc
+                  ; we assume that cur-seq and cur-zloc line up 1-1
+                  ; and we only accept :element between :pair-start and
+                  ; :pair-end
+                  ;
+                  ; First, split off any comments or newlines off of the
+                  ; front of cur-seq and do the same for zloc-seq
+                  (let [[comments-or-newlines-cur-zloc remaining-cur-zloc]
+                          (split-with zcomment-or-newline? cur-zloc)
+                        pair-seq (:pair-seq param-map)
+                        ; Add the comments and newlines from cur-zloc to
+                        ; pair-seq
+                        pair-seq (into []
+                                       (concat pair-seq
+                                               comments-or-newlines-cur-zloc))
+                        ; Do one more :element off of zloc-seq
+                        pair-seq (conj pair-seq (first remaining-cur-zloc))]
+                    (dbg-s options
+                           :guide
+                           (color-str "fzprint-guide: === save a pair element"
+                                      :bright-red))
+                    (recur (next remaining-cur-zloc)
+                           (+ cur-index (count comments-or-newlines-cur-zloc) 1)
+                           (next guide-seq)
+                           (inc element-index)
+                           (inc index)
+                           (assoc param-map :pair-seq pair-seq)
+                           mark-map
+                           previous-data
+                           out))
+                (= (first guide-seq) :pair-end)
+                  ; output accumulated pairs
+                  (if (:pair-seq param-map)
+                    (do (dbg-s options
+                               :guide
+                                 (color-str
+                                   "fzprint-guide: === output formatted pairs"
+                                   :bright-red)
+                               ":pair-end: :in-hang?" (:in-hang? options))
+                        ; We check the incoming :pair-seq here, because if
+                        ; next-pair-seq is nil and :pair-seq was not empty,
+                        ; that means that it didn't fit because we are in-hang?.
+                        (if (empty? (:pair-seq param-map))
+                          ; Nothing to do, was :pair-begin :pair-end together
+                          (recur cur-zloc
+                                 cur-index
+                                 (next guide-seq)
+                                 element-index
+                                 (inc index)
+                                 (dissoc param-map :pair-seq)
+                                 mark-map
+                                 previous-data
+                                 out)
+                          ; we got output from guide-pairs
+                          (let [[new-param-map new-previous-data new-out]
+                                  (guided-output
+                                    caller
+                                    options
+                                    nil
+                                    nil ; zloc
+                                    rightmost-zloc? ; rightmost-zloc?
+                                    (first guide-seq)
+                                    cur-index
+                                    guide-seq
+                                    element-index
+                                    index
+                                    true ; multi-fit?
+                                    param-map
+                                    mark-map
+                                    previous-data
+                                    out)]
+                            (recur cur-zloc
+                                   cur-index
+                                   (next guide-seq)
+                                   element-index
+                                   (inc index)
+                                   (dissoc new-param-map :pair-seq)
+                                   mark-map
+                                   new-previous-data
+                                   new-out))))
+                    (throw
+                      (#?(:clj Exception.
+                          :cljs js/Error.)
+                       (str
+                         ":pair-end without preceding :pair-begin!"))))
+                (:pair-seq param-map)
+                  ; we are accumulating pairs, but we didn't get either :element
+                  ; or :pair-end
+                  (throw (#?(:clj Exception.
+                             :cljs js/Error.)
+                          (str "Only :element allowed between :pair-begin "
+                               " and :pair-end.  Instead found: "
+                               (first guide-seq))))
+                ;
+                ; process things that absorb information out of guide-seq
+                ; without changing next-seq
+                ;
+                (and (= (first guide-seq) :newline) unguided-newline-out?)
+                  ; skip a guided newline if we had an unguided-newline-out
+                  ; on the last output
+                  (do (dbg-s options
+                             :guide
+                             (color-str "fzprint-guide: === skip guided newline"
+                                        :bright-red)
+                             "since we had unguided-newline-out on last output")
+                      (recur cur-zloc
+                             cur-index
+                             (next guide-seq)
+                             element-index
+                             (inc index)
+                             ; Forget spaces on every guided :newline
+                             (dissoc param-map :spaces :align-key)
+                             mark-map
+                             [previous-newline? previous-guided-newline?
+                              ;unguided-newline-out?
+                              nil previous-comment?]
+                             out))
+                (= (first guide-seq) :mark)
+                  ; put the cur-ind into the mark map with key the next
+                  ; guide-seq
+                  (do
+                    (dbg-s options
+                           :guide
+                           (color-str "fzprint-guide: === create mark: key:"
+                                      :bright-red)
+                           (first (next guide-seq))
+                           "value:"
+                           (+ (:cur-ind param-map) (or (:spaces param-map) 1)))
+                    (recur cur-zloc
+                           cur-index
+                           ; skip an extra to account for the mark key
+                           (nnext guide-seq)
+                           element-index
+                           (inc index)
+                           param-map
+                           (assoc mark-map
+                             (first (next guide-seq)) (+ (:cur-ind param-map)
+                                                         (or (:spaces param-map)
+                                                             1)))
+                           previous-data
+                           out))
+                (= (first guide-seq) :spaces)
+                  ; save the spaces for when we actually do output
+                  ; note that spaces after a newline are beyond the indent
+                  (do (dbg-s options
+                             :guide
+                             (color-str "fzprint-guide: === spaces" :bright-red)
+                             (first (next guide-seq)))
+                      (recur cur-zloc
+                             cur-index
+                             ; skip an extra to account for the spaces count
+                             (nnext guide-seq)
+                             element-index
+                             (inc index)
+                             (assoc param-map :spaces (first (next guide-seq)))
+                             mark-map
+                             previous-data
+                             out))
+                (= (first guide-seq) :indent)
+                  ; save a new indent value in param-map
+                  (do (dbg-s options
+                             :guide
+                             "fzprint-guide: === :indent"
+                             (first (next guide-seq)))
+                      (recur cur-zloc
+                             cur-index
+                             ; skip an extra to account for the indent value
+                             (nnext guide-seq)
+                             element-index
+                             (inc index)
+                             (assoc param-map :indent (first (next guide-seq)))
+                             mark-map
+                             previous-data
+                             out))
+                (= (first guide-seq) :indent-reset)
+                  ; put the indent back where it was originally
+                  (do (dbg-s options
+                             :guide
+                             (color-str "fzprint-guide: === :indent-reset"
+                                        :bright-red))
+                      (recur cur-zloc
+                             cur-index
+                             (next guide-seq)
+                             element-index
+                             (inc index)
+                             (assoc param-map :indent local-indent)
+                             mark-map
+                             previous-data
+                             out))
+                (= (first guide-seq) :align)
+                  ; Set up for an alignment on the next :element
+                  ; Find the align-key, and save it in the param-map
+                  (let [align-key (first (next guide-seq))
+                        _ (dbg-s options
+                                 :guide (color-str "fzprint-guide: === :align"
+                                                   :bright-red)
+                                 "key:" align-key
+                                 "value:" (get mark-map align-key))]
+                    (recur cur-zloc
+                           cur-index
+                           ; skip an extra to account for the align-key
+                           (nnext guide-seq)
+                           element-index
+                           (inc index)
+                           ; remember the align-key
+                           (assoc param-map :align-key align-key)
+                           mark-map
+                           previous-data
+                           out))
+                (:guided-newline-count param-map)
+                  ; we are currently counting newlines, see if we have more
+                  ; or if we should output any excess that we have counted
+                  (if (= (first guide-seq) :newline)
+                    ; we have another :newline, just count it
+                    (do
+                      (dbg-s options
+                             :guide
+                             (color-str
+                               "fzprint-guide: === counting guided newlines:"
+                               :bright-red)
+                             (inc (:guided-newline-count param-map)))
+                      (recur cur-zloc
+                             cur-index
+                             (next guide-seq)
+                             element-index
+                             (inc index)
+                             (dissoc (assoc param-map
+                                       :guided-newline-count
+                                         (inc (:guided-newline-count param-map))
+                                       :cur-ind (+ (:indent param-map)
+                                                   (:ind param-map)))
+                                     :spaces
+                                     :align-key)
+                             mark-map
+                             previous-data
+                             out))
+                    ; we are counting guided-newlines, and we have found a guide
+                    ; that is not a :newline, so we need to determine the number
+                    ; of excess guided-newlines we have, by counting the actual
+                    ; newlines and comparing them
+                    (let
+                      [_ (dbg-s
+                           options
+                           :guide
+                             (color-str
+                               "fzprint-guide: === finished counting newlines"
+                               :bright-red)
+                           ":guided-newline-count:" (:guided-newline-count
+                                                      param-map))
+                       comment-and-newline-count (zcount-comments-and-newlines
+                                                   cur-zloc)
+                       guided-newline-count (:guided-newline-count param-map)
+                       excess-guided-newline-count
+                         (max 0
+                              (- guided-newline-count
+                                 comment-and-newline-count))
+                       param-map (dissoc param-map :guided-newline-count)
+                       ; Since we expect a newline or equivalent sometime
+                       ; soon, as in next, let's fix up the cur-ind to
+                       ; represent that.
+                       param-map (assoc param-map
+                                   :cur-ind (+ (:indent param-map)
+                                               (:ind param-map)))
+                       param-map (if (pos? excess-guided-newline-count)
+                                   (assoc param-map
+                                     :excess-guided-newline-count
+                                       excess-guided-newline-count)
+                                   param-map)
+                       ; If we have excess-guided-newline-count then do
+                       ; output right now, fake a guided newline to make
+                       ; this happen
+                       [new-param-map new-previous-data new-out]
+                         (if (pos? excess-guided-newline-count)
+                           (do
+                             (dbg-s
+                               options
+                               :guide
+                               (color-str
+                                 "fzprint-guide === excess-guided-newline-count:"
+                                 :bright-red)
+                               excess-guided-newline-count)
+                             (guided-output
+                               caller
+                               options
+                               nil
+                               #_[["\n" :none :newline]]
+                               nil ; zloc
+                               nil ; rightmost-zloc?
+                               #_(first cur-seq)
+                               :newline ;guide-seq
+                               #_cur-seq
+                               #_cur-zloc
+                               cur-index
+                               guide-seq
+                               element-index
+                               index
+                               nil ; multi-fit?
+                               param-map
+                               mark-map
+                               previous-data
+                               out))
+                           [param-map previous-data out])]
+                      (recur cur-zloc
+                             cur-index
+                             ; don't move forward, as we were dealing with
+                             ; the end of a previous set of :newlines
+                             guide-seq
+                             element-index
+                             (inc index)
+                             new-param-map
+                             mark-map
+                             new-previous-data
+                             new-out)))
+                (= (first guide-seq) :newline)
+                  ; start counting guided newlines
+                  (do
+                    (dbg-s options
+                           :guide
+                           (color-str
+                             "fzprint-guide: === start counting guided newlines"
+                             :bright-red))
+                    (recur cur-zloc
+                           cur-index
+                           (next guide-seq)
+                           element-index
+                           (inc index)
+                           ; Forget spaces on every guided :newline
+                           (dissoc (assoc param-map
+                                     :guided-newline-count 1
+                                     :cur-ind (+ (:ind param-map)
+                                                 (:indent param-map)))
+                                   :spaces
+                                   :align-key)
+                           mark-map
+                           previous-data
+                           out))
+                ; :pair-begin has to come after the newline handling
+                (= (first guide-seq) :pair-begin)
+                  ; create an empty seq to accumulate pairs
+                  (do (dbg-s options
+                             :guide
+                             (color-str
+                               "fzprint-guide: === start accumulating pairs"
+                               :bright-red))
+                      (recur cur-zloc
+                             cur-index
+                             (next guide-seq)
+                             element-index
+                             (inc index)
+                             (assoc param-map :pair-seq [])
+                             mark-map
+                             previous-data
+                             out))
+                ;
+                ;  Start looking at cur-seq
+                ;
+                ; At this point, the only guide left is :element,
+                ; soo we must be sitting on it.
+                ; All of the others are (and must be) processed above.
+                ;
+                ; Anything left in cur-zloc?
+                (nil? cur-zloc)
+                  ; No, nothing left in cur-zloc.  This isn't a failure,
+                  ; because we might be accumulating pairs or just have
+                  ; made too long a guide.  Just keep going and eat up
+                  ; the guide-seq.
+                  (do (dbg-s options
+                             :guide
+                             (color-str "fzprint-guide: === ran out of cur-zloc"
+                                        :bright-red))
+                      (recur (next cur-zloc)
+                             (inc cur-index)
+                             (next guide-seq)
+                             element-index
+                             (inc index)
+                             param-map
+                             mark-map
+                             previous-data
+                             out))
+                (or comment? comment-inline? next-newline?)
+                  ; Do unguided output, moving cur-zloc without changing
+                  ; guide-seq
+                  (let [_ (dbg-s
+                            options
+                            :guide
+                              (color-str
+                                "fzprint-guide: === process comments, newlines"
+                                :bright-red)
+                            "comment?" comment?
+                            "comment-inline?" comment-inline?
+                            "next-newline?" next-newline?)
+                        [new-param-map new-previous-data new-out]
+                          (guided-output caller
+                                         options
+                                         nil
+                                         (first cur-zloc)
+                                         rightmost-zloc?
+                                         (first guide-seq) ; unknown
+                                         cur-index
+                                         guide-seq
+                                         element-index
+                                         index
+                                         nil ; multi-fit?
+                                         param-map
+                                         mark-map
+                                         previous-data
+                                         out)]
+                    (recur (next cur-zloc)
+                           (inc cur-index)
+                           ; We may have used information from guide-seq, but
+                           ; we didn't "consume" it yet.
+                           guide-seq
+                           element-index
+                           (inc index)
+                           new-param-map
+                           mark-map
+                           new-previous-data
+                           new-out))
+                (= (first guide-seq) :element)
+                  ; Do basic guided output, moving both cur-seq and guide-seq
+                  (let [_ (dbg-s options
+                                 :guide
+                                 (color-str "fzprint-guide: === :element"
+                                            :bright-red))
+                        [new-param-map new-previous-data new-out]
+                          (guided-output caller
+                                         options
+                                         nil
+                                         (first cur-zloc)
+                                         rightmost-zloc?
+                                         (first guide-seq)
+                                         cur-index
+                                         guide-seq
+                                         element-index
+                                         index
+                                         nil ;multi-fit?
+                                         param-map
+                                         mark-map
+                                         previous-data
+                                         out)]
+                    (recur (next cur-zloc)
+                           (inc cur-index)
+                           (next guide-seq)
+                           (inc element-index)
+                           (inc index)
+                           ; forget spaces after :element or :element-align
+                           (dissoc new-param-map :spaces :align-key)
+                           mark-map
+                           new-previous-data
+                           new-out))
+                ;
+                ; Something we didn't expect is going on here
+                ; TODO: Fix this for realistic error reporting
+                ;
+                :else
+                  (throw
+                    (#?(:clj Exception.
+                        :cljs js/Error.)
+                     (str "Unknown values: guide-seq:" (first guide-seq)
+                          "\ncur-zloc:" (zstring (first cur-zloc)))))))))))))
+
+(defn fzprint-guide-works-not-cleaned-up
   "Given a zloc-seq wrap the elements to the right margin 
   and be guided by the guide seq."
   [caller
@@ -6818,7 +7451,7 @@
                               ":pair-end: :in-hang?" (:in-hang? options)
                               "next-pair-seq:" next-pair-seq)
                           pair-seq (:pair-seq param-map)
-                          param-map (dissoc param-map :pair-seq)]
+                          #_#_param-map (dissoc param-map :pair-seq)]
                       ; We check the incoming :pair-seq here, because if
                       ; next-pair-seq is nil and :pair-seq was not empty,
                       ; that means that it didn't fit because we are in-hang?.
@@ -6831,7 +7464,7 @@
                                  (next guide-seq)
                                  element-index
                                  (inc index)
-                                 param-map
+                                 (dissoc param-map :pair-seq)
                                  mark-map
                                  previous-data
                                  out)
@@ -6843,7 +7476,7 @@
                                     options
                                     next-pair-seq
                                     nil ; zloc
-                                    nil ; rightmost-zloc?
+                                    rightmost-zloc? ; rightmost-zloc?
                                     (first guide-seq)
                                     #_cur-seq
                                     #_cur-zloc
@@ -6862,7 +7495,7 @@
                                    (next guide-seq)
                                    element-index
                                    (inc index)
-                                   new-param-map
+                                   (dissoc new-param-map :pair-seq)
                                    mark-map
                                    new-previous-data
                                    new-out))
@@ -6875,7 +7508,7 @@
                                  (next guide-seq)
                                  element-index
                                  (inc index)
-                                 param-map
+                                 (dissoc param-map :pair-seq)
                                  mark-map
                                  previous-data
                                  nil)
@@ -6996,6 +7629,30 @@
                              mark-map
                              previous-data
                              out))
+
+                (= (first guide-seq) :align)
+                  ; Set up for an alignment on the next :element
+                  ; Find the align-key, and save it in the param-map
+                  (let [align-key (first (next guide-seq))
+                        _ (dbg-s options
+                                 :guide (color-str
+                                          "fzprint-guide: === :align"
+                                          :bright-red)
+                                 "key:" align-key
+                                 "value:" (get mark-map align-key))]
+                    (recur #_(next cur-seq)
+                           cur-zloc
+                           cur-index
+                           ; skip an extra to account for the align-key
+                           (nnext guide-seq)
+                           element-index
+                           (inc index)
+                           ; remember the align-key
+			   (assoc param-map :align-key align-key)
+                           mark-map
+                           previous-data
+                           out))
+
                 (:guided-newline-count param-map)
                   ; we are currently counting newlines, see if we have more
                   ; or if we should output any excess that we have counted
@@ -7149,19 +7806,19 @@
                 ;
                 ;  Start looking at cur-seq
                 ;
-                ; At this point, the only guides left are :element and
-                ; :element-align, so we must be sitting on one of them.
+                ; At this point, the only guide left is :element,
+                ; soo we must be sitting on it.
                 ; All of the others are (and must be) processed above.
                 ;
-                ; Do we have any cur-seq to look at?
-                #_(nil? cur-seq)
+		; Anything left in cur-zloc?
                 (nil? cur-zloc)
-                  ; No, nothing left in cur-seq.  This isn't a failure, because
-                  ; we might be accumulating pairs or just have made too long
-                  ; a guide.  Just keep going and eat up the guide-seq.
+                  ; No, nothing left in cur-zloc.  This isn't a failure, 
+		  ; because we might be accumulating pairs or just have 
+		  ; made too long a guide.  Just keep going and eat up 
+		  ; the guide-seq.
                   (do (dbg-s options
                              :guide
-                             (color-str "fzprint-guide: === ran out of cur-seq"
+                             (color-str "fzprint-guide: === ran out of cur-zloc"
                                         :bright-red))
                       (recur #_(next cur-seq)
                              (next cur-zloc)
@@ -7174,7 +7831,7 @@
                              previous-data
                              out))
                 (or comment? comment-inline? next-newline?)
-                  ; Do unguided output, moving cur-seq without changing
+                  ; Do unguided output, moving cur-zloc without changing
                   ; guide-seq
                   (let [_ (dbg-s
                             options
@@ -7185,19 +7842,6 @@
                             "comment?" comment?
                             "comment-inline?" comment-inline?
                             "next-newline?" next-newline?)
-                        align? (= (first guide-seq) :element-align)
-                        ; Find the align-key, and then ensure that a comment
-                        ; is indented like the subsequent :element or
-                        ; :element-align is indented.
-                        align-key (when align? (first (next guide-seq)))
-                        param-map (if align?
-                                    (assoc param-map :align-key align-key)
-                                    param-map)
-                        [multi-fit? local-seq] (fzprint*-guide caller
-                                                               options
-                                                               param-map
-                                                               (first cur-zloc)
-                                                               rightmost-zloc?)
                         [new-param-map new-previous-data new-out]
                           (guided-output
                             caller
@@ -7228,66 +7872,6 @@
                            element-index
                            (inc index)
                            new-param-map
-                           mark-map
-                           new-previous-data
-                           new-out))
-                (= (first guide-seq) :element-align)
-                  ; Do guided output, moving both cur-seq and guide-seq
-                  ; Find the align-key, and then do an :element
-                  (let [align-key (first (next guide-seq))
-                        _ (dbg-s options
-                                 :guide (color-str
-                                          "fzprint-guide: === :element-align"
-                                          :bright-red)
-                                 "key:" align-key
-                                 "value:" (get mark-map align-key))
-                        param-map (assoc param-map :align-key align-key)
-                        [multi-fit? local-seq] (fzprint*-guide caller
-                                                               options
-                                                               param-map
-                                                               (first cur-zloc)
-                                                               rightmost-zloc?)
-                        _ (dbg-s options
-                                 :guide "fzprint-guide: element-align:"
-                                 " multi-fit?" multi-fit?
-                                 "\nlocal-seq:"
-                                   (color-str
-                                     ((:dzprint options) {} (into [] local-seq))
-                                     :green))
-                        [new-param-map new-previous-data new-out]
-                          (if (not (empty? local-seq))
-                            (guided-output
-                              caller
-                              options
-                              nil
-                              #_local-seq
-                              (first cur-zloc)
-                              rightmost-zloc?
-                              #_(first cur-seq)
-                              :element
-                              #_cur-seq
-                              #_cur-zloc
-                              cur-index
-                              guide-seq
-                              element-index
-                              index
-                              multi-fit?
-                              #_nil ; multi-fit?
-                              param-map
-                              mark-map
-                              previous-data
-                              out)
-                            ; we had a failure to fit
-                            [param-map previous-data nil])]
-                    (recur #_(next cur-seq)
-                           (next cur-zloc)
-                           (inc cur-index)
-                           ; skip an extra to account for the align-key
-                           (nnext guide-seq)
-                           (inc element-index)
-                           (inc index)
-                           ; forget spaces after :element or :element-align
-                           (dissoc new-param-map :spaces :align-key)
                            mark-map
                            new-previous-data
                            new-out))
@@ -7345,7 +7929,7 @@
                            mark-map
                            new-previous-data
                            new-out))
-                (= (first guide-seq) :element-compare)
+                #_#_(= (first guide-seq) :element-compare)
                   ; Do basic guided output, moving both cur-seq and guide-seq
                   (let [_ (dbg-s options
                                  :guide

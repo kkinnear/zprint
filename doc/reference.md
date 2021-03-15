@@ -1106,6 +1106,33 @@ n}`.
    (= d 4) (inc a))
 ```
 
+Note that :pair-fn will correctly format pairs where the test is a keyword 
+and the expression is a vector, as in 'better-cond'.  For example (drawn
+from the 'better-cond' readme) this is how zprint will format the following
+expression by default:
+
+```clojure
+(cond
+  (odd? a) 1
+  :let [a (quot a 2)]
+  :when-let [x (fn-which-may-return-falsey a)
+             y (fn-which-may-return-falsey (* 2 a))]
+  :when-some [b (fn-which-may-return-nil x)
+              c (fn-which-may-return-nil y)]
+  :when (seq x)
+  :do (println x)
+  (odd? (+ x y)) 2
+  3)
+```
+
+Every keyword whose symbol appears in the `:fn-map` (and is therefore likely
+to be a built-in function) which has a vector following it will have that
+vector formatted as a binding vector.  In addition, every keyword whose
+symbol appears in the `:fn-map` but does not have a vector following it,
+will be formatted in such a way that the expr after it will be on the
+same line if at all possible, regardless of the settings for how to 
+manage pairs.
+
 #### :hang
 
 The function has a series of arguments where it would be nice
@@ -3920,6 +3947,16 @@ Some examples of how `:flow?` an `:nl-separator?` can interact:
   d)
 
 ```
+
+If the left hand side of a pair is a keyword whose symbol appears
+in the `:fn-map` (and is therefore likely to be a built-in function)
+and it has a vector following it will have that vector formatted
+as a binding vector.  In addition, every left hand side keyword
+whose symbol appears in the `:fn-map` but does not have a vector
+following it, will be formatted in such a way that the expr after
+it will be on the same line if at all possible, regardless of the
+settings for how to manage pairs.
+
 _____
 ## :pair-fn
 

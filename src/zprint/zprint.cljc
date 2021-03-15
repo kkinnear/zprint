@@ -1038,7 +1038,11 @@
                 flow-indent (+ indent ind)]
             (if (and (zstring lloc)
                      (keyword-fn? options (zstring lloc))
-                     (zvector? rloc))
+		     (not (= caller :map)))
+		     ; We could also check for (= caller :pair-fn) here,
+		     ; or at least check to see that it isn't a map.
+
+	       (if (zvector? rloc)
               ; This is an embedded :let or :when-let or something.
 	      ; We check to see if a keyword is found in the :fn-map
 	      ; (without the :, of course) and if it is and there
@@ -1055,6 +1059,27 @@
                                              :whitespace 2]])
                             arg-1)]
                 [hang-or-flow (concat-no-nil arg-1 style-vec)])
+              (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
+                                               loptions
+                                               hanging-indent
+                                               flow-indent
+                                               fzprint*
+                                               rloc)
+                    arg-1 (if (= hang-or-flow :hang)
+                            (concat-no-nil arg-1
+                                           [[(blanks hanging-spaces) :none
+                                             :whitespace 2]])
+                            arg-1)]
+                [hang-or-flow (concat-no-nil arg-1 style-vec)])
+
+
+		)
+		
+		
+              ; Make the above if a cond, and call fzprint-hang-one?  Or
+	      ; maybe fzprint* if we are calling fzprint-hang-unless-fail,
+	      ; which I think we are.
+
               ; This is a normal two element pair thing
               (let [; Perhaps someday we could figure out if we are already
                     ; completely in flow to this point, and be smarter about

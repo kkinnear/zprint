@@ -2575,35 +2575,35 @@
   ;; # Error's in option-fn's
   ;;
 
-  (expect
-    "java.lang.Exception:  When :list called an option-fn named test it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-    (try (zprint "(a b c)"
-                 {:parse-string? true,
-                  :list {:option-fn (fn ([] "test")
-                                        ([options len sexpr] (+ :a 0)))}})
-         (catch Exception e (str e))))
+(expect
+  "java.lang.Exception:  When :list called an option-fn named test it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+  (try (zprint "(a b c)"
+               {:parse-string? true,
+                :list {:option-fn (fn ([] "test")
+                                      ([options len sexpr] (+ :a 0)))}})
+       (catch Exception e (str e))))
 
-  (expect
-    "java.lang.Exception:  When :list called an option-fn it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-    (try (zprint "(a b c)"
-                 {:parse-string? true,
-                  :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
-         (catch Exception e (str e))))
+(expect
+  "java.lang.Exception:  When :list called an option-fn it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+  (try (zprint "(a b c)"
+               {:parse-string? true,
+                :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
+       (catch Exception e (str e))))
 
-  (expect
-    "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-    (try (zprint "[:a :b :c]"
-                 {:parse-string? true,
-                  :vector {:option-fn-first (fn ([options sexpr] (+ :a 0)))}})
-         (catch Exception e (str e))))
+(expect
+  "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+  (try (zprint "[:a :b :c]"
+               {:parse-string? true,
+                :vector {:option-fn-first (fn ([options sexpr] (+ :a 0)))}})
+       (catch Exception e (str e))))
 
-  (expect
-    "java.lang.Exception: When :vector called an option-fn-first named test with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-    (try (zprint "[:a :b :c]"
-                 {:parse-string? true,
-                  :vector {:option-fn-first (fn ([] "test")
-                                                ([options sexpr] (+ :a 0)))}})
-         (catch Exception e (str e))))
+(expect
+  "java.lang.Exception: When :vector called an option-fn-first named test with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+  (try (zprint "[:a :b :c]"
+               {:parse-string? true,
+                :vector {:option-fn-first (fn ([] "test")
+                                              ([options sexpr] (+ :a 0)))}})
+       (catch Exception e (str e))))
 
   ;;
   ;; # zprint-file-str tests
@@ -5472,59 +5472,95 @@ ser/collect-vars-acc %1 %2) )))"
   ; this should just fit
 
   (expect "(stuff (caller aaaa bbb\n         ccc))"
-          (zprint-str "(stuff (caller aaaa bbb ccc))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :fn-map {"caller" :wrap, "this" :wrap},
-                       :width 23}))
+        (zprint-str "(stuff (caller aaaa bbb ccc))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :fn-map {"caller" :wrap, "this" :wrap},
+                     :width 23}))
 
 
-  ; this should not fit
+   ; this should not fit
 
   (expect "(stuff (caller aaaa\n         bbb ccc))"
-          (zprint-str "(stuff (caller aaaa bbb ccc))"
-                      {:parse-string? true,
-                       :list {:respect-nl? false},
-                       :fn-map {"caller" :wrap, "this" :wrap},
-                       :width 22}))
+        (zprint-str "(stuff (caller aaaa bbb ccc))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :fn-map {"caller" :wrap, "this" :wrap},
+                     :width 22}))
 
-  ; longer version of the same thing
+   ; longer version of the same thing
 
-  (expect
-    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo\n         ppp qqq rrr sss ttt uuu vvv))"
-    (zprint-str
-      "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :fn-map {"caller" :wrap, "this" :wrap},
-       :width 75}))
+(expect
+  "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo\n         ppp qqq rrr sss ttt uuu vvv))"
+  (zprint-str
+    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :fn-map {"caller" :wrap, "this" :wrap},
+     :width 75}))
 
-  (expect
-    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn\n         ooo ppp qqq rrr sss ttt uuu vvv))"
-    (zprint-str
-      "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :fn-map {"caller" :wrap, "this" :wrap},
-       :width 74}))
+(expect
+  "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn\n         ooo ppp qqq rrr sss ttt uuu vvv))"
+  (zprint-str
+    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :fn-map {"caller" :wrap, "this" :wrap},
+     :width 74}))
 
-  (expect
-    "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test))) a\n    b c))"
-    (zprint-str
-      "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :fn-map {"caller" :wrap, "this" :wrap},
-       :width 46}))
+(expect
+  "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test))) a\n    b c))"
+  (zprint-str
+    "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :fn-map {"caller" :wrap, "this" :wrap},
+     :width 46}))
 
-  (expect
-    "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test)))\n    a b c))"
-    (zprint-str
-      "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :fn-map {"caller" :wrap, "this" :wrap},
-       :width 45}))
+(expect
+  "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test)))\n    a b c))"
+  (zprint-str
+    "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :fn-map {"caller" :wrap, "this" :wrap},
+     :width 45}))
+
+;;
+;; Better cond -- look at how :do, :when are handled.  These don't have binding
+;; vectors after them.
+;;
+
+(def bc1
+  "(cond\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   3)")
+
+(expect
+  "(cond\n  (odd? a) 1\n  :let [a (quot a 2)]\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n  :when (seq x)\n  :do (println x)\n  (odd? (+ x y)) 2\n  3)"
+  (zprint-str bc1
+              {:parse-string? true,
+               :pair {:flow? false, :nl-separator-all? false}}))
+
+(expect
+  "(cond\n  (odd? a)\n    1\n  :let [a (quot a 2)]\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n  :when (seq x)\n  :do (println x)\n  (odd? (+ x y))\n    2\n  3)"
+  (zprint-str bc1
+              {:parse-string? true,
+               :pair {:flow? true, :nl-separator-all? false}}))
+
+(expect
+  "(cond\n  (odd? a)\n    1\n\n  :let [a (quot a 2)]\n\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n\n  :when (seq x)\n\n  :do (println x)\n\n  (odd? (+ x y))\n    2\n\n  3)"
+  (zprint-str bc1
+              {:parse-string? true,
+               :pair {:flow? true, :nl-separator-all? true}}))
+
+;;
+;; Make sure that the better cond formatting doesn't show up in maps
+;;
+
+(expect
+  "{(odd? (+ x y)) 2,\n (odd? a) 1,\n :do (println x),\n :else 3,\n :let [a (quot a 2)],\n :when (seq x),\n :when-let [x (fn-which-may-return-falsey a) y\n            (fn-which-may-return-falsey (* 2 a))],\n :when-letter [x (fn-which-may-return-falsey a) y\n               (fn-which-may-return-falsey (* 2 a))],\n :when-some [b (fn-which-may-return-nil x) c (fn-which-may-return-nil y)]}"
+  (zprint-str
+    "{\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-letter [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   :else 3}"
+  {:parse-string? true}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

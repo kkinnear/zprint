@@ -872,6 +872,115 @@
                               :element :newline :element]],
                :width 22}))
 
+;;
+;; Multi-line regular elements (not just pairs) can start on a line
+;;
+
+(expect
+  "(stuff (caller aaaa bbbb (-> this\n                             is\n                             a\n                             test) ccc dddddd))"
+  (zprint-str
+    "(stuff (caller aaaa bbbb (-> this is a test) ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug
+       [:list 2 [:element :element :element :element-multi :element :element]],
+     :width 80}))
+
+(expect
+  "(stuff (caller aaaa bbbb (-> this\n                             is\n                             a\n                             test)\n         ccc dddddd))"
+  (zprint-str
+    "(stuff (caller aaaa bbbb (-> this is a test) ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false, :wrap-after-multi? false},
+     :guide-debug
+       [:list 2 [:element :element :element :element-multi :element :element]],
+     :width 80}))
+
+;;
+;; Ensure that rightcnt is handled correctly when doing pairs that aren't the
+;; end of the list
+;;
+
+(expect "(stuff (caller aaaa bbbb\n               ccc dddddd\n         eeeee))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd eeeee))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end :element]],
+                     :width 25}))
+
+(expect "(stuff\n  (caller aaaa bbbb\n          ccc dddddd\n    eeeee))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd eeeee))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :pair-begin :element :element
+                                    :element :element :pair-end :element]],
+                     :width 24}))
+
+;;
+;; :pair-*
+;;
+
+(expect "(stuff (caller aaaa bbbb\n               ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2 [:element :pair-*]],
+                     :width 27}))
+(expect
+  "(stuff (caller aaaa bbbb\n               ccc\n                 dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2 [:element :pair-*]],
+               :width 26}))
+
+;;
+;; You can have a guide in a regular options map
+;;
+
+(expect "(stuff (caller aaaa bbbb\n         ccc\n         dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :fn-map {"caller" [:none
+                                        {:guide [:element :pair-begin :element
+                                                 :element :pair-end :newline
+                                                 :element :newline :element]}]},
+                     :width 24}))
+
+;;
+;; :element-*
+;;
+
+(expect "(stuff (caller aaaa bbbb\n         ccc dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2 [:element :element-*]],
+                     :width 24}))
+
+(expect "(stuff (caller aaaa\n         bbbb ccc\n         dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2 [:element :element-*]],
+                     :width 23}))
+
+;;
+;; Make sure newlines are handled correctly before :pair-*
+;;
+
+(expect
+  "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff ggggg\n         hh iiiiiii))"
+  (zprint-str "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug
+                 [:list 2 [:element :element-guide [:pair-*] :newline :pair-*]],
+               :width 80}))
+
   ;;
   ;; # rodguide
   ;;

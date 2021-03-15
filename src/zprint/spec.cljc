@@ -122,7 +122,8 @@
                         :kind sequential?)))
 (s/def ::guide-seq
   (s/nilable (s/coll-of (s/or :number number?
-                              :keyword keyword?))))
+                              :keyword keyword?
+			      :embedded-guide ::guide-seq))))
 (s/def ::guide-debug-seq (s/tuple keyword? number? ::guide-seq))
 (s/def ::path-seq
   (s/nilable (s/coll-of (s/coll-of number? :kind sequential?)

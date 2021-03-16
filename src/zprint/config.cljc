@@ -1582,31 +1582,37 @@
 ;;
 
 (defn config-and-validate
-  "Do a single new map. Returns [updated-map new-doc-map error-vec]
+  "Validate a new map and merge it correctly into the existing options map.
+  You must do this whenever you have an options map which is to be merged 
+  into an existing options map, since a simple merge-deep will miss things 
+  like styles. Returns [updated-map new-doc-map error-vec]
   Depends on existing-map to be the full, current options map!"
-  [doc-string doc-map existing-map new-map]
-  #_(println "config-and-validate:" new-map)
-  (if new-map
-    (let [new-map (coerce-to-boolean new-map)
-          errors (validate-options new-map doc-string)
-          ; remove set elements, and then remove the :remove key too
-          [existing-map new-map new-doc-map]
-            (perform-remove doc-string doc-map existing-map new-map)
-          ; do style early, so other things in new-map can override it
-          [updated-map new-doc-map style-errors]
-            (apply-style doc-string new-doc-map existing-map new-map)
-          ; Now that we've done the style, remove it so that the doc-map
-          ; doesn't get overridden
-          new-map (dissoc new-map :style)
-          errors (if style-errors (str errors " " style-errors) errors)
-          new-updated-map (merge-deep updated-map new-map)
-          new-doc-map (diff-deep-ks doc-string
-                                    new-doc-map
-                                    (key-seq new-map)
-                                    new-updated-map)]
-      [new-updated-map new-doc-map errors])
-    ; if we didn't get a map, just return something with no changes
-    [existing-map doc-map nil]))
+  ([doc-string doc-map existing-map new-map validate?]
+   #_(println "config-and-validate:" new-map)
+   (if new-map
+     (let [new-map (coerce-to-boolean new-map)
+           errors (when validate? (validate-options new-map doc-string))
+           ; remove set elements, and then remove the :remove key too
+           [existing-map new-map new-doc-map]
+             (perform-remove doc-string doc-map existing-map new-map)
+           ; do style early, so other things in new-map can override it
+           [updated-map new-doc-map style-errors]
+             (apply-style doc-string new-doc-map existing-map new-map)
+           ; Now that we've done the style, remove it so that the doc-map
+           ; doesn't get overridden
+           new-map (dissoc new-map :style)
+           errors (if style-errors (str errors " " style-errors) errors)
+           new-updated-map (merge-deep updated-map new-map)
+           new-doc-map (diff-deep-ks doc-string
+                                     new-doc-map
+                                     (key-seq new-map)
+                                     new-updated-map)]
+       [new-updated-map new-doc-map errors])
+     ; if we didn't get a map, just return something with no changes
+     [existing-map doc-map nil]))
+  ([doc-string doc-map existing-map new-map]
+   (config-and-validate doc-string doc-map existing-map new-map :validate)))
+
 
 ;;
 ;; # Configure all maps

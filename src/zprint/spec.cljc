@@ -123,6 +123,7 @@
 (s/def ::guide-seq
   (s/nilable (s/coll-of (s/or :number number?
                               :keyword keyword?
+			      :options ::options
 			      :embedded-guide ::guide-seq))))
 (s/def ::guide-debug-seq (s/tuple keyword? number? ::guide-seq))
 (s/def ::path-seq
@@ -174,6 +175,7 @@
 (s/def ::expand? ::boolean)
 (s/def ::flow? ::boolean)
 (s/def ::focus (only-keys :opt-un [::zloc? ::path ::surround]))
+(s/def ::force-validate? ::boolean)
 (s/def ::force-nl? ::boolean)
 (s/def ::general-hang-adjust number?)
 (s/def ::hang? ::boolean)
@@ -211,6 +213,7 @@
 (s/def ::lines ::line-seq)
 (s/def ::location (s/nilable string?))
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
+(s/def ::no-validate? ::boolean)
 (s/def ::nl-separator? ::boolean)
 (s/def ::nl-separator-all? ::boolean)
 (s/def ::object? ::boolean)
@@ -401,7 +404,7 @@
              ::set ::spaces? ::script ::spec ::style ::styles-applied
              ::style-map ::tab ::test-for-eol-blanks? ::trim-comments? ::tuning
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
-             ::url ::zipper? ::guide ::guide-debug]))
+             ::url ::zipper? ::guide ::guide-debug ::no-validate? ::force-validate?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

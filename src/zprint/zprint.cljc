@@ -59,20 +59,34 @@
     [(subs s 0 next-lf) (subs s (inc next-lf))]
     [s]))
 
-(defn internal-validate
-  "Validate an options map that was returned from some internal configuration
-  expression or configuration.  Either returns the options map or throws
-  an error."
-  [options error-str]
-  (let [errors (validate-options options)
-        errors (when errors
-                 (str "Options resulting from " error-str
-                      " had these errors: " errors))]
-    (if (not (empty? errors))
-      (throw (#?(:clj Exception.
-                 :cljs js/Error.)
-              errors))
-      options)))
+(defn internal-config-and-validate
+  "Possibly validate an options map and merge it correctly with the existing
+  options map.  Validation only happens when the caller says to validate
+  and the new-map doesn't have :no-validate? true (unless the existing
+  options map has :force-validate? true).
+  This is necessary instead of just doing a merge-deep, since
+  that doesn't get styles and removal done correctly.  Returns
+  [merged-options-map new-options] or throws an error."
+  ([options new-map error-str validate?]
+   (let [validate? (when validate?
+                     (if (:no-validate? new-map)
+                       (when (:force-validate? options) :validate)
+                       :validate))
+         [updated-map _ errors] (zprint.config/config-and-validate nil #_error-str
+                                                                   nil
+                                                                   options
+                                                                   new-map
+                                                                   validate?)
+         errors (when errors
+                  (str "Options resulting from " error-str
+                       " had these errors: " errors))]
+     (if (not (empty? errors))
+       (throw (#?(:clj Exception.
+                  :cljs js/Error.)
+               errors))
+       [updated-map new-map])))
+  ([options new-map error-str]
+   (internal-config-and-validate options new-map error-str :validate)))
 
 (defn option-fn-name
   "Given an option-fn, call it with no arguments to see if it returns its
@@ -87,10 +101,12 @@
          nil)))
 
 (defn call-option-fn
-  "Call an option-fn and return a validated map of just the new options."
+  "Call an option-fn and return a (possibly) validated map of 
+  the merged options. Returns [merged-options-map new-options]"
   [caller options option-fn zloc]
   (let [sexpr-seq (zsexpr zloc)]
-    (internal-validate
+    (internal-config-and-validate
+      options
       (try (option-fn options (count sexpr-seq) sexpr-seq)
            (catch #?(:clj Exception
                      :cljs :default)
@@ -102,27 +118,32 @@
                           " it failed because: " e)))))
       (str caller
            " :option-fn" (option-fn-name option-fn)
-           " called with an sexpr of length " (count sexpr-seq)))))
+           " called with an sexpr of length " (count sexpr-seq))
+      :validate)))
 
 (defn call-option-fn-first
   "Call an option-fn-first with just the first thing in the zloc, and
-  then return a validated map of just the new options."
+  then return a validated map of just the new options.
+  Returns [merge-options-map new-options]"
   [caller options option-fn-first zloc]
   (let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
-    (internal-validate (try (option-fn-first options first-sexpr)
-                            (catch #?(:clj Exception
-                                      :cljs :default)
-                              e
-                              (throw (#?(:clj Exception.
-                                         :cljs js/Error.)
-                                      (str "When " caller
-                                           " called an option-fn-first"
-                                             (option-fn-name option-fn-first)
-                                           " with '" first-sexpr
-                                           "' failed because: " e)))))
-                       (str caller
-                            " :option-fn-first" (option-fn-name option-fn-first)
-                            " called with " first-sexpr))))
+    (internal-config-and-validate
+      options
+      (try (option-fn-first options first-sexpr)
+           (catch #?(:clj Exception
+                     :cljs :default)
+             e
+             (throw (#?(:clj Exception.
+                        :cljs js/Error.)
+                     (str "When " caller
+                          " called an option-fn-first" (option-fn-name
+                                                         option-fn-first)
+                          " with '" first-sexpr
+                          "' failed because: " e)))))
+      (str caller
+           " :option-fn-first" (option-fn-name option-fn-first)
+           " called with " first-sexpr)
+      :validate)))
 
 (defn guide-debug
   "Given the options map and a caller, look for :guide-debug in the options
@@ -3773,7 +3794,9 @@
                        (second fn-style)
                        (if (= :zipper (:ztype options))
                          (second fn-style)
-                         (nth fn-style 2)))))
+                         (nth fn-style 2)))
+		      nil ; validate?
+			 ))
             options)
         ; Do we have an option-fn to call and maybe get a new options
         ; map.  We might have developed this from the options map in
@@ -3794,26 +3817,13 @@
                                      :zloc zloc,
                                      :fn-style fn-style,
                                      :zfirst-info (or fn-str fn-type)}))
-        new-options
-          (when option-fn
+        [options new-options]
+          (if option-fn
             (call-option-fn caller options option-fn zloc)
-            #_(let [nws-seq (remove zwhitespaceorcomment? (zseqnws zloc))
-                    nws-count (count nws-seq)
-                    #_(prn "zsexpr?" (zsexpr? zloc))
-                    #_(prn "zsexpr: " (zsexpr zloc))
-                    sexpr-seq (zsexpr zloc)
-                    #_(lazy-sexpr-seq nws-seq)
-                    ; TODO: fix this
-                    options (assoc options
-                              :l-str l-str
-                              :r-str r-str)]
-                (internal-validate
-                  (option-fn options nws-count sexpr-seq)
-                  (str ":list :option-fn" (option-fn-name option-fn)
-                       " called with an sexpr of length " nws-count))))
+	    [options nil])
         _ (when option-fn
             (dbg-pr options "fzprint-list* option-fn new options" new-options))
-        options (merge-deep options new-options)
+        #_#_options (merge-deep options new-options)
         ; If we came in with a :fn-style, then if it hasn't changed, this
         ; will do nothing.  If we calculated a new one in the option-fn,
         ; this will pick it up, else we will use the one that we figured
@@ -5847,21 +5857,19 @@
                     :call-stack
                       (conj (:call-stack options)
                             {:tag (ztag zloc), :caller caller, :zloc zloc}))
-          new-options
-            (when option-fn-first
+          [options new-options]
+            (if option-fn-first
               (call-option-fn-first caller options option-fn-first zloc)
-              #_(let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
-                  (internal-validate (option-fn-first options first-sexpr)
-                                     (str ":vector :option-fn-first"
-                                            (option-fn-name option-fn-first)
-                                          " called with " first-sexpr))))
+	      [options nil]
+	      )
           _ (when option-fn-first
               (dbg-pr options
                       "fzprint-vec* option-fn-first new options"
                       new-options))
-          options (merge-deep options new-options)
-          new-options (when option-fn
-                        (call-option-fn caller options option-fn zloc))
+          [options new-options] (if option-fn
+                        (call-option-fn caller options option-fn zloc)
+			[options nil]
+			)
           _ (when option-fn
               (dbg-pr options "fzprint-vec* option-fn new options" new-options))
           #_(println "\nfirst in vector:" (zstring (zfirst zloc))
@@ -5871,7 +5879,8 @@
                    fn-format sort-in-code? indent indent-only?]}
              caller,
            :as options}
-            (merge-deep options new-options)
+	    options
+            #_(merge-deep options new-options)
           guide (or (:guide options) (guide-debug caller options))
           options (dissoc options :guide)
           #_#_[guide options]

@@ -1038,48 +1038,41 @@
                 flow-indent (+ indent ind)]
             (if (and (zstring lloc)
                      (keyword-fn? options (zstring lloc))
-		     (not (= caller :map)))
-		     ; We could also check for (= caller :pair-fn) here,
-		     ; or at least check to see that it isn't a map.
-
-	       (if (zvector? rloc)
-              ; This is an embedded :let or :when-let or something.
-	      ; We check to see if a keyword is found in the :fn-map
-	      ; (without the :, of course) and if it is and there
-	      ; is a vector after it, we assume that it must be one of these.
-              (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
-                                               loptions
-                                               hanging-indent
-                                               flow-indent
-                                               fzprint-binding-vec
-                                               rloc)
-                    arg-1 (if (= hang-or-flow :hang)
-                            (concat-no-nil arg-1
-                                           [[(blanks hanging-spaces) :none
-                                             :whitespace 2]])
-                            arg-1)]
-                [hang-or-flow (concat-no-nil arg-1 style-vec)])
-              (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
-                                               loptions
-                                               hanging-indent
-                                               flow-indent
-                                               fzprint*
-                                               rloc)
-                    arg-1 (if (= hang-or-flow :hang)
-                            (concat-no-nil arg-1
-                                           [[(blanks hanging-spaces) :none
-                                             :whitespace 2]])
-                            arg-1)]
-                [hang-or-flow (concat-no-nil arg-1 style-vec)])
-
-
-		)
-		
-		
+                     (not (= caller :map)))
+              ; We could also check for (= caller :pair-fn) here,
+              ; or at least check to see that it isn't a map.
+              (if (zvector? rloc)
+                ; This is an embedded :let or :when-let or something.
+                ; We check to see if a keyword is found in the :fn-map
+                ; (without the :, of course) and if it is and there
+                ; is a vector after it, we assume that it must be one of these.
+                (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
+                                                 loptions
+                                                 hanging-indent
+                                                 flow-indent
+                                                 fzprint-binding-vec
+                                                 rloc)
+                      arg-1 (if (= hang-or-flow :hang)
+                              (concat-no-nil arg-1
+                                             [[(blanks hanging-spaces) :none
+                                               :whitespace 2]])
+                              arg-1)]
+                  [hang-or-flow (concat-no-nil arg-1 style-vec)])
+                (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
+                                                 loptions
+                                                 hanging-indent
+                                                 flow-indent
+                                                 fzprint*
+                                                 rloc)
+                      arg-1 (if (= hang-or-flow :hang)
+                              (concat-no-nil arg-1
+                                             [[(blanks hanging-spaces) :none
+                                               :whitespace 2]])
+                              arg-1)]
+                  [hang-or-flow (concat-no-nil arg-1 style-vec)]))
               ; Make the above if a cond, and call fzprint-hang-one?  Or
-	      ; maybe fzprint* if we are calling fzprint-hang-unless-fail,
-	      ; which I think we are.
-
+              ; maybe fzprint* if we are calling fzprint-hang-unless-fail,
+              ; which I think we are.
               ; This is a normal two element pair thing
               (let [; Perhaps someday we could figure out if we are already
                     ; completely in flow to this point, and be smarter about
@@ -5176,7 +5169,7 @@
              [previous-newline? previous-guided-newline? unguided-newline-out?
               previous-comment? :as previous-data]
                nil
-             ; transient here slows things down, interestingly enough
+             options options
              out []]
         ; We can't just check for cur-seq here, or any pairs we might be
         ; accumulating will be lost, since :pair-end has to come beyond
@@ -5244,6 +5237,7 @@
                            (assoc param-map :pair-seq pair-seq)
                            mark-map
                            previous-data
+                           options
                            out))
                 (= (first guide-seq) :pair-end)
                   ; output accumulated pairs
@@ -5271,6 +5265,7 @@
                                  (dissoc param-map :pair-seq)
                                  mark-map
                                  previous-data
+                                 options
                                  out)
                           ; we got output from guide-pairs
                           (let [[new-param-map new-previous-data new-out]
@@ -5297,6 +5292,7 @@
                                    (dissoc new-param-map :pair-seq)
                                    mark-map
                                    new-previous-data
+                                   options
                                    new-out))))
                     (throw
                       (#?(:clj Exception.
@@ -5334,6 +5330,7 @@
                              [previous-newline? previous-guided-newline?
                               ;unguided-newline-out?
                               nil previous-comment?]
+                             options
                              out))
                 (= (first guide-seq) :mark)
                   ; put the cur-ind into the mark map with key the next
@@ -5358,6 +5355,7 @@
                                                          (or (:spaces param-map)
                                                              1)))
                            previous-data
+                           options
                            out))
                 (= (first guide-seq) :spaces)
                   ; save the spaces for when we actually do output
@@ -5375,6 +5373,7 @@
                              (assoc param-map :spaces (first (next guide-seq)))
                              mark-map
                              previous-data
+                             options
                              out))
                 (= (first guide-seq) :indent)
                   ; save a new indent value in param-map
@@ -5391,6 +5390,7 @@
                              (assoc param-map :indent (first (next guide-seq)))
                              mark-map
                              previous-data
+                             options
                              out))
                 (= (first guide-seq) :indent-reset)
                   ; put the indent back where it was originally
@@ -5406,6 +5406,46 @@
                              (assoc param-map :indent local-indent)
                              mark-map
                              previous-data
+                             options
+                             out))
+                (= (first guide-seq) :options)
+                  ; Start using an updated options map
+                  (let [[new-options _ error-vec]
+                          (zprint.config/config-and-validate
+                                   "guide: command :option"
+                                   nil
+                                   options
+                                   (first (next guide-seq)))
+                        _ (dbg-s options
+                                 :guide
+                                 "fzprint-guide: === :options"
+                                 (first (next guide-seq)))]
+                    (recur cur-zloc
+                           cur-index
+                           ; skip an extra to account for the options map
+                           (nnext guide-seq)
+                           element-index
+                           (inc index)
+			   param-map
+                           mark-map
+                           previous-data
+                           new-options
+                           out))
+                (= (first guide-seq) :options-reset)
+                  ; put the options map back to where it was when we started
+                  (do (dbg-s options
+                             :guide
+                             (color-str "fzprint-guide: === :options-reset"
+                                        :bright-red))
+                      (recur cur-zloc
+                             cur-index
+                             (next guide-seq)
+                             element-index
+                             (inc index)
+                             (assoc param-map :indent local-indent)
+                             mark-map
+                             previous-data
+                             (:initial-options param-map)
                              out))
                 (= (first guide-seq) :align)
                   ; Set up for an alignment on the next :element
@@ -5426,6 +5466,7 @@
                            (assoc param-map :align-key align-key)
                            mark-map
                            previous-data
+                           options
                            out))
                 (:guided-newline-count param-map)
                   ; we are currently counting newlines, see if we have more
@@ -5453,6 +5494,7 @@
                                      :align-key)
                              mark-map
                              previous-data
+                             options
                              out))
                     ; we are counting guided-newlines, and we have found a guide
                     ; that is not a :newline, so we need to determine the number
@@ -5524,6 +5566,7 @@
                              new-param-map
                              mark-map
                              new-previous-data
+                             options
                              new-out)))
                 (= (first guide-seq) :newline)
                   ; start counting guided newlines
@@ -5547,6 +5590,7 @@
                                    :align-key)
                            mark-map
                            previous-data
+                           options
                            out))
                 ; :pair-begin has to come after the newline handling
                 (= (first guide-seq) :pair-begin)
@@ -5564,8 +5608,9 @@
                              (assoc param-map :pair-seq [])
                              mark-map
                              previous-data
+                             options
                              out))
-		; :pair-* also has to come after newline handling
+                ; :pair-* also has to come after newline handling
                 (= (first guide-seq) :pair-*)
                   ; Consider everything else pairs, and output them.  If
                   ; we are already accumulating pairs, that's ok (though
@@ -5605,6 +5650,7 @@
                              (dissoc param-map :pair-seq)
                              mark-map
                              previous-data
+                             options
                              out)
                       ; we have pairs to process
                       (let [[new-param-map new-previous-data new-out]
@@ -5631,6 +5677,7 @@
                                (dissoc new-param-map :pair-seq)
                                mark-map
                                new-previous-data
+                               options
                                new-out))))
                 ;
                 ;  Start looking at cur-seq
@@ -5657,6 +5704,7 @@
                              param-map
                              mark-map
                              previous-data
+                             options
                              out))
                 (or comment? comment-inline? next-newline?)
                   ; Do unguided output, moving cur-zloc without changing
@@ -5694,6 +5742,7 @@
                            new-param-map
                            mark-map
                            new-previous-data
+                           options
                            new-out))
                 (or (= (first guide-seq) :element)
                     (= (first guide-seq) :element-multi)
@@ -5745,6 +5794,7 @@
                            (dissoc new-param-map :spaces :align-key)
                            mark-map
                            new-previous-data
+                           options
                            new-out))
                 ;
                 ; Something we didn't expect is going on here

@@ -5420,15 +5420,19 @@
                              out))
                 (= (first guide-seq) :options)
                   ; Start using an updated options map
-                  (let [[new-options _ error-vec]
-                          (zprint.config/config-and-validate
-                                   "guide: command :option"
-                                   nil
-                                   options
-                                   (first (next guide-seq)))
+                  (let [[merged-option-map _] (internal-config-and-validate
+                                               options
+                                               (first (next guide-seq))
+                                               "fzprint-guide: options:"
+					       ; Don't validate because these
+					       ; were either validated on
+					       ; return from option-fn or
+					       ; when read in the options map
+                                               nil)
                         _ (dbg-s options
                                  :guide
-                                 "fzprint-guide: === :options"
+                                 (color-str "fzprint-guide: === :options"
+                                            :bright-red)
                                  (first (next guide-seq)))]
                     (recur cur-zloc
                            cur-index
@@ -5436,10 +5440,10 @@
                            (nnext guide-seq)
                            element-index
                            (inc index)
-			   param-map
+                           param-map
                            mark-map
                            previous-data
-                           new-options
+			   merged-option-map
                            out))
                 (= (first guide-seq) :options-reset)
                   ; put the options map back to where it was when we started

@@ -2571,6 +2571,22 @@
                             #(do %1 %2 (identity {:vector {:sort? true}}))}})
               (catch :default e (str e)))))
 
+;; 
+;; Demonstrate that styles in option-fn returns actually work
+;;
+
+(expect
+  "[stuff\n bother\n and\n (this\n  is\n  a\n  test\n  (and it has to be really really ong)\n  so\n  that\n  we\n  can\n  see\n  how\n  it\n  indents)\n has\n to\n be\n really\n long\n so\n that\n it\n doesn\n print\n all\n on\n one\n line]"
+  (zprint-str
+    "[stuff bother and (this is a test (and it has to be really really ong) so that we can see how it indents) has to be really long so that it doesn print all on one line]"
+    {:parse-string? true,
+     :vector {:option-fn (fn [options len sexpr]
+                           {:vector {:wrap? false},
+                            :list {:hang? false},
+                            :style :community})}}))
+
+
+
   ;;
   ;; # Error's in option-fn's
   ;;

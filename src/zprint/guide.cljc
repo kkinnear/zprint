@@ -372,19 +372,34 @@
        (println "odrguide:" guide)
        {:guide guide}))))
 
+(defn size
+  "Return the size of an sexpr, accounting for things that have been
+  made zprint.core."
+  [sexpr]
+  (let [s (str sexpr)
+        s (cond (clojure.string/starts-with? s ":zprint.core/")
+                  (clojure.string/replace s ":zprint.core/" "::")
+                (clojure.string/starts-with? s ":clojure.core/")
+                  (clojure.string/replace s ":clojure.core/" "::")
+                :else s)]
+    (count s)))
+
 (defn odrguide2
   "Justify O'Doyles Rules"
   ([] "odrguide2")
   ([options len sexpr]
    (when (= (first sexpr) :what)
      (let [[vectors beyond] (split-with vector? (next sexpr))
-           max-first (apply max (map #(count (str (first %))) vectors))
-           max-second (apply max (map #(count (str (second %))) vectors))
+           max-first (apply max (map #(size (first %)) vectors))
+	   #_ (println "max-first:" max-first)
+           max-second (apply max (map #(size (second %)) vectors))
+	   #_ (println "max-second:" max-second)
+	   #_ (println "actual first:" (ffirst vectors))
            align-setup [:align 1 (inc max-first) :align 2
                         (+ (inc max-first) (inc max-second))]
            vector-guide [:mark-at 1 (inc max-first) :mark-at 2
                          (+ (inc max-first) (inc max-second)) :element :align 1
-                         :element :align 2 :element]
+                         :element :align 2 :element :element :element]
            keyword-1 (first beyond)
            [keyword-1-lists beyond] (split-with list? (next beyond))
            keyword-2 (first beyond)
@@ -398,9 +413,9 @@
               {:guide vector-guide}
               (interpose :newline (repeat (count vectors) :element))
               :options-reset :options {:vector {:wrap-multi? true}} :newline
-              :newline :indent 1 :element :indent (+ (count (str keyword-1)) 2)
+              #_:newline :indent 1 :element :indent (+ (count (str keyword-1)) 2)
               (repeat (count keyword-1-lists) [:element :newline]) :indent 1
-              :newline :element :indent (+ (count (str keyword-2)) 2)
+              #_:newline :element :indent (+ (count (str keyword-2)) 2)
               (interpose :newline (repeat (count keyword-2-lists) :element))]
            guide (into [] (flatten guide))]
        #_(println "odrguide:" guide)

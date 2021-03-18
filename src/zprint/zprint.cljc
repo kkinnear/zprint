@@ -5212,6 +5212,17 @@
                   ; TODO: Change this to [:element], or it will fail when
                   ; the guide-seq runs out.  But it can be nice to have it
                   ; fail for debugging.
+		  _ (when (empty? guide-seq)
+		      (dbg-s options :guide-debug
+		           "fzprint-guide: guide ran out! guide:"
+          (color-str 
+	  ((:dzprint options) {:vector {:wrap? false}}
+	  guide
+	  )
+	  :bright-red)
+		     "\nexpression:"
+                     ((:dzprint options) {:vector {:wrap? false}} (into [] (map zstring zloc-seq)))))
+
                   guide-seq (or guide-seq :element #_[:element])
                   ; First, look into what we have coming up in the sequence
                   ; we are formatting
@@ -6949,12 +6960,13 @@
                   ; the options map, not because it truly needs validation.
                   ; Since it's spec is ::options, it was validated when it
                   ; came into the options map.
-                  (dissoc
-                    (first (zprint.config/config-and-validate "next-inner:"
-                                                              nil
-                                                              options
-                                                              next-inner))
-                    :next-inner)
+                  (first (zprint.config/config-and-validate "next-inner:"
+                                                            nil
+                                                            (dissoc options
+                                                                    :next-inner)
+                                                            next-inner
+                                                            nil ; validate?
+                         ))
                   options)
         options (if (or dbg? dbg-print?)
                   (assoc options

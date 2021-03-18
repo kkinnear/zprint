@@ -5,6 +5,7 @@
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
             [zprint.rewrite :refer [sort-dependencies]]
+	    [zprint.guide :refer [odrguide2]]
             [sci.core :as sci]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
@@ -499,7 +500,8 @@
           :respect-nl? false,
           :replacement-string nil,
           :wrap-coll? true,
-          :wrap-after-multi? true},
+          :wrap-after-multi? true,
+	  :wrap-multi? true},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -723,6 +725,7 @@
       :map-nl {:map {:indent 0, :nl-separator? true}},
       :map-nl-all {:map {:indent 0, :nl-separator-all? true}},
       :moustache {:fn-map {"app" [:flow {:style :vector-pairs}]}},
+      :odrguide {:vector {:option-fn odrguide2}}
       :vector-pairs {:list {:constant-pair-min 1,
                             :constant-pair-fn #(or (keyword? %)
                                                    (string? %)
@@ -818,6 +821,7 @@
             :wrap-after-multi? true,
             :wrap-coll? true,
             :wrap? true,
+	    :wrap-multi? false,
             :indent-only? false},
    ; Needs to have same keys as :list, since this replaces :list when
    ; vectors are formatted as functions.

@@ -977,9 +977,69 @@
   (zprint-str "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
               {:parse-string? true,
                :list {:respect-nl? false},
+	       :vector {:wrap-multi? true}
                :guide-debug
                  [:list 2 [:element :element-guide [:pair-*] :newline :pair-*]],
                :width 80}))
+
+;;
+;; Test :option
+;;
+
+(expect
+  "(my-wrapper-macro [x1 v1\n                   x2 v2]\n  :let [inner-long-x1 v1\n        inner-x2      v2]\n\n  (> x1 1)\n    :some-return-value\n\n  (< x1 1)\n    :some-other-return-value)"
+  (zprint-str
+    "(my-wrapper-macro [x1 v1\n                 x2 v2]\n\n    :let [inner-long-x1 v1 inner-x2 v2]\n     (> x1 1)\n     :some-return-value\n\n      (< x1 1)\n      :some-other-return-value\n)"
+    {:parse-string? true,
+     :fn-map {"my-wrapper-macro"
+                [:none
+                 {:guide [:element :options
+                          {:pair {:flow? false}, :vector {:wrap-multi? true}}
+                          :element-guide [:pair-*] :newline :options
+                          {:pair {:flow? true, :nl-separator-all? true},
+                           :binding {:justify? true}} :pair-*]}]}}))
+
+
+
+(expect
+  "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff\n           ggggg\n         hh\n           iiiiiii))"
+  (zprint-str
+    "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :vector {:wrap-multi? true}
+     :guide-debug [:list 2
+                   [:element :options {:pair {:flow? false}} :element-guide
+                    [:pair-*] :newline :options {:pair {:flow? true}} :pair-*]],
+     :width 80}))
+
+;;
+;; :wrap-multi? off and on in vectors
+;;
+
+(expect
+  "(stuff (caller [\n                aaaa bbbb\n                ccc dddddd]\n         fff\n           ggggg\n         hh\n           iiiiiii))"
+  (zprint-str
+    "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :options {:pair {:flow? false}} :element-guide
+                    [:pair-*] :newline :options {:pair {:flow? true}} :pair-*]],
+     :width 80}))
+
+(expect
+  "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff\n           ggggg\n         hh\n           iiiiiii))"
+  (zprint-str
+    "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :options {:pair {:flow? false}} :element-guide
+                    [:pair-*] :newline :options {:pair {:flow? true}} :pair-*]],
+     :width 80,
+     :vector {:wrap-multi? true}}))
+
 
   ;;
   ;; # rodguide

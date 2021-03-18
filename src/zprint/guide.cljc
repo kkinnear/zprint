@@ -213,7 +213,7 @@
        {:list {:option-fn nil},
         ; Actually add a map to the current frame on the call-stack
         :call-stack (conj (rest call-stack) new-top-frame),
-        :vector {:option-fn jvectorguide}}))))
+        :vector {:option-fn jvectorguide :wrap-multi? true}}))))
 
 ; Do this to use the above:
 ;
@@ -351,3 +351,57 @@
 ;     {:parse-string? true 
 ;     :fn-map {"rum/defcs" [:guided {:list {:option-fn rumguide}}]}})
 
+(defn odrguide
+  "Justify O'Doyles Rules"
+  ([] "odrguide")
+  ([options len sexpr]
+   (when (= (first sexpr) :what)
+     (let [[vectors beyond] (split-with vector? (next sexpr))
+           max-first (apply max (map #(count (str (first %))) vectors))
+           max-second (apply max (map #(count (str (second %))) vectors))
+           call-stack (:call-stack options)
+           align-setup [:align 1 (inc max-first) :align 2
+                        (+ (inc max-first) (inc max-second))]
+           vector-guide [:mark-at 1 (inc max-first) :mark-at 2
+                         (+ (inc max-first) (inc max-second)) :element :align 1
+                         :element :align 2 :element]
+           guide [:element :options {:guide vector-guide}
+                  (repeat (count vectors) [:newline :element]) :options-reset
+                  (repeat (count beyond) [:newline :element])]
+           guide (into [] (flatten guide))]
+       (println "odrguide:" guide)
+       {:guide guide}))))
+
+(defn odrguide2
+  "Justify O'Doyles Rules"
+  ([] "odrguide2")
+  ([options len sexpr]
+   (when (= (first sexpr) :what)
+     (let [[vectors beyond] (split-with vector? (next sexpr))
+           max-first (apply max (map #(count (str (first %))) vectors))
+           max-second (apply max (map #(count (str (second %))) vectors))
+           align-setup [:align 1 (inc max-first) :align 2
+                        (+ (inc max-first) (inc max-second))]
+           vector-guide [:mark-at 1 (inc max-first) :mark-at 2
+                         (+ (inc max-first) (inc max-second)) :element :align 1
+                         :element :align 2 :element]
+           keyword-1 (first beyond)
+           [keyword-1-lists beyond] (split-with list? (next beyond))
+           keyword-2 (first beyond)
+           [keyword-2-lists beyond] (split-with list? (next beyond))
+           #_(println "keyword-1:" keyword-1
+                      "keyword-1-lists:" keyword-1-lists
+                      "keyword-2:" keyword-2
+                      "keyword-2-lists:" keyword-2-lists)
+           guide
+             [:element :indent (+ (count (str (first sexpr))) 2) :options
+              {:guide vector-guide}
+              (interpose :newline (repeat (count vectors) :element))
+              :options-reset :options {:vector {:wrap-multi? true}} :newline
+              :newline :indent 1 :element :indent (+ (count (str keyword-1)) 2)
+              (repeat (count keyword-1-lists) [:element :newline]) :indent 1
+              :newline :element :indent (+ (count (str keyword-2)) 2)
+              (interpose :newline (repeat (count keyword-2-lists) :element))]
+           guide (into [] (flatten guide))]
+       #_(println "odrguide:" guide)
+       {:guide guide}))))

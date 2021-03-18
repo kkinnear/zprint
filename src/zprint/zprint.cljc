@@ -4711,7 +4711,7 @@
   ;  index multi-fit? param-map mark-map previous-data out]
   [caller
    {:keys [width rightcnt one-line?],
-    {:keys [wrap-after-multi? respect-nl?]} caller,
+    {:keys [wrap-after-multi? wrap-multi? respect-nl?]} caller,
     :as options} zloc rightmost-zloc? next-guide cur-index guide-seq
    element-index index
    {:keys [excess-guided-newline-count align-key last-cur-index rightcnt cur-ind
@@ -4726,6 +4726,7 @@
         do-pairs? (or (= next-guide :pair-end) (= next-guide :pair-*))
         ; TODO: REMOVE THIS
         multi-fit? (or do-pairs? (= next-guide :element-multi) (= next-guide :element-guide))
+	multi-fit? wrap-multi?
         options (if (= next-guide :element-guide)
                   (assoc options :guide (second guide-seq))
                   options)
@@ -4986,6 +4987,7 @@
     (dbg-s
       options
       :guide "guided-output:"
+      "\ncaller:" caller
       "\nindex:" index
       "\ncur-index:" cur-index
       "\none-line?" one-line?
@@ -5174,7 +5176,8 @@
                         :indent local-indent,
                         :pair-seq nil,
                         :last-cur-index last-cur-index,
-                        :rightcnt rightcnt}
+                        :rightcnt rightcnt
+			:initial-options options}
              mark-map {}
              [previous-newline? previous-guided-newline? unguided-newline-out?
               previous-comment? :as previous-data]
@@ -5200,7 +5203,7 @@
                            "\nfzprint-guide: initial param-map:"
                              ((:dzprint options)
                                {}
-                               (assoc (dissoc param-map :pair-seq)
+                               (assoc (dissoc param-map :pair-seq :initial-options)
                                  :pair-seq-len (count (:pair-seq param-map)))))
                   ; If we are out of guide-seq, but we still have cur-seq
                   ; which we must because of the if-not above, then keep
@@ -5343,12 +5346,12 @@
                              options
                              out))
                 (= (first guide-seq) :mark)
-                  ; put the cur-ind into the mark map with key the next
-                  ; guide-seq
+                  ; put the cur-ind plus spaces into the mark map with 
+		  ; key from the next guide-seq
                   (do
                     (dbg-s options
                            :guide
-                           (color-str "fzprint-guide: === create mark: key:"
+                           (color-str "fzprint-guide: === :mark key:"
                                       :bright-red)
                            (first (next guide-seq))
                            "value:"
@@ -5364,6 +5367,33 @@
                              (first (next guide-seq)) (+ (:cur-ind param-map)
                                                          (or (:spaces param-map)
                                                              1)))
+                           previous-data
+                           options
+                           out))
+                (= (first guide-seq) :mark-at)
+                  ; put the cur-ind plus spaces into the mark map with 
+		  ; key from the next guide-seq
+                  (do
+                    (dbg-s options
+                           :guide
+                           (color-str "fzprint-guide: === :mark-at key:"
+                                      :bright-red)
+                           (first (next guide-seq))
+                           "value:"
+			   (+ (:one-line-ind param-map) 
+			      (first (nnext guide-seq))))
+                    (recur cur-zloc
+                           cur-index
+                           ; skip two to account for the mark key and the
+			   ; spaces count
+                           (nthnext guide-seq 3)
+                           element-index
+                           (inc index)
+                           param-map
+                           (assoc mark-map
+                             (first (next guide-seq)) 
+			     (+ (:one-line-ind param-map) 
+			        (first (nnext guide-seq))))
                            previous-data
                            options
                            out))
@@ -5456,7 +5486,7 @@
                              (next guide-seq)
                              element-index
                              (inc index)
-                             (assoc param-map :indent local-indent)
+			     param-map
                              mark-map
                              previous-data
                              (:initial-options param-map)

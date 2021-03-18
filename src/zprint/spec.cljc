@@ -245,6 +245,7 @@
 (s/def ::wrap? ::boolean)
 (s/def ::wrap-after-multi? ::boolean)
 (s/def ::wrap-coll? ::boolean)
+(s/def ::wrap-multi? ::boolean)
 (s/def ::zloc? ::boolean)
 
 
@@ -312,7 +313,8 @@
              ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent-arg
              ::option-fn ::pair-hang? ::return-altered-zipper ::respect-bl?
              ::respect-nl? ::indent-only? ::indent-only-style
-             ::replacement-string ::wrap-coll? ::wrap-after-multi?]))
+             ::replacement-string ::wrap-coll? ::wrap-after-multi? 
+	     ::wrap-multi?]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
@@ -378,7 +380,7 @@
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?
                       ::option-fn-first ::option-fn ::fn-format
-                      ::wrap-after-multi? ::wrap-coll? ::wrap? ::indent-only?]))
+                      ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap? ::indent-only?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))

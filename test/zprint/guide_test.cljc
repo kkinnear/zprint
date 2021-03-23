@@ -1165,6 +1165,207 @@
      :vector {:wrap-multi? true},
      :width 14}))
 
+;;
+;; :element-best
+;;
+
+(expect
+  "(stuff (caller aaaaa\n         bbbbbbbbb\n         ccccc\n         ddd\n         eeee\n         bbbb))"
+  (zprint-str "(stuff (caller aaaaa bbbbbbbbb ccccc ddd eeee bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :element-best :group-begin :element
+                              :element :element :element :group-end
+                              :element-newline-best :newline :element-best]],
+               :vector {:wrap-multi? true},
+               :width 20}))
+
+(expect
+  "(stuff\n  (caller aaaaa\n    bbbbbbbbb\n    ccccc\n    ddd\n    eeee\n    bbbb))"
+  (zprint-str "(stuff (caller aaaaa bbbbbbbbb ccccc ddd eeee bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :element-best :group-begin :element
+                              :element :element :element :group-end
+                              :element-newline-best :newline :element-best]],
+               :vector {:wrap-multi? true},
+               :width 19}))
+
+;;
+;; :element-newline-best-*
+;;
+
+(expect
+  "(stuff (caller aaaaa bbbbbbbbb\n                     ccccc\n                     ddd\n                     eeee\n                     bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa bbbbbbbbb ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best :element-newline-best-*]],
+     :vector {:wrap-multi? true},
+     :list {:hang-avoid nil},
+     :width 30}))
+
+(expect
+  "(stuff\n  (caller aaaaa bbbbbbbbb\n                ccccc\n                ddd\n                eeee\n                bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa bbbbbbbbb ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best :element-newline-best-*]],
+     :vector {:wrap-multi? true},
+     :list {:hang-avoid nil},
+     :width 29}))
+
+
+;;
+;; :element-best-* constrasted with :element-*
+;;
+
+(expect
+  "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd\n         eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best-*]],
+     :vector {:wrap-multi? true},
+     :width 80}))
+
+(expect
+  "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk)\n         ccccc ddd eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best-*]],
+     :vector {:wrap-multi? true},
+     :width 70}))
+
+(expect
+  "(stuff (caller aaaaa\n         (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc\n         ddd eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best-*]],
+     :vector {:wrap-multi? true},
+     :width 60}))
+
+(expect
+  "(stuff\n  (caller aaaaa\n    (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk)\n    ccccc ddd eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best-*]],
+     :vector {:wrap-multi? true},
+     :width 50}))
+
+(expect
+  "(stuff\n  (caller aaaaa\n    (bbbbbbbbb fff\n               (gggggg (hhhh iii) jjjj)\n               kkkk) ccccc ddd eeee\n    bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best-*]],
+     :vector {:wrap-multi? true},
+     :width 40}))
+
+(expect
+  "(stuff\n  (caller aaaaa\n    (bbbbbbbbb\n      fff\n      (gggggg (hhhh iii) jjjj)\n      kkkk) ccccc ddd eeee\n    bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best-*]],
+     :vector {:wrap-multi? true},
+     :width 30}))
+(expect
+  "(stuff\n  (caller aaaaa\n    (bbbbbbbbb\n      fff\n      (gggggg (hhhh\n                iii)\n              jjjj)\n      kkkk) ccccc\n    ddd eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best-*]],
+     :vector {:wrap-multi? true},
+     :width 20}))
+
+(expect
+  "(stuff\n  (caller\n    aaaaa\n    (bbbbbbbbb\n      fff\n      (gggggg\n        (hhhh\n          iii)\n        jjjj)\n      kkkk)\n    ccccc\n    ddd\n    eeee\n    bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-best-*]],
+     :vector {:wrap-multi? true},
+     :width 10}))
+
+;; :element-* version
+
+
+(expect
+  "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd\n         eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-*]],
+     :vector {:wrap-multi? true},
+     :width 80}))
+
+(expect
+  "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk)\n         ccccc ddd eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-*]],
+     :vector {:wrap-multi? true},
+     :width 70}))
+
+(expect
+  "(stuff (caller aaaaa (bbbbbbbbb fff\n                                (gggggg (hhhh iii) jjjj)\n                                kkkk) ccccc ddd eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-*]],
+     :vector {:wrap-multi? true},
+     :width 60}))
+
+(expect
+  "(stuff (caller aaaaa (bbbbbbbbb fff\n                                (gggggg (hhhh iii)\n                                        jjjj)\n                                kkkk) ccccc ddd\n         eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-*]],
+     :vector {:wrap-multi? true},
+     :width 50}))
+
+(expect
+  "(stuff\n  (caller aaaaa (bbbbbbbbb fff\n                           (gggggg\n                             (hhhh iii)\n                             jjjj)\n                           kkkk) ccccc\n    ddd eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-*]],
+     :vector {:wrap-multi? true},
+     :width 40}))
+
+(expect
+  "(stuff (caller aaaaa\n         (bbbbbbbbb\n           fff\n           (gggggg (hhhh iii)\n                   jjjj)\n           kkkk) ccccc ddd\n         eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-*]],
+     :vector {:wrap-multi? true},
+     :width 30}))
+
+(expect
+  "(stuff\n  (caller aaaaa\n    (bbbbbbbbb\n      fff\n      (gggggg (hhhh\n                iii)\n              jjjj)\n      kkkk) ccccc\n    ddd eeee bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-*]],
+     :vector {:wrap-multi? true},
+     :width 20}))
+
+(expect
+  "(stuff\n  (caller\n    aaaaa\n    (bbbbbbbbb\n      fff\n      (gggggg\n        (hhhh\n          iii)\n        jjjj)\n      kkkk)\n    ccccc\n    ddd\n    eeee\n    bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :element-*]],
+     :vector {:wrap-multi? true},
+     :width 10}))
+
 
   ;;
   ;; # rodguide

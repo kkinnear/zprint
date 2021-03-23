@@ -4776,8 +4776,11 @@
               (+ (if (zero? element-index) one-line-ind (+ indent ind))
                  (or spaces 0)))
         [do-hang-remaining? hang-remaining-seq]
-          (cond (= next-guide :element-newline-best) [true group-seq]
-                (= next-guide :element-best) [true [zloc]])
+          (cond (or (= next-guide :element-newline-best)
+                    (= next-guide :element-newline-best-*))
+                  [true group-seq]
+                (or (= next-guide :element-best) (= next-guide :element-best-*))
+                  [true [zloc]])
         try-this? (and (or zloc do-pairs? group-seq)
                        (not previous-newline?)
                        (not guided-newline?)
@@ -5852,6 +5855,80 @@
                                new-previous-data
                                options
                                new-out))))
+
+                ; :element-newline-best-* also has to come after 
+		; newline handling
+                (= (first guide-seq) :element-newline-best-*)
+                  ; Consider everything else for fzprint-hang-remaining.
+		  ; If we ree already accumulating a group, that's ok (though
+                  ; unnecessary).
+                  (let
+                    [_ (dbg-s options
+                              :guide (color-str "fzprint-guide: === :element-newline-best-*"
+                                                :bright-red)
+                              "rightcnt:" (:rightcnt options)
+                              "rightmost-zloc?" rightmost-zloc?)
+                     ; Is this the last thing in guide-seq?
+                     _ (when-not (empty? (next guide-seq))
+                         (throw
+                           (#?(:clj Exception.
+                               :cljs js/Error.)
+                            (str
+                              ":element-newline-best-* not the last"
+			      " command in the guide!"))))
+                     ; Get a place to put the pairs
+                     param-map (if (:group-seq param-map)
+                                 param-map
+                                 (assoc param-map :group-seq []))
+		     ; Pick up all of the remaining cur-zloc
+                     param-map (assoc param-map
+                                 :group-seq (concat (:group-seq param-map)
+                                                   cur-zloc))
+                     _ (dbg-s options
+                              :guide
+                              "fzprint-guide: === :element-newline-best-*"
+			      " group-seq:"
+                              (map zstring (:group-seq param-map)))]
+                    (if (empty? (:group-seq param-map))
+                      ; Nothing to do, nothing left in the zloc-seq!
+                      (recur cur-zloc
+                             cur-index
+                             (next guide-seq)
+                             element-index
+                             (inc index)
+                             (dissoc param-map :group-seq :grouping?)
+                             mark-map
+                             previous-data
+                             options
+                             out)
+                      ; we have  to process
+                      (let [[new-param-map new-previous-data new-out]
+                              (guided-output
+                                caller
+                                options
+                                nil ; zloc
+                                ; TODO: figure out if this should be true?
+                                true ; rightmost-zloc?
+                                (first guide-seq)
+                                cur-index
+                                guide-seq
+                                element-index
+                                index
+                                param-map
+                                mark-map
+                                previous-data
+                                out)]
+                        (recur nil ; we finished them off
+                               (+ cur-index (count cur-zloc)) ; same here
+                               (next guide-seq)
+                               element-index
+                               (inc index)
+                               (dissoc new-param-map :group-seq :grouping)
+                               mark-map
+                               new-previous-data
+                               options
+                               new-out))))
+
                 ;
                 ;  Start looking at cur-seq
                 ;
@@ -5923,6 +6000,7 @@
                     (= (first guide-seq) :element-multi)
                     (= (first guide-seq) :element-guide)
 		    (= (first guide-seq) :element-best)
+		    (= (first guide-seq) :element-best-*)
                     (= (first guide-seq) :element-*))
                   ; Do basic guided output, moving both cur-seq and guide-seq
                   (let [_ (dbg-s options
@@ -5956,9 +6034,12 @@
                            (cond (= (first guide-seq) :element-guide)
                                    ; Make sure to consume the guide too
                                    (nnext guide-seq)
+				 (or
                                  (= (first guide-seq) :element-*)
+                                 (= (first guide-seq) :element-best-*))
                                    ; We just stay "stuck" on last command
-                                   ; in guide-seq for :element-*
+                                   ; in guide-seq for :element-* and
+				   ; :element-newline-best-*
                                    guide-seq
                                  :else (next guide-seq))
                            #_(if (= (first guide-seq) :element-guide)

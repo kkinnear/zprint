@@ -1,5 +1,6 @@
 (ns ^:no-doc zprint.guide
-  (:require [clojure.string :as s]))
+  (:require [clojure.string :as s]
+            [zprint.range :refer [abs]]))
 
 ;;
 ;; Contains functions which can be called with {:option-fn <fn>} to produce
@@ -384,22 +385,103 @@
                 :else s)]
     (count s)))
 
+(defn variance
+  "Return the variance of a sequence of numbers."
+  [coll]
+  (let [len (count coll)]
+    (when (not (zero? len))
+      (let [mean (/ (apply + coll) len)
+            dev-from-mean (mapv (partial - mean) coll)
+            sq-dev-from-mean (mapv #(* % %) dev-from-mean)]
+        (int (/ (apply + sq-dev-from-mean) len))))))
+
+(defn remove-max-not-half
+  "Given a sequence of numbers, remove all of the numbers that
+  are equal to the maximum number, unless that would result in sequence
+  which was less than half the size of the original. In that case, return
+  the original sequence."
+  [coll]
+  (let [new-coll (filter (partial > (apply max coll)) coll)]
+    (if (> (count new-coll) (/ (count coll) 2))
+      new-coll
+      coll)))
+       
+(defn max-align-size
+  "Given a sequence of sizes, figure out what alignment would be good.
+  Measure the variance of the seq, and the seq less its max and second
+  to max elements.  Use the longest seq whose variance is <= the
+  element of the sequence input and return its max element. Note that
+  in creating seqs without the max elements, never remove more than
+  half of the seq."
+  [size-seq max-var]
+  (let [len (count size-seq)]
+    (when (not (zero? len))
+      #_(println "max-var:" max-var "size-seq:" size-seq)
+      (let [size-seq-var (variance size-seq)
+            #_ (println "full var:" size-seq-var)]
+        (if (<= size-seq-var max-var)
+          (do #_(println "Full seq") (apply max size-seq))
+          (let [less-one-seq (remove-max-not-half size-seq)
+                less-one-var (variance less-one-seq)
+		#_ (println "less-one-var:" less-one-var) ]
+            (if (<= less-one-var max-var)
+              (do #_(println "Less one seq") (apply max less-one-seq))
+              (let [less-two-seq (remove-max-not-half less-one-seq)
+                    less-two-var (variance less-two-seq)
+		    #_ (println "less-two-var:" less-two-var)]
+                (if (<= less-two-var max-var)
+                (do #_(println "Less two seq") (apply max less-two-seq))
+                (do #_(println "no seq") nil))))))))))
+		       
+(defn max-align-size-alt
+  "Given a sequence of sizes, figure out what alignment would be good.
+  If the variance between the whole sequence and the sequence without
+  the maximum element (or elements, if there is more than one of the
+  maximum elements) is greater than var-diff, and the number of elements
+  remaining after removing the maximum elements is greater than the 
+  number of maximum elements removed, then return the maximum of
+  the sequence without the maximum elements, else return the maximum
+  element of the sequence input."
+  [size-seq var-diff]
+  (let [len (count size-seq)]
+    (when (not (zero? len))
+      (let [size-seq-var (variance size-seq)
+            outlier (apply max size-seq)
+            wo-outliers (filter (partial > outlier) size-seq)
+            wo-outliers-len (count wo-outliers)]
+        (if (and (not (zero? wo-outliers-len))
+                 (> wo-outliers-len (- len wo-outliers-len)))
+          (let [wo-outliers-var (variance wo-outliers)]
+            (println "size-seq-var:" (int size-seq-var)
+                     "wo-outliers-var:" (int wo-outliers-var))
+            (if (> (abs (- size-seq-var wo-outliers-var)) var-diff)
+              ; calculate size usig wo-outliers
+              (apply max wo-outliers)
+              outlier))
+          outlier)))))
+
 (defn odrguide2
   "Justify O'Doyles Rules"
   ([] "odrguide2")
-  ([options len sexpr]
+  ([var options len sexpr]
    (when (= (first sexpr) :what)
      (let [[vectors beyond] (split-with vector? (next sexpr))
-           max-first (apply max (map #(size (first %)) vectors))
-	   #_ (println "max-first:" max-first)
-           max-second (apply max (map #(size (second %)) vectors))
-	   #_ (println "max-second:" max-second)
-	   #_ (println "actual first:" (ffirst vectors))
-           align-setup [:align 1 (inc max-first) :align 2
-                        (+ (inc max-first) (inc max-second))]
-           vector-guide [:mark-at 1 (inc max-first) :mark-at 2
-                         (+ (inc max-first) (inc max-second)) :element :align 1
-                         :element :align 2 :element :element :element]
+           first-seq (map (comp size first) vectors)
+           max-first (max-align-size first-seq var)
+           #_(println "max-first:" max-first)
+           second-seq (map (comp size second) vectors)
+           max-second (max-align-size second-seq var)
+           #_(println "max-second:" max-second)
+           #_(println "actual first:" (ffirst vectors))
+           #_(println "actual second:" (second (first vectors)))
+           #_(println "vectorsx:" vectors)
+           vector-guide (cond (and max-first max-second)
+                                [:mark-at 1 (inc max-first) :mark-at 2
+                                 (+ (inc max-first) (inc max-second)) :element
+                                 :align 1 :element :align 2 :element-*]
+                              max-first [:mark-at 1 (inc max-first) :element
+                                         :align 1 :element-*]
+                              :else [:element-*])
            keyword-1 (first beyond)
            [keyword-1-lists beyond] (split-with list? (next beyond))
            keyword-2 (first beyond)
@@ -412,11 +494,17 @@
              [:element :indent (+ (count (str (first sexpr))) 2) :options
               {:guide vector-guide}
               (interpose :newline (repeat (count vectors) :element))
-              :options-reset :options {:vector {:wrap-multi? true}} :newline
-              #_:newline :indent 1 :element :indent (+ (count (str keyword-1)) 2)
-              (repeat (count keyword-1-lists) [:element :newline]) :indent 1
-              #_:newline :element :indent (+ (count (str keyword-2)) 2)
-              (interpose :newline (repeat (count keyword-2-lists) :element))]
+              :options-reset :options {:vector {:wrap-multi? true}}
+              (if keyword-1
+                [:newline :indent 1 :element :indent
+                 (+ (count (str keyword-1)) 2)
+                 (interpose :newline (repeat (count keyword-1-lists) :element))]
+                [])
+              (if keyword-2
+                [:newline :indent 1 :element :indent
+                 (+ (count (str keyword-2)) 2)
+                 (interpose :newline (repeat (count keyword-2-lists) :element))]
+                [])]
            guide (into [] (flatten guide))]
        #_(println "odrguide:" guide)
        {:guide guide}))))

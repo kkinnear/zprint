@@ -1040,6 +1040,131 @@
      :width 80,
      :vector {:wrap-multi? true}}))
 
+;;
+;; See if uneval stuff is gathered into pairs correctly
+;;
+
+(expect
+  "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff\n           #_stuff\n           ggggg\n\n         hh\n         iiiiiii))"
+  (zprint-str
+    "(stuff (caller [aaaa bbbb ccc dddddd] fff #_stuff ggggg hh iiiiiii))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :options {:pair {:flow? false}} :element-guide
+                    [:pair-*] :newline :options {} :pair-begin :element :element
+                    :pair-end :newline :newline :element :newline :element-*]],
+     :width 80,
+     :vector {:wrap-multi? true}}))
+
+;;
+;; See if uneval use :elements or if they are handled like comments
+;;
+
+(expect
+  "(stuff (caller #_uneval-stuff aaaa\n         bbbb cccc))"
+  (zprint-str "(stuff (caller #_uneval-stuff aaaa bbbb cccc))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2 [:element :element :newline :element-*]],
+               :width 80,
+               :vector {:wrap-multi? true}}))
+
+
+;;
+;; Basic tests for :element-newline-best
+;;
+
+
+(expect
+  "(stuff (caller aaaaaaaaaa\n               bbbb\n               cccc\n               ddddd\n               eeee\n               ffff\n               gggg))"
+  (zprint-str "(stuff (caller aaaaaaaaaa bbbb cccc ddddd eeee ffff gggg))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :group-begin :element :element :element
+                              :element :element :element :element :group-end
+                              :element-newline-best]],
+               :vector {:wrap-multi? true},
+               :width 80}))
+
+(expect
+  "(stuff (caller\n         aaaaaaaaaa\n         bbbb\n         cccc\n         ddddd\n         eeee\n         ffff\n         gggg))"
+  (zprint-str "(stuff (caller aaaaaaaaaa bbbb cccc ddddd eeee ffff gggg))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :group-begin :element :element :element
+                              :element :element :element :element :group-end
+                              :element-newline-best]],
+               :vector {:wrap-multi? true},
+               :width 19}))
+
+(expect
+  "(stuff\n  (caller\n    aaaaaaaaaa\n    bbbb\n    cccc\n    ddddd\n    eeee\n    ffff\n    gggg))"
+  (zprint-str "(stuff (caller aaaaaaaaaa bbbb cccc ddddd eeee ffff gggg))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :group-begin :element :element :element
+                              :element :element :element :element :group-end
+                              :element-newline-best]],
+               :vector {:wrap-multi? true},
+               :width 18}))
+
+;;
+;; Check to see if cur-ind is correct after a hung element.
+;;
+
+(expect
+  "(stuff\n  (caller aaaaa bbbbbbbbb\n                ccccc\n                ddd\n                eeee\n    bbbb))"
+  (zprint-str "(stuff (caller aaaaa bbbbbbbbb ccccc ddd eeee bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :element-best :group-begin :element
+                              :element :element :element :group-end
+                              :element-newline-best :newline :element-best]],
+               :vector {:wrap-multi? true},
+               :width 25}))
+
+
+(expect
+  "(stuff (caller aaaaa\n         bbbbbbbbb\n         ccccc\n         ddd\n         eeee\n         bbbb))"
+  (zprint-str "(stuff (caller aaaaa bbbbbbbbb ccccc ddd eeee bbbb))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :element-best :group-begin :element
+                              :element :element :element :group-end
+                              :element-newline-best :newline :element-best]],
+               :vector {:wrap-multi? true},
+               :width 24}))
+
+;;
+;; Make sure that fzprint-hang-remaining (i.e. :element-newline-best)
+;; still works even though a "this" operation wouldn't normally take place
+;;
+
+(expect
+  "(stuff\n  (caller aaaaa\n    (bbbbbbbbb\n      fff\n      (gggggg\n        (hhhh\n          iii)\n        jjjj)\n      kkkk)\n    ccccc\n    ddd\n    eeee\n    bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :element-best :group-begin :element :element
+                    :element :element :group-end :element-newline-best :newline
+                    :element-best]],
+     :vector {:wrap-multi? true},
+     :width 15}))
+
+(expect
+  "(stuff\n  (caller\n    aaaaa\n    (bbbbbbbbb\n      fff\n      (gggggg\n        (hhhh\n          iii)\n        jjjj)\n      kkkk)\n    ccccc\n    ddd\n    eeee\n    bbbb))"
+  (zprint-str
+    "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
+    {:parse-string? true,
+     :guide-debug [:list 2
+                   [:element :element-best :group-begin :element :element
+                    :element :element :group-end :element-newline-best :newline
+                    :element-best]],
+     :vector {:wrap-multi? true},
+     :width 14}))
+
 
   ;;
   ;; # rodguide

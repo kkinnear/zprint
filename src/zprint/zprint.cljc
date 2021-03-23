@@ -4708,14 +4708,14 @@
   with other information [param-map previous-data out].  Will do an
   fzprint* on zloc unless next-seq has data in it to use."
   ; [caller options incoming-seq zloc next-guide cur-index guide-seq
-  ;  index multi-fit? param-map mark-map previous-data out]
+  ;  index param-map mark-map previous-data out]
   [caller
    {:keys [width rightcnt one-line?],
     {:keys [wrap-after-multi? wrap-multi? respect-nl?]} caller,
     :as options} zloc rightmost-zloc? next-guide cur-index guide-seq
    element-index index
    {:keys [excess-guided-newline-count align-key last-cur-index rightcnt cur-ind
-           ind indent spaces one-line-ind pair-seq],
+           ind indent spaces one-line-ind pair-seq group-seq],
     :as param-map} mark-map
    [previous-newline? previous-guided-newline? unguided-newline-out?
     previous-comment? :as previous-data] out]
@@ -4724,9 +4724,6 @@
   (let [guided-newline? (= next-guide :newline)
         ; incoming-pairs is [pair-ind pair-result]
         do-pairs? (or (= next-guide :pair-end) (= next-guide :pair-*))
-        ; TODO: REMOVE THIS
-        multi-fit? (or do-pairs? (= next-guide :element-multi) (= next-guide :element-guide))
-	multi-fit? wrap-multi?
         options (if (= next-guide :element-guide)
                   (assoc options :guide (second guide-seq))
                   options)
@@ -4773,15 +4770,43 @@
         this-spaces
           (if previous-newline? (+ beyond-cur-ind cur-ind) beyond-cur-ind)
         this-ind (+ beyond-cur-ind cur-ind)
-        try-this? (and (or zloc do-pairs?)
+        ; Just trying this out here for fzprint-hang-remaining
+        early-next-ind
+          (or align-ind
+              (+ (if (zero? element-index) one-line-ind (+ indent ind))
+                 (or spaces 0)))
+        [do-hang-remaining? hang-remaining-seq]
+          (cond (= next-guide :element-newline-best) [true group-seq]
+                (= next-guide :element-best) [true [zloc]])
+        try-this? (and (or zloc do-pairs? group-seq)
                        (not previous-newline?)
                        (not guided-newline?)
-                       (< cur-ind width)
-                       (< this-ind width))
-        this-result (when try-this?
-                      (if do-pairs?
-                        (fzprint-pairs (in-hang options) this-ind pair-seq)
-                        (fzprint* (in-hang options) this-ind zloc)))
+                       (or do-hang-remaining?
+                           (and (< cur-ind width) (< this-ind width))))
+        this-result
+          (when try-this?
+            (cond
+              do-pairs? (fzprint-pairs (in-hang options) this-ind pair-seq)
+              do-hang-remaining? (fzprint-hang-remaining
+                                   caller
+                                   options
+                                   #_(assoc options :dbg? true)
+                                   ; This is the correct hindent, but it will
+                                   ; include a space if it hangs it.
+                                   this-ind
+                                   early-next-ind
+                                   hang-remaining-seq
+                                   #_group-seq
+                                   nil ;fn-type
+                                 )
+              :else (fzprint* (in-hang options) this-ind zloc)))
+        ; If we did fzprint-hang-remaining and it has a single space at the
+        ; beginning, then drop that space.
+        this-result (if (and do-hang-remaining?
+                             (= (nth (first this-result) 2) :whitespace)
+                             (= (ffirst this-result) " "))
+                      (next this-result)
+                      this-result)
         this-lines (style-lines options this-ind this-result)
         ; this-multi? says that there is more than one thing in this-result,
         ; not that it is multi-line!!
@@ -4791,9 +4816,9 @@
         ; This says that we either didn't try a this or we did and the
         ; this didn't fit.
         this-fit?
-          (and (or zloc do-pairs?)
+          (and (or zloc do-pairs? group-seq)
                (and (not (empty? this-result))
-                    (if this-multi? (or multi-fit? (<= this-linecnt 1)) true)))
+                    (if this-multi? (or wrap-multi? (<= this-linecnt 1)) true)))
         ; output-seq is either the results of the this-line fzprint* or the
         ; incoming sequence.
         output-seq (or this-result incoming-seq)
@@ -5010,6 +5035,7 @@
       "\n try-this?" try-this?
       "\n this-fit?" this-fit?
       "\n fail-fit?" fail-fit?
+      "\n do-hang-remaining?" do-hang-remaining?
       "\n regular-space:" regular-space
       "\n additional-spaces:" additional-spaces
       "\n beyond-cur-ind:" beyond-cur-ind
@@ -5021,7 +5047,7 @@
       "\n next-ind:" next-ind
       "\n (+ indent ind):" (+ indent ind)
       "\nmulti?" multi?
-      "\nmulti-fit?" multi-fit?
+      "\nwrap-multi?" wrap-multi?
       "\nlines:" lines
       "\nlinecnt:" linecnt
       "\nmax-width:" max-width
@@ -5176,8 +5202,8 @@
                         :indent local-indent,
                         :pair-seq nil,
                         :last-cur-index last-cur-index,
-                        :rightcnt rightcnt
-			:initial-options options}
+                        :rightcnt rightcnt,
+                        :initial-options options}
              mark-map {}
              [previous-newline? previous-guided-newline? unguided-newline-out?
               previous-comment? :as previous-data]
@@ -5194,7 +5220,7 @@
                      "fzprint-guide: out:"
                      ((:dzprint options) {} (into [] (condense-depth 1 out))))
               out)
-          (if (> index 50)
+          (if (> index 300)
             out
             (let [_ (dbg-s options
                            :guide
@@ -5203,8 +5229,13 @@
                            "\nfzprint-guide: initial param-map:"
                              ((:dzprint options)
                                {}
-                               (assoc (dissoc param-map :pair-seq :initial-options)
-                                 :pair-seq-len (count (:pair-seq param-map)))))
+                               (assoc (dissoc param-map
+                                              :group-seq
+                                              :pair-seq
+                                              :initial-options)
+                                 :pair-seq-len (count (:pair-seq param-map))
+                                 :group-seq-len (count (:group-seq
+                                                         param-map)))))
                   ; If we are out of guide-seq, but we still have cur-seq
                   ; which we must because of the if-not above, then keep
                   ; doing elements in guide-seq for as long as we have cur-seq
@@ -5212,17 +5243,18 @@
                   ; TODO: Change this to [:element], or it will fail when
                   ; the guide-seq runs out.  But it can be nice to have it
                   ; fail for debugging.
-		  _ (when (empty? guide-seq)
-		      (dbg-s options :guide-debug
-		           "fzprint-guide: guide ran out! guide:"
-          (color-str 
-	  ((:dzprint options) {:vector {:wrap? false}}
-	  guide
-	  )
-	  :bright-red)
-		     "\nexpression:"
-                     ((:dzprint options) {:vector {:wrap? false}} (into [] (map zstring zloc-seq)))))
-
+                  _ (when (empty? guide-seq)
+                      (dbg-s options
+                             :guide-debug
+                             "fzprint-guide: guide ran out! guide:"
+                               (color-str ((:dzprint options)
+                                            {:vector {:wrap? false}}
+                                            guide)
+                                          :bright-red)
+                             "\nexpression:" ((:dzprint options)
+                                               {:vector {:wrap? false}}
+                                               (into []
+                                                     (map zstring zloc-seq)))))
                   guide-seq (or guide-seq :element #_[:element])
                   ; First, look into what we have coming up in the sequence
                   ; we are formatting
@@ -5230,6 +5262,7 @@
                   ; always used together
                   comment-inline? comment?
                   next-newline? (= (ztag (first cur-zloc)) :newline)
+                  uneval? (= (ztag (first cur-zloc)) :uneval)
                   rightmost-zloc? (not (next cur-zloc))]
               (cond
                 (and (:pair-seq param-map) (= (first guide-seq) :element))
@@ -5237,10 +5270,12 @@
                   ; and we only accept :element between :pair-begin and
                   ; :pair-end
                   ;
-                  ; First, split off any comments or newlines off of the
-                  ; front of zloc-seq
+                  ; First, split off any comments or newlines or uneval off
+                  ; of the front of zloc-seq
                   (let [[comments-or-newlines-cur-zloc remaining-cur-zloc]
-                          (split-with zcomment-or-newline? cur-zloc)
+                          (split-with pair-element?
+                                      #_zcomment-or-newline?
+                                      cur-zloc)
                         pair-seq (:pair-seq param-map)
                         ; Add the comments and newlines from cur-zloc to
                         ; pair-seq
@@ -5263,6 +5298,71 @@
                            previous-data
                            options
                            out))
+                (and (:group-seq param-map) (:grouping? param-map))
+                  ; we are accumulating elements from cur-zloc
+                  ; and we only accept :element between :group-begin and
+                  ; :group-end
+                  ;
+                  ; First, split off any comments or newlines or uneval
+                  ; off of the front of zloc-seq
+                  (cond
+                    (= (first guide-seq) :group-end)
+                      (do (dbg-s options
+                                 :guide
+                                 (color-str "fzprint-guide: === :group-end"
+                                            :bright-red))
+                          (recur cur-zloc
+                                 cur-index
+                                 (next guide-seq)
+                                 element-index
+                                 (inc index)
+                                 (assoc param-map :grouping? nil)
+                                 mark-map
+                                 previous-data
+                                 options
+                                 out))
+                    (= (first guide-seq) :element)
+                      (let [[comments-or-newlines-cur-zloc remaining-cur-zloc]
+                              (split-with pair-element?
+                                          #_zcomment-or-newline?
+                                          cur-zloc)
+                            group-seq (:group-seq param-map)
+                            ; Add the comments and newlines from cur-zloc to
+                            ; group-seq
+                            group-seq (into []
+                                            (concat
+                                              group-seq
+                                              comments-or-newlines-cur-zloc))
+                            next-zloc (first remaining-cur-zloc)
+                            ; Do one more :element off of zloc-seq, if any
+                            group-seq (if next-zloc
+                                        (conj group-seq
+                                              (first remaining-cur-zloc))
+                                        group-seq)]
+                        (dbg-s options
+                               :guide
+                               (color-str
+                                 "fzprint-guide: === save a group element"
+                                 :bright-red))
+                        (recur
+                          (next remaining-cur-zloc)
+                          (+ cur-index (count comments-or-newlines-cur-zloc) 1)
+                          (next guide-seq)
+                          (inc element-index)
+                          (inc index)
+                          (assoc param-map :group-seq group-seq)
+                          mark-map
+                          previous-data
+                          options
+                          out))
+                    :else
+                      (throw (#?(:clj Exception.
+                                 :cljs js/Error.)
+                              (str "When processing a guide and accumulating a"
+                                   " group only :element is allowed,"
+                                   " but encountered: '"
+                                   (first guide-seq)
+                                   "' instead!"))))
                 (= (first guide-seq) :pair-end)
                   ; output accumulated pairs
                   (if (:pair-seq param-map)
@@ -5357,54 +5457,52 @@
                              options
                              out))
                 (= (first guide-seq) :mark)
-                  ; put the cur-ind plus spaces into the mark map with 
-		  ; key from the next guide-seq
-                  (do
-                    (dbg-s options
-                           :guide
-                           (color-str "fzprint-guide: === :mark key:"
-                                      :bright-red)
-                           (first (next guide-seq))
-                           "value:"
-                           (+ (:cur-ind param-map) (or (:spaces param-map) 1)))
-                    (recur cur-zloc
-                           cur-index
-                           ; skip an extra to account for the mark key
-                           (nnext guide-seq)
-                           element-index
-                           (inc index)
-                           param-map
-                           (assoc mark-map
-                             (first (next guide-seq)) (+ (:cur-ind param-map)
-                                                         (or (:spaces param-map)
-                                                             1)))
-                           previous-data
-                           options
-                           out))
+                  ; put the cur-ind plus spaces into the mark map with
+                  ; key from the next guide-seq
+                  (do (dbg-s
+                        options
+                        :guide
+                        (color-str "fzprint-guide: === :mark key:" :bright-red)
+                        (first (next guide-seq))
+                        "value:"
+                        (+ (:cur-ind param-map) (or (:spaces param-map) 1)))
+                      (recur cur-zloc
+                             cur-index
+                             ; skip an extra to account for the mark key
+                             (nnext guide-seq)
+                             element-index
+                             (inc index)
+                             param-map
+                             (assoc mark-map
+                               (first (next guide-seq))
+                                 (+ (:cur-ind param-map)
+                                    (or (:spaces param-map) 1)))
+                             previous-data
+                             options
+                             out))
                 (= (first guide-seq) :mark-at)
-                  ; put the cur-ind plus spaces into the mark map with 
-		  ; key from the next guide-seq
+                  ; put the cur-ind plus spaces into the mark map with
+                  ; key from the next guide-seq
                   (do
-                    (dbg-s options
-                           :guide
-                           (color-str "fzprint-guide: === :mark-at key:"
-                                      :bright-red)
-                           (first (next guide-seq))
-                           "value:"
-			   (+ (:one-line-ind param-map) 
-			      (first (nnext guide-seq))))
+                    (dbg-s
+                      options
+                      :guide
+                      (color-str "fzprint-guide: === :mark-at key:" :bright-red)
+                      (first (next guide-seq))
+                      "value:"
+                      (+ (:one-line-ind param-map) (first (nnext guide-seq))))
                     (recur cur-zloc
                            cur-index
                            ; skip two to account for the mark key and the
-			   ; spaces count
+                           ; spaces count
                            (nthnext guide-seq 3)
                            element-index
                            (inc index)
                            param-map
                            (assoc mark-map
-                             (first (next guide-seq)) 
-			     (+ (:one-line-ind param-map) 
-			        (first (nnext guide-seq))))
+                             (first (next guide-seq))
+                               (+ (:one-line-ind param-map)
+                                  (first (nnext guide-seq))))
                            previous-data
                            options
                            out))
@@ -5462,14 +5560,14 @@
                 (= (first guide-seq) :options)
                   ; Start using an updated options map
                   (let [[merged-option-map _] (internal-config-and-validate
-                                               options
-                                               (first (next guide-seq))
-                                               "fzprint-guide: options:"
-					       ; Don't validate because these
-					       ; were either validated on
-					       ; return from option-fn or
-					       ; when read in the options map
-                                               nil)
+                                                options
+                                                (first (next guide-seq))
+                                                "fzprint-guide: options:"
+                                                ; Don't validate because these
+                                                ; were either validated on
+                                                ; return from option-fn or
+                                                ; when read in the options map
+                                                nil)
                         _ (dbg-s options
                                  :guide
                                  (color-str "fzprint-guide: === :options"
@@ -5484,7 +5582,7 @@
                            param-map
                            mark-map
                            previous-data
-			   merged-option-map
+                           merged-option-map
                            out))
                 (= (first guide-seq) :options-reset)
                   ; put the options map back to where it was when we started
@@ -5497,7 +5595,7 @@
                              (next guide-seq)
                              element-index
                              (inc index)
-			     param-map
+                             param-map
                              mark-map
                              previous-data
                              (:initial-options param-map)
@@ -5665,6 +5763,26 @@
                              previous-data
                              options
                              out))
+                ; :group-begin has to come after the newline handling
+                (= (first guide-seq) :group-begin)
+                  ; create an empty seq to accumulate zlocs
+                  (do (dbg-s options
+                             :guide
+                             (color-str
+                               "fzprint-guide: === start accumulating a group"
+                               :bright-red))
+                      (recur cur-zloc
+                             cur-index
+                             (next guide-seq)
+                             element-index
+                             (inc index)
+                             (assoc param-map
+                               :group-seq []
+                               :grouping? true)
+                             mark-map
+                             previous-data
+                             options
+                             out))
                 ; :pair-* also has to come after newline handling
                 (= (first guide-seq) :pair-*)
                   ; Consider everything else pairs, and output them.  If
@@ -5742,7 +5860,7 @@
                 ; All of the others are (and must be) processed above.
                 ;
                 ; Anything left in cur-zloc?
-                (nil? cur-zloc)
+                (and (nil? cur-zloc) (empty? (:group-seq param-map)))
                   ; No, nothing left in cur-zloc.  This isn't a failure,
                   ; because we might be accumulating pairs or just have
                   ; made too long a guide.  Just keep going and eat up
@@ -5761,32 +5879,34 @@
                              previous-data
                              options
                              out))
-                (or comment? comment-inline? next-newline?)
+                (or comment? comment-inline? uneval? next-newline?)
                   ; Do unguided output, moving cur-zloc without changing
                   ; guide-seq
-                  (let [_ (dbg-s
-                            options
-                            :guide
-                              (color-str
-                                "fzprint-guide: === process comments, newlines"
-                                :bright-red)
-                            "comment?" comment?
-                            "comment-inline?" comment-inline?
-                            "next-newline?" next-newline?)
-                        [new-param-map new-previous-data new-out]
-                          (guided-output caller
-                                         options
-                                         (first cur-zloc)
-                                         rightmost-zloc?
-                                         (first guide-seq) ; unknown
-                                         cur-index
-                                         guide-seq
-                                         element-index
-                                         index
-                                         param-map
-                                         mark-map
-                                         previous-data
-                                         out)]
+                  (let
+                    [_ (dbg-s
+                         options
+                         :guide
+                           (color-str
+                             "fzprint-guide: === process comments, newlines, uneval"
+                             :bright-red)
+                         "comment?" comment?
+                         "comment-inline?" comment-inline?
+                         "uneval?" uneval?
+                         "next-newline?" next-newline?)
+                     [new-param-map new-previous-data new-out]
+                       (guided-output caller
+                                      options
+                                      (first cur-zloc)
+                                      rightmost-zloc?
+                                      (first guide-seq) ; unknown
+                                      cur-index
+                                      guide-seq
+                                      element-index
+                                      index
+                                      param-map
+                                      mark-map
+                                      previous-data
+                                      out)]
                     (recur (next cur-zloc)
                            (inc cur-index)
                            ; We may have used information from guide-seq, but
@@ -5802,6 +5922,7 @@
                 (or (= (first guide-seq) :element)
                     (= (first guide-seq) :element-multi)
                     (= (first guide-seq) :element-guide)
+		    (= (first guide-seq) :element-best)
                     (= (first guide-seq) :element-*))
                   ; Do basic guided output, moving both cur-seq and guide-seq
                   (let [_ (dbg-s options
@@ -5845,8 +5966,46 @@
                                (next guide-seq))
                            (inc element-index)
                            (inc index)
-                           ; forget spaces after :element or :element-align
+                           ; forget spaces or alignment after :element
                            (dissoc new-param-map :spaces :align-key)
+                           mark-map
+                           new-previous-data
+                           options
+                           new-out))
+                (= (first guide-seq) :element-newline-best)
+                  ; Operate on previously grouped elements
+                  (let [_ (dbg-s options
+                                 :guide
+                                 (color-str (str "fzprint-guide: === "
+                                                 (first guide-seq))
+                                            :bright-red))
+                        [new-param-map new-previous-data new-out]
+                          (guided-output caller
+                                         options
+                                         ; Use previously created group
+                                         nil
+                                         #_(first cur-zloc)
+                                         rightmost-zloc?
+                                         (first guide-seq)
+                                         cur-index
+                                         guide-seq
+                                         element-index
+                                         index
+                                         param-map
+                                         mark-map
+                                         previous-data
+                                         out)]
+                    (recur cur-zloc
+                           #_(next cur-zloc)
+                           cur-index
+                           #_(inc cur-index)
+                           (next guide-seq)
+                           element-index
+                           #_(inc element-index)
+                           (inc index)
+                           ; forget spaces or alignment after :element
+                           ; also forget the group, a we have used it up
+                           (dissoc new-param-map :spaces :align-key :group-seq)
                            mark-map
                            new-previous-data
                            options
@@ -5855,12 +6014,13 @@
                 ; Something we didn't expect is going on here
                 ; TODO: Fix this for realistic error reporting
                 ;
-                :else
-                  (throw
-                    (#?(:clj Exception.
-                        :cljs js/Error.)
-                     (str "Unknown values: guide-seq:" (first guide-seq)
-                          "\ncur-zloc:" (zstring (first cur-zloc)))))))))))))
+                :else (throw (#?(:clj Exception.
+                                 :cljs js/Error.)
+                              (str "Unknown values: guide-seq: '"
+                                   (first guide-seq)
+                                   "' "
+                                   "\ncur-zloc:"
+                                   (zstring (first cur-zloc)))))))))))))
 
 (defn remove-nl
   "Remove any [_ _ :newline] from the seq."

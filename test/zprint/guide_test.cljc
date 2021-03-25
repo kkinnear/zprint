@@ -1014,11 +1014,12 @@
      :width 80}))
 
 ;;
-;; :wrap-multi? off and on in vectors
+;; :wrap-multi? off and on in vectors -- doesn't matter if it is the
+;; first thing in the vector in a guide
 ;;
 
 (expect
-  "(stuff (caller [\n                aaaa bbbb\n                ccc dddddd]\n         fff\n           ggggg\n         hh\n           iiiiiii))"
+  "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff\n           ggggg\n         hh\n           iiiiiii))"
   (zprint-str
     "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
     {:parse-string? true,
@@ -1366,6 +1367,84 @@
      :vector {:wrap-multi? true},
      :width 10}))
 
+;;
+;; Check for both :element-binding-vec as well as whether 
+;; :element-newline-best-* works after a guided newline
+;;
+
+(expect
+  "(let [this is\n      a    test\n      this is\n      only a\n      real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [this is a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element-binding-vec :newline
+                    :element-newline-best-*]],
+     :width 50,
+     :binding {:justify? true}}))
+
+;;
+;; And check out that :element-binding-vec also works after a :newline
+;;
+
+(expect
+  "(let\n  [this is\n   a    test\n   this is\n   only a\n   real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [this is a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :newline :element-binding-vec :newline
+                    :element-newline-best-*]],
+     :width 50,
+     :binding {:justify? true}}))
+
+;;
+;; Ensure that we get an :element-binding-vec if it doesn't fit, and has to
+;; go on the next line.
+;;
+
+(expect
+  "(let\n  [t isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj\n   a test\n   this is\n   only a\n   real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [t isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element-binding-vec :newline
+                    :element-newline-best-*]],
+     :binding {:justify? true},
+     :width 54}))
+
+;;
+;; :element-group-binding
+;;
+
+(expect
+  "(let\n  [t isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj\n   a test\n   this is\n   only a\n   real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [t isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element-guide
+                    [:group-begin :element :element :element :element :element
+                     :element :element :element :element :element :group-end
+                     :element-binding-group] :newline :element-newline-best-*]],
+     :binding {:justify? true},
+     :vector {:wrap-multi? false},
+     :width 50}))
+
+(expect
+  "(let [t    isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj\n      a    test\n      this is\n      only a\n      real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [t isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element-guide
+                    [:group-begin :element :element :element :element :element
+                     :element :element :element :element :element :group-end
+                     :element-binding-group] :newline :element-newline-best-*]],
+     :binding {:justify? true},
+     :vector {:wrap-multi? false},
+     :width 80}))
 
   ;;
   ;; # rodguide

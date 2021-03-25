@@ -508,3 +508,55 @@
            guide (into [] (flatten guide))]
        #_(println "odrguide:" guide)
        {:guide guide}))))
+
+(defn ruleguide1
+  "Justify Rules: needs to look at vectors inside and if they start with
+  keywords, then don't do anything to them."
+  ([] "ruleguide1")
+  ([var options len sexpr]
+   (when (keyword? (first sexpr)) 
+     (let [[vectors beyond] (split-with vector? (next sexpr))
+           first-seq (map (comp size first) vectors)
+           max-first (max-align-size first-seq var)
+           #_(println "max-first:" max-first)
+           second-seq (map (comp size second) vectors)
+           max-second (max-align-size second-seq var)
+           #_(println "max-second:" max-second)
+           #_(println "actual first:" (ffirst vectors))
+           #_(println "actual second:" (second (first vectors)))
+           #_(println "vectorsx:" vectors)
+           vector-guide (cond (and max-first max-second)
+                                [:mark-at 1 (inc max-first) :mark-at 2
+                                 (+ (inc max-first) (inc max-second)) :element
+                                 :align 1 :element :align 2 :element-*]
+                              max-first [:mark-at 1 (inc max-first) :element
+                                         :align 1 :element-*]
+                              :else [:element-*])
+           keyword-1 (first beyond)
+           [keyword-1-lists beyond] (split-with list? (next beyond))
+           keyword-2 (first beyond)
+           [keyword-2-lists beyond] (split-with list? (next beyond))
+           #_(println "keyword-1:" keyword-1
+                      "keyword-1-lists:" keyword-1-lists
+                      "keyword-2:" keyword-2
+                      "keyword-2-lists:" keyword-2-lists)
+           guide
+             [:element :indent (+ (count (str (first sexpr))) 2) :options
+              {:guide vector-guide}
+              (interpose :newline (repeat (count vectors) :element))
+              :options-reset :options {:vector {:wrap-multi? true}}
+              (if keyword-1
+                [:newline :indent 1 :element :indent
+                 (+ (count (str keyword-1)) 2)
+                 (interpose :newline (repeat (count keyword-1-lists) :element))]
+                [])
+              (if keyword-2
+                [:newline :indent 1 :element :indent
+                 (+ (count (str keyword-2)) 2)
+                 (interpose :newline (repeat (count keyword-2-lists) :element))]
+                [])]
+           guide (into [] (flatten guide))]
+       #_(println "odrguide:" guide)
+       {:guide guide}))))
+
+

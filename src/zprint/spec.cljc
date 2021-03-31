@@ -380,7 +380,7 @@
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?
                       ::option-fn-first ::option-fn ::fn-format
-                      ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap? ::indent-only?]))
+                      ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap? ::indent-only? ::hang?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))

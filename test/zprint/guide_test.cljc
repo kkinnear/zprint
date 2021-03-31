@@ -37,8 +37,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 27}))
 
 (expect
@@ -47,8 +47,8 @@
               {:parse-string? true,
                :list {:respect-nl? false},
                :guide-debug [:list 2
-                             [:element :pair-begin :element :element :element
-                              :element :pair-end]],
+                             [:element :group-begin :element :element :element
+                              :element :group-end :element-pair-group]],
                :width 26}))
 
 (expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
@@ -56,8 +56,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 24}))
 
 (expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
@@ -65,8 +65,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 21}))
 
 (expect "(stuff (caller\n         aaaa bbbb\n         ccc dddddd))"
@@ -74,8 +74,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 22}))
 
 (expect "(stuff\n  (caller aaaa bbbb\n          ccc\n            dddddd))"
@@ -83,8 +83,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 20}))
 
 (expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc dddddd))"
@@ -92,8 +92,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 19}))
 
 (expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc dddddd))"
@@ -101,8 +101,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 16}))
 
 (expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc\n      dddddd))"
@@ -110,8 +110,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 15}))
 
 (expect "(stuff\n  (caller\n    aaaa bbbb\n    ccc\n      dddddd))"
@@ -119,8 +119,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 13}))
 
 (expect "(stuff\n  (caller\n    aaaa\n      bbbb\n    ccc\n      dddddd))"
@@ -128,8 +128,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 12}))
 
   (expect
@@ -232,8 +232,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 15,
                      :style :community}))
 
@@ -244,8 +244,8 @@
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 15,
                      :style :community,
                      :fn-map {"caller" :none-body}}))
@@ -407,8 +407,8 @@
         (zprint-str "(stuff (caller aaaa bbbb \n ccc dddddd))"
                     {:parse-string? true,
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group]],
                      :width 27,
                      :list {:respect-nl? true}}))
 
@@ -417,8 +417,8 @@
   (zprint-str "(stuff (caller aaaa bbbb \n ccc \n dddddd))"
               {:parse-string? true,
                :guide-debug [:list 2
-                             [:element :pair-begin :element :element :element
-                              :element :pair-end]],
+                             [:element :group-begin :element :element :element
+                              :element :group-end :element-pair-group]],
                :width 27,
                :list {:respect-nl? true}}))
 
@@ -427,13 +427,13 @@
   (zprint-str "(stuff (caller aaaa bbbb \n\n ccc \n dddddd))"
               {:parse-string? true,
                :guide-debug [:list 2
-                             [:element :pair-begin :element :element :element
-                              :element :pair-end]],
+                             [:element :group-begin :element :element :element
+                              :element :group-end :element-pair-group]],
                :width 27,
                :list {:respect-nl? true}}))
 
 ;;
-;; Empty :pair-begin :pair-end sequence
+;; Empty :group-begin :group-end sequence
 ;;
 
 (expect
@@ -441,8 +441,8 @@
   (zprint-str "(stuff (caller aaaa bbbb \n\n ccc \n dddddd))"
               {:parse-string? true,
                :guide-debug [:list 2
-                             [:element :pair-begin :pair-end :pair-begin
-                              :element :element :element :element :pair-end]],
+                             [:element :group-begin :group-end :element-pair-group :group-begin
+                              :element :element :element :element :group-end :element-pair-group]],
                :width 80,
                :list {:respect-nl? false}}))
 
@@ -719,8 +719,8 @@
   (zprint-str "(stuff (caller aaaa left riiiiiiiight left2 right))"
               {:parse-string? true,
                :guide-debug [:list 2
-                             [:element :element :pair-begin :element :element
-                              :element :element :pair-end]],
+                             [:element :element :group-begin :element :element
+                              :element :element :group-end :element-pair-group]],
                :list {:respect-nl? false},
                :width 34}))
 
@@ -729,8 +729,8 @@
   (zprint-str "(stuff (caller aaaa left riiiiiiiight left2 right))"
               {:parse-string? true,
                :guide-debug [:list 2
-                             [:element :element :pair-begin :element :element
-                              :element :element :pair-end]],
+                             [:element :element :group-begin :element :element
+                              :element :element :group-end :element-pair-group]],
                :list {:respect-nl? false},
                :width 33}))
 
@@ -739,8 +739,8 @@
   (zprint-str "(caller aaaa left riiiiiiiight left2 right)"
               {:parse-string? true,
                :guide-debug [:list 1
-                             [:element :element :pair-begin :element :element
-                              :element :element :pair-end]],
+                             [:element :element :group-begin :element :element
+                              :element :element :group-end :element-pair-group]],
                :list {:respect-nl? false},
                :width 27}))
 
@@ -748,8 +748,8 @@
         (zprint-str "(caller aaaa left riiiiiiiight left2 right)"
                     {:parse-string? true,
                      :guide-debug [:list 1
-                                   [:element :element :pair-begin :element
-                                    :element :element :element :pair-end]],
+                                   [:element :element :group-begin :element
+                                    :element :element :element :group-end :element-pair-group]],
                      :list {:respect-nl? false},
                      :width 26}))
 
@@ -809,8 +809,8 @@
     "(caller aaaa bbbb cccc ddddddd eeeeee fffffff gggg)"
     {:parse-string? true,
      :guide-debug [:list 1
-                   [:element :element :spaces 10 :pair-begin :element :element
-                    :element :element :element :element :pair-end]],
+                   [:element :element :spaces 10 :group-begin :element :element
+                    :element :element :element :element :group-end :element-pair-group]],
      :list {:respect-nl? false},
      :width 36}))
 
@@ -874,6 +874,7 @@
 
 ;;
 ;; Multi-line regular elements (not just pairs) can start on a line
+;; without anything special with lists
 ;;
 
 (expect
@@ -883,18 +884,24 @@
     {:parse-string? true,
      :list {:respect-nl? false},
      :guide-debug
-       [:list 2 [:element :element :element :element-multi :element :element]],
+       [:list 2 [:element :element :element :element :element :element]],
      :width 80}))
 
+;;
+;; Multi-line regular elements need help to start on a line for vectors
+;; to preserve backwards compatibility
+;;
+
 (expect
-  "(stuff (caller aaaa bbbb (-> this\n                             is\n                             a\n                             test)\n         ccc dddddd))"
+  "(stuff [caller aaaa bbbb (-> this\n                             is\n                             a\n                             test) ccc dddddd])"
   (zprint-str
-    "(stuff (caller aaaa bbbb (-> this is a test) ccc dddddd))"
+    "(stuff [caller aaaa bbbb (-> this is a test) ccc dddddd])"
     {:parse-string? true,
-     :list {:respect-nl? false, :wrap-after-multi? false},
+     :list {:respect-nl? false},
      :guide-debug
-       [:list 2 [:element :element :element :element-multi :element :element]],
+       [:vector 2 [:element :element :element :options {:vector {:wrap-multi? true}} :element :options-reset :element :element]],
      :width 80}))
+
 
 ;;
 ;; Ensure that rightcnt is handled correctly when doing pairs that aren't the
@@ -902,39 +909,40 @@
 ;;
 
 (expect "(stuff (caller aaaa bbbb\n               ccc dddddd\n         eeeee))"
-        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd eeeee))"
-                    {:parse-string? true,
-                     :list {:respect-nl? false},
-                     :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end :element]],
-                     :width 25}))
+        (zprint-str
+          "(stuff (caller aaaa bbbb ccc dddddd eeeee))"
+          {:parse-string? true,
+           :list {:respect-nl? false},
+           :guide-debug [:list 2
+                         [:element :group-begin :element :element :element
+                          :element :group-end :element-pair-group :element]],
+           :width 25}))
 
 (expect "(stuff\n  (caller aaaa bbbb\n          ccc dddddd\n    eeeee))"
         (zprint-str "(stuff (caller aaaa bbbb ccc dddddd eeeee))"
                     {:parse-string? true,
                      :list {:respect-nl? false},
                      :guide-debug [:list 2
-                                   [:element :pair-begin :element :element
-                                    :element :element :pair-end :element]],
+                                   [:element :group-begin :element :element
+                                    :element :element :group-end :element-pair-group :element]],
                      :width 24}))
 
 ;;
-;; :pair-*
+;; :element-pair-*
 ;;
 
 (expect "(stuff (caller aaaa bbbb\n               ccc dddddd))"
         (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
                     {:parse-string? true,
                      :list {:respect-nl? false},
-                     :guide-debug [:list 2 [:element :pair-*]],
+                     :guide-debug [:list 2 [:element :element-pair-*]],
                      :width 27}))
 (expect
   "(stuff (caller aaaa bbbb\n               ccc\n                 dddddd))"
   (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
               {:parse-string? true,
                :list {:respect-nl? false},
-               :guide-debug [:list 2 [:element :pair-*]],
+               :guide-debug [:list 2 [:element :element-pair-*]],
                :width 26}))
 
 ;;
@@ -945,8 +953,8 @@
         (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
                     {:parse-string? true,
                      :fn-map {"caller" [:none
-                                        {:guide [:element :pair-begin :element
-                                                 :element :pair-end :newline
+                                        {:guide [:element :group-begin :element
+                                                 :element :group-end :element-pair-group :newline
                                                  :element :newline :element]}]},
                      :width 24}))
 
@@ -969,7 +977,7 @@
                      :width 23}))
 
 ;;
-;; Make sure newlines are handled correctly before :pair-*
+;; Make sure newlines are handled correctly before :element-pair-*
 ;;
 
 (expect
@@ -979,7 +987,7 @@
                :list {:respect-nl? false},
 	       :vector {:wrap-multi? true}
                :guide-debug
-                 [:list 2 [:element :element-guide [:pair-*] :newline :pair-*]],
+                 [:list 2 [:element :element-guide [:element-pair-*] :newline :element-pair-*]],
                :width 80}))
 
 ;;
@@ -995,9 +1003,9 @@
                 [:none
                  {:guide [:element :options
                           {:pair {:flow? false}, :vector {:wrap-multi? true}}
-                          :element-guide [:pair-*] :newline :options
+                          :element-guide [:element-pair-*] :newline :options
                           {:pair {:flow? true, :nl-separator-all? true},
-                           :binding {:justify? true}} :pair-*]}]}}))
+                           :binding {:justify? true}} :element-pair-*]}]}}))
 
 
 
@@ -1010,7 +1018,7 @@
      :vector {:wrap-multi? true}
      :guide-debug [:list 2
                    [:element :options {:pair {:flow? false}} :element-guide
-                    [:pair-*] :newline :options {:pair {:flow? true}} :pair-*]],
+                    [:element-pair-*] :newline :options {:pair {:flow? true}} :element-pair-*]],
      :width 80}))
 
 ;;
@@ -1026,7 +1034,7 @@
      :list {:respect-nl? false},
      :guide-debug [:list 2
                    [:element :options {:pair {:flow? false}} :element-guide
-                    [:pair-*] :newline :options {:pair {:flow? true}} :pair-*]],
+                    [:element-pair-*] :newline :options {:pair {:flow? true}} :element-pair-*]],
      :width 80}))
 
 (expect
@@ -1037,7 +1045,7 @@
      :list {:respect-nl? false},
      :guide-debug [:list 2
                    [:element :options {:pair {:flow? false}} :element-guide
-                    [:pair-*] :newline :options {:pair {:flow? true}} :pair-*]],
+                    [:element-pair-*] :newline :options {:pair {:flow? true}} :element-pair-*]],
      :width 80,
      :vector {:wrap-multi? true}}))
 
@@ -1053,8 +1061,8 @@
      :list {:respect-nl? false},
      :guide-debug [:list 2
                    [:element :options {:pair {:flow? false}} :element-guide
-                    [:pair-*] :newline :options {} :pair-begin :element :element
-                    :pair-end :newline :newline :element :newline :element-*]],
+                    [:element-pair-*] :newline :options {} :group-begin :element :element
+                    :group-end :element-pair-group :newline :newline :element :newline :element-*]],
      :width 80,
      :vector {:wrap-multi? true}}))
 
@@ -1073,7 +1081,7 @@
 
 
 ;;
-;; Basic tests for :element-newline-best
+;; Basic tests for :element-newline-best-group
 ;;
 
 
@@ -1084,7 +1092,7 @@
                :guide-debug [:list 2
                              [:element :group-begin :element :element :element
                               :element :element :element :element :group-end
-                              :element-newline-best]],
+                              :element-newline-best-group]],
                :vector {:wrap-multi? true},
                :width 80}))
 
@@ -1095,7 +1103,7 @@
                :guide-debug [:list 2
                              [:element :group-begin :element :element :element
                               :element :element :element :element :group-end
-                              :element-newline-best]],
+                              :element-newline-best-group]],
                :vector {:wrap-multi? true},
                :width 19}))
 
@@ -1106,7 +1114,7 @@
                :guide-debug [:list 2
                              [:element :group-begin :element :element :element
                               :element :element :element :element :group-end
-                              :element-newline-best]],
+                              :element-newline-best-group]],
                :vector {:wrap-multi? true},
                :width 18}))
 
@@ -1121,7 +1129,7 @@
                :guide-debug [:list 2
                              [:element :element-best :group-begin :element
                               :element :element :element :group-end
-                              :element-newline-best :newline :element-best]],
+                              :element-newline-best-group :newline :element-best]],
                :vector {:wrap-multi? true},
                :width 25}))
 
@@ -1133,12 +1141,12 @@
                :guide-debug [:list 2
                              [:element :element-best :group-begin :element
                               :element :element :element :group-end
-                              :element-newline-best :newline :element-best]],
+                              :element-newline-best-group :newline :element-best]],
                :vector {:wrap-multi? true},
                :width 24}))
 
 ;;
-;; Make sure that fzprint-hang-remaining (i.e. :element-newline-best)
+;; Make sure that fzprint-hang-remaining (i.e. :element-newline-best-group)
 ;; still works even though a "this" operation wouldn't normally take place
 ;;
 
@@ -1149,7 +1157,7 @@
     {:parse-string? true,
      :guide-debug [:list 2
                    [:element :element-best :group-begin :element :element
-                    :element :element :group-end :element-newline-best :newline
+                    :element :element :group-end :element-newline-best-group :newline
                     :element-best]],
      :vector {:wrap-multi? true},
      :width 15}))
@@ -1161,7 +1169,7 @@
     {:parse-string? true,
      :guide-debug [:list 2
                    [:element :element-best :group-begin :element :element
-                    :element :element :group-end :element-newline-best :newline
+                    :element :element :group-end :element-newline-best-group :newline
                     :element-best]],
      :vector {:wrap-multi? true},
      :width 14}))
@@ -1177,7 +1185,7 @@
                :guide-debug [:list 2
                              [:element :element-best :group-begin :element
                               :element :element :element :group-end
-                              :element-newline-best :newline :element-best]],
+                              :element-newline-best-group :newline :element-best]],
                :vector {:wrap-multi? true},
                :width 20}))
 
@@ -1188,7 +1196,7 @@
                :guide-debug [:list 2
                              [:element :element-best :group-begin :element
                               :element :element :element :group-end
-                              :element-newline-best :newline :element-best]],
+                              :element-newline-best-group :newline :element-best]],
                :vector {:wrap-multi? true},
                :width 19}))
 
@@ -1399,6 +1407,33 @@
      :binding {:justify? true}}))
 
 ;;
+;; Same thing with :element-binding-*
+;;
+
+(expect
+  "(let [this is\n      a    test\n      this is\n      only a\n      real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [this is a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element-guide [:element-binding-*] :newline
+                    :element-newline-best-*]],
+     :width 50,
+     :binding {:justify? true}}))
+
+(expect
+  "(let\n  [this is\n   a    test\n   this is\n   only a\n   real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [this is a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :newline :element-guide [:element-binding-*]
+                    :newline :element-newline-best-*]],
+     :width 50,
+     :binding {:justify? true}}))
+
+
+;;
 ;; Ensure that we get an :element-binding-vec if it doesn't fit, and has to
 ;; go on the next line.
 ;;
@@ -1413,6 +1448,22 @@
                     :element-newline-best-*]],
      :binding {:justify? true},
      :width 54}))
+
+;;
+;; Same thing with :element-guide and :element-binding-*
+;;
+
+(expect
+  "(let\n  [t isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj\n   a test\n   this is\n   only a\n   real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [t isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element-guide [:element-binding-*] :newline
+                    :element-newline-best-*]],
+     :binding {:justify? true},
+     :width 54}))
+
 
 ;;
 ;; :element-group-binding
@@ -1445,6 +1496,39 @@
      :binding {:justify? true},
      :vector {:wrap-multi? false},
      :width 80}))
+
+;;
+;; A :list :wrap-after-multi? test
+;;
+
+(expect
+  "(let [t    isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj\n      a    test\n      this is\n      only a\n      real test]\n  (stuff bother and all of that and even more))"
+  (zprint-str
+    "(let [t isfjkdsjfsdlfjlsfjklsjfksdjflkdjflkjlksfdjlksfj a test this is only a real test] (stuff bother and all of that and even more))"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element-guide
+                    [:group-begin :element :element :element :element :element
+                     :element :element :element :element :element :group-end
+                     :element-binding-group] :element-newline-best-*]],
+     :binding {:justify? true},
+     :vector {:wrap-multi? false},
+     :list {:wrap-after-multi? false},
+     :width 80}))
+
+;;
+;; :element-pair-group
+;;
+
+(expect
+  "(stuff (caller aaaa bbbb\n               ccc dddddd))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :group-begin :element :element :element
+                              :element :group-end :element-pair-group]],
+               :width 27}))
 
   ;;
   ;; # rodguide

@@ -5619,6 +5619,16 @@ ser/collect-vars-acc %1 %2) )))"
     "{\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-letter [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   :else 3}"
   {:parse-string? true}))
 
+;;
+;; Small bug is justification with rightcnt when doing the first thing
+;;
+
+(expect
+  "(let [a    1\n      bb   2\n      ccc  3\n      dddd 4\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      bb   2\n      ccc  3\n      dddd 4])"
+  (zprint-str
+    "(let [a 1\n      bb 2\n      ccc 3\n      dddd 4\n      {:keys [foo bar baz bark key1 key2 key3 key4] :as spam} 1\n      bb 2\n      ccc 3\n      dddd 4])\n"
+    {:parse-string? true, :binding {:justify? true}, :width 62}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

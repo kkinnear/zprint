@@ -22,7 +22,7 @@
             [zprint.ansi :refer [color-str]]
             [zprint.config :refer [validate-options merge-deep]]
             [zprint.zutil :refer [add-spec-to-docstring]]
-	    [zprint.util :refer [column-width-variance]]
+	    [zprint.util :refer [column-width-variance median mean percent-gt-n]]
             [rewrite-clj.parser :as p]
             [rewrite-clj.zip :as z]
             #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
@@ -326,18 +326,15 @@
                             (> b-lines 0)
                             (> p-count 0)
                             ; if the hang and the flow are the same size, why
-                            ; not
-                            ; hang?
+                            ; not hang?
                             (if (and (= p-lines b-lines) hang-if-equal-flow?)
                               true
                               ; is the difference between the indents so small
-                              ; that
-                              ; we don't care?
+                              ; that we don't care?
                               (and (if (<= indent-diff hang-diff)
                                      true
                                      ; Do the number of lines in the hang exceed
-                                     ; the number
-                                     ; of elements in the hang?
+                                     ; the number of elements in the hang?
                                      (<= (/ (dec p-lines) p-count) hang-expand))
                                    (if hang-size (< p-lines hang-size) true)
                                    (let [factor (if (= fn-style :hang)
@@ -348,20 +345,15 @@
                                      (if (> p-lines hang-flow-limit)
                                        (<= (dec p-lines) b-lines)
                                        ; if we have less then n lines, we don't
-                                       ; necessarily
-                                       ; take the shortest
+                                       ; necessarily take the shortest
                                        ; once we did (dec p-lines) here, fwiw
                                        ; then we tried it w/out the dec, now we
-                                       ; let you
-                                       ; set it in :tuning.  The whole point of
-                                       ; having a
+                                       ; let you set it in :tuning.  
+				       ; The whole point of having a
                                        ; hang-adjust of -1 is to allow hangs
-                                       ; when
-                                       ; the
-                                       ; number of lines in a hang is the same
-                                       ; as
-                                       ; the
-                                       ; number of lines in a flow.
+                                       ; when the number of lines in a hang 
+				       ; is the same as the number of lines 
+				       ; in a flow.
                                        ;(< (/ p-lines b-lines) factor)))))))]
                                        (< (/ (+ p-lines hang-adjust) b-lines)
                                           factor)))))))))]
@@ -373,6 +365,11 @@
          "width:" width
          "rightcnt:" rightcnt
          "hang-expand:" hang-expand
+	 "hang-flow-limit:" hang-flow-limit
+	 "hang-adjust:" hang-adjust
+	 "(/ (+ p-lines hang-adjust) b-lines)" 
+	   (/ (+ p-lines hang-adjust) b-lines)
+	 "factor:" (if (= fn-style :hang) hang-type-flow hang-flow)
          "p-count:" p-count
          "p-lines:" p-lines
          "p-maxwidth:" p-maxwidth
@@ -914,11 +911,15 @@
   [caller
    {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],
     {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color
-            key-depth-color key-value-color]}
+            key-depth-color key-value-color justify]}
       caller,
     :as options} ind commas? justify-width rightmost-pair?
    [lloc rloc xloc :as pair]]
   (if dbg-cnt? (println "two-up: caller:" caller "hang?" hang? "dbg?" dbg?))
+        (dbg-s options
+	       :justify
+               "fzprint-two-up:" (zstring lloc)
+	       "justify-width:" justify-width)
   (if (or dbg? dbg-local?)
     (println
       (or dbg-indent "")
@@ -984,10 +985,16 @@
                 (and map-depth (= caller :map) (= map-depth 4)) :red
                 :else nil)
         arg-1 (fzprint* loptions ind lloc)
+	; If we have :underscore? use it, otherwise assume it is true.
+	justify-underscore? (let [underscore? 
+	                           (get justify :underscore? :not-found)]
+	                        (if (= underscore? :not-found)
+				   true
+				   underscore?))
+	arg-1-underscore? (= (ffirst arg-1) "_")
         ; If we have a newline, make it one shorter since we did a newline
         ; after the previous pair.  Unless this is the first pair, but we
         ; should have done one before that pair too, maybe?
-	arg-1-underscore? (= (ffirst arg-1) "_")
         arg-1-newline? (and (= (count pair) 1) (znewline? lloc))
         #_#_arg-1
           (if arg-1-newline? (first (remove-last-newline [arg-1])) arg-1)
@@ -1058,7 +1065,8 @@
           ; we won't use it.
           (let [justify-width (when justify-width 
 	                        (if (or (> arg-1-width justify-width) 
-				        arg-1-underscore?)
+					(and (not justify-underscore?)
+					     arg-1-underscore?))
 				   nil 
 				   justify-width))
 	        hanging-width (if justify-width justify-width arg-1-width)
@@ -1103,6 +1111,7 @@
               ; Make the above if a cond, and call fzprint-hang-one?  Or
               ; maybe fzprint* if we are calling fzprint-hang-unless-fail,
               ; which I think we are.
+	      ;
               ; This is a normal two element pair thing
               (let [; Perhaps someday we could figure out if we are already
                     ; completely in flow to this point, and be smarter about
@@ -1190,6 +1199,12 @@
                   (prn "fzprint-two-up: (+ indent ind):" (+ indent ind))
                   (prn "fzprint-two-up: flow:" (zstring lloc) flow))
                 (dbg options "fzprint-two-up: before good-enough")
+        (dbg-s options
+	       :justify
+               "fzprint-two-up:" (zstring lloc)
+	       "justify-width:" justify-width
+	       "fit?" fit?)
+
                 (if fit?
                   [:hang
                    (concat-no-nil arg-1
@@ -1211,8 +1226,17 @@
                                         :whitespace 4]]
                                       hanging)])
 		      (do #_(prn " good-enough:" false "justify-width:" justify-width)
+		      ; If we are justifying and good enough liked the flow
+		      ; better than the hang, then let's not do justifying._
                       (if justify-width
-                        nil
+			(do
+        (dbg-s options
+	       :justify
+               "fzprint-two-up:" (zstring lloc)
+	       "justify-width:" justify-width
+	       "cancelled justification, returning nil!")
+
+                        nil)
                         [:flow
                          (concat-no-nil
                            arg-1
@@ -1238,22 +1262,36 @@
   "Figure the width for a justification of a set of pairs in coll.  
   Also, decide if it makes any sense to justify the pairs at all.
   For instance, they all need to be one-line."
-  [caller {{:keys [justify?]} caller, :as options} ind coll]
-  (let [firsts (remove nil?
-                 (map #(when (> (count %) 1) (fzprint* (not-rightmost options) ind (first %)))
+  [caller {{:keys [justify? justify]} caller, :as options} ind coll]
+  (let [justify-underscore? (let [underscore?
+                                    (get justify :underscore? :not-found)]
+                              (if (= underscore? :not-found) true underscore?))
+        firsts (remove nil?
+                 (map #(when (> (count %) 1)
+                         (fzprint* (not-rightmost options) ind (first %)))
                    coll))
-        _ (def just firsts)
-	firsts (remove #(= (ffirst %) "_") firsts)
+        #_ (def just firsts)
+        ; If we explicitly said :justify {:underscore? false}, then remove
+        ; underscores from further consideration in the variance.
+        firsts
+          (if justify-underscore? firsts (remove #(= (ffirst %) "_") firsts))
         style-seq (mapv (partial style-lines options ind) firsts)
-	#_ (println "style-seq:" ((:dzprint options) {} style-seq))
-        #_ (def styleseq style-seq)
+        #_(println "style-seq:" ((:dzprint options) {} style-seq))
+        #_(def styleseq style-seq)
         each-one-line? (reduce #(when %1 (= (first %2) 1)) true style-seq)
         #_(def eol each-one-line?)
+        max-variance (:max-variance justify)
         alignment (when each-one-line?
-                    (column-width-variance 20
+                    (column-width-variance max-variance
                                            [(vec (map #(- (second %) ind)
                                                    style-seq))]
                                            0))
+        _ (dbg-s options
+                 :justify
+                 "fzprint-justify-width max-variance:" max-variance
+                 "ind:" ind
+                 "justify-underscore?" justify-underscore?
+                 "alignment:" alignment)
         #_(println "alignment:" alignment "ind:" ind)
         justify-width (when each-one-line? (first alignment))]
     justify-width))
@@ -1268,7 +1306,7 @@
                    coll))
         #_(def just firsts)
         style-seq (map (partial style-lines options ind) firsts)
-        _ (def styleseq style-seq)
+        #_ (def styleseq style-seq)
         each-one-line? (reduce #(when %1 (= (first %2) 1)) true style-seq)
         #_(def eol each-one-line?)
         justify-width (when each-one-line?
@@ -1296,6 +1334,12 @@
   "Convert a hangflow style-vec to a regular style-vec."
   [hf-style-vec]
   (when hf-style-vec (map second hf-style-vec)))
+
+(defn pair-lengths
+  "When given the output from fzprint-map-two-up, calculate return the
+  output from style-lines for each thing."
+  [options ind result]
+  (mapv (comp (partial style-lines options ind) second) result))
 
 (defn fzprint-map-two-up
   "Accept a sequence of pairs, and map fzprint-two-up across those pairs.
@@ -1366,11 +1410,6 @@
               ; the style-lines below.
               beginning (if (contains-nil? beginning) nil beginning)
               end-coll [(last coll)]
-              ; TODO: REMOVE THIS IN FAVOR OF SECOND ONE
-              _ (dbg options
-                     "fzprint-map-two-up: beginning-remaining:"
-                       beginning-remaining
-                     "rightcnt:" rightcnt)
               ; If this is one-line? is there any point to even looking
               ; at the end?
               end-remaining (if one-line?
@@ -1408,9 +1447,18 @@
           ; if we got a result or we didn't but it wasn't because we
           ; were trying to justify things
           (if (or result (not justify-width))
-            result
+            (do #_(let [pair-lens (pair-lengths options ind result)]
+                    (println "result:"
+                             ((:dzprint options) {} result)
+                             ((:dzprint options) {} pair-lens)
+                             "median:" (median (mapv first pair-lens))
+                             "mean:" (int (mean (mapv first pair-lens)))
+                             "percent-gt-n:"
+                               (percent-gt-n 3 (mapv first pair-lens))))
+                result)
             ; try again, without justify-width
-            (recur nil options)))))))
+            (do #_(println "recur!!" ((:dzprint options) {} (take 6 beginning)))
+                (recur nil options))))))))
 
 ;;
 ;; ## Support sorting of map keys
@@ -6104,10 +6152,9 @@
         fn-format
           ; If we have fn-format, move immediately to fzprint-list* and
           ; let :vector-fn configuration drive what we do (e.g.,
-          ; indent-only,
-          ; or whatever).  That is to say that :indent-only? in :vector
-          ; doesn't
-          ; override option-fn-first or option-fn
+          ; indent-only, ; or whatever).  That is to say that 
+	  ; :indent-only? in :vector doesn't override option-fn-first 
+	  ; or option-fn
           ; TODO: FIX THIS
           (do #_(prn "fzprint-vec: l-str:" l-str)
               (fzprint-list* :vector-fn

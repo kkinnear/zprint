@@ -16,6 +16,32 @@
                   :else s)]
       (count s))))
 
+(defn median
+  "Find the median of a series of numbers."
+  [coll]
+  (let [sorted-coll (sort coll)
+        len (count coll)
+        middle (/ len 2)]
+    (if (odd? len)
+      (nth sorted-coll middle)
+      (let [lower (dec middle)
+            lower-middle (nth sorted-coll lower)
+            upper-middle (nth sorted-coll middle)]
+        (/ (+ lower-middle upper-middle) 2)))))
+
+(defn mean
+  "Find the mean of a series of numbers."
+  [coll]
+  (when (not (empty? coll)) (/ (apply + coll) (count coll))))
+
+(defn percent-gt-n
+  "Return the percentage of numbers greater than n."
+  [n coll]
+  (when (not (empty? coll))
+    (let [count-gt (reduce (fn [cnt m] (if (> m n) (inc cnt) cnt)) 0 coll)
+          percentage (int (* (/ count-gt (count coll)) 100))]
+      percentage)))
+
 (defn variance
   "Return the variance of a sequence of numbers. Ignore nil values.
   Return the variance or nil if there are no numbers."
@@ -77,6 +103,11 @@
       (into beginning new-end))
     columns))
 
+(defn count-non-nil
+  "Count the non-nil items in a sequence."
+  [coll]
+  (reduce (fn [cnt x] (if (nil? x) cnt (inc cnt))) 0 coll))
+
 (defn column-width-variance
   "Given a vector of vectors, where each vector represents the sizes
   in a column, find the variance of the column, and if it is too high
@@ -90,35 +121,46 @@
   (if (>= index (count columns))
     [nil columns]
     (let [column (nth columns index)
-          #_ (println "column:" column "index:" index)
-          beginning-variance (variance column)]
+          #_(println "column:" column "index:" index)
+          beginning-variance (variance column)
+          row-count (count-non-nil column)]
       #_(println "beginning-variance:" beginning-variance)
       (cond
         (nil? beginning-variance) [nil columns]
         (> max-variance beginning-variance) [(first (find-max column)) columns]
-        :else (let [[first-indicies first-column-wo-max] (remove-max-not-half
-                                                           column)
-                    #_ (println "column:" column)
-                    #_ (println "first-column-wo-max:" first-column-wo-max)
-                    first-variance (variance first-column-wo-max)]
-                (cond (nil? first-variance) [nil columns]
-                      (> max-variance first-variance)
-                        [(first (find-max first-column-wo-max))
-                         (remove-indicies-from-columns (inc index)
-                                                       first-indicies
-                                                       columns)]
-                      :else
-                        (let [[second-indicies second-column-wo-max]
-                                (remove-max-not-half first-column-wo-max)
-                              second-variance (variance second-column-wo-max)]
-                          (cond (nil? second-variance) [nil columns]
-                                (> max-variance second-variance)
-                                  [(first (find-max second-column-wo-max))
-                                   (remove-indicies-from-columns
-                                     (inc index)
-                                     (into first-indicies second-indicies)
-                                     columns)]
-                                :else [nil columns]))))))))
+	; Unless we have at least 4 rows, we aren't removing anything to
+	; try and get the variance to work!
+        (> row-count 3)
+          (let [[first-indicies first-column-wo-max] (remove-max-not-half
+                                                       column)
+                #_(println "column:" column)
+                #_(println "first-column-wo-max:" first-column-wo-max)
+                first-variance (variance first-column-wo-max)]
+            (cond (nil? first-variance) [nil columns]
+                  (> max-variance first-variance)
+                    [(first (find-max first-column-wo-max))
+                     (remove-indicies-from-columns (inc index)
+                                                   first-indicies
+                                                   columns)]
+                  :else
+                    (let [[second-indicies second-column-wo-max]
+                            (remove-max-not-half first-column-wo-max)
+                          second-variance (variance second-column-wo-max)]
+                      (cond (nil? second-variance) [nil columns]
+                            ; Have we removed half of the rows
+                            ; between the first and second rounds?
+                            (>= (+ (count first-indicies)
+                                   (count second-indicies))
+                                (/ row-count 2))
+                              [nil columns]
+                            (> max-variance second-variance)
+                              [(first (find-max second-column-wo-max))
+                               (remove-indicies-from-columns
+                                 (inc index)
+                                 (into first-indicies second-indicies)
+                                 columns)]
+                            :else [nil columns]))))
+        :else [nil columns]))))
 
 (defn size-and-extend
   "Given a seq and a length, return a vector which contains the size

@@ -5,7 +5,7 @@
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
             [zprint.rewrite :refer [sort-dependencies]]
-	    [zprint.guide :refer [odrguide2]]
+	    [zprint.guide]
             [sci.core :as sci]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
@@ -413,6 +413,7 @@
              :indent 2,
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+	     :justify {:max-variance 1000 :underscore? false}
              :justify? false,
              :nl-separator? false,
              :nl-separator-all? false},
@@ -530,6 +531,7 @@
          :nl-separator-all? false,
          :flow? false,
          :justify? false,
+	     :justify {:max-variance 1000}
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
          :respect-bl? false,
@@ -561,6 +563,7 @@
           :indent 2,
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+	     :justify {:max-variance 1000}
           :justify? false,
           :nl-separator? false,
           :nl-separator-all? false},
@@ -715,6 +718,9 @@
       :justified {:binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
+      :justified-20 {:binding {:justify? true :justify {:max-variance 20}},
+                  :map {:justify? true :justify {:max-variance 20}},
+                  :pair {:justify? true :justify {:max-variance 20}}},
       :keyword-respect-nl
         {:vector {:option-fn-first
                     (fn ([] "keyword-respect-nl-option-fn-first")
@@ -725,7 +731,6 @@
       :map-nl {:map {:indent 0, :nl-separator? true}},
       :map-nl-all {:map {:indent 0, :nl-separator-all? true}},
       :moustache {:fn-map {"app" [:flow {:style :vector-pairs}]}},
-      :odrguide {:vector {:option-fn odrguide2}}
       :vector-pairs {:list {:constant-pair-min 1,
                             :constant-pair-fn #(or (keyword? %)
                                                    (string? %)
@@ -816,6 +821,7 @@
             :option-fn-first nil,
             :option-fn nil,
             :fn-format nil,
+	    :hang? nil
             :respect-bl? false,
             :respect-nl? false,
             :wrap-after-multi? true,
@@ -1423,6 +1429,8 @@
 ;; # Configuration Utilities
 ;;
 
+#_(def opts {:namespaces {'zprint.guide {'odrguide4 zprint.guide/odrguide}}})
+
 (defn try-to-load-string
   "Read an options map from a string using sci/eval-string to read
   in the structure, and to create sandboxed function for any functions
@@ -1430,7 +1438,7 @@
   from eval-string are not caught and propagate back up the call
   stack."
   [s]
-  #?(:clj (sci/eval-string s)
+  #?(:clj (sci/eval-string s #_opts)
      :cljs nil))
 
 ;; Remove two files from this, make it one file at a time.`

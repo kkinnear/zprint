@@ -199,6 +199,7 @@
 (s/def ::inline? ::boolean)
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
+(s/def ::justify (only-keys :opt-un [::max-variance ::underscore?]))
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
 (s/def ::justify-tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
@@ -212,6 +213,7 @@
 (s/def ::left-space ::keep-or-drop)
 (s/def ::lines ::line-seq)
 (s/def ::location (s/nilable string?))
+(s/def ::max-variance number?)
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::no-validate? ::boolean)
 (s/def ::nl-separator? ::boolean)
@@ -259,7 +261,7 @@
 (s/def ::binding
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::justify? ::justify-hang ::justify-tuning ::nl-separator?
+                      ::justify? ::justify ::justify-hang ::justify-tuning ::nl-separator?
                       ::nl-separator-all?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::call-stack (s/nilable (s/coll-of ::call-stack-frame :kind list?)))
@@ -322,6 +324,7 @@
     :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
              ::hang-accept ::ha-depth-factor ::ha-width-factor ::hang-expand
              ::hang? ::indent ::indent-only? ::justify? ::justify-hang
+	     ::justify
              ::justify-tuning ::key-color ::key-value-color ::key-depth-color
              ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
              ::lift-ns-in-code? ::nl-separator? ::nl-separator-all?
@@ -341,7 +344,7 @@
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::justify? ::justify-hang ::justify-tuning ::nl-separator?
+                      ::justify? ::justify ::justify-hang ::justify-tuning ::nl-separator?
                       ::nl-separator-all?]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
@@ -376,6 +379,7 @@
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
                       ::general-hang-adjust ::hang-if-equal-flow?]))
 (s/def :alt/uneval (only-keys :opt-un [::color-map]))
+(s/def ::underscore? ::boolean)
 (s/def ::user-fn-map ::fn-map-value)
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?

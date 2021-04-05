@@ -523,7 +523,7 @@
       :explain-justified (fzprint-style (get-explained-options)
                                         (merge-deep (get-default-options)
                                                     actual-options
-                                                    {:map {:justify? true}}))
+                                                    {:map {:justify? true :justify {:max-variance 20}}}))
       :support (fzprint-style (get-explained-all-options)
                               (merge-deep (get-default-options) actual-options))
       :help (println help-str)

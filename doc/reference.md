@@ -1673,6 +1673,22 @@ lack of a better term.  Here is an example in code:
         (= zdotdotdot x)                  +1
         (= zdotdotdot y)                  -1
         :else                             (compare-keys x y)))
+
+; Justified formatting using :max-variance
+
+(zprint-fn compare-ordered-keys
+           {:pair {:justify? true :justify {:max-variance 20}}})
+
+(defn compare-ordered-keys
+  "Do a key comparison that places ordered keys first."
+  [key-value zdotdotdot x y]
+  (cond (and (key-value x) (key-value y)) (compare (key-value x) (key-value y))
+        (key-value x)    -1
+        (key-value y)    +1
+        (= zdotdotdot x) +1
+        (= zdotdotdot y) -1
+        :else            (compare-keys x y)))
+
 ```
 Zprint will optionally justify `:map`, `:binding`, and `:pair` elements.
 There are several detailed configuration parameters used to control the
@@ -1680,6 +1696,18 @@ justification.  Obviously this works best if the keys in a map are
 all about the same length (and relatively short), and the test expressions
 in a cond are about the same length, and the locals in a binding are
 about the same length.
+
+The third example, above, sets the `:max-variance` to 20, which causes
+the justification code to look at the lengths of the left hand elements
+being justified, and to consider leaving a few of them unjustified if 
+the variance of the sizes of the left hand elements is over 20. In
+the example above, the first row of the justified pairs is left unjustified.
+
+If leaving a few pairs unjustified will bring the variance under the specified
+value, then that is what is done.  If even that doesn't bring the variance
+down to the `:max-variance`, then the elements are not justified
+at all.  This can help to make justification more generally useful by only
+doing it where it will improve readability.
 
 I don't personally find the justified approach my favorite in code,
 though there are some functions where it looks good.
@@ -1713,14 +1741,14 @@ You can see it for yourself if you enter:
 This prints out the regular :explain output for the current zprint options
 map, but justified.  See what you think.
 
-__NOTE:__ Justification involves extra processing, and because of the way
-that zprint tries to do the best job possible, it can cause a bit of a
-combinatorial explosion that can make formatting some functions and
-structures take a very long time.  I have put scant effort into optimizing
-this capability, as I have no idea how interesting it is to people in
-general.  If you are using it and like it, and you have situations where
-it seems to be particularly slow for you, please enter an issue to let
-me know.
+__NOTE:__ Justification involves extra processing, and because of
+the way that zprint tries to do the best job possible, it can cause
+a bit of a combinatorial explosion that can make formatting some
+functions and structures take a good bit longer than usual.  I have
+put scant effort into optimizing this capability, as I have no idea
+how interesting it is to people in general.  If you are using it
+and like it, and you have situations where it seems to be particularly
+slow for you, please enter an issue to let me know.
 
 ### Formatting Large or Deep Collections
 
@@ -2260,6 +2288,41 @@ This works independently for `:pair`, `:binding`, and `:map`.
 Turn on [justification](#a-note-on-justifying-two-up-printing).
 Default is nil (justification off).
 
+#### :justify {:max-variance 1000 :underscore? _false_}
+
+Parameters to control justification:
+
+##### :max-variance _1000_
+
+The justification code calculates the variance of the length of the
+left hand elements of the group of lines to be justified.  If the variance
+is below the `:max-variance`, then they are all justified. 
+
+If the variance is above the `:max-variance`, then the longest
+left-hand element is removed from the calculation (or more than one
+if there are several which are all equally the longest).  Then the
+variance is recalculated.  If it is now below the `:max-variance`,
+then the group of lines is justified but the ones previously "removed"
+appear but are not justified.  If, however, the variance is still
+above the `:max-variance`, then this process is repeated once more,
+with the same result if the variance is now below the `:max-variance`.
+If it is still above the `:max-variance`, then the group of lines
+are not justified.
+
+The default value for `:max-variance` is very large, so that it doesn't
+have any effect - so as to not change the output in cases where justification
+is already being used.  A more useful value for `:max-variance` would be
+20.  You can get this with `:style :justified-20` or by adding
+`:justify {:max-variance 20}` to :map, :binding, or :pair.  
+
+In some cases, 40 will look good, in some cases even 15 looks better.
+
+##### :underscore? _false_
+
+When explicitly set to `false` in `:binding`, this will cause 
+any pair where the left-hand element is "_" to not be considered for
+justification (or included in the initial variance calculation).
+
 ## Configuring functions to make formatting changes based on content
 
 There are several places in the options map where user defined
@@ -2464,6 +2527,8 @@ course, the canonical example.
 ##### :hang-expand _2_
 ##### :hang-diff _1_
 ##### :justify? _false_
+##### :justify {:max-variance 1000 :underscore? _false_}
+
 #### :force-nl?  _true_
 
 If you never want to see multiple binding pairs on the same line,
@@ -3226,6 +3291,7 @@ hangs.
 ##### :hang-expand _1000.0_
 ##### :hang-diff _1_
 ##### :justify? _false_
+##### :justify {:max-variance 1000}
 
 #### :flow? _false_
 
@@ -3854,6 +3920,7 @@ which has -pair in its function type (e.g. `:arg1-pair`, `:pair-fn`,
 ##### :hang-expand _2_
 ##### :hang-diff _1_
 ##### :justify? _false_
+##### :justify {:max-variance 1000}
 
 #### :force-nl? _false_
 
@@ -4337,6 +4404,12 @@ For more examples, see [Indent Only](./types/indentonly.md).
 
 This sets `:justify? true` in each of `:binding`, `:pair`, and `:map`.
 It is useful to see what you think about justfied output.
+[Here is more information on justified output.](#a-note-on-justifying-two-up-printing)
+
+#### :justified-20
+
+This sets `:justify? true` in each of `:binding`, `:pair`, and `:map`,
+and also sets the `:max-variance` for each to 20.
 [Here is more information on justified output.](#a-note-on-justifying-two-up-printing)
 
 #### :keyword-respect-nl

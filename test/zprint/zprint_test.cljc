@@ -5627,8 +5627,57 @@ ser/collect-vars-acc %1 %2) )))"
   "(let [a    1\n      bb   2\n      ccc  3\n      dddd 4\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      bb   2\n      ccc  3\n      dddd 4])"
   (zprint-str
     "(let [a 1\n      bb 2\n      ccc 3\n      dddd 4\n      {:keys [foo bar baz bark key1 key2 key3 key4] :as spam} 1\n      bb 2\n      ccc 3\n      dddd 4])\n"
-    {:parse-string? true, :binding {:justify? true}, :width 62}))
+    {:parse-string? true,
+     :binding {:justify? true, :justify {:max-variance 20}},
+     :width 62}))
 
+;;
+;; Justification tests for underscore (and variance)
+;;
+
+(def i179g
+"(let [bb 2 \n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1 \n      ccc 3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])\n")
+
+(expect
+  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc  3\n      _    (this is a (test this (is only a (test))))\n      dddd 4])"
+  (zprint-str i179g
+              {:parse-string? true,
+               :binding {:justify? true,
+                         :justify {:max-variance 20, :underscore? true}},
+               :width 64}))
+(expect
+  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _    (this is a (test this (is only a (test))))\n      dddd 4])"
+  (zprint-str i179g
+              {:parse-string? true,
+               :binding {:justify? true,
+                         :justify {:max-variance 20, :underscore? true}},
+               :width 63}))
+
+(expect
+  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
+  (zprint-str i179g
+              {:parse-string? true,
+               :binding {:justify? true,
+                         :justify {:max-variance 20, :underscore? false}},
+               :width 63}))
+
+(expect
+  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
+  (zprint-str i179g
+              {:parse-string? true,
+               :binding {:justify? true, :justify {:max-variance 20}},
+               :width 63}))
+
+(expect
+  "(let [bb                                                       2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc                                                      3\n      _ (this is a (test this (is only a (test))))\n      dddd                                                     4])"
+  (zprint-str i179g
+              {:parse-string? true,
+               :binding {:justify? true, :justify {:max-variance 600}},
+               :width 80}))
+
+(expect
+  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
+  (zprint-str i179g {:parse-string? true, :style :justified-20}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

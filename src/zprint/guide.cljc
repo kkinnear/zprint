@@ -194,9 +194,9 @@
           :guide guide,
           :next-inner {:vector {:option-fn nil}, :pair {:justify? false}}})))))
 
-(defn jrequireguide
+(defn jrequireguide-2
   "Justify the first things in a series of require vectors."
-  ([] "jrequireguide")
+  ([] "jrequireguide-2")
   ([options len sexpr]
    #_(doseq [x sexpr] (prn "jrequire: " x))
    (when (= (first sexpr) :require)
@@ -217,11 +217,42 @@
         :call-stack (conj (rest call-stack) new-top-frame),
         :vector {:option-fn jvectorguide :wrap-multi? true}}))))
 
+;
+; A much simpler version of the require guide.  This version doesn't require
+; use of the call-stack, and has only one option-fn instead of two.  It also
+; uses the new variance-based justification capabilities.
+;
+(defn jrequireguide
+  "Justify the first things in a series of require vectors."
+  ([] "jrequireguide")
+  ([options len sexpr]
+   (when (= (first sexpr) :require)
+     (let [vectors (filter vector? sexpr)
+           max-width-vec (column-alignment (:max-variance (:justify (:pair
+                                                                      options)))
+                                           vectors)
+           max-first (first max-width-vec)
+           #_(println "first max-width-vec:" max-first)
+           vector-guide (if max-first
+                          [:mark-at 0 (inc max-first) :element :align 0
+                           :element-pair-*]
+			  ; We can't justify things, fall back to this.
+                          [:element :element-pair-*])]
+       ; Do this for all of the first level vectors below the :require, but
+       ; no other vectors more deeply nested.
+       {:next-inner {:vector {:option-fn (fn [_ _ _] {:guide vector-guide}),
+                              :wrap-multi? true,
+                              :hang? true},
+                     :pair {:justify? true},
+                     :next-inner {:vector {:option-fn nil,
+                                           :wrap-multi? false,
+                                           :hang? false}}}}))))
+
 ; Do this to use the above:
 ;
 ; (czprint jr1 
 ;    {:parse-string? true 
-;    :fn-map {":require" [:none {:list {:option-fn jrequireguide}}]}})
+;    :fn-map {":require" [:none {:list {:option-fn jrequireguide2}}]}})
 
 ;;
 ;; # Guide to replicate the output of :arg1-mixin

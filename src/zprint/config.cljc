@@ -5,7 +5,7 @@
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
             [zprint.rewrite :refer [sort-dependencies]]
-	    [zprint.guide]
+	    [zprint.guide :refer [jrequireguide]]
             [sci.core :as sci]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
@@ -757,6 +757,8 @@
                   :map {:hang-accept 0, :ha-depth-factor 15},
                   :pair {:hang-accept 20, :ha-width-factor -150},
                   :vector-fn {:hang-accept 100, :ha-width-factor -300}},
+      :require-justify {:fn-map {":require" [:flow {:list {:option-fn
+                                                  jrequireguide}}]}}
       :respect-bl {:list {:respect-bl? true},
                    :map {:respect-bl? true},
                    :vector {:respect-bl? true},

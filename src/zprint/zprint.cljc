@@ -3788,7 +3788,8 @@
    ; The options map can get re-written down a bit below, so don't get
    ; anything with destructuring that might change with a rewritten  options
    ; map!
-   {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl fn-style],
+   {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl fn-style
+           quote?],
     :as options} ind zloc]
   (dbg-pr options "fzprint-list*: ind:" ind "fn-style:" fn-style)
   ; We don't need to call get-respect-indent here, because all of the
@@ -3828,6 +3829,16 @@
                         (zarray? arg-1-zloc) :array
                         (zatom? arg-1-zloc) :atom
                         :else nil))
+	; If we have been told that we are in a quote?, and :quote has
+	; something to say about what we should do for formatting, then
+	; regardless of any fn-str, we will do it.
+	[fn-style fn-str fn-type]
+	       (if (and quote?
+			(or
+	                  (not= (get fn-map :quote :none) :none)
+			  (not= (get user-fn-map :quote :none) :none)))
+	          [nil nil :quote]
+		  [fn-style fn-str fn-type])
         ; Look up the fn-str in both fn-maps, and then if we don't get
         ; something, look up the fn-type in both maps.
         fn-style (or fn-style
@@ -3923,7 +3934,7 @@
                    "\nfn-style local:" fn-style
                    "\nguide:" (:guide options)
                    "\ncall-stack:" (:call-stack options))
-        fn-style (or (:fn-style options) fn-style)
+        fn-style (or (:fn-style new-options) #_(:fn-style options) fn-style)
         guide (or (:guide options) (guide-debug caller options))
         options (dissoc options :guide)
         #_(println "\nguide after:" guide "\nguide options:" (:guide options))
@@ -6099,7 +6110,8 @@
             sort-in-code? fn-format indent]}
       caller,
     :as options} ind zloc]
-  (dbg options "fzprint-vec* ind:" ind "indent:" indent "caller:" caller)
+  (dbg options "fzprint-vec* ind:" ind "indent:" indent "caller:" caller
+  "ztag:" (ztag zloc))
   (if (and binding? (= (:depth options) 1))
     (fzprint-binding-vec options ind zloc)
     (let [[respect-nl? respect-bl? indent-only?]
@@ -6113,6 +6125,12 @@
                     :call-stack
                       (conj (:call-stack options)
                             {:tag (ztag zloc), :caller caller, :zloc zloc}))
+	  options (if (and (= caller :prefix-tags)
+	                   (= :quote (ztag zloc)))
+		     (assoc options :quote? true)
+	             #_(assoc options
+		        :fn-style :quote)
+	             options)
           [options new-options]
             (if option-fn-first
               (call-option-fn-first caller options option-fn-first zloc)
@@ -6254,12 +6272,9 @@
                                                      :no-nl-first))
                                      r-str-vec)
                       ; Since there are either no collections in this vector
-                      ; or
-                      ; set
-                      ; or
-                      ; whatever, or if there are, it is ok to wrap them,
-                      ; print it
-                      ; wrapped on the same line as much as possible:
+                      ; or set or whatever, or if there are, it is ok to 
+		      ; wrap them, print it wrapped on the same line as 
+		      ; much as possible:
                       ;           [a b c d e f
                       ;            g h i j]
                       (concat-no-nil

@@ -1324,6 +1324,13 @@ is `:default`, and the value will be used for any function which does
 not appear in the `:fn-map`, or which does appear in the `:fn-map` but
 whose value is `:none`.
 
+You can add a key-value pair to the `:fn-map` where the key
+is `:default-not-none`, and the value will be used for any function which does
+not appear in the `:fn-map`.  Note that if a function does appear in the
+function map and has a value of `:none`, the value of `:default-not-none` 
+will __not__ be used!
+
+
 #### Altering the formatting inside of certain functions
 
 You can associate an options map with a function classification, and
@@ -1470,6 +1477,65 @@ style you have to either set a new style or change the various individual
 configuration parameters of that style to be what you think they were
 before.  It is not possible to simply restore the options map to what
 it was prior to the changes made by the `<options-map>`.
+
+#### Altering the formatting of quoted lists
+
+There is an entry in the `:fn-map` for `:quote` which will cause quoted
+lists to be formatted assuming that their contents do not contain functions.
+In particular, their first elements will not be looked up in the `:fn-map`.
+If you change the value of the key `:quote` in the `:fn-map` to be `:none`,
+then quoted lists will be handled as any other lists, and will not be 
+processed specially.
+
+The default for quoted lists will format them on a single line if possible,
+and will format them without a hang if multiple lines are necessary.
+
+Some examples:
+```
+; The current default
+
+% (zprint q {:parse-string? true})
+'(redis
+  service
+  http-client
+  postgres
+  cassandra
+  mongo
+  jdbc
+  graphql
+  service
+  sql
+  graalvm
+  postgres
+  rules
+  spec)
+
+
+; No special processing for quoted lists
+
+% (zprint q {:parse-string? true :fn-map {:quote :none}})
+'(redis service
+        http-client
+        postgres
+        cassandra
+        mongo
+        jdbc
+        graphql
+        service
+        sql
+        graalvm
+        postgres
+        rules
+        spec)
+
+; If you want quoted lists wrapped like vectors are wrapped
+
+% (zprint q {:parse-string? true :fn-map {:quote [:wrap {:list {:indent 1} :next-inner {:indent 2}}]}})
+'(redis service http-client postgres cassandra mongo jdbc graphql service sql
+  graalvm postgres rules spec)
+```
+
+
 
 #### Replacing functions with reader-macros
 

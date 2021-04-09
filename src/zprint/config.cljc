@@ -392,7 +392,9 @@
    "with-open" :binding,
    "with-out-str" :none-body,
    "with-redefs" :binding,
-   "with-redefs-fn" :arg1-body})
+   "with-redefs-fn" :arg1-body
+   :quote [:none {:list {:hang? false :indent 1} :next-inner {:list {:hang? true :indent 2}}}]
+   })
 
 ;;
 ;; ## The global defaults

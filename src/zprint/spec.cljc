@@ -143,7 +143,7 @@
 (s/def ::keep-or-drop #{:keep :drop})
 ; A :keyword is a fn, so it is already allowed
 (s/def ::fn-map-keys
-  #{:default :default-not-none :list :map :vector :set :array :atom :record})
+  #{:default :default-not-none :list :map :vector :set :array :atom :record :quote})
 (s/def ::fn-map-value
   (s/nilable (s/map-of (s/or :specific-function-name string?
                              :generic-function-configuration ::fn-map-keys)

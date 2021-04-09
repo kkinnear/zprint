@@ -5679,6 +5679,54 @@ ser/collect-vars-acc %1 %2) )))"
   "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
   (zprint-str i179g {:parse-string? true, :style :justified-20}))
 
+;;
+;; Issue #175 -- clean up formatting of quoted lists
+;;
+
+(def i175
+"(def ^:private config-keys\n  '(bootstrapper cassandra\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 service\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis))")
+
+(expect
+  "(def ^:private config-keys\n  '(bootstrapper\n    cassandra\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    service\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    graphql\n    http-client\n    measurer\n    postgres\n    redis))"
+  (zprint-str i175 {:parse-string? true}))
+
+(expect
+  "(def ^:private config-keys\n  '(bootstrapper cassandra graphql http-client measurer postgres redis service\n    graphql http-client measurer postgres redis graphql http-client measurer\n    postgres redis graphql http-client measurer postgres redis))"
+  (zprint-str i175
+              {:parse-string? true,
+               :fn-map {:quote [:wrap
+                                {:list {:indent 1},
+                                 :next-inner {:list {:indent 2}}}]}}))
+
+;;
+;; Check that we can turn it off!
+;;
+
+(expect
+  "'(let\n  [aadsf bdfds cdfs ddffsd djfdls djfldsfj]\n  (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
+  (zprint-str
+    "'(let [aadsf bdfds cdfs ddffsd djfdls djfldsfj] (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
+    {:parse-string? true}))
+
+(expect
+  "'(let [aadsf bdfds\n       cdfs ddffsd\n       djfdls djfldsfj]\n   (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
+  (zprint-str
+    "'(let [aadsf bdfds cdfs ddffsd djfdls djfldsfj] (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
+    {:parse-string? true, :fn-map {:quote :none}}))
+
+;;
+;; And that one line output works, but can be overridden
+;;
+
+(expect "'(a\n  b\n  c\n  d\n  e\n  f\n  g)"
+        (zprint-str "'(a b c d e f g)"
+                    {:parse-string? true,
+                     :fn-map {:quote [:flow
+                                      {:list {:indent 1},
+                                       :next-inner {:list {:indent 2}}}]}}))
+(expect "'(a b c d e f g)"
+        (zprint-str "'(a b c d e f g)" {:parse-string? true}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

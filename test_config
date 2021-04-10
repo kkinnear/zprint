@@ -314,7 +314,7 @@ echo "{:width 40 :url {:cache-dir \"configurldir\" ;test
 # Try basic config with a comment in .zprintrc
 #
 
-echo "...........  basic config with comment in zprintrc test."
+echo "...........  basic config with comment in ~/.zprintrc test."
 
 output_length=`$command <test_config.string.clj 2>&1 | wc -c`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
@@ -396,6 +396,54 @@ if [[ $output_length != $expected_length ]]
     $command <test_config.map.clj 
 
 fi
+
+#
+# Is .zprintrc being used at all?
+#
+
+# Use alternative (it is restored after this test)
+echo "(def a :b) (def c :d)" > test_config.string.clj
+
+# Make a local .zprintrc
+
+echo "{:parse {:interpose \"\nxxx\n\"}}" > .zprintrc
+
+# Set up a  ~/.zprintrc where it will read the local .zprintrc
+echo "{:search-config? true}" > ~/.zprintrc
+
+echo "...........  .zprintrc being used test"
+
+output_length=`$command  <test_config.string.clj 2>&1| grep "xxx" | wc -l`
+char_length=`$command <test_config.string.clj 2>&1| grep "xxx" | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+char_length=`echo "${char_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+#echo "char count is $char_length"
+
+expected_length=1
+expected_chars=4
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo ".zprintrc being used test failed to have correct count of lines after grep for 'xxx' added by {:parse {:interpose ...}}, should be $expected_length, was: $output_length"
+    $command  <test_config.string.clj 
+fi
+
+if [[ $char_length != $expected_chars ]]
+  then
+    echo ".zprintrc being used test failed to have correct count of chars after grep for 'xxx' added by {:parse {:interpose ...}}, should be $expected_chars, was: $char_length"
+    $command  <test_config.string.clj 
+fi
+
+
+
+# Restore test_config.string.clj
+echo "\"Hello World!\"" > test_config.string.clj
+# Restore ~/.zprintrc
+echo "{:width 40 :url {:cache-dir \"configurldir\" :cache-secs 9}}" > ~/.zprintrc
+# Remove .zprintrc
+rm .zprintrc
+
 
 #
 # ~/.zprintrc should not be used now, since this is -d
@@ -517,7 +565,7 @@ output_length=`$command --explain-all 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-expected_length=565
+expected_length=601
 
 if [[ $output_length != $expected_length ]]
   then

@@ -361,25 +361,12 @@
         #_(println)
         #_(prn "options:" options "args:" args)
         #_(println)
-        [[version?
-          help?
-          explain?
-          explain-all?
-          default?
-          standard?
-          url?
-          url-only?]
-         url-arg
-         error-string]
+        [[version? help? explain? explain-all? default? standard? url?
+          url-only?] url-arg error-string]
           (parse-switches args check? write?)
-        #_(prn "bool-to-switch:" (bool-to-switch [version?
-                                                  help?
-                                                  explain?
-                                                  explain-all?
-                                                  default?
-                                                  standard?
-                                                  url?
-                                                  url-only?])
+        #_(prn "bool-to-switch:" (bool-to-switch [version? help? explain?
+                                                  explain-all? default?
+                                                  standard? url? url-only?])
                "url-arg:" url-arg
                "error-string:" error-string)
         [option-status exit-status option-stderr op-options]
@@ -405,18 +392,16 @@
                          (or version? help? default? standard? url-only?))
                   ; No, we have something that appears to be options, and
                   ; a switch after which is not allowed with options.
-                  [:complete
-                   1
+                  [:complete 1
                    (str "Error processing command line '"
                         (clojure.string/join " " (into [options] args))
                         "', providing an options map and the switch "
-                        (bool-to-switch
-                          [version? help? nil default? standard? nil url-only?])
+                        (bool-to-switch [version? help? nil default? standard?
+                                         nil url-only?])
                         #_switches
                         " is not allowed!"
                         "\n"
-                        main-help-str)
-                   {}]
+                        main-help-str) {}]
                   running-status)))
             ; Handle switches with extraneous data
             #_(let [[option-status exit-status option-stderr op-options]
@@ -426,8 +411,7 @@
                   ; Does this switch have too much data
                   (if nil
                     #_(and valid-switch? (not arg-count-ok?))
-                    [:complete
-                     1
+                    [:complete 1
                      (str "Error processing switch '"
                           #_switches
                           "', providing "
@@ -436,8 +420,7 @@
                           (if nil #_(= (dec arg-count) 1) "" "s")
                           " was incorrect!"
                           "\n"
-                          main-help-str)
-                     {}]
+                          main-help-str) {}]
                     running-status)))
             ; Handle version and help switches
             (let [[option-status exit-status option-stderr op-options]
@@ -445,11 +428,9 @@
               (if (= option-status :complete)
                 running-status
                 (if (or version? help?)
-                  [:complete
-                   0
+                  [:complete 0
                    (cond version? (:version (get-options))
-                         help? main-help-str)
-                   op-options]
+                         help? main-help-str) op-options]
                   running-status)))
             ; If we have options, get any operational-options out of them
             (let [[option-status exit-status option-stderr op-options]
@@ -461,14 +442,12 @@
                   ; be validated when they are first used.
                   [:incomplete 0 nil (select-op-options (read-string options))]
                   (catch Exception e
-                    [:complete
-                     1
+                    [:complete 1
                      (str "Failed to use command line operational options: '"
                           options
                           "' because: "
                           e
-                          ".")
-                     {}]))))
+                          ".") {}]))))
             ; Get all of the operational-options (op-options),
             ; merging in any that were on the command line
             (let [[option-status exit-status option-stderr op-options]
@@ -480,6 +459,10 @@
                          "\nop-options:" op-options)
               (if (= option-status :complete)
                 running-status
+                ; You might think that this config-and-validate-all
+                ; would configure everything, but it is just for
+                ; operational options, and the new-map doesn't ever
+                ; get used as the 'real' options map.
                 (let [[new-map doc-map errors]
                         (config-and-validate-all nil nil op-options)
                       #_(println "post config-and-validate-all"
@@ -491,7 +474,7 @@
                       new-map (select-op-options (merge-deep new-map
                                                              op-options))]
                   #_(println "post merge"
-                             "\new-map:" new-map
+                             "\nnew-map:" new-map
                              "\ncolor:" (:color? (get-options))
                              "\nerrors:" errors)
                   (if errors
@@ -507,12 +490,10 @@
                   #?(:clj (try (load-options! op-options url-arg)
                                [:incomplete 0 nil op-options]
                                (catch Exception e
-                                 [:complete
-                                  1
+                                 [:complete 1
                                   (str "Unable to process --url switch value: '"
                                          (second args)
-                                       "' because " e)
-                                  op-options]))
+                                       "' because " e) op-options]))
                      :default running-status)
                   running-status)))
             ; If --url-only try to load the args - with no other options
@@ -521,17 +502,16 @@
               (if (= option-status :complete)
                 running-status
                 (if url-only?
-                  #?(:clj
-                  (try (set-options! {:configured? true})
-                       (load-options! op-options url-arg)
-                       [:incomplete 0 nil op-options]
-                       (catch Exception e
-                         [:complete
-                          1
-                          (str "Unable to process --url-only switch value: '"
-                                 (second args)
-                               "' because " e)
-                          op-options]))
+                  #?(:clj (try
+                            (set-options! {:configured? true})
+                            (load-options! op-options url-arg)
+                            [:incomplete 0 nil op-options]
+                            (catch Exception e
+                              [:complete 1
+                               (str
+                                 "Unable to process --url-only switch value: '"
+                                   (second args)
+                                 "' because " e) op-options]))
                      :default running-status)
                   running-status)))
             ; if --default or --standard just use what we have, nothing else
@@ -546,6 +526,17 @@
                                                      #_:standard}))
                       [:incomplete 0 nil op-options])
                   [:incomplete 0 nil op-options])))
+            ; Configure non-operational options from files, and
+            ; don't complete things as we will layer any command line
+            ; options on top of these.  This is where all of the useful
+            ; things from the various .zprintrc files get actually
+            ; configured.
+            (let [[option-status exit-status option-stderr op-options]
+                    running-status]
+              (if (= option-status :complete)
+                running-status
+                (do (set-options! {} "" op-options)
+                    [:incomplete 0 nil op-options])))
             ; Configure any command line options.  If we get here, that
             ; is all that is left to do -- all switches except -e have
             ; been handled at this point.
@@ -559,14 +550,12 @@
                                    op-options)
                      [:incomplete 0 nil op-options]
                      (catch Exception e
-                       [:complete
-                        1
+                       [:complete 1
                         (str "Failed to use options map on the command line: '"
                              options
                              "' because: "
                              e
-                             ".")
-                        {}]))))
+                             ".") {}]))))
             ; We now have all options configured, so process -e to explain what
             ; we have for a configuration from the various command files
             ; and switches.
@@ -577,11 +566,8 @@
                 (if explain?
                   ; Force set-options to configure using op-options
                   ; in case they havent' configured before
-                  (do (set-options! {} "" op-options)
-                      [:complete
-                       0
-                       (zprint-str (get-explained-set-options))
-                       op-options])
+                  [:complete 0 (zprint-str (get-explained-set-options))
+                   op-options]
                   running-status)))
             ; We now have all options configured, so process -explain-all
             ; to explain what we have for a configuration from the various
@@ -593,11 +579,7 @@
                 (if explain-all?
                   ; Force set-options to configure using op-options
                   ; in case they havent' configured before
-                  (do (set-options! {} "" op-options)
-                      [:complete
-                       0
-                       (zprint-str (get-explained-options))
-                       op-options])
+                  [:complete 0 (zprint-str (get-explained-options)) op-options]
                   running-status)))
             ; We could initialize using the op-options if we haven't done
             ; so already, but if we didn't have any command line options, then
@@ -606,7 +588,8 @@
     #_(prn "option-status" option-status
            "exit-status" exit-status
            "option-stderr" option-stderr
-           "op-options" op-options)
+           "op-options" op-options
+           "color?" (:color? (get-options)))
     ; If option-stderr has something in it, we have either had some
     ; kind of a problem or we have processed the switch and it has
     ; output.  In either case, if option-stderr is non-nil we need

@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+  * `:interpose` was not successfully configured from `~/.zprintrc` or local
+  `.zprintrc` files when using pre-built binaries or the uberjar.  
+  Issue #186.
+
 ## 1.1.1 - 2021-1-20
 
 ### Added

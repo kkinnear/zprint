@@ -5,13 +5,70 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * There was a request to justify column after the namespaces in a
+  `:require` clause of the `ns`.  This can make any file which requires
+  a lot of namespaces look pretty nice: `:style :require-justify`.
+  Presently this is experimental, but it won't be going away, it just
+  might change slightly as more people use it and it improves.  
+  The `:max-variance` it uses comes from `:pair {:justify {:max-variance n}}`
+  (see below on changes to justification).  The default is 20 for
+  `:require-justify`, but can easily be changed.  See the `:style-map` for
+  `:require-justify-base` and `:require-justify`.  Issue #166.
+
 ### Changed
+
+  * Changed how quoted lists are handled.  Previously a quoted list was
+  handled like a regular list, with the second and subsequent arguments
+  hanging).  Now, because of the configuration of `:quote` in the `:fn-map`,
+  quoted lists are flowed with an `:indent` of 1, since they frequently
+  contain only data.  You can also use `:style :quote-wrap` to get quoted
+  lists to wrap like vectors do today.  If you prefer to not have quoted
+  lists handled any differently then they are today, you can use
+  `{:fn-map {:quote :none}}` in an options map, and receive the current
+  default behavior.  Issue #175.
+
+  * Now recognized that keywords in the "local" position (i.e.,
+  left hand side) of binding vector pairs are likely part of the
+  "better cond" macro.  They are now processed together, which only
+  really makes a difference if you are trying to force the value
+  expressions onto separate lines from the locals, in that it will
+  not force the right-hand-sides of these better-cond expressions
+  to the next lines.  Issue #178.
+
+  * Justification has changed considerably, though you have to make
+  a configuration change to see any of it.  The new approach to justification
+  looks at the variance of the lengths of the left-hand-sides of whatever
+  pairs are attempting to be justified, and will only justify them if the
+  variance is below the configured `:max-variance`.  In addition, it will
+  leave out up to two different lengths of left-hand-sides and justify the
+  remaining rows of pairs if that will bring the variance below the maximum
+  allowed.  You can set the variance for `:map`, `:binding`, and `:pair` by
+  setting `{:binding {:justify {:max-variance 20}}}` or any other number
+  you want.  This works for `:map` and `:pair` as well.  Or you can just
+  use `:style :justified-20` to set justification and the `:max-variance`
+  to 20 (which is a pretty good number).  You might find that justification
+  is a lot more useful when using this style.  Issue #179.
+
+  * The `comment` function now will not hang its arguments. If you wish to
+  return to the previous approach, use `{:fn-map {"comment" :none}}`.
+  Issue #182.
+
+
 
 ### Fixed
 
   * `:interpose` was not successfully configured from `~/.zprintrc` or local
   `.zprintrc` files when using pre-built binaries or the uberjar.  
   Issue #186.
+
+  * You can now have `:next-inner` inside of a `:next-inner`.  Issue
+  #185.
+
+  * `defprotocol` and `defrecord` are now "body" functions, which means
+  that the indentation of the forms does not change from 2 to 1 when using
+  `:style :community`.  Issue #176.
+
+
 
 ## 1.1.1 - 2021-1-20
 

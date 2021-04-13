@@ -694,4 +694,38 @@
        #_(println "odrguide:" guide)
        {:guide guide}))))
 
+;;
+;; Real guide for defprotocol
+;;
+
+(defn defprotocolguide
+  "Handle defprotocol with options."
+  ([] "defprotocolguide")
+  ([options len sexpr]
+   (when (= (first sexpr) 'defprotocol)
+     (let [third (nth sexpr 2 nil)
+           fourth (nth sexpr 3 nil)
+           fifth (nth sexpr 4 nil)
+           [docstring option option-value]
+             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]
+                   (string? third) [third nil nil]
+                   (keyword? third) [nil third fourth]
+                   :else [nil nil nil])
+           guide (cond-> [:element :element-best :newline]
+                   docstring (conj :element :newline)
+                   option (conj :element :element :newline)
+                   :else (conj :element-newline-best-*))]
+       {:guide guide, :next-inner {:list {:option-fn nil}}}))))
+
+(defn signatureguide1
+  "Handle defprotocol signatures with arities and  doc string on their 
+  own lines."
+  ([] "signatureguide1")
+  ([options len sexpr]
+    (let [vectors (filter vector? sexpr)
+          guide [:element :group-begin]
+	  guide (apply conj guide (repeat (count vectors) :element))
+	  guide (conj guide :group-end :element-newline-best-group 
+	                    :newline :element-*)]
+       {:guide guide})))
 

@@ -5,7 +5,8 @@
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
             [zprint.rewrite :refer [sort-dependencies]]
-	    [zprint.guide :refer [jrequireguide]]
+            [zprint.guide :refer
+             [jrequireguide defprotocolguide signatureguide1]]
             [sci.core :as sci]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
@@ -318,6 +319,7 @@
    "case" :arg1-pair-body,
    "cat" :force-nl,
    "catch" :arg2,
+   "comment" :flow-body
    "cond" :pair-fn,
    "cond-let" :pair-fn,
    "cond->" :arg1-pair-body,
@@ -334,7 +336,8 @@
    "defn" :arg1-body,
    "defn-" :arg1-body,
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
-   "defprotocol" :arg1-force-nl-body,
+   "defprotocol" #_:arg1-force-nl-body
+                [:none {:style :defprotocolguide}]
    "defrecord" :arg2-extend-body,
    "deftest" :arg1-body,
    "deftype" :arg2-extend-body,
@@ -688,6 +691,7 @@
                                             :unquote :bright-yellow,
                                             :unquote-splicing :bright-yellow,
                                             :user-fn :bright-yellow}}},
+      :defprotocolguide {:list {:option-fn defprotocolguide}}
       :extend-nl {:extend {:flow? true, :indent 0, :nl-separator? true}},
       :how-to-ns {:fn-map {"ns" [:arg1-body
                                  {:fn-map {":import" [:flow
@@ -759,8 +763,12 @@
                   :map {:hang-accept 0, :ha-depth-factor 15},
                   :pair {:hang-accept 20, :ha-width-factor -150},
                   :vector-fn {:hang-accept 100, :ha-width-factor -300}},
-      :require-justify {:fn-map {":require" [:flow {:list {:option-fn
+      :quote-wrap {:fn-map {:quote [:wrap {:list {:indent 1} 
+                            :next-inner {:list {:indent 2}}}]}}
+      :require-justify-base {:fn-map {":require" [:flow {:list {:option-fn
                                                   jrequireguide}}]}}
+      :require-justify {:style :require-justify-base :pair {:justify
+						   {:max-variance 20}}}
       :respect-bl {:list {:respect-bl? true},
                    :map {:respect-bl? true},
                    :vector {:respect-bl? true},
@@ -777,6 +785,7 @@
                        :map {:respect-nl? false},
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
+      :signatureguide1 {:list {:option-fn signatureguide1}}
       :sort-dependencies {:list {:return-altered-zipper [1 'defproject
                                                          sort-dependencies]}}},
    :tab {:expand? true, :size 8},

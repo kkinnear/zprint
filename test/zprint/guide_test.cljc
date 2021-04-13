@@ -1530,6 +1530,77 @@
                               :element :group-end :element-pair-group]],
                :width 27}))
 
+;;
+;; Does a :newline at the end force a newline?
+;; 
+
+(expect "(stuff (caller aaaa\n         bbbb\n         ccc\n         dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :element :newline :element :newline
+                                    :element :newline :element :newline :newline
+                                    :newline :newline :newline :element]],
+                     :width 50}))
+
+(expect
+  "(stuff (caller aaaa\n         bbbb\n         ccc\n         dddddd\n\n         eee))"
+  (zprint-str
+    "(stuff (caller aaaa bbbb ccc dddddd eee))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :element :newline :element :newline :element
+                    :newline :element :newline :newline :element]],
+     :width 50}))
+
+(expect
+  "(stuff (caller aaaa\n         bbbb\n         ccc\n         dddddd\n\n         eee))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc dddddd eee))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :element :newline
+                              :element :newline :element :newline :newline]],
+               :width 50}))
+
+;;
+;; Does it force a newline when it is the last thing?
+;;
+
+(expect "(stuff (caller aaaa\n         bbbb\n         ccc\n         dddddd))"
+        (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                    {:parse-string? true,
+                     :list {:respect-nl? false},
+                     :guide-debug [:list 2
+                                   [:element :element :newline :element :newline
+                                    :element :newline :element :newline :newline
+                                    :newline :newline :newline]],
+                     :width 50}))
+
+(expect
+  "(stuff (caller aaaa\n         bbbb\n         ccc\n         dddddd\n       ))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :element :newline
+                              :element :newline :element :newline-force :newline
+                              :newline :newline :newline]],
+               :width 50}))
+
+(expect
+  "(stuff (caller aaaa\n         bbbb\n         ccc\n         dddddd\n\n       ))"
+  (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+              {:parse-string? true,
+               :list {:respect-nl? false},
+               :guide-debug [:list 2
+                             [:element :element :newline :element :newline
+                              :element :newline :element :newline-force :newline
+                              :newline :newline :newline-force]],
+               :width 50}))
+
   ;;
   ;; # rodguide
   ;;
@@ -2545,6 +2616,43 @@
                 {:parse-string? true,
                  :fn-map {"defcs" [:arg1-force-nl
                                    {:list {:option-fn rumguide-2}}]}}))
+
+;;
+;; Test defprotcolguide, our first main-stream guide!
+;;
+
+(expect
+  "(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n  (bar [this a b] \"bar docs\")\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol AProtocolName\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata true\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true}))
+
+(expect
+  "(defprotocol AProtocolName\n  :extend-via-metadata true\n  (bar [this a b] \"bar docs\")\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol AProtocolName\n   :extend-via-metadata true\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true}))
+
+(expect
+  "(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  (bar [this a b] \"bar docs\")\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol AProtocolName\n    \"A doc string for AProtocol abstraction\"\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true}))
+
+(expect
+  "(defprotocol AProtocolName\n  (bar [this a b] \"bar docs\")\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol AProtocolName\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true}))
+
+(expect "(defprotocol AProtocolName\n  :keyword value)"
+        (zprint-str "  (defprotocol AProtocolName\n     :keyword value)\n\n\n"
+                    {:parse-string? true}))
+
+(expect "(defprotocol AProtocolName)"
+        (zprint-str "  (defprotocol AProtocolName)\n\n" {:parse-string? true}))
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

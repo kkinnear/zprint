@@ -3718,7 +3718,7 @@ ser/collect-vars-acc %1 %2) )))"
                 {:parse-string? true, :list {:respect-bl? true}}))
 
   (expect
-    "(comment (defn x [y] (println y))\n\n         (this is a thing that is interesting)\n\n         (def z :this-is-a-test)\n\n         (def a :more stuff)\n\n\n\n         (def b :3-blanks-above))"
+"(comment\n  (defn x [y] (println y))\n\n  (this is a thing that is interesting)\n\n  (def z :this-is-a-test)\n\n  (def a :more stuff)\n\n\n\n  (def b :3-blanks-above))"
     (zprint-str
       "(comment\n(defn x\n  [y]\n  (println y))\n\n(this is a\n         thing that is interesting)\n\n(def z :this-is-a-test)\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
       {:parse-string? true, :list {:respect-bl? true}}))
@@ -4228,10 +4228,6 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
 
-  #_(expect
-      (trim-gensym-regex (read-string (source-fn 'zprint.zprint/fzprint-list*)))
-      (trim-gensym-regex (read-string (zprint-fn-str zprint.zprint/fzprint-list*
-                                                     {:style :respect-nl}))))
 
   (expect (trim-gensym-regex (read-string zprint.zprint-test/fzprint-list*str))
           (trim-gensym-regex
@@ -4239,10 +4235,6 @@ ser/collect-vars-acc %1 %2) )))"
                                      {:parse-string? true,
                                       :style :respect-nl}))))
 
-  #_(expect
-      (trim-gensym-regex (read-string (source-fn 'zprint.zprint/fzprint-list*)))
-      (trim-gensym-regex (read-string (zprint-fn-str zprint.zprint/fzprint-list*
-                                                     {:style :indent-only}))))
   (expect (trim-gensym-regex (read-string zprint.zprint-test/fzprint-list*str))
           (trim-gensym-regex
             (read-string (zprint-str zprint.zprint-test/fzprint-list*str
@@ -4499,7 +4491,8 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-    "(comment (defn x [y] (println y))\n         (this is a thing that is interesting)\n         (def z [:this-is-a-test :with-3-blanks-above?])\n         (def a :more stuff)\n         (def b :3-blanks-above))"
+"(comment\n  (defn x [y] (println y))\n  (this is a thing that is interesting)\n  (def z [:this-is-a-test :with-3-blanks-above?])\n  (def a :more stuff)\n  (def b :3-blanks-above))"
+    #_"(comment (defn x [y] (println y))\n         (this is a thing that is interesting)\n         (def z [:this-is-a-test :with-3-blanks-above?])\n         (def a :more stuff)\n         (def b :3-blanks-above))"
     (zprint-str
       "(comment\n(defn x\n  [y]\n  (println y))\n\n(this \n  is \n  a\n         thing that is interesting)\n\n(def z \n\n\n[:this-is-a-test :with-3-blanks-above?])\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
       {:parse-string? true}))

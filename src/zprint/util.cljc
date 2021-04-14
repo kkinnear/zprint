@@ -128,9 +128,9 @@
       (cond
         (nil? beginning-variance) [nil columns]
         (> max-variance beginning-variance) [(first (find-max column)) columns]
-	; Unless we have at least 4 rows, we aren't removing anything to
+	; Unless we have at least 3 rows, we aren't removing anything to
 	; try and get the variance to work!
-        (> row-count 3)
+        (> row-count 2)
           (let [[first-indicies first-column-wo-max] (remove-max-not-half
                                                        column)
                 #_(println "column:" column)

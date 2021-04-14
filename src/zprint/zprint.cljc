@@ -914,7 +914,7 @@
     {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color
             key-depth-color key-value-color justify]}
       caller,
-    :as options} ind commas? justify-width rightmost-pair?
+    :as options} ind commas? justify-width justify-options rightmost-pair?
    [lloc rloc xloc :as pair]]
   (if dbg-cnt? (println "two-up: caller:" caller "hang?" hang? "dbg?" dbg?))
         (dbg-s options
@@ -943,10 +943,24 @@
               "rightmost-pair?" rightmost-pair?)))
   (let [local-hang? (or one-line? hang?)
         indent (or indent indent-arg)
+	; We get options and justify-options.  Generally we want to use
+	; the justify-options, unless we are not justifying, in which
+	; case we want to use the regular options.  We can't tell if
+	; we are justifying until after we figure the arg-1-width,
+	; so we will use the justify-options for everything and 
+	; calculate one set of r-non-justify-options for use with
+	; good-enough if we didn't justify.  This allows us to put
+	; weird stuff in :justify-hang to change things other then
+	; :hang-expand when we are justifying.
+	non-justify-options options
+	options justify-options
         local-options
           (if (not local-hang?) (assoc options :one-line? true) options)
         loptions (c-r-pair commas? rightmost-pair? nil options)
         roptions (c-r-pair commas? rightmost-pair? :rightmost options)
+	; These are only really important for good-enough
+	non-justify-roptions
+                 (c-r-pair commas? rightmost-pair? :rightmost non-justify-options)
         local-roptions
           (c-r-pair commas? rightmost-pair? :rightmost local-options)
         ; If we have a key-value-color map, and the key we have matches any
@@ -986,13 +1000,7 @@
                 (and map-depth (= caller :map) (= map-depth 4)) :red
                 :else nil)
         arg-1 (fzprint* loptions ind lloc)
-	; If we have :underscore? use it, otherwise assume it is true.
-	justify-underscore? (let [underscore? 
-	                           (get justify :underscore? :not-found)]
-	                        (if (= underscore? :not-found)
-				   true
-				   underscore?))
-	arg-1-underscore? (= (ffirst arg-1) "_")
+	no-justify (:no-justify justify)
         ; If we have a newline, make it one shorter since we did a newline
         ; after the previous pair.  Unless this is the first pair, but we
         ; should have done one before that pair too, maybe?
@@ -1066,8 +1074,8 @@
           ; we won't use it.
           (let [justify-width (when justify-width 
 	                        (if (or (> arg-1-width justify-width) 
-					(and (not justify-underscore?)
-					     arg-1-underscore?))
+					(when no-justify
+					   (no-justify (ffirst arg-1))))
 				   nil 
 				   justify-width))
 	        hanging-width (if justify-width justify-width arg-1-width)
@@ -1225,7 +1233,9 @@
                                   hanging)]
                   (when (or hanging-lines flow-lines)
                     (if (good-enough? caller
-                                      roptions
+				      (if justify-width
+				      roptions
+                                      non-justify-roptions)
                                       :none-two-up
                                       hang-count
                                       (- hanging-indent flow-indent)
@@ -1272,21 +1282,30 @@
 
 (defn fzprint-justify-width
   "Figure the width for a justification of a set of pairs in coll.  
-  Also, decide if it makes any sense to justify the pairs at all.
-  For instance, they all need to be one-line."
+  Also, decide if it makes any sense to justify the pairs at all."
   [caller {{:keys [justify? justify]} caller, :as options} ind coll]
-  (let [justify-underscore? (let [underscore?
+  (let [ignore-for-variance (:ignore-for-variance justify)
+        no-justify (:no-justify justify)
+        justify-underscore? (let [underscore?
                                     (get justify :underscore? :not-found)]
                               (if (= underscore? :not-found) true underscore?))
         firsts (remove nil?
                  (map #(when (> (count %) 1)
                          (fzprint* (not-rightmost options) ind (first %)))
                    coll))
-        #_ (def just firsts)
-        ; If we explicitly said :justify {:underscore? false}, then remove
-        ; underscores from further consideration in the variance.
-        firsts
-          (if justify-underscore? firsts (remove #(= (ffirst %) "_") firsts))
+        #_(def just firsts)
+        ; If we aren't supposed to justify something at all, remove it
+        ; from the variance calculation here.
+        firsts (if no-justify (remove #(no-justify (ffirst %)) firsts) firsts)
+        ; Is there anything that we should ignore for the variance calculation
+        ; but still justify?  This is largely for :else, which, when it
+        ; appears, it typically the last thing in a cond.  It seems fruitless
+        ; to not justify a cond because a short :else drives the variance
+        ; too high, since it is rarely hard to line up the :else with
+        ; its value, no matter how far apart they are.
+        firsts (if ignore-for-variance
+                 (remove #(ignore-for-variance (ffirst %)) firsts)
+                 firsts)
         style-seq (mapv (partial style-lines options ind) firsts)
         #_(println "style-seq:" ((:dzprint options) {} style-seq))
         #_(def styleseq style-seq)
@@ -1302,9 +1321,14 @@
                  :justify
                  "fzprint-justify-width max-variance:" max-variance
                  "ind:" ind
-                 "justify-underscore?" justify-underscore?
+                 "ignore-for-variance:" ignore-for-variance
+                 "no-justify" no-justify
                  "alignment:" alignment)
-        #_(println "alignment:" alignment "ind:" ind)
+        #_(prn "what:"
+               (ffirst firsts)
+               (first (last firsts))
+               "alignment:" alignment
+               "ind:" ind)
         justify-width (when each-one-line? (first alignment))]
     justify-width))
 
@@ -1411,6 +1435,14 @@
                           (zpmap options
                                  (partial fzprint-two-up
                                           caller
+                                          options
+                                          ind
+                                          commas?
+                                          justify-width
+					  justify-options
+                                          nil)
+                                 #_(partial fzprint-two-up
+                                          caller
                                           justify-options
                                           ind
                                           commas?
@@ -1437,10 +1469,11 @@
                      "end-remaining:" end-remaining)
               end (when end-remaining
                     (when-let [end-result (fzprint-two-up caller
-                                                          justify-options
+                                                          options
                                                           ind
                                                           commas?
                                                           justify-width
+							  justify-options
                                                           :rightmost-pair
                                                           (first end-coll))]
                       [end-result]))

@@ -199,7 +199,8 @@
 (s/def ::inline? ::boolean)
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
-(s/def ::justify (only-keys :opt-un [::max-variance ::underscore?]))
+(s/def ::justify (only-keys :opt-un [::max-variance ::ignore-for-variance 
+                                     ::no-justify]))
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
 (s/def ::justify-tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
@@ -305,6 +306,7 @@
 (s/def ::fn-obj (only-keys :opt-un [::object?]))
 (s/def ::format ::format-value)
 (s/def ::future (only-keys :opt-un [::object?]))
+(s/def ::ignore-for-variance (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::indent number?)
 (s/def ::input (only-keys :opt-un [::range]))
 ; When you modify list, you are also modifying vector-fn (see below)
@@ -335,6 +337,7 @@
 (s/def ::max-hang-depth number?)
 (s/def ::max-hang-span number?)
 (s/def ::max-length ::number-or-vector-of-numbers)
+(s/def ::no-justify (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
 (s/def ::guide ::guide-seq)
@@ -360,7 +363,7 @@
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-                      :alt/extend]))
+                      :alt/extend ::binding ::pair ::map]))
 (s/def ::next-inner (s/nilable ::options))
 (s/def ::return-cvec? ::boolean)
 (s/def ::script (only-keys :opt-un [::more-options]))

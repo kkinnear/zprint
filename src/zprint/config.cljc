@@ -418,7 +418,7 @@
              :indent 2,
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	     :justify {:max-variance 1000 :underscore? false}
+	     :justify {:max-variance 1000 :no-justify #{"_"} :ignore-for-variance nil}
              :justify? false,
              :nl-separator? false,
              :nl-separator-all? false},
@@ -536,7 +536,7 @@
          :nl-separator-all? false,
          :flow? false,
          :justify? false,
-	     :justify {:max-variance 1000}
+	     :justify {:max-variance 1000 :ignore-for-variance nil :no-justify nil}
          :justify-hang {:hang-expand 5},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
          :respect-bl? false,
@@ -568,7 +568,8 @@
           :indent 2,
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	     :justify {:max-variance 1000}
+	     :justify {:max-variance 1000 :ignore-for-variance #{":else"}
+	               :no-justify nil}
           :justify? false,
           :nl-separator? false,
           :nl-separator-all? false},
@@ -592,7 +593,10 @@
    :remove {:fn-force-nl nil,
             :fn-gt2-force-nl nil,
             :fn-gt3-force-nl nil,
-            :extend {:modifiers nil}},
+            :extend {:modifiers nil} 
+	    :pair {:justify {:no-justify nil :ignore-for-variance nil}}
+	    :binding {:justify {:no-justify nil :ignore-for-variance nil}}
+	    :map {:justify {:no-justify nil :ignore-for-variance nil}}},
    :return-cvec? false,
    :script {:more-options nil},
    :search-config? false,

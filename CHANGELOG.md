@@ -68,6 +68,7 @@ All notable changes to this project will be documented in this file.
   that the indentation of the forms does not change from 2 to 1 when using
   `:style :community`.  Issue #176.
 
+  * Loss of comments inside meta-data expressions.  Issue #187.
 
 
 ## 1.1.1 - 2021-1-20

@@ -7049,33 +7049,37 @@
   (let [l-str "^"
         r-str ""
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
-        r-str-vec (rstr-vec options ind zloc r-str)]
+        r-str-vec (rstr-vec options ind zloc r-str)
+        zloc-seq (fzprint-get-zloc-seq :list options zloc)]
     (dbg-pr options "fzprint-meta: zloc:" (zstring zloc))
-    (concat-no-nil
-      l-str-vec
-      (if (:indent-only? (:list options))
-        ; Since l-str isn't a "pair" and shouldn't be considered in the
-        ; indent, we don't tell fzprint-indent abouit.
-        (fzprint-indent :vector
-                        l-str
-                        ""
-                        options
-                        ind
-                        zloc
-                        nil
-                        nil
-                        :first-indent-only?)
-        (fzprint-flow-seq
-          ; No rightmost, because this isn't a collection.
-          ; This is essentially two separate things.
-          options
-          ; no indent for second line, as the leading ^ is
-          ; not a normal collection beginning
-          ; TODO: change this to (+ (count l-str) ind)
-          (apply vector (+ (count l-str) ind) (repeat (dec (zcount zloc)) ind))
-          ;[(inc ind) ind]
-          (fzprint-get-zloc-seq :list options zloc)))
-      r-str-vec)))
+    (concat-no-nil l-str-vec
+                   (if (:indent-only? (:list options))
+                     ; Since l-str isn't a "pair" and shouldn't be considered in
+                     ; the
+                     ; indent, we don't tell fzprint-indent abouit.
+                     (fzprint-indent :vector
+                                     l-str
+                                     ""
+                                     options
+                                     ind
+                                     zloc
+                                     nil
+                                     nil
+                                     :first-indent-only?)
+                     (fzprint-flow-seq
+                       ; No rightmost, because this isn't a collection.
+                       ; This is essentially two separate things.
+                       options
+                       ; no indent for second line, as the leading ^ is
+                       ; not a normal collection beginning
+                       ; Generate a separate indent for the first thing, and use
+                       ; ind
+                       ; for the remaining.
+                       (apply vector
+                         (+ (count l-str) ind)
+                         (repeat (dec (count zloc-seq)) ind))
+                       zloc-seq))
+                   r-str-vec)))
 
 (defn fzprint-reader-macro
   "Print a reader-macro, often a reader-conditional. Adapted for differences

@@ -5747,6 +5747,16 @@ dfg
                :style :justified-20,
                :pair {:justify {:max-variance 20}}}))
 
+;;
+;; Issue #187 -- loss of comments in meta-data
+;;
+
+
+(expect "(def ^{:meta :x}\n     ; one\n     ; two\n     ; three\n     :body)"
+        (zprint-str
+          "(def\n  ^{:meta :x}\n  ; one\n  ; two\n  ; three\n  :body)\n"
+          {:parse-string? true}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

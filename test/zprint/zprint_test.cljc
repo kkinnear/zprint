@@ -5757,6 +5757,38 @@ dfg
           "(def\n  ^{:meta :x}\n  ; one\n  ; two\n  ; three\n  :body)\n"
           {:parse-string? true}))
 
+;;
+;; :pair {:justify {:ignore-for-variance ...}}
+;; :style :justified-20
+;; :style :justified
+;;
+
+(def
+dpg
+"(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))\n"
+)
+
+(expect
+  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+  (zprint-str dpg
+              {:parse-string? true,
+               :style :justified-20,
+               :pair {:justify {:ignore-for-variance nil}}}))
+
+
+(expect
+  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+  (zprint-str dpg {:parse-string? true, :style :justified-20}))
+
+
+(expect
+  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third                           (nth sexpr 2 nil)\n           fourth                          (nth sexpr 3 nil)\n           fifth                           (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide                           (cond-> [:element :element-best\n                                                    :newline]\n                                             docstring (conj :element :newline)\n                                             option (conj :element\n                                                          :element\n                                                          :newline)\n                                             :else (conj\n                                                     :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+  (zprint-str dpg {:parse-string? true, :style :justified}))
+
+(expect
+  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide (cond-> [:element :element-best :newline]\n                   docstring (conj :element :newline)\n                   option (conj :element :element :newline)\n                   :else (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+  (zprint-str dpg {:parse-string? true}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

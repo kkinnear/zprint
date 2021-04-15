@@ -2383,11 +2383,56 @@ is already being used.  A more useful value for `:max-variance` would be
 
 In some cases, 40 will look good, in some cases even 15 looks better.
 
-##### :underscore? _false_
+##### :ignore-for-variance  _set-of-strings or nil_
 
-When explicitly set to `false` in `:binding`, this will cause 
-any pair where the left-hand element is "_" to not be considered for
-justification (or included in the initial variance calculation).
+When calculating the variance of a set of left-hand-sides of a
+series of pairs, ignore any of those left-hand-sides whose string value
+matches one of the strings in the set `:ignore-for-variance`.
+These will left-hand-sides will still be justified (in that the
+proper amount of spaces will be applied after them), but they will
+not alter the variance calculation.  This was added primarily to allow
+removing the `:else` in a `cond` from the variance calculation, because
+it is sometimes short enough compared to the other left-hand-sides in
+the `cond` to cause the ensemble to not justify, and excess space after
+the last thing in a `cond` rarely causes any confusion.
+
+By default, this is only set for: 
+`{:pair {:justify {:ignore-for-variance #{":else"}}}}`.
+
+This can be set to `nil` to consider `:else` in the variance calculation,
+or other values can be added to the set to customize the justification
+process.  
+
+Note that (for efficiency reasons) you can add only the string values
+of things to ignore to the set `:ignore-for-variance`.
+
+##### :no-justify  _set-of-strings or nil_
+
+Much like `:ignore-for-variance`, when calculating the variance of
+a set of left-hand-sides of a series of pairs, ignore any of those
+left-hand-sides whose string value matches one of the strings in
+the set `:no-justify`.  However, the left-hand-sides that appear
+in `:no-justify` will also not be justified (i.e., will not have
+additional space after them to align the right-hand-side in a visual
+column).
+
+This was added primarily to allow removing the `_` in a binding
+vector (e.g., `let`) from not only the variance calculation but
+from justification altogether.  The very short length of `_` tends
+to raise the variance enough to block justification when it otherwise
+would still be useful.  In addition, since the `_` is so short,
+placing the right-hand-side expression out in a column often adds
+little value.
+
+By default, this is only set for: 
+`{:binding {:justify {:no-justify #{"_"}}}}`.
+
+This can be set to `nil` for `:binding` to consider `_` as a normal
+left-hand-side in justification, or other values can be added to
+the set to customize the justification process.
+
+Note that (for efficiency reasons) you can add only the string
+values of things to not justify to the set `:no-justify`.
 
 ## Configuring functions to make formatting changes based on content
 

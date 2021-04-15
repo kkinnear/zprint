@@ -1536,6 +1536,10 @@
    {{:keys [sort? sort-in-code? key-order key-value]} caller,
     :keys [in-code?],
     :as options} access out]
+    (dbg-pr options "order-out caller:" caller "key-order:" key-order
+                    "sort?" sort? "sort-in-code?" sort-in-code? "in-code?"
+		    in-code? "key-value:" key-value)
+
   (if (and sort? (if in-code? sort-in-code? true))
     (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
               (zsexpr (access %1))
@@ -6723,7 +6727,7 @@
             no-sort? (or no-sort? respect-nl? respect-bl?)
             [ns lift-pair-seq]
               (zlift-ns (assoc map-options :in-code? in-code?) pair-seq ns)
-            _ (dbg-pr options "fzprint-map* zlift-ns ns:" ns)
+            _ (dbg-pr options "fzprint-map* zlift-ns ns:" ns "no-sort?" no-sort?)
             l-str (if ns (str "#" ns l-str) l-str)
             pair-seq (or lift-pair-seq pair-seq)
             pair-seq

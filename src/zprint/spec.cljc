@@ -277,6 +277,7 @@
 (s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
 (s/def ::cwd-zprintrc? ::boolean)
+(s/def ::doc string?)
 (s/def ::search-config? ::boolean)
 (s/def ::dbg? ::boolean)
 (s/def ::dbg-s ::dbg-s-set)
@@ -413,7 +414,8 @@
              ::set ::spaces? ::script ::spec ::style ::styles-applied
              ::style-map ::tab ::test-for-eol-blanks? ::trim-comments? ::tuning
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
-             ::url ::zipper? ::guide ::guide-debug ::no-validate? ::force-validate?]))
+             ::url ::zipper? ::guide ::guide-debug ::no-validate? 
+	     ::force-validate? ::doc]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

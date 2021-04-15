@@ -16,7 +16,7 @@
      [fzprint-inline-comments fzprint-wrap-comments
       fzprint-align-inline-comments blanks]]
     [zprint.config :as config :refer
-     [config-set-options! get-options config-configure-all! reset-options!
+     [add-calculated-options config-set-options! get-options config-configure-all! reset-options!
       help-str get-explained-options get-explained-set-options
       get-explained-all-options get-default-options validate-options apply-style
       perform-remove no-color-map merge-deep]]
@@ -494,7 +494,7 @@
                              (throw (#?(:clj Exception.
                                         :cljs js/Error.)
                                      style-errors))
-                             (config/add-calculated-options
+                             (add-calculated-options
                                (merge-deep updated-map rest-options)))]
         #_(def dout actual-options)
         ; actual-options is a complete options-map
@@ -515,15 +515,38 @@
   [coll special-option actual-options]
   (if special-option
     (case special-option
-      :explain (fzprint-style (get-explained-options)
-                              (merge-deep (get-default-options) actual-options))
-      :explain-set (fzprint-style (get-explained-set-options)
-                                  (merge-deep (get-default-options)
-                                              actual-options))
-      :explain-justified (fzprint-style (get-explained-options)
-                                        (merge-deep (get-default-options)
-                                                    actual-options
-                                                    {:map {:justify? true :justify {:max-variance 20}}}))
+      :explain
+        (fzprint-style
+          (get-explained-options)
+	  ; If we are doing :key-order, we need add-calculated-options
+          (add-calculated-options
+            (merge-deep (get-default-options)
+                        actual-options
+                        {:map {:key-order [:doc],
+                               :key-color {:doc :blue},
+                               :key-value-color {:doc {:string :green}}}})))
+      :explain-set
+        (fzprint-style
+          (get-explained-set-options)
+	  ; If we are doing :key-order, we need add-calculated-options
+          (add-calculated-options
+            (merge-deep (get-default-options)
+                        actual-options
+                        {:map {:key-order [:doc],
+                               :key-color {:doc :blue},
+                               :key-value-color {:doc {:string :green}}}})))
+      :explain-justified
+        (fzprint-style
+          (get-explained-options)
+	  ; If we are doing :key-order, we need add-calculated-options
+          (add-calculated-options
+            (merge-deep (get-default-options)
+                        actual-options
+                        {:map {:key-order [:doc],
+                               :key-color {:doc :blue},
+                               :key-value-color {:doc {:string :green}},
+                               :justify? true,
+                               :justify {:max-variance 20}}})))
       :support (fzprint-style (get-explained-all-options)
                               (merge-deep (get-default-options) actual-options))
       :help (println help-str)

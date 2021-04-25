@@ -390,212 +390,9 @@
   ([options len sexpr]
    (when (= (first sexpr) :what)
      (let [[vectors beyond] (split-with vector? (next sexpr))
-           max-first (apply max (map #(count (str (first %))) vectors))
-           max-second (apply max (map #(count (str (second %))) vectors))
-           call-stack (:call-stack options)
-           align-setup [:align 1 (inc max-first) :align 2
-                        (+ (inc max-first) (inc max-second))]
-           vector-guide [:mark-at 1 (inc max-first) :mark-at 2
-                         (+ (inc max-first) (inc max-second)) :element :align 1
-                         :element :align 2 :element]
-           guide [:element :options {:guide vector-guide}
-                  (repeat (count vectors) [:newline :element]) :options-reset
-                  (repeat (count beyond) [:newline :element])]
-           guide (into [] (flatten guide))]
-       (println "odrguide:" guide)
-       {:guide guide}))))
-
-(defn size-g
-  "Return the size of an sexpr, accounting for things that have been
-  made zprint.core."
-  [sexpr]
-  (let [s (str sexpr)
-        s (cond (clojure.string/starts-with? s ":zprint.core/")
-                  (clojure.string/replace s ":zprint.core/" "::")
-                (clojure.string/starts-with? s ":clojure.core/")
-                  (clojure.string/replace s ":clojure.core/" "::")
-                :else s)]
-    (count s)))
-
-(defn variance-g
-  "Return the variance of a sequence of numbers."
-  [coll]
-  (let [len (count coll)]
-    (when (not (zero? len))
-      (let [mean (/ (apply + coll) len)
-            dev-from-mean (mapv (partial - mean) coll)
-            sq-dev-from-mean (mapv #(* % %) dev-from-mean)]
-        (int (/ (apply + sq-dev-from-mean) len))))))
-
-(defn remove-max-not-half-g
-  "Given a sequence of numbers, remove all of the numbers that
-  are equal to the maximum number, unless that would result in sequence
-  which was less than half the size of the original. In that case, return
-  the original sequence."
-  [coll]
-  (let [new-coll (filter (partial > (apply max coll)) coll)]
-    (if (> (count new-coll) (/ (count coll) 2))
-      new-coll
-      coll)))
-       
-(defn max-align-size
-  "Given a sequence of sizes, figure out what alignment would be good.
-  Measure the variance of the seq, and the seq less its max and second
-  to max elements.  Use the longest seq whose variance is <= the
-  element of the sequence input and return its max element. Note that
-  in creating seqs without the max elements, never remove more than
-  half of the seq."
-  [size-seq max-var]
-  (let [len (count size-seq)]
-    (when (not (zero? len))
-      #_(println "max-var:" max-var "size-seq:" size-seq)
-      (let [size-seq-var (variance-g size-seq)
-            #_ (println "full var:" size-seq-var)]
-        (if (<= size-seq-var max-var)
-          (do #_(println "Full seq") (apply max size-seq))
-          (let [less-one-seq (remove-max-not-half-g size-seq)
-                less-one-var (variance-g less-one-seq)
-		#_ (println "less-one-var:" less-one-var) ]
-            (if (<= less-one-var max-var)
-              (do #_(println "Less one seq") (apply max less-one-seq))
-              (let [less-two-seq (remove-max-not-half-g less-one-seq)
-                    less-two-var (variance-g less-two-seq)
-		    #_ (println "less-two-var:" less-two-var)]
-                (if (<= less-two-var max-var)
-                (do #_(println "Less two seq") (apply max less-two-seq))
-                (do #_(println "no seq") nil))))))))))
-		       
-(defn max-align-size-alt
-  "Given a sequence of sizes, figure out what alignment would be good.
-  If the variance between the whole sequence and the sequence without
-  the maximum element (or elements, if there is more than one of the
-  maximum elements) is greater than var-diff, and the number of elements
-  remaining after removing the maximum elements is greater than the 
-  number of maximum elements removed, then return the maximum of
-  the sequence without the maximum elements, else return the maximum
-  element of the sequence input."
-  [size-seq var-diff]
-  (let [len (count size-seq)]
-    (when (not (zero? len))
-      (let [size-seq-var (variance-g size-seq)
-            outlier (apply max size-seq)
-            wo-outliers (filter (partial > outlier) size-seq)
-            wo-outliers-len (count wo-outliers)]
-        (if (and (not (zero? wo-outliers-len))
-                 (> wo-outliers-len (- len wo-outliers-len)))
-          (let [wo-outliers-var (variance-g wo-outliers)]
-            (println "size-seq-var:" (int size-seq-var)
-                     "wo-outliers-var:" (int wo-outliers-var))
-            (if (> (abs (- size-seq-var wo-outliers-var)) var-diff)
-              ; calculate size usig wo-outliers
-              (apply max wo-outliers)
-              outlier))
-          outlier)))))
-
-(defn odrguide2
-  "Justify O'Doyles Rules"
-  ([] "odrguide2")
-  ([var options len sexpr]
-   (when (= (first sexpr) :what)
-     (let [[vectors beyond] (split-with vector? (next sexpr))
-           first-seq (map (comp size-g first) vectors)
-           max-first (max-align-size first-seq var)
-           #_(println "max-first:" max-first)
-           second-seq (map (comp size-g second) vectors)
-           max-second (max-align-size second-seq var)
-           #_(println "max-second:" max-second)
-           #_(println "actual first:" (ffirst vectors))
-           #_(println "actual second:" (second (first vectors)))
-           #_(println "vectorsx:" vectors)
-           vector-guide (cond (and max-first max-second)
-                                [:mark-at 1 (inc max-first) :mark-at 2
-                                 (+ (inc max-first) (inc max-second)) :element
-                                 :align 1 :element :align 2 :element-*]
-                              max-first [:mark-at 1 (inc max-first) :element
-                                         :align 1 :element-*]
-                              :else [:element-*])
-           keyword-1 (first beyond)
-           [keyword-1-lists beyond] (split-with list? (next beyond))
-           keyword-2 (first beyond)
-           [keyword-2-lists beyond] (split-with list? (next beyond))
-           #_(println "keyword-1:" keyword-1
-                      "keyword-1-lists:" keyword-1-lists
-                      "keyword-2:" keyword-2
-                      "keyword-2-lists:" keyword-2-lists)
-           guide
-             [:element :indent (+ (count (str (first sexpr))) 2) :options
-              {:guide vector-guide}
-              (interpose :newline (repeat (count vectors) :element))
-              :options-reset :options {:vector {:wrap-multi? true}}
-              (if keyword-1
-                [:newline :indent 1 :element :indent
-                 (+ (count (str keyword-1)) 2)
-                 (interpose :newline (repeat (count keyword-1-lists) :element))]
-                [])
-              (if keyword-2
-                [:newline :indent 1 :element :indent
-                 (+ (count (str keyword-2)) 2)
-                 (interpose :newline (repeat (count keyword-2-lists) :element))]
-                [])]
-           guide (into [] (flatten guide))]
-       #_(println "odrguide:" guide)
-       {:guide guide}))))
-
-(defn odrguide3
-  "Justify O'Doyles Rules"
-  ([] "odrguide3")
-  ([var options len sexpr]
-   (when (= (first sexpr) :what)
-     (let [[vectors beyond] (split-with vector? (next sexpr))
-           max-width-vec (column-alignment var vectors)
-           alignment-vec (cumulative-alignment max-width-vec)
-           _ (println "alignment-vec:" alignment-vec)
-           mark-guide
-             (vec (flatten
-                    (mapv vector (repeat :mark-at) (range) alignment-vec)))
-           _ (println "mark-guide:" mark-guide)
-           alignment-guide
-             (mapv vector (repeat :align) (range (count alignment-vec)))
-           _ (println "alignment-guide:" alignment-guide)
-           vector-guide (into mark-guide
-                              (flatten [(interleave (repeat :element)
-                                                    alignment-guide)
-                                        :element-*]))
-           _ (println "vector-guide:" vector-guide)
-           keyword-1 (first beyond)
-           [keyword-1-lists beyond] (split-with list? (next beyond))
-           keyword-2 (first beyond)
-           [keyword-2-lists beyond] (split-with list? (next beyond))
-           #_(println "keyword-1:" keyword-1
-                      "keyword-1-lists:" keyword-1-lists
-                      "keyword-2:" keyword-2
-                      "keyword-2-lists:" keyword-2-lists)
-           guide
-             [:element :indent (+ (count (str (first sexpr))) 2) :options
-              {:guide vector-guide}
-              (interpose :newline (repeat (count vectors) :element))
-              :options-reset :options {:vector {:wrap-multi? true}}
-              (if keyword-1
-                [:newline :indent 1 :element :indent
-                 (+ (count (str keyword-1)) 2)
-                 (interpose :newline (repeat (count keyword-1-lists) :element))]
-                [])
-              (if keyword-2
-                [:newline :indent 1 :element :indent
-                 (+ (count (str keyword-2)) 2)
-                 (interpose :newline (repeat (count keyword-2-lists) :element))]
-                [])]
-           guide (into [] (flatten guide))]
-       #_(println "odrguide:" guide)
-       {:guide guide}))))
-
-(defn odrguide4
-  "Justify O'Doyles Rules"
-  ([] "odrguide4")
-  ([var options len sexpr]
-   (when (= (first sexpr) :what)
-     (let [[vectors beyond] (split-with vector? (next sexpr))
-           max-width-vec (column-alignment var vectors)
+           max-width-vec (column-alignment (:max-variance (:justify (:pair
+                                                                      options)))
+                                           vectors)
            alignment-vec (cumulative-alignment max-width-vec)
            #_(println "alignment-vec:" alignment-vec)
            mark-guide
@@ -618,81 +415,92 @@
                       "keyword-1-lists:" keyword-1-lists
                       "keyword-2:" keyword-2
                       "keyword-2-lists:" keyword-2-lists)
-           guide
-             [:element #_:indent #_(+ (count (str (first sexpr))) 2) :options
-              {:guide vector-guide, :vector {:wrap-multi? true, :hang? true}}
-              #_(interpose :newline (repeat (count vectors) :element))
-              :group-begin (repeat (count vectors) :element) :group-end
-              :element-newline-best-group :options-reset :options
-              {:vector {:wrap-multi? true, :hang? true}}
-              (if keyword-1
-                [:newline :element :group-begin
-                 (repeat (count keyword-1-lists) :element) :group-end
-                 :element-newline-best-group
-                 #_(interpose :newline
-                     (repeat (count keyword-1-lists) :element))]
-                [])
-              (if keyword-2
-                [:newline :element :group-begin
-                 (repeat (count keyword-2-lists) :element) :group-end
-                 :element-newline-best-group
-                 #_(interpose :newline
-                     (repeat (count keyword-2-lists) :element))]
-                [])]
-           guide (into [] (flatten guide))]
+           guide (cond->
+                   (-> [:element :indent 2 :options
+                        {:guide vector-guide,
+                         :vector {:wrap-multi? true, :hang? true}} :group-begin]
+                       (into (repeat (count vectors) :element))
+                       (conj :group-end
+                             :element-newline-best-group :options-reset
+                             :options {:vector {:wrap-multi? true, :hang? true}}
+                             :indent 1))
+                   keyword-1 (conj :newline :element)
+                   (not (empty? keyword-1-lists))
+                     (-> (conj :indent 2 :group-begin)
+                         (into (repeat (count keyword-1-lists) :element))
+                         (conj :group-end :element-newline-best-group
+                               :indent 1))
+                   keyword-2 (conj :newline :element)
+                   (not (empty? keyword-2-lists))
+                     (-> (conj :indent 2 :group-begin)
+                         (into (repeat (count keyword-2-lists) :element))
+                         (conj :group-end :element-newline-best-group)))]
        #_(println "odrguide:" guide)
        {:guide guide}))))
 
+;;
+;; Guide guide
+;;
 
-(defn ruleguide1
-  "Justify Rules: needs to look at vectors inside and if they start with
-  keywords, then don't do anything to them."
-  ([] "ruleguide1")
-  ([var options len sexpr]
-   (when (keyword? (first sexpr)) 
-     (let [[vectors beyond] (split-with vector? (next sexpr))
-           first-seq (map (comp size-g first) vectors)
-           max-first (max-align-size first-seq var)
-           #_(println "max-first:" max-first)
-           second-seq (map (comp size-g second) vectors)
-           max-second (max-align-size second-seq var)
-           #_(println "max-second:" max-second)
-           #_(println "actual first:" (ffirst vectors))
-           #_(println "actual second:" (second (first vectors)))
-           #_(println "vectorsx:" vectors)
-           vector-guide (cond (and max-first max-second)
-                                [:mark-at 1 (inc max-first) :mark-at 2
-                                 (+ (inc max-first) (inc max-second)) :element
-                                 :align 1 :element :align 2 :element-*]
-                              max-first [:mark-at 1 (inc max-first) :element
-                                         :align 1 :element-*]
-                              :else [:element-*])
-           keyword-1 (first beyond)
-           [keyword-1-lists beyond] (split-with list? (next beyond))
-           keyword-2 (first beyond)
-           [keyword-2-lists beyond] (split-with list? (next beyond))
-           #_(println "keyword-1:" keyword-1
-                      "keyword-1-lists:" keyword-1-lists
-                      "keyword-2:" keyword-2
-                      "keyword-2-lists:" keyword-2-lists)
-           guide
-             [:element :indent (+ (count (str (first sexpr))) 2) :options
-              {:guide vector-guide}
-              (interpose :newline (repeat (count vectors) :element))
-              :options-reset :options {:vector {:wrap-multi? true}}
-              (if keyword-1
-                [:newline :indent 1 :element :indent
-                 (+ (count (str keyword-1)) 2)
-                 (interpose :newline (repeat (count keyword-1-lists) :element))]
-                [])
-              (if keyword-2
-                [:newline :indent 1 :element :indent
-                 (+ (count (str keyword-2)) 2)
-                 (interpose :newline (repeat (count keyword-2-lists) :element))]
-                [])]
-           guide (into [] (flatten guide))]
-       #_(println "odrguide:" guide)
-       {:guide guide}))))
+(def guide-arg-count
+  {:element 0,
+   :element-* 0,
+   :element-best 0,
+   :element-best-* 0,
+   :element-pair-group 0,
+   :element-pair-* 0,
+   :element-newline-best-group 0,
+   :element-newline-best-* 0,
+   :element-binding-group 0,
+   :element-binding-* 0,
+   :element-guide 1,
+   :element-binding-vec 0,
+   :newline 0,
+   :options 1,
+   :options-reset 0,
+   :indent 1,
+   :indent-reset 0,
+   :spaces 1,
+   :mark-at 2,
+   :mark 1,
+   :align 1,
+   :group-begin 0,
+   :group-end 0})
+
+(def guide-insert
+  {:group-begin {:after [:indent 3]}, :group-end {:before [:indent 1]}})
+
+(defn handle-args
+  "Figure out the arg-count for a guide."
+  [[guide running-arg-count] command]
+  (if (zero? running-arg-count)
+    (let [command-arg-count (guide-arg-count command)
+          before (:before (guide-insert command))
+          after (:after (guide-insert command))]
+      [(cond-> guide
+         before (into before)
+         (empty? guide) (conj :element)
+         (not (empty? guide)) (conj :newline :element)
+         after (into after)) command-arg-count])
+    [(conj guide :element) (dec running-arg-count)]))
+
+(defn handle-args-alt
+  "Figure out the arg-count for a guide."
+  [[guide running-arg-count] command]
+  (if (zero? running-arg-count)
+    (let [command-arg-count (guide-arg-count command)
+          before (:before (guide-insert command))
+	  after (:after (guide-insert command))]
+      [(if (empty? guide) (conj guide :element) (conj guide :newline :element))
+       command-arg-count])
+    [(conj guide :element) (dec running-arg-count)]))
+
+(defn guideguide
+  "Print out a guide"
+  ([] "guideguide")
+  ([options len sexpr]
+   (when (guide-arg-count (first sexpr))
+     {:guide (first (reduce handle-args [[] 0] sexpr))})))
 
 ;;
 ;; Real guide for defprotocol

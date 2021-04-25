@@ -3898,6 +3898,15 @@ be used.  If you also have defined a `:key-color` map, any colors speciied
 in that map for specific keys will override the color that they would be
 given by the `:key-depth-color` vector.
 
+####  :key-no-sort  _#{"..."}_
+
+The value of `:key-no-sort` is either nil or a set of strings which,
+if they match the string value of a key, will cause sorting of the
+map in which it appears to be disabled.  While it can be used for
+any key for which you would like to disable sorting of its containing
+map, it is particularly useful when paired with `{:parse
+{:ignore-if-parse-fails #{ }}}` elements.
+
 ####  :lift-ns?  _false_
 
 When all of the keys in a map are namespaced, and they all have the same
@@ -4163,6 +4172,51 @@ For example:
 ```
 
 The formatting of the pairs themselves is controlled by `:pair`.
+
+_____
+## :parse
+
+This controls several aspects of how the input is handled.
+
+#### :interpose _nil_
+
+When a file is being processed by `zprint-file-str` (which is what
+the pre-built binaries use, and is also available in the library
+using `:parse-string-all`), normally the spaces between top level
+expressions are untouched.
+
+However, you can force a fixed amount of space between top level expressions
+by using `:parse :interpose`.  You can use `{:parse {:interpose "\n\n"}}`
+in an options map, which will place one blank line between every top
+level expression.
+
+You can force top level expressions to have pretty
+much anything that ends with a new-line by including an options
+map with `:parse {:interpose <string>}` in it.  The `<string>` must end
+with a new-line, or the resulting formatting will not be correct.
+
+```clojure
+(czprint "(def a :b) (def c :d)" 40 {:parse-string-all? true :parse {:interpose "\n\n"}})
+(def a :b)
+
+(def c :d)
+```
+
+#### :left-space _:drop_
+
+The choices for `:left-space` are `:keep` and `:drop`, with `:drop` being
+the default and only supported value.
+
+#### :ignore-if-parse-fails _#{"..."}_
+
+Some incomplete maps (that is, a map with an odd number of elements) will 
+go through some level of the parsing succefully, 
+but later processing steps may cause failures when an incomplete map is
+further processed by the parsing engine.  If you can identify the 
+additional element, you can place the string value of the element
+in the set which is the value of `:ignore-if-parse-fails`.  The default
+value contains `"..."` so that a map that is input with an additional
+key value of `...` will be processed correctly.
 
 _____
 ## :reader-cond

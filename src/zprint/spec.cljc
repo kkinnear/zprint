@@ -107,6 +107,10 @@
 (s/def ::style-value
   (s/or :multiple-styles ::vec-or-list-of-keyword
         :single-style (s/nilable keyword?)))
+; Also used for :map {:no-sort ::ignore-args}
+(s/def ::ignore-args
+  (s/or :string string?
+        :regex s/regex?))
 (s/def ::constant
   (s/or :string string?
         :number number?
@@ -227,6 +231,8 @@
 (s/def ::path (s/coll-of number? :kind sequential?))
 (s/def ::paths ::path-seq)
 (s/def ::range (only-keys :opt-un [::start ::end]))
+(s/def ::ignore-if-parse-fails (s/nilable (s/coll-of ::ignore-args :kind set?)))
+(s/def ::key-no-sort (s/nilable (s/coll-of ::ignore-args :kind set?)))
 (s/def ::replacement-string (s/nilable string?))
 (s/def ::return-altered-zipper vector?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
@@ -330,7 +336,8 @@
 	     ::justify
              ::justify-tuning ::key-color ::key-value-color ::key-depth-color
              ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
-             ::lift-ns-in-code? ::nl-separator? ::nl-separator-all?
+             ::lift-ns-in-code? ::key-no-sort
+	     ::nl-separator? ::nl-separator-all?
              ::respect-bl? ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
@@ -352,7 +359,8 @@
                       ::nl-separator-all?]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
-(s/def ::parse (only-keys :opt-un [::interpose ::left-space]))
+(s/def ::parse (only-keys :opt-un [::interpose ::left-space 
+                                   ::ignore-if-parse-fails]))
 (s/def ::parse-string-all? ::boolean)
 (s/def ::parse-string? ::boolean)
 (s/def ::perf-vs-format ::nilable-number)
@@ -364,7 +372,7 @@
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-                      :alt/extend ::binding ::pair ::map]))
+                      :alt/extend ::binding ::pair ::map ::parse]))
 (s/def ::next-inner (s/nilable ::options))
 (s/def ::return-cvec? ::boolean)
 (s/def ::script (only-keys :opt-un [::more-options]))

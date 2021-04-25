@@ -5789,6 +5789,80 @@ dpg
   "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide (cond-> [:element :element-best :newline]\n                   docstring (conj :element :newline)\n                   option (conj :element :element :newline)\n                   :else (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
   (zprint-str dpg {:parse-string? true}))
 
+;;
+;; Test :parse {:ignore-if-parse-fails ...}
+;; and :map {:key-no-sort ...}
+;;
+
+#?(:clj
+     (expect
+       "java.lang.Exception: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+       (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                        {:parse-string? true, :style :odrguide})
+            (catch Exception e (str e))))
+   :cljs (expect "[{aaa, c 3, g 2, k 1}]"
+                 (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                                  {:parse-string? true, :style :odrguide})
+                      (catch :default e (str e)))))
+
+(expect "[{aaa, c 3, g 2, k 1}]"
+        (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                    {:parse-string? true,
+		     :style :odrguide
+                     :parse {:ignore-if-parse-fails #{"aaa"}}}))
+(expect "[{k 1, g 2, c 3, aaa}]"
+        (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                    {:parse-string? true,
+		     :style :odrguide
+                     :parse {:ignore-if-parse-fails #{"aaa"}},
+                     :map {:key-no-sort #{"aaa"}}}))
+
+;;
+;; Issue 188
+;;
+
+(def i188 "{:a 1,\n :b 2,\n ...}\n")
+
+(expect "{:a 1, :b 2, ...}" (zprint-str i188 {:parse-string? true}))
+
+(def vbm "[{:a 1 :b 2 ...}]")
+
+
+ (expect
+"[{..., :a 1, :b 2}]"
+ (zprint-str vbm {:parse-string? true :remove {:map {:key-no-sort #{"..."}}} :style :odrguide}))
+
+#?(:clj
+     (expect
+       "java.lang.Exception: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+       (try (zprint-str vbm
+                        {:parse-string? true,
+                         :remove {:map {:key-no-sort #{"..."}},
+                                  :parse {:ignore-if-parse-fails #{"..."}}},
+                         :style :odrguide})
+            (catch Exception e (str e))))
+   :cljs (expect
+           "[{..., :a 1, :b 2}]"
+           (try (zprint-str vbm
+                            {:parse-string? true,
+                             :remove {:map {:key-no-sort #{"..."}},
+                                      :parse {:ignore-if-parse-fails #{"..."}}},
+                             :style :odrguide})
+                (catch :default e (str e)))))
+
+;;
+;; Issue #176 -- defprotocol and defrecord need -body when using
+;; style community
+;;
+
+(expect
+  "\n(ns fmt\n  (:require [com.stuartsierra.component :as component]\n            [clojure.string :as str]))\n\n(defprotocol IThing\n  (thing [this]))\n\n(defrecord App [db]\n  component/Lifecycle\n    (start [this] (assoc this :db (atom {::fmt \"please\"})))\n    (stop [this] (dissoc this :db))\n  IThing\n    (thing [this] (:db this)))"
+  (zprint-file-str
+    "\n(ns fmt\n  (:require\n   [com.stuartsierra.component :as component]\n   [clojure.string :as str]))\n\n(defprotocol IThing\n (thing [this]))\n\n(defrecord App [db]\n component/Lifecycle\n (start [this] (assoc this :db (atom {::fmt \"please\"})))\n (stop [this] (dissoc this :db))\n\n IThing\n (thing [this] (:db this)))"
+    "x"
+    {:style :community}))
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

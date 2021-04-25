@@ -6,7 +6,8 @@
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
             [zprint.rewrite :refer [sort-dependencies]]
             [zprint.guide :refer
-             [jrequireguide defprotocolguide signatureguide1]]
+             [jrequireguide defprotocolguide signatureguide1 odrguide
+	      guideguide]]
             [sci.core :as sci]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
@@ -337,7 +338,7 @@
    "defn-" :arg1-body,
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
    "defprotocol" #_:arg1-force-nl-body
-                [:none {:style :defprotocolguide}]
+                [:none-body {:style :defprotocolguide}]
    "defrecord" :arg2-extend-body,
    "deftest" :arg1-body,
    "deftype" :arg2-extend-body,
@@ -375,6 +376,7 @@
    "reduce" :arg1,
    "reify" :extend,
    "remove" :arg1,
+   "reset!" :arg2
    "s/def" [:arg1-body {:list {:constant-pair-min 2}}],
    "s/fdef" [:arg1-body {:list {:constant-pair-min 2}}],
    "s/and" :gt2-force-nl,
@@ -529,6 +531,7 @@
          :key-color nil,
          :key-depth-color nil,
          :key-value-color nil,
+	 :key-no-sort #{"..."}
          :lift-ns? false,
          :lift-ns-in-code? false,
          :force-nl? nil,
@@ -574,7 +577,7 @@
           :nl-separator? false,
           :nl-separator-all? false},
    :pair-fn {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
-   :parse {:interpose nil, :left-space :drop},
+   :parse {:interpose nil, :left-space :drop :ignore-if-parse-fails #{"..."}},
    :parse-string-all? false,
    :parse-string? false,
    :perf-vs-format nil,
@@ -596,7 +599,8 @@
             :extend {:modifiers nil} 
 	    :pair {:justify {:no-justify nil :ignore-for-variance nil}}
 	    :binding {:justify {:no-justify nil :ignore-for-variance nil}}
-	    :map {:justify {:no-justify nil :ignore-for-variance nil}}},
+	    :map {:key-no-sort nil :justify {:no-justify nil :ignore-for-variance nil}}
+	    :parse {:ignore-if-parse-fails nil}},
    :return-cvec? false,
    :script {:more-options nil},
    :search-config? false,
@@ -711,6 +715,8 @@
                                                       {:list {:hang? true}}],
                                            ":require" :flow},
                                   :list {:hang? false, :indent-arg 1}}]}},
+      :guideguide {:doc "output guides themselves, experimental"
+                   :vector {:option-fn guideguide}}
       :hiccup {:doc "Format vectors containing hiccup information better"
                :vector
                  {:option-fn
@@ -789,15 +795,17 @@
                   :map {:hang-accept 0, :ha-depth-factor 15},
                   :pair {:hang-accept 20, :ha-width-factor -150},
                   :vector-fn {:hang-accept 100, :ha-width-factor -300}},
+      :odr {:doc "justify columns of rules, experimental"
+                 :vector {:option-fn odrguide} 
+		 :pair {:justify {:max-variance 20}}}
       :quote-wrap {:doc "Wrap quoted lists to right margin, like vectors"
                    :fn-map {:quote [:wrap {:list {:indent 1} 
                             :next-inner {:list {:indent 2}}}]}}
-      :require-justify-base {:doc "Allow use of require-justify in other styles"
-                             :fn-map {":require" [:flow {:list {:option-fn
-                                                  jrequireguide}}]}}
       :require-justify {:doc "Justify namespaces in :require"
-                        :style :require-justify-base :pair {:justify
-						   {:max-variance 20}}}
+                             :fn-map {":require" [:flow {:list {:option-fn
+                                                  jrequireguide}
+						  :pair {:justify 
+						  {:max-variance 20}} }]}}
       :respect-bl {:doc "Enable respect blank lines for every type"
                    :list {:respect-bl? true},
                    :map {:respect-bl? true},
@@ -818,7 +826,7 @@
                        :map {:respect-nl? false},
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
-      :signatureguide1 {:doc "defprotcol signatures with doc on newline"
+      :signature1 {:doc "defprotcol signatures with doc on newline"
                         :list {:option-fn signatureguide1}}
       :sort-dependencies {:doc "sort dependencies in lein defproject files"
                           :list {:return-altered-zipper [1 'defproject

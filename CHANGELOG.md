@@ -5,15 +5,30 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-  * There was a request to justify column after the namespaces in a
-  `:require` clause of the `ns`.  This can make any file which requires
-  a lot of namespaces look pretty nice: `:style :require-justify`.
-  Presently this is experimental, but it won't be going away, it just
-  might change slightly as more people use it and it improves.  
-  The `:max-variance` it uses comes from `:pair {:justify {:max-variance n}}`
-  (see below on changes to justification).  The default is 20 for
-  `:require-justify`, but can easily be changed.  See the `:style-map` for
-  `:require-justify-base` and `:require-justify`.  Issue #166.
+  * There was a request to justify column after the namespaces in
+  a `:require` clause of the `ns`.  This can make any file which
+  requires a lot of namespaces look pretty nice: `:style
+  :require-justify`.  Presently this is experimental, but it won't
+  be going away, it just might change slightly as more people use
+  it and it improves.  The `:max-variance` it uses comes from `:pair
+  {:justify {:max-variance n}}` (see below on changes to justification).
+  The default is 20 for `:require-justify`, but can easily be
+  changed.  See the `:style-map` for `:require-justify-base` and
+  `:require-justify`.  Issue #166.
+
+  * Maps with an odd number of values (i.e., unbalanced pairs) can
+  cause problems with some advanced features of zprint.  Now, by
+  default, maps where the odd value is `...` will work, and any map
+  with a key equal to `...` will not be sorted.  This enables zprint
+  to format maps which have been output with a `...` to represent
+  elements not present.  Two new sets have been added to support
+  this behavior.  `{:parse {:ignore-if-parse-fails #{"..."}}}` is
+  a set in which you can put things that show up as single elements
+  in a map, and which will be removed for internal processing but
+  will still show up in the output.  In addition, `{:map {:key-no-sort
+  #{"..."}}}` is a set of strings that are matched against keys in
+  a map, and if any of them match the string representation of any
+  keys in a map, that map will not be sorted.  Issue #188.
 
 ### Changed
 
@@ -53,7 +68,13 @@ All notable changes to this project will be documented in this file.
   return to the previous approach, use `{:fn-map {"comment" :none}}`.
   Issue #182.
 
+  * By default any map with a key "..." will not be sorted as part
+  of changes for Issue #188.  If you wish a return to the previous
+  behavior, include this in your options map: `{:remove {:map
+  {:key-no-sort #{"..."}}}}`.
 
+  * Realized that `reset!` wasn't in the `:fn-map`.  Since it is like
+  `swap!`, which is `:arg2`, made `reset!` `:arg2` as well.
 
 ### Fixed
 
@@ -69,7 +90,6 @@ All notable changes to this project will be documented in this file.
   `:style :community`.  Issue #176.
 
   * Loss of comments inside meta-data expressions.  Issue #187.
-
 
 ## 1.1.1 - 2021-1-20
 

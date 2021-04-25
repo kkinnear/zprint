@@ -1601,6 +1601,36 @@
                               :newline :newline :newline-force]],
                :width 50}))
 
+;;
+;; What happens when we have an empty group and a newline interacting with
+;; an actual comment?  Nothing good, but it is not clear how to change
+;; this.
+;;
+
+(expect "(stuff (caller ;comment\n         stuff))"
+        (zprint-str "(stuff (caller ;comment \n stuff))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2 [:element :newline :element]],
+                     :width 80,
+                     :list {:respect-nl? false}}))
+(expect
+  "(stuff (caller ;comment\n\n         stuff))"
+  (zprint-str "(stuff (caller ;comment \n stuff))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :group-begin :group-end
+                              :element-newline-best-group :newline :element]],
+               :width 80,
+               :list {:respect-nl? false}}))
+(expect
+  "(stuff (caller ;comment\n         stuff))"
+  (zprint-str "(stuff (caller ;comment \n stuff))"
+              {:parse-string? true,
+               :guide-debug [:list 2 [:element :indent 2 :newline :element]],
+               :width 80,
+               :list {:respect-nl? false}}))
+
+
   ;;
   ;; # rodguide
   ;;
@@ -2652,6 +2682,87 @@
 (expect "(defprotocol AProtocolName)"
         (zprint-str "  (defprotocol AProtocolName)\n\n" {:parse-string? true}))
 
+;;
+;; defprotocol with :respect-nl
+;;
+
+(expect
+  "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b] \"bar docs\")\n\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true, :style :respect-nl}))
+
+
+
+(expect
+  "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata\n  true\n\n  (bar [this a b] \"bar docs\")\n\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata \n true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true, :style :respect-nl}))
+
+;;
+;; And respect-bl
+;;
+
+(expect
+  "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b] \"bar docs\")\n\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata \n true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true, :style :respect-bl}))
+
+;;
+;; And indent-only
+;;
+
+(expect
+  "(defprotocol\n  AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata\n  true\n\n  (bar [this a b] \"bar docs\")\n\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol \nAProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata \n true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true, :style :indent-only, :fn-map {"defprotocol" :none}}))
+
+(expect
+  "(defprotocol AProtocolName\n             \"A doc string for AProtocol abstraction\"\n             :extend-via-metadata\n             true\n             (bar [this a b] \"bar docs\")\n             (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+  (zprint-str
+    "  (defprotocol \nAProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata \n true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
+    {:parse-string? true, :fn-map {"defprotocol" :none}}))
+
+;;
+;; Does :style :indent-only cancel guides?
+;;
+
+(expect
+  "(stuff [caller\n            ;comment\n            stuff])"
+  (zprint-str "(stuff [caller ;comment \n stuff])"
+              {:parse-string? true,
+               :guide-debug [:vector 2
+                             [:element :newline :newline :indent 5 :element]],
+               :width 80}))
+
+(expect
+  "(stuff [caller ;comment\n        stuff])"
+  (zprint-str
+    "(stuff [caller ;comment \n stuff])"
+    {:parse-string? true,
+     :guide-debug [:vector 2 [:element :newline :newline :indent 5 :element]],
+     :width 80,
+     :style :indent-only}))
+
+(expect
+  "(stuff (caller ;comment\n         stuff))"
+  (zprint-str
+    "(stuff (caller ;comment \n stuff))"
+    {:parse-string? true,
+     :guide-debug [:list 2 [:element :newline :newline :indent 5 :element]],
+     :width 80,
+     :style :indent-only}))
+
+(expect
+  "(stuff (caller\n            ;comment\n            stuff))"
+  (zprint-str "(stuff (caller ;comment \n stuff))"
+              {:parse-string? true,
+               :guide-debug [:list 2
+                             [:element :newline :newline :indent 5 :element]],
+               :width 80}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

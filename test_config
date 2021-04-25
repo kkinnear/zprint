@@ -81,7 +81,8 @@ rm -rf ~/.zprint/configurldir
 
 # Start a web-server
 
-python -m SimpleHTTPServer 8081  >/dev/null 2&>1 &
+#python -m SimpleHTTPServer 8081  >/dev/null 2&>1 &
+./bbfiles/http-server.bb -p 8081 >/dev/null 2&>1 &
 
 # Let it come up
 

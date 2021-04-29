@@ -566,7 +566,7 @@ output_length=`$command --explain-all 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-expected_length=711
+expected_length=742
 
 if [[ $output_length != $expected_length ]]
   then
@@ -660,7 +660,7 @@ if [[ $output_length != $expected_length ]]
     $command --explain-all
 fi
 
-echo "...........  fn using #(...) in .zprintrc, not used since no :cwd-zprintrc? or :search-config?"
+echo "...........  fn #(...) in .zprintrc, unused, no :cwd-zprintrc?/:search-config?"
 
 # .zprintrc gets a fn
 echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
@@ -679,8 +679,6 @@ if [[ $output_length != $expected_length ]]
     $command --explain-all
 fi
 
-echo "...........  fn using #(...) in .zprintrc file with file found since :search-config?"
-
 # .zprintrc gets a fn
 echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc
 echo "{:search-config? true}" > ~/.zprintrc
@@ -698,7 +696,7 @@ if [[ $output_length != $expected_length ]]
     $command --explain-all
 fi
 
-echo "...........  fn using #(...) in .zprintrc file with file found since :cwd-zprintrc?"
+echo "...........  fn #(...) in .zprintrc found since :cwd-zprintrc?"
 
 # .zprintrc gets a fn
 echo "{:vector {:option-fn-first #(do (nil? %1) (nil? %2) {})}}" >.zprintrc

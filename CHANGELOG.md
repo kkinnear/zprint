@@ -5,16 +5,19 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-  * There was a request to justify column after the namespaces in
-  a `:require` clause of the `ns`.  This can make any file which
+  * There was a request to justify the column after the namespaces
+  in a `:require` clause of the `ns`.  This can make any file which
   requires a lot of namespaces look pretty nice: `:style
   :require-justify`.  Presently this is experimental, but it won't
   be going away, it just might change slightly as more people use
   it and it improves.  The `:max-variance` it uses comes from `:pair
   {:justify {:max-variance n}}` (see below on changes to justification).
   The default is 20 for `:require-justify`, but can easily be
-  changed.  See the `:style-map` for `:require-justify-base` and
-  `:require-justify`.  Issue #166.
+  changed.  See the `:style-map` for `:require-justify`.  You can
+  also use `:style :require-pair`, which is similar but doesn't
+  include justification.  It is also implemented entirely differently,
+  so if something odd happens with `:style :require-justify`
+  then `:style :require-pair` is a likely fallback. Issue #166.
 
   * Maps with an odd number of values (i.e., unbalanced pairs) can
   cause problems with some advanced features of zprint.  Now, by
@@ -30,11 +33,17 @@ All notable changes to this project will be documented in this file.
   a map, and if any of them match the string representation of any
   keys in a map, that map will not be sorted.  Issue #188.
 
+  * An experimental style to format `defn` forms differently.
+  '{:style :rod}` is a first cut at someone's particular "rules of defn".
+  The output is likely to change a bit, but if you try it and prefer this to
+  the normal `defn` output, please let me know (and include what you
+  like about it).  Issue #170.
+
 ### Changed
 
   * Changed how quoted lists are handled.  Previously a quoted list was
   handled like a regular list, with the second and subsequent arguments
-  hanging).  Now, because of the configuration of `:quote` in the `:fn-map`,
+  hanging.  Now, because of the configuration of `:quote` in the `:fn-map`,
   quoted lists are flowed with an `:indent` of 1, since they frequently
   contain only data.  You can also use `:style :quote-wrap` to get quoted
   lists to wrap like vectors do today.  If you prefer to not have quoted
@@ -42,7 +51,7 @@ All notable changes to this project will be documented in this file.
   `{:fn-map {:quote :none}}` in an options map, and receive the current
   default behavior.  Issue #175.
 
-  * Now recognized that keywords in the "local" position (i.e.,
+  * zprint now recognizes that any keywords in the "local" position (i.e.,
   left hand side) of binding vector pairs are likely part of the
   "better cond" macro.  They are now processed together, which only
   really makes a difference if you are trying to force the value
@@ -73,14 +82,17 @@ All notable changes to this project will be documented in this file.
   behavior, include this in your options map: `{:remove {:map
   {:key-no-sort #{"..."}}}}`.
 
-  * Realized that `reset!` wasn't in the `:fn-map`.  Since it is like
+  * It happens that `reset!` wasn't in the `:fn-map`.  Since it is like
   `swap!`, which is `:arg2`, made `reset!` `:arg2` as well.
+
+  * The `are` function previously didn't format any differently than
+  any other function, which made it particularly unreadable.  Now
+  the `are` function is formatted as requested in Issue #81.
 
 ### Fixed
 
   * `:interpose` was not successfully configured from `~/.zprintrc` or local
-  `.zprintrc` files when using pre-built binaries or the uberjar.  
-  Issue #186.
+  `.zprintrc` files when using pre-built binaries or the uberjar. Issue #186.
 
   * You can now have `:next-inner` inside of a `:next-inner`.  Issue
   #185.
@@ -88,6 +100,10 @@ All notable changes to this project will be documented in this file.
   * `defprotocol` and `defrecord` are now "body" functions, which means
   that the indentation of the forms does not change from 2 to 1 when using
   `:style :community`.  Issue #176.
+
+  * `defprotocol` formatting has been extended to properly handle
+  the changes in Clojure 1.10, where ':extend-via-metadata true` is
+  allowed after the component name.  Issue #181.
 
   * Loss of comments inside meta-data expressions.  Issue #187.
 

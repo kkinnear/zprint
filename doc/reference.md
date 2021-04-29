@@ -1796,6 +1796,20 @@ down to the `:max-variance`, then the elements are not justified
 at all.  This can help to make justification more generally useful by only
 doing it where it will improve readability.
 
+There are two styles that will turn on justification wherever possible:
+```
+{:style :justified}
+{:style :justified-20}
+```
+
+The difference is that ```{:style :justified}``` has the `:max-variance`
+set to `1000` so that the results don't change from the defaults.
+
+The style ```{:style :justified-20}``` is the same as ```{:style :justified}```
+except that the `:max-variance` is set to `20` to allow a more readable
+version of justified output when the left-hand sides (e.g., keys, `let`
+locals) vary a lot in length.
+
 I don't personally find the justified approach my favorite in code,
 though there are some functions where it looks good.
 

@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.1.2 - 2021-1-21
+## 1.1.2 - 2021-5-1
 
 ### Added
 
@@ -102,7 +102,7 @@ All notable changes to this project will be documented in this file.
   `:style :community`.  Issue #176.
 
   * `defprotocol` formatting has been extended to properly handle
-  the changes in Clojure 1.10, where ':extend-via-metadata true` is
+  the changes in Clojure 1.10, where `:extend-via-metadata true` is
   allowed after the component name.  Issue #181.
 
   * Loss of comments inside meta-data expressions.  Issue #187.

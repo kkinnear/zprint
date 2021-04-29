@@ -36,3 +36,5 @@ build.cljs
 /.nrepl-port
 .hgignore
 .hg/
+lbin/
+.planck_cache/

@@ -7,7 +7,7 @@
             [zprint.rewrite :refer [sort-dependencies]]
             [zprint.guide :refer
              [jrequireguide defprotocolguide signatureguide1 odrguide
-	      guideguide]]
+	      guideguide rodguide areguide]]
             [sci.core :as sci]
             #?(:clj [clojure.edn :refer [read-string]]
                :cljs [cljs.reader :refer [read-string]]))
@@ -312,6 +312,7 @@
    "alt" :pair-fn,
    "and" :hang,
    "apply" :arg1,
+   "are" [:guided {:style :areguide}]
    "as->" :arg2,
    "assert-args" :pair-fn,
    "assoc" :arg1-pair,
@@ -337,8 +338,7 @@
    "defn" :arg1-body,
    "defn-" :arg1-body,
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
-   "defprotocol" #_:arg1-force-nl-body
-                [:none-body {:style :defprotocolguide}]
+   "defprotocol" [:none-body {:style :defprotocolguide}]
    "defrecord" :arg2-extend-body,
    "deftest" :arg1-body,
    "deftype" :arg2-extend-body,
@@ -540,7 +540,7 @@
          :flow? false,
          :justify? false,
 	     :justify {:max-variance 1000 :ignore-for-variance nil :no-justify nil}
-         :justify-hang {:hang-expand 5},
+         :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
          :respect-bl? false,
          :respect-nl? false,
@@ -625,6 +625,8 @@
                  :pair-fn {:hang? true},
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
+      :areguide 
+        {:list {:option-fn areguide} :next-inner {:list {:option-fn nil}}}
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros"
 	 :fn-map
@@ -801,11 +803,26 @@
       :quote-wrap {:doc "Wrap quoted lists to right margin, like vectors"
                    :fn-map {:quote [:wrap {:list {:indent 1} 
                             :next-inner {:list {:indent 2}}}]}}
+
       :require-justify {:doc "Justify namespaces in :require"
                              :fn-map {":require" [:flow {:list {:option-fn
                                                   jrequireguide}
 						  :pair {:justify 
 						  {:max-variance 20}} }]}}
+
+:require-pair 
+{:doc "Clarify namespaces in :require",
+ :fn-map {":require" [:none
+                      {:vector {:option-fn
+                                  (fn ([opts n exprs]
+                                       (if-not (clojure.string/includes?
+                                                 (str (first exprs))
+                                                 ".")
+                                         {:vector {:fn-format nil}}
+                                         {:vector {:fn-format :none},
+                                          :vector-fn {:constant-pair-min 1}}))
+                                      ([] "require-pair"))}}]}}
+
       :respect-bl {:doc "Enable respect blank lines for every type"
                    :list {:respect-bl? true},
                    :map {:respect-bl? true},
@@ -826,6 +843,11 @@
                        :map {:respect-nl? false},
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
+
+      :rod {:doc "Rules of defn, experimental.  Very likely to change.",
+	    :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]}}
+
+
       :signature1 {:doc "defprotcol signatures with doc on newline"
                         :list {:option-fn signatureguide1}}
       :sort-dependencies {:doc "sort dependencies in lein defproject files"
@@ -904,7 +926,12 @@
                :indent-only-style :input-hang,
                :pair-hang? true,
                :respect-bl? false,
-               :respect-nl? false},
+               :respect-nl? false
+	       
+          :wrap-coll? true,
+          :wrap-after-multi? true,
+	  :wrap-multi? true},
+
    :width 80,
    :url {:cache-dir "urlcache", :cache-secs 300},
    :zipper? false})

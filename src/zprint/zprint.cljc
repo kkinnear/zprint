@@ -3937,13 +3937,9 @@
         ; If we don't have a fn-str, then we might have a fn-type.
         fn-type (when-not fn-str
                   (cond (zlist? arg-1-zloc) :list
-                        ; Note that in structures, a record is also a map
-                        (zrecord? arg-1-zloc) :record
                         (zmap? arg-1-zloc) :map
                         (zvector? arg-1-zloc) :vector
                         (zset? arg-1-zloc) :set
-                        (zarray? arg-1-zloc) :array
-                        (zatom? arg-1-zloc) :atom
                         :else nil))
 	; If we have been told that we are in a quote?, and :quote has
 	; something to say about what we should do for formatting, then
@@ -4025,7 +4021,7 @@
         ; option-fn to use.  If we keep this short (i.e., probably 8 or
         ; less pairs), then it should be an array-map, not a hash-map,
         ; which should be about as performant as a vector.
-        options (assoc options
+        #_#_options (assoc options
                   :call-stack (conj (:call-stack options)
                                     {:tag (ztag zloc),
                                      :caller caller,
@@ -4186,8 +4182,8 @@
         ; Note that we already have a call stack frame (which may have been
         ; altered by the option-fn), so we have to take what is there
         ; and, possibly, change the fn-style.
-        call-stack (:call-stack options)
-        options (if (not= fn-style (:fn-style (first call-stack)))
+        #_#_call-stack (:call-stack options)
+        #_#_options (if (not= fn-style (:fn-style (first call-stack)))
                   (assoc options
                     :call-stack (conj (next call-stack)
                                       (assoc (first call-stack)
@@ -6299,7 +6295,7 @@
           r-str-vec
             (rstr-vec options (+ ind (max 0 (dec l-str-len))) zloc r-str)
           len (zcount zloc)
-          options (assoc options
+          #_#_options (assoc options
                     :call-stack
                       (conj (:call-stack options)
                             {:tag (ztag zloc), :caller caller, :zloc zloc}))
@@ -6798,7 +6794,7 @@
                    (map-ignore caller options zloc)
                    zloc)
             ; TODO: fix this?
-            options (assoc options
+            #_#_options (assoc options
                       :call-stack
                         (conj (:call-stack options)
                               {:tag (ztag zloc), :caller caller, :zloc zloc}))

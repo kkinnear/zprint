@@ -1262,6 +1262,19 @@ the set `:fn-force-nl`, so that they will also never print one one line.
     (baz d e f))
 ```
 
+#### :wrap
+
+Output the expression by formatting all of the arguments onto the same
+line until that line is full, and then continue placing all of the
+arguments on the next line.  This is similar to how vectors are formatted
+by default.  Note that the `:indent` for lists is not changed by this
+function type.  You may find it useful to set the `:indent` for `:list`
+to 1 when using this function type.
+
+```clojure
+{:fn-map {"my-fn" [:wrap {:list {:indent 1}}]}}
+```
+
 #### :gt2-force-nl and :gt3-force-nl
 
 These two function styles exist to be assigned to functions that should
@@ -1477,6 +1490,14 @@ style you have to either set a new style or change the various individual
 configuration parameters of that style to be what you think they were
 before.  It is not possible to simply restore the options map to what
 it was prior to the changes made by the `<options-map>`.
+
+#### Altering the formatting of lists which begin with collections
+
+In addition to strings containing function names, you can use
+the keywords: `:list`, `:map`, `:vector`, and `:set` as keys in the 
+`:fn-map`.  When a list shows up with one of these collections as
+the first element, the `:fn-map` entry with that collection type will
+be used.
 
 #### Altering the formatting of quoted lists
 
@@ -1788,7 +1809,8 @@ and see what you think.  Looks great to me, but it just happens to
 have nice locals.
 
 For functions where this looks great, you can always turn it on
-just for that function (if you are using lein-zprint), like so:
+just for that function (if you are using lein-zprint or any of the
+released pre-built binaries), like so:
 
 ```
 ;!zprint {:format :next {:style :justified}}

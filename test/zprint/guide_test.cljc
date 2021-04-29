@@ -9,7 +9,7 @@
              [zprint-str set-options! zprint-str-internal czprint-str
               zprint-file-str zprint czprint]]
             [zprint.guide :refer
-             [rodguide moustacheguide areguide jrequireguide jrequireguide-2
+             [rodguide moustacheguide areguide jrequireguide 
               rumguide rumguide-1 rumguide-2]]))
 
 ;; Keep some of the test on wrapping so they still work
@@ -1630,6 +1630,35 @@
                :width 80,
                :list {:respect-nl? false}}))
 
+;;
+;; Try to make respect-nl? fail
+;;
+
+(expect "(stuff\n  (caller\n\n    aaaa\n\n    bbbb\n\n    ccc\n    dddddd))"
+        (zprint-str "(stuff (caller aaaa \n\n bbbb \n\n ccc dddddd))"
+                    {:parse-string? true,
+                     :guide-debug [:list 2
+                                   [:element :newline :newline :element :newline
+                                    :mark 0 :newline :element :newline :element
+                                    :newline :element]],
+                     :list {:respect-nl? true},
+                     :width 16}))
+
+;;
+;; Comments in pairs
+;;
+
+(expect
+  "(stuff\n  (caller\n    aaaa ;comment1\n      bbbb ;comment2\n    ;comment3\n    ccc dddddd))"
+  (zprint-str
+    "(stuff (caller aaaa ;comment1 \n bbbb ;comment2 \n ;comment3 \n ccc dddddd))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :group-begin :element :element :element :element
+                    :group-end :element-pair-group]],
+     :width 16}))
+
 
   ;;
   ;; # rodguide
@@ -1795,6 +1824,16 @@
                 {:parse-string? true,
                  :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]},
                  :list {:respect-nl? true}}))
+
+;;
+;; :style :rod
+;;
+
+(expect
+  "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+  (zprint-str rod3 {:parse-string? true, :style :rod}))
+
+
   ;;
   ;; # moustacheguide
   ;;
@@ -2237,7 +2276,7 @@
                      "stuff"
                      {:fn-map {"are" [:guided {:list {:option-fn areguide}}]}}))
   ;;
-  ;; # jrequireguide and jrequireguide-2
+  ;; # jrequireguide 
   ;;
   (def jr1
     "(ns ^:no-doc zprint.zprint
@@ -2329,7 +2368,7 @@
     (zprint-str jr1
                 {:parse-string? true,
                  :fn-map {":require" [:none
-                                      {:list {:option-fn jrequireguide-2}}]}}))
+                                      {:list {:option-fn jrequireguide}}]}}))
 
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    [zprint.ansi        :refer [color-str]]\n    [zprint.config      :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
@@ -2344,19 +2383,19 @@
     (zprint-str jr2
                 {:parse-string? true,
                  :fn-map {":require" [:none
-                                      {:list {:option-fn jrequireguide-2}}]}}))
+                                      {:list {:option-fn jrequireguide}}]}}))
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    '[zprint.ansi :refer [color-str]]\n    ~`[zprint.config :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
     (zprint-str jr3
                 {:parse-string? true,
                  :fn-map {":require" [:none
-                                      {:list {:option-fn jrequireguide-2}}]}}))
+                                      {:list {:option-fn jrequireguide}}]}}))
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    [zprint.ansi        :as    ansi\n                        :refer [color-str]]\n    [zprint.config      :as    config\n                        :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
     (zprint-str jr4
                 {:parse-string? true,
                  :fn-map {":require" [:none
-                                      {:list {:option-fn jrequireguide-2}}]}}))
+                                      {:list {:option-fn jrequireguide}}]}}))
 
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    [zprint.ansi        :as    ansi\n                        :refer [color-str]]\n    [zprint.config      :as    config\n                        :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
@@ -2763,6 +2802,16 @@
                :guide-debug [:list 2
                              [:element :newline :newline :indent 5 :element]],
                :width 80}))
+
+;;
+;; :style :require-justify
+;;
+
+(expect
+  "(ns zprint.core\n  (:require\n    [zprint.zprint :as    :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil  :refer [zmap-all zcomment? edn* whitespace? string\n                           find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))"
+  (zprint-str
+    "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))\n"
+    {:parse-string? true, :style :require-justify}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

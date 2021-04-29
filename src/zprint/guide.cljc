@@ -1,5 +1,10 @@
 (ns ^:no-doc zprint.guide
-  (:require [clojure.string :as s]
+  #?@(:cljs [[:require-macros
+              [zprint.macros :refer
+               [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
+  (:require #?@(:clj [[zprint.macros :refer
+                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+            [clojure.string :as s]
             [zprint.util :refer [abs column-alignment cumulative-alignment]]))
 
 ;;
@@ -27,54 +32,35 @@
 ;; # Guide for "rules of defn", an alternative way to format defn expressions.
 ;;
 
-(defn rodvecguide
-  "If a list where the first things is a vector was one level down from
-  a defn, then make sure the vector is on a line by itself, as is everything
-  else."
-  ([] "rodvecguide")
-  ([options len sexpr]
-   #_(println "================= rodvecguide")
-   (let [call-stack (:call-stack options)
-         callers-frame (second call-stack)
-         fn-str (:zfirst-info callers-frame)]
-     ; We know that we are in a list that starts with a vector, as we
-     ; wouldn't be here if we weren't.  Is the next one up the stack defn?
-     (when (= fn-str "defn")
-       ; Yes!
-       #_(println "rodvecguide:" (first sexpr))
-       (let [basic-guide (repeat (count sexpr) :element)
-             final-guide (interpose :newline basic-guide)]
-         {:guide final-guide})))))
-
 (defn rodguide
-  "Given a structure which starts with defn, create a guide."
+  "Given a structure which starts with defn, create a guide for the
+  'rules of defn', an alternative approach to formatting a defn."
   ([] "rodguide")
   ([options len sexpr]
-   (when (= (:zfirst-info (first (:call-stack options))) "defn")
+   (when (= (str (first sexpr)) "defn")
      (let [docstring? (string? (nth sexpr 2))
-           beginning-guide (if docstring?
-                             [:element :element :newline :element :newline]
-                             [:element :element])
            rest (nthnext sexpr (if docstring? 3 2))
-           #_(println "first rest:" rest)
            multi-arity? (not (vector? (first rest)))
-           #_(println "multi-arity?" multi-arity?)
            rest (if multi-arity? rest (next rest))
-           beginning-guide (if multi-arity?
-                             (if docstring?
-                               beginning-guide
-                               (concat beginning-guide [:newline]))
-                             (concat beginning-guide [:element :newline]))
-           #_(println "beginning-guide:" beginning-guide)
-           #_(println "rest:" rest)
-           rest-element (into [] (repeat (count rest) :element))
-           rest-guide (interpose (if multi-arity? [:newline :newline] :newline)
-                        rest-element)
-           rest-guide (flatten rest-guide)
-           guide (concat beginning-guide rest-guide)]
-       {:guide guide,
-        :fn-map {:vector [:guided {:list {:option-fn rodvecguide}}]},
-        :next-inner {:list {:option-fn nil}}}))))
+           rest-guide (repeat (dec (count rest)) :element)
+           rest-guide
+             (into []
+                   (if multi-arity?
+                     (interleave rest-guide (repeat :newline) (repeat :newline))
+                     (interleave rest-guide (repeat :newline))))
+           ; Make interleave into interpose
+           rest-guide (conj rest-guide :element)
+           guide (cond-> [:element :element]
+                   docstring? (conj :newline :element :newline)
+                   (not multi-arity?) (conj :element :newline)
+                   (and multi-arity? (not docstring?)) (conj :newline)
+                   :rest (into rest-guide))
+           option-map {:guide guide, :next-inner {:list {:option-fn nil}}}]
+       (if multi-arity?
+         (assoc option-map
+           :fn-map {:vector [:force-nl
+                             {:next-inner {:fn-map {:vector :none}}}]})
+         option-map)))))
 
 ; Use this to use the above:
 ;
@@ -110,11 +96,9 @@
   ([] "moustacheguide")
   ([options len sexpr]
    ; First, find the pairs.
-   #_(println "moustacheguide:" sexpr)
    (let [rev-sexpr (reverse sexpr)
          [constant-count _] (reduce count-constants [0 false] rev-sexpr)
          pair-count (* constant-count 2)
-         #_(println "moustacheguide: pair-count:" pair-count)
          pair-guide (into [] (repeat pair-count :element))
          pair-guide (conj pair-guide :group-end)
          pair-guide (conj pair-guide :element-pair-group)
@@ -123,7 +107,11 @@
          non-pair-guide (into [] (interpose :newline non-pair-guide))
          guide (conj non-pair-guide :newline :group-begin)
          guide (concat guide pair-guide)]
-     #_(println "moustacheguide: output:" guide)
+     (dbg-s options
+            :guide
+            "moustacheguide: sexpr" sexpr
+            "pair-count:" pair-count
+            "output:" guide)
      {:guide guide,
       :pair {:justify? true},
       :next-inner {:pair {:justify? false}, :list {:option-fn nil}}})))
@@ -145,14 +133,14 @@
   ([options len sexpr]
    (let [arg-vec-len (count (second sexpr))
          beginning (take 3 sexpr)
-         beginning-guide [:element :element :element]
          test-len (- (count sexpr) 3)
          rows (/ test-len arg-vec-len)
          excess-tests (- test-len (* rows arg-vec-len))
-         row-guide (repeat rows [:newline (repeat arg-vec-len :element)])
-         excess-guide (when (pos? excess-tests)
-                        [:newline (repeat excess-tests :element)])
-         guide (flatten (concat beginning-guide row-guide excess-guide))]
+         single-row (into [:newline] (repeat arg-vec-len :element))
+         row-guide (apply concat (repeat rows single-row))
+         guide (cond-> (-> [:element :element :element]
+                           (into row-guide))
+                 (pos? excess-tests) (conj :newline :element-*))]
      {:guide guide, :next-inner {:list {:option-fn nil}}})))
 
 ; Do this to use the above:
@@ -165,57 +153,6 @@
 ;;
 ;; # Guide to justify the content of the vectors in a (:require ...)
 ;;
-
-(defn jvectorguide
-  "Look at the information in the call stack, and if we see jrequire one
-  level up, try to outut a guide to justify the first thing in the vector."
-  ([] "jvectorguide")
-  ([options len sexpr]
-   #_(println "\n+++++>" (first sexpr)
-              "\nguide:" (:guide options)
-              "\nfn-style:" (:fn-style options))
-   (let [call-stack (:call-stack options)
-         caller-frame (second call-stack)
-         ; Retrieve information left by jrequireguide
-         max-first (:jrequireguide caller-frame)]
-     (when (and max-first (symbol? (first sexpr)))
-       (let [first-len (count (str (first sexpr)))
-             spaces-needed (- (inc max-first) first-len)
-             guide [:element :spaces spaces-needed :group-begin
-                    (repeat (dec len) :element) :group-end :element-pair-group]
-             guide (into [] (flatten guide))]
-         #_(println "=====>" (str (first sexpr)))
-         #_(println "top-frame:" caller-frame)
-         #_(println "max-first:" max-first)
-         #_(println "first-len:" first-len)
-         #_(println "spaces-needed:" spaces-needed)
-         #_(println "guide:" guide)
-         {:pair {:justify? true},
-          :guide guide,
-          :next-inner {:vector {:option-fn nil}, :pair {:justify? false}}})))))
-
-(defn jrequireguide-2
-  "Justify the first things in a series of require vectors."
-  ([] "jrequireguide-2")
-  ([options len sexpr]
-   #_(doseq [x sexpr] (prn "jrequire: " x))
-   (when (= (first sexpr) :require)
-     #_(println "Got it!")
-     (let [vectors (filter vector? sexpr)
-           max-first (apply max (map #(count (str (first %))) vectors))
-           call-stack (:call-stack options)
-           #_(println "first call-stack:" (first call-stack))
-           #_(println "type call-stack:" (type call-stack))
-           top-frame (first call-stack)
-           ; Leave information around for jvectorguide to use for justify
-           new-top-frame (assoc top-frame :jrequireguide max-first)
-           new-call-stack (conj (rest call-stack) new-top-frame)]
-       #_(println "max-first: " max-first)
-       ;(println "new-call-stack:" new-call-stack)
-       {:list {:option-fn nil},
-        ; Actually add a map to the current frame on the call-stack
-        :call-stack (conj (rest call-stack) new-top-frame),
-        :vector {:option-fn jvectorguide :wrap-multi? true}}))))
 
 ;
 ; A much simpler version of the require guide.  This version doesn't require
@@ -230,9 +167,12 @@
      (let [vectors (filter vector? sexpr)
            max-width-vec (column-alignment (:max-variance (:justify (:pair
                                                                       options)))
-                                           vectors)
+                                           vectors
+					   ; only do the first column
+					   1)
+	   _ (dbg-s options :guide "jrequireguide max-width-vec:"
+	                           max-width-vec)
            max-first (first max-width-vec)
-           #_(println "first max-width-vec:" max-first)
            vector-guide (if max-first
                           [:mark-at 0 (inc max-first) :element :align 0
                            :element-pair-*]
@@ -252,7 +192,7 @@
 ;
 ; (czprint jr1 
 ;    {:parse-string? true 
-;    :fn-map {":require" [:none {:list {:option-fn jrequireguide2}}]}})
+;    :fn-map {":require" [:none {:list {:option-fn jrequireguide}}]}})
 
 ;;
 ;; # Guide to replicate the output of :arg1-mixin
@@ -260,7 +200,8 @@
 
 (defn rumguide
   "Assumes that this is rum/defcs or something similar. Implement :arg1-mixin
-  with guides using :spaces."
+  with guides using :spaces.  For guide testing, do not use this as a model
+  for how to write a guide."
   ([] "rumguide")
   ([options len sexpr]
    (let [docstring? (string? (nth sexpr 2))
@@ -294,13 +235,16 @@
              end-guide [:element
                         (repeat (dec end-element-count) [:newline :element])]
              guide (concat beginning-guide middle-guide end-guide)
+	     ; This could have been done so flatten wasn't necessary
+	     ; but it for testing it wasn't worth the re-work.
              guide (flatten guide)
              #_(println "rumguide: guide:" guide)]
          {:guide guide, :next-inner {:list {:option-fn nil}}})))))
 
 (defn rumguide-1
   "Assumes that this is rum/defcs or something similar. Implement :arg1-mixin
-  with guides using :align"
+  with guides using :align.  For guide testing, do not use this as a model
+  for how to write a guide."
   ([] "rumguide")
   ([options len sexpr]
    (let [docstring? (string? (nth sexpr 2))
@@ -333,6 +277,8 @@
              end-guide [:element
                         (repeat (dec end-element-count) [:newline :element])]
              guide (concat beginning-guide middle-guide end-guide)
+	     ; This could have been done so flatten wasn't necessary
+	     ; but it for testing it wasn't worth the re-work.
              guide (flatten guide)
              #_(println "rumguide: guide:" guide)]
          {:guide guide, :next-inner {:list {:option-fn nil}}})))))
@@ -340,7 +286,8 @@
 (defn rumguide-2
   "Assumes that this is rum/defcs or something similar. Implement :arg1-mixin
   with guides using :indent.  This is probably the simplest and therefore the
-  best of them all."
+  best of them all.  For guide testing, do not use this as a model for how
+  to write a guide."
   ([] "rumguide")
   ([options len sexpr]
    (let [docstring? (string? (nth sexpr 2))
@@ -373,6 +320,8 @@
              end-guide [:indent-reset :element
                         (repeat (dec end-element-count) [:newline :element])]
              guide (concat beginning-guide middle-guide end-guide)
+	     ; This could have been done so flatten wasn't necessary
+	     ; but it for testing it wasn't worth the re-work.
              guide (flatten guide)
              #_(println "rumguide: guide:" guide)]
          {:guide guide, :next-inner {:list {:option-fn nil}}})))))
@@ -394,27 +343,29 @@
                                                                       options)))
                                            vectors)
            alignment-vec (cumulative-alignment max-width-vec)
-           #_(println "alignment-vec:" alignment-vec)
            mark-guide
              (vec (flatten
                     (mapv vector (repeat :mark-at) (range) alignment-vec)))
-           #_(println "mark-guide:" mark-guide)
            alignment-guide
              (mapv vector (repeat :align) (range (count alignment-vec)))
-           #_(println "alignment-guide:" alignment-guide)
            vector-guide (into mark-guide
                               (flatten [(interleave (repeat :element)
                                                     alignment-guide)
                                         :element-*]))
-           #_(println "vector-guide:" vector-guide)
            keyword-1 (first beyond)
            [keyword-1-lists beyond] (split-with list? (next beyond))
            keyword-2 (first beyond)
            [keyword-2-lists beyond] (split-with list? (next beyond))
-           #_(println "keyword-1:" keyword-1
-                      "keyword-1-lists:" keyword-1-lists
-                      "keyword-2:" keyword-2
-                      "keyword-2-lists:" keyword-2-lists)
+           _ (dbg-s options
+                    :guide
+                    "odrguide alignment-vec:" alignment-vec
+                    "mark-guide:" mark-guide
+                    "alignment-guide:" alignment-guide
+                    "vector-guide:" vector-guide
+                    "keyword-1:" keyword-1
+                    "keyword-1-lists:" keyword-1-lists
+                    "keyword-2:" keyword-2
+                    "keyword-2-lists:" keyword-2-lists)
            guide (cond->
                    (-> [:element :indent 2 :options
                         {:guide vector-guide,
@@ -435,7 +386,7 @@
                      (-> (conj :indent 2 :group-begin)
                          (into (repeat (count keyword-2-lists) :element))
                          (conj :group-end :element-newline-best-group)))]
-       #_(println "odrguide:" guide)
+       (dbg-s options :guide "odrguide:" guide)
        {:guide guide}))))
 
 ;;
@@ -482,17 +433,6 @@
          (empty? guide) (conj :element)
          (not (empty? guide)) (conj :newline :element)
          after (into after)) command-arg-count])
-    [(conj guide :element) (dec running-arg-count)]))
-
-(defn handle-args-alt
-  "Figure out the arg-count for a guide."
-  [[guide running-arg-count] command]
-  (if (zero? running-arg-count)
-    (let [command-arg-count (guide-arg-count command)
-          before (:before (guide-insert command))
-	  after (:after (guide-insert command))]
-      [(if (empty? guide) (conj guide :element) (conj guide :newline :element))
-       command-arg-count])
     [(conj guide :element) (dec running-arg-count)]))
 
 (defn guideguide

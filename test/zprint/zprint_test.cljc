@@ -5798,22 +5798,22 @@ dpg
      (expect
        "java.lang.Exception: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
        (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                        {:parse-string? true, :style :odrguide})
+                        {:parse-string? true, :style :odr})
             (catch Exception e (str e))))
    :cljs (expect "[{aaa, c 3, g 2, k 1}]"
                  (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                                  {:parse-string? true, :style :odrguide})
+                                  {:parse-string? true, :style :odr})
                       (catch :default e (str e)))))
 
 (expect "[{aaa, c 3, g 2, k 1}]"
         (zprint-str "[{k 1 g 2 c 3 aaa}]"
                     {:parse-string? true,
-		     :style :odrguide
+		     :style :odr
                      :parse {:ignore-if-parse-fails #{"aaa"}}}))
 (expect "[{k 1, g 2, c 3, aaa}]"
         (zprint-str "[{k 1 g 2 c 3 aaa}]"
                     {:parse-string? true,
-		     :style :odrguide
+		     :style :odr
                      :parse {:ignore-if-parse-fails #{"aaa"}},
                      :map {:key-no-sort #{"aaa"}}}))
 
@@ -5830,7 +5830,7 @@ dpg
 
  (expect
 "[{..., :a 1, :b 2}]"
- (zprint-str vbm {:parse-string? true :remove {:map {:key-no-sort #{"..."}}} :style :odrguide}))
+ (zprint-str vbm {:parse-string? true :remove {:map {:key-no-sort #{"..."}}} :style :odr}))
 
 #?(:clj
      (expect
@@ -5839,7 +5839,7 @@ dpg
                         {:parse-string? true,
                          :remove {:map {:key-no-sort #{"..."}},
                                   :parse {:ignore-if-parse-fails #{"..."}}},
-                         :style :odrguide})
+                         :style :odr})
             (catch Exception e (str e))))
    :cljs (expect
            "[{..., :a 1, :b 2}]"
@@ -5847,7 +5847,7 @@ dpg
                             {:parse-string? true,
                              :remove {:map {:key-no-sort #{"..."}},
                                       :parse {:ignore-if-parse-fails #{"..."}}},
-                             :style :odrguide})
+                             :style :odr})
                 (catch :default e (str e)))))
 
 ;;
@@ -5862,6 +5862,85 @@ dpg
     "x"
     {:style :community}))
 
+;;
+;; :set in fn-map
+;;
+
+(expect "(#{:stuff}\n :stuff)"
+        (zprint-str "(#{:stuff} :stuff)"
+                    {:parse-string? true,
+                     :fn-map {:set [:force-nl {:list {:hang? false}}]}}))
+
+
+;;
+;; :map in fn-map
+;;
+
+(expect "({:a :b}\n d\n e\n f)"
+        (zprint-str "({:a :b} d e f)"
+                    {:parse-string? true, :fn-map {:map :force-nl}}))
+
+;;
+;; :list in fn-map
+;;
+
+(expect "((a b c)\n  d\n  e\n  f)"
+        (zprint-str "((a b c) d e f)"
+                    {:parse-string? true, :fn-map {:list :force-nl}}))
+
+;;
+;; :vector in fn-map
+;;
+
+(expect "([a b c]\n d\n e\n f)"
+        (zprint-str "([a b c] d e f)"
+                    {:parse-string? true, :fn-map {:vector :force-nl}}))
+
+;;
+;; :style :require-pair
+;;
+
+(expect
+  "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))"
+  (zprint-str
+    "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))\n"
+    {:parse-string? true, :style :require-pair}))
+
+;;
+;; are
+;;
+
+  (def are3 "(are [x y z] (= x y z)  
+  2 (+ 1 1) (- 4 2)
+  4 (* 2 2) (/ 8 2))")
+
+(expect "(are [x y z] (= x y z)\n  2 (+ 1 1) (- 4 2)\n  4 (* 2 2) (/ 8 2))"
+        (zprint-str are3 {:parse-string? true}))
+
+;;
+;; rules of defn tests (mostly for guides)
+;;
+
+  (def rod3
+    "
+(defn rod3
+  ([a b c d]
+   (cond (nil? a) (list d)
+         (nil? b) (list c d a b)
+         :else (list a b c d)))
+  ([a b c] (rod3 a b c nil)))")
+
+(expect
+  "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+  (zprint-str rod3 {:parse-string? true, :style :rod, :width 32}))
+
+(expect
+  "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+  (zprint-str rod3 {:parse-string? true, :style :rod, :width 31}))
+
+(expect
+  "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else\n           (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+  (zprint-str rod3 {:parse-string? true, :style :rod, :width 30}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

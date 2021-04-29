@@ -6,10 +6,64 @@ of the element to be formatted:
 
 ```
 {:list {:constant-pair-fn (fn [element] ...)}}
+{:list {:option-fn (fn [options element-count non-comment-non-whitespace-element-seq] ...)}}
 {:vector-fn {:constant-pair-fn (fn [element] ...)}}
-{:vector {:options-fn-first (fn [options first-non-comment-non-whitespace--element] ...)}}
-{:vector {:options-fn (fn [options element-count non-comment-non-whitespace-element-seq] ...)}}
+{:vector {:option-fn-first (fn [options first-non-comment-non-whitespace--element] ...)}}
+{:vector {:option-fn (fn [options element-count non-comment-non-whitespace-element-seq] ...)}}
 ```
+
+## Calling Sequence
+
+The required arity for `option-fn` functions is 
+`[options element-count sexpr]`.  However, you should also specify a 
+zero-argument arity for all `option-fn`s that returns the function's 
+descriptive name.  For example:
+
+```clojure
+(fn ([options len sexpr] ... code that returns a options map)
+    ([] "mytestoptionsfunction"))
+```
+This name will be used in error messages, and when something goes wrong, 
+you will be glad you did this.
+
+## Returning an Options Map
+
+The function of every `option-fn` is to return a new options map which will
+be merged into the then current options map, and used for formatting the
+current collection (vector or list), and all enclosed collections.  This
+options map can also contain a key `:next-inner`, the value of which is
+an options map which will be merged into the current options map prior
+to formatting any enclosed elements or collections.  
+
+If the `option-fn` was configured from the `:fn-map`, for example:
+```clojure
+{:fn-map {"myfn" [:none {:list {:option-fn myoptionfn}}]}}
+```
+then presumably the option map returned by this `option-fn` is designed
+to adjust the formatting of `myfn`.  If this formatting adjustment
+is supposed to apply to every list contained inside of `myfn`, then
+that's fine.  Frequently, however, the formatting change is designed to
+affect only the "top level" of the formatting for `myfn`, and the lists
+enclosed by `myfn` are supposed to be formatted as before.  In this
+situation, `myoptionfn` can return an options map which has the
+formatting changes specified for the top level of `myfn`, and can
+revert those to the previous values for the inner lists.  It can
+(and should) also remove the `option-fn` from the `:list` configuration.
+
+An options map returned by the `option-fn` might look like this:
+
+```
+{:list {:hang? false :option-fn nil} :next-inner {:list {:hang? true}}}
+```
+An equivalent options map would be:
+```
+{:list {:hang? false} :next-inner {:list {:hang? true :option-fn nil}}}
+```
+The second might be a bit more understandable, but they are equivalent.
+Once you are in an `option-fn`, you can remove it from the configuration
+without affecting anything since you are already in the `option-fn`.
+
+## Specifying an Option Function
 
 If you are using zprint as a library or at the REPL, you can just
 specify the functions to be used with the `(fn [x] ...)` or `#(...

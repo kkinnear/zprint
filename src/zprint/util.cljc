@@ -51,9 +51,7 @@
         len (count coll)]
     (when (not (zero? len))
       (let [mean (/ (apply + coll) len)
-            #_ (println "mean:" mean)
             dev-from-mean (mapv (partial - mean) coll)
-            #_ (println "dev:" dev-from-mean)
             sq-dev-from-mean (mapv #(* % %) dev-from-mean)
             variance (int (/ (apply + sq-dev-from-mean) len))]
         #_(println "variance:" variance)
@@ -163,13 +161,13 @@
         :else [nil columns]))))
 
 (defn size-and-extend
-  "Given a seq and a length, return a vector which contains the size
-  of every element in the seq and is the length specified.  If the length
-  is less than the length of the input seq, then skip the remaining elements.
-  If the length is greater than the length of the input seq, fill out the
-  missing elements with nils, and ensure that the last element is replaced
-  by a nil (to avoid influencing the spacing of a column that it doesn't
-  have)."
+  "Given a seq and a length, return a vector which contains the
+  size of every element in the seq and is the length specified.  If
+  the length is less than the length of the input seq, then skip
+  the remaining elements.  If the length is greater than the length
+  of the input seq, fill out the missing elements with nils, and
+  ensure that the last element is replaced by a nil (to avoid
+  influencing the spacing of a column that it doesn't have)."
   [length coll]
   (let [last-good-col (dec (count coll))]
     (loop [coll coll
@@ -184,68 +182,57 @@
 		       nil 
 		       (size (first coll)))))))))
 
-(defn size-and-extend-alt
-  "Given a seq and a length, return a vector which contains the size
-  of every element in the seq and is the length specified.  If the length
-  is less than the length of the input seq, then skip the remaining elements.
-  If the length is greater than the length of the input seq, fill out the
-  missing elements with nils, and ensure that the last element is replaced
-  by a nil (to avoid influencing the spacing of a column that it doesn't
-  have)."
-  [length coll]
-  (loop [coll coll
-         index 0
-         out []]
-    (if (>= index length)
-      out
-      (recur (next coll) 
-             (inc index) 
-	     (conj out (size (first coll)))))))
-
 (defn size-and-extend-butlast
-  "Given a sequence of seqs, produce a new sequence of seqs where each
-  element in the seq is replaced by the size of that element.  Do this
-  for all of the elements in every seq but the last.  In addition,
-  for every seq that is shorted than the longest one, fill out the missing
-  elements with nils."
-  [seq-of-seqs]
-  (let [len (dec (apply max (map count seq-of-seqs)))
-        seq-of-sizes (mapv (partial size-and-extend len) seq-of-seqs)]
-    seq-of-sizes))
+  "Given a sequence of seqs, produce a new sequence of seqs where
+  each element in the seq is replaced by the size of that element.
+  Do this for all of the elements in every seq but the last.  In
+  addition, for every seq that is shorter than the longest one,
+  fill out the missing elements with nils."
+  ([seq-of-seqs max-len]
+   (let [len (dec (apply max (map count seq-of-seqs)))
+         len (if max-len (min max-len len) len)
+         seq-of-sizes (mapv (partial size-and-extend len) seq-of-seqs)]
+     seq-of-sizes))
+  ([seq-of-seqs] (size-and-extend-butlast seq-of-seqs nil)))
 
 (defn create-columns
-  "Given a seq of seqs, create a vector of vectors where every internal
-  vector contains a series of integers representing the width of the element
-  in that column across all of the seqs.  The various input seqs do not
-  have to be the same length, and there will be as many columns as one
-  less than the count of elements in the longest seq.  For seqs which
-  do not extend to the maximum length, their positions in the column
-  vectors will be filled with nil."
-  [seq-of-seqs]
-  (let [seq-of-sizes (size-and-extend-butlast seq-of-seqs)
-        transpose (apply mapv vector seq-of-sizes)]
-    transpose))
+  "Given a seq of seqs, create a vector of vectors where every
+  internal vector contains a series of integers representing the
+  width of the element in that column across all of the seqs.  The
+  various input seqs do not have to be the same length, and there
+  will be as many columns as one less than the count of elements
+  in the longest seq (or number-of-columns if it is specified and
+  less than the count of the elements in the longest seq).  For
+  seqs which do not extend to the maximum length, their positions
+  in the column vectors will be filled with nil."
+  ([seq-of-seqs number-of-columns]
+   (let [seq-of-sizes (size-and-extend-butlast seq-of-seqs number-of-columns)
+         transpose (apply mapv vector seq-of-sizes)]
+     transpose))
+  ([seq-of-seqs] (create-columns seq-of-seqs nil)))
 
 (defn column-alignment
-  "Given a seq-of-seqs which contain elements to justify, return a 
-  vector with the size of the maximum element in each column that 
-  should be used to justify the next column. If the vector is shorter 
-  than (dec number-of-columns) then only justify the columns 
-  after the ones that appear in the vector."
-  [max-variance seq-of-seqs]
-  (let [columns (create-columns seq-of-seqs)
-        max-width-vec
-          (second
-            (reduce
-              (fn [[columns max-width-vec] index]
-                (let [[max-width new-columns]
-                        (column-width-variance max-variance columns index)]
-                  (if max-width
-                    [new-columns (conj max-width-vec max-width)]
-                    (reduced [columns max-width-vec]))))
-              [columns []]
-              (range (count columns))))]
-    max-width-vec))
+  "Given a seq-of-seqs which contain elements to justify, return a
+  vector with the size of the maximum element in each column that
+  should be used to justify the next column.  If number-of-columns
+  is given, only justify that many columns, else justify all but
+  the last."
+  ([max-variance seq-of-seqs number-of-columns]
+   (let [columns (create-columns seq-of-seqs number-of-columns)
+         max-width-vec
+           (second
+             (reduce
+               (fn [[columns max-width-vec] index]
+                 (let [[max-width new-columns]
+                         (column-width-variance max-variance columns index)]
+                   (if max-width
+                     [new-columns (conj max-width-vec max-width)]
+                     (reduced [columns max-width-vec]))))
+               [columns []]
+               (range (count columns))))]
+     max-width-vec))
+  ([max-variance seq-of-seqs] (column-alignment max-variance seq-of-seqs nil)))
+
 
 (defn cumulative-alignment
   "Given an vector of max-widths from column-alignment, produce a vector

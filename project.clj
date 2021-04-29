@@ -43,7 +43,8 @@
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],
           :metadata {:doc/format :markdown}}
   :dependencies
-    [[org.clojure/clojure "1.10.2-rc3"]
+    [[org.clojure/clojure "1.10.2"]
+    #_[org.clojure/clojure "1.10.2-rc3"]
      #_[org.clojure/clojure "1.10.2-alpha4"]
      #_[org.clojure/clojure "1.10.0"]
      #_[org.clojure/clojure "1.9.0"]

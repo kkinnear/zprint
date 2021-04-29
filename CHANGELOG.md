@@ -34,7 +34,7 @@ All notable changes to this project will be documented in this file.
   keys in a map, that map will not be sorted.  Issue #188.
 
   * An experimental style to format `defn` forms differently.
-  '{:style :rod}` is a first cut at someone's particular "rules of defn".
+  `{:style :rod}` is a first cut at someone's particular "rules of defn".
   The output is likely to change a bit, but if you try it and prefer this to
   the normal `defn` output, please let me know (and include what you
   like about it).  Issue #170.

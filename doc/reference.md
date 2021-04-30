@@ -1503,13 +1503,18 @@ be used.
 
 There is an entry in the `:fn-map` for `:quote` which will cause quoted
 lists to be formatted assuming that their contents do not contain functions.
-In particular, their first elements will not be looked up in the `:fn-map`.
+In particular, their first elements (and all contained first elements)
+will not be looked up in the `:fn-map`.
+
+The default for quoted lists will format them on a single line if possible,
+and will format them without a hang if multiple lines are necessary. In
+addition, maps contained in a quoted list will have their keys sorted,
+since a quoted list is not considered "in-code".
+
 If you change the value of the key `:quote` in the `:fn-map` to be `:none`,
 then quoted lists will be handled as any other lists, and will not be 
 processed specially.
 
-The default for quoted lists will format them on a single line if possible,
-and will format them without a hang if multiple lines are necessary.
 
 Some examples:
 ```
@@ -1549,14 +1554,13 @@ Some examples:
         rules
         spec)
 
+
 ; If you want quoted lists wrapped like vectors are wrapped
 
 % (zprint q {:parse-string? true :fn-map {:quote [:wrap {:list {:indent 1} :next-inner {:indent 2}}]}})
 '(redis service http-client postgres cassandra mongo jdbc graphql service sql
   graalvm postgres rules spec)
 ```
-
-
 
 #### Replacing functions with reader-macros
 

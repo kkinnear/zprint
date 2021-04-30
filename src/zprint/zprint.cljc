@@ -4172,10 +4172,12 @@
         ; We don't catch places where the first thing in a list is
         ; a collection or a seq which yields a function.
         options (if (not arg-1-coll?) 
-		  ; quote? might have cancelled out fn-str, but we still 
-		  ; want to think of ourselves as in-code? as this affects
-		  ; the default map sorting.
-	          (assoc options :in-code? (or fn-str quote?)) 
+		  ; quote? might have cancelled out fn-str, but if we still 
+		  ; want to think of ourselves as in-code? then use
+		  ; (or fn-str quote?) instead of fn-str, below.
+		  ; This would affect the default map sorting and how
+		  ; condp is formatted, and probably not much else.
+	          (assoc options :in-code? fn-str) 
 		  options)
         options (assoc options :pdepth (inc (long (or (:pdepth options) 0))))
         _ (when (:dbg-hang options)

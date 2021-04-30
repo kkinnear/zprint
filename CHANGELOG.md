@@ -41,15 +41,23 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-  * Changed how quoted lists are handled.  Previously a quoted list was
-  handled like a regular list, with the second and subsequent arguments
-  hanging.  Now, because of the configuration of `:quote` in the `:fn-map`,
-  quoted lists are flowed with an `:indent` of 1, since they frequently
-  contain only data.  You can also use `:style :quote-wrap` to get quoted
-  lists to wrap like vectors do today.  If you prefer to not have quoted
-  lists handled any differently then they are today, you can use
-  `{:fn-map {:quote :none}}` in an options map, and receive the current
-  default behavior.  Issue #175.
+  * Changed how quoted lists are handled.  Previously a quoted list
+  was handled like a regular list, where it was assumed to be code,
+  and formatted with elements appearing the function position that
+  appear in the `:fn-map` using the supplied fn-type.  For elements
+  not appearing in the `:fn-map`, the second argument was placed
+  on the same line as the first, and subsequent arguments were
+  placed beneath the second if possible.  Now, because of the default
+  configuration of `:quote` in the `:fn-map`, quoted lists are not
+  considred "in-code", and the `:fn-map` is ignored when formatting
+  a quoted list.  In addition, the elements in the list are flowed
+  with an `:indent` of 1.  Any maps in the list will have their
+  keys sorted, since by default maps allow sorting of keys when not
+  in-code.  If you would like quoted lists to wrap (as vectors do
+  by default), you can use `:style :quote-wrap`.  If you prefer to
+  not have quoted lists handled any differently then they are today,
+  you can configure `{:fn-map {:quote :none}}` in an options map,
+  and receive the current default behavior.  Issue #175.
 
   * zprint now recognizes that any keywords in the "local" position (i.e.,
   left hand side) of binding vector pairs are likely part of the

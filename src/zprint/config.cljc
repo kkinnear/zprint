@@ -420,7 +420,7 @@
              :indent 2,
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	     :justify {:max-variance 1000 :no-justify #{"_"} :ignore-for-variance nil}
+	     :justify {:max-variance 20 :no-justify #{"_"} :ignore-for-variance nil}
              :justify? false,
              :nl-separator? false,
              :nl-separator-all? false},
@@ -539,7 +539,7 @@
          :nl-separator-all? false,
          :flow? false,
          :justify? false,
-	     :justify {:max-variance 1000 :ignore-for-variance nil :no-justify nil}
+	     :justify {:max-variance 20 :ignore-for-variance nil :no-justify nil}
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
          :respect-bl? false,
@@ -571,7 +571,7 @@
           :indent 2,
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	     :justify {:max-variance 1000 :ignore-for-variance #{":else"}
+	     :justify {:max-variance 20 :ignore-for-variance #{":else"}
 	               :no-justify nil}
           :justify? false,
           :nl-separator? false,
@@ -625,8 +625,8 @@
                  :pair-fn {:hang? true},
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
-      :areguide 
-        {:list {:option-fn areguide} :next-inner {:list {:option-fn nil}}}
+      :areguide {:doc "Allow modification of areguide in :fn-map"
+                 :list {:option-fn areguide}}
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros"
 	 :fn-map
@@ -744,14 +744,14 @@
                     ; is only used by :fn-format, so it might confuse people
                     ; if we did that.
                     :vector {:indent-only? true}},
-      :justified {:doc "Justify all pairs if possible"
+      :justified {:doc "Justify everything possible"
                   :binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
-      :justified-20 {:doc "Justify all pairs using a variance of 20"
-                     :binding {:justify? true :justify {:max-variance 20}},
-                  :map {:justify? true :justify {:max-variance 20}},
-                  :pair {:justify? true :justify {:max-variance 20}}},
+      :justified-original {:doc "Justify everything using pre-1.1.2 approach"
+                     :binding {:justify? true :justify {:max-variance 1000}},
+                  :map {:justify? true :justify {:max-variance 1000}},
+                  :pair {:justify? true :justify {:max-variance 1000}}},
       :keyword-respect-nl
         {:doc "When a vector starts with a :keyword, :respect-nl in it"
 	 :vector {:option-fn-first
@@ -798,17 +798,19 @@
                   :pair {:hang-accept 20, :ha-width-factor -150},
                   :vector-fn {:hang-accept 100, :ha-width-factor -300}},
       :odr {:doc "justify columns of rules, experimental"
-                 :vector {:option-fn odrguide} 
-		 :pair {:justify {:max-variance 20}}}
+                 :vector {:option-fn odrguide} }
       :quote-wrap {:doc "Wrap quoted lists to right margin, like vectors"
                    :fn-map {:quote [:wrap {:list {:indent 1} 
                             :next-inner {:list {:indent 2}}}]}}
 
+      :jrequireguide {:list {:option-fn jrequireguide}}
+      :rj-var {:doc "Set max-variance for :require-justify"
+               :pair {:justify {:max-variance 20}}}
       :require-justify {:doc "Justify namespaces in :require"
-                             :fn-map {":require" [:flow {:list {:option-fn
-                                                  jrequireguide}
-						  :pair {:justify 
-						  {:max-variance 20}} }]}}
+                             :fn-map {":require" [:flow {:style
+                                                  [:jrequireguide
+						   :rj-var]
+						  }]}}
 
 :require-pair 
 {:doc "Clarify namespaces in :require",
@@ -848,7 +850,7 @@
 	    :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]}}
 
 
-      :signature1 {:doc "defprotcol signatures with doc on newline"
+      :signature1 {:doc "defprotcol signatures with doc on newline, experimental"
                         :list {:option-fn signatureguide1}}
       :sort-dependencies {:doc "sort dependencies in lein defproject files"
                           :list {:return-altered-zipper [1 'defproject

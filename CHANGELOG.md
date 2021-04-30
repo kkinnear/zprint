@@ -10,13 +10,13 @@ All notable changes to this project will be documented in this file.
   requires a lot of namespaces look pretty nice: `:style
   :require-justify`.  Presently this is experimental, but it won't
   be going away, it just might change slightly as more people use
-  it and it improves.  The `:max-variance` it uses comes from `:pair
-  {:justify {:max-variance n}}` (see below on changes to justification).
-  The default is 20 for `:require-justify`, but can easily be
-  changed.  See the `:style-map` for `:require-justify`.  You can
-  also use `:style :require-pair`, which is similar but doesn't
-  include justification.  It is also implemented entirely differently,
-  so if something odd happens with `:style :require-justify`
+  it and it improves.  The `:max-variance` it uses is `20` and comes
+  from `:style :rj-var`. It can be changed thus: `{:style
+  :require-justify :style-map {:rj-var {:pair {:justify {:max-variance
+  n}}}}}` to use n as a max-variance for just the `:require-justify`.
+  You can also use `:style :require-pair`, which is similar but
+  doesn't include justification.  It is also implemented entirely
+  differently, so if something odd happens with `:style :require-justify`
   then `:style :require-pair` is a likely fallback. Issue #166.
 
   * Maps with an odd number of values (i.e., unbalanced pairs) can
@@ -59,19 +59,23 @@ All notable changes to this project will be documented in this file.
   not force the right-hand-sides of these better-cond expressions
   to the next lines.  Issue #178.
 
-  * Justification has changed considerably, though you have to make
-  a configuration change to see any of it.  The new approach to justification
+  * Justification has changed considerably, resulting in minor but
+  significant changes to the default behavior. The new approach to justification
   looks at the variance of the lengths of the left-hand-sides of whatever
   pairs are attempting to be justified, and will only justify them if the
-  variance is below the configured `:max-variance`.  In addition, it will
+  variance is below the configured `:max-variance`, which is separately
+  configurable for maps, binding vectors, and pairs.  In addition, it will
   leave out up to two different lengths of left-hand-sides and justify the
   remaining rows of pairs if that will bring the variance below the maximum
   allowed.  You can set the variance for `:map`, `:binding`, and `:pair` by
   setting `{:binding {:justify {:max-variance 20}}}` or any other number
-  you want.  This works for `:map` and `:pair` as well.  Or you can just
-  use `:style :justified-20` to set justification and the `:max-variance`
-  to 20 (which is a pretty good number).  You might find that justification
-  is a lot more useful when using this style.  Issue #179.
+  besides 20 that
+  you want.  This works as above `:map` and `:pair` as well as `binding`.  
+  If you want the previous justification approach, you can use
+  `{:style :justified-original}` which sets the `:max-variance` to `1000`
+  for `:binding`, `:map`, and `:pair`, yielding the previous behavior.
+  You might find that justification is a lot more visually pleasing now
+  with this more nuanced approach. Issue #179.
 
   * The `comment` function now will not hang its arguments. If you wish to
   return to the previous approach, use `{:fn-map {"comment" :none}}`.

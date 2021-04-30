@@ -4607,10 +4607,11 @@ This sets `:justify? true` in each of `:binding`, `:pair`, and `:map`.
 It is useful to see what you think about justfied output.
 [Here is more information on justified output.](#a-note-on-justifying-two-up-printing)
 
-#### :justified-20
+#### :justified-original
 
 This sets `:justify? true` in each of `:binding`, `:pair`, and `:map`,
-and also sets the `:max-variance` for each to 20.
+and also sets the `:max-variance` for each to 1000, restoring the
+pre-1.1.2 approach to justification.
 [Here is more information on justified output.](#a-note-on-justifying-two-up-printing)
 
 #### :keyword-respect-nl
@@ -4889,6 +4890,75 @@ to format, try `:style :fast-hang`.  If that doesn't work, you can
 always try `:style :indent-only`, which will certainly take a much shorter
 time.
 
+#### :require-justify
+#### :rj-var
+
+A new approach to handling the `(ns (:require ...))` form, which will
+turn this:
+```clojure
+% (zprint nsc {:parse-string? true})
+(ns zprint.core
+  (:require [zprint.zprint :as :zprint :refer
+             [fzprint line-count max-width line-widths expand-tabs zcolor-map
+              determine-ending-split-lines]]
+            [zprint.zutil :refer
+             [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
+            [zprint.finish :refer
+             [cvec-to-style-vec compress-style no-style-map color-comp-vec
+              handle-lines]]))
+```
+into this:
+```clojure
+% (zprint nsc {:parse-string? true :style :require-justify})
+(ns zprint.core
+  (:require
+    [zprint.zprint :as    :zprint
+                   :refer [fzprint line-count max-width line-widths expand-tabs
+                           zcolor-map determine-ending-split-lines]]
+    [zprint.zutil  :refer [zmap-all zcomment? edn* whitespace? string
+                           find-root-and-path-nw]]
+    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map
+                           color-comp-vec handle-lines]]))
+```
+
+The `:max-variance` used by `:require-justify` is `20` and comes
+from `:style :rj-var`. It can be changed thus: `{:style :require-justify
+:style-map {:rj-var {:pair {:justify {:max-variance n}}}}}` to use
+n as a max-variance for just the `:require-justify`.
+
+
+#### :require-pair
+
+Another approach to formatting the `(ns (:require ...))` form at the
+start of a file.  Similar to `:require-justify`, but without justification.
+
+It will turn this:
+```clojure
+% (zprint nsc {:parse-string? true})
+(ns zprint.core
+  (:require [zprint.zprint :as :zprint :refer
+             [fzprint line-count max-width line-widths expand-tabs zcolor-map
+              determine-ending-split-lines]]
+            [zprint.zutil :refer
+             [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
+            [zprint.finish :refer
+             [cvec-to-style-vec compress-style no-style-map color-comp-vec
+              handle-lines]]))
+```
+into this
+```clojure
+% (zprint nsc {:parse-string? true :style :require-pair})
+(ns zprint.core
+  (:require
+    [zprint.zprint :as :zprint
+                   :refer [fzprint line-count max-width line-widths expand-tabs
+                           zcolor-map determine-ending-split-lines]]
+    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string
+                          find-root-and-path-nw]]
+    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map
+                           color-comp-vec handle-lines]]))
+```
+
 #### :respect-bl 
 
 Respect blank lines. 
@@ -5103,6 +5173,14 @@ order.  Technically, it will sort the vectors in the value of any
 key named `:dependencies` inside any function (macro) named
 `defproject`.  Has no effect when formatting a structure (as opposed
 to parsing a string and formatting code).
+
+### Convenience Styles
+
+#### :areguide
+#### :defprotocolguide
+#### :jrequireguide
+
+Allow easy (re)use of the respective "guides" in the :fn-map.
 
 ### Defining your own styles
 

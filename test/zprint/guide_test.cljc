@@ -2098,18 +2098,21 @@
     "(m/app\n  :get  (m/app\n          middle1\n          middle2\n          middle3\n          [route]              handler\n          [route that is long] handler)\n  :post (m/app\n          middle\n          of\n          the\n          road\n          [route] handler\n          [route] handler))"
     (zprint-str mapp3a
                 {:parse-string? true,
+                 :pair {:justify {:max-variance 1000}},
                  :fn-map {"m/app" [:guided
                                    {:list {:option-fn moustacheguide}}]}}))
   (expect
     "(m/app\n  :get  (m/app\n          middle1\n          middle2\n          middle3\n          [route]              handler\n          [route that is long] (handler that also is long))\n  :post (m/app\n          middle\n          of\n          the\n          road\n          [route] handler\n          [route] handler))"
     (zprint-str mapp3b
                 {:parse-string? true,
+                 :pair {:justify {:max-variance 1000}},
                  :fn-map {"m/app" [:guided
                                    {:list {:option-fn moustacheguide}}]}}))
   (expect
     "(m/app\n  :get  (m/app\n          middle1\n          middle2\n          middle3\n          [route that is long] handler\n          [route]              (handler that also is long))\n  :post (m/app\n          middle\n          of\n          the\n          road\n          [route] handler\n          [route] handler))"
     (zprint-str mapp3c
                 {:parse-string? true,
+                 :pair {:justify {:max-variance 1000}},
                  :fn-map {"m/app" [:guided
                                    {:list {:option-fn moustacheguide}}]}}))
   (expect
@@ -2152,6 +2155,7 @@
     "(m/app\n  :get  (m/app\n          middle1\n          middle2\n          middle3\n          [route that is long] handler\n          [route]              (handler this is a test that is pretty long))\n  :post (m/app\n          [route] handler\n          [route] handler))"
     (zprint-str mapp6e
                 {:parse-string? true,
+                 :pair {:justify {:max-variance 1000}},
                  :fn-map {"m/app" [:guided
                                    {:list {:option-fn moustacheguide}}]}}))
   (expect
@@ -2182,6 +2186,7 @@
     "(m/app\n  :get     (m/app\n             middle1\n             middle2\n             middle3\n             [route]        handler\n             [longer route] (handler this is \"a\" test \"this\" is \"only a\" test))\n  ; How do comments work here?\n  true     (should be paired with true)\n  false    (should be paired with false)\n  6        (should be paired with 6)\n  \"string\" (should be paired with string)\n  :post    (m/app\n             [a really long route] handler\n             [route]               handler))"
     (zprint-str mapp9
                 {:parse-string? true,
+                 :pair {:justify {:max-variance 1000}},
                  :fn-map {"m/app" [:guided
                                    {:list {:option-fn moustacheguide}}]}}))
   ;;

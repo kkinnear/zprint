@@ -1,4 +1,4 @@
-;!zprint {:style :require-justify :pair {:justify {:max-variance 15}}}
+;!zprint {:style :require-justify :style-map {:rj-var {:pair {:justify {:max-variance 10}}}}}
 (ns zprint.zprint-test
   (:require
     [expectations.clojure.test #?(:clj :refer
@@ -7,23 +7,22 @@
     #?(:cljs [cljs.test :refer-macros [deftest is]])
     #?(:clj [clojure.test :refer [deftest is]])
     #?(:cljs [cljs.tools.reader :refer [read-string]])
-    [clojure.string            :as str]
-    [zprint.core               :refer [zprint-str set-options!
-                                       zprint-str-internal czprint-str
-                                       zprint-file-str zprint czprint
-                                       #?@(:clj [czprint-fn czprint-fn-str
-                                                 zprint-fn-str zprint-fn])]]
-    [zprint.zprint             :refer [line-count max-width line-lengths
-                                       make-record contains-nil? map-ignore]]
-    [zprint.comment            :refer [blanks]]
-    [zprint.zutil              :refer [edn*]]
-    [zprint.config             :refer [merge-deep]]
+    [clojure.string     :as str]
+    [zprint.core        :refer [zprint-str set-options! zprint-str-internal
+                                czprint-str zprint-file-str zprint czprint
+                                #?@(:clj [czprint-fn czprint-fn-str
+                                          zprint-fn-str zprint-fn])]]
+    [zprint.zprint      :refer [line-count max-width line-lengths make-record
+                                contains-nil? map-ignore]]
+    [zprint.comment     :refer [blanks]]
+    [zprint.zutil       :refer [edn*]]
+    [zprint.config      :refer [merge-deep]]
     #?@(:clj ([clojure.repl :refer [source-fn]]))
-    [zprint.core-test          :refer [trim-gensym-regex x8]]
-    [rewrite-clj.parser        :as    p
-                               :refer [parse-string parse-string-all]]
-    [rewrite-clj.node          :as n]
-    [rewrite-clj.zip           :as z]))
+    [zprint.core-test   :refer [trim-gensym-regex x8]]
+    [rewrite-clj.parser :as    p
+                        :refer [parse-string parse-string-all]]
+    [rewrite-clj.node   :as n]
+    [rewrite-clj.zip    :as z]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -128,7 +127,7 @@
                       (zprint-str y3 {:parallel? true, :parse-string? true})))))
 
   ;;
-  ;; and again with :parallel? true and {:style :justify}
+  ;; and again with :parallel? true and {:style :justified}
   ;;
 
   #?(:clj (expect (read-string y1)
@@ -5687,7 +5686,7 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
-    (zprint-str i179g {:parse-string? true, :style :justified-20}))
+    (zprint-str i179g {:parse-string? true, :style :justified}))
 
   ;;
   ;; Issue #175 -- clean up formatting of quoted lists
@@ -5753,15 +5752,12 @@ ser/collect-vars-acc %1 %2) )))"
     "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
     (zprint-str dfg
                 {:parse-string? true,
-                 :style :justified-20,
+                 :style :justified,
                  :pair {:justify {:ignore-for-variance nil}}}))
 
   (expect
     "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-    (zprint-str dfg
-                {:parse-string? true,
-                 :style :justified-20,
-                 :pair {:justify {:max-variance 20}}}))
+    (zprint-str dfg {:parse-string? true, :style :justified}))
 
   ;;
   ;; Issue #187 -- loss of comments in meta-data
@@ -5775,7 +5771,6 @@ ser/collect-vars-acc %1 %2) )))"
 
   ;;
   ;; :pair {:justify {:ignore-for-variance ...}}
-  ;; :style :justified-20
   ;; :style :justified
   ;;
 
@@ -5786,18 +5781,22 @@ ser/collect-vars-acc %1 %2) )))"
     "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
     (zprint-str dpg
                 {:parse-string? true,
-                 :style :justified-20,
+                 :style :justified,
                  :pair {:justify {:ignore-for-variance nil}}}))
 
 
   (expect
     "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-    (zprint-str dpg {:parse-string? true, :style :justified-20}))
+    (zprint-str dpg {:parse-string? true, :style :justified}))
 
 
   (expect
     "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third                           (nth sexpr 2 nil)\n           fourth                          (nth sexpr 3 nil)\n           fifth                           (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide                           (cond-> [:element :element-best\n                                                    :newline]\n                                             docstring (conj :element :newline)\n                                             option (conj :element\n                                                          :element\n                                                          :newline)\n                                             :else (conj\n                                                     :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-    (zprint-str dpg {:parse-string? true, :style :justified}))
+    (zprint-str dpg
+                {:parse-string? true,
+                 :pair {:justify {:max-variance 1000}},
+                 :binding {:justify {:max-variance 1000}},
+                 :style :justified}))
 
   (expect
     "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide (cond-> [:element :element-best :newline]\n                   docstring (conj :element :newline)\n                   option (conj :element :element :newline)\n                   :else (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"

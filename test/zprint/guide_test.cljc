@@ -2570,7 +2570,7 @@
       "This is a component with a doc-string!  How unusual..."
       {:a :b,
        :c [this is a very long vector how do you suppose it will work],
-       "this" [is a test] }
+       "this" [is a test]}
       rum/static
       rum/reactive
       (rum/local 0 :count)
@@ -2655,7 +2655,7 @@
                 {:fn-map {"defcs" [:arg1-force-nl
                                    {:list {:option-fn rumguide}}]}}))
   (expect
-"(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   :c [this is a very long vector how do you suppose it will work],\n   \"this\" [is a test]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   :c [this is a very long vector how do you suppose it will work],\n   \"this\" [is a test]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
     (zprint-str cz9
                 {:fn-map {"defcs" [:arg1-force-nl
                                    {:list {:option-fn rumguide}}]}}))

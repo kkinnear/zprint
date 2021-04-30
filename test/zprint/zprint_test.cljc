@@ -2428,7 +2428,7 @@
     (zprint-str cz8))
 
   (expect
-"(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   :c [this is a very long vector how do you suppose it will work],\n   \"this\" [is a test]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
+    "(rum/defcs component\n  \"This is a component with a doc-string!  How unusual...\"\n  {:a :b,\n   :c [this is a very long vector how do you suppose it will work],\n   \"this\" [is a test]}\n   rum/static\n   rum/reactive\n   (rum/local 0 :count)\n   (rum/local \"\" :text)\n  [state label]\n  (let [count-atom (:count state) text-atom (:text state)] [:div]))"
     (zprint-str cz9))
 
   ;;
@@ -5957,34 +5957,35 @@ ser/collect-vars-acc %1 %2) )))"
     "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else\n           (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
     (zprint-str rod3 {:parse-string? true, :style :rod, :width 30}))
 
-;;
-;; Test about whether things that are quoted are in-code? or not.  If there
-;; is something in the :fn-map for :quote, they are not.  There is something
-;; in the :fn-map for :quote by default.  To change that, set :quote to
-;; :none in the :fn-map.
-;;
+  ;;
+  ;; Test about whether things that are quoted are in-code? or not.  If there
+  ;; is something in the :fn-map for :quote, they are not.  There is something
+  ;; in the :fn-map for :quote by default.  To change that, set :quote to
+  ;; :none in the :fn-map.
+  ;;
 
-(def qy "(def x '(a {:a :b \"this\" [is a test] :c :d}))")
-(def qz "(def x (a {:a :b \"this\" [is a test] :c :d}))")
+  (def qy "(def x '(a {:a :b \"this\" [is a test] :c :d}))")
+  (def qz "(def x (a {:a :b \"this\" [is a test] :c :d}))")
 
-(expect "(def x (a {:a :b, \"this\" [is a test], :c :d}))"
-        (zprint-str qz {:parse-string? true}))
+  (expect "(def x (a {:a :b, \"this\" [is a test], :c :d}))"
+          (zprint-str qz {:parse-string? true}))
 
-(expect "(def x '(a {:a :b, :c :d, \"this\" [is a test]}))"
-        (zprint-str qy {:parse-string? true}))
+  (expect "(def x '(a {:a :b, :c :d, \"this\" [is a test]}))"
+          (zprint-str qy {:parse-string? true}))
 
-(expect "(def x '(a {:a :b, \"this\" [is a test], :c :d}))"
-        (zprint-str qy {:parse-string? true, :fn-map {:quote :none}}))
+  (expect "(def x '(a {:a :b, \"this\" [is a test], :c :d}))"
+          (zprint-str qy {:parse-string? true, :fn-map {:quote :none}}))
 
-(def qb "(def a '(let [kdlf sdklfjs sdlkfjs lskdfdsj sdljkfdslk slkdjfdkl jsdflkdsj lksdjfkls] (let [dlkfds jdsflkds sdjfkds lkdsfjlk jkldsf jklsdfl ] (more stuff and  bother))))")
+  (def qb
+    "(def a '(let [kdlf sdklfjs sdlkfjs lskdfdsj sdljkfdslk slkdjfdkl jsdflkdsj lksdjfkls] (let [dlkfds jdsflkds sdjfkds lkdsfjlk jkldsf jklsdfl ] (more stuff and  bother))))")
 
-(expect
-  "(def a\n  '(let\n    [kdlf sdklfjs sdlkfjs lskdfdsj sdljkfdslk slkdjfdkl jsdflkdsj lksdjfkls]\n    (let\n     [dlkfds jdsflkds sdjfkds lkdsfjlk jkldsf jklsdfl]\n     (more stuff and bother))))"
-  (zprint-str qb {:parse-string? true}))
+  (expect
+    "(def a\n  '(let\n    [kdlf sdklfjs sdlkfjs lskdfdsj sdljkfdslk slkdjfdkl jsdflkdsj lksdjfkls]\n    (let\n     [dlkfds jdsflkds sdjfkds lkdsfjlk jkldsf jklsdfl]\n     (more stuff and bother))))"
+    (zprint-str qb {:parse-string? true}))
 
-(expect
-  "(def a\n  '(let [kdlf sdklfjs\n         sdlkfjs lskdfdsj\n         sdljkfdslk slkdjfdkl\n         jsdflkdsj lksdjfkls]\n     (let [dlkfds jdsflkds\n           sdjfkds lkdsfjlk\n           jkldsf jklsdfl]\n       (more stuff and bother))))"
-  (zprint-str qb {:parse-string? true, :fn-map {:quote :none}}))
+  (expect
+    "(def a\n  '(let [kdlf sdklfjs\n         sdlkfjs lskdfdsj\n         sdljkfdslk slkdjfdkl\n         jsdflkdsj lksdjfkls]\n     (let [dlkfds jdsflkds\n           sdjfkds lkdsfjlk\n           jkldsf jklsdfl]\n       (more stuff and bother))))"
+    (zprint-str qb {:parse-string? true, :fn-map {:quote :none}}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

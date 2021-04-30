@@ -10,22 +10,22 @@
 ;;
 ;; Contains functions which can be called with {:option-fn <fn>} to produce
 ;; a "guide", which is, roughtly, a sequence comprised of keywords
-;; which describe how to format an expression.  A guide must be created 
-;; explicitly for the expression to be formatted.  
+;; which describe how to format an expression.  A guide must be created
+;; explicitly for the expression to be formatted.
 ;;
-;; For instance, this expression: (a b c d e f g) could be formatted 
+;; For instance, this expression: (a b c d e f g) could be formatted
 ;; for this output:
 ;;
 ;; (a b c
 ;;  d e f
 ;;  g)
 ;;
-;; by this guide: 
+;; by this guide:
 ;;
 ;; [:element :element :element :newline :element :element :element :newline
 ;;  :element]
 ;;          
-;; There are a lot more keywords and other things which can be in a guide 
+;; There are a lot more keywords and other things which can be in a guide
 ;; than demonstrated above.
 
 ;;
@@ -64,8 +64,8 @@
 
 ; Use this to use the above:
 ;
-; (czprint rod4 
-;    {:parse-string? true 
+; (czprint rod4
+;    {:parse-string? true
 ;     :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]}})
 
 ;;
@@ -118,8 +118,8 @@
 
 ; Use this to use the above:
 ;
-;(czprint mapp6g 
-;   {:parse-string? true 
+;(czprint mapp6g
+;   {:parse-string? true
 ;    :fn-map {"m/app" [:guided {:list {:option-fn moustacheguide}}]}})
 
 
@@ -145,8 +145,8 @@
 
 ; Do this to use the above:
 ;
-; (czprint are3 
-;   {:parse-string? true 
+; (czprint are3
+;   {:parse-string? true
 ;    :fn-map {"are" [:guided {:list {:option-fn areguide}}]}})
 ;
 
@@ -168,15 +168,14 @@
            max-width-vec (column-alignment (:max-variance (:justify (:pair
                                                                       options)))
                                            vectors
-					   ; only do the first column
-					   1)
-	   _ (dbg-s options :guide "jrequireguide max-width-vec:"
-	                           max-width-vec)
+                                           ; only do the first column
+                                           1)
+           _ (dbg-s options :guide "jrequireguide max-width-vec:" max-width-vec)
            max-first (first max-width-vec)
            vector-guide (if max-first
                           [:mark-at 0 (inc max-first) :element :align 0
                            :element-pair-*]
-			  ; We can't justify things, fall back to this.
+                          ; We can't justify things, fall back to this.
                           [:element :element-pair-*])]
        ; Do this for all of the first level vectors below the :require, but
        ; no other vectors more deeply nested.
@@ -190,8 +189,8 @@
 
 ; Do this to use the above:
 ;
-; (czprint jr1 
-;    {:parse-string? true 
+; (czprint jr1
+;    {:parse-string? true
 ;    :fn-map {":require" [:none {:list {:option-fn jrequireguide}}]}})
 
 ;;
@@ -235,8 +234,8 @@
              end-guide [:element
                         (repeat (dec end-element-count) [:newline :element])]
              guide (concat beginning-guide middle-guide end-guide)
-	     ; This could have been done so flatten wasn't necessary
-	     ; but it for testing it wasn't worth the re-work.
+             ; This could have been done so flatten wasn't necessary
+             ; but it for testing it wasn't worth the re-work.
              guide (flatten guide)
              #_(println "rumguide: guide:" guide)]
          {:guide guide, :next-inner {:list {:option-fn nil}}})))))
@@ -277,8 +276,8 @@
              end-guide [:element
                         (repeat (dec end-element-count) [:newline :element])]
              guide (concat beginning-guide middle-guide end-guide)
-	     ; This could have been done so flatten wasn't necessary
-	     ; but it for testing it wasn't worth the re-work.
+             ; This could have been done so flatten wasn't necessary
+             ; but it for testing it wasn't worth the re-work.
              guide (flatten guide)
              #_(println "rumguide: guide:" guide)]
          {:guide guide, :next-inner {:list {:option-fn nil}}})))))
@@ -320,8 +319,8 @@
              end-guide [:indent-reset :element
                         (repeat (dec end-element-count) [:newline :element])]
              guide (concat beginning-guide middle-guide end-guide)
-	     ; This could have been done so flatten wasn't necessary
-	     ; but it for testing it wasn't worth the re-work.
+             ; This could have been done so flatten wasn't necessary
+             ; but it for testing it wasn't worth the re-work.
              guide (flatten guide)
              #_(println "rumguide: guide:" guide)]
          {:guide guide, :next-inner {:list {:option-fn nil}}})))))
@@ -329,8 +328,8 @@
 
 ; Do this to use the above:
 ;
-; (czprint cz8x1 
-;     {:parse-string? true 
+; (czprint cz8x1
+;     {:parse-string? true
 ;     :fn-map {"rum/defcs" [:guided {:list {:option-fn rumguide}}]}})
 
 (defn odrguide
@@ -470,10 +469,11 @@
   own lines."
   ([] "signatureguide1")
   ([options len sexpr]
-    (let [vectors (filter vector? sexpr)
-          guide [:element :group-begin]
-	  guide (apply conj guide (repeat (count vectors) :element))
-	  guide (conj guide :group-end :element-newline-best-group 
-	                    :newline :element-*)]
-       {:guide guide})))
+   (let [vectors (filter vector? sexpr)
+         guide [:element :group-begin]
+         guide (apply conj guide (repeat (count vectors) :element))
+         guide (conj guide
+                     :group-end :element-newline-best-group
+                     :newline :element-*)]
+     {:guide guide})))
 

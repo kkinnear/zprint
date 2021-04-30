@@ -1,11 +1,12 @@
+;!zprint {:style :require-justify}
 (ns ^:no-doc zprint.main
   (:require ;[clojure.string :as str]
-    [zprint.core :refer
-     [zprint-str czprint zprint-file-str set-options! load-options!]]
-    [zprint.config :refer
-     [get-options get-explained-options get-explained-set-options
-      config-and-validate-all select-op-options vec-str-to-str merge-deep
-      try-to-load-string]])
+    [zprint.core   :refer [zprint-str czprint zprint-file-str set-options!
+                           load-options!]]
+    [zprint.config :refer [get-options get-explained-options
+                           get-explained-set-options config-and-validate-all
+                           select-op-options vec-str-to-str merge-deep
+                           try-to-load-string]])
   #?(:clj (:gen-class)))
 
 
@@ -312,16 +313,16 @@
                              (nthnext args before-last-switch))
         possible-wc-switch (when before-last-switch
                              (clojure.string/trim (first last-switch-in-seq)))
-        write-set #{"-w" "-lw" "-lfw" "-lsw" "-lfsw" "-lsfw" "-fw" "-fsw" "-sw" "-flw"
-                    "-flsw" "-fslw" "-sfw" "-slw" "-sflw" "-slfw" "--write"
-                    "--list-write" "--list-formatted-write"
+        write-set #{"-w" "-lw" "-lfw" "-lsw" "-lfsw" "-lsfw" "-fw" "-fsw" "-sw"
+                    "-flw" "-flsw" "-fslw" "-sfw" "-slw" "-sflw" "-slfw"
+                    "--write" "--list-write" "--list-formatted-write"
                     "--list-format-write" "--list-formatted-summary-write"
                     "--formatted-write" "--list-format-summary-write"
                     "--format-write" "--formatted-summary-write"
                     "--summary-write" "--format-summary-write"}
-        check-set #{"-c" "-lc" "-lfc" "-lsc" "-lfsc" "-lsfc" "-fc" "-fsc" "-sc" "-flc"
-                    "-flsc" "-fslc" "-sfc" "-slc" "-sflc" "-slfc" "--check"
-                    "--list-check" "--list-formatted-check"
+        check-set #{"-c" "-lc" "-lfc" "-lsc" "-lfsc" "-lsfc" "-fc" "-fsc" "-sc"
+                    "-flc" "-flsc" "-fslc" "-sfc" "-slc" "-sflc" "-slfc"
+                    "--check" "--list-check" "--list-formatted-check"
                     "--list-format-check" "--list-formatted-summary-check"
                     "--formatted-check" "--list-format-summary-check"
                     "--format-check" "--formatted-summary-check"
@@ -361,12 +362,25 @@
         #_(println)
         #_(prn "options:" options "args:" args)
         #_(println)
-        [[version? help? explain? explain-all? default? standard? url?
-          url-only?] url-arg error-string]
+        [[version?
+          help?
+          explain?
+          explain-all?
+          default?
+          standard?
+          url?
+          url-only?]
+         url-arg
+         error-string]
           (parse-switches args check? write?)
-        #_(prn "bool-to-switch:" (bool-to-switch [version? help? explain?
-                                                  explain-all? default?
-                                                  standard? url? url-only?])
+        #_(prn "bool-to-switch:" (bool-to-switch [version?
+                                                  help?
+                                                  explain?
+                                                  explain-all?
+                                                  default?
+                                                  standard?
+                                                  url?
+                                                  url-only?])
                "url-arg:" url-arg
                "error-string:" error-string)
         [option-status exit-status option-stderr op-options]
@@ -392,16 +406,18 @@
                          (or version? help? default? standard? url-only?))
                   ; No, we have something that appears to be options, and
                   ; a switch after which is not allowed with options.
-                  [:complete 1
+                  [:complete
+                   1
                    (str "Error processing command line '"
                         (clojure.string/join " " (into [options] args))
                         "', providing an options map and the switch "
-                        (bool-to-switch [version? help? nil default? standard?
-                                         nil url-only?])
+                        (bool-to-switch
+                          [version? help? nil default? standard? nil url-only?])
                         #_switches
                         " is not allowed!"
                         "\n"
-                        main-help-str) {}]
+                        main-help-str)
+                   {}]
                   running-status)))
             ; Handle switches with extraneous data
             #_(let [[option-status exit-status option-stderr op-options]
@@ -411,7 +427,8 @@
                   ; Does this switch have too much data
                   (if nil
                     #_(and valid-switch? (not arg-count-ok?))
-                    [:complete 1
+                    [:complete
+                     1
                      (str "Error processing switch '"
                           #_switches
                           "', providing "
@@ -420,7 +437,8 @@
                           (if nil #_(= (dec arg-count) 1) "" "s")
                           " was incorrect!"
                           "\n"
-                          main-help-str) {}]
+                          main-help-str)
+                     {}]
                     running-status)))
             ; Handle version and help switches
             (let [[option-status exit-status option-stderr op-options]
@@ -428,9 +446,11 @@
               (if (= option-status :complete)
                 running-status
                 (if (or version? help?)
-                  [:complete 0
+                  [:complete
+                   0
                    (cond version? (:version (get-options))
-                         help? main-help-str) op-options]
+                         help? main-help-str)
+                   op-options]
                   running-status)))
             ; If we have options, get any operational-options out of them
             (let [[option-status exit-status option-stderr op-options]
@@ -442,12 +462,14 @@
                   ; be validated when they are first used.
                   [:incomplete 0 nil (select-op-options (read-string options))]
                   (catch Exception e
-                    [:complete 1
+                    [:complete
+                     1
                      (str "Failed to use command line operational options: '"
                           options
                           "' because: "
                           e
-                          ".") {}]))))
+                          ".")
+                     {}]))))
             ; Get all of the operational-options (op-options),
             ; merging in any that were on the command line
             (let [[option-status exit-status option-stderr op-options]
@@ -490,10 +512,12 @@
                   #?(:clj (try (load-options! op-options url-arg)
                                [:incomplete 0 nil op-options]
                                (catch Exception e
-                                 [:complete 1
+                                 [:complete
+                                  1
                                   (str "Unable to process --url switch value: '"
                                          (second args)
-                                       "' because " e) op-options]))
+                                       "' because " e)
+                                  op-options]))
                      :default running-status)
                   running-status)))
             ; If --url-only try to load the args - with no other options
@@ -502,16 +526,17 @@
               (if (= option-status :complete)
                 running-status
                 (if url-only?
-                  #?(:clj (try
-                            (set-options! {:configured? true})
-                            (load-options! op-options url-arg)
-                            [:incomplete 0 nil op-options]
-                            (catch Exception e
-                              [:complete 1
-                               (str
-                                 "Unable to process --url-only switch value: '"
-                                   (second args)
-                                 "' because " e) op-options]))
+                  #?(:clj
+                  (try (set-options! {:configured? true})
+                       (load-options! op-options url-arg)
+                       [:incomplete 0 nil op-options]
+                       (catch Exception e
+                         [:complete
+                          1
+                          (str "Unable to process --url-only switch value: '"
+                                 (second args)
+                               "' because " e)
+                          op-options]))
                      :default running-status)
                   running-status)))
             ; if --default or --standard just use what we have, nothing else
@@ -550,12 +575,14 @@
                                    op-options)
                      [:incomplete 0 nil op-options]
                      (catch Exception e
-                       [:complete 1
+                       [:complete
+                        1
                         (str "Failed to use options map on the command line: '"
                              options
                              "' because: "
                              e
-                             ".") {}]))))
+                             ".")
+                        {}]))))
             ; We now have all options configured, so process -e to explain what
             ; we have for a configuration from the various command files
             ; and switches.
@@ -566,7 +593,9 @@
                 (if explain?
                   ; Force set-options to configure using op-options
                   ; in case they havent' configured before
-                  [:complete 0 (zprint-str (get-explained-set-options))
+                  [:complete
+                   0
+                   (zprint-str (get-explained-set-options))
                    op-options]
                   running-status)))
             ; We now have all options configured, so process -explain-all

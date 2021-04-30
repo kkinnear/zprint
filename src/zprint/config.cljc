@@ -1,16 +1,17 @@
+;!zprint {:style :require-justify}
 (ns ^:no-doc zprint.config
   #?(:clj [:refer-clojure :exclude [read-string]])
-  (:require clojure.string
-            [clojure.set :refer [difference]]
-            [clojure.data :as d]
-            [zprint.spec :refer [validate-basic coerce-to-boolean]]
-            [zprint.rewrite :refer [sort-dependencies]]
-            [zprint.guide :refer
-             [jrequireguide defprotocolguide signatureguide1 odrguide
-	      guideguide rodguide areguide]]
-            [sci.core :as sci]
-            #?(:clj [clojure.edn :refer [read-string]]
-               :cljs [cljs.reader :refer [read-string]]))
+  (:require
+    clojure.string
+    [clojure.set    :refer [difference]]
+    [clojure.data   :as d]
+    [zprint.spec    :refer [validate-basic coerce-to-boolean]]
+    [zprint.rewrite :refer [sort-dependencies]]
+    [zprint.guide   :refer [jrequireguide defprotocolguide signatureguide1
+                            odrguide guideguide rodguide areguide]]
+    [sci.core       :as sci]
+    #?(:clj [clojure.edn :refer [read-string]]
+       :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader)
                      (java.util.concurrent.locks ReentrantLock))]))
 
@@ -312,7 +313,7 @@
    "alt" :pair-fn,
    "and" :hang,
    "apply" :arg1,
-   "are" [:guided {:style :areguide}]
+   "are" [:guided {:style :areguide}],
    "as->" :arg2,
    "assert-args" :pair-fn,
    "assoc" :arg1-pair,
@@ -321,7 +322,7 @@
    "case" :arg1-pair-body,
    "cat" :force-nl,
    "catch" :arg2,
-   "comment" :flow-body
+   "comment" :flow-body,
    "cond" :pair-fn,
    "cond-let" :pair-fn,
    "cond->" :arg1-pair-body,
@@ -338,7 +339,7 @@
    "defn" :arg1-body,
    "defn-" :arg1-body,
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
-   "defprotocol" [:none-body {:style :defprotocolguide}]
+   "defprotocol" [:none-body {:style :defprotocolguide}],
    "defrecord" :arg2-extend-body,
    "deftest" :arg1-body,
    "deftype" :arg2-extend-body,
@@ -376,7 +377,7 @@
    "reduce" :arg1,
    "reify" :extend,
    "remove" :arg1,
-   "reset!" :arg2
+   "reset!" :arg2,
    "s/def" [:arg1-body {:list {:constant-pair-min 2}}],
    "s/fdef" [:arg1-body {:list {:constant-pair-min 2}}],
    "s/and" :gt2-force-nl,
@@ -397,9 +398,10 @@
    "with-open" :binding,
    "with-out-str" :none-body,
    "with-redefs" :binding,
-   "with-redefs-fn" :arg1-body
-   :quote [:none {:list {:hang? false :indent 1} :next-inner {:list {:hang? true :indent 2}}}]
-   })
+   "with-redefs-fn" :arg1-body,
+   :quote [:none
+           {:list {:hang? false, :indent 1},
+            :next-inner {:list {:hang? true, :indent 2}}}]})
 
 ;;
 ;; ## The global defaults
@@ -420,7 +422,8 @@
              :indent 2,
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	     :justify {:max-variance 20 :no-justify #{"_"} :ignore-for-variance nil}
+             :justify
+               {:max-variance 20, :no-justify #{"_"}, :ignore-for-variance nil},
              :justify? false,
              :nl-separator? false,
              :nl-separator-all? false},
@@ -509,7 +512,7 @@
           :replacement-string nil,
           :wrap-coll? true,
           :wrap-after-multi? true,
-	  :wrap-multi? true},
+          :wrap-multi? true},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -531,7 +534,7 @@
          :key-color nil,
          :key-depth-color nil,
          :key-value-color nil,
-	 :key-no-sort #{"..."}
+         :key-no-sort #{"..."},
          :lift-ns? false,
          :lift-ns-in-code? false,
          :force-nl? nil,
@@ -539,7 +542,7 @@
          :nl-separator-all? false,
          :flow? false,
          :justify? false,
-	     :justify {:max-variance 20 :ignore-for-variance nil :no-justify nil}
+         :justify {:max-variance 20, :ignore-for-variance nil, :no-justify nil},
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
          :respect-bl? false,
@@ -571,13 +574,14 @@
           :indent 2,
           :justify-hang {:hang-expand 5},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	     :justify {:max-variance 20 :ignore-for-variance #{":else"}
-	               :no-justify nil}
+          :justify {:max-variance 20,
+                    :ignore-for-variance #{":else"},
+                    :no-justify nil},
           :justify? false,
           :nl-separator? false,
           :nl-separator-all? false},
    :pair-fn {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
-   :parse {:interpose nil, :left-space :drop :ignore-if-parse-fails #{"..."}},
+   :parse {:interpose nil, :left-space :drop, :ignore-if-parse-fails #{"..."}},
    :parse-string-all? false,
    :parse-string? false,
    :perf-vs-format nil,
@@ -596,11 +600,12 @@
    :remove {:fn-force-nl nil,
             :fn-gt2-force-nl nil,
             :fn-gt3-force-nl nil,
-            :extend {:modifiers nil} 
-	    :pair {:justify {:no-justify nil :ignore-for-variance nil}}
-	    :binding {:justify {:no-justify nil :ignore-for-variance nil}}
-	    :map {:key-no-sort nil :justify {:no-justify nil :ignore-for-variance nil}}
-	    :parse {:ignore-if-parse-fails nil}},
+            :extend {:modifiers nil},
+            :pair {:justify {:no-justify nil, :ignore-for-variance nil}},
+            :binding {:justify {:no-justify nil, :ignore-for-variance nil}},
+            :map {:key-no-sort nil,
+                  :justify {:no-justify nil, :ignore-for-variance nil}},
+            :parse {:ignore-if-parse-fails nil}},
    :return-cvec? false,
    :script {:more-options nil},
    :search-config? false,
@@ -617,7 +622,7 @@
    :spec {:docstring? true, :value nil},
    :style nil,
    :style-map
-     {:all-hang {:doc "Enable hangs everywhere (which they are by default)"
+     {:all-hang {:doc "Enable hangs everywhere (which they are by default)",
                  :map {:hang? true},
                  :list {:hang? true},
                  :extend {:hang? true},
@@ -625,22 +630,22 @@
                  :pair-fn {:hang? true},
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
-      :areguide {:doc "Allow modification of areguide in :fn-map"
-                 :list {:option-fn areguide}}
+      :areguide {:doc "Allow modification of areguide in :fn-map",
+                 :list {:option-fn areguide}},
       :backtranslate
-        {:doc "Turn quote, deref, var, unquote into reader macros"
-	 :fn-map
+        {:doc "Turn quote, deref, var, unquote into reader macros",
+         :fn-map
            {"quote" [:replace-w-string {} {:list {:replacement-string "'"}}],
             "clojure.core/deref" [:replace-w-string {}
                                   {:list {:replacement-string "@"}}],
             "var" [:replace-w-string {} {:list {:replacement-string "#'"}}],
             "clojure.core/unquote" [:replace-w-string {}
                                     {:list {:replacement-string "~"}}]}},
-      :binding-nl {:doc "Add a blank line after every value that flowed"
+      :binding-nl {:doc "Add a blank line after every value that flowed",
                    :binding {:indent 0, :nl-separator? true}},
-      :binding-nl-all {:doc "Add a blank line between every pair"
+      :binding-nl-all {:doc "Add a blank line between every pair",
                        :binding {:indent 0, :nl-separator-all? true}},
-      :community {:doc "Modify defaults to format to 'community' approach"
+      :community {:doc "Modify defaults to format to 'community' approach",
                   :binding {:indent 0},
                   :fn-map {"apply" :none,
                            "assoc" :none,
@@ -654,7 +659,8 @@
                   :list {:indent-arg 1},
                   :map {:indent 0},
                   :pair {:indent 0}},
-      :dark-color-map {:doc "A color map that is pretty good for dark backgrounds"
+      :dark-color-map {:doc
+                         "A color map that is pretty good for dark backgrounds",
                        :color-map {:brace :white,
                                    :bracket :white,
                                    :char :bright-cyan,
@@ -707,19 +713,19 @@
                                             :unquote :bright-yellow,
                                             :unquote-splicing :bright-yellow,
                                             :user-fn :bright-yellow}}},
-      :defprotocolguide {:doc "Allow alteration of defprotocol in :fn-map"
-                         :list {:option-fn defprotocolguide}}
-      :extend-nl {:doc "Add a blank line between protocols"
+      :defprotocolguide {:doc "Allow alteration of defprotocol in :fn-map",
+                         :list {:option-fn defprotocolguide}},
+      :extend-nl {:doc "Add a blank line between protocols",
                   :extend {:flow? true, :indent 0, :nl-separator? true}},
-      :how-to-ns {:doc "Make newlines and indentation match 'how to ns'"
+      :how-to-ns {:doc "Make newlines and indentation match 'how to ns'",
                   :fn-map {"ns" [:arg1-body
                                  {:fn-map {":import" [:flow
                                                       {:list {:hang? true}}],
                                            ":require" :flow},
                                   :list {:hang? false, :indent-arg 1}}]}},
-      :guideguide {:doc "output guides themselves, experimental"
-                   :vector {:option-fn guideguide}}
-      :hiccup {:doc "Format vectors containing hiccup information better"
+      :guideguide {:doc "output guides themselves, experimental",
+                   :vector {:option-fn guideguide}},
+      :hiccup {:doc "Format vectors containing hiccup information better",
                :vector
                  {:option-fn
                     (fn ([] "hiccup-option-fn")
@@ -735,7 +741,7 @@
                                  :else nil)))),
                   :wrap? false},
                :vector-fn {:indent 1, :indent-arg 1}},
-      :indent-only {:doc "Enable indent only for every type of structure"
+      :indent-only {:doc "Enable indent only for every type of structure",
                     :comment {:wrap? false},
                     :list {:indent-only? true},
                     :map {:indent-only? true},
@@ -744,29 +750,30 @@
                     ; is only used by :fn-format, so it might confuse people
                     ; if we did that.
                     :vector {:indent-only? true}},
-      :justified {:doc "Justify everything possible"
+      :justified {:doc "Justify everything possible",
                   :binding {:justify? true},
                   :map {:justify? true},
                   :pair {:justify? true}},
-      :justified-original {:doc "Justify everything using pre-1.1.2 approach"
-                     :binding {:justify? true :justify {:max-variance 1000}},
-                  :map {:justify? true :justify {:max-variance 1000}},
-                  :pair {:justify? true :justify {:max-variance 1000}}},
+      :justified-original
+        {:doc "Justify everything using pre-1.1.2 approach",
+         :binding {:justify? true, :justify {:max-variance 1000}},
+         :map {:justify? true, :justify {:max-variance 1000}},
+         :pair {:justify? true, :justify {:max-variance 1000}}},
       :keyword-respect-nl
-        {:doc "When a vector starts with a :keyword, :respect-nl in it"
-	 :vector {:option-fn-first
+        {:doc "When a vector starts with a :keyword, :respect-nl in it",
+         :vector {:option-fn-first
                     (fn ([] "keyword-respect-nl-option-fn-first")
                         ([options element]
                          (let [k? (keyword? element)]
                            (when (not= k? (:respect-nl? (:vector options)))
                              {:vector {:respect-nl? k?}}))))}},
-      :map-nl {:doc "Add newline after every value that flows"
+      :map-nl {:doc "Add newline after every value that flows",
                :map {:indent 0, :nl-separator? true}},
-      :map-nl-all {:doc "Add newline between all map pairs"
+      :map-nl-all {:doc "Add newline between all map pairs",
                    :map {::indent 0, :nl-separator-all? true}},
-      :moustache {:doc "Format moustache elements nicely"
+      :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
-      :vector-pairs {:doc "Consider vectors 'constants' for constant pairing"
+      :vector-pairs {:doc "Consider vectors 'constants' for constant pairing",
                      :list {:constant-pair-min 1,
                             :constant-pair-fn #(or (keyword? %)
                                                    (string? %)
@@ -778,7 +785,7 @@
                      :next-inner {:list {:constant-pair-min 4,
                                          :constant-pair-fn nil},
                                   :pair {:justify? false}}},
-      :no-hang {:doc "Turn off hang for every structure"
+      :no-hang {:doc "Turn off hang for every structure",
                 :map {:hang? false},
                 :list {:hang? false},
                 :extend {:hang? false},
@@ -786,73 +793,68 @@
                 :pair-fn {:hang? false},
                 :reader-cond {:hang? false},
                 :record {:hang? false}},
-      :pair-nl {:doc "Add a blank line after every value that flowed"
+      :pair-nl {:doc "Add a blank line after every value that flowed",
                 :pair {:indent 0, :nl-separator? true}},
-      :pair-nl-all {:doc "Add a blank line between every pair"
+      :pair-nl-all {:doc "Add a blank line between every pair",
                     :pair {:indent 0, :nl-separator-all? true}},
-      :fast-hang {:doc "Speed up formatting of very deeply nested structures"
+      :fast-hang {:doc "Speed up formatting of very deeply nested structures",
                   :binding {:hang-accept 100, :ha-width-factor -600},
                   :extend {:hang-accept 100, :ha-width-factor -600},
                   :list {:hang-accept 100, :ha-width-factor -300},
                   :map {:hang-accept 0, :ha-depth-factor 15},
                   :pair {:hang-accept 20, :ha-width-factor -150},
                   :vector-fn {:hang-accept 100, :ha-width-factor -300}},
-      :odr {:doc "justify columns of rules, experimental"
-                 :vector {:option-fn odrguide} }
-      :quote-wrap {:doc "Wrap quoted lists to right margin, like vectors"
-                   :fn-map {:quote [:wrap {:list {:indent 1} 
-                            :next-inner {:list {:indent 2}}}]}}
-
-      :jrequireguide {:list {:option-fn jrequireguide}}
-      :rj-var {:doc "Set max-variance for :require-justify"
-               :pair {:justify {:max-variance 20}}}
-      :require-justify {:doc "Justify namespaces in :require"
-                             :fn-map {":require" [:flow {:style
-                                                  [:jrequireguide
-						   :rj-var]
-						  }]}}
-
-:require-pair 
-{:doc "Clarify namespaces in :require",
- :fn-map {":require" [:none
-                      {:vector {:option-fn
-                                  (fn ([opts n exprs]
-                                       (if-not (clojure.string/includes?
-                                                 (str (first exprs))
-                                                 ".")
-                                         {:vector {:fn-format nil}}
-                                         {:vector {:fn-format :none},
-                                          :vector-fn {:constant-pair-min 1}}))
-                                      ([] "require-pair"))}}]}}
-
-      :respect-bl {:doc "Enable respect blank lines for every type"
+      :odr {:doc "justify columns of rules, experimental",
+            :vector {:option-fn odrguide}},
+      :quote-wrap {:doc "Wrap quoted lists to right margin, like vectors",
+                   :fn-map {:quote [:wrap
+                                    {:list {:indent 1},
+                                     :next-inner {:list {:indent 2}}}]}},
+      :jrequireguide {:list {:option-fn jrequireguide}},
+      :rj-var {:doc "Set max-variance for :require-justify",
+               :pair {:justify {:max-variance 20}}},
+      :require-justify {:doc "Justify namespaces in :require",
+                        :fn-map {":require"
+                                   [:flow {:style [:jrequireguide :rj-var]}]}},
+      :require-pair
+        {:doc "Clarify namespaces in :require",
+         :fn-map {":require" [:none
+                              {:vector {:option-fn
+                                          (fn ([opts n exprs]
+                                               (if-not (clojure.string/includes?
+                                                         (str (first exprs))
+                                                         ".")
+                                                 {:vector {:fn-format nil}}
+                                                 {:vector {:fn-format :none},
+                                                  :vector-fn {:constant-pair-min
+                                                                1}}))
+                                              ([] "require-pair"))}}]}},
+      :respect-bl {:doc "Enable respect blank lines for every type",
                    :list {:respect-bl? true},
                    :map {:respect-bl? true},
                    :vector {:respect-bl? true},
                    :set {:respect-bl? true}},
-      :respect-bl-off {:doc "Disable respect blank lines for every type"
+      :respect-bl-off {:doc "Disable respect blank lines for every type",
                        :list {:respect-bl? false},
                        :map {:respect-bl? false},
                        :vector {:respect-bl? false},
                        :set {:respect-bl? false}},
-      :respect-nl {:doc "Enable respect newlines for every type"
+      :respect-nl {:doc "Enable respect newlines for every type",
                    :list {:respect-nl? true},
                    :map {:respect-nl? true},
                    :vector {:respect-nl? true},
                    :set {:respect-nl? true}},
-      :respect-nl-off {:doc "Disable respect newline for every type"
+      :respect-nl-off {:doc "Disable respect newline for every type",
                        :list {:respect-nl? false},
                        :map {:respect-nl? false},
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
-
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
-	    :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]}}
-
-
-      :signature1 {:doc "defprotcol signatures with doc on newline, experimental"
-                        :list {:option-fn signatureguide1}}
-      :sort-dependencies {:doc "sort dependencies in lein defproject files"
+            :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]}},
+      :signature1 {:doc
+                     "defprotcol signatures with doc on newline, experimental",
+                   :list {:option-fn signatureguide1}},
+      :sort-dependencies {:doc "sort dependencies in lein defproject files",
                           :list {:return-altered-zipper [1 'defproject
                                                          sort-dependencies]}}},
    :tab {:expand? true, :size 8},
@@ -901,13 +903,13 @@
             :option-fn-first nil,
             :option-fn nil,
             :fn-format nil,
-	    :hang? nil
+            :hang? nil,
             :respect-bl? false,
             :respect-nl? false,
             :wrap-after-multi? true,
             :wrap-coll? true,
             :wrap? true,
-	    :wrap-multi? false,
+            :wrap-multi? false,
             :indent-only? false},
    ; Needs to have same keys as :list, since this replaces :list when
    ; vectors are formatted as functions.
@@ -928,12 +930,10 @@
                :indent-only-style :input-hang,
                :pair-hang? true,
                :respect-bl? false,
-               :respect-nl? false
-	       
-          :wrap-coll? true,
-          :wrap-after-multi? true,
-	  :wrap-multi? true},
-
+               :respect-nl? false,
+               :wrap-coll? true,
+               :wrap-after-multi? true,
+               :wrap-multi? true},
    :width 80,
    :url {:cache-dir "urlcache", :cache-secs 300},
    :zipper? false})

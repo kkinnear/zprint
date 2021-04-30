@@ -127,8 +127,8 @@
 (s/def ::guide-seq
   (s/nilable (s/coll-of (s/or :number number?
                               :keyword keyword?
-			      :options ::options
-			      :embedded-guide ::guide-seq))))
+                              :options ::options
+                              :embedded-guide ::guide-seq))))
 (s/def ::guide-debug-seq (s/tuple keyword? number? ::guide-seq))
 (s/def ::path-seq
   (s/nilable (s/coll-of (s/coll-of number? :kind sequential?)
@@ -203,8 +203,8 @@
 (s/def ::inline? ::boolean)
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
-(s/def ::justify (only-keys :opt-un [::max-variance ::ignore-for-variance 
-                                     ::no-justify]))
+(s/def ::justify
+  (only-keys :opt-un [::max-variance ::ignore-for-variance ::no-justify]))
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
 (s/def ::justify-tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
@@ -268,8 +268,8 @@
 (s/def ::binding
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::justify? ::justify ::justify-hang ::justify-tuning ::nl-separator?
-                      ::nl-separator-all?]))
+                      ::justify? ::justify ::justify-hang ::justify-tuning
+                      ::nl-separator? ::nl-separator-all?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::call-stack (s/nilable (s/coll-of ::call-stack-frame :kind list?)))
 (s/def ::color-map
@@ -318,27 +318,25 @@
 (s/def ::input (only-keys :opt-un [::range]))
 ; When you modify list, you are also modifying vector-fn (see below)
 (s/def ::list
-  (only-keys
-    :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair? ::hang-diff
-             ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
-             ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent-arg
-             ::option-fn ::pair-hang? ::return-altered-zipper ::respect-bl?
-             ::respect-nl? ::indent-only? ::indent-only-style
-             ::replacement-string ::wrap-coll? ::wrap-after-multi? 
-	     ::wrap-multi?]))
+  (only-keys :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair?
+                      ::hang-diff ::hang-avoid ::hang-expand ::hang-size ::hang?
+                      ::indent ::hang-accept ::ha-depth-factor ::ha-width-factor
+                      ::indent-arg ::option-fn ::pair-hang?
+                      ::return-altered-zipper ::respect-bl? ::respect-nl?
+                      ::indent-only? ::indent-only-style ::replacement-string
+                      ::wrap-coll? ::wrap-after-multi? ::wrap-multi?]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
   (only-keys
     :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
              ::hang-accept ::ha-depth-factor ::ha-width-factor ::hang-expand
-             ::hang? ::indent ::indent-only? ::justify? ::justify-hang
-	     ::justify
+             ::hang? ::indent ::indent-only? ::justify? ::justify-hang ::justify
              ::justify-tuning ::key-color ::key-value-color ::key-depth-color
              ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
-             ::lift-ns-in-code? ::key-no-sort
-	     ::nl-separator? ::nl-separator-all?
-             ::respect-bl? ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?]))
+             ::lift-ns-in-code? ::key-no-sort ::nl-separator?
+             ::nl-separator-all? ::respect-bl? ::respect-nl? ::sort-in-code?
+             ::sort? ::unlift-ns?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -355,12 +353,12 @@
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::justify? ::justify ::justify-hang ::justify-tuning ::nl-separator?
-                      ::nl-separator-all?]))
+                      ::justify? ::justify ::justify-hang ::justify-tuning
+                      ::nl-separator? ::nl-separator-all?]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
-(s/def ::parse (only-keys :opt-un [::interpose ::left-space 
-                                   ::ignore-if-parse-fails]))
+(s/def ::parse
+  (only-keys :opt-un [::interpose ::left-space ::ignore-if-parse-fails]))
 (s/def ::parse-string-all? ::boolean)
 (s/def ::parse-string? ::boolean)
 (s/def ::perf-vs-format ::nilable-number)
@@ -396,7 +394,8 @@
 (s/def ::vector
   (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?
                       ::option-fn-first ::option-fn ::fn-format
-                      ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap? ::indent-only? ::hang?]))
+                      ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap?
+                      ::indent-only? ::hang?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))
@@ -422,8 +421,8 @@
              ::set ::spaces? ::script ::spec ::style ::styles-applied
              ::style-map ::tab ::test-for-eol-blanks? ::trim-comments? ::tuning
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
-             ::url ::zipper? ::guide ::guide-debug ::no-validate? 
-	     ::force-validate? ::doc]))
+             ::url ::zipper? ::guide ::guide-debug ::no-validate?
+             ::force-validate? ::doc]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

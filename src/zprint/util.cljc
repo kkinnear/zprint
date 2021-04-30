@@ -47,7 +47,7 @@
   Return the variance or nil if there are no numbers."
   [coll]
   (let [coll (remove nil? coll)
-        #_ (println "coll:" coll "len:" (count coll))
+        #_(println "coll:" coll "len:" (count coll))
         len (count coll)]
     (when (not (zero? len))
       (let [mean (/ (apply + coll) len)
@@ -63,13 +63,14 @@
   [max-number [indicies-of-max-number] length-of-sequence]"
   [coll]
   (let [indicies (reduce (fn [[max-so-far indicies index] n]
-                          (cond (nil? n) [max-so-far indicies (inc index)]
-                                (> n max-so-far) [n [index] (inc index)]
-                                (= n max-so-far)
-                                  [max-so-far (conj indicies index) (inc index)]
-                                :else [max-so-far indicies (inc index)]))
-		  [0 [] 0]
-                  coll)]
+                           (cond (nil? n) [max-so-far indicies (inc index)]
+                                 (> n max-so-far) [n [index] (inc index)]
+                                 (= n max-so-far) [max-so-far
+                                                   (conj indicies index)
+                                                   (inc index)]
+                                 :else [max-so-far indicies (inc index)]))
+                   [0 [] 0]
+                   coll)]
     indicies))
 
 (defn remove-indicies
@@ -126,8 +127,8 @@
       (cond
         (nil? beginning-variance) [nil columns]
         (> max-variance beginning-variance) [(first (find-max column)) columns]
-	; Unless we have at least 3 rows, we aren't removing anything to
-	; try and get the variance to work!
+        ; Unless we have at least 3 rows, we aren't removing anything to
+        ; try and get the variance to work!
         (> row-count 2)
           (let [[first-indicies first-column-wo-max] (remove-max-not-half
                                                        column)
@@ -177,10 +178,8 @@
         out
         (recur (next coll)
                (inc index)
-               (conj out 
-	             (if (>= index last-good-col) 
-		       nil 
-		       (size (first coll)))))))))
+               (conj out
+                     (if (>= index last-good-col) nil (size (first coll)))))))))
 
 (defn size-and-extend-butlast
   "Given a sequence of seqs, produce a new sequence of seqs where

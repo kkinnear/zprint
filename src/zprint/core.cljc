@@ -1,3 +1,4 @@
+;!zprint {:style :require-justify}
 (ns zprint.core
   #?@(:cljs [[:require-macros
               [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])
@@ -6,27 +7,29 @@
     clojure.string
     #?@(:cljs [[cljs.reader :refer [read-string]]])
     #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])
-    [zprint.zprint :as zprint :refer
-     [fzprint line-count max-width line-widths expand-tabs zcolor-map
-      determine-ending-split-lines]]
-    [zprint.finish :refer
-     [cvec-to-style-vec compress-style no-style-map color-comp-vec
-      handle-lines]]
-    [zprint.comment :refer
-     [fzprint-inline-comments fzprint-wrap-comments
-      fzprint-align-inline-comments blanks]]
-    [zprint.config :as config :refer
-     [add-calculated-options config-set-options! get-options config-configure-all! reset-options!
-      help-str get-explained-options get-explained-set-options
-      get-explained-all-options get-default-options validate-options apply-style
-      perform-remove no-color-map merge-deep]]
-    [zprint.zutil :refer
-     [zmap-all zcomment? edn* whitespace? string find-root-and-path-nw]]
+    [zprint.zprint      :as    zprint
+                        :refer [fzprint line-count max-width line-widths
+                                expand-tabs zcolor-map
+                                determine-ending-split-lines]]
+    [zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map
+                                color-comp-vec handle-lines]]
+    [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments
+                                fzprint-align-inline-comments blanks]]
+    [zprint.config      :as    config
+                        :refer [add-calculated-options config-set-options!
+                                get-options config-configure-all! reset-options!
+                                help-str get-explained-options
+                                get-explained-set-options
+                                get-explained-all-options get-default-options
+                                validate-options apply-style perform-remove
+                                no-color-map merge-deep]]
+    [zprint.zutil       :refer [zmap-all zcomment? edn* whitespace? string
+                                find-root-and-path-nw]]
     [zprint.sutil]
-    [zprint.focus :refer [range-ssv]]
-    [zprint.range :refer
-     [expand-range-to-top-level split-out-range reassemble-range]]
-    [sci.core :as sci]
+    [zprint.focus       :refer [range-ssv]]
+    [zprint.range       :refer [expand-range-to-top-level split-out-range
+                                reassemble-range]]
+    [sci.core           :as sci]
     [rewrite-clj.parser :as p]
     #_[clojure.spec.alpha :as s])
   #?@(:clj ((:import (java.net URL URLConnection)
@@ -515,30 +518,32 @@
   [coll special-option actual-options]
   (if special-option
     (case special-option
-      :explain
-        (fzprint-style
-          (get-explained-options)
-	  ; If we are doing :key-order, we need add-calculated-options
-          (add-calculated-options
-            (merge-deep (get-default-options)
-                        actual-options
-                        {:map {:key-order [:doc],
-                               :key-color {:doc :blue},
-                               :key-value-color {:doc {:string :green}}}})))
-      :explain-set
-        (fzprint-style
-          (get-explained-set-options)
-	  ; If we are doing :key-order, we need add-calculated-options
-          (add-calculated-options
-            (merge-deep (get-default-options)
-                        actual-options
-                        {:map {:key-order [:doc],
-                               :key-color {:doc :blue},
-                               :key-value-color {:doc {:string :green}}}})))
+      :explain (fzprint-style (get-explained-options)
+                              ; If we are doing :key-order, we need
+                              ; add-calculated-options
+                              (add-calculated-options
+                                (merge-deep (get-default-options)
+                                            actual-options
+                                            {:map {:key-order [:doc],
+                                                   :key-color {:doc :blue},
+                                                   :key-value-color
+                                                     {:doc {:string
+                                                              :green}}}})))
+      :explain-set (fzprint-style (get-explained-set-options)
+                                  ; If we are doing :key-order, we need
+                                  ; add-calculated-options
+                                  (add-calculated-options
+                                    (merge-deep (get-default-options)
+                                                actual-options
+                                                {:map {:key-order [:doc],
+                                                       :key-color {:doc :blue},
+                                                       :key-value-color
+                                                         {:doc {:string
+                                                                  :green}}}})))
       :explain-justified
         (fzprint-style
           (get-explained-options)
-	  ; If we are doing :key-order, we need add-calculated-options
+          ; If we are doing :key-order, we need add-calculated-options
           (add-calculated-options
             (merge-deep (get-default-options)
                         actual-options

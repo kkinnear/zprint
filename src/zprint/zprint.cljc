@@ -4171,7 +4171,12 @@
         ; Tell people inside that we are in code.
         ; We don't catch places where the first thing in a list is
         ; a collection or a seq which yields a function.
-        options (if (not arg-1-coll?) (assoc options :in-code? fn-str) options)
+        options (if (not arg-1-coll?) 
+		  ; quote? might have cancelled out fn-str, but we still 
+		  ; want to think of ourselves as in-code? as this affects
+		  ; the default map sorting.
+	          (assoc options :in-code? (or fn-str quote?)) 
+		  options)
         options (assoc options :pdepth (inc (long (or (:pdepth options) 0))))
         _ (when (:dbg-hang options)
             (println (dots (:pdepth options)) "fzs" fn-str))
@@ -4212,8 +4217,9 @@
             "l-str-len:" l-str-len
             "r-str-vec:" r-str-vec
             "indent-adj:" indent-adj
-            "one-line?:" one-line?
-            "indent-only?:" indent-only?
+            "one-line?" one-line?
+            "indent-only?" indent-only?
+	    "in-code?" (:in-code? options)
             "rightcnt:" (:rightcnt options)
             "replacement-string:" (:replacement-string (caller options))
             ":ztype:" (:ztype options))

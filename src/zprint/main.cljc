@@ -312,14 +312,14 @@
                              (nthnext args before-last-switch))
         possible-wc-switch (when before-last-switch
                              (clojure.string/trim (first last-switch-in-seq)))
-        write-set #{"-w" "-lw" "-lfw" "-lsw" "-lfsw" "-fw" "-fsw" "-sw" "-flw"
+        write-set #{"-w" "-lw" "-lfw" "-lsw" "-lfsw" "-lsfw" "-fw" "-fsw" "-sw" "-flw"
                     "-flsw" "-fslw" "-sfw" "-slw" "-sflw" "-slfw" "--write"
                     "--list-write" "--list-formatted-write"
                     "--list-format-write" "--list-formatted-summary-write"
                     "--formatted-write" "--list-format-summary-write"
                     "--format-write" "--formatted-summary-write"
                     "--summary-write" "--format-summary-write"}
-        check-set #{"-c" "-lc" "-lfc" "-lsc" "-lfsc" "-fc" "-fsc" "-sc" "-flc"
+        check-set #{"-c" "-lc" "-lfc" "-lsc" "-lfsc" "-lsfc" "-fc" "-fsc" "-sc" "-flc"
                     "-flsc" "-fslc" "-sfc" "-slc" "-sflc" "-slfc" "--check"
                     "--list-check" "--list-formatted-check"
                     "--list-format-check" "--list-formatted-summary-check"

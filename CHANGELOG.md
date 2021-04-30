@@ -78,7 +78,7 @@ All notable changes to this project will be documented in this file.
   allowed.  You can set the variance for `:map`, `:binding`, and `:pair` by
   setting `{:binding {:justify {:max-variance 20}}}` or any other number
   besides 20 that
-  you want.  This works as above `:map` and `:pair` as well as `binding`.  
+  you want.  This works as above `:map` and `:pair` as well as `binding`.
   If you want the previous justification approach, you can use
   `{:style :justified-original}` which sets the `:max-variance` to `1000`
   for `:binding`, `:map`, and `:pair`, yielding the previous behavior.

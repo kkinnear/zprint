@@ -9,19 +9,17 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
+ * A more nuanced approach to justification, based on the variance of the lengths of the left-hand elements in a binding vector, map, or cond.  If the variance is too great, up to two pairs are left out of the justification.  If that doesn't bring the variance into line, the pairs aren't justified.  `{:style :justified}` to try it out!
+ * Two new styles for formatting `ns` macros: `{:style :require-justify}` and `{:style :require-pair}`.  They are similar in clarifying the first elements appearing in vectors inside of a `(:require ...)`.  `:require-justify` justifies the first elements across the vectors where possible, while `:require-pair` does not.
+ * The `are` macro is now formatted readably by default.
  * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
  * [Check formatting of files without altering them](./doc/using/files.md), using `-c` or `--check`: `$ zprint -c *.clj`.
- * [Get progress reports and summary with `-w` and `-c`, use `-lsw`, `-lsc`.](./doc/using/files.md)
- * [Functions in options maps now safely supported in all `.zprintrc` files, using `sci`.](./doc/options/optionfns.md) 
- * Functions in options maps now supported in all distributed graalVM binaries!
+ * [Functions in options maps now safely supported in all `.zprintrc` files using any distributed binaries, using `sci`.](./doc/options/optionfns.md) 
  * [You can now define a style and use it in the same `.zprintrc`.](./doc/reference.md#style-and-style-map)  You can also define one style in terms of another.
- * `{:style :pair-nl-all}` will always give you a blank line between `cond` pairs, likewise `:map-nl-all` and `:binding-nl-all` will do the same for maps and binding pairs.
  * Output colorized, formatted source to terminal: `$ zprint '{:color? true}' <file.clj`
- * [More flexible constant-pairing](./doc/reference.md#constant-pair-fn-nil)
  * [Format babashka scripts](./doc/using/babashka.md)
  * [Format ranges of lines in files](./doc/using/range.md)
  * [{`:style :dark-color-map`} when using dark terminals](./doc/reference.md#dark-color-map)
- * [Keep blank lines from input](./doc/types/respectbl.md)
  * [All changes](./CHANGELOG.md)
 
 ## See zprint:
@@ -109,7 +107,7 @@ Some commonly used styles:
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
-### Clojure 1.9, 1.10, 1.10.1:
+### Clojure 1.9, 1.10, 1.10.3, 1.11.0-alpha1:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
@@ -122,8 +120,7 @@ zprint has been tested in each of the following environments:
   * Clojurescript 1.10.520
     - figwheel 0.5.19
     - shadow-cljs 2.8.62
-  * `lumo` 1.10.1
-  * `planck` 2.24.0
+  * `planck` 2.25.0
 
 It requires `tools.reader` at least 1.0.5, which all of the environments
 above contain.

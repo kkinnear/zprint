@@ -1,17 +1,20 @@
+;!zprint {:style :require-justify :pair {:justify {:max-variance 15}}}
 (ns zprint.config-test
-  (:require [expectations.clojure.test
-             #?(:clj :refer
-                :cljs :refer-macros) [defexpect expect]]
-            [zprint.zutil :refer [edn*]]
-            #?(:clj [clojure.edn :as edn])
-            #?(:clj [clojure.java.io :as io])
-            #?(:clj [clojure.string :as str])
-            [zprint.core :refer [set-options! zprint-str load-options!]]
-            [zprint.config :refer
-             [get-options get-explained-all-options only-set]]
-            [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z])
+  (:require
+    [expectations.clojure.test #?(:clj :refer
+                                  :cljs :refer-macros)
+                                 [defexpect expect]]
+    [zprint.zutil              :refer [edn*]]
+    #?(:clj [clojure.edn :as edn])
+    #?(:clj [clojure.java.io :as io])
+    #?(:clj [clojure.string :as str])
+    [zprint.core               :refer [set-options! zprint-str load-options!]]
+    [zprint.config             :refer [get-options get-explained-all-options
+                                       only-set]]
+    [rewrite-clj.parser        :as    p
+                               :refer [parse-string parse-string-all]]
+    [rewrite-clj.node          :as n]
+    [rewrite-clj.zip           :as z])
   #?(:clj (:import (com.sun.net.httpserver HttpHandler HttpServer)
                    (java.net InetSocketAddress)
                    (java.io File ByteArrayOutputStream PrintStream)

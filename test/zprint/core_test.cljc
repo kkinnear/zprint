@@ -1,22 +1,25 @@
+;!zprint {:style :require-justify}
 (ns zprint.core-test
-  (:require [expectations.clojure.test
-             #?(:clj :refer
-                :cljs :refer-macros) [defexpect expect]]
-            #?(:cljs [cljs.test :refer-macros [deftest is]])
-            #?(:clj [clojure.test :refer [deftest is]])
-            #?(:cljs [cljs.tools.reader :refer [read-string]])
-            [zprint.core :refer
-             [zprint-str set-options! czprint-str zprint-file-str]]
-            [zprint.zprint :refer [line-count]]
-            [zprint.config :as config :refer
-             [; config-set-options! get-options config-configure-all!
-              ;  reset-options! help-str get-explained-options
-              ;  get-explained-all-options get-default-options validate-options
-              ;  apply-style perform-remove no-color-map
-              merge-deep]]
-            #_[zprint.config :refer :all :exclude
-               [set-options! configure-all! get-options]]
-            #?@(:clj [[clojure.repl :refer :all]])))
+  (:require
+    [expectations.clojure.test #?(:clj :refer
+                                  :cljs :refer-macros)
+                                 [defexpect expect]]
+    #?(:cljs [cljs.test :refer-macros [deftest is]])
+    #?(:clj [clojure.test :refer [deftest is]])
+    #?(:cljs [cljs.tools.reader :refer [read-string]])
+    [zprint.core   :refer [zprint-str set-options! czprint-str zprint-file-str]]
+    [zprint.zprint :refer [line-count]]
+    [zprint.config :as    config
+                   :refer [; config-set-options! get-options
+                           ; config-configure-all!
+                           ;  reset-options! help-str get-explained-options
+                           ;  get-explained-all-options get-default-options
+                           ;  validate-options
+                           ;  apply-style perform-remove no-color-map
+                           merge-deep]]
+    #_[zprint.config :refer :all :exclude
+       [set-options! configure-all! get-options]]
+    #?@(:clj [[clojure.repl :refer :all]])))
 
 ;;
 ;; # Anonymous Function Tests

@@ -1,30 +1,27 @@
-;!zprint {:comment {:wrap? false} :reader-cond {:indent -3} :fn-map {"more-of" :arg1-pair "defexpect" [:arg1-body {:style :respect-nl :next-inner {:style :respect-nl-off}}] "do" [:none-body {:style :respect-nl :next-inner {:style :respect-nl-off}}] }}         
+;!zprint {:style :require-justify :comment {:wrap? false} :reader-cond {:indent -3} :fn-map {"more-of" :arg1-pair "defexpect" [:arg1-body {:style :respect-nl :next-inner {:style :respect-nl-off}}] "do" [:none-body {:style :respect-nl :next-inner {:style :respect-nl-off}}] }}         
 
 ;;; This whole file is only interesting in Clojure, not Clojurescript, since
 ;;; we are testing the uberjar command switch processing and the file access
 
 (ns zprint.main-test
-  (:require [expectations.clojure.test
-             #?(:clj :refer
-                :cljs :refer-macros) [defexpect expect]]
-            #?(:cljs [cljs.test :refer-macros [deftest is]])
-            #?(:clj [clojure.test :refer [deftest is]])
-            #?(:cljs [cljs.tools.reader :refer [read-string]])
-            #?(:clj [zprint.main :refer [-main]])
-            #?(:clj [clojure.java.shell :refer [sh]])
-            [clojure.string :refer [split join]]
-            [zprint.core :refer
-             [zprint-str set-options! czprint-str zprint-file-str]]
-            [zprint.zprint :refer [line-count]]
-            [zprint.config :as config :refer
-             [; config-set-options! get-options config-configure-all!
-              ;  reset-options! help-str get-explained-options
-              ;  get-explained-all-options get-default-options validate-options
-              ;  apply-style perform-remove no-color-map
-              about merge-deep]]
-            #_[zprint.config :refer :all :exclude
-               [set-options! configure-all! get-options]]
-            #?@(:clj [[clojure.repl :refer :all]])))
+  (:require
+    [expectations.clojure.test #?(:clj :refer
+                                  :cljs :refer-macros)
+                                 [defexpect expect]]
+    #?(:cljs [cljs.test :refer-macros [deftest is]])
+    #?(:clj [clojure.test :refer [deftest is]])
+    #?(:cljs [cljs.tools.reader :refer [read-string]])
+    #?(:clj [zprint.main :refer [-main]])
+    #?(:clj [clojure.java.shell :refer [sh]])
+    [clojure.string :refer [split join]]
+    [zprint.core    :refer [zprint-str set-options! czprint-str
+                            zprint-file-str]]
+    [zprint.zprint  :refer [line-count]]
+    [zprint.config  :as    config
+                    :refer [about merge-deep]]
+    #_[zprint.config :refer :all :exclude
+       [set-options! configure-all! get-options]]
+    #?@(:clj [[clojure.repl :refer :all]])))
 
 
 ;

@@ -1,26 +1,29 @@
+;!zprint {:style :require-justify :pair {:justify {:max-variance 15}}}
 (ns zprint.zprint-test
-  (:require [expectations.clojure.test
-             #?(:clj :refer
-                :cljs :refer-macros) [defexpect expect]]
-            #?(:cljs [cljs.test :refer-macros [deftest is]])
-            #?(:clj [clojure.test :refer [deftest is]])
-            #?(:cljs [cljs.tools.reader :refer [read-string]])
-            [clojure.string :as str]
-            [zprint.core :refer
-             [zprint-str set-options! zprint-str-internal czprint-str
-              zprint-file-str zprint czprint
-              #?@(:clj [czprint-fn czprint-fn-str zprint-fn-str zprint-fn])]]
-            [zprint.zprint :refer
-             [line-count max-width line-lengths make-record contains-nil?
-              map-ignore]]
-            [zprint.comment :refer [blanks]]
-            [zprint.zutil :refer [edn*]]
-            [zprint.config :refer [merge-deep]]
-            #?@(:clj ([clojure.repl :refer [source-fn]]))
-            [zprint.core-test :refer [trim-gensym-regex x8]]
-            [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z]))
+  (:require
+    [expectations.clojure.test #?(:clj :refer
+                                  :cljs :refer-macros)
+                                 [defexpect expect]]
+    #?(:cljs [cljs.test :refer-macros [deftest is]])
+    #?(:clj [clojure.test :refer [deftest is]])
+    #?(:cljs [cljs.tools.reader :refer [read-string]])
+    [clojure.string            :as str]
+    [zprint.core               :refer [zprint-str set-options!
+                                       zprint-str-internal czprint-str
+                                       zprint-file-str zprint czprint
+                                       #?@(:clj [czprint-fn czprint-fn-str
+                                                 zprint-fn-str zprint-fn])]]
+    [zprint.zprint             :refer [line-count max-width line-lengths
+                                       make-record contains-nil? map-ignore]]
+    [zprint.comment            :refer [blanks]]
+    [zprint.zutil              :refer [edn*]]
+    [zprint.config             :refer [merge-deep]]
+    #?@(:clj ([clojure.repl :refer [source-fn]]))
+    [zprint.core-test          :refer [trim-gensym-regex x8]]
+    [rewrite-clj.parser        :as    p
+                               :refer [parse-string parse-string-all]]
+    [rewrite-clj.node          :as n]
+    [rewrite-clj.zip           :as z]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -279,16 +282,19 @@
   (expect 6 (line-count (zprint-str u-str 24 {:parse-string? true})))
 
   (def d
-    '(+ :aaaaaaaaaa
-        (if :bbbbbbbbbb
-          :cccccccccc
-          (list :ddddddddd
-                :eeeeeeeeee :ffffffffff
-                :gggggggggg :hhhhhhhhhh
-                :iiiiiiiiii :jjjjjjjjjj
-                :kkkkkkkkkk :llllllllll
-                :mmmmmmmmmm :nnnnnnnnnn
-                :oooooooooo :pppppppppp))))
+    '(+
+      :aaaaaaaaaa
+      (if
+       :bbbbbbbbbb
+       :cccccccccc
+       (list
+        :ddddddddd
+        :eeeeeeeeee :ffffffffff
+        :gggggggggg :hhhhhhhhhh
+        :iiiiiiiiii :jjjjjjjjjj
+        :kkkkkkkkkk :llllllllll
+        :mmmmmmmmmm :nnnnnnnnnn
+        :oooooooooo :pppppppppp))))
 
   (def d-str (pr-str d))
 
@@ -1736,24 +1742,28 @@
   ;;
 
   (def zextend-tst1
-    '(deftype Foo [a b c]
-       P
-         (foo [this] a)
-       Q
-         (bar-me [this] b)
-         (bar-me [this y] (+ c y))
-       R
-       S
-         (baz [this] a)
-       static T
-         (baz-it [this] b)
-       static V
-         (baz-it [this] b)
-         (bar-none [this] a)
-       stuff
-       Q
-       R
-         (fubar [this] it)))
+    '(deftype
+      Foo
+      [a b c]
+      P
+      (foo [this] a)
+      Q
+      (bar-me [this] b)
+      (bar-me [this y] (+ c y))
+      R
+      S
+      (baz [this] a)
+      static
+      T
+      (baz-it [this] b)
+      static
+      V
+      (baz-it [this] b)
+      (bar-none [this] a)
+      stuff
+      Q
+      R
+      (fubar [this] it)))
 
 
   (expect
@@ -2294,82 +2304,93 @@
   ;; the tests with structures).
 
   (def cz1
-    '(rum/defcs component
-       "This is a component with a doc-string!  How unusual..."
-       < rum/static
-         rum/reactive
-         (rum/local 0 :count)
-         (rum/local "" :text)
-       [state label]
-       (let [count-atom (:count state) text-atom (:text state)] [:div])))
+    '(rum/defcs
+      component
+      "This is a component with a doc-string!  How unusual..."
+      <
+      rum/static
+      rum/reactive
+      (rum/local 0 :count)
+      (rum/local "" :text)
+      [state label]
+      (let [count-atom (:count state) text-atom (:text state)] [:div])))
 
   (def cz2
-    '(rum/defcs component
-       < rum/static
-         rum/reactive
-         (rum/local 0 :count)
-         (rum/local "" :text)
-       [state label]
-       (let [count-atom (:count state) text-atom (:text state)] [:div])))
+    '(rum/defcs
+      component
+      <
+      rum/static
+      rum/reactive
+      (rum/local 0 :count)
+      (rum/local "" :text)
+      [state label]
+      (let [count-atom (:count state) text-atom (:text state)] [:div])))
 
   (def cz3
-    '(rum/defcs component
-       "This is a component with a doc-string!  How unusual..."
-       [state label]
-       (let [count-atom (:count state) text-atom (:text state)] [:div])))
+    '(rum/defcs
+      component
+      "This is a component with a doc-string!  How unusual..."
+      [state label]
+      (let [count-atom (:count state) text-atom (:text state)] [:div])))
 
   (def cz4
-    '(rum/defcs component
-       [state label]
-       (let [count-atom (:count state) text-atom (:text state)] [:div])))
+    '(rum/defcs
+      component
+      [state label]
+      (let [count-atom (:count state) text-atom (:text state)] [:div])))
 
   (def cz5
-    '(rum/defcs component
-       "This is a component with a doc-string!  How unusual..."
-       <
-       rum/static
-       rum/reactive
-       (rum/local 0 :count)
-       (rum/local "" :text)
-       (let [count-atom (:count state) text-atom (:text state)] [:div])))
+    '(rum/defcs
+      component
+      "This is a component with a doc-string!  How unusual..."
+      <
+      rum/static
+      rum/reactive
+      (rum/local 0 :count)
+      (rum/local "" :text)
+      (let [count-atom (:count state) text-atom (:text state)] [:div])))
 
   (def cz6
-    '(rum/defcs component
-       <
-       rum/static
-       rum/reactive
-       (rum/local 0 :count)
-       (rum/local "" :text)
-       (let [count-atom (:count state) text-atom (:text state)] [:div])))
+    '(rum/defcs
+      component
+      <
+      rum/static
+      rum/reactive
+      (rum/local 0 :count)
+      (rum/local "" :text)
+      (let [count-atom (:count state) text-atom (:text state)] [:div])))
 
   (def cz7
     '(rum/defcs
-       component
-       (let [count-atom (:count state) text-atom (:text state)] [:div])))
+      component
+      (let [count-atom (:count state) text-atom (:text state)] [:div])))
 
   (def cz8
-    '(rum/defcs component
-       "This is a component with a doc-string!  How unusual..."
-       < rum/static
-         rum/reactive
-         (rum/local 0 :count)
-         (rum/local "" :text)
-       ([state label]
-        (let [count-atom (:count state) text-atom (:text state)] [:div]))
-       ([state] (component state nil))))
+    '(rum/defcs
+      component
+      "This is a component with a doc-string!  How unusual..."
+      <
+      rum/static
+      rum/reactive
+      (rum/local 0 :count)
+      (rum/local "" :text)
+      ([state label]
+       (let [count-atom (:count state) text-atom (:text state)] [:div]))
+      ([state] (component state nil))))
 
   (def cz9
-    '(rum/defcs component
-       "This is a component with a doc-string!  How unusual..."
-       {:a :b,
-        "this" [is a test],
-        :c [this is a very long vector how do you suppose it will work]}
-        rum/static
-        rum/reactive
-        (rum/local 0 :count)
-        (rum/local "" :text)
-       [state label]
-       (let [count-atom (:count state) text-atom (:text state)] [:div])))
+    '(rum/defcs
+      component
+      "This is a component with a doc-string!  How unusual..."
+      {:a :b,
+       "this" [is a test],
+       :c [this is a very long vector how do you suppose it will work]}
+      rum/static
+      rum/reactive
+      (rum/local 0 :count)
+      (rum/local "" :text)
+      [state label]
+      (let [count-atom (:count state) text-atom (:text state)] [:div])))
 
   ;;
   ;; Does it work with structures
@@ -2571,19 +2592,19 @@
                             #(do %1 %2 (identity {:vector {:sort? true}}))}})
               (catch :default e (str e)))))
 
-;; 
-;; Demonstrate that styles in option-fn returns actually work
-;;
+  ;;
+  ;; Demonstrate that styles in option-fn returns actually work
+  ;;
 
-(expect
-  "[stuff\n bother\n and\n (this\n  is\n  a\n  test\n  (and it has to be really really ong)\n  so\n  that\n  we\n  can\n  see\n  how\n  it\n  indents)\n has\n to\n be\n really\n long\n so\n that\n it\n doesn\n print\n all\n on\n one\n line]"
-  (zprint-str
-    "[stuff bother and (this is a test (and it has to be really really ong) so that we can see how it indents) has to be really long so that it doesn print all on one line]"
-    {:parse-string? true,
-     :vector {:option-fn (fn [options len sexpr]
-                           {:vector {:wrap? false},
-                            :list {:hang? false},
-                            :style :community})}}))
+  (expect
+    "[stuff\n bother\n and\n (this\n  is\n  a\n  test\n  (and it has to be really really ong)\n  so\n  that\n  we\n  can\n  see\n  how\n  it\n  indents)\n has\n to\n be\n really\n long\n so\n that\n it\n doesn\n print\n all\n on\n one\n line]"
+    (zprint-str
+      "[stuff bother and (this is a test (and it has to be really really ong) so that we can see how it indents) has to be really long so that it doesn print all on one line]"
+      {:parse-string? true,
+       :vector {:option-fn (fn [options len sexpr]
+                             {:vector {:wrap? false},
+                              :list {:hang? false},
+                              :style :community})}}))
 
 
 
@@ -2591,76 +2612,71 @@
   ;; # Error's in option-fn's
   ;;
 
-#?(:clj
-     (expect
-       "java.lang.Exception:  When :list called an option-fn named test it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-       (try (zprint "(a b c)"
-                    {:parse-string? true,
-                     :list {:option-fn (fn ([] "test")
-                                           ([options len sexpr] (+ :a 0)))}})
-            (catch Exception e (str e))))
-   :cljs
-     (expect
-"Error:  When :list called an option-fn named test it failed because: Error: 0 is not ISeqable"
-       (try (zprint "(a b c)"
-                    {:parse-string? true,
-                     :list {:option-fn (fn ([] "test")
-                                           ([options len sexpr] (seq 0)))}})
-            (catch :default e (str e)))))
+  #?(:clj
+       (expect
+         "java.lang.Exception:  When :list called an option-fn named test it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+         (try (zprint "(a b c)"
+                      {:parse-string? true,
+                       :list {:option-fn (fn ([] "test")
+                                             ([options len sexpr] (+ :a 0)))}})
+              (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error:  When :list called an option-fn named test it failed because: Error: 0 is not ISeqable"
+         (try (zprint "(a b c)"
+                      {:parse-string? true,
+                       :list {:option-fn (fn ([] "test")
+                                             ([options len sexpr] (seq 0)))}})
+              (catch :default e (str e)))))
 
-#?(:clj
-     (expect
-       "java.lang.Exception:  When :list called an option-fn it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-       (try (zprint "(a b c)"
-                    {:parse-string? true,
-                     :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
-            (catch Exception e (str e))))
-   :cljs
-     (expect
+  #?(:clj
+       (expect
+         "java.lang.Exception:  When :list called an option-fn it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+         (try (zprint "(a b c)"
+                      {:parse-string? true,
+                       :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
+              (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error:  When :list called an option-fn it failed because: Error: 0 is not ISeqable"
+         (try (zprint "(a b c)"
+                      {:parse-string? true,
+                       :list {:option-fn (fn ([options len sexpr] (seq 0)))}})
+              (catch :default e (str e)))))
 
-"Error:  When :list called an option-fn it failed because: Error: 0 is not ISeqable"
-       (try (zprint "(a b c)"
-                    {:parse-string? true,
-                     :list {:option-fn (fn ([options len sexpr] (seq  0)))}})
-            (catch :default e (str e)))))
+  #?(:clj
+       (expect
+         "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+         (try (zprint "[:a :b :c]"
+                      {:parse-string? true,
+                       :vector {:option-fn-first (fn ([options sexpr]
+                                                      (+ :a 0)))}})
+              (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error: When :vector called an option-fn-first with ':a' failed because: Error: 0 is not ISeqable"
+         (try (zprint "[:a :b :c]"
+                      {:parse-string? true,
+                       :vector {:option-fn-first (fn ([options sexpr]
+                                                      (seq 0)))}})
+              (catch :default e (str e)))))
 
-#?(:clj
-     (expect
-       "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-       (try (zprint "[:a :b :c]"
-                    {:parse-string? true,
-                     :vector {:option-fn-first (fn ([options sexpr]
-                                                    (+ :a 0)))}})
-            (catch Exception e (str e))))
-   :cljs
-     (expect
-
-"Error: When :vector called an option-fn-first with ':a' failed because: Error: 0 is not ISeqable"
-
-       (try (zprint "[:a :b :c]"
-                    {:parse-string? true,
-                     :vector {:option-fn-first (fn ([options sexpr]
-                                                    (seq 0)))}})
-            (catch :default e (str e)))))
-
-#?(:clj
-     (expect
-       "java.lang.Exception: When :vector called an option-fn-first named test with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
-       (try (zprint "[:a :b :c]"
-                    {:parse-string? true,
-                     :vector {:option-fn-first
-                                (fn ([] "test") ([options sexpr] (+ :a 0)))}})
-            (catch Exception e (str e))))
-   :cljs
-     (expect
-
-     "Error: When :vector called an option-fn-first named test with ':a' failed because: Error: 0 is not ISeqable"
-
-       (try (zprint "[:a :b :c]"
-                    {:parse-string? true,
-                     :vector {:option-fn-first
-                                (fn ([] "test") ([options sexpr] (seq 0)))}})
-            (catch :default e (str e)))))
+  #?(:clj
+       (expect
+         "java.lang.Exception: When :vector called an option-fn-first named test with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+         (try (zprint "[:a :b :c]"
+                      {:parse-string? true,
+                       :vector {:option-fn-first
+                                  (fn ([] "test") ([options sexpr] (+ :a 0)))}})
+              (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error: When :vector called an option-fn-first named test with ':a' failed because: Error: 0 is not ISeqable"
+         (try (zprint "[:a :b :c]"
+                      {:parse-string? true,
+                       :vector {:option-fn-first
+                                  (fn ([] "test") ([options sexpr] (seq 0)))}})
+              (catch :default e (str e)))))
 
   ;;
   ;; # zprint-file-str tests
@@ -2745,24 +2761,26 @@
 
   (expect
     "(abc sdfjsksdfjdskl\n     jkfjdsljdlfjldskfjklsjfjd\n     :a (quote b)\n     :c (quote d)\n     :e (quote f)\n     :g (quote h)\n     :i (quote j))"
-    (zprint-str '(abc sdfjsksdfjdskl
-                      jkfjdsljdlfjldskfjklsjfjd
-                      :a 'b
-                      :c 'd
-                      :e 'f
-                      :g 'h
-                      :i 'j)
+    (zprint-str '(abc
+                  sdfjsksdfjdskl
+                  jkfjdsljdlfjldskfjklsjfjd
+                  :a 'b
+                  :c 'd
+                  :e 'f
+                  :g 'h
+                  :i 'j)
                 {:max-length 13}))
 
   (expect
     "(abc sdfjsksdfjdskl\n     jkfjdsljdlfjldskfjklsjfjd\n     :a (quote b)\n     :c (quote d)\n     :e (quote f)\n     :g (quote h)\n     :i ...)"
-    (zprint-str '(abc sdfjsksdfjdskl
-                      jkfjdsljdlfjldskfjklsjfjd
-                      :a 'b
-                      :c 'd
-                      :e 'f
-                      :g 'h
-                      :i 'j)
+    (zprint-str '(abc
+                  sdfjsksdfjdskl
+                  jkfjdsljdlfjldskfjklsjfjd
+                  :a 'b
+                  :c 'd
+                  :e 'f
+                  :g 'h
+                  :i 'j)
                 {:max-length 12}))
 
   ;; Map
@@ -3718,7 +3736,7 @@ ser/collect-vars-acc %1 %2) )))"
                 {:parse-string? true, :list {:respect-bl? true}}))
 
   (expect
-"(comment\n  (defn x [y] (println y))\n\n  (this is a thing that is interesting)\n\n  (def z :this-is-a-test)\n\n  (def a :more stuff)\n\n\n\n  (def b :3-blanks-above))"
+    "(comment\n  (defn x [y] (println y))\n\n  (this is a thing that is interesting)\n\n  (def z :this-is-a-test)\n\n  (def a :more stuff)\n\n\n\n  (def b :3-blanks-above))"
     (zprint-str
       "(comment\n(defn x\n  [y]\n  (println y))\n\n(this is a\n         thing that is interesting)\n\n(def z :this-is-a-test)\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
       {:parse-string? true, :list {:respect-bl? true}}))
@@ -3843,9 +3861,9 @@ ser/collect-vars-acc %1 %2) )))"
     ; an optional doc string
     "This is a test protocol for zprint!"
     ; method signatures
-    (stuffx [this x y] "stuff docstring")
-    (botherx [this] [this x] [this x y] "bother docstring")
-    (foox [this baz] "foo docstring"))
+     (stuffx [this x y] "stuff docstring")
+     (botherx [this] [this x] [this x y] "bother docstring")
+     (foox [this baz] "foo docstring"))
 
   (expect
     "(extend ZprintType\n  ZprintProtocol\n    {:bar (fn [x y] (list x y)), :baz (fn ([x] (str x)) ([x y] (list x y)))})"
@@ -4491,7 +4509,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-"(comment\n  (defn x [y] (println y))\n  (this is a thing that is interesting)\n  (def z [:this-is-a-test :with-3-blanks-above?])\n  (def a :more stuff)\n  (def b :3-blanks-above))"
+    "(comment\n  (defn x [y] (println y))\n  (this is a thing that is interesting)\n  (def z [:this-is-a-test :with-3-blanks-above?])\n  (def a :more stuff)\n  (def b :3-blanks-above))"
     #_"(comment (defn x [y] (println y))\n         (this is a thing that is interesting)\n         (def z [:this-is-a-test :with-3-blanks-above?])\n         (def a :more stuff)\n         (def b :3-blanks-above))"
     (zprint-str
       "(comment\n(defn x\n  [y]\n  (println y))\n\n(this \n  is \n  a\n         thing that is interesting)\n\n(def z \n\n\n[:this-is-a-test :with-3-blanks-above?])\n\n(def a :more stuff)\n\n\n\n(def b :3-blanks-above))"
@@ -5522,404 +5540,402 @@ ser/collect-vars-acc %1 %2) )))"
   ; this should just fit
 
   (expect "(stuff (caller aaaa bbb\n         ccc))"
-        (zprint-str "(stuff (caller aaaa bbb ccc))"
-                    {:parse-string? true,
-                     :list {:respect-nl? false},
-                     :fn-map {"caller" :wrap, "this" :wrap},
-                     :width 23}))
+          (zprint-str "(stuff (caller aaaa bbb ccc))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :fn-map {"caller" :wrap, "this" :wrap},
+                       :width 23}))
 
 
-   ; this should not fit
+  ; this should not fit
 
   (expect "(stuff (caller aaaa\n         bbb ccc))"
-        (zprint-str "(stuff (caller aaaa bbb ccc))"
-                    {:parse-string? true,
-                     :list {:respect-nl? false},
-                     :fn-map {"caller" :wrap, "this" :wrap},
-                     :width 22}))
-
-   ; longer version of the same thing
-
-(expect
-  "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo\n         ppp qqq rrr sss ttt uuu vvv))"
-  (zprint-str
-    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
-    {:parse-string? true,
-     :list {:respect-nl? false},
-     :fn-map {"caller" :wrap, "this" :wrap},
-     :width 75}))
-
-(expect
-  "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn\n         ooo ppp qqq rrr sss ttt uuu vvv))"
-  (zprint-str
-    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
-    {:parse-string? true,
-     :list {:respect-nl? false},
-     :fn-map {"caller" :wrap, "this" :wrap},
-     :width 74}))
-
-(expect
-  "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test))) a\n    b c))"
-  (zprint-str
-    "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
-    {:parse-string? true,
-     :list {:respect-nl? false},
-     :fn-map {"caller" :wrap, "this" :wrap},
-     :width 46}))
-
-(expect
-  "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test)))\n    a b c))"
-  (zprint-str
-    "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
-    {:parse-string? true,
-     :list {:respect-nl? false},
-     :fn-map {"caller" :wrap, "this" :wrap},
-     :width 45}))
-
-;;
-;; Better cond -- look at how :do, :when are handled.  These don't have binding
-;; vectors after them.
-;;
-
-(def bc1
-  "(cond\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   3)")
-
-(expect
-  "(cond\n  (odd? a) 1\n  :let [a (quot a 2)]\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n  :when (seq x)\n  :do (println x)\n  (odd? (+ x y)) 2\n  3)"
-  (zprint-str bc1
-              {:parse-string? true,
-               :pair {:flow? false, :nl-separator-all? false}}))
-
-(expect
-  "(cond\n  (odd? a)\n    1\n  :let [a (quot a 2)]\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n  :when (seq x)\n  :do (println x)\n  (odd? (+ x y))\n    2\n  3)"
-  (zprint-str bc1
-              {:parse-string? true,
-               :pair {:flow? true, :nl-separator-all? false}}))
-
-(expect
-  "(cond\n  (odd? a)\n    1\n\n  :let [a (quot a 2)]\n\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n\n  :when (seq x)\n\n  :do (println x)\n\n  (odd? (+ x y))\n    2\n\n  3)"
-  (zprint-str bc1
-              {:parse-string? true,
-               :pair {:flow? true, :nl-separator-all? true}}))
-
-;;
-;; Make sure that the better cond formatting doesn't show up in maps
-;;
-
-(expect
-  "{(odd? (+ x y)) 2,\n (odd? a) 1,\n :do (println x),\n :else 3,\n :let [a (quot a 2)],\n :when (seq x),\n :when-let [x (fn-which-may-return-falsey a) y\n            (fn-which-may-return-falsey (* 2 a))],\n :when-letter [x (fn-which-may-return-falsey a) y\n               (fn-which-may-return-falsey (* 2 a))],\n :when-some [b (fn-which-may-return-nil x) c (fn-which-may-return-nil y)]}"
-  (zprint-str
-    "{\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-letter [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   :else 3}"
-  {:parse-string? true}))
-
-;;
-;; Small bug is justification with rightcnt when doing the first thing
-;;
-
-(expect
-  "(let [a    1\n      bb   2\n      ccc  3\n      dddd 4\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      bb   2\n      ccc  3\n      dddd 4])"
-  (zprint-str
-    "(let [a 1\n      bb 2\n      ccc 3\n      dddd 4\n      {:keys [foo bar baz bark key1 key2 key3 key4] :as spam} 1\n      bb 2\n      ccc 3\n      dddd 4])\n"
-    {:parse-string? true,
-     :binding {:justify? true, :justify {:max-variance 20}},
-     :width 62}))
-
-;;
-;; Justification tests for underscore (and variance)
-;;
-
-(def i179g
-"(let [bb 2 \n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1 \n      ccc 3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])\n")
-
-(expect
-  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc  3\n      _    (this is a (test this (is only a (test))))\n      dddd 4])"
-  (zprint-str i179g
-              {:parse-string? true,
-               :binding {:justify? true,
-                         :justify {:max-variance 20}},
-	       :remove {:binding {:justify {:no-justify #{"_"}}}}
-               :width 64}))
-(expect
-  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _    (this is a (test this (is only a (test))))\n      dddd 4])"
-  (zprint-str i179g
-              {:parse-string? true,
-               :binding {:justify? true,
-                         :justify {:max-variance 20}}
-	       :remove {:binding {:justify {:no-justify #{"_"}}}}
-               :width 63}))
-
-(expect
-  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
-  (zprint-str i179g
-              {:parse-string? true,
-               :binding {:justify? true,
-                         :justify {:max-variance 20}},
-               :width 63}))
-
-(expect
-  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
-  (zprint-str i179g
-              {:parse-string? true,
-               :binding {:justify? true, :justify {:max-variance 20}},
-               :width 63}))
-
-(expect
-  "(let [bb                                                       2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc                                                      3\n      _ (this is a (test this (is only a (test))))\n      dddd                                                     4])"
-  (zprint-str i179g
-              {:parse-string? true,
-               :binding {:justify? true, :justify {:max-variance 600}},
-               :width 80}))
-
-(expect
-  "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
-  (zprint-str i179g {:parse-string? true, :style :justified-20}))
-
-;;
-;; Issue #175 -- clean up formatting of quoted lists
-;;
-
-(def i175
-"(def ^:private config-keys\n  '(bootstrapper cassandra\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 service\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis))")
-
-(expect
-  "(def ^:private config-keys\n  '(bootstrapper\n    cassandra\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    service\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    graphql\n    http-client\n    measurer\n    postgres\n    redis))"
-  (zprint-str i175 {:parse-string? true}))
-
-(expect
-  "(def ^:private config-keys\n  '(bootstrapper cassandra graphql http-client measurer postgres redis service\n    graphql http-client measurer postgres redis graphql http-client measurer\n    postgres redis graphql http-client measurer postgres redis))"
-  (zprint-str i175
-              {:parse-string? true,
-               :fn-map {:quote [:wrap
-                                {:list {:indent 1},
-                                 :next-inner {:list {:indent 2}}}]}}))
-
-;;
-;; Check that we can turn it off!
-;;
-
-(expect
-  "'(let\n  [aadsf bdfds cdfs ddffsd djfdls djfldsfj]\n  (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
-  (zprint-str
-    "'(let [aadsf bdfds cdfs ddffsd djfdls djfldsfj] (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
-    {:parse-string? true}))
-
-(expect
-  "'(let [aadsf bdfds\n       cdfs ddffsd\n       djfdls djfldsfj]\n   (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
-  (zprint-str
-    "'(let [aadsf bdfds cdfs ddffsd djfdls djfldsfj] (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
-    {:parse-string? true, :fn-map {:quote :none}}))
-
-;;
-;; And that one line output works, but can be overridden
-;;
-
-(expect "'(a\n  b\n  c\n  d\n  e\n  f\n  g)"
-        (zprint-str "'(a b c d e f g)"
-                    {:parse-string? true,
-                     :fn-map {:quote [:flow
-                                      {:list {:indent 1},
-                                       :next-inner {:list {:indent 2}}}]}}))
-(expect "'(a b c d e f g)"
-        (zprint-str "'(a b c d e f g)" {:parse-string? true}))
-
-;;
-;; Changes to justification -- change how good enough tests for justification
-;;
-
-(def
-dfg
-"(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))\n")
-
-
-(expect
-  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide (cond-> [:element :element-best :newline]\n                   docstring (conj :element :newline)\n                   option (conj :element :element :newline)\n                   :else (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-  (zprint-str dfg {:parse-string? true}))
-
-(expect
-  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-  (zprint-str dfg {:parse-string? true, :style :justified-20
-                   :pair {:justify {:ignore-for-variance nil}}}))
-
-(expect
-  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-  (zprint-str dfg
-              {:parse-string? true,
-               :style :justified-20,
-               :pair {:justify {:max-variance 20}}}))
-
-;;
-;; Issue #187 -- loss of comments in meta-data
-;;
-
-
-(expect "(def ^{:meta :x}\n     ; one\n     ; two\n     ; three\n     :body)"
-        (zprint-str
-          "(def\n  ^{:meta :x}\n  ; one\n  ; two\n  ; three\n  :body)\n"
-          {:parse-string? true}))
-
-;;
-;; :pair {:justify {:ignore-for-variance ...}}
-;; :style :justified-20
-;; :style :justified
-;;
-
-(def
-dpg
-"(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))\n"
-)
-
-(expect
-  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-  (zprint-str dpg
-              {:parse-string? true,
-               :style :justified-20,
-               :pair {:justify {:ignore-for-variance nil}}}))
-
-
-(expect
-  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-  (zprint-str dpg {:parse-string? true, :style :justified-20}))
-
-
-(expect
-  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third                           (nth sexpr 2 nil)\n           fourth                          (nth sexpr 3 nil)\n           fifth                           (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide                           (cond-> [:element :element-best\n                                                    :newline]\n                                             docstring (conj :element :newline)\n                                             option (conj :element\n                                                          :element\n                                                          :newline)\n                                             :else (conj\n                                                     :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-  (zprint-str dpg {:parse-string? true, :style :justified}))
-
-(expect
-  "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide (cond-> [:element :element-best :newline]\n                   docstring (conj :element :newline)\n                   option (conj :element :element :newline)\n                   :else (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-  (zprint-str dpg {:parse-string? true}))
-
-;;
-;; Test :parse {:ignore-if-parse-fails ...}
-;; and :map {:key-no-sort ...}
-;;
-
-#?(:clj
-     (expect
-       "java.lang.Exception: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
-       (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                        {:parse-string? true, :style :odr})
-            (catch Exception e (str e))))
-   :cljs (expect "[{aaa, c 3, g 2, k 1}]"
-                 (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                                  {:parse-string? true, :style :odr})
-                      (catch :default e (str e)))))
-
-(expect "[{aaa, c 3, g 2, k 1}]"
-        (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                    {:parse-string? true,
-		     :style :odr
-                     :parse {:ignore-if-parse-fails #{"aaa"}}}))
-(expect "[{k 1, g 2, c 3, aaa}]"
-        (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                    {:parse-string? true,
-		     :style :odr
-                     :parse {:ignore-if-parse-fails #{"aaa"}},
-                     :map {:key-no-sort #{"aaa"}}}))
-
-;;
-;; Issue 188
-;;
-
-(def i188 "{:a 1,\n :b 2,\n ...}\n")
-
-(expect "{:a 1, :b 2, ...}" (zprint-str i188 {:parse-string? true}))
-
-(def vbm "[{:a 1 :b 2 ...}]")
-
-
- (expect
-"[{..., :a 1, :b 2}]"
- (zprint-str vbm {:parse-string? true :remove {:map {:key-no-sort #{"..."}}} :style :odr}))
-
-#?(:clj
-     (expect
-       "java.lang.Exception: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
-       (try (zprint-str vbm
-                        {:parse-string? true,
-                         :remove {:map {:key-no-sort #{"..."}},
-                                  :parse {:ignore-if-parse-fails #{"..."}}},
-                         :style :odr})
-            (catch Exception e (str e))))
-   :cljs (expect
-           "[{..., :a 1, :b 2}]"
-           (try (zprint-str vbm
-                            {:parse-string? true,
-                             :remove {:map {:key-no-sort #{"..."}},
-                                      :parse {:ignore-if-parse-fails #{"..."}}},
-                             :style :odr})
-                (catch :default e (str e)))))
-
-;;
-;; Issue #176 -- defprotocol and defrecord need -body when using
-;; style community
-;;
-
-(expect
-  "\n(ns fmt\n  (:require [com.stuartsierra.component :as component]\n            [clojure.string :as str]))\n\n(defprotocol IThing\n  (thing [this]))\n\n(defrecord App [db]\n  component/Lifecycle\n    (start [this] (assoc this :db (atom {::fmt \"please\"})))\n    (stop [this] (dissoc this :db))\n  IThing\n    (thing [this] (:db this)))"
-  (zprint-file-str
-    "\n(ns fmt\n  (:require\n   [com.stuartsierra.component :as component]\n   [clojure.string :as str]))\n\n(defprotocol IThing\n (thing [this]))\n\n(defrecord App [db]\n component/Lifecycle\n (start [this] (assoc this :db (atom {::fmt \"please\"})))\n (stop [this] (dissoc this :db))\n\n IThing\n (thing [this] (:db this)))"
-    "x"
-    {:style :community}))
-
-;;
-;; :set in fn-map
-;;
-
-(expect "(#{:stuff}\n :stuff)"
-        (zprint-str "(#{:stuff} :stuff)"
-                    {:parse-string? true,
-                     :fn-map {:set [:force-nl {:list {:hang? false}}]}}))
-
-
-;;
-;; :map in fn-map
-;;
-
-(expect "({:a :b}\n d\n e\n f)"
-        (zprint-str "({:a :b} d e f)"
-                    {:parse-string? true, :fn-map {:map :force-nl}}))
-
-;;
-;; :list in fn-map
-;;
-
-(expect "((a b c)\n  d\n  e\n  f)"
-        (zprint-str "((a b c) d e f)"
-                    {:parse-string? true, :fn-map {:list :force-nl}}))
-
-;;
-;; :vector in fn-map
-;;
-
-(expect "([a b c]\n d\n e\n f)"
-        (zprint-str "([a b c] d e f)"
-                    {:parse-string? true, :fn-map {:vector :force-nl}}))
-
-;;
-;; :style :require-pair
-;;
-
-(expect
-  "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))"
-  (zprint-str
-    "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))\n"
-    {:parse-string? true, :style :require-pair}))
-
-;;
-;; are
-;;
+          (zprint-str "(stuff (caller aaaa bbb ccc))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :fn-map {"caller" :wrap, "this" :wrap},
+                       :width 22}))
+
+  ; longer version of the same thing
+
+  (expect
+    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo\n         ppp qqq rrr sss ttt uuu vvv))"
+    (zprint-str
+      "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :fn-map {"caller" :wrap, "this" :wrap},
+       :width 75}))
+
+  (expect
+    "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn\n         ooo ppp qqq rrr sss ttt uuu vvv))"
+    (zprint-str
+      "(stuff (caller aaaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu vvv))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :fn-map {"caller" :wrap, "this" :wrap},
+       :width 74}))
+
+  (expect
+    "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test))) a\n    b c))"
+    (zprint-str
+      "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :fn-map {"caller" :wrap, "this" :wrap},
+       :width 46}))
+
+  (expect
+    "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test)))\n    a b c))"
+    (zprint-str
+      "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :fn-map {"caller" :wrap, "this" :wrap},
+       :width 45}))
+
+  ;;
+  ;; Better cond -- look at how :do, :when are handled.  These don't have binding
+  ;; vectors after them.
+  ;;
+
+  (def bc1
+    "(cond\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   3)")
+
+  (expect
+    "(cond\n  (odd? a) 1\n  :let [a (quot a 2)]\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n  :when (seq x)\n  :do (println x)\n  (odd? (+ x y)) 2\n  3)"
+    (zprint-str bc1
+                {:parse-string? true,
+                 :pair {:flow? false, :nl-separator-all? false}}))
+
+  (expect
+    "(cond\n  (odd? a)\n    1\n  :let [a (quot a 2)]\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n  :when (seq x)\n  :do (println x)\n  (odd? (+ x y))\n    2\n  3)"
+    (zprint-str bc1
+                {:parse-string? true,
+                 :pair {:flow? true, :nl-separator-all? false}}))
+
+  (expect
+    "(cond\n  (odd? a)\n    1\n\n  :let [a (quot a 2)]\n\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n\n  :when (seq x)\n\n  :do (println x)\n\n  (odd? (+ x y))\n    2\n\n  3)"
+    (zprint-str bc1
+                {:parse-string? true,
+                 :pair {:flow? true, :nl-separator-all? true}}))
+
+  ;;
+  ;; Make sure that the better cond formatting doesn't show up in maps
+  ;;
+
+  (expect
+    "{(odd? (+ x y)) 2,\n (odd? a) 1,\n :do (println x),\n :else 3,\n :let [a (quot a 2)],\n :when (seq x),\n :when-let [x (fn-which-may-return-falsey a) y\n            (fn-which-may-return-falsey (* 2 a))],\n :when-letter [x (fn-which-may-return-falsey a) y\n               (fn-which-may-return-falsey (* 2 a))],\n :when-some [b (fn-which-may-return-nil x) c (fn-which-may-return-nil y)]}"
+    (zprint-str
+      "{\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-letter [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   :else 3}"
+      {:parse-string? true}))
+
+  ;;
+  ;; Small bug is justification with rightcnt when doing the first thing
+  ;;
+
+  (expect
+    "(let [a    1\n      bb   2\n      ccc  3\n      dddd 4\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      bb   2\n      ccc  3\n      dddd 4])"
+    (zprint-str
+      "(let [a 1\n      bb 2\n      ccc 3\n      dddd 4\n      {:keys [foo bar baz bark key1 key2 key3 key4] :as spam} 1\n      bb 2\n      ccc 3\n      dddd 4])\n"
+      {:parse-string? true,
+       :binding {:justify? true, :justify {:max-variance 20}},
+       :width 62}))
+
+  ;;
+  ;; Justification tests for underscore (and variance)
+  ;;
+
+  (def i179g
+    "(let [bb 2 \n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1 \n      ccc 3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])\n")
+
+  (expect
+    "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc  3\n      _    (this is a (test this (is only a (test))))\n      dddd 4])"
+    (zprint-str i179g
+                {:parse-string? true,
+                 :binding {:justify? true, :justify {:max-variance 20}},
+                 :remove {:binding {:justify {:no-justify #{"_"}}}},
+                 :width 64}))
+  (expect
+    "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _    (this is a (test this (is only a (test))))\n      dddd 4])"
+    (zprint-str i179g
+                {:parse-string? true,
+                 :binding {:justify? true, :justify {:max-variance 20}},
+                 :remove {:binding {:justify {:no-justify #{"_"}}}},
+                 :width 63}))
+
+  (expect
+    "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
+    (zprint-str i179g
+                {:parse-string? true,
+                 :binding {:justify? true, :justify {:max-variance 20}},
+                 :width 63}))
+
+  (expect
+    "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam}\n        1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
+    (zprint-str i179g
+                {:parse-string? true,
+                 :binding {:justify? true, :justify {:max-variance 20}},
+                 :width 63}))
+
+  (expect
+    "(let [bb                                                       2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc                                                      3\n      _ (this is a (test this (is only a (test))))\n      dddd                                                     4])"
+    (zprint-str i179g
+                {:parse-string? true,
+                 :binding {:justify? true, :justify {:max-variance 600}},
+                 :width 80}))
+
+  (expect
+    "(let [bb   2\n      {:keys [foo bar baz bark key1 key2 key3 key4], :as spam} 1\n      ccc  3\n      _ (this is a (test this (is only a (test))))\n      dddd 4])"
+    (zprint-str i179g {:parse-string? true, :style :justified-20}))
+
+  ;;
+  ;; Issue #175 -- clean up formatting of quoted lists
+  ;;
+
+  (def i175
+    "(def ^:private config-keys\n  '(bootstrapper cassandra\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 service\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis\n                 graphql\n                 http-client\n                 measurer\n                 postgres\n                 redis))")
+
+  (expect
+    "(def ^:private config-keys\n  '(bootstrapper\n    cassandra\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    service\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    graphql\n    http-client\n    measurer\n    postgres\n    redis\n    graphql\n    http-client\n    measurer\n    postgres\n    redis))"
+    (zprint-str i175 {:parse-string? true}))
+
+  (expect
+    "(def ^:private config-keys\n  '(bootstrapper cassandra graphql http-client measurer postgres redis service\n    graphql http-client measurer postgres redis graphql http-client measurer\n    postgres redis graphql http-client measurer postgres redis))"
+    (zprint-str i175
+                {:parse-string? true,
+                 :fn-map {:quote [:wrap
+                                  {:list {:indent 1},
+                                   :next-inner {:list {:indent 2}}}]}}))
+
+  ;;
+  ;; Check that we can turn it off!
+  ;;
+
+  (expect
+    "'(let\n  [aadsf bdfds cdfs ddffsd djfdls djfldsfj]\n  (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
+    (zprint-str
+      "'(let [aadsf bdfds cdfs ddffsd djfdls djfldsfj] (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
+      {:parse-string? true}))
+
+  (expect
+    "'(let [aadsf bdfds\n       cdfs ddffsd\n       djfdls djfldsfj]\n   (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
+    (zprint-str
+      "'(let [aadsf bdfds cdfs ddffsd djfdls djfldsfj] (cdfdf dffds flkdsjfl sdfkdjl fjdsfj a))"
+      {:parse-string? true, :fn-map {:quote :none}}))
+
+  ;;
+  ;; And that one line output works, but can be overridden
+  ;;
+
+  (expect "'(a\n  b\n  c\n  d\n  e\n  f\n  g)"
+          (zprint-str "'(a b c d e f g)"
+                      {:parse-string? true,
+                       :fn-map {:quote [:flow
+                                        {:list {:indent 1},
+                                         :next-inner {:list {:indent 2}}}]}}))
+  (expect "'(a b c d e f g)"
+          (zprint-str "'(a b c d e f g)" {:parse-string? true}))
+
+  ;;
+  ;; Changes to justification -- change how good enough tests for justification
+  ;;
+
+  (def dfg
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))\n")
+
+
+  (expect
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide (cond-> [:element :element-best :newline]\n                   docstring (conj :element :newline)\n                   option (conj :element :element :newline)\n                   :else (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+    (zprint-str dfg {:parse-string? true}))
+
+  (expect
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+    (zprint-str dfg
+                {:parse-string? true,
+                 :style :justified-20,
+                 :pair {:justify {:ignore-for-variance nil}}}))
+
+  (expect
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+    (zprint-str dfg
+                {:parse-string? true,
+                 :style :justified-20,
+                 :pair {:justify {:max-variance 20}}}))
+
+  ;;
+  ;; Issue #187 -- loss of comments in meta-data
+  ;;
+
+
+  (expect "(def ^{:meta :x}\n     ; one\n     ; two\n     ; three\n     :body)"
+          (zprint-str
+            "(def\n  ^{:meta :x}\n  ; one\n  ; two\n  ; three\n  :body)\n"
+            {:parse-string? true}))
+
+  ;;
+  ;; :pair {:justify {:ignore-for-variance ...}}
+  ;; :style :justified-20
+  ;; :style :justified
+  ;;
+
+  (def dpg
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))\n")
+
+  (expect
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+    (zprint-str dpg
+                {:parse-string? true,
+                 :style :justified-20,
+                 :pair {:justify {:ignore-for-variance nil}}}))
+
+
+  (expect
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third  (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth  (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third)  [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else            [nil nil nil])\n           guide  (cond-> [:element :element-best :newline]\n                    docstring (conj :element :newline)\n                    option    (conj :element :element :newline)\n                    :else     (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+    (zprint-str dpg {:parse-string? true, :style :justified-20}))
+
+
+  (expect
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third                           (nth sexpr 2 nil)\n           fourth                          (nth sexpr 3 nil)\n           fifth                           (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide                           (cond-> [:element :element-best\n                                                    :newline]\n                                             docstring (conj :element :newline)\n                                             option (conj :element\n                                                          :element\n                                                          :newline)\n                                             :else (conj\n                                                     :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+    (zprint-str dpg {:parse-string? true, :style :justified}))
+
+  (expect
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third (nth sexpr 2 nil)\n           fourth (nth sexpr 3 nil)\n           fifth (nth sexpr 4 nil)\n           [docstring option option-value]\n             (cond (and (string? third) (keyword? fourth)) [third fourth fifth]\n                   (string? third) [third nil nil]\n                   (keyword? third) [nil third fourth]\n                   :else [nil nil nil])\n           guide (cond-> [:element :element-best :newline]\n                   docstring (conj :element :newline)\n                   option (conj :element :element :newline)\n                   :else (conj :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+    (zprint-str dpg {:parse-string? true}))
+
+  ;;
+  ;; Test :parse {:ignore-if-parse-fails ...}
+  ;; and :map {:key-no-sort ...}
+  ;;
+
+  #?(:clj
+       (expect
+         "java.lang.Exception: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+         (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                          {:parse-string? true, :style :odr})
+              (catch Exception e (str e))))
+     :cljs (expect "[{aaa, c 3, g 2, k 1}]"
+                   (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                                    {:parse-string? true, :style :odr})
+                        (catch :default e (str e)))))
+
+  (expect "[{aaa, c 3, g 2, k 1}]"
+          (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                      {:parse-string? true,
+                       :style :odr,
+                       :parse {:ignore-if-parse-fails #{"aaa"}}}))
+  (expect "[{k 1, g 2, c 3, aaa}]"
+          (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                      {:parse-string? true,
+                       :style :odr,
+                       :parse {:ignore-if-parse-fails #{"aaa"}},
+                       :map {:key-no-sort #{"aaa"}}}))
+
+  ;;
+  ;; Issue 188
+  ;;
+
+  (def i188 "{:a 1,\n :b 2,\n ...}\n")
+
+  (expect "{:a 1, :b 2, ...}" (zprint-str i188 {:parse-string? true}))
+
+  (def vbm "[{:a 1 :b 2 ...}]")
+
+
+  (expect "[{..., :a 1, :b 2}]"
+          (zprint-str vbm
+                      {:parse-string? true,
+                       :remove {:map {:key-no-sort #{"..."}}},
+                       :style :odr}))
+
+  #?(:clj
+       (expect
+         "java.lang.Exception: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+         (try (zprint-str vbm
+                          {:parse-string? true,
+                           :remove {:map {:key-no-sort #{"..."}},
+                                    :parse {:ignore-if-parse-fails #{"..."}}},
+                           :style :odr})
+              (catch Exception e (str e))))
+     :cljs (expect "[{..., :a 1, :b 2}]"
+                   (try (zprint-str
+                          vbm
+                          {:parse-string? true,
+                           :remove {:map {:key-no-sort #{"..."}},
+                                    :parse {:ignore-if-parse-fails #{"..."}}},
+                           :style :odr})
+                        (catch :default e (str e)))))
+
+  ;;
+  ;; Issue #176 -- defprotocol and defrecord need -body when using
+  ;; style community
+  ;;
+
+  (expect
+    "\n(ns fmt\n  (:require [com.stuartsierra.component :as component]\n            [clojure.string :as str]))\n\n(defprotocol IThing\n  (thing [this]))\n\n(defrecord App [db]\n  component/Lifecycle\n    (start [this] (assoc this :db (atom {:fmt \"please\"})))\n    (stop [this] (dissoc this :db))\n  IThing\n    (thing [this] (:db this)))"
+    (zprint-file-str
+      "\n(ns fmt\n  (:require\n   [com.stuartsierra.component :as component]\n   [clojure.string :as str]))\n\n(defprotocol IThing\n (thing [this]))\n\n(defrecord App [db]\n component/Lifecycle\n (start [this] (assoc this :db (atom {:fmt \"please\"})))\n (stop [this] (dissoc this :db))\n\n IThing\n (thing [this] (:db this)))"
+      "x"
+      {:style :community}))
+
+  ;;
+  ;; :set in fn-map
+  ;;
+
+  (expect "(#{:stuff}\n :stuff)"
+          (zprint-str "(#{:stuff} :stuff)"
+                      {:parse-string? true,
+                       :fn-map {:set [:force-nl {:list {:hang? false}}]}}))
+
+
+  ;;
+  ;; :map in fn-map
+  ;;
+
+  (expect "({:a :b}\n d\n e\n f)"
+          (zprint-str "({:a :b} d e f)"
+                      {:parse-string? true, :fn-map {:map :force-nl}}))
+
+  ;;
+  ;; :list in fn-map
+  ;;
+
+  (expect "((a b c)\n  d\n  e\n  f)"
+          (zprint-str "((a b c) d e f)"
+                      {:parse-string? true, :fn-map {:list :force-nl}}))
+
+  ;;
+  ;; :vector in fn-map
+  ;;
+
+  (expect "([a b c]\n d\n e\n f)"
+          (zprint-str "([a b c] d e f)"
+                      {:parse-string? true, :fn-map {:vector :force-nl}}))
+
+  ;;
+  ;; :style :require-pair
+  ;;
+
+  (expect
+    "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))"
+    (zprint-str
+      "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))\n"
+      {:parse-string? true, :style :require-pair}))
+
+  ;;
+  ;; are
+  ;;
 
   (def are3 "(are [x y z] (= x y z)  
   2 (+ 1 1) (- 4 2)
   4 (* 2 2) (/ 8 2))")
 
-(expect "(are [x y z] (= x y z)\n  2 (+ 1 1) (- 4 2)\n  4 (* 2 2) (/ 8 2))"
-        (zprint-str are3 {:parse-string? true}))
+  (expect "(are [x y z] (= x y z)\n  2 (+ 1 1) (- 4 2)\n  4 (* 2 2) (/ 8 2))"
+          (zprint-str are3 {:parse-string? true}))
 
-;;
-;; rules of defn tests (mostly for guides)
-;;
+  ;;
+  ;; rules of defn tests (mostly for guides)
+  ;;
 
   (def rod3
     "
@@ -5930,17 +5946,17 @@ dpg
          :else (list a b c d)))
   ([a b c] (rod3 a b c nil)))")
 
-(expect
-  "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
-  (zprint-str rod3 {:parse-string? true, :style :rod, :width 32}))
+  (expect
+    "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+    (zprint-str rod3 {:parse-string? true, :style :rod, :width 32}))
 
-(expect
-  "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
-  (zprint-str rod3 {:parse-string? true, :style :rod, :width 31}))
+  (expect
+    "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+    (zprint-str rod3 {:parse-string? true, :style :rod, :width 31}))
 
-(expect
-  "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else\n           (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
-  (zprint-str rod3 {:parse-string? true, :style :rod, :width 30}))
+  (expect
+    "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else\n           (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+    (zprint-str rod3 {:parse-string? true, :style :rod, :width 30}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 1.2.0 - 2021-5-3
+
+### Added
+### Changed
+### Fixed
+
 ## 1.1.2 - 2021-5-2
 
 ### Added

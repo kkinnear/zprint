@@ -19,5 +19,5 @@
  :deps {#_#_org.clojure/clojure {:mvn/version "1.9.0"},
         #_#_org.clojure/clojurescript {:mvn/version "1.9.946"},
         org.clojure/clojure {:mvn/version "1.10.3"},
-        zprint/zprint {:mvn/version "1.1.2"}},
+        zprint/zprint {:mvn/version "1.2.0"}},
  :paths ["src" "test" "cljs-test-runner-out/gen"]}

@@ -732,6 +732,16 @@
       (edn* (z/root new-doc-zloc)))
     zloc))
 
+(defn zloc-to-keyword
+  "Given a zloc, turn it into a keyword if it starts with a :, but remove
+  the : first."
+  [zloc]
+  (let [s (z/string zloc)]
+    (if (clojure.string/starts-with? s ":")
+      ; remove the : now that we know it has one and turn it into a keyword
+      (keyword (subs s 1))
+      (symbol s))))
+
 (defn zlift-ns
   "Perform a lift-ns on a pair-seq that is returned from
   partition-2-all-nc, which is a seq of pairs of zlocs that may or
@@ -767,7 +777,7 @@
                  pair-seq pair-seq
                  out []]
             (let [[k & rest-of-pair :as pair] (first pair-seq)
-                  #_(println "k:" k "rest-of-x-pair:" rest-of-pair)
+                  #_(println "lift k:" k "rest-of-x-pair:" rest-of-pair)
                   current-ns
                     (when (and ; This is at least a pair
                             rest-of-pair
@@ -775,7 +785,8 @@
                             (not (clojure.string/starts-with? (z/string k)
                                                               "::"))
                             (or (zkeyword? k) (zsymbol? k)))
-                      (namespace (z/sexpr k)))]
+                      ; Is there an actual namespace on the key?
+                      (namespace (zloc-to-keyword k)))]
               (if-not k
                 (when ns [(str ":" ns) out])
                 (if current-ns
@@ -802,14 +813,16 @@
       (loop [pair-seq pair-seq
              out []]
         (let [[k & rest-of-pair :as pair] (first pair-seq)
-              #_(println "k:" k "rest-of-y-pair:" rest-of-pair)
-              current-ns
-                (when (and ; This is at least a pair
-                        rest-of-pair
-                        ; It does not include an implicit ns
-                        (not (clojure.string/starts-with? (z/string k) "::"))
-                        (or (zkeyword? k) (zsymbol? k)))
-                  (namespace (z/sexpr k)))]
+              #_(println "unlift k:" k "rest-of-y-pair:" rest-of-pair)
+              current-ns (when (and ; This is at least a pair
+                                 rest-of-pair
+                                 ; It does not include an implicit ns
+                                 (not (clojure.string/starts-with? (z/string k)
+                                                                   "::"))
+                                 (or (zkeyword? k) (zsymbol? k)))
+                           ; Is there an actual namespace on the key?
+                           (namespace (zloc-to-keyword k)))
+              #_(println "unlift k: namespace:" current-ns)]
           (if-not k
             [nil out]
             (cond current-ns [ns pair-seq]

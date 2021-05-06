@@ -51,4 +51,5 @@
      [rewrite-cljs "0.4.5" :exclusions [[org.clojure/clojurescript]]]
      [borkdude/edamame "0.0.11-alpha.28"]
      [borkdude/sci "0.2.1-alpha.1"]
-     [rewrite-clj "0.6.1" :exclusions [[com.cemerick/austin]]]])
+[rewrite-clj/rewrite-clj "1.0.605-alpha"]
+     #_[rewrite-clj "0.6.1" :exclusions [[com.cemerick/austin]]]])

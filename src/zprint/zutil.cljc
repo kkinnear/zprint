@@ -626,12 +626,14 @@
 (defn zsymbol?
   "Returns true if this is a symbol."
   [zloc]
-  (and zloc (zsexpr? zloc) (symbol? (sexpr zloc))))
+  ; Need to make sure it is a :token before sexpr
+  (and zloc (= (tag zloc) :token) (zsexpr? zloc) (symbol? (sexpr zloc))))
 
 (defn znil?
   "Returns true if this is nil."
   [zloc]
-  (and zloc (zsexpr? zloc) (nil? (z/sexpr zloc))))
+  ; Need to make sure it is a :token before sexpr
+  (and zloc (= (tag zloc) :token) (zsexpr? zloc) (nil? (z/sexpr zloc))))
 
 (defn zreader-cond-w-symbol?
   "Returns true if this is a reader-conditional with a symbol in 
@@ -677,7 +679,7 @@
       (and (not (z-coll? zloc))
            (or (zkeyword? zloc)
                #_(println "zconstant? - not keyword:" (z/string zloc))
-               (when (zsexpr? zloc)
+               (when (and (= (tag zloc) :token) (zsexpr? zloc))
                  #_(println "zconstant?:" (z/string zloc)
                             "\n z-coll?" (z-coll? zloc)
                             "z/tag:" (z/tag zloc))
@@ -825,7 +827,11 @@
               #_(println "unlift k: namespace:" current-ns)]
           (if-not k
             [nil out]
+	    ; If we have a current-ns on a key, we can't unlift
             (cond current-ns [ns pair-seq]
+	          ; We aren't going to unlift anything but a keyword
+		  (not (zkeyword? k)) [ns pair-seq]
+		  ; Skip single things
                   (= (count pair) 1) (recur (next pair-seq) (conj out pair))
                   :else
                     (recur
@@ -834,6 +840,9 @@
                             ; put ns with k
                             (cons (edn* (n/token-node
                                           (symbol
+					    ; If k is a zkeyword? then it
+					    ; is a :token, and will not
+					    ; have a problem with z/sexpr
                                             (str ns "/" (name (z/sexpr k))))))
                                   rest-of-pair)))))))
     :else [ns pair-seq]))

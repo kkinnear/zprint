@@ -107,14 +107,12 @@
          e
          nil)))
 
-(defn get-sexpr-or-nil
-  "Try to get an sexpr of something, and return nil if we can't."
+
+(defn zsexpr-token?
+  "Call zsexpr?, but only if zloc is a :token"
   [zloc]
-  (try (zsexpr zloc)
-       (catch #?(:clj Exception
-                 :cljs :default)
-         e
-         nil)))
+  (when (= (ztag zloc) :token)
+    (zsexpr? zloc)))
 
 (defn empty-coll
   "For the major collections, returns a empty one. Essentially an
@@ -163,6 +161,15 @@
             #_(prn "sexpr:" sexpr)]
         sexpr))))
 
+(defn get-sexpr-or-nil
+  "Try to get an sexpr of something, and return nil if we can't."
+  [options zloc]
+  (try (get-sexpr options zloc)
+       (catch #?(:clj Exception
+                 :cljs :default)
+         e
+         nil)))
+
 (defn call-option-fn
   "Call an option-fn and return a (possibly) validated map of 
   the merged options. Returns [merged-options-map new-options]"
@@ -190,7 +197,7 @@
   then return a validated map of just the new options.
   Returns [merge-options-map new-options]"
   [caller options option-fn-first zloc]
-  (let [first-sexpr (zsexpr (zfirst-no-comment zloc))]
+  (let [first-sexpr (get-sexpr options (zfirst-no-comment zloc))]
     (internal-config-and-validate
       options
       (try (option-fn-first options first-sexpr)
@@ -1033,7 +1040,7 @@
         ; modifier, but at present modifiers are only for extend and
         ; key-value-color is only for maps, so they can't both show up
         ; at once.
-        value-color-map (and key-value-color (key-value-color (zsexpr lloc)))
+        value-color-map (and key-value-color (key-value-color (get-sexpr options lloc)))
         local-roptions (if value-color-map
                          (merge-deep local-roptions
                                      {:color-map value-color-map})
@@ -1056,7 +1063,7 @@
         local-color (get key-depth-color (dec map-depth))
         ; Doesn't work if we have a modifier, but at this point, key-color
         ; is only for maps and modifiers are only for extend.
-        local-color (if key-color (key-color (zsexpr lloc)) local-color)
+        local-color (if key-color (key-color (get-sexpr options lloc)) local-color)
         #_local-color
         #_(cond (and map-depth (= caller :map) (= map-depth 2)) :green
                 (and map-depth (= caller :map) (= map-depth 1)) :blue
@@ -1602,8 +1609,8 @@
           "key-value:" key-value)
   (if (and sort? (if in-code? sort-in-code? true))
     (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
-              (zsexpr (access %1))
-              (zsexpr (access %2)))
+              (get-sexpr options (access %1))
+              (get-sexpr options (access %2)))
           out)
     out))
 
@@ -2369,7 +2376,7 @@
   off to get the constant pairs included, and the actual-paired-items
   is the count of the items to be checked against the constant-pair-min
   (which is exclusive of comments and newlines)."
-  [constant-pair-fn zloc-seq]
+  [options constant-pair-fn zloc-seq]
   (loop [zloc-seq-rev (reverse zloc-seq)
          element-count 0
          paired-element-count 0
@@ -2378,7 +2385,7 @@
          pair-size 0
          actual-pair-size 0]
     (let [element (first zloc-seq-rev)]
-      #_(prn "count-constant-pairs: element-count:" element-count
+       #_(prn "count-constant-pairs: element-count:" element-count
              "paired-element-count:" paired-element-count
              "constant-required:" constant-required?
              "pair-size:" pair-size
@@ -2389,13 +2396,14 @@
         ; seen the end of it, and return
         [(- element-count pair-size) (- paired-element-count actual-pair-size)]
         (let [comment-or-newline? (zcomment-or-newline? element)]
-          #_(prn (zsexpr element))
+          #_(prn "count-constant-pair:" (get-sexpr options element) 
+	       "constant-pair-fn:" constant-pair-fn)
           (if (and (not comment-or-newline?)
                    constant-required?
                    (if constant-pair-fn
                      ; If we can't call sexpr on it, it isn't a constant
                      (not (when (zsexpr? element)
-                            (constant-pair-fn (zsexpr element))))
+                            (constant-pair-fn (get-sexpr options element))))
                      (not (zconstant? element))))
             ; we counted the right-hand and any comments of this pair, but it
             ; isn't a pair so exit now with whatever we have so far
@@ -2428,9 +2436,10 @@
   [caller
    {{:keys [constant-pair? constant-pair-fn constant-pair-min]} caller,
     :as options} zloc-seq]
+  #_(prn "constant-pair:" caller constant-pair-fn)
   (if constant-pair?
     (let [[paired-item-count actual-paired-items]
-            (count-constant-pairs constant-pair-fn zloc-seq)
+            (count-constant-pairs options constant-pair-fn zloc-seq)
           non-paired-item-count (- (count zloc-seq) paired-item-count)
           _ (dbg options
                  "constant-pair: non-paired-items:" non-paired-item-count
@@ -3890,7 +3899,8 @@
       zloc
       (let [call-fn? (and (or (nil? depth) (= (:depth options) depth))
                           (or (not trigger-symbol)
-                              (= trigger-symbol (zsexpr (zfirst zloc))))
+                              (and (zsymbol? (zfirst zloc))
+                                   (= trigger-symbol (zsexpr (zfirst zloc)))))
                           modify-fn)]
         (dbg options "modify-zloc: zloc" (zstring zloc) "call-fn?" call-fn?)
         (if call-fn?
@@ -3900,7 +3910,6 @@
           zloc)))))
 
 (declare fzprint-guide)
-(declare lazy-sexpr-seq)
 (declare any-zcoll?)
 (declare wrap-zmap)
 
@@ -4501,7 +4510,7 @@
                                                   (zvector? (zfirst %))))
                                            zloc-seq)
                                 0)
-              doc-string? (string? (zsexpr arg-3-zloc))
+              doc-string? (string? (get-sexpr-or-nil options arg-3-zloc))
               mixin-start (if doc-string? arg-4-count arg-3-count)
               mixin-length (- arg-vec-index mixin-start 1)
               mixins? (pos? mixin-length)
@@ -6244,12 +6253,6 @@
   [coll]
   (remove #(= (nth (first %) 2) :newline) coll))
 
-(defn lazy-sexpr-seq
-  [nws-seq]
-  (if (seq nws-seq)
-    (lazy-cat [(zsexpr (first nws-seq))] (lazy-sexpr-seq (rest nws-seq)))
-    []))
-
 (defn comment-in-zloc-seq?
   "If there are any comments at the top level of the zloc-seq, return true,
   else nil."
@@ -7477,35 +7480,35 @@
             overflow-in-hang? (do (dbg options "fzprint*: overflow <<<<<<<<<<")
                                   nil)
             (zkeyword? zloc) [[zstr (zcolor-map options :keyword) :element]]
-            :else (let [zloc-sexpr (zsexpr zloc)]
+            :else (let [zloc-sexpr (get-sexpr options zloc)]
                     (cond (string? zloc-sexpr)
                             [[(if string-str?
-                                (str (zsexpr zloc))
+                                (str zloc-sexpr)
                                 ; zstr
                                 (zstring zloc))
                               (if string-color
                                 string-color
                                 (zcolor-map options :string)) :element]]
-                          (showfn? options (zsexpr zloc))
+                          (showfn? options zloc-sexpr)
                             [[zstr (zcolor-map options :fn) :element]]
-                          (show-user-fn? options (zsexpr zloc))
+                          (show-user-fn? options zloc-sexpr)
                             [[zstr (zcolor-map options :user-fn) :element]]
-                          (number? (zsexpr zloc))
+                          (number? zloc-sexpr)
                             [[(if hex? (znumstr zloc hex? shift-seq) zstr)
                               (zcolor-map options :number) :element]]
-                          (symbol? (zsexpr zloc))
+                          (symbol? zloc-sexpr)
                             [[zstr (zcolor-map options :symbol) :element]]
-                          (nil? (zsexpr zloc)) [[zstr (zcolor-map options :nil)
+                          (nil? zloc-sexpr) [[zstr (zcolor-map options :nil)
                                                  :element]]
-                          (true? (zsexpr zloc))
+                          (true? zloc-sexpr)
                             [[zstr (zcolor-map options :true) :element]]
-                          (false? (zsexpr zloc))
+                          (false? zloc-sexpr)
                             [[zstr (zcolor-map options :false) :element]]
-                          (char? (zsexpr zloc))
+                          (char? zloc-sexpr)
                             [[zstr (zcolor-map options :char) :element]]
                           (or (instance? #?(:clj java.util.regex.Pattern
                                             :cljs (type #"regex"))
-                                         (zsexpr zloc))
+					 zloc-sexpr)
                               (re-find #"^#\".*\"$" zstr))
                             [[zstr (zcolor-map options :regex) :element]]
                           :else [[zstr (zcolor-map options :none)

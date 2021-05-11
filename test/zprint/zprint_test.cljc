@@ -5865,6 +5865,39 @@ ser/collect-vars-acc %1 %2) )))"
                            :style :odr})
                         (catch :default e (str e)))))
 
+;;
+;; Lots of #188 issue with "..."
+;;
+
+(expect "({:c/d :e, {a b, ...} :b})"
+        (zprint-str "({{a b ...} :b :c/d :e})"
+                    {:parse-string? true, :map {:lift-ns? true}}))
+
+(expect 
+"({:a 1, ...} {:b 2, ...})" 
+(zprint-str 
+"({:a 1, ...} {:b 2, ...})" 
+{:parse-string? true}))
+
+(expect
+"#{:c {:a :b, ...}}"
+(zprint-str "#{{:a :b ...} :c}" {:parse-string? true}))
+
+(expect 
+"(test {:a 1, ...}\n      {:b 2, ...}\n      {:c 3, ...}\n      {:e 4, ...})"
+        (zprint-str "(test {:a 1 ...}{:b 2 ...} {:c 3 ...} {:e 4 ...})\n"
+                    {:parse-string? true,
+                     :fn-map {"test" [:none {:style :vector-pairs}]},
+                     :width 30}))
+
+;;
+;; unlift-ns? does it to symbols too
+;;
+
+(expect
+"#:c{:b 2, a 1}"
+(zprint-str "#:c{a 1 :b 2}" {:parse-string? true :map {:unlift-ns? true}}))
+
   ;;
   ;; Issue #176 -- defprotocol and defrecord need -body when using
   ;; style community

@@ -2,11 +2,11 @@
   (:require [expectations.clojure.test
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
-            [zprint.zutil :refer [edn*]]
+            [zprint.zutil]
             [zprint.core :refer [set-options!]]
             [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
             [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z]))
+            [rewrite-clj.zip :as z :refer [edn*]]))
 
 ;; Keep some of the test from wrapping so they still work
 ;!zprint {:comment {:wrap? false}}

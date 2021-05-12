@@ -1,10 +1,10 @@
 (ns zprint.rewrite
   (:require
     clojure.string
-    [zprint.zutil :as zu :refer [string tag zreplace sexpr edn*]]
+    [zprint.zutil :as zu :refer [zreplace]]
     [rewrite-clj.parser :as p]
     [rewrite-clj.node :as n]
-    [rewrite-clj.zip :as z]))
+    [rewrite-clj.zip :as z :refer [string tag sexpr edn*]]))
 
 ;;
 ;; No prewalk in rewrite-cljs, so we'll do it ourselves here

@@ -26,10 +26,10 @@
     [zprint.comment     :refer [blanks inlinecomment? length-before]]
     [zprint.ansi        :refer [color-str]]
     [zprint.config      :refer [validate-options merge-deep]]
-    [zprint.zutil       :refer [edn* add-spec-to-docstring]]
+    [zprint.zutil       :refer [add-spec-to-docstring]]
     [zprint.util        :refer [column-width-variance median mean percent-gt-n]]
     [rewrite-clj.parser :as p]
-    [rewrite-clj.zip    :as z]
+    [rewrite-clj.zip    :as z :refer [edn* tag right* down*]]
     #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 #_(tufte/add-basic-println-handler! {})
@@ -3379,12 +3379,12 @@
   [zloc]
   (loop [nloc zloc
          index 0]
-    #_(prn "next-newline:" (zstring nloc) "tag:" (zprint.zutil/tag nloc))
-    (let [next-right (zprint.zutil/right* nloc)]
+    #_(prn "next-newline:" (zstring nloc) "tag:" (tag nloc))
+    (let [next-right (right* nloc)]
       (if next-right
         (if (at-newline? nloc)
           [index nloc]
-          (recur (zprint.zutil/right* nloc)
+          (recur (right* nloc)
                  (if-not (zprint.zutil/whitespace? nloc) (inc index) index)))
         [index nloc]))))
 
@@ -3398,7 +3398,7 @@
     (if-not nloc
       nloc
       (let [next-nloc (zprint.zutil/zrightnws nloc)
-            next-tag (zprint.zutil/tag next-nloc)]
+            next-tag (tag next-nloc)]
         #_(prn "nloc:" nloc
                "next-actual: next-nloc:" (zstring next-nloc)
                "next-tag:" next-tag)
@@ -3444,7 +3444,7 @@
         #_(prn "hang-zloc?: second-element:" (zstring second-element)
                "second-indent:" second-indent
                "third-element:" (zstring third-element)
-               "third-tag:" (zprint.zutil/tag third-element)
+               "third-tag:" (tag third-element)
                "third-indent:" third-indent)
         (and second-element third-element (= second-indent third-indent))))))
 
@@ -3740,7 +3740,7 @@
          ; configured.
          already-hung? (when (and indent-only-style
                                   (= indent-only-style :input-hang))
-                         (hang-zloc? (zprint.zutil/down* zloc)))
+                         (hang-zloc? (down* zloc)))
          raw-indent (if (and arg-1-indent already-hung?)
                       (- arg-1-indent ind)
                       flow-indent)

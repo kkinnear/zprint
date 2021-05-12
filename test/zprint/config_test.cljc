@@ -4,7 +4,7 @@
     [expectations.clojure.test #?(:clj :refer
                                   :cljs :refer-macros)
                                  [defexpect expect]]
-    [zprint.zutil       :refer [edn*]]
+    [zprint.zutil ]
     #?(:clj [clojure.edn :as edn])
     #?(:clj [clojure.java.io :as io])
     #?(:clj [clojure.string :as str])
@@ -13,7 +13,7 @@
     [rewrite-clj.parser :as    p
                         :refer [parse-string parse-string-all]]
     [rewrite-clj.node   :as n]
-    [rewrite-clj.zip    :as z])
+    [rewrite-clj.zip    :as z :refer [edn*]])
   #?(:clj (:import (com.sun.net.httpserver HttpHandler HttpServer)
                    (java.net InetSocketAddress)
                    (java.io File ByteArrayOutputStream PrintStream)

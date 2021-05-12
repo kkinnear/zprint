@@ -5,7 +5,7 @@
                        [dbg-pr dbg dbg-form dbg-print zfuture]]])
             [clojure.string :as s]
             [zprint.zfns :refer [zstring ztag]]
-            [zprint.zutil]
+	    [rewrite-clj.zip :as z :refer [left* up* tag length]]
             #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 #_(tufte/add-basic-println-handler! {})
@@ -65,12 +65,12 @@
   (loop [ploc zloc
          total-up 0]
     #_(prn "left-or-up: ploc:" (zstring ploc) "total-up:" total-up)
-    (let [next-left (zprint.zutil/left* ploc)]
+    (let [next-left (left* ploc)]
       (if next-left
         [total-up next-left]
         ; can't go left, what about up?
-        (let [moving-up (zprint.zutil/up* ploc)
-              up-tag (when moving-up (zprint.zutil/tag moving-up))
+        (let [moving-up (up* ploc)
+              up-tag (when moving-up (tag moving-up))
               up-size (tag-l-size up-tag)]
           #_(prn "left-or-up: up-tag:" up-tag)
           (if-not moving-up
@@ -104,7 +104,7 @@
                  "zstr:" zstr
                  "up-size:" up-size
                  "length-right-of-newline:" length-right-of-newline
-                 "(tag ploc):" (zprint.zutil/tag ploc)
+                 "(tag ploc):" (tag ploc)
                  "ploc:" (zstring ploc)
                  "next-zloc:" (zstring next-zloc))
           (if length-right-of-newline
@@ -130,7 +130,7 @@
   Assumes zloc is a comment."
   [zloc]
   #_(prn "inlinecomment? zloc:" (zstring zloc))
-  (loop [nloc (zprint.zutil/left* zloc)
+  (loop [nloc (left* zloc)
          spaces 0
          passed-nl? false]
     (let
@@ -154,7 +154,7 @@
              "nloc:" (zstring nloc))
       (cond
         (nil? tnloc) nil  ; the start of the zloc
-        (= tnloc :newline) (recur (zprint.zutil/left* nloc) spaces true)
+        (= tnloc :newline) (recur (left* nloc) spaces true)
         (or (= tnloc :comment) (= tnloc :comment-inline))
           ; Two comments in a row don't have a newline showing between
           ; them, it is captured by the first comment.  Sigh.
@@ -175,8 +175,8 @@
                     nil))))
         (not= tnloc :whitespace)
           (if passed-nl? nil [spaces (length-before zloc)])
-        :else (recur (zprint.zutil/left* nloc)
-                     ^long (+ ^long (zprint.zutil/length nloc) spaces)
+        :else (recur (left* nloc)
+                     ^long (+ ^long (length nloc) spaces)
                      passed-nl?)))))
 
 (defn last-space

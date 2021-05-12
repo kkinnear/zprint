@@ -23,7 +23,7 @@
                                 get-explained-all-options get-default-options
                                 validate-options apply-style perform-remove
                                 no-color-map merge-deep]]
-    [zprint.zutil       :refer [zmap-all zcomment? edn* whitespace? string
+    [zprint.zutil       :refer [zmap-all zcomment? whitespace? 
                                 find-root-and-path-nw]]
     [zprint.sutil]
     [zprint.focus       :refer [range-ssv]]
@@ -31,6 +31,7 @@
                                 reassemble-range]]
     [sci.core           :as sci]
     [rewrite-clj.parser :as p]
+    [rewrite-clj.zip :as z :refer [edn* string]]
     #_[clojure.spec.alpha :as s])
   #?@(:clj ((:import (java.net URL URLConnection)
                      (java.util.concurrent Executors)
@@ -1030,10 +1031,10 @@
                       (if (:interpose (:parse decision-options))
                         ; we are getting rid of all whitespace between expr
                         0
-                        (spaces? (zprint.zutil/string form))
+                        (spaces? (string form))
                         #_(if (= (:left-space (:parse decision-options)) :drop)
                             ; we are getting rid of just spaces between expr
-                            (spaces? (zprint.zutil/string form))
+                            (spaces? (string form))
                             nil)))
         drop? (not (not (and space-count
                              (not (= :skip (:format next-options)))
@@ -1048,7 +1049,7 @@
         internal-options (merge-deep internal-options local-options)
         #_(do (println "-----------------------")
               (println "form:")
-              (prn (zprint.zutil/string (or (zprint.zutil/zfirst form) form)))
+              (prn (string (or (zprint.zutil/zfirst form) form)))
               (println "space-count:" space-count)
               (println "indent:" indent)
               (println "whitespace-form?:" whitespace-form?)

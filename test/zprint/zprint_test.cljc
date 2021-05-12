@@ -15,14 +15,14 @@
     [zprint.zprint      :refer [line-count max-width line-lengths make-record
                                 contains-nil? map-ignore]]
     [zprint.comment     :refer [blanks]]
-    [zprint.zutil       :refer [edn*]]
+    [zprint.zutil]
     [zprint.config      :refer [merge-deep]]
     #?@(:clj ([clojure.repl :refer [source-fn]]))
     [zprint.core-test   :refer [trim-gensym-regex x8]]
     [rewrite-clj.parser :as    p
                         :refer [parse-string parse-string-all]]
     [rewrite-clj.node   :as n]
-    [rewrite-clj.zip    :as z]))
+    [rewrite-clj.zip    :as z :refer [edn*]]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}

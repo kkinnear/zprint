@@ -138,7 +138,7 @@
          excess-tests (- test-len (* rows arg-vec-len))
          single-row (into [:newline] (repeat arg-vec-len :element))
          row-guide (apply concat (repeat rows single-row))
-         guide (cond-> (-> [:element :element :element]
+         guide (cond-> (-> [:element :element :element-best]
                            (into row-guide))
                  (pos? excess-tests) (conj :newline :element-*))]
      {:guide guide, :next-inner {:list {:option-fn nil}}})))

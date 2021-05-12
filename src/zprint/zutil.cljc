@@ -1,63 +1,19 @@
+;!zprint {:style :require-justify}
 (ns ^:no-doc zprint.zutil
-  (:require
-    #?@(:clj [[zprint.macros :refer [do-redef-vars]]])
-    clojure.string
-    zprint.zfns
-    #?@(:clj [[zprint.redef]])
-    [rewrite-clj.parser :as p]
-    [rewrite-clj.node :as n]
-    [rewrite-clj.zip :as z]))
+  (:require #?@(:clj [[zprint.macros :refer [do-redef-vars]]])
+            clojure.string
+            zprint.zfns
+            #?@(:clj [[zprint.redef]])
+            [rewrite-clj.parser :as p]
+            [rewrite-clj.node :as n]
+            [rewrite-clj.zip :as z :refer
+             [down* up* right* left* next* prev* replace* insert-right* edn*
+              sexpr string tag skip whitespace-or-comment? length rightmost?
+              leftmost?]]))
 
 ;;
 ;; # Zipper oriented style printers
 ;;
-
-;;
-;; Note that both rewrite-clj and rewrite-cljs use the following namespaces:
-;;
-;; rewrite-clj.parse
-;; rewrite-clj.node
-;; rewrite-clj.zip
-;;
-;; and have many common routines.  So it is fine to use z/<fn> as long as
-;; that <fn> shows up in both libraries.
-;;
-
-;;
-;; ## clj and cljs compatibility routines
-;;
-;; ### Routines missing in :cljs since it uses clojure.zip
-;; 
-
-(def down* z/down*)
-
-(def up* z/up*)
-
-(def right* z/right*)
-
-(def left* z/left*)
-
-(def next* z/next*)
-
-(def prev* z/prev*)
-
-(def replace* z/replace*)
-
-(def insert-right* z/insert-right*)
-
-;;
-;; ### Routines with different namespaces
-;;
-
-(def edn* z/edn*)
-
-(def sexpr z/sexpr)
-
-(def string z/string)
-
-(def tag z/tag)
-
-(def skip z/skip)
 
 (defn whitespace?
   [zloc]
@@ -71,14 +27,6 @@
 (defn whitespace-not-newline?
   [zloc]
   (or (= (tag zloc) :whitespace) (= (tag zloc) :comma)))
-
-(def whitespace-or-comment? z/whitespace-or-comment?)
-
-(def length z/length)
-
-(def rightmost? z/rightmost?)
-
-(def leftmost? z/leftmost?)
 
 ; conflicts with clojure.core:
 

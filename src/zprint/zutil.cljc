@@ -6,10 +6,7 @@
     #?@(:clj [[zprint.redef]])
     [rewrite-clj.parser :as p]
     [rewrite-clj.node :as n]
-    [rewrite-clj.zip :as z]
-    #?@(:cljs [[rewrite-clj.zip.base :as zb] [rewrite-clj.zip.whitespace :as zw]
-               [rewrite-clj.zip.move :as zm] [rewrite-clj.zip.removez :as zr]
-               [rewrite-clj.zip.editz :as ze] clojure.zip])))
+    [rewrite-clj.zip :as z]))
 
 ;;
 ;; # Zipper oriented style printers
@@ -32,61 +29,35 @@
 ;; ### Routines missing in :cljs since it uses clojure.zip
 ;; 
 
-(def down*
-  #?(:clj z/down*
-     :cljs clojure.zip/down))
+(def down* z/down*)
 
-(def up*
-  #?(:clj z/up*
-     :cljs clojure.zip/up))
+(def up* z/up*)
 
-(def right*
-  #?(:clj z/right*
-     :cljs clojure.zip/right))
+(def right* z/right*)
 
-(def left*
-  #?(:clj z/left*
-     :cljs clojure.zip/left))
+(def left* z/left*)
 
-(def next*
-  #?(:clj z/next*
-     :cljs clojure.zip/next))
+(def next* z/next*)
 
-(def prev*
-  #?(:clj z/prev*
-     :cljs clojure.zip/prev))
+(def prev* z/prev*)
 
-(def replace*
-  #?(:clj z/replace*
-     :cljs clojure.zip/replace))
+(def replace* z/replace*)
 
-(def insert-right*
-  #?(:clj z/insert-right*
-     :cljs clojure.zip/insert-right))
+(def insert-right* z/insert-right*)
 
 ;;
 ;; ### Routines with different namespaces
 ;;
 
-(def edn*
-  #?(:clj z/edn*
-     :cljs zb/edn*))
+(def edn* z/edn*)
 
-(def sexpr
-  #?(:clj z/sexpr
-     :cljs zb/sexpr))
+(def sexpr z/sexpr)
 
-(def string
-  #?(:clj z/string
-     :cljs zb/string))
+(def string z/string)
 
-(def tag
-  #?(:clj z/tag
-     :cljs zb/tag))
+(def tag z/tag)
 
-(def skip
-  #?(:clj z/skip
-     :cljs zw/skip))
+(def skip z/skip)
 
 (defn whitespace?
   [zloc]
@@ -101,31 +72,19 @@
   [zloc]
   (or (= (tag zloc) :whitespace) (= (tag zloc) :comma)))
 
-(def whitespace-or-comment?
-  #?(:clj z/whitespace-or-comment?
-     :cljs zw/whitespace-or-comment?))
+(def whitespace-or-comment? z/whitespace-or-comment?)
 
-(def length
-  #?(:clj z/length
-     :cljs zb/length))
+(def length z/length)
 
-(def rightmost?
-  #?(:clj z/rightmost?
-     :cljs zm/rightmost?))
+(def rightmost? z/rightmost?)
 
-(def leftmost?
-  #?(:clj z/leftmost?
-     :cljs zm/leftmost?))
+(def leftmost? z/leftmost?)
 
 ; conflicts with clojure.core:
 
-(def zremove
-  #?(:clj z/remove
-     :cljs zr/remove))
+(def zremove z/remove)
 
-(def zreplace
-  #?(:clj z/replace
-     :cljs ze/replace))
+(def zreplace z/replace)
 
 ;;
 ;; Check to see if we are at the focus by checking the

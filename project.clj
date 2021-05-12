@@ -48,7 +48,7 @@
      #_[org.clojure/clojure "1.10.0"]
      #_[org.clojure/clojure "1.9.0"]
      #_[org.clojure/clojure "1.8.0"]
-     [rewrite-cljs "0.4.5" :exclusions [[org.clojure/clojurescript]]]
+     #_[rewrite-cljs "0.4.5" :exclusions [[org.clojure/clojurescript]]]
      [borkdude/edamame "0.0.11-alpha.28"]
      [borkdude/sci "0.2.1-alpha.1"]
 [rewrite-clj/rewrite-clj "1.0.605-alpha"]

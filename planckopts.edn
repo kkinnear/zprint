@@ -1,1 +1,1 @@
-{:warnings {:private-var-access false}}
+{:warnings {:private-var-access false :fn-deprecated false}}

@@ -375,6 +375,24 @@
                      (zfn nloc))]
         (recur (right* nloc) comment? (if result (conj out result) out))))))
 
+(defn zmap-no-comment
+  "Return a vector containing the return of applying a function to 
+  every non-whitespace zloc inside of zloc. Comments are considered
+  whitespace for this routine, and left out."
+  [zfn zloc]
+  #_(prn "zmap-no-comment: zloc" (z/string zloc))
+  (loop [nloc (down* zloc)
+         previous-comment? nil
+         out []]
+    (if-not nloc
+      out
+      (let [comment? (= (z/tag nloc) :comment)
+            nl? (= (z/tag nloc) :newline)
+            result (when (not (or (whitespace? nloc) comment? nl?))
+                     (zfn nloc))]
+        (recur (right* nloc) comment? (if result (conj out result) out))))))
+
+
 ; This was the original zmap before all of the changes...
 #_(defn zmap-alt
     "Return a vector containing the return of applying a function to 
@@ -788,6 +806,7 @@
     zprint.zfns/zmap-w-nl zmap-w-nl
     zprint.zfns/zmap-w-bl zmap-w-bl
     zprint.zfns/zmap-w-nl-comma zmap-w-nl-comma
+    zprint.zfns/zmap-no-comment zmap-no-comment
     zprint.zfns/zanonfn? zanonfn?
     zprint.zfns/zfn-obj? (constantly false)
     zprint.zfns/zfocus zfocus

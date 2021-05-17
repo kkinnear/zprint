@@ -22,7 +22,8 @@
                                 zreader-cond-w-symbol? zreader-cond-w-coll?
                                 zlift-ns zfind zmap-w-nl zmap-w-nl-comma
                                 ztake-append znextnws-w-nl znextnws
-                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]
+                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?
+				zmap-no-comment zfn-map]]
     [zprint.comment     :refer [blanks inlinecomment? length-before]]
     [zprint.ansi        :refer [color-str]]
     [zprint.config      :refer [validate-options merge-deep]]
@@ -101,7 +102,7 @@
   not important, because historically many option-fn's didn't know to do this."
   [option-fn]
   (try (let [option-fn-name (option-fn)]
-         (when (string? option-fn-name) (str " named " option-fn-name)))
+         (when (string? option-fn-name) (str " named '" option-fn-name "'")))
        (catch #?(:clj Exception
                  :cljs :default)
          e
@@ -175,18 +176,25 @@
   the merged options. Returns [merged-options-map new-options]"
   [caller options option-fn zloc]
   #_(prn "call-option-fn caller:" caller)
-  (let [sexpr-seq (get-sexpr options zloc)]
+  (let [sexpr-seq (get-sexpr options zloc)
+	; Add the current zloc to the options for the option-fn
+	options (assoc options :zloc zloc :caller caller)]
     (internal-config-and-validate
       options
       (try (option-fn options (count sexpr-seq) sexpr-seq)
            (catch #?(:clj Exception
                      :cljs :default)
              e
+	     (do
+	     (dbg-s options :guide-exception
+
+	        "Failure in option-fn:" (throw e))
+
              (throw (#?(:clj Exception.
                         :cljs js/Error.)
                      (str " When " caller
                           " called an option-fn" (option-fn-name option-fn)
-                          " it failed because: " e)))))
+                          " it failed because: " e))))))
       (str caller
            " :option-fn" (option-fn-name option-fn)
            " called with an sexpr of length " (count sexpr-seq))
@@ -5736,6 +5744,33 @@
                            previous-data
                            options
                            out))
+                (= first-guide-seq :mark-at-indent)
+                  ; put the cur-ind plus spaces into the mark map with
+                  ; key from the next guide-seq
+                  (do
+                    (dbg-s
+                      options
+                      :guide
+                      (color-str "fzprint-guide: === :mark-at-indent key:" :bright-red)
+                      (first (next guide-seq))
+                      "value:"
+                      (+ (:ind param-map) (:indent param-map) (first (nnext guide-seq))))
+                    (recur cur-zloc
+                           cur-index
+                           ; skip two to account for the mark key and the
+                           ; spaces count
+                           (nthnext guide-seq 3)
+                           element-index
+                           (inc index)
+                           param-map
+                           (assoc mark-map
+                             (first (next guide-seq))
+                               (+ (:indent param-map)
+				  (:ind param-map)
+                                  (first (nnext guide-seq))))
+                           previous-data
+                           options
+                           out))
                 (= first-guide-seq :spaces)
                   ; save the spaces for when we actually do output
                   ; note that spaces after a newline are beyond the indent
@@ -7532,7 +7567,10 @@
                (add-spec-to-docstring zloc (:value (:spec options))))
         style-vec (fzprint* (assoc options
                               :depth 0
-                              :map-depth 0)
+                              :map-depth 0
+			      ; Add a map of zfns to the options for use
+			      ; by guides that need them.
+			      :zfn-map (zfn-map))
                             indent
                             zloc)]
     #_(def fsv style-vec)

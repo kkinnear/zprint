@@ -5,6 +5,7 @@
   (:require #?@(:clj [[zprint.macros :refer
                        [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
             [clojure.string :as s]
+	    [rewrite-clj.zip :as z]
             [zprint.util :refer [abs column-alignment cumulative-alignment]]))
 
 ;;
@@ -128,7 +129,67 @@
 ;;
 
 (defn areguide
-  "Format are test functions."
+  "Format are test functions.  Call it with (partial {} areguide), where
+  the map can be {:justify? true} to justify the various rows. It will
+  use {:pair {:justify {:max-variance n}}} for the variance, but you can
+  give it a variance to use with {:max-variance n} in the map which is
+  its first argument."
+  ([] "areguide")
+  ; If you call a guide with partial because it has its own options map,
+  ; the "no-argument" arity must include the options map!
+  ([are-options] "areguide")
+  ; Since we have released this before, we will also allow it to be called
+  ; without are-options
+  ([options len sexpr] (areguide {} options len sexpr))
+  ([are-options options len sexpr]
+   (let [justify? (:justify? are-options)
+         max-variance (when justify?
+                        (or (:max-variance are-options)
+                            (:max-variance (:justify (:pair options)))))
+         caller-options ((:caller options) options)
+         current-indent (or (:indent-arg caller-options)
+                            (:indent caller-options))
+         are-indent (:indent are-options)
+         table-indent (+ current-indent (or are-indent current-indent))
+         arg-vec-len (count (second sexpr))
+         test-len (- (count sexpr) 3)
+         rows (/ test-len arg-vec-len)
+         excess-tests (- test-len (* rows arg-vec-len))
+         alignment-vec
+           (when justify?
+             (let [; zloc-seq no comments
+                   zfn-map (:zfn-map options)
+                   zloc-seq-nc
+                     ((:zmap-no-comment zfn-map) identity (:zloc options))
+                   args (drop 3 zloc-seq-nc)
+                   ; Get the lengths of the actual zloc values, not the sexpr
+                   arg-strs (mapv (:zstring zfn-map) args)
+                   seq-of-seqs (partition arg-vec-len arg-vec-len [] arg-strs)
+                   max-width-vec (column-alignment max-variance seq-of-seqs)
+                   alignment-vec (cumulative-alignment max-width-vec)]
+               #_(prn "max-width-vec:" max-width-vec
+                      "alignment-vec:" alignment-vec)
+               alignment-vec))
+         mark-guide
+           (vec (flatten (mapv vector (repeat :mark-at-indent) (range) alignment-vec)))
+         new-row-guide (cond-> [:element :indent table-indent]
+                         (not (empty? alignment-vec))
+                           (into (interleave (repeat :align)
+                                             (range (count alignment-vec))
+                                             (repeat :element)))
+                         (empty? alignment-vec) (into (repeat (dec arg-vec-len)
+                                                              :element))
+                         true (conj :indent-reset :newline))
+         multi-row-guide (apply concat (repeat rows new-row-guide))
+         guide (cond-> (-> [:element :element :element-best :newline]
+                           (into mark-guide)
+                           (into multi-row-guide))
+                 (pos? excess-tests) (conj :element-*))]
+     #_(prn "guide:" guide)
+     {:guide guide, :next-inner {:list {:option-fn nil}}})))
+
+(defn areguide-basic
+  "Format are test functions, no justification."
   ([] "areguide")
   ([options len sexpr]
    (let [arg-vec-len (count (second sexpr))
@@ -142,6 +203,7 @@
                            (into row-guide))
                  (pos? excess-tests) (conj :newline :element-*))]
      {:guide guide, :next-inner {:list {:option-fn nil}}})))
+
 
 ; Do this to use the above:
 ;

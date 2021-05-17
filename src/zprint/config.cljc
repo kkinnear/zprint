@@ -631,7 +631,8 @@
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
       :areguide {:doc "Allow modification of areguide in :fn-map",
-                 :list {:option-fn areguide}},
+                 :list {:option-fn (partial areguide {:justify? true})}
+		 :next-inner {:option-fn nil}},
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros",
          :fn-map

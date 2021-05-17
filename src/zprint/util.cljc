@@ -8,6 +8,7 @@
   made zprint.core. If sexpr is nil, return nil."
   [sexpr]
   (when sexpr
+    #_(prn "size:" sexpr)
     (let [s (str sexpr)
           s (cond (clojure.string/starts-with? s ":zprint.core/")
                     (clojure.string/replace s ":zprint.core/" "::")
@@ -234,7 +235,7 @@
 
 
 (defn cumulative-alignment
-  "Given an vector of max-widths from column-alignment, produce a vector
+  "Given a vector of max-widths from column-alignment, produce a vector
   of the cumulative alignment positions for the second through nth columns."
   [max-width-vec]
   (second

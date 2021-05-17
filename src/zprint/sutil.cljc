@@ -302,6 +302,7 @@
     zprint.zfns/zmap-w-nl smap
     zprint.zfns/zmap-w-bl smap
     zprint.zfns/zmap-w-nl-comma smap
+    zprint.zfns/zmap-no-comment smap
     ; zprint.zfns/zfn? sfn?
     zprint.zfns/zanonfn? (constantly false) ; this only works because lists,
     ; anon-fn's, etc. are checked before this is used.

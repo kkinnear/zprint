@@ -2196,6 +2196,11 @@
     "(are [x y z] (= x y z)
    3 (stuff y) (bother z)
    4 (foo y) (bar z))")
+
+  (def are1a
+"(are [x y z] (= x y z)\n   3 (stuff y) (bother z)\n   4 (foo y) (bar z)\n   'this is (a test)\n   (quote 'this) is [:only :a :test])"
+)
+
   (def are2 "(are [x y] (= x y)  
   2 (+ 1 1)
   4 (* 2 2))")
@@ -2282,6 +2287,43 @@
     (zprint-str are1
                 {:parse-string? true,
                  :fn-map {"are" [:guided {:list {:option-fn areguide}}]}}))
+
+  ;;
+  ;; Justification in areguide
+  ;;
+
+(expect
+  "(are [x y z] (= x y z)\n  3 (stuff y) (bother z)\n  4 (foo y)   (bar z))"
+  (zprint-str
+    are1
+    {:parse-string? true,
+     :fn-map {"are" [:guided
+                     {:list {:option-fn (partial areguide
+                                                 {:justify? true,
+                                                  :max-variance 20})}}]}}))
+
+(expect
+  "(are [x y z] (= x y z)\n  3     (stuff y) (bother z)\n  4     (foo y)   (bar z)\n  'this is        (a test)\n  (quote 'this) is [:only :a :test])"
+  (zprint-str
+    are1a
+    {:parse-string? true,
+     :fn-map {"are" [:guided
+                     {:list {:option-fn (partial areguide
+                                                 {:justify? true,
+                                                  :max-variance 20})}}]}}))
+
+
+(expect
+  "(are [x y z] (= x y z)\n  3             (stuff y) (bother z)\n  4             (foo y)   (bar z)\n  'this         is        (a test)\n  (quote 'this) is        [:only :a :test])"
+  (zprint-str
+    are1a
+    {:parse-string? true,
+     :fn-map {"are" [:guided
+                     {:list {:option-fn (partial areguide
+                                                 {:justify? true,
+                                                  :max-variance 40})}}]}}))
+
+
   (expect "(are [x y] (= x y)\n  2 (+ 1 1)\n  4 (* 2 2))"
           (zprint-str are2
                       {:parse-string? true,

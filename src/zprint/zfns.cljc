@@ -6,6 +6,7 @@
 ;; Defined by with-redefs in either sutil.cljc or zutil.cljc
 ;;
 
+
 (def zstring nil)
 (def znumstr nil)
 (def zbyte-array? nil)
@@ -33,6 +34,7 @@
 (def zmap-w-nl nil)
 (def zmap-w-bl nil)
 (def zmap-w-nl-comma nil)
+(def zmap-no-comment nil)
 (def zanonfn? nil)
 (def zfn-obj? nil)
 (def zfocus nil)
@@ -74,3 +76,6 @@
 (def zlift-ns nil)
 (def zfind nil)
 (def ztake-append nil)
+
+(defn zfn-map [] {:zmap-no-comment zmap-no-comment :zstring zstring})
+

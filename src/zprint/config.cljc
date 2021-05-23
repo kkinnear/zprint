@@ -633,6 +633,9 @@
       :areguide {:doc "Allow modification of areguide in :fn-map",
                  :list {:option-fn (partial areguide {:justify? true})}
 		 :next-inner {:option-fn nil}},
+      :areguide-nj {:doc "Do nice are formatting, but don't justify",
+                 :list {:option-fn (partial areguide {:justify? false})}
+		 :next-inner {:option-fn nil}},
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros",
          :fn-map
@@ -1364,50 +1367,7 @@
 ;; # Style
 ;;
 
-(defn apply-one-style-alt
-  "Take a [doc-string new-map [existing-map doc-map error-str] style-name]
-  and produce a new [existing-map doc-map error-str] from the style defined
-  in the new-map if it exists, or the existing-map if it doesn't."
-  [doc-string new-map [existing-map doc-map error-str] style-name]
-  (if (or (= style-name :not-specified) (nil? style-name))
-    [existing-map doc-map nil]
-    (let [style-map (if (= style-name :default)
-                      (get-default-options)
-                      (or (get-in new-map [:style-map style-name])
-                          (get-in existing-map [:style-map style-name])))]
-      (if style-map
-        (let [updated-map (merge-deep existing-map style-map)]
-          [updated-map
-           (when doc-map
-             (diff-deep-ks (str doc-string " specified :style " style-name)
-                           doc-map
-                           (key-seq style-map)
-                           updated-map)) nil])
-        [existing-map doc-map (str "Style '" style-name "' not found!")]))))
-
 (declare apply-style)
-(defn apply-one-style-alt1
-  "Take a [doc-string new-map [existing-map doc-map error-str] style-name]
-  and produce a new [updated-map doc-map error-str] from the style defined
-  in the new-map if it exists, or the existing-map if it doesn't."
-  [doc-string new-map [existing-map doc-map error-str] style-name]
-  (if (or (= style-name :not-specified) (nil? style-name))
-    [existing-map doc-map nil]
-    (let [style-map (if (= style-name :default)
-                      (get-default-options)
-                      (or (get-in new-map [:style-map style-name])
-                          (get-in existing-map [:style-map style-name])))]
-      (if style-map
-        (let [updated-map (merge-deep existing-map style-map)
-              updated-doc-map
-                (when doc-map
-                  (diff-deep-ks (str doc-string " specified :style " style-name)
-                                doc-map
-                                (key-seq style-map)
-                                updated-map))]
-          ; Apply any recursive styles
-          (apply-style doc-string updated-doc-map updated-map new-map))
-        [existing-map doc-map (str "Style '" style-name "' not found!")]))))
 
 (defn apply-one-style
   "Take a [doc-string new-map [existing-map doc-map error-str] style-name]
@@ -1515,17 +1475,29 @@
 ;; # Configuration Utilities
 ;;
 
-#_(def opts {:namespaces {'zprint.guide {'odrguide4 zprint.guide/odrguide}}})
+;;
+;; Allow user defined option maps to access to the internally defined 
+;; guide functions.
+;;
 
-(defn try-to-load-string
+(def opts
+  {:namespaces {'clojure.core {'jrequireguide zprint.guide/jrequireguide,
+                               'defprotocolguide zprint.guide/defprotocolguide,
+                               'signatureguide1 zprint.guide/signatureguide1,
+                               'guideguide zprint.guide/guideguide,
+                               'rodguide zprint.guide/rodguide,
+                               'areguide zprint.guide/areguide,
+                               'odrguide zprint.guide/odrguide}}})
+(def sci-ctx (sci/init opts))
+
+(defn sci-load-string
   "Read an options map from a string using sci/eval-string to read
   in the structure, and to create sandboxed function for any functions
   defined in the options-map (i.e. in the string).  Any failures
   from eval-string are not caught and propagate back up the call
   stack."
   [s]
-  #?(:clj (sci/eval-string s #_opts)
-     :cljs nil))
+  (sci/eval-string* sci-ctx s))
 
 ;; Remove two files from this, make it one file at a time.`
 ;; Do the whole file here.
@@ -1552,7 +1524,7 @@
                                " because " e)]))]
             (if file-error
               (if optional? nil [nil file-error full-path])
-              (try (let [opts-file (try-to-load-string
+              (try (let [opts-file (sci-load-string
                                      (clojure.string/join "\n" lines))]
                      [opts-file nil full-path])
                    (catch Exception e
@@ -1608,7 +1580,7 @@
   "Read in an options map from a string."
   [map-string]
   (when map-string
-    (try (let [opts-map (sci/eval-string map-string)] [opts-map nil])
+    (try (let [opts-map (sci-load-string map-string)] [opts-map nil])
          (catch #?(:clj Exception
                    :cljs :default)
            e

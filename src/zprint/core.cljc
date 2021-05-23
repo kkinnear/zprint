@@ -22,14 +22,13 @@
                                 get-explained-set-options
                                 get-explained-all-options get-default-options
                                 validate-options apply-style perform-remove
-                                no-color-map merge-deep]]
+                                no-color-map merge-deep sci-load-string]]
     [zprint.zutil       :refer [zmap-all zcomment? whitespace? 
                                 find-root-and-path-nw]]
     [zprint.sutil]
     [zprint.focus       :refer [range-ssv]]
     [zprint.range       :refer [expand-range-to-top-level split-out-range
                                 reassemble-range]]
-    [sci.core           :as sci]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip :as z :refer [edn* string]]
     #_[clojure.spec.alpha :as s])
@@ -182,7 +181,7 @@
                               url-as-filename))
              cache-item (if (and (.exists cache) (not (zero? (.length cache))))
                           (try (-> (slurp cache)
-                                   (sci/eval-string)
+                                   (sci-load-string)
                                    #_(clojure.edn/read-string))
                                (catch Exception e (.delete cache) nil)))
              active-cache? (and cache-item
@@ -206,7 +205,7 @@
                                                 (.setConnectTimeout 1000)
                                                 (.connect))
                    remote-opts (some-> (slurp (.getInputStream remote-conn))
-                                       (sci/eval-string)
+                                       (sci-load-string)
                                        #_(clojure.edn/read-string))]
                (if remote-opts
                  (do
@@ -968,7 +967,7 @@
   (let [s-onesemi (clojure.string/replace s #"^;+" ";")
         comment-split (clojure.string/split s-onesemi #"^;!zprint ")]
     (when-let [possible-options (second comment-split)]
-      (try [(sci/eval-string possible-options) nil]
+      (try [(sci-load-string possible-options) nil]
            (catch #?(:clj Exception
                      :cljs :default)
              e

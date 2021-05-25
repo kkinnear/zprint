@@ -42,15 +42,10 @@
           :doc-files
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],
           :metadata {:doc/format :markdown}}
-  :dependencies
-    [[org.clojure/clojure "1.10.3"]
-     #_[org.clojure/clojure "1.11.0-alpha1"]
-     #_[org.clojure/clojure "1.10.0"]
-     #_[org.clojure/clojure "1.9.0"]
-     #_[org.clojure/clojure "1.8.0"]
-     #_[rewrite-cljs "0.4.5" :exclusions [[org.clojure/clojurescript]]]
-     [borkdude/edamame "0.0.11-alpha.28"]
-     #_[borkdude/sci "0.2.1-alpha.1"]
-     [borkdude/sci "0.2.5"]
-[rewrite-clj/rewrite-clj "1.0.605-alpha"]
-     #_[rewrite-clj "0.6.1" :exclusions [[com.cemerick/austin]]]])
+  :dependencies [[org.clojure/clojure "1.10.3"]
+                 #_[org.clojure/clojure "1.11.0-alpha1"]
+                 #_[org.clojure/clojure "1.10.0"]
+                 #_[org.clojure/clojure "1.9.0"]
+                 #_[org.clojure/clojure "1.8.0"]
+                 [borkdude/sci "0.2.5"]
+                 [rewrite-clj/rewrite-clj "1.0.605-alpha"]])

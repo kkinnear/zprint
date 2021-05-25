@@ -63,6 +63,15 @@
          (clojure.walk/postwalk clean-gensym)
          (clojure.walk/postwalk clean-regex)))
 
+  ;;
+  ;; Trim exceptions
+  ;;
+
+  (defn clean-exception
+    "Clean out specific information from end of exceptions."
+    [s]
+    (clojure.string/replace s #"because:.*" "because:"))
+
   (def x
     "(defn testfn
   \"This fn is designed to see if reader macros, specifically the
@@ -629,13 +638,13 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: clojure.lang.ExceptionInfo: EOF while reading, expected } to match { at [1,1] {:type :sci.error/parse, :line 2, :column 1, :edamame/expected-delimiter \"}\", :edamame/opened-delimiter \"{\", :phase \"parse\", :file nil}"
+         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because:" 
          (try
            (zprint-file-str
              "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
              "stuff"
              {})
-           (catch Exception e (str e))))
+           (catch Exception e (clean-exception (str e)))))
      :cljs
        (expect
          "Error: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because: #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :sci.error/parse, :line 2, :column 1, :edamame/expected-delimiter \"}\", :edamame/opened-delimiter \"{\", :phase \"parse\", :file nil}, :cause #error {:message \"EOF while reading, expected } to match { at [1,1]\", :data {:type :edamame/error, :line 2, :column 1, :edamame/expected-delimiter \"}\", :edamame/opened-delimiter \"{\"}}}"

@@ -1,13 +1,16 @@
 (ns ^:no-doc zprint.range
   (:require [clojure.string :as s]
-            [edamame.core :refer [parse-string-all]]))
+	    [zprint.util :refer [abs]]
+            [rewrite-clj.parser :as p]
+            [rewrite-clj.node :as n]
+            [rewrite-clj.zip :as z]))
 
 ;;
 ;; # Handle range specification
 ;;
 
 (defn in-row?
-  "If a line number n is in a particular edamame row, return the row map.
+  "If a line number n is in a particular row, return the row map.
   If it is not in the row, return +1 or -1 to indicate which direction
   to look."
   [n row]
@@ -78,28 +81,22 @@
                                        current-index
                                        (inc tries))))))))))
 
-(defn abs "Return the absolute value of a number." [n] (if (neg? n) (- n) n))
-
 (defn find-row
   "Given a vector of rows, find the row that contains a line number,
   linenumber, and return the number of that row in the vector.
   row-vec looks like this: 
-  [{:row 2, :col 1, :end-row 7, :end-col 21}
-   {:row 9, :col 1, :end-row 18, :end-col 6} 
-   {:row 20, :col 1, :end-row 29, :end-col 6}]
-  If none exists, return the next row. Note that line numbers are 1
-  based, not zero based for this routine and the information in
+  [{:col 1, :end-col 21, :end-row 7, :row 2}
+   {:col 1, :end-col 6, :end-row 18, :row 9}
+   {:col 1, :end-col 6, :end-row 29, :row 20}]
+  If none exists, return the next row. Note that line numbers are
+  1 based, not zero based for this routine and the information in
   row-vec, but the index into row-vec that this routine returns is
-  zero based.  Uses a binary search. If the line number is before the
-  first information in the row-vec, returns :before-beginning, and
-  if it is after the last information in the row-vec, returns
-  :beyond-end. Note that the row-vec as returned from edamame
-  parse-string-all contains not only maps like {:row 5 :end-row 10}
-  but also nils for things that didn't have paired delimiters around
-  them (e.g., keywords, strings, etc.).  You must remove those
-  from row-vec before calling find-row.  Note that find-row returns an 
-  index into row-vec, and it must be the row-vec that has had nils 
-  removed from it (or this routine would do that for you)."
+  zero based.  Uses a binary search. If the line number is before
+  the first information in the row-vec, returns :before-beginning,
+  and if it is after the last information in the row-vec, returns
+  :beyond-end. Note that find-row returns an index into row-vec,
+  and it must be the row-vec that has had nils removed from it (or
+  this routine would do that for you)."
   ([row-vec linenumber dbg? scan-size]
    (when dbg?
      (println "find-row: linenumber:" linenumber "scan-size:" scan-size))
@@ -184,25 +181,11 @@
         ;  {:col 1, :end-col 6, :end-row 20, :row 11}
         ;  {:col 1, :end-col 70, :end-row 26, :row 22}
         ;  {:col 1, :end-col 48, :end-row 29, :row 27}]
-        row-vec (try (mapv meta
-                       (parse-string-all
-                         filestring
-                         {:all true,
-                          :features #{:clj :cljs},
-                          ; Ensure that reader-conditionals have something
-                          ; show up with meta data regardless of the
-                          ; "features" in the reader-conditional
-                          :read-cond (fn [expr] (with-meta [] (meta expr))),
-                          :auto-resolve {:current *ns*}}))
-                     ; If we can't parse it, we have set row-vec to nil, which
-                     ; should cause us to format everything.
-                     (catch #?(:clj Exception
-                               :cljs :default)
-                       e
-                       nil))
-        row-vec (when row-vec (into [] (remove nil? row-vec)))
-        ; If row-vec is nil, then we didn't parse this, so do everything
-        ; silently.
+        row-vec (->> (p/parse-string-all filestring)
+	            n/children
+		    (remove n/whitespace?)
+		    (remove #(= (n/tag %) :comment))
+		    (mapv meta))
         _ (when dbg? (prn row-vec))
         ; Figure out which expression start falls within, after making
         ; it a one-based line number.  -idx are indexes into row-vec,
@@ -213,7 +196,7 @@
                      start-row-idx
                      (if (number? start-row-idx)
                        (str "row:" (nth row-vec start-row-idx)
-                            "previous row:" (nth row-vec
+                            " previous row:" (nth row-vec
                                                  (max 0 (dec start-row-idx))))
                        "")))
         actual-start
@@ -232,6 +215,11 @@
         ; actual-start.  But not if it is zero or negative, since we don't
         ; want to mess with the range if it encompasses the beginning of
         ; the file.
+	;
+	; The point of this is to make sure that we catch any comments that
+	; might contain zprint directives in them, so ultimately we are 
+	; setting actual-start to the first non-blank line after the end of
+	; the previous top-level form.
         actual-start (if (or (< actual-start 1) (>= actual-start line-count))
                        actual-start
                        (next-non-blank-line lines actual-start))

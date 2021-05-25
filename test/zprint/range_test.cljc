@@ -249,6 +249,19 @@
                      {:input {:range {:start 0, :end 1}},
                       :parse {:interpose "\n\n\n"}}))
 
+;;
+;; Issue #190
+;;
+;; Problems with parser not recognizing :uneval expressions at the top level
+;;
+
+(expect
+  "(ns demo)\n\n(def foo :foo)\n\n#_(def bar :bar)\n\n(def cat :cat)\n"
+  (zprint-file-str
+    "(ns demo)\n\n(def foo\n  :foo\n)\n\n#_\n  (def bar\n    :bar\n  )\n\n(def cat :cat)\n"
+    "stuff"
+    {:input {:range {:start 3, :end 7}}, :dbg? false}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

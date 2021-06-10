@@ -41,6 +41,15 @@
 (defexpect zprint-tests
 
   ;;
+  ;; Trim exceptions
+  ;;
+
+  (defn clean-exception
+    "Clean out specific information from end of exceptions."
+    [s]
+    (clojure.string/replace s #"because:.*" "because:"))
+
+  ;;
   ;; # Pretty Tests
   ;;
   ;; See if things print the way they are supposed to.
@@ -2613,12 +2622,12 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception:  When :list called an option-fn named 'test' it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+         "java.lang.Exception:  When :list called an option-fn named 'test' it failed because:" 
          (try (zprint "(a b c)"
                       {:parse-string? true,
                        :list {:option-fn (fn ([] "test")
                                              ([options len sexpr] (+ :a 0)))}})
-              (catch Exception e (str e))))
+              (catch Exception e (clean-exception (str e)))))
      :cljs
        (expect
          "Error:  When :list called an option-fn named 'test' it failed because: Error: 0 is not ISeqable"
@@ -2630,11 +2639,11 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception:  When :list called an option-fn it failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+         "java.lang.Exception:  When :list called an option-fn it failed because:" 
          (try (zprint "(a b c)"
                       {:parse-string? true,
                        :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
-              (catch Exception e (str e))))
+              (catch Exception e (clean-exception (str e)))))
      :cljs
        (expect
          "Error:  When :list called an option-fn it failed because: Error: 0 is not ISeqable"
@@ -2645,12 +2654,12 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+         "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because:"
          (try (zprint "[:a :b :c]"
                       {:parse-string? true,
                        :vector {:option-fn-first (fn ([options sexpr]
                                                       (+ :a 0)))}})
-              (catch Exception e (str e))))
+              (catch Exception e (clean-exception (str e)))))
      :cljs
        (expect
          "Error: When :vector called an option-fn-first with ':a' failed because: Error: 0 is not ISeqable"
@@ -2662,12 +2671,12 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception: When :vector called an option-fn-first named 'test' with ':a' failed because: java.lang.ClassCastException: clojure.lang.Keyword cannot be cast to java.lang.Number"
+         "java.lang.Exception: When :vector called an option-fn-first named 'test' with ':a' failed because:"
          (try (zprint "[:a :b :c]"
                       {:parse-string? true,
                        :vector {:option-fn-first
                                   (fn ([] "test") ([options sexpr] (+ :a 0)))}})
-              (catch Exception e (str e))))
+              (catch Exception e (clean-exception (str e)))))
      :cljs
        (expect
          "Error: When :vector called an option-fn-first named 'test' with ':a' failed because: Error: 0 is not ISeqable"

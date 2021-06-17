@@ -179,7 +179,7 @@ This function was written with some blank lines in it for clarity.
         
         :else form))
 ```
-## When to use `{:style :respect-bl]`
+## When to use `{:style :respect-bl}`
 If you like to use blank lines within your function definitions,
 it would be reasonable to place `{:style :respect-bl}` in your
 `~/.zprintrc` file to use it for all of your files.  Blank lines

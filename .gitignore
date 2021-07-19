@@ -2,6 +2,7 @@
 /classes
 /checkouts
 /src/zprint/repl.clj
+/src/zprint/replbb.clj
 /src/zprint/repl.cljc
 /src/zprint/log.txt
 /planck_cache

@@ -1,19 +1,22 @@
 ;!zprint {:style :require-justify}
 (ns ^:no-doc zprint.config
   #?(:clj [:refer-clojure :exclude [read-string]])
-  (:require
-    clojure.string
-    [clojure.set    :refer [difference]]
-    [clojure.data   :as d]
-    [zprint.spec    :refer [validate-basic coerce-to-boolean]]
-    [zprint.rewrite :refer [sort-dependencies]]
-    [zprint.guide   :refer [jrequireguide defprotocolguide signatureguide1
-                            odrguide guideguide rodguide areguide]]
-    [sci.core       :as sci]
-    #?(:clj [clojure.edn :refer [read-string]]
-       :cljs [cljs.reader :refer [read-string]]))
-  #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader)
-                     (java.util.concurrent.locks ReentrantLock))]))
+  (:require clojure.string
+            [clojure.set :refer [difference]]
+            [clojure.data :as d]
+            [zprint.spec :refer [validate-basic coerce-to-boolean]]
+            [zprint.rewrite :refer [sort-dependencies]]
+            [zprint.guide :refer
+             [jrequireguide defprotocolguide signatureguide1 odrguide guideguide
+              rodguide areguide]]
+            #?@(:bb []
+	       ; To completely remove sci, comment out the following line.
+                :clj [[sci.core :as sci]]
+                :cljs [[sci.core :as sci]])
+            #?(:clj [clojure.edn :refer [read-string]]
+               :cljs [cljs.reader :refer [read-string]]))
+  #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
+
 
 ;;
 ;; # Configuration
@@ -21,6 +24,8 @@
 ;; Handles incoming configuration, validation of option maps,
 ;; contains atoms holding the current options map.
 ;;
+
+
 
 ;;
 ;; # Program Version
@@ -962,6 +967,7 @@
    :uneval :none,
    :user-fn :none})
 
+
 ;;
 ;; # Mutable Options storage
 ;;
@@ -1268,15 +1274,18 @@
 ;; Alfred Xiao 5/23/15
 ;;
 
-#?(:clj (defn current-stack-trace [] (.getStackTrace (Thread/currentThread))))
-#?(:clj (defn is-repl-stack-element
+#?(:bb []
+   :clj (defn current-stack-trace [] (.getStackTrace (Thread/currentThread))))
+#?(:bb []
+   :clj (defn is-repl-stack-element
           [^java.lang.StackTraceElement stack-element]
           (and (= "clojure.main$repl" (.getClassName stack-element))
                (= "doInvoke" (.getMethodName stack-element)))))
 
 (defn is-in-repl?
   []
-  #?(:clj (some is-repl-stack-element (current-stack-trace))
+  #?(:bb true
+     :clj (some is-repl-stack-element (current-stack-trace))
      :cljs nil))
 
 (defn select-op-options
@@ -1488,7 +1497,13 @@
                                'rodguide zprint.guide/rodguide,
                                'areguide zprint.guide/areguide,
                                'odrguide zprint.guide/odrguide}}})
-(def sci-ctx (sci/init opts))
+(def sci-ctx
+  #?(:bb nil
+     ;:clj nil
+     ; To completely remove sci, include the previous line and comment
+     ; out the following line.
+     :clj (sci/init opts)
+     :cljs (sci/init opts)))
 
 (defn sci-load-string
   "Read an options map from a string using sci/eval-string to read
@@ -1497,7 +1512,12 @@
   from eval-string are not caught and propagate back up the call
   stack."
   [s]
-  (sci/eval-string* sci-ctx s))
+  #?(:bb (read-string s)
+     ; :clj (read-string s)
+     ; To completely remove sci, include the previous line and comment out
+     ; the following line.
+     :clj (sci/eval-string* sci-ctx s)
+     :cljs (sci/eval-string* sci-ctx s)))
 
 ;; Remove two files from this, make it one file at a time.`
 ;; Do the whole file here.

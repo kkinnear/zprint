@@ -1,5 +1,6 @@
 (ns ^:no-doc zprint.redef
-  #?@(:clj [(:import (java.util.concurrent.locks ReentrantLock))]))
+  #?@(:bb []
+      :clj [(:import (java.util.concurrent.locks ReentrantLock))]))
 
 ;;
 ;; # Function switch support
@@ -19,11 +20,15 @@
 ;; function, and it requires ^:dyanmic, which costs performance.
 ;;
 
-#?(:clj (def ztype (atom [:none 0])))
-#?(:clj (def ztype-lock (ReentrantLock.)))
-#?(:clj (def zlock-enable (atom true)))
+#?(:bb []
+   :clj (def ztype (atom [:none 0])))
+#?(:bb []
+   :clj (def ztype-lock (ReentrantLock.)))
+#?(:bb []
+   :clj (def zlock-enable (atom true)))
 
-#?(:clj
+#?(:bb []
+   :clj
      (defmacro zlocking
        "Emulates locking macro, but doesn't use synchronized block
        because that interacts badly with graalvm. Executes exprs
@@ -40,7 +45,8 @@
                (catch Exception e#
                  (if @zlock-enable (. lockee# (unlock)))
                  (throw e#))))))
-#?(:clj
+#?(:bb []
+   :clj
      (defn remove-locking
        "Removes the locking on the ztype-lock because graalvm doesn't seem
        to be able to figure out how it works and operate correctly."
@@ -49,7 +55,8 @@
 
 ;#?(:clj (def ztype-history (atom [])))
 
-#?(:clj (defn bind-vars
+#?(:bb []
+   :clj (defn bind-vars
           "Change the root binding of all of the vars in the binding-map."
           [binding-map]
           (doseq [[the-var var-value] binding-map]
@@ -57,7 +64,8 @@
 
 ; Note that this is always and only called by do-redef-vars,
 ; a macro in macros.cljc
-#?(:clj
+#?(:bb []
+   :clj
      (defn redef-vars
        "Redefine all of the traversal functions for zippers or structures, 
        then call the function of no arguments passed in."

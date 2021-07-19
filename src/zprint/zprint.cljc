@@ -270,7 +270,10 @@
 ;; # Use pmap when we have it
 ;;
 
-#?(:clj (defn zpmap
+#?(:bb (defn zpmap
+           ([options f coll] (map f coll))
+           ([options f coll1 coll2] (map f coll1 coll2)))
+   :clj (defn zpmap
           ([options f coll]
            (if (:parallel? options) (pmap f coll) (map f coll)))
           ([options f coll1 coll2]
@@ -288,7 +291,8 @@
   options map has (:parallel? options) as true, then deref
   the value, otherwise just pass it through."
   [options value]
-  #?(:clj (if (:parallel? options) (deref value) value)
+  #?(:bb value
+     :clj (if (:parallel? options) (deref value) value)
      :cljs value))
 
 ;;
@@ -2599,7 +2603,8 @@
                                hang-expand)))
              _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
              hanging
-               (#?@(:clj [zfuture options]
+               (#?@(:bb [do]
+	            :clj [zfuture options]
                     :cljs [do])
                 (let [hang-result
                         (when hang?
@@ -2655,7 +2660,8 @@
                                    hanging-line-count))
              #_(inc-pass-count)
              flow (when flow?
-                    (#?@(:clj [zfuture options]
+                    (#?@(:bb [do]
+		         :clj [zfuture options]
                          :cljs [do])
                      (let [flow-result
                              (if-not pair-seq
@@ -2855,7 +2861,8 @@
                            hang-expand)))
          _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
          hanging
-           (#?@(:clj [zfuture options]
+           (#?@(:bb [do]
+	        :clj [zfuture options]
                 :cljs [do])
             (let [hang-result
                     (when hang?
@@ -2903,7 +2910,8 @@
          #_(inc-pass-count)
          flow
            (when flow?
-             (#?@(:clj [zfuture options]
+             (#?@(:bb [do]
+	          :clj [zfuture options]
                   :cljs [do])
               (let [flow-result (if-not pair-seq
                                   ; We don't have any constant pairs
@@ -3042,7 +3050,8 @@
                   "fzprint-hang-remaining count pair-seq:"
                   (count pair-seq))
            flow
-             (#?@(:clj [zfuture options]
+             (#?@(:bb [do]
+	          :clj [zfuture options]
                   :cljs [do])
               (let [flow-result (if-not pair-seq
                                   ; We don't have any constant pairs
@@ -3137,7 +3146,8 @@
                              hang-expand)))
            _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
            hanging
-             (#?@(:clj [zfuture options]
+             (#?@(:bb [do]
+	          :clj [zfuture options]
                   :cljs [do])
               (let [hang-result
                       (when hang?
@@ -6957,7 +6967,8 @@
 (defn hash-identity-str
   "Find the hash-code identity for an object."
   [obj]
-  #?(:clj (Integer/toHexString (System/identityHashCode obj))
+  #?(:bb (str (hash obj))
+     :clj (Integer/toHexString (System/identityHashCode obj))
      :cljs (str (hash obj))))
 
 ; (with-out-str
@@ -7015,7 +7026,8 @@
                        :delay "Delay@"
                        :agent "Agent@")
             arg-1 (str type-str (hash-identity-str zloc))
-            #?@(:clj [arg-1
+            #?@(:bb [_ nil]
+	        :clj [arg-1
                       (if (and (= zloc-type :agent) (agent-error zloc))
                         (str arg-1 " FAILED")
                         arg-1)])

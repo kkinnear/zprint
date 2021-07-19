@@ -32,8 +32,10 @@
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip :as z :refer [edn* string]]
     #_[clojure.spec.alpha :as s])
-  #?@(:clj ((:import (java.net URL URLConnection)
-                     (java.util.concurrent Executors)
+  #?@(:clj ((:import #?(:bb []
+                        :clj (java.net URL URLConnection))
+                     #?(:bb []
+		        :clj (java.util.concurrent Executors))
                      (java.io File)
                      (java.util Date)))))
 
@@ -108,7 +110,8 @@
 ;; in zprint.core
 ;;
 (def ^:dynamic ^:no-doc *cache-path*
-  #?(:clj (str (System/getProperty "user.home") File/separator ".zprint")
+  #?(:bb nil
+     :clj (str (System/getProperty "user.home") File/separator ".zprint")
      :cljs nil))
 
 (defn set-options!
@@ -154,7 +157,8 @@
   HTTP urls will have the Cache-Control max-age parameter respected,
   falling back to the Expires header if set."
   [options url]
-  #?(:clj
+  #?(:bb nil
+     :clj
        (let [^URL url (if (instance? URL url) url (URL. url))
              host (if (= "" (.getHost url)) "nohost" (.getHost url))
              url-as-filename (str host "_" (hash (str url)))
@@ -454,7 +458,8 @@
                          (:auto-width? new-options
                                        (:auto-width? (get-options))))
                 (let [terminal-width-fn
-                        #?(:clj (resolve 'table.width/detect-terminal-width)
+                        #?(:bb nil
+			   :clj (resolve 'table.width/detect-terminal-width)
                            :cljs nil)
                       actual-width (when terminal-width-fn (terminal-width-fn))]
                   (when (number? actual-width) {:width actual-width})))
@@ -559,7 +564,8 @@
     (fzprint-style coll
                    (if-let [fn-name (:fn-name actual-options)]
                      (if (:docstring? (:spec actual-options))
-                       #?(:clj (assoc-in actual-options
+                       #?(:bb actual-options
+		          :clj (assoc-in actual-options
                                  [:spec :value]
                                  (get-docstring-spec actual-options fn-name))
                           :cljs actual-options)

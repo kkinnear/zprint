@@ -27,10 +27,10 @@ zprint-1.2.0
 To be able to run zprint it needs to be in a directory that appears in
 your path.
 
-## 4. Test it with `-e`
+## 4. Test it with `--explain-all`
 
 ```
-zprint -e
+zprint --explain-all
 {:agent {:object? false},
  :array {:hex? false, :indent 1, :object? false, :wrap? true},
  :atom {:object? false},
@@ -44,15 +44,17 @@ zprint -e
            :nl-separator? false},
 [...]
 ```
-
-The `-e` switch will output the configuration zprint will use when
+The `--explain-all` switch will output the configuration zprint will use when
 run. For any values that are not the default, this will include where that
 value came from (for instance, if you set something in your `~/.zprintrc`, 
-that information will appear in the `-e` output). 
-If you run `zprint -e`, it should output a very large map showing
+that information will appear in the `--explain-all` output). 
+If you run `zprint --explain-all`, it should output a very large map showing
 all of the configuration options and their current values.  Toward the
 end, it will include a key `:version` which should be the version that
 you just downloaded.
+
+If you use the `-e` switch, you will see just the configuration options that
+are different from the defaults, if any:
 
 ## 5. Try it
 The zprint program you have installed will accept Clojure source on stdin

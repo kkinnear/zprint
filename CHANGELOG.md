@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 ### Changed
 ### Fixed
 
+  * Documentation error in getting zprint for Linux. Testing the result
+  with `-e` is wrong, now you test it with `--explain-all`.   Part of 
+  Issue #101.
+
 ## 1.1.2 - 2021-5-2
 
 ### Added

@@ -59,10 +59,10 @@
   [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
    :dbg-ge :file? :spaces? :process-bang-zprint? :trim-comments? :zipper?
    :indent :remove :return-cvec? :test-for-eol-blanks?
-   [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma?]
+   [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma? :key-value]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
-   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning] :tuning
+   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning :key-value] :tuning
    :perf-vs-format [:url :cache-path]
    [:binding :hang-accept :ha-depth-factor :ha-width-factor]
    [:extend :hang-accept :ha-depth-factor :ha-width-factor]
@@ -1125,7 +1125,8 @@
 (defn add-calculated-options
   "Take an updated-map and generate calculated options
   from it.  Takes the updated-map and further updates
-  it, being smart about things that were set to nil."
+  it, being smart about things that were set to nil.
+  Presently updates [:map :key-value] and [:reader-cond :key-value]"
   [updated-map]
   (cond-> updated-map
     (:key-order (:map updated-map)) (assoc-in [:map :key-value]
@@ -1671,14 +1672,24 @@
 ;; # Configure one map
 ;;
 
+
+#?(:clj (defn get-stack-trace
+          "Get the current stack trace as a string."
+          []
+          (with-out-str (clojure.stacktrace/print-stack-trace
+                          (Exception. "get*stack*trace")))))
 (defn config-and-validate
   "Validate a new map and merge it correctly into the existing options map.
-  You must do this whenever you have an options map which is to be merged 
+  You MUST do this whenever you have an options map which is to be merged 
   into an existing options map, since a simple merge-deep will miss things 
   like styles. Returns [updated-map new-doc-map error-vec]
   Depends on existing-map to be the full, current options map!"
   ([doc-string doc-map existing-map new-map validate?]
-   #_(println "config-and-validate:" new-map)
+   #?(:clj (do #_(println "\n\nconfig-and-validate: "
+                          doc-string
+                          new-map
+                          "\n\n"
+                          (get-stack-trace))))
    (if new-map
      (let [new-map (coerce-to-boolean new-map)
            errors (when validate? (validate-options new-map doc-string))
@@ -1696,13 +1707,19 @@
            new-doc-map (diff-deep-ks doc-string
                                      new-doc-map
                                      (key-seq new-map)
-                                     new-updated-map)]
-       [new-updated-map new-doc-map errors])
+                                     new-updated-map)
+           new-updated-map (if (= (:next-inner new-updated-map) :restore)
+                             ; We need to save the existing-map, with the
+                             ; addition of {:replace? true} as the value 
+			     ; of :next-inner
+                             (assoc new-updated-map
+                               :next-inner (assoc existing-map :replace? true))
+                             new-updated-map)]
+       [(add-calculated-options new-updated-map) new-doc-map errors])
      ; if we didn't get a map, just return something with no changes
      [existing-map doc-map nil]))
   ([doc-string doc-map existing-map new-map]
    (config-and-validate doc-string doc-map existing-map new-map :validate)))
-
 
 ;;
 ;; # Configure all maps

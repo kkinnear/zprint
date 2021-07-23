@@ -171,7 +171,8 @@
                       "alignment-vec:" alignment-vec)
                alignment-vec))
          mark-guide
-           (vec (flatten (mapv vector (repeat :mark-at-indent) (range) alignment-vec)))
+           (vec (flatten
+                  (mapv vector (repeat :mark-at-indent) (range) alignment-vec)))
          new-row-guide (cond-> [:element :indent table-indent]
                          (not (empty? alignment-vec))
                            (into (interleave (repeat :align)

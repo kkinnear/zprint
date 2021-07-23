@@ -823,6 +823,17 @@
        :tab {:expand? true, :size 8},
        :width 80}))
 
+;;
+;; # See if we can get calculated-options to work with config-and-validate
+;;
+
+(expect
+  "(defn cvtest\n  \"This is to see whether we need determine options.\"\n  []\n  (let [x {:c 3, :a 1, :b 2}\n        y #{:z :y :z}]\n    (if (= (:b x) 2) (println \"hi\") (println \"there\"))))"
+  (zprint-str
+    "(defn cvtest\n  \"This is to see whether we need determine options.\"\n  []\n  (let [x {:b 2 :c 3 :a 1}\n        y #{:z :y :z}]\n   (if (= (:b x) 2)\n     (println \"hi\")\n     (println \"there\"))))\n"
+    {:parse-string? true,
+     :fn-map {"defn" [:arg1-body
+                      {:map {:key-order [:c], :sort-in-code? true}}]}}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

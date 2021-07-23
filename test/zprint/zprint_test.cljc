@@ -6030,6 +6030,23 @@ ser/collect-vars-acc %1 %2) )))"
     (zprint-str qb {:parse-string? true, :fn-map {:quote :none}}))
 
 
+;;
+;; # :next-inner :restore
+;;
+
+(expect
+  "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this have any blank lines] (in it)))"
+  (zprint-str
+    "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
+    {:parse-string? true,
+     :fn-map {"defn" [:arg1-body {:style :respect-nl, :next-inner :restore}]}}))
+
+(expect
+  "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\n        blank lines]\n\n\n    (in it)))"
+  (zprint-str
+    "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
+    {:parse-string? true, :fn-map {"defn" [:arg1-body {:style :respect-nl}]}}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

@@ -4014,11 +4014,9 @@
         ; some of the things found in it above would have to change too!
         options
           ; The config-and-validate allows us to use :style in the options
-          ; map associated with a function.  Don't think that we really needed
-          ; to validate (second fn-style), as that was already done.  But this
-          ; does allow us to use :style and other stuff.  Potential performance
-          ; improvement would be to build a config-and-validate that did the
-          ; same things and didn't validate.
+          ; map associated with a function. We don't need to validate 
+	  ; (second fn-style), as that was already done.  But this
+          ; allows us to use :style and other stuff.  
           ;
           ; There could be two option maps in the fn-style vector:
           ;   [:fn-style {:option :map}]
@@ -7381,18 +7379,36 @@
         ; note that depth affects how comments are printed, toward the end
         options (assoc options :depth (inc depth))
         options (if next-inner
-                  ; We call config-and-validate because we need next-inner
-                  ; to be able to remove things and generally manipulate
-                  ; the options map, not because it truly needs validation.
-                  ; Since it's spec is ::options, it was validated when it
-                  ; came into the options map.
-                  (first (zprint.config/config-and-validate "next-inner:"
-                                                            nil
-                                                            (dissoc options
-                                                                    :next-inner)
-                                                            next-inner
-                                                            nil ; validate?
-                         ))
+                  ; There are two kinds of next-inner maps.  The normal
+                  ; kind is something to add to the current options map,
+                  ; and to do that, we will use config-and-validate for
+                  ; reasons explained below.  The other kind is a map that
+                  ; was saved and we are just restoring it, and that will
+                  ; entirely replace the current options map.
+                  (if (:replace? next-inner)
+                    ; This is a replacement map, not one to merge into
+                    ; our current options map.
+                    ;
+                    ; We don't validate it because we were already using it
+                    ; when ; we started, but we do move the current :depth and
+                    ; :map depth into it.
+                    (let [replaced-options (dissoc next-inner :replace?)
+                          replaced-options (assoc replaced-options
+                                             :depth (:depth options)
+                                             :map-depth (:map-depth options))]
+                      replaced-options)
+                    ; We call config-and-validate because we need next-inner
+                    ; to be able to remove things and generally manipulate
+                    ; the options map, not because it truly needs validation.
+                    ; Since it's spec is ::options, it was validated when it
+                    ; came into the options map.
+                    (first (zprint.config/config-and-validate
+                             "next-inner:"
+                             nil
+                             (dissoc options :next-inner)
+                             next-inner
+                             nil ; validate?
+                           )))
                   options)
         options (if (or dbg? dbg-print? dbg-s)
                   (assoc options
@@ -7527,39 +7543,39 @@
             overflow-in-hang? (do (dbg options "fzprint*: overflow <<<<<<<<<<")
                                   nil)
             (zkeyword? zloc) [[zstr (zcolor-map options :keyword) :element]]
-            :else (let [zloc-sexpr (get-sexpr options zloc)]
-                    (cond (string? zloc-sexpr)
-                            [[(if string-str?
-                                (str zloc-sexpr)
-                                ; zstr
-                                (zstring zloc))
-                              (if string-color
-                                string-color
-                                (zcolor-map options :string)) :element]]
-                          (showfn? options zloc-sexpr)
-                            [[zstr (zcolor-map options :fn) :element]]
-                          (show-user-fn? options zloc-sexpr)
-                            [[zstr (zcolor-map options :user-fn) :element]]
-                          (number? zloc-sexpr)
-                            [[(if hex? (znumstr zloc hex? shift-seq) zstr)
-                              (zcolor-map options :number) :element]]
-                          (symbol? zloc-sexpr)
-                            [[zstr (zcolor-map options :symbol) :element]]
-                          (nil? zloc-sexpr) [[zstr (zcolor-map options :nil)
-                                                 :element]]
-                          (true? zloc-sexpr)
-                            [[zstr (zcolor-map options :true) :element]]
-                          (false? zloc-sexpr)
-                            [[zstr (zcolor-map options :false) :element]]
-                          (char? zloc-sexpr)
-                            [[zstr (zcolor-map options :char) :element]]
-                          (or (instance? #?(:clj java.util.regex.Pattern
-                                            :cljs (type #"regex"))
-					 zloc-sexpr)
-                              (re-find #"^#\".*\"$" zstr))
-                            [[zstr (zcolor-map options :regex) :element]]
-                          :else [[zstr (zcolor-map options :none)
-                                  :element]])))))))
+            :else
+              (let [zloc-sexpr (get-sexpr options zloc)]
+                (cond (string? zloc-sexpr)
+                        [[(if string-str?
+                            (str zloc-sexpr)
+                            ; zstr
+                            (zstring zloc))
+                          (if string-color
+                            string-color
+                            (zcolor-map options :string)) :element]]
+                      (showfn? options zloc-sexpr)
+                        [[zstr (zcolor-map options :fn) :element]]
+                      (show-user-fn? options zloc-sexpr)
+                        [[zstr (zcolor-map options :user-fn) :element]]
+                      (number? zloc-sexpr)
+                        [[(if hex? (znumstr zloc hex? shift-seq) zstr)
+                          (zcolor-map options :number) :element]]
+                      (symbol? zloc-sexpr) [[zstr (zcolor-map options :symbol)
+                                             :element]]
+                      (nil? zloc-sexpr) [[zstr (zcolor-map options :nil)
+                                          :element]]
+                      (true? zloc-sexpr) [[zstr (zcolor-map options :true)
+                                           :element]]
+                      (false? zloc-sexpr) [[zstr (zcolor-map options :false)
+                                            :element]]
+                      (char? zloc-sexpr) [[zstr (zcolor-map options :char)
+                                           :element]]
+                      (or (instance? #?(:clj java.util.regex.Pattern
+                                        :cljs (type #"regex"))
+                                     zloc-sexpr)
+                          (re-find #"^#\".*\"$" zstr))
+                        [[zstr (zcolor-map options :regex) :element]]
+                      :else [[zstr (zcolor-map options :none) :element]])))))))
 
 ;;
 ;; # External interface to all fzprint functions

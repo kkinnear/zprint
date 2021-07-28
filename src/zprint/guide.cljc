@@ -56,11 +56,12 @@
                    (not multi-arity?) (conj :element :newline)
                    (and multi-arity? (not docstring?)) (conj :newline)
                    :rest (into rest-guide))
+           ; Can :restore here, because we need the changes for multi-arity,
+           ; below.
            option-map {:guide guide, :next-inner {:list {:option-fn nil}}}]
        (if multi-arity?
          (assoc option-map
-           :fn-map {:vector [:force-nl
-                             {:next-inner {:fn-map {:vector :none}}}]})
+           :fn-map {:vector [:force-nl {:next-inner :restore}]})
          option-map)))))
 
 ; Use this to use the above:
@@ -246,9 +247,7 @@
                               :wrap-multi? true,
                               :hang? true},
                      :pair {:justify? true},
-                     :next-inner {:vector {:option-fn nil,
-                                           :wrap-multi? false,
-                                           :hang? false}}}}))))
+                     :next-inner :restore}}))))
 
 ; Do this to use the above:
 ;
@@ -528,7 +527,7 @@
        {:guide guide, :next-inner {:list {:option-fn nil}}}))))
 
 (defn signatureguide1
-  "Handle defprotocol signatures with arities and  doc string on their 
+  "Handle defprotocol signatures with arities and doc string on their 
   own lines."
   ([] "signatureguide1")
   ([options len sexpr]

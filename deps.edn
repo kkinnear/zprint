@@ -1,13 +1,14 @@
 {:aliases
-   {:cljs-runner {:extra-deps
-                    {expectations/cljc-test {:mvn/version "2.0.0-SNAPSHOT"},
-                     olical/cljs-test-runner {:mvn/version "3.7.0"},
-                     pjstadig/humane-test-output {:mvn/version "0.10.0"}},
+   {:cljs-runner {:extra-deps {com.github.seancorfield/expectations
+                                 {:mvn/version "2.0.0-alpha2"},
+                               olical/cljs-test-runner {:mvn/version "3.7.0"},
+                               pjstadig/humane-test-output {:mvn/version
+                                                              "0.10.0"}},
                   :extra-paths ["src" "test" "cljs-test-runner-out/gen"],
                   :main-opts ["-m" "cljs-test-runner.main" "--doo-opts"
                               "dooopts.edn" "-x" "planck"]},
-    :cljtest {:extra-deps {expectations/cljc-test {:mvn/version
-                                                     "2.0.0-SNAPSHOT"}},
+    :cljtest {:extra-deps {com.github.seancorfield/expectations
+                             {:mvn/version "2.0.0-alpha2"}},
               :extra-paths ["test"]},
     :humane {:extra-deps {pjstadig/humane-test-output {:mvn/version "0.10.0"}}},
     :runner {:extra-deps {com.cognitect/test-runner
@@ -20,11 +21,11 @@
         #_#_org.clojure/clojurescript {:mvn/version "1.9.946"},
         #_#_org.clojure/clojure {:mvn/version "1.10.3"},
         borkdude/sci {:mvn/version "0.2.5"},
-       ; To use zprint with babashka, include the following dependency:
-       ;
-       ;borkdude/spartan.spec {:git/url
-       ;                        "https://github.com/borkdude/spartan.spec",
-       ;                       :sha "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"},
-        rewrite-clj/rewrite-clj {:mvn/version "1.0.605-alpha"},
-	},
+        ; To use zprint with babashka, include the following dependency:
+        ;
+        ;borkdude/spartan.spec {:git/url
+        ;                        "https://github.com/borkdude/spartan.spec",
+        ;                       :sha
+        ;                       "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"},
+        rewrite-clj/rewrite-clj {:mvn/version "1.0.605-alpha"}},
  :paths ["src" "test" "cljs-test-runner-out/gen"]}

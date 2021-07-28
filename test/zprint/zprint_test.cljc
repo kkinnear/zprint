@@ -5714,7 +5714,7 @@ ser/collect-vars-acc %1 %2) )))"
                 {:parse-string? true,
                  :fn-map {:quote [:wrap
                                   {:list {:indent 1},
-                                   :next-inner {:list {:indent 2}}}]}}))
+                                   :next-inner {} #_{:list {:indent 2}}}]}}))
 
   ;;
   ;; Check that we can turn it off!

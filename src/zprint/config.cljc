@@ -308,10 +308,10 @@
 (def zfnstyle
   {"->" [:noarg1-body
          {:list {:constant-pair? false},
-          :next-inner {:list {:constant-pair? true}}}],
+          :next-inner :restore}],
    "->>" [:force-nl-body
           {:list {:constant-pair? false},
-           :next-inner {:list {:constant-pair? true}}}],
+           :next-inner :restore}],
    ":import" :force-nl-body,
    ":require" :force-nl-body,
    "=" :hang,
@@ -337,8 +337,7 @@
    "defcc" :arg1-mixin,
    "defcs" :arg1-mixin,
    "defmacro" :arg1-body,
-   "defexpect" [:arg1-body
-                {:style :respect-nl, :next-inner {:style :respect-nl-off}}],
+   "defexpect" [:arg1-body {:style :respect-nl, :next-inner :restore}],
    "defmethod" :arg2,
    "defmulti" :arg1-body,
    "defn" :arg1-body,
@@ -406,7 +405,9 @@
    "with-redefs-fn" :arg1-body,
    :quote [:none
            {:list {:hang? false, :indent 1},
-            :next-inner {:list {:hang? true, :indent 2}}}]})
+	    ; This probably isn't going to make any difference, as 
+	    ; quote? sticks around for a good long time.
+            :next-inner :restore}]})
 
 ;;
 ;; ## The global defaults
@@ -636,11 +637,9 @@
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
       :areguide {:doc "Allow modification of areguide in :fn-map",
-                 :list {:option-fn (partial areguide {:justify? true})}
-		 :next-inner {:option-fn nil}},
+                 :list {:option-fn (partial areguide {:justify? true})}}
       :areguide-nj {:doc "Do nice are formatting, but don't justify",
-                 :list {:option-fn (partial areguide {:justify? false})}
-		 :next-inner {:option-fn nil}},
+                 :list {:option-fn (partial areguide {:justify? false})}}
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros",
          :fn-map
@@ -861,7 +860,7 @@
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
             :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]}},
       :signature1 {:doc
-                     "defprotcol signatures with doc on newline, experimental",
+                     "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
       :sort-dependencies {:doc "sort dependencies in lein defproject files",
                           :list {:return-altered-zipper [1 'defproject
@@ -1161,7 +1160,6 @@
 (defn get-options
   "Return any previously set options."
   []
-  #_@configured-options
   (assoc @configured-options :version (about)))
 
 (defn get-default-options
@@ -1673,11 +1671,11 @@
 ;;
 
 
-#?(:clj (defn get-stack-trace
+#?(:clj (do #_(defn get-stack-trace
           "Get the current stack trace as a string."
           []
           (with-out-str (clojure.stacktrace/print-stack-trace
-                          (Exception. "get*stack*trace")))))
+                          (Exception. "get*stack*trace"))))))
 (defn config-and-validate
   "Validate a new map and merge it correctly into the existing options map.
   You MUST do this whenever you have an options map which is to be merged 
@@ -1762,9 +1760,7 @@
           (when (and home file-separator)
             (get-config-from-path [zprintrc zprintedn]
                                   file-separator
-                                  [home]
-                                  ; Do accept fns from this file
-                                  #_:acceptfns))
+                                  [home]))
         [updated-map new-doc-map rc-errors]
           (config-and-validate (str "Home directory file: " rc-filename)
                                default-doc-map
@@ -1802,9 +1798,7 @@
                      file-separator)
             (get-config-from-path [zprintrc zprintedn]
                                   file-separator
-                                  ["."]
-                                  ; Do not accept fns from this file
-                                  #_nil))
+                                  ["."]))
         [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
           (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
                                search-doc-map

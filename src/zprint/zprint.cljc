@@ -3943,7 +3943,9 @@
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl fn-style
            quote?],
     :as options} ind zloc]
-  (dbg-pr options "fzprint-list*: ind:" ind "fn-style:" fn-style)
+  (dbg-pr options "fzprint-list*: ind:" ind "fn-style:" fn-style "option-fn:" 
+        (:option-fn (options caller))  
+  )
   ; We don't need to call get-respect-indent here, because all of the
   ; callers of fzprint-list* define respect-nl?, respect-bl? and indent-only?
   (let [max-length (get-max-length options)
@@ -4067,7 +4069,6 @@
                                 [options nil])
         _ (when option-fn
             (dbg-pr options "fzprint-list* option-fn new options" new-options))
-        #_#_options (merge-deep options new-options)
         #_(println "\noption-fn:" option-fn
                    "\nfn-str:" fn-str
                    "\nfn-format options:" (:fn-format (:vector options))
@@ -4374,7 +4375,11 @@
           (concat-no-nil l-str-vec
                          pre-arg-1-style-vec
                          (fzprint* loptions (inc ind) arg-1-zloc)
-                         (fzprint-hang (assoc-in options
+			 ; Removed the assoc-in 7/26/21 since I can't
+			 ; see that it could be used.  Maybe it is left
+			 ; over from when a zloc was passed down and not
+			 ; a zloc-seq?
+                         (fzprint-hang options #_(assoc-in options
                                          [:pair :respect-nl?]
                                          (:respect-nl? (caller options)))
                                        :pair-fn
@@ -7362,6 +7367,39 @@
 ;; it around.  Maybe pass ctx to everyone and they can look at it
 ;; or something.  But for testing, let's just do this.
 
+(defn update-replaced-options
+  "When :next-inner :restore is encountered by config-and-validate, it
+  puts the existing options map (with :replace? true) into :next-inner.
+  When fzprint* encounters a map with :replace? true, it needs to bring
+  it up to date with some critical information before using it, and this
+  routine does that job.  It doesn't need validation since it was already
+  in use."
+  [options next-inner]
+  (let [replaced-options (dissoc next-inner :replace?)
+	; Could have done this more clearly with cond->, but didn't want 
+	; to access the options map twice for the same value.
+        replaced-options (let [depth (:depth options)]
+                           (if (= depth (:depth replaced-options))
+                             replaced-options
+                             (assoc replaced-options :depth depth)))
+        replaced-options (let [map-depth (:map-depth options)]
+                           (if (= map-depth (:map-depth replaced-options))
+                             replaced-options
+                             (assoc replaced-options :map-depth map-depth)))
+        replaced-options (let [no-arg1? (:no-arg1? options)]
+                           (if (= no-arg1? (:no-arg1? replaced-options))
+                             replaced-options
+                             (assoc replaced-options :no-arg1? no-arg1?)))
+        replaced-options (let [in-code? (:in-code? options)]
+                           (if (= in-code? (:in-code? replaced-options))
+                             replaced-options
+                             (assoc replaced-options :in-code? in-code?)))
+        replaced-options (let [pdepth (:pdepth options)]
+                           (if (= pdepth (:pdepth replaced-options))
+                             replaced-options
+                             (assoc replaced-options :pdepth pdepth)))]
+    replaced-options))
+
 ;;
 ;; # The center of the zprint universe
 ;;
@@ -7388,15 +7426,7 @@
                   (if (:replace? next-inner)
                     ; This is a replacement map, not one to merge into
                     ; our current options map.
-                    ;
-                    ; We don't validate it because we were already using it
-                    ; when ; we started, but we do move the current :depth and
-                    ; :map depth into it.
-                    (let [replaced-options (dissoc next-inner :replace?)
-                          replaced-options (assoc replaced-options
-                                             :depth (:depth options)
-                                             :map-depth (:map-depth options))]
-                      replaced-options)
+		    (update-replaced-options options next-inner)
                     ; We call config-and-validate because we need next-inner
                     ; to be able to remove things and generally manipulate
                     ; the options map, not because it truly needs validation.

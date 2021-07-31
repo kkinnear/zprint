@@ -1827,6 +1827,7 @@
   Since it doesn't know how many collections there are, this is not trivial.  
   Must be called with a sequence of z-things (these days called a zseq)"
   [options modifier-set coll]
+  #_(prn "partition-all-sym:")
   (dbg-pr options "partition-all-sym:" modifier-set)
   #_(def scoll coll)
   (dbg options "partition-all-sym: coll:" (map zstring coll))
@@ -1841,7 +1842,9 @@
       #_(prn "remaining:" (zprint.repl/pseqzseq remaining))
       #_(prn "out:" (zprint.repl/pseqzseq out))
       (if (empty? remaining)
-        (do #_(def pasn out) (persistent! out))
+          (let [result (persistent! out)]
+	        #_(def pasn result)
+		result)
         (let [[next-remaining new-out]
                 (cond
                   (and (or (zsymbol? (ffirst remaining))
@@ -2046,29 +2049,71 @@
            part)))))
   ([options ind zloc-seq] (fzprint-pairs options ind zloc-seq :pair)))
 
+(defn check-for-coll?
+  "Return true if the first non-newline element in the seq is a coll?"
+  [zloc-seq]
+  #_(prn "check-for-coll? begin sequence")
+  (loop [coll zloc-seq]
+    (if-not coll
+      nil
+      (let [zloc (first coll)]
+	#_(prn "check-for-coll? zloc:" (ztag zloc))
+        (cond (znewline? zloc) (recur (next coll))
+              (zcoll? zloc) true
+	      (zsymbol? zloc) nil
+              :else (recur (next coll)))))))
+
+(defn check-for-first-coll?
+  "Check a series of sequences to see if the first non-newine thing in any 
+  of them
+  is a zcoll?.  If it is, return true, else nil."
+  [seq-series]
+  (some check-for-coll? seq-series))
+
+(declare fzprint-hang-remaining)
+
 (defn fzprint-extend
   "Print things with a symbol and collections following.  Kind of like with
   pairs, but not quite. Takes a zloc-seq."
   [{{:keys [nl-separator?]} :extend, :as options} ind zloc-seq]
   #_(def fezloc zloc-seq)
   (dbg options "fzprint-extend:" (zstring (first zloc-seq)))
-  (dbg-form
-    options
-    "fzprint-extend: exit:"
-    (interpose-nl-hf
-      (:extend options)
-      ind
-      (fzprint-map-two-up
-        :extend
-        (assoc options :fn-style :fn)
-        ind
-        false
-        (let [part (partition-all-sym options
-                                      (:modifiers (:extend options))
-                                      zloc-seq)]
-          #_(def fe part)
-          (dbg options "fzprint-extend: partition:" (map #(map zstring %) part))
-          part)))))
+  (let [part
+          (partition-all-sym options (:modifiers (:extend options)) zloc-seq)]
+    #_(def fe part)
+    (dbg options "fzprint-extend: partition:" (map #(map zstring %) part))
+    ; Look for any sequences in part which have zcoll? as their first
+    ; element.  If we find any, we don't do the map-two-up, but rather
+    ; fzprint-hang-remaining.
+    (if (check-for-first-coll? part)
+      ; The input does *not* look like an extend, so we won't try to 
+      ; format it like one.
+      (dbg-form
+        options
+        "fzprint-extend: fzprint-hang-remaining exit:"
+        (let [result (fzprint-hang-remaining :extend
+                                             (assoc options :fn-style :fn)
+                                             ind
+                                             ind
+                                             zloc-seq
+                                             nil)]
+          ; If it starts with a newline, remove it, since we will be doing
+          ; a prepend-nl for the results of fzprint-extend whenever we use it.
+          (if (and (or (= (nth (first result) 2) :indent)
+                       (= (nth (first result) 2) :newline))
+                   (clojure.string/starts-with? (ffirst result) "\n"))
+            (next result)
+            result)))
+      (dbg-form
+        options
+        "fzprint-extend: exit:"
+        (interpose-nl-hf (:extend options)
+                         ind
+                         (fzprint-map-two-up :extend
+                                             (assoc options :fn-style :fn)
+                                             ind
+                                             false
+                                             part))))))
 
 (defn concatv!
   "Given a transient vector v, concatenate all of the other
@@ -2468,8 +2513,6 @@
 
 (declare interpose-either-nl-hf)
 
-(declare fzprint-hang-remaining)
-
 (defn zcomment-or-newline?
   "If this zloc is a comment or a newline, return true."
   [zloc]
@@ -2768,249 +2811,6 @@
   ([caller options hindent findent zloc fn-style]
    (fzprint-hang-remaining caller options hindent findent zloc fn-style nil)))
 
-(defn fzprint-hang-remaining-alt
-  "zloc-seq is a seq of zlocs of a collection.  We already know
-  that the given zloc won't fit on the current line. [Besides, we
-  ensure that if there are two things remaining anyway. ???] So
-  now, try hanging and see if that is better than flow.  Unless
-  :hang? is nil, in which case we will just flow.  hindent is
-  hang-indent, and findent is flow-indent. This should never be
-  called with :one-line because this is only called from fzprint-list*
-  after the one-line processing is done. If the hindent equals the
-  flow indent, then just do flow.  Do only zloc-count non-whitespace
-  elements of zloc-seq if it exists."
-  ([caller
-    {:keys [dbg? width],
-     {:keys [hang? constant-pair? constant-pair-min hang-avoid hang-expand
-             hang-diff nl-separator? respect-nl?]}
-       caller,
-     :as options} hindent findent zloc-seq fn-style zloc-count]
-   (when (:dbg-hang options)
-     (println (dots (:pdepth options)) "hr:" (zstring (first zloc-seq))))
-   (dbg-pr options
-           "fzprint-hang-remaining first:" (zstring (first zloc-seq))
-           "hindent:" hindent
-           "findent:" findent
-           "caller:" caller
-           "nl-separator?:" nl-separator?
-           "(count zloc-seq):" (count zloc-seq))
-   ; (in-hang options) slows things down here, for some reason
-   (let [seq-right zloc-seq
-         seq-right (if zloc-count (take zloc-count seq-right) seq-right)
-         [pair-seq non-paired-item-count]
-           (constant-pair caller options seq-right)
-         _ (dbg options
-                "fzprint-hang-remaining count pair-seq:"
-                (count pair-seq))
-         #_(dbg options
-                "fzprint-hang-remaining: *=*=*=*=*=*" (zstring (first zloc-seq))
-                "hindent:" hindent
-                "findent:" findent
-                "caller:" caller
-                "hang?" hang?
-                "hang-diff" hang-diff)
-         ; Now determine if there is any point in doing a hang, because
-         ; if the flow is beyond the expand limit, there is really no
-         ; chance that the hang is not beyond the expand limit.
-         ; This is what good-enough? does:
-         ;  (<= (/ (dec p-lines) p-count) hang-expand)
-         ;  Also need to account for the indent diffs.
-         ; Would be nice to move this into a common routine, since this
-         ; duplicates logic in good-enough?
-         ;
-         ; Yes, and this caused a problem when I put in the
-         ; hang-if-equal-flow? option in good-enough, so that now
-         ; we can't cancel the hang even though we are beyond the hang-expand
-         ; because the hang might be the same as the flow, and in that case
-         ; we don't really care how long the hang-expand is. We could make
-         ; this a feature, by having a large-ish hang-expand and having it
-         ; override hang-if-equal-flow.  If we do that, we have to reorder
-         ; the checks in good-enough to put the hang-expand check first.
-         ; I can't see any great reason for doing a flow if the hang and
-         ; flow are equal, though, so we won't do that now.  And this
-         ; code comes out.
-         ;
-         #_#_[flow flow-lines] (zat options flow) ; PT
-         _ (dbg options
-                "fzprint-hang-remaining: first hang?" hang?
-                "hang-avoid" hang-avoid
-                "findent:" findent
-                "hindent:" hindent
-                "(count seq-right):" (count seq-right)
-                "thing:" (when hang-avoid (* (- width hindent) hang-avoid)))
-         hang? (and
-                 hang?
-                 ; This is a key for "don't hang no matter what", it isn't
-                 ; about making it prettier. People call this routine with
-                 ; these values equal to ensure that it always flows.
-                 (not= hindent findent)
-                 ; This is not the original, below.
-                 ; If we are doing respect-nl?, then the count of seq-right
-                 ; is going to be a lot more, even if it doesn't end up
-                 ; looking different than before.  So, perhaps we should
-                 ; adjust hang-avoid here?  Perhaps double it or something?
-                 (or (not hang-avoid)
-                     (< (count seq-right) (* (- width hindent) hang-avoid)))
-                 ; If the first thing in the flow is a comment, maybe we
-                 ; shouldn't be hanging anything?
-                 #_(not= (nth (first flow) 2) :comment-inline) ; PT
-                 ;flow-lines
-                 ;;TODO make this uneval!!!
-                 #_(or (<= (- hindent findent) hang-diff)
-                       (<= (/ (dec (first flow-lines)) (count seq-right))
-                           hang-expand)))
-         _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
-         hanging
-           (#?@(:bb [do]
-	        :clj [zfuture options]
-                :cljs [do])
-            (let [hang-result
-                    (when hang?
-                      (if-not pair-seq
-                        ; There are no paired elements
-                        (fzprint-flow-seq (in-hang options)
-                                          hindent
-                                          seq-right
-                                          :force-nl
-                                          nil ;nl-first?
-                        )
-                        (if (not (zero? non-paired-item-count))
-                          (concat-no-nil
-                            ; The elements that are not paired
-                            (dbg-form options
-                                      "fzprint-hang-remaining: mapv:"
-                                      (ensure-end-w-nl
-                                        hindent
-                                        (fzprint-flow-seq
-                                          (not-rightmost (in-hang options))
-                                          hindent
-                                          (take non-paired-item-count seq-right)
-                                          :force-nl
-                                          nil ;nl-first?
-                                        )))
-                            ; The elements that are paired
-                            (dbg-form options
-                                      "fzprint-hang-remaining: fzprint-hang:"
-                                      (fzprint-pairs (in-hang options)
-                                                     hindent
-                                                     pair-seq)))
-                          ; All elements are paired
-                          (fzprint-pairs (in-hang options) hindent pair-seq))))]
-              [hang-result (style-lines options hindent hang-result)]))
-         ; We used to calculate hang-count by doing the hang an then counting
-         ; the output.  But ultimately this is simple a series of map calls
-         ; to the elements of seq-right, so we go right to the source for this
-         ; number now.  That let's us move the interpose calls above this
-         ; point.
-         [hanging [hanging-line-count :as hanging-lines]] (zat options hanging)
-         hang-count (count seq-right)
-         flow?
-           (not
-             (use-hang? caller options hindent hang-count hanging-line-count))
-         #_(inc-pass-count)
-         flow
-           (when flow?
-             (#?@(:bb [do]
-	          :clj [zfuture options]
-                  :cljs [do])
-              (let [flow-result (if-not pair-seq
-                                  ; We don't have any constant pairs
-                                  (fzprint-flow-seq options
-                                                    findent
-                                                    seq-right
-                                                    :force-nl
-                                                    :nl-first)
-                                  (if (not (zero? non-paired-item-count))
-                                    ; We have constant pairs, ; but they follow
-                                    ; some stuff that isn't paired.
-                                    ; Do the elements that are not pairs
-                                    (concat-no-nil
-                                      (ensure-end-w-nl
-                                        findent
-                                        (fzprint-flow-seq
-                                          (not-rightmost options)
-                                          findent
-                                          (take non-paired-item-count seq-right)
-                                          :force-nl
-                                          :nl-first))
-                                      ; The elements that are constant pairs
-                                      (fzprint-pairs options findent pair-seq))
-                                    ; This code path is where we have all
-                                    ; constant
-                                    ; pairs.
-                                    (fzprint-pairs options findent pair-seq)))]
-                ; Skip the first line when doing the calcuation so that
-                ; good-enough doesn't change the layout from the original
-                [flow-result
-                 (style-lines
-                   options
-                   findent
-                   ; Issue #173 -- the following code caused code to
-                   ; disappear, because if there was just one thing
-                   ; in flow-result, then it would be empty and
-                   ; style-lines would return nil, causing neither
-                   ; hang nor flow to be used.
-                   ;
-                   ; (if (not pair-seq)
-                   ;   (next flow-result)
-                   ;   flow-result)
-                   ;
-                   ; Now we do a similar thing -- as long as flow-result
-                   ; has more than one thing, below when we call good-enough.
-                   flow-result)])))
-         [flow flow-lines] (when flow (zat options flow)) ; PT
-         _ (log-lines options
-                      "fzprint-hang-remaining: hanging:"
-                      hindent
-                      hanging)
-         _ (dbg options
-                "fzprint-hang-remaining: hanging-lines:" hanging-lines
-                "hang-count:" hang-count)]
-     (dbg options "fzprint-hang-remaining: flow-lines:" flow-lines)
-     (when dbg?
-       (if (zero? hang-count)
-         (println "hang-count = 0:" (str (map zstring zloc-seq)))))
-     (log-lines options "fzprint-hang-remaining: flow" findent flow)
-     ; If we did hang and not flow, then we better use it.
-     (if (and hanging-lines (not flow-lines))
-       (if (first-nl? hanging)
-         hanging
-         (concat-no-nil [[" " :none :whitespace 10]] hanging))
-       (when flow-lines
-         (if (good-enough?
-               caller
-               options
-               fn-style
-               hang-count
-               (- hindent findent)
-               hanging-lines
-               ; If we have more than one line in the flow
-               ; and we didn't have any constant pairs,
-               ; then decrease the line count for the flow.
-               ; This seems to be necessary based on the results,
-               ; but it can't be done in good-enough in all cases,
-               ; because it breaks lots of stuff.  This was
-               ; previously done above, in the call to style-lines,
-               ; where we just skipped the first line.  That
-               ; seems like a bad idea, so we now just create
-               ; a new flow-lines to cover this situation.
-               ; This was provoked by Issue #173 where we lost
-               ; code when there was only one thing in flow-result,
-               ; and we skipped that thing, causing style-lines
-               ; to return nil and the whole thing disappeared.
-               (if (and (not pair-seq) (> (first flow-lines) 1))
-                 [(dec (first flow-lines)) (second flow-lines)
-                  (nth flow-lines 2)]
-                 flow-lines)
-               #_flow-lines)
-           ; If hanging starts with a newline, don't put a blank at the
-           ; end of the previous line.
-           (if (first-nl? hanging)
-             hanging
-             (concat-no-nil [[" " :none :whitespace 10]] hanging))
-           (ensure-start-w-nl findent flow))))))
-  ([caller options hindent findent zloc fn-style]
-   (fzprint-hang-remaining caller options hindent findent zloc fn-style nil)))
 
 ; This version overlaps hang and flow, which can run into trouble when
 ; you get very deep -- it runs out of threads.  But we'll keep it here
@@ -6585,20 +6385,24 @@
                newline?)))))
 
 (defn count-newline-types
-  "Analyze a style-vec which contains only newlines, the count of newlines
-  in the style vec.  We assume that each :newline style-vec contains one
-  newline (i.e., it was generated by fzprint-newlines)."
+  "Analyze a style-vec which contains only newlines, and return the count 
+  of newlines in the style vec.  We assume that each :newline style-vec 
+  contains one newline (i.e., it was generated by fzprint-newlines)."
   [newline-style-vec]
-  ; TODO: Take this out if we don't get any exceptions while testing.
   (let [count-of-types (count (distinct (map #(nth % 2) newline-style-vec)))]
+    #_(prn "count-newline-types: " count-of-types
+           " style-vec:" newline-style-vec)
     (when (or (not= count-of-types 1)
               (not= (nth (first newline-style-vec) 2) :newline))
       (throw
         (#?(:clj Exception.
             :cljs js/Error.)
-         (str "count-newline-types: more than one type or wrong type! count:"
-                count-of-types
-              " style-vec:" newline-style-vec))))
+         (str
+           "Internal Error!  Please submit an issue with an example"
+           " of how to reproduce this error!" 
+	   " count-newline-types: more than one type or wrong type! count: "
+             count-of-types
+           " style-vec: " newline-style-vec))))
     (count newline-style-vec)))
 
 (defn count-right-blanks
@@ -6649,7 +6453,8 @@
   "Given a count n, and single element from a style-vec which
   contains a newline and an indent of some number of spaces, return
   a sequence of n of those style vecs but remove spaces from all
-  but the last of them."
+  but the last of them.  This is so that we don't have trailing spaces
+  on lines."
   [n element]
   #_(prn "repeat-element-nl: n:" n "element:" element)
   (let [no-space-n (max (dec n) 0)]
@@ -6684,7 +6489,10 @@
 (defn interpose-either-nl-hf
   "Do very specialized interpose, but different seps depending on pred-fn
   return and nl-separator? and nl-separator-all?. This assumes that 
-  sep-* does one line, and sep-*-nl does two lines."
+  sep-* does one line, and sep-*-nl does two lines. coll is
+  a series of [[:flow [['\n  ' :none :newline 2]]] 
+               [:flow [['ZprintType' :black :element] ...]]] fragments from
+  fzprint-map-two-up."
   [sep-comma sep-comma-nl sep sep-nl
    {:keys [nl-separator? nl-separator-all?], :as suboptions} ;nl-separator?
    comma? coll]
@@ -6698,6 +6506,7 @@
     (if (empty? coll)
       (apply concat-no-nil
         (persistent!
+          ; Handle final newlines, if any
           (if (zero? newline-count)
             out
             (conj-it! out (repeat-element-nl newline-count (first sep))))))
@@ -6706,20 +6515,25 @@
         #_(prn "====>>>>>>>> interpose-either-nl-hf: style-vec:" style-vec)
         (cond
           (= what :newline)
-            ; We have a one or more newlines.  We are going to keep
+            ; We have one or more newlines.  We are going to keep
             ; track of what we've seen and will actually output things
             ; later, when we know what we actually have.
             ; For now, just increase the count and don't do anything
-            ; else.
-            (recur (next coll)
-                   out
-                   previous-needs-comma?
-                   add-nl?
-                   first?
-                   (+ newline-count (count-newline-types style-vec)))
+            ; else.  If we have anything in addition to newlines, we have a
+            ; problem because we will lose them as the style-vec
+            ; goes away, which is why count-newline-types will throw
+            ; an exception if it encounters this.
+            (do #_(prn "interpose-either-nl-hf: hangflow: " hangflow)
+                (recur (next coll)
+                       out
+                       previous-needs-comma?
+                       add-nl?
+                       first?
+                       (+ newline-count (count-newline-types style-vec))))
           :else
             ; We have a normal style-vec that we will process.  This one
-            ; has no newlines.  But we might have seen plenty of newlines
+            ; may have plenty of newlines, but there isn't one first.
+            ; But we might have seen plenty of newlines
             ; before this -- or not.
             (let [[interpose-style-vec interpose-count]
                     (if previous-needs-comma?

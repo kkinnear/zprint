@@ -5714,7 +5714,7 @@ ser/collect-vars-acc %1 %2) )))"
                 {:parse-string? true,
                  :fn-map {:quote [:wrap
                                   {:list {:indent 1},
-                                   :next-inner {} #_{:list {:indent 2}}}]}}))
+                                   :next-inner {:list {:indent 2}}}]}}))
 
   ;;
   ;; Check that we can turn it off!
@@ -6046,6 +6046,21 @@ ser/collect-vars-acc %1 %2) )))"
   (zprint-str
     "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
     {:parse-string? true, :fn-map {"defn" [:arg1-body {:style :respect-nl}]}}))
+
+;;
+;; # Issue #200 -- exception when using :arg2-extend when the input doesn't
+;; match extend-like input.
+;;
+
+(expect "(deffoo Xyz []\n  (go []))"
+        (zprint-str "(deffoo Xyz []\n  (go []))\n"
+                    {:parse-string? true,
+                     :list {:respect-nl? true},
+                     :fn-map {"deffoo" :arg2-extend}}))
+(expect "(defrecord ~tagname ~fields\n\n  (stuff)\n\n)"
+        (zprint-str
+          " (defrecord ~tagname ~fields\n\n          (stuff)\n\n          )"
+          {:parse-string? true, :list {:respect-nl? true}}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

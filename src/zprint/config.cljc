@@ -1671,7 +1671,7 @@
 ;;
 
 
-#?(:clj (do #_(defn get-stack-trace
+#?(:clj (do (defn get-stack-trace
           "Get the current stack trace as a string."
           []
           (with-out-str (clojure.stacktrace/print-stack-trace

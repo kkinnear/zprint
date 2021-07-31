@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
   with `-e` is wrong, now you test it with `--explain-all`.   Part of 
   Issue #101.
 
+  * Fixed problem where user defined fn was declared :arg2-extend, and
+  then zprint threw an exception when formatting data that was not
+  "extend like".  Issue #200.
+
 ## 1.1.2 - 2021-5-2
 
 ### Added

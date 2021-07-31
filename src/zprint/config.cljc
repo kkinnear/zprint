@@ -1304,7 +1304,7 @@
    ; Any config changes prior to this will be lost, as
    ; config-and-validate-all works from the default options!
    (let [[zprint-options doc-map errors]
-           (config-and-validate-all nil nil op-options)]
+           (config-and-validate-all op-options)]
      (if errors
        errors
        (do (reset-options! zprint-options doc-map)
@@ -1671,7 +1671,7 @@
 ;;
 
 
-#?(:clj (do (defn get-stack-trace
+#?(:clj (do #_(defn get-stack-trace
           "Get the current stack trace as a string."
           []
           (with-out-str (clojure.stacktrace/print-stack-trace
@@ -1688,8 +1688,14 @@
                           new-map
                           "\n\n"
                           (get-stack-trace))))
-   (if new-map
-     (let [new-map (coerce-to-boolean new-map)
+   (if (not (empty? new-map))
+     (let [_ #?(:clj (do #_(println "\n\nconfig-and-validate: "
+                                    doc-string
+                                    new-map
+                                    "\n\n"
+                                    (get-stack-trace)))
+		 :cljs nil)
+           new-map (coerce-to-boolean new-map)
            errors (when validate? (validate-options new-map doc-string))
            ; remove set elements, and then remove the :remove key too
            [existing-map new-map new-doc-map]
@@ -1708,8 +1714,8 @@
                                      new-updated-map)
            new-updated-map (if (= (:next-inner new-updated-map) :restore)
                              ; We need to save the existing-map, with the
-                             ; addition of {:replace? true} as the value 
-			     ; of :next-inner
+                             ; addition of {:replace? true} as the value
+                             ; of :next-inner
                              (assoc new-updated-map
                                :next-inner (assoc existing-map :replace? true))
                              new-updated-map)]
@@ -1724,13 +1730,10 @@
 ;;
 
 (defn config-and-validate-all
-  "Take the opts and errors from the command line arguments, if any,
-  and do the rest of the configuration and validation along the way.  
+  "Do configuration and validation of options.
   op-options are options that control where to look for information.
-  Left the config map, config file, and cli processing in place in case
-  we go replace the uberjar capability soon.  
   Returns [new-map doc-map errors]"
-  [cli-opts cli-errors op-options]
+  [op-options]
   #_(println "config-and-validate-all!")
   ;
   ; NOTE WELL: When adding sections to the validation below, all of the
@@ -1799,72 +1802,11 @@
             (get-config-from-path [zprintrc zprintedn]
                                   file-separator
                                   ["."]))
-        [cwd-updated-map cwd-new-doc-map cwd-rc-errors]
+        [updated-map new-doc-map cwd-rc-errors]
           (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
                                search-doc-map
                                search-map
                                cwd-rcfile)
-        ;
-        ; environment variables -- requires zprint on front
-        ;
-        read-system-env-fn #?(:clj (resolve 'cprop.source/read-system-env)
-                              :cljs nil)
-        env-map (when read-system-env-fn (read-system-env-fn))
-        env-and-default-map (merge-existing {:zprint default-map} env-map)
-        new-env-map (diff-map default-map (:zprint env-and-default-map))
-        new-env-map (update-fn-map new-env-map env-map)
-        new-env-map (map-leaves strtf->boolean new-env-map)
-        [updated-map new-doc-map env-errors] (config-and-validate
-                                               (str "Environment variable")
-                                               cwd-new-doc-map
-                                               cwd-updated-map
-                                               new-env-map)
-        ;
-        ; System properties -- requires zprint on front
-        ;
-        read-system-props-fn #?(:clj (resolve 'cprop.source/read-system-props)
-                                :cljs nil)
-        prop-map (when read-system-props-fn (read-system-props-fn))
-        prop-and-default-map (merge-existing {:zprint default-map} prop-map)
-        new-prop-map (diff-map default-map (:zprint prop-and-default-map))
-        new-prop-map (update-fn-map new-prop-map prop-map)
-        new-prop-map (map-leaves strtf->boolean new-prop-map)
-        [updated-map new-doc-map prop-errors] (config-and-validate
-                                                (str "System property")
-                                                new-doc-map
-                                                updated-map
-                                                new-prop-map)
-        ;
-        ; --config FILE
-        ;
-        config-filename #?(:clj (:config cli-opts)
-                           :cljs nil)
-        [opts-configfile errors-configfile config-filename]
-          (when config-filename (get-config-from-file config-filename))
-        [updated-map new-doc-map config-file-errors]
-          (config-and-validate (str "Config file: " config-filename)
-                               new-doc-map
-                               updated-map
-                               opts-configfile)
-        ;
-        ; --config-map STRING
-        ;
-        [opts-configmap errors-configmap] (get-config-from-map (:config-map
-                                                                 cli-opts))
-        [updated-map new-doc-map config-map-errors]
-          (config-and-validate (str "Config map:" (:config-map cli-opts))
-                               new-doc-map
-                               updated-map
-                               opts-configmap)
-        ;
-        ; command line options
-        ;
-        opts-cli (select-keys cli-opts zprint-keys)
-        [updated-map new-doc-map cli-errors] (config-and-validate
-                                               (str "CLI options")
-                                               new-doc-map
-                                               updated-map
-                                               opts-cli)
         ;
         ; Process errors together
         ;
@@ -1872,19 +1814,14 @@
         all-errors (apply str
                      (interpose "\n"
                        (filter identity
-                         (list errors-rcfile
+                         (list op-option-errors
+			       errors-rcfile
                                rc-errors
-                               cwd-errors-rcfile
-                               cwd-rc-errors
                                search-errors-rcfile
                                search-rc-errors
-                               env-errors
-                               prop-errors
-                               errors-configfile
-                               config-file-errors
-                               config-map-errors
-                               cli-errors
-                               op-option-errors))))
+                               cwd-errors-rcfile
+                               cwd-rc-errors
+			       ))))
         all-errors (if (empty? all-errors) nil all-errors)]
     [updated-map new-doc-map all-errors]))
 

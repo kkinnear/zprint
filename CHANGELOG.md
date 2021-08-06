@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 ### Changed
+
+  * Problem with loss of spaces preceding inline comments at the
+  top level.  This turns out to be a bigger problem of multiple
+  things on the same line at the top level.  This fix for this
+  entire problem now causes all of the expressions encountered by
+  `zprint-file-str` at the top level to begin on a new line, as
+  they have always done when using `parse-string-all` in the library.
+  This is a behavior change for `zprint-file-str` (which is the
+  basis of the standalong binaries), but of a behavior that is
+  broken yet which has never been reported.  If this change in
+  behavior is a problem for you, please create an issue and we will
+  figure something out.  I could make this new behavior configurable
+  if necessary, but didn't want to do that unless required, as there
+  are already enough configuration options. Issue #191.
+
 ### Fixed
 
   * Documentation error in getting zprint for Linux. Testing the result
@@ -14,6 +29,8 @@ All notable changes to this project will be documented in this file.
   * Fixed problem where user defined fn was declared :arg2-extend, and
   then zprint threw an exception when formatting data that was not
   "extend like".  Issue #200.
+
+
 
 ## 1.1.2 - 2021-5-2
 

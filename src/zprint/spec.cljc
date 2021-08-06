@@ -325,7 +325,8 @@
                       ::indent-arg ::option-fn ::pair-hang?
                       ::return-altered-zipper ::respect-bl? ::respect-nl?
                       ::indent-only? ::indent-only-style ::replacement-string
-                      ::wrap-coll? ::wrap-after-multi? ::wrap-multi?]))
+                      ::wrap-coll? ::wrap-after-multi? ::wrap-multi? 
+		      ::force-nl? ::wrap?]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
@@ -401,7 +402,7 @@
   (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?
                       ::option-fn-first ::option-fn ::fn-format
                       ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap?
-                      ::indent-only? ::hang?]))
+                      ::indent-only? ::hang? ::force-nl?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))

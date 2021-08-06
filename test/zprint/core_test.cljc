@@ -426,7 +426,7 @@
             {:parse-string-all? true,
              :parse {:left-space :keep, :interpose nil}}))
 
-  (expect "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+  (expect "    (defn abc [] (println :a))\n\n\n\n\n   (println :a)"
           (zprint-str
             "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
             {:parse-string-all? true,
@@ -654,6 +654,34 @@
              "stuff"
              {})
            (catch :default e (clean-exception (str e))))))
+
+;;
+;; Issue 191 -- spaces lost before inline comments at top level
+;;
+;; In addition, this brought up the issue of what to do for top level
+;; expressions that are on the same line.  Now they aren't, just because
+;; we don't know what to do with :respect-nl if they are.
+
+(expect "(s/def ::graphical-scoring ::legacy-tree) ;; just so you know\n"
+        (zprint-file-str
+          "(s/def ::graphical-scoring ::legacy-tree) ;; just so you know\n"
+          "stuff"
+          {}))
+
+(expect
+  "(s/def ::graphical-scoring ::legacy-tree)\n(stuff bother)   ;; just so you know\n\n(last line)\n"
+  (zprint-file-str
+    "(s/def ::graphical-scoring ::legacy-tree)  (stuff bother)   ;; just so you know\n\n(last line)\n"
+    "stuff"
+    {}))
+
+
+(expect
+  "(s/def ::graphical-scoring ::legacy-tree)\n(stuff and bother)   ;; just so you know\n\n(last line)\n"
+  (zprint-file-str
+    "(s/def ::graphical-scoring ::legacy-tree)  (stuff and\n                                                  bother)   ;; just so you know\n\n(last line)\n"
+    "stuff"
+    {}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

@@ -1989,6 +1989,7 @@
                   (concat-no-nil [[(str " ") :none :whitespace 5]]
                                  (fzfn (in-hang options) hindent zloc)))
         #_(prn "fzprint-hang: first hanging:" (first hanging) (second hanging))
+  _ (dbg options "fzprint-hang: caller:" caller "hang?" ((options caller) :hang?))
         hanging (when (not= (nth (second hanging) 2) :comment-inline) hanging)
         hang-count (or zloc-count (zcount zloc))
         hr-lines (style-lines options (dec hindent) hanging)
@@ -3957,6 +3958,7 @@
             (and one-line-ok?
                  (allow-one-line? options (zcount arg-2-zloc) :binding-vector))
             one-line-ok?)
+	one-line-ok? (if (:force-nl? (options caller)) nil one-line-ok?)
         ; remove -body from fn-style if it was there
         fn-style (or (body-map fn-style) fn-style)
         ; All styles except :hang, :flow, and :flow-body and :binding need
@@ -4486,7 +4488,8 @@
                                                     (+ indent ind)
                                                     zloc-seq-right-second))
                         r-str-vec)))
-      (= fn-style :wrap)
+      (or (= fn-style :wrap)
+          (:wrap? (caller options)))
         (let [new-ind (+ indent ind)
               coll-print (fzprint-seq options new-ind zloc-seq)
               _ (dbg-pr options "fzprint-list*: :wrap coll-print:" coll-print)
@@ -6113,7 +6116,7 @@
   [caller l-str r-str
    {:keys [rightcnt in-code?],
     {:keys [wrap-coll? wrap? binding? option-fn-first option-fn sort?
-            sort-in-code? fn-format indent]}
+            sort-in-code? fn-format indent force-nl?]}
       caller,
     :as options} ind zloc]
   (dbg options
@@ -6236,12 +6239,14 @@
                 _ (log-lines options "fzprint-vec*:" new-ind one-line)
                 _ (dbg-pr options
                           "fzprint-vec*: new-ind:" new-ind
+			  "force-nl?" force-nl?
                           "one-line:" one-line)
                 one-line-lines (style-lines options new-ind one-line)]
             (if (zero? len)
               (concat-no-nil l-str-vec r-str-vec)
               (when one-line-lines
-                (if (fzfit-one-line options one-line-lines)
+                (if (and (not force-nl?) 
+		         (fzfit-one-line options one-line-lines))
                   (concat-no-nil l-str-vec one-line r-str-vec)
                   (if indent-only?
                     ; Indent Only
@@ -6257,7 +6262,8 @@
                     ; Regular Pprocessing
                     (if (or (and (not wrap-coll?)
                                  (any-zcoll? options new-ind zloc))
-                            (not wrap?))
+                            (not wrap?)
+			    force-nl?)
                       (concat-no-nil l-str-vec
                                      (apply concat-no-nil
                                        (precede-w-nl options

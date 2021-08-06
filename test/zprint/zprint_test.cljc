@@ -2129,14 +2129,6 @@
                       {:parse-string? true,
                        :map {:lift-ns? true, :lift-ns-in-code? false}}))
 
-  ;;
-  ;; This generates:
-  ;;
-  ;; #object[Error Error: Namespaced keywords not supported !]
-  ;;
-  ;; while the namespaced keywords in the (list ...) above seem to work ok.
-  ;;
-
   #?(:clj (expect "{::a :b, ::c :d}"
                   (zprint-str "{::a :b ::c :d}"
                               {:parse-string? true, :map {:lift-ns? true}})))
@@ -5413,13 +5405,13 @@ ser/collect-vars-acc %1 %2) )))"
     "(this is\r      a\r      test\r      this\r      is\r      only\r      a\r      test ; comment\r      stuff\r      bother)"
     (zprint-file-str lendr "stuff" {}))
 
-  (expect "(this is)\n(a test)\n(this is); a comment\n(only a test)"
+  (expect "(this is)\n(a test)\n(this is) ; a comment\n(only a test)"
           (zprint-file-str lendmu "stuff" {}))
 
-  (expect "(this is)\r\n(a test)\r\n(this is); a comment\r\n(only a test)"
+  (expect "(this is)\r\n(a test)\r\n(this is) ; a comment\r\n(only a test)"
           (zprint-file-str lendmd "stuff" {}))
 
-  (expect "(this is)\r(a test)\r(this is); a comment\r(only a test)"
+  (expect "(this is)\r(a test)\r(this is) ; a comment\r(only a test)"
           (zprint-file-str lendmr "stuff" {}))
 
   ;;
@@ -6061,6 +6053,45 @@ ser/collect-vars-acc %1 %2) )))"
         (zprint-str
           " (defrecord ~tagname ~fields\n\n          (stuff)\n\n          )"
           {:parse-string? true, :list {:respect-nl? true}}))
+
+;;
+;; ## Test ##NaN
+;;
+
+(expect "(def y ##NaN)"
+  (zprint-str "(def y ##NaN)" {:parse-string? true}))
+
+;;
+;; # Issue #199 namespaced maps
+;;
+
+(expect
+  "(is (= #::sut{:groups #{\"FOO_ADMIN\" \"FOO_USER\"}}\n       (sut/map->user {:groups [\"FOO_USER\" \"FOO_ADMIN\"]})))"
+  (zprint-str
+    "(is (= #::sut{:groups #{\"FOO_ADMIN\" \"FOO_USER\"}} (sut/map->user {:groups [\"FOO_USER\" \"FOO_ADMIN\"]})))"
+    {:parse-string? true}))
+
+
+;;
+;; Issue #184 -- don't print vectors on one line even if they fit.
+;;
+
+(expect
+  "(s/def ::record\n  (s/keys :req-un [::reference-id\n                   ::record-number\n                   ::addresses\n                   ::contacts]\n          :opt-un [::birth-date\n                   ::family-name\n                   ::names]))"
+  (zprint-str
+    "(s/def ::record\n  (s/keys :req-un [::reference-id\n                   ::record-number\n                   ::addresses\n                   ::contacts]\n          :opt-un [::birth-date\n                   ::family-name\n                   ::names]))\n"
+    {:parse-string? true,
+     :fn-map {"s/keys" [:none {:vector {:force-nl? true}}]}}))
+
+;;
+;; Same thing for lists
+;;
+
+(expect
+  "(def ^:private config-keys\n  '(bootstrapper\n    cassandra\n    graphql\n    http-client))"
+  (zprint-str
+    "(def ^:private config-keys  '(bootstrapper cassandra graphql http-client))\n"
+    {:parse-string? true, :list {:force-nl? true}}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

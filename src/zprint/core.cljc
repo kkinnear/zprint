@@ -25,7 +25,7 @@
                                 no-color-map merge-deep sci-load-string
 				config-and-validate
 				]]
-    [zprint.zutil       :refer [zmap-all zcomment? whitespace? 
+    [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?
                                 find-root-and-path-nw]]
     [zprint.sutil]
     [zprint.focus       :refer [range-ssv]]
@@ -735,6 +735,7 @@
                                              zprint-str-internal
                                              ":parse-string-all? call"
                                              (edn* (p/parse-string-all coll)))
+	      #_(def pmr-result result)
               str-w-line-endings
                 (if (or (nil? line-ending) (= line-ending "\n"))
                   result
@@ -1044,12 +1045,11 @@
   element in the file.  The output is [next-options output-str zprint-num], 
   since reductions is used to call this function.  See process-multiple-forms
   for what is actually done with the various :format values."
-  [rest-options
-   zprint-fn
-   zprint-specifier
-   [next-options _ indent zprint-num]
-   form]
+  [rest-options zprint-fn zprint-specifier
+   [next-options _ indent zprint-num previous-newline?] form]
   (let [comment? (zcomment? form)
+        newline? (znewline? form)
+        ; This includes newlines
         whitespace-form? (whitespace? form)
         [new-options error-str] (when (and comment?
                                            (zero? indent)
@@ -1067,8 +1067,10 @@
                            (merge-deep rest-options next-options))
         decision-options (merge-deep (get-options) internal-options)
         ; Now make decisions about things
+        interpose? (:interpose (:parse decision-options))
+        previous-newline? (or interpose? previous-newline?)
         space-count (when whitespace-form?
-                      (if (:interpose (:parse decision-options))
+                      (if interpose?
                         ; we are getting rid of all whitespace between expr
                         0
                         (spaces? (string form))
@@ -1076,9 +1078,10 @@
                             ; we are getting rid of just spaces between expr
                             (spaces? (string form))
                             nil)))
+        ; Causes fzprint-style to drop whatever it is printing
         drop? (not (not (and space-count
                              (not (= :skip (:format next-options)))
-                             (or (:interpose (:parse decision-options))
+                             (or interpose?
                                  (= (:left-space (:parse decision-options))
                                     :drop)))))
         ; If this was a ;!zprint line, don't wrap it
@@ -1087,28 +1090,54 @@
             {:comment {:wrap? false}, :zipper? true, :file? true, :drop? drop?}
             {:zipper? true, :file? true, :drop? drop?})
         internal-options (merge-deep internal-options local-options)
+        skip-since-spaces? (and space-count (not= space-count 0))
+        output-str
+          ; This breaks left-space keep by itself...
+          (if skip-since-spaces?
+            ; It is just spaces, don't print anything yet
+            ""
+            ; Should we zprint this form?
+            (if (or (= :off (:format decision-options))
+                    (and (not (or comment? whitespace-form?))
+                         ; used to be next-options but if not a comment then
+                         ; they are in internal-options
+                         (= :skip (:format internal-options))))
+              (string form)
+              ; call zprint-str-internal or an alternative if one exists
+              (zprint-fn internal-options form)))
+        ; Implement left-space keep when *after* doing zprint (or not) on
+        ; the next thing, using the indent passed along in reduce.
+        new-output-str
+          (cond
+            skip-since-spaces? output-str
+            newline? output-str
+            comment? (str (blanks indent) output-str)
+            (and (not previous-newline?)
+                 (= (:left-space (:parse decision-options)) :keep))
+              (str "\n" (blanks indent) output-str)
+            (not previous-newline?) (str "\n" output-str)
+            ; previous was newline is now implied
+            (= (:left-space (:parse decision-options)) :keep)
+              (str (blanks indent) output-str)
+            :else output-str)
         #_(do (println "-----------------------")
               (println "form:")
               (prn (string (or (zprint.zutil/zfirst form) form)))
               (println "space-count:" space-count)
               (println "indent:" indent)
+              (println "newline?" newline?)
+              (println "previous-newline?" previous-newline?)
               (println "whitespace-form?:" whitespace-form?)
+              (println "interpose?" interpose?)
               (println "interpose:" (:interpose (:parse decision-options)))
               (println "left-space:" (:left-space (:parse decision-options)))
               (println "new-options:" new-options)
               (println "(:indent next-options):" (:indent next-options))
               (println "internal-options:" internal-options)
-              (println "next-options:" next-options))
-        output-str
-          ; Should we zprint this form?
-          (if (or (= :off (:format decision-options))
-                  (and (not (or comment? whitespace-form?))
-                       ; used to be next-options but if not a comment then
-                       ; they are in internal-options
-                       (= :skip (:format internal-options))))
-            (string form)
-            ; call zprint-str-internal or an alternative if one exists
-            (zprint-fn internal-options form))
+              (println "next-options:" next-options)
+              (prn "output-str:" output-str)
+              (prn "new-output-str:" new-output-str))
+        output-str new-output-str
         local? (or (= :skip (:format new-options))
                    (= :next (:format new-options)))]
     (when (and new-options (not local?))
@@ -1118,10 +1147,10 @@
     (when error-str (println "Warning: " error-str))
     [(cond local? (merge-deep next-options new-options)
            (or comment? whitespace-form?) next-options
-           :else {})
-     output-str
-     (or space-count 0)
-     (if new-options (inc zprint-num) zprint-num)]))
+           :else {}) output-str (or space-count 0)
+     (if new-options (inc zprint-num) zprint-num)
+     ; note that comments come with newline, unfortunately
+     (if skip-since-spaces? previous-newline? (or newline? comment?))]))
 
 (defn ^:no-doc interpose-w-comment
   "A comment aware interpose. It takes a seq of strings, leaves out
@@ -1243,11 +1272,12 @@
         seq-of-zprint-fn
           (reductions
             (partial process-form rest-options zprint-fn zprint-specifier)
-            [{} "" 0 0]
+            [{} "" 0 0 true]
             (zmap-all identity forms))
         #_(def sozf seq-of-zprint-fn)
         seq-of-strings (map second seq-of-zprint-fn)]
     #_(def sos seq-of-strings)
+    #_(def is interpose-str)
     (if interpose-str
       (apply str (interpose-w-comment seq-of-strings interpose-str))
       (apply str seq-of-strings))))

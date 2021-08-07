@@ -683,6 +683,31 @@
     "stuff"
     {}))
 
+(expect
+  "(s/def ::graphical-scoring ::legacy-tree)\n(stuff and\n       bother)   ;; just so you know\n\n(last line)\n"
+  (zprint-file-str
+    "(s/def ::graphical-scoring ::legacy-tree)  (stuff and\n                                                  bother)   ;; just so you know\n\n(last line)\n"
+    "stuff"
+    {:style :respect-nl}))
+
+;;
+;; Tab expansion
+;;
+
+(expect
+  "(this is a test)\n(this is only a test) ; comment with    tabs\n(foo)\n(def bar baz)"
+  (zprint-file-str
+    "(this is a test)\n(this is\tonly\ta\ttest) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
+    "stuff"
+    {}))
+
+(expect
+  "(this is a test)\n(this is only a test) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
+  (zprint-file-str
+    "(this is a test)\n(this is\tonly\ta\ttest) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
+    "stuff"
+    {:tab {:expand? false}}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

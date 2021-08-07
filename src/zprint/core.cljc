@@ -314,6 +314,10 @@
           ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
           ; the rewrite-clj parse would "convert" them all to \n for us,
           ; which is really what we need anyway.
+	  ;
+	  ; On the ohter hand, breaking it into lines to do the tab expansion
+	  ; is considerably faster than just doing it on the whole file when
+	  ; a tab is found.
           x (clojure.string/join "\n" lines)
           n (p/parse-string (clojure.string/trim x))]
       (when n [(edn* n) line-ending]))
@@ -729,6 +733,10 @@
               ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
               ; the rewrite-clj parse would "convert" them all to \n for us,
               ; which is really what we need anyway.
+	  ;
+	  ; On the ohter hand, breaking it into lines to do the tab expansion
+	  ; is considerably faster than just doing it on the whole file when
+	  ; a tab is found.
               coll (clojure.string/join "\n" lines)
               result (process-multiple-forms (parse-string-all-options
                                                rest-options)
@@ -1320,6 +1328,11 @@
              ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
              ; the rewrite-clj parse would "convert" them all to \n for us,
              ; which is really what we need anyway.
+	  ;
+	  ; On the ohter hand, breaking it into lines to do the tab expansion
+	  ; is considerably faster than just doing it on the whole file when
+	  ; a tab is found.
+
              filestring (clojure.string/join "\n" lines)
              range-start (:start (:range (:input (get-options))))
              ; If shebang correct for one less line

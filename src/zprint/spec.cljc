@@ -212,6 +212,7 @@
                       ::general-hang-adjust]))
 (s/def ::key-color (s/nilable (s/map-of zany? ::color)))
 (s/def ::key-value-color (s/nilable (s/map-of zany? ::color-map)))
+(s/def ::key-value-options (s/nilable (s/map-of zany? ::options)))
 (s/def ::key-depth-color ::key-color-value)
 (s/def ::key-ignore (s/nilable ::key-or-ks-seq))
 (s/def ::key-ignore-silent (s/nilable ::key-or-ks-seq))
@@ -338,7 +339,7 @@
              ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
              ::lift-ns-in-code? ::key-no-sort ::nl-separator?
              ::nl-separator-all? ::respect-bl? ::respect-nl? ::sort-in-code?
-             ::sort? ::unlift-ns?]))
+             ::sort? ::unlift-ns? ::key-value-options]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)

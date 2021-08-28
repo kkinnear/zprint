@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 ## 1.2.0 - 2021-5-3
 
 ### Added
+
+  * `{:map {:key-value-options {key-1 options-map-1 key-2 options-map-2 ...}}` 
+  lets you specify an options map to be used for formatting the value
+  of any specific key in a map.  I first conceived of this as a way to solve
+  some request in an issue from a good while ago, but I can't seem to find
+  which issue it was, for which I aplogize to whomever triggered this 
+  capability!
+
+  * `{:vector {:force-nl? true}}` will cause a vector to never format
+  on a single line, even if it would fit.  Also, `{:list {:force-nl? true}}` 
+  will do the same for lists.  There has been growing desire for something
+  like this, and Issue #184 pushed me into actually implementing it.
+
+  * `{:list {:wrap? true}}` will cause a list to wrap just like vectors
+  do by default.  You can this this for a function using the `:wrap` 
+  function type, but now you can get it for lists in general as well.
+
+
+  
 ### Changed
 
   * Problem with loss of spaces preceding inline comments at the
@@ -18,7 +37,7 @@ All notable changes to this project will be documented in this file.
   behavior is a problem for you, please create an issue and we will
   figure something out.  I could make this new behavior configurable
   if necessary, but didn't want to do that unless required, as there
-  are already enough configuration options. Issue #191.
+  are already plenty of configuration options. Issue #191.
 
 ### Fixed
 

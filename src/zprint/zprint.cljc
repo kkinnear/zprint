@@ -995,7 +995,7 @@
   [caller
    {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],
     {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color
-            key-depth-color key-value-color justify]}
+            key-depth-color key-value-color key-value-options justify]}
       caller,
     :as options} ind commas? justify-width justify-options rightmost-pair?
    [lloc rloc xloc :as pair]]
@@ -1060,6 +1060,22 @@
         roptions (if value-color-map
                    (merge-deep roptions {:color-map value-color-map})
                    roptions)
+
+
+	; If we have a key-value-options map, and the key we have matches
+	; any of the keys in the map, then merge the resulting options map
+	; into the current options for the value.
+        value-options-map (and key-value-options 
+	                       (key-value-options (get-sexpr options lloc)))
+        local-roptions (if value-options-map
+                         (merge-deep local-roptions value-options-map)
+                         local-roptions)
+        roptions (if value-options-map
+                   (merge-deep roptions value-options-map)
+                   roptions)
+
+
+
         ; It is possible that lloc is a modifier, and if we have exactly
         ; three things, we will pull rloc in with it, and move xloc to rloc.
         ; If it is just two, we'll leave it to be handled normally.

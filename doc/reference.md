@@ -3938,6 +3938,17 @@ be used.  If you also have defined a `:key-color` map, any colors speciied
 in that map for specific keys will override the color that they would be
 given by the `:key-depth-color` vector.
 
+####  :key-value-options  _nil_
+
+The value of `:key-value-options` is a map which relates map keys to options
+maps used to format the values of those map keys.  This capability, had
+it been around earlier, would make :key-value-color` unnecessary.  
+It would also have made `:key-ignore` unnecessary, as the options map
+for a specific key could specify a `:max-length` which was very short.
+While it seems simple, this is a particularly powerful formatting
+capability which can be used to alter the formatting of maps in many 
+interesting ways!
+
 ####  :key-no-sort  _#{"..."}_
 
 The value of `:key-no-sort` is either nil or a set of strings which,

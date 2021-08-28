@@ -40,6 +40,8 @@
                   {:file "doc/options/community.md"}]
                  ["how blank lines in source are handled"
                   {:file "doc/options/blank.md"}]
+                 ["how let forms are formatted"
+                  {:file "doc/options/let.md"}]
                  ["how map keys are formatted" {:file "doc/options/maps.md"}]
                  ["the colors used for formatting source"
                   {:file "doc/options/colors.md"}]

@@ -6093,6 +6093,21 @@ ser/collect-vars-acc %1 %2) )))"
     "(def ^:private config-keys  '(bootstrapper cassandra graphql http-client))\n"
     {:parse-string? true, :list {:force-nl? true}}))
 
+;;
+;; :key-value-options
+;;
+
+(expect "{:a :b, :c (this is a ...), :d (more testing)}"
+        (zprint-str
+          {:a :b, :c '(this is a test this is only a test), :d '(more testing)}
+          {:map {:key-value-options {:c {:max-length 3}}}}))
+
+(expect "{:a :b,\n :c ##,\n :d (more testing)}"
+        (zprint-str
+          {:a :b, :c '(this is a test this is only a test), :d '(more testing)}
+          {:map {:key-value-options {:c {:max-length 0},
+                                     :d {:list {:force-nl? true}}}}}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

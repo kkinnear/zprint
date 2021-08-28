@@ -542,6 +542,7 @@
          :key-color nil,
          :key-depth-color nil,
          :key-value-color nil,
+         :key-value-options nil,
          :key-no-sort #{"..."},
          :lift-ns? false,
          :lift-ns-in-code? false,

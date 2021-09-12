@@ -6108,6 +6108,62 @@ ser/collect-vars-acc %1 %2) )))"
           {:map {:key-value-options {:c {:max-length 0},
                                      :d {:list {:force-nl? true}}}}}))
 
+;;
+;; Issue 153 where new stuff didn't format like old stuff
+;;
+
+(expect
+"(this is\n      (->> (this is a test this is only a test of whether or it fits in eightyx)\n           more\n           stuff)\n      still\n      a\n      test)"
+(zprint-str 
+"(this is\n      (->> (this is a test this is only a test of whether or it fits in eightyx)\n           more\n\t   stuff)\n      still\n      a\n      test)\n"
+{:parse-string? true :width 80}))
+
+;;
+;; More 153 issues, where restore didn't quite do it all
+;;
+
+(expect
+"(defn stuff\n  [{:keys [bother]}]\n  (let [bother-node (:node bother)\n        all (-> (bother/db bother-node)\n                (bother/q '{:find [(pull md [*])],\n                            :where [[md :xxxxxxx/type\n                                     :procurement-consideration]]}))\n        xf (comp (map first)\n                 (map mapper.procurment-consideration/bother-entity->model))]\n    (into [] xf all)))"
+(zprint-str 
+"(defn stuff\n  [{:keys [bother]}]\n  (let [bother-node (:node bother)\n        all (-> (bother/db bother-node)\n                (bother/q '{:find [(pull md [*])]\n                          :where [[md :xxxxxxx/type :procurement-consideration]]}))\n        xf (comp (map first) (map mapper.procurment-consideration/bother-entity->model))]\n    (into [] xf all)))\n"
+{:parse-string? true :width 80}))
+
+;;
+;; This is where the fixes for extend processing got too carried away, and
+;; didn't allow a "nil" as a symbol.
+;;
+
+(expect
+"(extend-protocol interface.static-bus/Troubler\n  nil\n    (publish [_ trouble]\n      (logging/warn \"Troubler received nil payload, not troubling.\"\n                    (some->> trouble\n                             :id\n                             (hash-map :trouble-id)))))"
+(zprint-str 
+"(extend-protocol interface.static-bus/Troubler\n nil\n   (publish [_ trouble]\n     (logging/warn \"Troubler received nil payload, not troubling.\"\n                   (some->> trouble\n                            :id\n                            (hash-map :trouble-id)))))\n"
+{:parse-string? true}))
+
+;;
+;; Issue #204 -- odd behavior with :style :hiccup
+;;
+
+(expect
+"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n             val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]"
+ (zprint-str 
+"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
+ {:parse-string? true :style :hiccup :vector {:wrap? true}}))
+
+
+(expect
+"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n             val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]"
+(zprint-str 
+"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
+{:parse-string? true :style :hiccup}))
+
+
+(expect
+"[a\n {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n           val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n       (str val1 val2))}]"
+(zprint-str 
+"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
+{:parse-string? true}))
+
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

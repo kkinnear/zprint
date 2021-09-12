@@ -49,7 +49,29 @@ All notable changes to this project will be documented in this file.
   then zprint threw an exception when formatting data that was not
   "extend like".  Issue #200.
 
+  * Fixed `:quote` to change indent to 1.  Issue #175.
 
+  * ##NaN, etc, now work.  Used new parser!  Issue #153.
+
+  * Fixed a failure when using `:range`, if one of lines specified fell
+  on an unevaluated expression, things didn't work.  Issue #190.
+
+  * Namespaces maps don't work in rewrite-clj v0, but now they do since
+  we moved to v1.  Issue #199.
+
+  * When code expecting "extend" type syntax encountered non-extend input,
+  an exception was thrown.  Issue #200.
+
+  * `zprint -e` was incorrectly documented as a way to test an installation.
+  Issue #201.
+
+  * Didn't want to print a vector on one line, even though it fit.  Added
+  `:vector {:force-nl? true}` to prevent this.  Issue #184.
+
+  * Made signature1 the default for defprotocol.  Issue #181.
+
+  * Fixed problem with `:style :hiccup` affecting code formatting inside
+  a vector.  Issue #204.
 
 ## 1.1.2 - 2021-5-2
 

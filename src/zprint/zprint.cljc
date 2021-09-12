@@ -2078,6 +2078,8 @@
         (cond (znewline? zloc) (recur (next coll))
               (zcoll? zloc) true
 	      (zsymbol? zloc) nil
+	      (znil? zloc) nil
+	      ; if we don't know what it is, should we skip it?
               :else (recur (next coll)))))))
 
 (defn check-for-first-coll?
@@ -3760,9 +3762,11 @@
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl fn-style
            quote?],
     :as options} ind zloc]
-  (dbg-pr options "fzprint-list*: ind:" ind "fn-style:" fn-style "option-fn:" 
-        (:option-fn (options caller))  
-  )
+  ; i153
+  (dbg-pr options "fzprint-list*: ind:" ind "fn-style:" fn-style #_"option-fn:" 
+        #_(:option-fn (options caller))
+	; i153
+	#_"rightcnt:" #_(:rightcnt options))  
   ; We don't need to call get-respect-indent here, because all of the
   ; callers of fzprint-list* define respect-nl?, respect-bl? and indent-only?
   (let [max-length (get-max-length options)
@@ -3831,7 +3835,7 @@
         ; Do we have a [fn-style options] vector?
         ; **** NOTE: The options map can change here, and if it does,
         ; some of the things found in it above would have to change too!
-        options
+        options 
           ; The config-and-validate allows us to use :style in the options
           ; map associated with a function. We don't need to validate 
 	  ; (second fn-style), as that was already done.  But this
@@ -3898,7 +3902,7 @@
         ; out above.
         fn-style (or (:fn-style new-options) fn-style)
         guide (or (:guide options) (guide-debug caller options))
-        options (dissoc options :guide)
+        options (dissoc options :guide :fn-style)
         #_(println "\nguide after:" guide "\nguide options:" (:guide options))
         _ (when guide (dbg-pr options "fzprint-list* guide:" guide))
         ; If we messed with the options for any of two reasons, then find
@@ -6255,7 +6259,8 @@
                 _ (log-lines options "fzprint-vec*:" new-ind one-line)
                 _ (dbg-pr options
                           "fzprint-vec*: new-ind:" new-ind
-			  "force-nl?" force-nl?
+			  ; i153
+			  #_"force-nl?" #_force-nl?
                           "one-line:" one-line)
                 one-line-lines (style-lines options new-ind one-line)]
             (if (zero? len)
@@ -6773,7 +6778,8 @@
     (dbg-pr options
             "fzprint-map: ns:" ns
             "indent:" (:indent (:map options))
-            "map-options:" (:map options))
+	    ; i153
+            "map-options:" (dissoc (:map options) :key-value-options))
     (if ns
       (fzprint-map* :map
                     "{"
@@ -7203,7 +7209,29 @@
 ;; it around.  Maybe pass ctx to everyone and they can look at it
 ;; or something.  But for testing, let's just do this.
 
+(def keys-to-replace [:rightcnt :one-line? :depth :map-depth :no-arg1? :in-code? :pdepth :in-hang?])
+
+(defn replace-one-key-value
+  "Given and existing and new map, move one key-value pair from the
+  existing map to the new map.  Be careful about not putting a nil 
+  value in the new map."
+  [existing-map new-map key]
+  (let [value (key existing-map :unset)]
+    (cond (= value :unset) (dissoc new-map key)
+          (= value (key new-map)) new-map
+	  :else (assoc new-map key value))))
+
 (defn update-replaced-options
+  "When :next-inner :restore is encountered by config-and-validate, it
+  puts the existing options map (with :replace? true) into :next-inner.
+  When fzprint* encounters a map with :replace? true, it needs to bring
+  it up to date with some critical information before using it, and this
+  routine does that job.  It doesn't need validation since it was already
+  in use."
+  [options next-inner]
+  (reduce (partial replace-one-key-value options) next-inner keys-to-replace))
+
+(defn update-replaced-options-alt
   "When :next-inner :restore is encountered by config-and-validate, it
   puts the existing options map (with :replace? true) into :next-inner.
   When fzprint* encounters a map with :replace? true, it needs to bring
@@ -7214,6 +7242,23 @@
   (let [replaced-options (dissoc next-inner :replace?)
 	; Could have done this more clearly with cond->, but didn't want 
 	; to access the options map twice for the same value.
+        replaced-options (let [rightcnt (:rightcnt options :unset)]
+                           (if (= rightcnt (:rightcnt replaced-options))
+                             replaced-options
+			     (if (= rightcnt :unset)
+		       (dissoc replaced-options :rightcnt)
+                              (assoc replaced-options :rightcnt rightcnt))))
+        replaced-options (let [one-line? (:one-line? options :unset)]
+                           (if (= one-line? (:one-line? replaced-options))
+                             replaced-options
+			     (if (= one-line? :unset)
+	                       (dissoc replaced-options :one-line?)
+                               (assoc replaced-options :one-line? one-line?))))
+	; i153
+       ; replaced-options (let [in-hang? (:in-hang? options)]
+       ;                    (if (= in-hang? (:in-hang? replaced-options))
+       ;                      replaced-options
+       ;                      (assoc replaced-options :in-hang? in-hang?)))
         replaced-options (let [depth (:depth options)]
                            (if (= depth (:depth replaced-options))
                              replaced-options

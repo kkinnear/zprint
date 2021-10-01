@@ -24,8 +24,8 @@ is turned back on by another zprint formatting directive.
 
 This is all possible because of the zprint comment API.
 
-If a comment starts with the string `;!zprint`, then the rest of
-the string will be parsed as a zprint options map.
+If a comment starts with the string `;!zprint` (beginning in column 1), 
+then the rest of the string will be parsed as a zprint options map.
 
 For example:
 ```
@@ -43,12 +43,13 @@ column 1 and begin with:
 ;!zprint 
 ```
 
-When `zprint-file-str` finds a comment line that begins with
-`;!zprint`, it will read the rest of the line as a Clojure s-expression,
-and assume that it is a zprint options map.  In addition, there is
-one additional key for the options map given to a `;!zprint` directive
-beyond those used for other zprint option maps; the
-`:format` key.  Using the `;!zprint` API you can:
+When `zprint-file-str` (when using zprint as a library) or any of the 
+pre-built binaries distributed with zprint, find a comment line that 
+begins with `;!zprint`, they will read the rest of the line as a 
+Clojure s-expression, and assume that it is a zprint options map.  
+In addition, there is one additional key for the options map given 
+to a `;!zprint` directive beyond those used for other zprint option maps; 
+the `:format` key.  Using the `;!zprint` API you can:
 
   * Turn off formatting in the file:
 

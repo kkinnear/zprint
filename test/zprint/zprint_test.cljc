@@ -6163,6 +6163,98 @@ ser/collect-vars-acc %1 %2) )))"
 "[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
 {:parse-string? true}))
 
+;;
+;; Issue at end of #153 -- problems with alpha version of :next-inner :restore
+;;
+
+(def i153pcs
+  {:parse-string? true,
+   :fn-map {"abc" [:none
+                   {:next-inner {:map {:force-nl? true},
+                                 :next-inner-restore [[:map :force-nl?]]}}],
+            "def" [:none
+                   {:next-inner {:list {:force-nl? true},
+                                 :next-inner-restore [[:list :force-nl?]]}}],
+            "ghi" [:none
+                   {:list {:force-nl? true},
+                    :next-inner-restore [[:list :force-nl?]]}]}})
+
+(expect
+  "(abc {:a :b,\n      :c :d}\n     (this is a test {:e :f, :g :h})\n     (def {:a :b, :c :d}\n          (this is\n                a\n                test\n                {:e :f, :g :h}))\n     (ghi {:a :b, :c :d}\n          (this is a test {:e :f, :g :h})))"
+  (zprint-str
+    "(abc {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (def {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (ghi {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
+    i153pcs))
+
+
+(expect
+  "(def {:a :b, :c :d}\n     (this is\n           a\n           test\n           {:e :f, :g :h})\n     (abc {:a :b,\n           :c :d}\n          (this is a test {:e :f, :g :h}))\n     (ghi {:a :b, :c :d}\n          (this is a test {:e :f, :g :h})))"
+  (zprint-str
+    "(def {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (abc {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (ghi {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
+    i153pcs))
+
+(expect
+  "(ghi {:a :b, :c :d}\n     (this is a test {:e :f, :g :h})\n     (abc {:a :b,\n           :c :d}\n          (this is a test {:e :f, :g :h}))\n     (def {:a :b, :c :d}\n          (this is\n                a\n                test\n                {:e :f, :g :h})))"
+  (zprint-str
+    "(ghi {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (abc {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (def {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
+    i153pcs))
+
+(def i153tas
+{:fn-map
+   {"->" [:noarg1-body
+          {:list {:constant-pair? false},
+           :next-inner-restore [[:list :constant-pair?]]}],
+    "->>" [:force-nl-body
+           {:list {:constant-pair? false},
+            :next-inner-restore [[:list :constant-pair?]]}],
+    "defn"
+      [:arg1-body
+       {:next-inner {:map {:force-nl? true,
+                           :key-order [:pre :post],
+                           :sort-in-code? false,
+                           :sort? true},
+                     :next-inner-restore [[:map :force-nl?] [:map :key-order]
+                                          [:map :sort-in-code?]
+                                          [:map :sort?]]}}]},
+ :parse-string? true})
+
+(expect
+  "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
+  (zprint-str
+    "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)], :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
+    i153tas))
+
+
+;;
+;; Fix bug encountered when dealing with issue #205 discussion
+;;
+
+(expect
+  "(when errors\n  (json-api/error \"\" :errors errors))"
+  (zprint-str
+    "(when errors (json-api/error \"\" :errors errors))\n"
+    {:parse-string? true,
+     :fn-map
+       {"when" [:arg1-body
+                {:list
+                   {:option-fn
+                      (fn ([] "(when * (json-api/error ...)) never on one line")
+                          ([opts n exprs]
+                           (when (and (>= n 3)
+                                      (= (first (nth exprs 2)) 'json-api/error))
+                             {:fn-style :arg1-force-nl-body})))},
+                 :next-inner {:list {:option-fn nil}}}]}}))
+
+;;
+;; Problem when the first thing in a vector is not sexpr-able, and you use
+;; :style :keyword-respect-nl  Issue #206
+
+(expect "[#_a 1]"
+        (zprint-str "[#_a\n 1]\n"
+                    {:parse-string? true, :style :keyword-respect-nl}))
+
+(expect "[#_a :test\n 1]"
+        (zprint-str "[#_a :test\n1]\n"
+                    {:parse-string? true, :style :keyword-respect-nl}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

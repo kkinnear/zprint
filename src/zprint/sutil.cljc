@@ -289,11 +289,9 @@
     zprint.zfns/zfocus-style sfocus-style
     zprint.zfns/zstart sfirst
     zprint.zfns/zfirst sfirst
-    zprint.zfns/zfirst-no-comment sfirst
+    zprint.zfns/zfirst-sexpr sfirst
     zprint.zfns/zsecond ssecond
-    zprint.zfns/zsecond-no-comment ssecond
     zprint.zfns/zthird sthird
-    zprint.zfns/zthird-no-comment sthird
     zprint.zfns/zfourth sfourth
     zprint.zfns/znextnws next
     zprint.zfns/znextnws-w-nl next

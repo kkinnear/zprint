@@ -10,7 +10,7 @@
     [zprint.finish      :refer [newline-vec]]
     [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr
                                 zseqnws zseqnws-w-nl zfocus-style zstart zfirst
-                                zfirst-no-comment zsecond znthnext zcount zmap
+                   zfirst-sexpr zsecond znthnext zcount zmap
                                 zanonfn? zfn-obj? zfocus zfind-path zwhitespace?
                                 zlist? zcount-zloc-seq-nc-nws zvector? zmap?
                                 zset? zcoll? zuneval? zmeta? ztag zlast zarray?
@@ -205,7 +205,7 @@
   then return a validated map of just the new options.
   Returns [merge-options-map new-options]"
   [caller options option-fn-first zloc]
-  (let [first-sexpr (get-sexpr options (zfirst-no-comment zloc))]
+  (let [first-sexpr (get-sexpr options (zfirst-sexpr zloc))]
     (internal-config-and-validate
       options
       (try (option-fn-first options first-sexpr)
@@ -4080,6 +4080,7 @@
             "in-code?" (:in-code? options)
             "rightcnt:" (:rightcnt options)
             "replacement-string:" (:replacement-string (caller options))
+	    "force-nl?" (:force-nl? (caller options))
             ":ztype:" (:ztype options))
         one-line (if (and (zero? len) (= pre-arg-1-style-vec :noseq))
                    :empty
@@ -7281,6 +7282,31 @@
                              (assoc replaced-options :pdepth pdepth)))]
     replaced-options))
 
+(defn integrate-next-inner
+  "If the value of :next-inner is a map, then config-and-validate it. If
+  the value of :next-inner is a vector of maps, then config-and-validate
+  each of the maps in turn."
+  [options]
+  (let [next-inner (:next-inner options :unset)]
+    (cond (map? next-inner) (first (zprint.config/config-and-validate
+                                     "next-inner:"
+                                     nil
+                                     (dissoc options :next-inner)
+                                     next-inner
+                                     nil ; validate?
+                                   ))
+          (vector? next-inner) (reduce #(first
+                                          (zprint.config/config-and-validate
+                                            "next-inner-vector"
+                                            nil
+                                            %1
+                                            %2
+                                            nil))
+                                 (dissoc options :next-inner)
+                                 next-inner)
+          (= next-inner :unset) options
+          :else options)))
+
 ;;
 ;; # The center of the zprint universe
 ;;
@@ -7297,6 +7323,10 @@
   (let [avail (- width indent)
         ; note that depth affects how comments are printed, toward the end
         options (assoc options :depth (inc depth))
+
+	; i153
+        _ (dbg options "fzprint* **** next-inner:" (:next-inner options))
+
         options (if next-inner
                   ; There are two kinds of next-inner maps.  The normal
                   ; kind is something to add to the current options map,
@@ -7313,7 +7343,8 @@
                     ; the options map, not because it truly needs validation.
                     ; Since it's spec is ::options, it was validated when it
                     ; came into the options map.
-                    (first (zprint.config/config-and-validate
+		    (integrate-next-inner options)
+                    #_(first (zprint.config/config-and-validate
                              "next-inner:"
                              nil
                              (dissoc options :next-inner)
@@ -7337,6 +7368,9 @@
                indent
                "in-hang?:"
                in-hang?
+	       ; i153
+	       ":next-inner:"
+	       (:next-inner options)
                (pr-str (zstring zloc)))
         dbg-data @fzprint-dbg
         dbg-focus? (and dbg? (= dbg-data (second (zfind-path zloc))))

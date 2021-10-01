@@ -100,23 +100,18 @@
   [zloc]
   (let [nloc (down* zloc)] (if nloc (skip right* whitespace? nloc))))
 
-(defn zfirst-no-comment
-  "Find the first non-whitespace and non-comment zloc inside of this zloc."
+(declare zsexpr?)
+
+(defn zfirst-sexpr
+  "Find the first sexpr-able? zloc inside of this zloc."
   [zloc]
-  (let [nloc (down* zloc)] (if nloc (skip right* whitespace-or-comment? nloc))))
+  (let [nloc (down* zloc)] (if nloc (skip right* #(not (zsexpr? %)) nloc))))
 
 (defn zsecond
   "Find the second non-whitespace zloc inside of this zloc."
   [zloc]
   (if-let [first-loc (zfirst zloc)]
     (if-let [nloc (right* first-loc)] (skip right* whitespace? nloc))))
-
-(defn zsecond-no-comment
-  "Find the second non-whitespace zloc inside of this zloc."
-  [zloc]
-  (if-let [first-loc (zfirst-no-comment zloc)]
-    (if-let [nloc (right* first-loc)]
-      (skip right* whitespace-or-comment? nloc))))
 
 (defn zthird
   "Find the third non-whitespace zloc inside of this zloc."
@@ -126,15 +121,6 @@
            (skip right* whitespace?)
            right*
            (skip right* whitespace?)))
-
-(defn zthird-no-comment
-  "Find the third non-whitespace zloc inside of this zloc."
-  [zloc]
-  (some->> (zfirst-no-comment zloc)
-           right*
-           (skip right* whitespace-or-comment?)
-           right*
-           (skip right* whitespace-or-comment?)))
 
 (defn zfourth
   "Find the fourth non-whitespace zloc inside of this zloc."
@@ -793,11 +779,9 @@
     zprint.zfns/zfocus-style zfocus-style
     zprint.zfns/zstart zstart
     zprint.zfns/zfirst zfirst
-    zprint.zfns/zfirst-no-comment zfirst-no-comment
+    zprint.zfns/zfirst-sexpr zfirst-sexpr
     zprint.zfns/zsecond zsecond
-    zprint.zfns/zsecond-no-comment zsecond-no-comment
     zprint.zfns/zthird zthird
-    zprint.zfns/zthird-no-comment zthird-no-comment
     zprint.zfns/zfourth zfourth
     zprint.zfns/znextnws zrightnws
     zprint.zfns/znextnws-w-nl znextnws-w-nl

@@ -156,6 +156,7 @@
 (s/def ::number-or-vector-of-numbers
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))
+(s/def ::vector-of-keywords (s/coll-of keyword? :kind sequential?))
 (s/def ::indent-only-style-value #{:input-hang :none})
 (s/def ::inline-align-style-value #{:consecutive :aligned :none})
 
@@ -241,6 +242,7 @@
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
+(s/def ::fn-style (s/nilable ::fn-type))
 (s/def ::record-type? ::boolean)
 (s/def ::respect-nl? ::boolean)
 (s/def ::respect-bl? ::boolean)
@@ -380,6 +382,17 @@
         :command ::next-inner-command))
   
 (s/def ::replace? ::boolean)
+
+(s/def ::set-elements
+  (s/or :string string?
+        :fn-type ::fn-type
+        :ignore-args ::ignore-args))
+
+(s/def ::next-inner-restore
+  (s/coll-of (s/or :set-value (s/tuple ::vector-of-keywords ::set-elements)
+                   :key-sequence ::vector-of-keywords)
+             :kind sequential?))
+
 (s/def ::return-cvec? ::boolean)
 (s/def ::script (only-keys :opt-un [::more-options]))
 (s/def ::set
@@ -430,7 +443,7 @@
              ::style-map ::tab ::test-for-eol-blanks? ::trim-comments? ::tuning
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
-             ::force-validate? ::doc ::replace?]))
+             ::force-validate? ::doc ::replace? ::next-inner-restore ::fn-style]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

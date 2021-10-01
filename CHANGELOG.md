@@ -73,6 +73,12 @@ All notable changes to this project will be documented in this file.
   * Fixed problem with `:style :hiccup` affecting code formatting inside
   a vector.  Issue #204.
 
+  * Fixed a problem where `:style :keyword-respect-nl` threw an exception
+  when encountering a vector like: `[#_a 1]`, because the first thing in
+  the vector wasn't something that could be passed to option-fn-first.
+  Issue #206.
+
+
 ## 1.1.2 - 2021-5-2
 
 ### Added

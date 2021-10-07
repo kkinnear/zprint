@@ -1019,7 +1019,7 @@ argument vector.  Does not require `<`, will operate properly
 with any element in that position. Allows but does not require
 a docstring.
 
- ```clojure
+```clojure
 (rum/defcs component
   "This is a docstring for the component."
   < rum/static
@@ -1392,6 +1392,9 @@ you will get this by default:
           :eeeeeee])
 ```
 
+##### Altering the formatting of just the "top level" of a function
+
+
 You can alter the formatting of just the top level of a function by
 resetting some of the configuration when zprint decends one level from
 the function in the function map.
@@ -1439,7 +1442,9 @@ Here is the output when you enable `:list {:respect-nl? true}` for
 `comment`:
 
 ```clojure
-(zprint rnl2x {:parse-string? true :fn-map {"comment" [:none {:list {:respect-nl? true}}]}})
+(zprint rnl2x
+        {:parse-string? true,
+         :fn-map {"comment" [:none {:list {:respect-nl? true}}]}})
 (comment
   (defn x
     [y]
@@ -1469,7 +1474,11 @@ Here is the output when you reset the `:respect-nl?` for processing at the
 next inner level:
 
 ```clojure
-(zprint rnl2x {:parse-string? true :fn-map {"comment" [:none {:list {:respect-nl? true} :next-inner {:list {:respect-nl? false}}}]}})
+(zprint rnl2x
+        {:parse-string? true,
+         :fn-map {"comment" [:none
+                             {:list {:respect-nl? true},
+                              :next-inner {:list {:respect-nl? false}}}]}})
 (comment
   (defn x [y] (println y))
 
@@ -1484,13 +1493,191 @@ next inner level:
   (def b :3-blanks-above))
 ```
 
+You can set keys in the options map to explicit values using `:next-inner`.
+You can also reset specific keys to their previous values (without knowing
+what those values are) using `:next-inner-restore`.
+
+##### Restoring previous configuration after altering it 
+
+The key `:next-inner-restore` takes a vector of key sequences, and creates
+a `:next-inner` value for you which contains the current values of the given
+key sequences.  For example, here is `comment` where `:respect-nl?` is true
+for all levels inside of the `comment`:
+
+```
+(czprint rnl2x
+         {:parse-string? true,
+          :fn-map {"comment" [:none {:list {:respect-nl? true}}]}})
+(comment
+  (defn x
+    [y]
+    (println y))
+
+  (this
+    is
+    a
+    thing
+    that
+    is
+    interesting)
+
+  (def z
+
+
+    [:this-is-a-test :with-3-blanks-above?])
+
+  (def a :more stuff)
+
+
+
+  (def b :3-blanks-above))
+```
+Here is `comment` where `:respect-nl?` is only true for the top level of the
+`comment`:
+
+```
+(czprint rnl2x
+         {:parse-string? true,
+          :fn-map {"comment" [:none
+                              {:list {:respect-nl? true},
+                               :next-inner-restore [[:list :respect-nl?]]}]}})
+(comment
+  (defn x [y] (println y))
+
+  (this is a thing that is interesting)
+
+  (def z [:this-is-a-test :with-3-blanks-above?])
+
+  (def a :more stuff)
+
+
+
+  (def b :3-blanks-above))
+```
+The difference from the previous example is when using `:next-inner-restore`, 
+the value of `{:list {:respect-nl? ...}}` is restored to what it was previously,
+instead of being unconditionally set to `false`.  This will tend to integrate
+better with other styles.
+
+In this example, `:list {:respect-nl? true}` is set globally, and the
+use of `:next-inner-restore` in `comment` integrates well with that:
+
+```
+(czprint rnl2x
+         {:parse-string? true,
+          :list {:respect-nl? true},
+          :fn-map {"comment" [:none
+                              {:list {:respect-nl? true},
+                               :next-inner-restore [[:list :respect-nl?]]}]}})
+(comment
+  (defn x
+    [y]
+    (println y))
+
+  (this
+    is
+    a
+    thing
+    that
+    is
+    interesting)
+
+  (def z
+
+
+    [:this-is-a-test :with-3-blanks-above?])
+
+  (def a :more stuff)
+
+
+
+  (def b :3-blanks-above))
+```
+where the previous approach using just `:next-inner` and resetting the 
+value of `:list {:respect-nl? false}` would be largely incorrect:
+
+```
+(czprint rnl2x
+         {:parse-string? true,
+          :list {:respect-nl? true},
+          :fn-map {"comment" [:none
+                              {:list {:respect-nl? true},
+                               :next-inner {:list {:respect-nl? false}}}]}})
+(comment
+  (defn x [y] (println y))
+
+  (this is a thing that is interesting)
+
+  (def z [:this-is-a-test :with-3-blanks-above?])
+
+  (def a :more stuff)
+
+
+
+  (def b :3-blanks-above))
+```
+
+While most of the configuration in the option map is held in the values of
+specific keys, some of the configuation resides in sets.  `:next-inner-restore`
+will also restore values within sets, but the syntax is extended slightly
+to handle set values.
+
+Instead of a vector of keys, when restoring a value for a set element,
+the vector contains only two things -- the first being a vector of keys
+which identifies the set, and the second being a string which represents
+the element within the set that should be restored.  For instance:
+
+```
+{:next-inner-restore [[[:map :key-no-sort] ":pre"]]}
+```
+
+is used in the next example.
+
+In this next example, any map in a `defn` should be sorted. Any top level 
+maps in a `defn` should be formatted onto multiple lines,
+and if those top level maps contain a key `:pre`, they should not be 
+sorted.  But the restriction on sorting if the key `:pre` is found should
+only be enforced for the top level maps in the `defn`.
+
+```
+(czprint prepost2
+         {:parse-string? true,
+          :fn-map {"defn" [:arg1-force-nl-body
+                           {:next-inner {:map {:force-nl? true,
+                                               :sort-in-code? true,
+                                               :key-no-sort #{":pre"}},
+                                         :next-inner-restore
+                                           [[:map :force-nl?]
+                                            [[:map :key-no-sort] ":pre"]]}}]}})
+(defn selected-protocol-for-indications
+  {:pre [(map? m) (empty? m)],
+   :post [(not-empty %)]}
+  [{:keys [spec]} procedure-id indications]
+  (->> {:indications indications, :pre preceding, :procedure-id procedure-id}
+       (sql/op spec queries :selected-protocol-for-indications)
+       (map :protocol-id)))
+```
+
+The last thing in the `:next-inner-restore` vector is where the set
+`:map {:key-no-sort #{...}}` is restored to its previous value regarding the
+key `:pre`.  The values of any keys must be given as strings, to ease the
+comparison of values when using sets as configuration elements.
+
+
+
 __NOTE:__ While you can use `:style <whatever>` in the options map in a
 `:fn-map` vector: `[<fn-type> <options-map>]`, if you want to remove that
-style you have to either set a new style or change the various individual
-configuration parameters of that style to be what you think they were
-before.  It is not possible to simply restore the options map to what
-it was prior to the changes made by the `<options-map>`.
+style when formatting more deeply nested expressions,  you have three 
+approaches:
 
+  1. Set a new style with `:next-inner`.
+
+  2. Identify the configuration parameters of that style, and force them
+  to be what you think they were with `:next-inner`.
+
+  2. Identify the configuration parameters of that style, and have
+  `:next-inner-restore` restore them to their previous values.
+  
 #### Altering the formatting of lists which begin with collections
 
 In addition to strings containing function names, you can use

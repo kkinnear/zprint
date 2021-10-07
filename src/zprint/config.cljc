@@ -1,19 +1,12 @@
 ;!zprint {:style :require-justify}
 (ns ^:no-doc zprint.config
   #?(:clj [:refer-clojure :exclude [read-string]])
-
-  ; i153
   #?@(:cljs [[:require-macros
               [zprint.macros :refer
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
-  (:require
-    #?@(:clj [[zprint.macros :refer
-               [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-
-
- ; i153
- ; (:require
-  clojure.string
+  (:require #?@(:clj [[zprint.macros :refer
+                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+            clojure.string
             [clojure.set :refer [difference]]
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
@@ -22,7 +15,7 @@
              [jrequireguide defprotocolguide signatureguide1 odrguide guideguide
               rodguide areguide]]
             #?@(:bb []
-	       ; To completely remove sci, comment out the following line.
+                ; To completely remove sci, comment out the following line.
                 :clj [[sci.core :as sci]]
                 :cljs [[sci.core :as sci]])
             #?(:clj [clojure.edn :refer [read-string]]
@@ -318,12 +311,14 @@
 ;;
 
 (def zfnstyle
-  {"->" [:noarg1-body
-         {:list {:constant-pair? false},
-          :next-inner :restore}],
-   "->>" [:force-nl-body
+
+   {"->" [:noarg1-body
           {:list {:constant-pair? false},
-           :next-inner :restore}],
+           :next-inner-restore [[:list :constant-pair?]]}],
+    "->>" [:force-nl-body
+           {:list {:constant-pair? false},
+            :next-inner-restore [[:list :constant-pair?]]}],
+
    ":import" :force-nl-body,
    ":require" :force-nl-body,
    "=" :hang,
@@ -349,7 +344,24 @@
    "defcc" :arg1-mixin,
    "defcs" :arg1-mixin,
    "defmacro" :arg1-body,
-   "defexpect" [:arg1-body {:style :respect-nl, :next-inner :restore}],
+   "defexpect" [:arg1-body {
+
+		   ; This replicates :style :respect-nl, but
+		   ; is done explicitly here in case that style
+		   ; changes, so that the :next-inner-restore will
+		   ; still be accurate
+                   :list {:respect-nl? true},
+                   :map {:respect-nl? true},
+                   :vector {:respect-nl? true},
+                   :set {:respect-nl? true},
+
+                            :next-inner-restore
+			    [[:list :respect-nl?]
+			     [:map :respect-nl?]
+			     [:vector :respect-nl?]
+			     [:set :respect-nl?]]}]
+   
+
    "defmethod" :arg2,
    "defmulti" :arg1-body,
    "defn" :arg1-body,
@@ -419,7 +431,8 @@
            {:list {:hang? false, :indent 1},
 	    ; This probably isn't going to make any difference, as 
 	    ; quote? sticks around for a good long time.
-            :next-inner :restore}]})
+	    :next-inner-restore [[:list :hang?] [:list :indent]]}]
+	    })
 
 ;;
 ;; ## The global defaults
@@ -1699,8 +1712,7 @@
   value is a vector of maps, then update the first map in the vector."
   [options ks ks-value]
 
-  ; i153
-  (dbg options
+  (dbg-s options :next-inner-restore
        "update-next-inner: ks:" ks
        "ks-value:" ks-value)
 
@@ -1714,8 +1726,8 @@
           :else options)))
 
 (defn restore-vector
-  "Process one subvector from the :restore key in an options map.
-  If the subvector are is a sequence of keywords, save the value
+  "Process one subvector from the :next-inner-restore key in an options map.
+  If the subvector is a sequence of keywords, save the value
   of that element in the :next-inner map.  If the first
   element in the vector is itself a vector of keywords, then that vector
   is a key-sequence to a set, and the second element of the vector is
@@ -1731,7 +1743,11 @@
       ; shows up in :next-inner
       (let [ks-value (get-in existing-map restore-vector :unset)]
         (if (= ks-value :unset)
-          new-updated-map
+	  (if (= (first restore-vector) :fn-map)
+	  ; We are operating on the :fn-map, where if something isn't
+	  ; set, when restoring things, it should be :none
+	  (update-next-inner new-updated-map restore-vector :none)
+          new-updated-map)
           (update-next-inner new-updated-map restore-vector ks-value)
           #_(assoc-in options
               (concat [:next-inner] restore-vector)
@@ -1760,7 +1776,7 @@
     :else new-updated-map))
 
 (defn process-restore
-  "Given a map with a top-level :restore key, the value of this key
+  "Given a map with a top-level :next-inner-restore key, the value of this key
   is a vector of vectors.  The vectors are either a sequence of keywords,
   which are a key-sequence of an element.  In this case, save the value
   of that element in the :next-inner map.  In the case where the first
@@ -1772,16 +1788,16 @@
   exist).  Return the modified options map with :next-inner populated
   accordingly"
   [new-updated-map existing-map]
-  ; i153
-  (dbg new-updated-map
-       "process-restore: next-inner:" (:next-inner new-updated-map)
-       "next-inner-restore:" (:next-inner-restore new-updated-map))
+  (dbg-s new-updated-map
+         :next-inner-restore
+         "process-restore: next-inner:" (:next-inner new-updated-map)
+         "next-inner-restore:" (:next-inner-restore new-updated-map))
   (let [restore-vec (:next-inner-restore new-updated-map)
         new-updated-map
           (let [next-inner (:next-inner new-updated-map :unset)]
             ; Deal with existing :next-inner (or not)
             (cond
-	      ; Nothing there now, so that will be handled later
+              ; Nothing there now, so that will be handled later
               (= next-inner :unset) new-updated-map
               ; We already have one, so create a vector
               ; and add it to the vector.
@@ -1797,10 +1813,10 @@
                          new-updated-map
                          restore-vec)
                        :next-inner-restore)]
-    ; i153
-    (dbg new-updated-map
-         "process-restore: (:next-inner result)"
-         (:next-inner result))
+    (dbg-s new-updated-map
+           :next-inner-restore
+           "process-restore: (:next-inner result)"
+           (:next-inner result))
     result))
 
 (defn config-and-validate
@@ -1816,17 +1832,14 @@
                           "\n\n"
                           (get-stack-trace))))
    (if (not (empty? new-map))
-     ; i153
      (let [_ #?(:clj (do #_(println "\n\nconfig-and-validate: "
                                     doc-string
                                     new-map
                                     "\n\n"
                                     #_(get-stack-trace)))
-		 :cljs nil)
+                :cljs nil)
            new-map (coerce-to-boolean new-map)
            errors (when validate? (validate-options new-map doc-string))
-
-
            ; remove set elements, and then remove the :remove key too
            [existing-map new-map new-doc-map]
              (perform-remove doc-string doc-map existing-map new-map)
@@ -1837,36 +1850,25 @@
            ; doesn't get overridden
            new-map (dissoc new-map :style)
            errors (if style-errors (str errors " " style-errors) errors)
-	  #_(println "config-and-validate: new-map:" new-map 
-	                "updated-map:" (if (vector? updated-map)
-			        updated-map "updated-map-not-vector"))
+           #_(println "config-and-validate: new-map:" new-map
+                      "updated-map:" (if (vector? updated-map)
+                                       updated-map
+                                       "updated-map-not-vector"))
            new-updated-map (merge-deep updated-map new-map)
-
-
-	   ; i153
-	   ; before we update the map, see if we have anything to remember
-	   ; in :next-inner-restore
+           ; before we update the map, see if we have anything to remember
+           ; in :next-inner-restore
            new-updated-map (if (:next-inner-restore new-updated-map)
-	                     (process-restore new-updated-map existing-map)
-			     new-updated-map)
-
-	   #_(when (vector? new-updated-map) 
-	            (println "config-and-validate: after next-inner-restore new-map:" new-map 
-	                "new-updated-map:" new-updated-map))
-
-
+                             (process-restore new-updated-map existing-map)
+                             new-updated-map)
+           #_(when (vector? new-updated-map)
+               (println "config-and-validate: after next-inner-restore new-map:"
+                          new-map
+                        "new-updated-map:" new-updated-map))
            new-doc-map (diff-deep-ks doc-string
                                      new-doc-map
-                                     (key-seq (dissoc new-map :next-inner-restore))
-                                     new-updated-map)
-
-           new-updated-map (if (= (:next-inner new-updated-map) :restore)
-                             ; We need to save the existing-map, with the
-                             ; addition of {:replace? true} as the value
-                             ; of :next-inner
-                             (assoc new-updated-map
-                               :next-inner (assoc existing-map :replace? true))
-                             new-updated-map)]
+                                     (key-seq (dissoc new-map
+                                                      :next-inner-restore))
+                                     new-updated-map)]
        [(add-calculated-options new-updated-map) new-doc-map errors])
      ; if we didn't get a map, just return something with no changes
      [existing-map doc-map nil]))

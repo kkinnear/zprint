@@ -3762,11 +3762,9 @@
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl fn-style
            quote?],
     :as options} ind zloc]
-  ; i153
-  (dbg-pr options "fzprint-list*: ind:" ind "fn-style:" fn-style #_"option-fn:" 
-        #_(:option-fn (options caller))
-	; i153
-	#_"rightcnt:" #_(:rightcnt options))  
+  (dbg-s options :next-inner "fzprint-list*: ind:" ind "fn-style:" fn-style "option-fn:" 
+        (:option-fn (options caller))
+	"rightcnt:" (:rightcnt options))  
   ; We don't need to call get-respect-indent here, because all of the
   ; callers of fzprint-list* define respect-nl?, respect-bl? and indent-only?
   (let [max-length (get-max-length options)
@@ -6260,8 +6258,7 @@
                 _ (log-lines options "fzprint-vec*:" new-ind one-line)
                 _ (dbg-pr options
                           "fzprint-vec*: new-ind:" new-ind
-			  ; i153
-			  #_"force-nl?" #_force-nl?
+			  "force-nl?" force-nl?
                           "one-line:" one-line)
                 one-line-lines (style-lines options new-ind one-line)]
             (if (zero? len)
@@ -6779,7 +6776,6 @@
     (dbg-pr options
             "fzprint-map: ns:" ns
             "indent:" (:indent (:map options))
-	    ; i153
             "map-options:" (dissoc (:map options) :key-value-options))
     (if ns
       (fzprint-map* :map
@@ -7210,78 +7206,6 @@
 ;; it around.  Maybe pass ctx to everyone and they can look at it
 ;; or something.  But for testing, let's just do this.
 
-(def keys-to-replace [:rightcnt :one-line? :depth :map-depth :no-arg1? :in-code? :pdepth :in-hang?])
-
-(defn replace-one-key-value
-  "Given and existing and new map, move one key-value pair from the
-  existing map to the new map.  Be careful about not putting a nil 
-  value in the new map."
-  [existing-map new-map key]
-  (let [value (key existing-map :unset)]
-    (cond (= value :unset) (dissoc new-map key)
-          (= value (key new-map)) new-map
-	  :else (assoc new-map key value))))
-
-(defn update-replaced-options
-  "When :next-inner :restore is encountered by config-and-validate, it
-  puts the existing options map (with :replace? true) into :next-inner.
-  When fzprint* encounters a map with :replace? true, it needs to bring
-  it up to date with some critical information before using it, and this
-  routine does that job.  It doesn't need validation since it was already
-  in use."
-  [options next-inner]
-  (reduce (partial replace-one-key-value options) next-inner keys-to-replace))
-
-(defn update-replaced-options-alt
-  "When :next-inner :restore is encountered by config-and-validate, it
-  puts the existing options map (with :replace? true) into :next-inner.
-  When fzprint* encounters a map with :replace? true, it needs to bring
-  it up to date with some critical information before using it, and this
-  routine does that job.  It doesn't need validation since it was already
-  in use."
-  [options next-inner]
-  (let [replaced-options (dissoc next-inner :replace?)
-	; Could have done this more clearly with cond->, but didn't want 
-	; to access the options map twice for the same value.
-        replaced-options (let [rightcnt (:rightcnt options :unset)]
-                           (if (= rightcnt (:rightcnt replaced-options))
-                             replaced-options
-			     (if (= rightcnt :unset)
-		       (dissoc replaced-options :rightcnt)
-                              (assoc replaced-options :rightcnt rightcnt))))
-        replaced-options (let [one-line? (:one-line? options :unset)]
-                           (if (= one-line? (:one-line? replaced-options))
-                             replaced-options
-			     (if (= one-line? :unset)
-	                       (dissoc replaced-options :one-line?)
-                               (assoc replaced-options :one-line? one-line?))))
-	; i153
-       ; replaced-options (let [in-hang? (:in-hang? options)]
-       ;                    (if (= in-hang? (:in-hang? replaced-options))
-       ;                      replaced-options
-       ;                      (assoc replaced-options :in-hang? in-hang?)))
-        replaced-options (let [depth (:depth options)]
-                           (if (= depth (:depth replaced-options))
-                             replaced-options
-                             (assoc replaced-options :depth depth)))
-        replaced-options (let [map-depth (:map-depth options)]
-                           (if (= map-depth (:map-depth replaced-options))
-                             replaced-options
-                             (assoc replaced-options :map-depth map-depth)))
-        replaced-options (let [no-arg1? (:no-arg1? options)]
-                           (if (= no-arg1? (:no-arg1? replaced-options))
-                             replaced-options
-                             (assoc replaced-options :no-arg1? no-arg1?)))
-        replaced-options (let [in-code? (:in-code? options)]
-                           (if (= in-code? (:in-code? replaced-options))
-                             replaced-options
-                             (assoc replaced-options :in-code? in-code?)))
-        replaced-options (let [pdepth (:pdepth options)]
-                           (if (= pdepth (:pdepth replaced-options))
-                             replaced-options
-                             (assoc replaced-options :pdepth pdepth)))]
-    replaced-options))
-
 (defn integrate-next-inner
   "If the value of :next-inner is a map, then config-and-validate it. If
   the value of :next-inner is a vector of maps, then config-and-validate
@@ -7324,8 +7248,8 @@
         ; note that depth affects how comments are printed, toward the end
         options (assoc options :depth (inc depth))
 
-	; i153
-        _ (dbg options "fzprint* **** next-inner:" (:next-inner options))
+	; Can't use dbg-s directly here, as it is also a local value!
+        _ (dbg-s-pr options :next-inner "fzprint* **** next-inner:" (:next-inner options))
 
         options (if next-inner
                   ; There are two kinds of next-inner maps.  The normal
@@ -7334,23 +7258,7 @@
                   ; reasons explained below.  The other kind is a map that
                   ; was saved and we are just restoring it, and that will
                   ; entirely replace the current options map.
-                  (if (:replace? next-inner)
-                    ; This is a replacement map, not one to merge into
-                    ; our current options map.
-		    (update-replaced-options options next-inner)
-                    ; We call config-and-validate because we need next-inner
-                    ; to be able to remove things and generally manipulate
-                    ; the options map, not because it truly needs validation.
-                    ; Since it's spec is ::options, it was validated when it
-                    ; came into the options map.
 		    (integrate-next-inner options)
-                    #_(first (zprint.config/config-and-validate
-                             "next-inner:"
-                             nil
-                             (dissoc options :next-inner)
-                             next-inner
-                             nil ; validate?
-                           )))
                   options)
         options (if (or dbg? dbg-print? dbg-s)
                   (assoc options
@@ -7359,7 +7267,7 @@
                                            in-hang? "h"
                                            :else ".")))
                   options)
-        _ (dbg options
+        _ (dbg-s-pr options :next-inner
                "fzprint* **** rightcnt:"
                rightcnt
                "depth:"
@@ -7368,7 +7276,6 @@
                indent
                "in-hang?:"
                in-hang?
-	       ; i153
 	       ":next-inner:"
 	       (:next-inner options)
                (pr-str (zstring zloc)))

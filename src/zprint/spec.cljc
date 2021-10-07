@@ -102,7 +102,6 @@
   (s/or :simple-type ::fn-type
         :complex-type ::fn-type-w-map))
 (s/def ::format-value #{:on :off :next :skip})
-(s/def ::next-inner-command #{:restore})
 (s/def ::nilable-number (s/nilable number?))
 (s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
 (s/def ::style-value
@@ -377,12 +376,8 @@
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
                       :alt/extend ::binding ::pair ::map ::parse]))
 
-(s/def ::next-inner
-  (s/or :options-map (s/nilable ::options)
-        :command ::next-inner-command))
+(s/def ::next-inner (s/nilable ::options))
   
-(s/def ::replace? ::boolean)
-
 (s/def ::set-elements
   (s/or :string string?
         :fn-type ::fn-type
@@ -443,7 +438,7 @@
              ::style-map ::tab ::test-for-eol-blanks? ::trim-comments? ::tuning
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
-             ::force-validate? ::doc ::replace? ::next-inner-restore ::fn-style]))
+             ::force-validate? ::doc ::next-inner-restore ::fn-style]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

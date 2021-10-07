@@ -56,12 +56,12 @@
                    (not multi-arity?) (conj :element :newline)
                    (and multi-arity? (not docstring?)) (conj :newline)
                    :rest (into rest-guide))
-           ; Can :restore here, because we need the changes for multi-arity,
-           ; below.
            option-map {:guide guide, :next-inner {:list {:option-fn nil}}}]
        (if multi-arity?
          (assoc option-map
-           :fn-map {:vector [:force-nl {:next-inner :restore}]})
+           :next-inner {:list {:option-fn nil},
+                        :fn-map {:vector :force-nl},
+                        :next-inner-restore [[:fn-map :vector]]})
          option-map)))))
 
 ; Use this to use the above:
@@ -247,7 +247,11 @@
                               :wrap-multi? true,
                               :hang? true},
                      :pair {:justify? true},
-                     :next-inner :restore}}))))
+		     :next-inner-restore [[:vector :option-fn]
+		                          [:vector :wrap-multi?]
+					  [:vector :hang?]
+					  [:pair :justify?]]
+		     }}))))
 
 ; Do this to use the above:
 ;

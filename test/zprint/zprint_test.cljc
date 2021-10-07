@@ -5991,6 +5991,22 @@ ser/collect-vars-acc %1 %2) )))"
     "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else\n           (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
     (zprint-str rod3 {:parse-string? true, :style :rod, :width 30}))
 
+   ;;
+   ;; Rules of defn test to see if :next-inner-restore strategy works
+   ;;
+
+(expect
+  "(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list]\n                   c\n                   d\n                   a\n                   b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+  (zprint-str
+    "\n(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n  ([a b c] (rod3 a b c nil)))"
+    {:parse-string? true, :style :rod, :fn-map {:vector :force-nl}}))
+
+(expect
+  "(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+  (zprint-str
+    "\n(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n  ([a b c] (rod3 a b c nil)))"
+    {:parse-string? true, :style :rod}))
+
   ;;
   ;; Test about whether things that are quoted are in-code? or not.  If there
   ;; is something in the :fn-map for :quote, they are not.  There is something
@@ -6023,7 +6039,7 @@ ser/collect-vars-acc %1 %2) )))"
 
 
 ;;
-;; # :next-inner :restore
+;; # :next-inner-restore
 ;;
 
 (expect
@@ -6031,13 +6047,74 @@ ser/collect-vars-acc %1 %2) )))"
   (zprint-str
     "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
     {:parse-string? true,
-     :fn-map {"defn" [:arg1-body {:style :respect-nl, :next-inner :restore}]}}))
+     :fn-map {"defn" [:arg1-body {
+     
+                 :list {:respect-nl? true},
+                   :map {:respect-nl? true},
+                   :vector {:respect-nl? true},
+                   :set {:respect-nl? true},
+
+                            :next-inner-restore
+                            [[:list :respect-nl?]
+                             [:map :respect-nl?]
+                             [:vector :respect-nl?]
+                             [:set :respect-nl?]]
+     
+     
+     
+     
+     }]}}))
 
 (expect
   "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\n        blank lines]\n\n\n    (in it)))"
   (zprint-str
     "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
     {:parse-string? true, :fn-map {"defn" [:arg1-body {:style :respect-nl}]}}))
+
+;;
+;; :next-inner-restore for things that are nil initially
+;;
+
+(expect "{:e {:e :f, :c :d, :a :b}, :c :d, :a :b}"
+        (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
+                    {:map {:key-order [:e :c :a]}}))
+
+(expect "{:a :b, :c :d, :e {:a :b, :c :d, :e :f}}"
+        (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
+                    {:map {:key-order [:e :c :a]},
+                     :next-inner-restore [[:map :key-order]]}))
+
+(expect "{:e {:a :b, :c :d, :e :f}, :c :d, :a :b}"
+        (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
+                    {:next-inner {:map {:key-order [:e :c :a]},
+                                  :next-inner-restore [[:map :key-order]]}}))
+
+;;
+;; :next-inner-restore for sets
+;;
+
+(expect
+  "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id,\n        :pre preceding,\n        :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
+  (zprint-str
+    "(defn selected-protocol-for-indications\n  { :pre [(map? m) (empty? m)] :post [(not-empty %)] }\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :pre preceding :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
+    {:parse-string? true,
+     :fn-map {"defn" [:arg1-force-nl-body
+                      {:map {:force-nl? true,
+                             :sort-in-code? true,
+                             :key-no-sort #{":pre"}}}]}}))
+
+(expect
+  "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:indications indications, :pre preceding, :procedure-id procedure-id}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
+  (zprint-str
+    "(defn selected-protocol-for-indications\n  { :pre [(map? m) (empty? m)] :post [(not-empty %)] }\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :pre preceding :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
+    {:parse-string? true,
+     :fn-map {"defn" [:arg1-force-nl-body
+                      {:next-inner {:map {:force-nl? true,
+                                          :sort-in-code? true,
+                                          :key-no-sort #{":pre"}},
+                                    :next-inner-restore [[:map :force-nl?]
+                                                         [[:map :key-no-sort]
+                                                          ":pre"]]}}]}}))
 
 ;;
 ;; # Issue #200 -- exception when using :arg2-extend when the input doesn't

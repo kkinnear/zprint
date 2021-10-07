@@ -221,6 +221,78 @@ top level of `m/app`:
 ; Note also the use of :next-inner to restore constant-pairing to its
 ; default behavior down inside of expressions contained in `m/app`.
 ```
+There is another (and better) approach to restoring the constant pairing
+configuation inside of the expressions contained in `m/app` - use
+`:next-inner-restore`.  This integrates
+better with any existing configuration for constant pairing in that it
+doesn't reset it to a specific value for the contained expressions. Instead
+it restores the previous values, whatever they were.
+
+To illustrate this, let's see what happens if we don't restore the constant
+pairing configuration:
+
+```
+(zprint
+  mapp6
+  {:parse-string? true,
+   :fn-map {"app" [:none
+                   {:list {:constant-pair-min 1,
+                           :constant-pair-fn #(or (vector? %) (keyword? %))}}]}
+   :width 55})
+(m/app :get (m/app middle1
+                   middle2
+                   middle3
+                   [route] handler
+                   ; How do comments work?
+                   [route] (handler this
+                                    is
+                                    "a"
+                                    test
+                                    "this"
+                                    is
+                                    "only a"
+                                    test))
+       ; How do comments work here?
+       :post (m/app [route] handler
+                    [route] ; What about comments here?
+                      handler))
+```
+
+Note how the `(handler this is "a" test "this" is "only a" test)` doesn't
+pair up the constants with the things following them.
+
+Now, when we restore the constant pairing configuration, we see that 
+constant pairing works as usual in the expressions contained in `m/app`:
+
+```
+(zprint
+  mapp6
+  {:parse-string? true,
+   :fn-map {"app" [:none
+                   {:list {:constant-pair-min 1,
+                           :constant-pair-fn #(or (vector? %) (keyword? %))},
+                    :next-inner-restore [[:list :constant-pair-min]
+                                         [:list :constant-pair-fn]]}]},
+   :width 55})
+(m/app :get (m/app middle1
+                   middle2
+                   middle3
+                   [route] handler
+                   ; How do comments work?
+                   [route] (handler this
+                                    is
+                                    "a" test
+                                    "this" is
+                                    "only a" test))
+       ; How do comments work here?
+       :post (m/app [route] handler
+                    [route] ; What about comments here?
+                      handler))
+```
+Using `:next-inner-restore` allows any existing
+constant pairing configuration to return for the inner expressions of 
+`m/app`.
+
 
 ## Specifying Functions in Option Maps
 
@@ -230,7 +302,7 @@ file.  When `.zprintrc` files are read-in, they are read using
 `sci`, the small Clojure interpreter.  Thus, any user-defined
 functions are defined using a large subset of the available Clojure
 function, specifically excepting any functions that can be used to
-operation outside of the sandbox provided by the `sci` interpreter.
+operate outside of the sandbox provided by the `sci` interpreter.
 
 See [this discussion](./optionfns.md) for more information
 on user-defined functions and using `sci`.

@@ -23,6 +23,7 @@ descriptive name.  For example:
 (fn ([options len sexpr] ... code that returns a options map)
     ([] "mytestoptionsfunction"))
 ```
+
 This name will be used in error messages, and when something goes wrong, 
 you will be glad you did this.
 
@@ -56,12 +57,163 @@ An options map returned by the `option-fn` might look like this:
 {:list {:hang? false :option-fn nil} :next-inner {:list {:hang? true}}}
 ```
 An equivalent options map would be:
+
 ```
 {:list {:hang? false} :next-inner {:list {:hang? true :option-fn nil}}}
 ```
 The second might be a bit more understandable, but they are equivalent.
 Once you are in an `option-fn`, you can remove it from the configuration
 without affecting anything since you are already in the `option-fn`.
+
+This is the basic approach for `:next-inner`, but of course the problem
+with this approach is that when "resetting" the things that have been
+changed, we aren't really resetting them to what they were before.  We
+are changing them to what we imagine they were before, but we don't really
+have know if some overall configuration has changed them before we changed
+them again.
+
+While you could examine the options map in an `:option-fn`, and create
+a `:next-inner` map to restore things to how they try were before the
+`:option-fn` ran, there is an easier way. 
+
+### :next-inner-restore
+
+You can use the map key `:next-inner-restore` to restore the values of
+specific key sequences.  The `:next-inner-restore` processing will determine
+the values of these key sequences prior to changing them, and create a
+`:next-inner` map for you which will restore them to the values they had
+prior to being changed. 
+
+`:next-inner-restore` takes a vector of vectors.  Each contained vector can
+be in one of two formats:
+
+  1. A vector of map keys (i.e, a "key sequence").  In this case, the
+  current value of that key sequence in the options map is placed in
+  the contructed `:next-inner` map, to restore that value in when
+  processing more deeply nested expressions.
+
+  2. A vector containing two things, where the first is a vector of map
+  keys (also a "key sequence"), and the second is a single element.  In
+  this case, the first element of the vector, the key sequence, is the
+  location of a "set" in the options map.  The second element of the 
+  vector is the element in the set specified by the key sequence to restore.
+  In this case, if the element appears in the set, then the contructed
+  `:next-inner` map will ensure that it also appears in the correct set.  If
+  that element does not appear in the specified set, then the contructed 
+  `:next-inner` map will ensure that the element does not appear in that
+  set.
+
+Let's demonstrate the use of these two approaches, not using an `:option-fn`,
+since that can get pretty complex, but just with basic configuration.
+
+Here is a function definition, formatted with classical zprint:
+
+```
+(czprint prepost2 {:parse-string? true})
+
+(defn selected-protocol-for-indications
+  {:pre [(map? m) (empty? m)], :post [(not-empty %)]}
+  [{:keys [spec]} procedure-id indications]
+  (->> {:procedure-id procedure-id, :pre preceding, :indications indications}
+       (sql/op spec queries :selected-protocol-for-indications)
+       (map :protocol-id)))
+```
+
+The desire is to have the map with `:pre` and `:post` format with each pair
+on a different line, and for ensure that `:pre` comes first, before `:post`.
+We also want to gobally sort the keys of maps that appear in code (which will
+make `:post` come before `:pre` if we don't do something about that). Finally,
+we want to have the maps inside of the expressions of the `defn` to be
+formatted without regard to `:pre`, and on one line if they will fit on one
+line.  While this may seem contrived, this was an actual request from a
+zprint user.
+
+Here is how to format the map containing `:pre`, but the problem with this
+is that the formatting bleads over into all of the expressions, causing
+the map contained in the `->>` to format incorrectly: it formats on multiple
+lines and it it isn't sorted.
+
+```
+(czprint prepost2
+         {:parse-string? true,
+          :map {:sort-in-code? true},
+          :fn-map {"defn" [:arg1-force-nl-body
+                           {:map {:force-nl? true, :key-no-sort #{":pre"}}}]}})
+
+(defn selected-protocol-for-indications
+  {:pre [(map? m) (empty? m)],
+   :post [(not-empty %)]}
+  [{:keys [spec]} procedure-id indications]
+  (->> {:procedure-id procedure-id,
+        :pre preceding,
+        :indications indications}
+       (sql/op spec queries :selected-protocol-for-indications)
+       (map :protocol-id)))
+```
+
+Let's (try to) restore things so that the contained expressions are handled
+correctly.
+
+```
+(czprint
+  prepost2
+  {:parse-string? true,
+   :map {:sort-in-code? true},
+   :fn-map {"defn" [:arg1-force-nl-body
+                    {:map {:force-nl? true, :key-no-sort #{":pre"}},
+                     :next-inner-restore [[:map :force-nl?]
+                                          [[:map :key-no-sort] ":pre"]]}]}})
+
+(defn selected-protocol-for-indications
+  {:post [(not-empty %)], :pre [(map? m) (empty? m)]}
+  [{:keys [spec]} procedure-id indications]
+  (->> {:indications indications, :pre preceding, :procedure-id procedure-id}
+       (sql/op spec queries :selected-protocol-for-indications)
+       (map :protocol-id)))
+```
+Wait, that broke the formatting for the map we had working, and
+seems to have ignored all of our configuration we put in the `:fn-map`
+for `defn`.  It turns out that the expression we wanted to format
+differently inside of the `defn` was itself a map.  We want to alter
+the format of the interior of a top level expression of the `defn`.
+Thus, we want our formatting to affect the "next inner" expression
+from the `defn` itself.  So if we restore the changes we made when
+we enter the next-inner expression, we lose the changes when we get
+to actually formatting the map we want to change.
+
+We can work with that, now that we know what is going on.
+
+```
+(czprint
+  prepost2
+  {:parse-string? true,
+   :map {:sort-in-code? true},
+   :fn-map {"defn" [:arg1-force-nl-body
+                    {:next-inner
+                       {:map {:force-nl? true, :key-no-sort #{":pre"}},
+                        :next-inner-restore [[:map :force-nl?]
+                                             [[:map :key-no-sort] ":pre"]]}}]}})
+
+(defn selected-protocol-for-indications
+  {:pre [(map? m) (empty? m)],
+   :post [(not-empty %)]}
+  [{:keys [spec]} procedure-id indications]
+  (->> {:indications indications, :pre preceding, :procedure-id procedure-id}
+       (sql/op spec queries :selected-protocol-for-indications)
+       (map :protocol-id)))
+```
+That's got it right now.  We format the first "next inner" level differently
+and then we restore things so that deeper levels format as they did before.
+The map with `:pre` and `:post` is correct, and the internal map inside
+of the `->>` is also correct.
+
+This example is complex because we are aren't formatting the actual `defn` 
+expression differently, we are formatting the top level expresions of the
+`defn` differently.
+
+Now you have seen how to use `:next-inner` and `:next-inner-restore` to
+achieve what a desired formatting output.
+
 
 ## Specifying an Option Function
 

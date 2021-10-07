@@ -6090,6 +6090,24 @@ ser/collect-vars-acc %1 %2) )))"
                                   :next-inner-restore [[:map :key-order]]}}))
 
 ;;
+;; :next-inner-restore for changes in constant-pairing configuration
+;;
+
+(expect
+
+"(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
+
+  (zprint-str
+    mapp6
+    {:parse-string? true,
+     :fn-map {"app" [:none
+                     {:list {:constant-pair-min 1,
+                             :constant-pair-fn #(or (vector? %) (keyword? %))},
+                      :next-inner-restore [[:list :constant-pair-min]
+                                           [:list :constant-pair-fn]]}]},
+     :width 55}))
+
+;;
 ;; :next-inner-restore for sets
 ;;
 

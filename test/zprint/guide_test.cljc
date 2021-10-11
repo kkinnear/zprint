@@ -2798,25 +2798,31 @@
   ;;
 
   (expect
-    "(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n  (bar [this a b] \"bar docs\")\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+"(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
+
     (zprint-str
       "  (defprotocol AProtocolName\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata true\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true}))
 
   (expect
-    "(defprotocol AProtocolName\n  :extend-via-metadata true\n  (bar [this a b] \"bar docs\")\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+
+"(defprotocol AProtocolName\n  :extend-via-metadata true\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
+
     (zprint-str
       "  (defprotocol AProtocolName\n   :extend-via-metadata true\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true}))
 
   (expect
-    "(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  (bar [this a b] \"bar docs\")\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+
+"(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
     (zprint-str
       "  (defprotocol AProtocolName\n    \"A doc string for AProtocol abstraction\"\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true}))
 
   (expect
-    "(defprotocol AProtocolName\n  (bar [this a b] \"bar docs\")\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+"(defprotocol AProtocolName\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
+
+
     (zprint-str
       "  (defprotocol AProtocolName\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true}))
@@ -2834,7 +2840,9 @@
   ;;
 
   (expect
-    "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b] \"bar docs\")\n\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+
+"(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
+
     (zprint-str
       "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true, :style :respect-nl}))
@@ -2842,7 +2850,11 @@
 
 
   (expect
-    "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata\n  true\n\n  (bar [this a b] \"bar docs\")\n\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+"(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata\n  true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
+
+
+
+
     (zprint-str
       "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata \n true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true, :style :respect-nl}))
@@ -2852,7 +2864,11 @@
   ;;
 
   (expect
-    "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b] \"bar docs\")\n\n  (baz [this a] [this a b] [this a b c] \"baz docs\"))"
+
+"(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
+
+
+
     (zprint-str
       "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata \n true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true, :style :respect-bl}))

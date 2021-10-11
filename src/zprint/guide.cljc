@@ -511,6 +511,8 @@
 ;; Real guide for defprotocol
 ;;
 
+(declare signatureguide1)
+
 (defn defprotocolguide
   "Handle defprotocol with options."
   ([] "defprotocolguide")

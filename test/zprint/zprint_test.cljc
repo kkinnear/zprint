@@ -4117,7 +4117,8 @@ ser/collect-vars-acc %1 %2) )))"
   ;; :arg1-force-nl
   ;;
 
-  (expect "(defprotocol P\n  (foo [this])\n  (bar-me [this] [this y]))"
+  (expect 
+"(defprotocol P\n  (foo [this])\n  (bar-me [this]\n          [this y]))"
           (zprint-str "(defprotocol P (foo [this]) (bar-me [this] [this y]))"
                       {:parse-string? true}))
 
@@ -4127,7 +4128,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-    "(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n  (bar-me [this] [this y]))"
+"(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n  (bar-me [this]\n          [this y]))"
     (zprint-str
       "(;stuff\ndefprotocol\n ;bother\nP (foo [this]) \n\n(bar-me [this] [this y]))"
       {:parse-string? true}))
@@ -4137,7 +4138,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-    "(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n\n  (bar-me [this] [this y]))"
+"(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n\n  (bar-me [this]\n          [this y]))"
     (zprint-str
       "(;stuff\ndefprotocol\n ;bother\nP (foo [this]) \n\n(bar-me [this] [this y]))"
       {:parse-string? true, :style :respect-nl}))
@@ -6350,6 +6351,17 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "[#_a :test\n 1]"
         (zprint-str "[#_a :test\n1]\n"
                     {:parse-string? true, :style :keyword-respect-nl}))
+
+;;
+;; Issue #209 -- indent-only causes any expression containing () to be 
+;; dropped!
+;;
+
+(expect "(def a ())"
+        (zprint-str "(def a ())\n" {:parse-string? true, :style :indent-only}))
+
+(expect "()"
+        (zprint-str "()" {:parse-string? true, :style :indent-only}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

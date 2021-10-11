@@ -367,7 +367,7 @@
    "defn" :arg1-body,
    "defn-" :arg1-body,
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
-   "defprotocol" [:none-body {:style :defprotocolguide}],
+   "defprotocol" [:none-body {:style :defprotocolguide :fn-map {:default-not-none [:none {:style :signature1}]}}],
    "defrecord" :arg2-extend-body,
    "deftest" :arg1-body,
    "deftype" :arg2-extend-body,

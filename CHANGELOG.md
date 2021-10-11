@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.0 - 2021-5-3
+## 1.2.0 - 2021-10-15
 
 ### Added
 
@@ -20,8 +20,6 @@ All notable changes to this project will be documented in this file.
   * `{:list {:wrap? true}}` will cause a list to wrap just like vectors
   do by default.  You can this this for a function using the `:wrap` 
   function type, but now you can get it for lists in general as well.
-
-
   
 ### Changed
 
@@ -39,7 +37,23 @@ All notable changes to this project will be documented in this file.
   if necessary, but didn't want to do that unless required, as there
   are already plenty of configuration options. Issue #191.
 
+  * Now using a very new version of the parser `rewrite-clj` for both
+  Clojure as well as Clojurescript.  The integration testing went very
+  well.  That said, be alert for subtle changes resulting from this 
+  major change.
+
+  * Made style `signature1` part of the standard definition for 
+  `defprotocol`.  This now prints different arities on separate
+  lines.  If you like it more compact (i.e., the way it was before
+  this change), then define this for `defprotocol`:
+  `{:fn-map {"defprotocol" [:none-body {:style :defprotocolguide}]}}`.
+  Issue #181.
+
 ### Fixed
+
+  * Expressions containing an empty list `()` are missing when using
+  `{:style :indent-only}`.  This a serious problem, and is now fixed.
+  Issue #209.
 
   * Documentation error in getting zprint for Linux. Testing the result
   with `-e` is wrong, now you test it with `--explain-all`.   Part of 
@@ -51,7 +65,7 @@ All notable changes to this project will be documented in this file.
 
   * Fixed `:quote` to change indent to 1.  Issue #175.
 
-  * ##NaN, etc, now work.  Used new parser!  Issue #153.
+  * `##NaN`, etc, now work.  Used new parser!  Issue #153.
 
   * Fixed a failure when using `:range`, if one of lines specified fell
   on an unevaluated expression, things didn't work.  Issue #190.
@@ -59,16 +73,11 @@ All notable changes to this project will be documented in this file.
   * Namespaces maps don't work in rewrite-clj v0, but now they do since
   we moved to v1.  Issue #199.
 
-  * When code expecting "extend" type syntax encountered non-extend input,
-  an exception was thrown.  Issue #200.
-
   * `zprint -e` was incorrectly documented as a way to test an installation.
   Issue #201.
 
   * Didn't want to print a vector on one line, even though it fit.  Added
   `:vector {:force-nl? true}` to prevent this.  Issue #184.
-
-  * Made signature1 the default for defprotocol.  Issue #181.
 
   * Fixed problem with `:style :hiccup` affecting code formatting inside
   a vector.  Issue #204.

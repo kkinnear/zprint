@@ -209,10 +209,12 @@ of the `->>` is also correct.
 
 This example is complex because we are aren't formatting the actual `defn` 
 expression differently, we are formatting the top level expresions of the
-`defn` differently.
+`defn` differently.  The advantage of doing it this way is that this 
+approach to configuration will integrate well with other configurations.
+
 
 Now you have seen how to use `:next-inner` and `:next-inner-restore` to
-achieve what a desired formatting output.
+achieve a desired formatting output.
 
 
 ## Specifying an Option Function

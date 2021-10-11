@@ -3557,6 +3557,10 @@
                        (if arg-1-indent flow-indent l-str-len)
                        flow-indent)
          actual-ind (+ ind l-str-len)
+         ; We could enable :comma? for lists, sets, vectors someday
+         zloc-seq (if (:comma? (caller options))
+                    (zmap-w-nl-comma identity zloc)
+                    (zmap-w-nl identity zloc))
          _ (dbg-pr options
                    "fzprint-indent: caller:" caller
                    "l-str-len:" l-str-len
@@ -3565,11 +3569,9 @@
                    "arg-1-indent:" arg-1-indent
                    "flow-indent:" flow-indent
                    "actual-ind:" actual-ind
-                   "comma?" (:comma? (caller options)))
-         ; We could enable :comma? for lists, sets, vectors someday
-         zloc-seq (if (:comma? (caller options))
-                    (zmap-w-nl-comma identity zloc)
-                    (zmap-w-nl identity zloc))
+                   "comma?" (:comma? (caller options))
+		   "zloc" (zstring zloc)
+		   "zloc-seq" (map zstring zloc-seq))
          coll-print (fzprint-seq options ind zloc-seq)
          _ (dbg-pr options "fzprint-indent: coll-print:" coll-print)
          indent-only-style (:indent-only-style (caller options))
@@ -4085,6 +4087,7 @@
                    (when one-line-ok?
                      (fzprint-one-line options one-line-ind zloc-seq)))]
     (cond
+      (= one-line :empty) (concat-no-nil l-str-vec r-str-vec)
       indent-only? (concat-no-nil l-str-vec
                                   (fzprint-indent caller
                                                   l-str
@@ -4095,9 +4098,7 @@
                                                   fn-style
                                                   arg-1-indent)
                                   r-str-vec)
-      one-line (if (= one-line :empty)
-                 (concat-no-nil l-str-vec r-str-vec)
-                 (concat-no-nil l-str-vec one-line r-str-vec))
+      one-line (concat-no-nil l-str-vec one-line r-str-vec)
       ; Don't put anything other than :guide here at the beginning before
       ; we check one-line?
       (= fn-style :guided)

@@ -6363,6 +6363,87 @@ ser/collect-vars-acc %1 %2) )))"
 (expect "()"
         (zprint-str "()" {:parse-string? true, :style :indent-only}))
 
+;;
+;; Issue #166 -- problems with justification of strings!
+;;
+
+(expect
+  "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
+  (zprint-str
+    "(ns my.awesome.app\n  (:require \n    [example.library :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\" :as firebase])\n  (:require-macros \n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns* disallowing-recur]]\n    [cljs.env.macros :as env]\n    [devcards.core :as dc :refer [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import\n    [java.io File]\n    [java.util HashMap ArrayList]\n    [org.apache.storm.task OutputCollector IBolt TopologyContext]         \n    [goog.net XhrIo])\n  (:use\n    [backtype.storm cluster util thrift config log]))\n"
+    {:parse-string? true,
+     :style :require-justify,
+     :style-map {:rj-var {:pair {:justify {:max-variance 1000}}}}}))
+
+;;
+;; # :indent-here and friends
+;;
+
+(expect
+"(stuff (caller aaaa bbbb\n                    ccc dddddd))"
+(zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :indent-here :element :newline :element-*]],  :width 80}))
+
+(expect
+"(stuff (caller aaaa    bbbb\n                       ccc dddddd))"
+(zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :indent-here :element :newline :element-*]],  :width 80}))
+
+;;
+;; # :spaces before and after :align
+;;
+
+ (expect
+"(stuff (caller aaaa    bbbb\n                            ccc))"
+ (zprint-str "(stuff (caller aaaa bbbb ccc))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :element]],  :width 36}))
+
+ (expect
+"(stuff (caller aaaa    bbbb\n         ccc                ddd))"
+(zprint-str "(stuff (caller aaaa bbbb ccc ddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :element  :align 0 :spaces 5 :element]],  :width 36}))
+
+(expect
+"(stuff (caller aaaa    bbbb\n         ccc           ddd))"
+(zprint-str "(stuff (caller aaaa bbbb ccc ddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :element :spaces 5 :align 0 :element]],  :width 36}))
+
+;;
+;; # Spaces before and after align, with :indent-here involved
+;;
+
+(expect
+"(stuff\n  (caller aaaa    bbbb\n                       ccc\n                       dddd eeee\n                       fffff gggg\n                       hhhh iii jjj\n                       kkk lll mmm))"
+(zprint-str "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :indent-here :element :newline :element-*]],  :width 36}))
+
+(expect
+"(stuff\n  (caller aaaa    bbbb\n                ccc\n                dddd eeee fffff gggg\n                hhhh iii jjj kkk lll\n                mmm))"
+(zprint-str "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces -2 :indent-here :element :newline :element-*]],  :width 36}))
+
+;;
+;; # negative space after align
+;;
+
+(expect
+"(stuff (caller aaaa    bbbb\n                    ccc\n                       dddd))"
+(zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces -3 :indent-align 0  :element :newline :element-*]],  :width 50}))
+
+
+;;
+;; # :spaces are additive in guides
+;;
+
+ (expect
+"(stuff (caller aaaa       bbbb ccc dddd))"
+ (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :spaces 3 :element-*]],  :width 80}))
+
+;;
+;; # :indent-align
+;;
+
+(expect
+"(stuff (caller aaaa    bbbb\n                                 ccc\n                       dddd))"
+(zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :spaces 5 :indent-align 0  :element :newline :element-*]],  :width 50}))
+
+
+(expect
+"(stuff (caller aaaa    bbbb\n                                 ccc\n         dddd))"
+(zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :spaces 5 :indent-align 1  :element :newline :element-*]],  :width 50}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

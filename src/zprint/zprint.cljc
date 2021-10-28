@@ -4841,6 +4841,10 @@
           ; These values are true for this and next line.
           options (if rightmost-zloc? options (not-rightmost options))
           align-ind (when align-key (get mark-map align-key))
+	  ; If we have both align-ind and spaces, then add the spaces
+	  align-ind 
+	    (when align-ind (if spaces (+ align-ind spaces) align-ind))
+
           ; Find out how big the incoming pairs (or guided-newline) is
           incoming-lines
             (style-lines options (or #_pair-ind (+ indent ind)) incoming-seq)
@@ -5323,6 +5327,19 @@
         (= element-type :comment-inline)
         (= element-type :newline))))
 
+(defn guide-here
+  "Given the param map, return the location for here."
+  [param-map mark-map]
+  (max
+    (or (when (:align-key param-map)
+          (max 0
+               (- (+ (get mark-map (:align-key param-map))
+                     (or (:spaces param-map) 0))
+                  (:ind param-map))))
+        0)
+    (- (+ (:cur-ind param-map) (or (:spaces param-map) 1)) (:ind param-map))))
+
+
 (defn fzprint-guide
   "Given a zloc-seq wrap the elements to the right margin 
   and be guided by the guide seq."
@@ -5584,13 +5601,15 @@
                   ; put the cur-ind plus spaces into the mark map with
                   ; key from the next guide-seq
                   (do
-                    (dbg-s
-                      options
-                      :guide
-                      (color-str "fzprint-guide: === :mark-at-indent key:" :bright-red)
-                      (first (next guide-seq))
-                      "value:"
-                      (+ (:ind param-map) (:indent param-map) (first (nnext guide-seq))))
+                    (dbg-s options
+                           :guide
+                           (color-str "fzprint-guide: === :mark-at-indent key:"
+                                      :bright-red)
+                           (first (next guide-seq))
+                           "value:"
+                           (+ (:ind param-map)
+                              (:indent param-map)
+                              (first (nnext guide-seq))))
                     (recur cur-zloc
                            cur-index
                            ; skip two to account for the mark key and the
@@ -5600,16 +5619,18 @@
                            (inc index)
                            param-map
                            (assoc mark-map
-                             (first (next guide-seq))
-                               (+ (:indent param-map)
-				  (:ind param-map)
-                                  (first (nnext guide-seq))))
+                             (first (next guide-seq)) (+ (:indent param-map)
+                                                         (:ind param-map)
+                                                         (first (nnext
+                                                                  guide-seq))))
                            previous-data
                            options
                            out))
                 (= first-guide-seq :spaces)
                   ; save the spaces for when we actually do output
                   ; note that spaces after a newline are beyond the indent
+                  ; also note that spaces are additive, they do not replace
+                  ; any previous spaces
                   (do (dbg-s options
                              :guide
                              (color-str "fzprint-guide: === spaces" :bright-red)
@@ -5620,7 +5641,9 @@
                              (nnext guide-seq)
                              element-index
                              (inc index)
-                             (assoc param-map :spaces (first (next guide-seq)))
+                             (assoc param-map
+                               :spaces (+ (first (next guide-seq))
+                                          (or (:spaces param-map) 0)))
                              mark-map
                              previous-data
                              options
@@ -5642,6 +5665,70 @@
                              previous-data
                              options
                              out))
+                (= first-guide-seq :indent-here)
+                  ; save a new indent value in param-map
+                  (do
+                    (dbg-s options
+                           :guide "fzprint-guide: === :indent-here"
+                           "align-key:" (:align-key param-map)
+                           "align-ind:" (when (:align-key param-map)
+                                          (get mark-map (:align-key param-map)))
+                           "cur-ind:" (:cur-ind param-map)
+                           "spaces:" (:spaces param-map))
+                    (recur cur-zloc
+                           cur-index
+                           (next guide-seq)
+                           element-index
+                           (inc index)
+                           ;   (assoc param-map :indent (first (next
+                           ;   guide-seq)))
+                           (assoc param-map
+                             :indent
+                               ; This needs to be the alignment if we 
+			       ; have some, or the cur-ind + spaces 
+			       ; if we have some.  Not always adding it to
+                               ; spaces.  Note that the align-key value 
+			       ; from mark-map - cur-ind is the number 
+			       ; of spaces we need, not the indent.  
+			       ; The indent would be the align value - the ind.
+                               (guide-here param-map mark-map)) ; assoc :indent
+                           mark-map
+                           previous-data
+                           options
+                           out))
+                (= first-guide-seq :indent-align)
+                  ; save a new indent value in param-map
+                  (let [align-key (first (next guide-seq))
+                        _ (dbg-s options
+                                 :guide (color-str
+                                          "fzprint-guide: === :indent-align"
+                                          :bright-red)
+                                 "key:" align-key
+                                 "value:" (get mark-map align-key)
+                                 "cur-ind:" (:cur-ind param-map))]
+                    (recur cur-zloc
+                           cur-index
+                           ; skip an extra to account for the align-key
+                           (nnext guide-seq)
+                           element-index
+                           (inc index)
+                           (assoc param-map
+                             :indent
+                               ; Note that the align-key value from 
+			       ; mark-map - cur-ind is the number of spaces 
+			       ; we need, not the indent.  The indent
+                               ; would be the align value - the ind.
+                               (or (when (get mark-map align-key)
+                                     (max 0
+                                          (- (get mark-map align-key)
+                                             (:ind param-map))))
+                                   ; If no align-key, don't change
+                                   ; the indent
+                                   (:indent param-map))) ; assoc :indent
+                           mark-map
+                           previous-data
+                           options
+                           out))
                 (= first-guide-seq :indent-reset)
                   ; put the indent back where it was originally
                   (do (dbg-s options
@@ -5716,8 +5803,10 @@
                            (nnext guide-seq)
                            element-index
                            (inc index)
-                           ; remember the align-key
-                           (assoc param-map :align-key align-key)
+                           ; remember the align-key, forget spaces when
+                           ; we get :align
+                           (assoc (dissoc param-map :spaces)
+                             :align-key align-key)
                            mark-map
                            previous-data
                            options

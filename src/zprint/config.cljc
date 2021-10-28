@@ -22,14 +22,12 @@
                :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
 
-
 ;;
 ;; # Configuration
 ;;
 ;; Handles incoming configuration, validation of option maps,
 ;; contains atoms holding the current options map.
 ;;
-
 
 
 ;;
@@ -846,12 +844,39 @@
                    :fn-map {:quote [:wrap
                                     {:list {:indent 1},
                                      :next-inner {:list {:indent 2}}}]}},
-      :jrequireguide {:list {:option-fn jrequireguide}},
+      :jrequireguide {:list {:option-fn (partial jrequireguide :require)}},
+      :jrequiremacrosguide {:list {:option-fn (partial jrequireguide :require-macros)}},
+      :jimportguide {:list {:option-fn (partial jrequireguide :import)}},
       :rj-var {:doc "Set max-variance for :require-justify",
                :pair {:justify {:max-variance 20}}},
+      :rjm-var {:doc "Set max-variance for :require-justify-macros",
+               :pair {:justify {:max-variance 20}}},
+      :ij-var {:doc "Set max-variance for :import-justify",
+               :pair {:justify {:max-variance 20}}},
       :require-justify {:doc "Justify namespaces in :require",
-                        :fn-map {":require"
-                                   [:flow {:style [:jrequireguide :rj-var]}]}},
+                        :fn-map 
+			{":require"
+                                   [:flow {:style [:jrequireguide :rj-var]}]
+				   }},
+
+      :require-macros-justify {:doc "Justify namespaces in :require-macros",
+                        :fn-map 
+			{
+			":require-macros"
+                                   [:flow {:style [:jrequiremacrosguide :rjm-var]}]
+				   }},
+
+
+      :import-justify {:doc "Justify :import",
+                        :fn-map 
+			{
+			":import"
+                                   [:flow {:style [:jimportguide :ij-var]}]
+				   }},
+
+      :ns-justify {:style [:require-justify :require-macros-justify :import-justify]}
+
+
       :require-pair
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none

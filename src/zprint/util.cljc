@@ -4,18 +4,24 @@
 (defn abs "Return the absolute value of a number." [n] (if (neg? n) (- n) n))
 
 (defn size
-  "Return the size of an sexpr, accounting for things that have been
-  made zprint.core. If sexpr is nil, return nil."
-  [sexpr]
-  (when sexpr
-    #_(prn "size:" sexpr)
-    (let [s (str sexpr)
-          s (cond (clojure.string/starts-with? s ":zprint.core/")
-                    (clojure.string/replace s ":zprint.core/" "::")
-                  (clojure.string/starts-with? s ":clojure.core/")
-                    (clojure.string/replace s ":clojure.core/" "::")
-                  :else s)]
-      (count s))))
+  "Return the size of an sexpr, essentially the number of characters
+  in its string representation.  If the sexpr is already a string,
+  return the number of characters in the string plus 2 to account
+  for the double quotes, unless no-string-adj? is non-nil.  In that
+  case, simply return the character count of the string.  If sexpr
+  is nil, return nil."
+  ([sexpr no-string-adj?]
+   (when sexpr
+     #_(prn "size:" sexpr "string?" (string? sexpr))
+     (let [s (str sexpr)
+           s (cond (clojure.string/starts-with? s ":zprint.core/")
+                     (clojure.string/replace s ":zprint.core/" "::")
+                   (clojure.string/starts-with? s ":clojure.core/")
+                     (clojure.string/replace s ":clojure.core/" "::")
+                   :else s)
+           s-count (count s)]
+       (if (and (not no-string-adj?) (string? sexpr)) (+ s-count 2) s-count))))
+  ([sexpr] (size sexpr nil)))
 
 (defn median
   "Find the median of a series of numbers."
@@ -165,12 +171,16 @@
 (defn size-and-extend
   "Given a seq and a length, return a vector which contains the
   size of every element in the seq and is the length specified.  If
-  the length is less than the length of the input seq, then skip
-  the remaining elements.  If the length is greater than the length
-  of the input seq, fill out the missing elements with nils, and
-  ensure that the last element is replaced by a nil (to avoid
-  influencing the spacing of a column that it doesn't have)."
-  [length coll]
+  the element is already a string, the size is the number of
+  characters plus 2 for the surrounding double quotes, unless
+  no-string-adj? is non-nil, in which case just the character count
+  of an actual string is used.  If the length is less than the
+  length of the input seq, then skip the remaining elements.  If
+  the length is greater than the length of the input seq, fill out
+  the missing elements with nils, and ensure that the last element
+  is replaced by a nil (to avoid influencing the spacing of a column
+  that it doesn't have)."
+  [length no-string-adj? coll]
   (let [last-good-col (dec (count coll))]
     (loop [coll coll
            index 0
@@ -180,45 +190,63 @@
         (recur (next coll)
                (inc index)
                (conj out
-                     (if (>= index last-good-col) nil (size (first coll)))))))))
+                     (if (>= index last-good-col)
+                       nil
+                       (size (first coll) no-string-adj?))))))))
 
 (defn size-and-extend-butlast
   "Given a sequence of seqs, produce a new sequence of seqs where
   each element in the seq is replaced by the size of that element.
-  Do this for all of the elements in every seq but the last.  In
-  addition, for every seq that is shorter than the longest one,
-  fill out the missing elements with nils."
-  ([seq-of-seqs max-len]
+  If the element is already a string, the size is the number of
+  characters plus 2 for the surrounding double quotes, unless
+  no-string-adj? is non-nil, in which case just the character count
+  of an actual string is used.  Do this for all of the elements in
+  every seq but the last.  In addition, for every seq that is shorter
+  than the longest one, fill out the missing elements with nils."
+  ([seq-of-seqs max-len no-string-adj?]
    (let [len (dec (apply max (map count seq-of-seqs)))
          len (if max-len (min max-len len) len)
-         seq-of-sizes (mapv (partial size-and-extend len) seq-of-seqs)]
+         seq-of-sizes (mapv (partial size-and-extend len no-string-adj?)
+                        seq-of-seqs)]
      seq-of-sizes))
-  ([seq-of-seqs] (size-and-extend-butlast seq-of-seqs nil)))
+  ([seq-of-seqs] (size-and-extend-butlast seq-of-seqs nil nil))
+  ([seq-of-seqs max-len] (size-and-extend-butlast seq-of-seqs max-len nil)))
 
 (defn create-columns
   "Given a seq of seqs, create a vector of vectors where every
   internal vector contains a series of integers representing the
   width of the element in that column across all of the seqs.  The
-  various input seqs do not have to be the same length, and there
-  will be as many columns as one less than the count of elements
-  in the longest seq (or number-of-columns if it is specified and
-  less than the count of the elements in the longest seq).  For
-  seqs which do not extend to the maximum length, their positions
-  in the column vectors will be filled with nil."
-  ([seq-of-seqs number-of-columns]
-   (let [seq-of-sizes (size-and-extend-butlast seq-of-seqs number-of-columns)
+  width for the elements is their string length. Note that the
+  length of actual strings is increased by two to account for the
+  double quotes unless no-string-adj? is non-nil, in which case
+  these routines assume that was already handled.  The various input
+  seqs do not have to be the same length, and there will be as many
+  columns as one less than the count of elements in the longest seq
+  (or number-of-columns if it is specified and less than the count
+  of the elements in the longest seq).  For seqs which do not extend
+  to the maximum length, their positions in the column vectors will
+  be filled with nil."
+  ([seq-of-seqs number-of-columns no-string-adj?]
+   (let [seq-of-sizes (size-and-extend-butlast seq-of-seqs
+                                               number-of-columns
+                                               no-string-adj?)
          transpose (apply mapv vector seq-of-sizes)]
      transpose))
-  ([seq-of-seqs] (create-columns seq-of-seqs nil)))
+  ([seq-of-seqs] (create-columns seq-of-seqs nil nil))
+  ([seq-of-seqs number-of-columns]
+   (create-columns seq-of-seqs number-of-columns nil)))
 
 (defn column-alignment
   "Given a seq-of-seqs which contain elements to justify, return a
   vector with the size of the maximum element in each column that
-  should be used to justify the next column.  If number-of-columns
+  should be used to justify the next column.  Note that the length
+  of actual strings is increased by two to account for the double
+  quotes unless no-string-adj? is non-nil, in which case these
+  routines assume that was already handled.  If number-of-columns
   is given, only justify that many columns, else justify all but
   the last."
-  ([max-variance seq-of-seqs number-of-columns]
-   (let [columns (create-columns seq-of-seqs number-of-columns)
+  ([max-variance seq-of-seqs number-of-columns no-string-adj?]
+   (let [columns (create-columns seq-of-seqs number-of-columns no-string-adj?)
          max-width-vec
            (second
              (reduce
@@ -231,8 +259,10 @@
                [columns []]
                (range (count columns))))]
      max-width-vec))
-  ([max-variance seq-of-seqs] (column-alignment max-variance seq-of-seqs nil)))
-
+  ([max-variance seq-of-seqs]
+   (column-alignment max-variance seq-of-seqs nil nil))
+  ([max-variance seq-of-seqs number-of-columns]
+   (column-alignment max-variance seq-of-seqs number-of-columns nil)))
 
 (defn cumulative-alignment
   "Given a vector of max-widths from column-alignment, produce a vector

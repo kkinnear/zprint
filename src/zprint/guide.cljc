@@ -129,6 +129,13 @@
 ;; # Guide for the "are" function
 ;;
 
+(defn add-double-quotes
+  "Given two arguments, an s-expression and a string, if the s-expression
+  is actually a string, add a double quote on to the beginning and end of
+  the string."
+  [sexpr s]
+  (if (string? sexpr) (str "\"" s "\"") s))
+
 (defn areguide
   "Format are test functions.  Call it with (partial {} areguide), where
   the map can be {:justify? true} to justify the various rows. It will
@@ -165,8 +172,12 @@
                    args (drop 3 zloc-seq-nc)
                    ; Get the lengths of the actual zloc values, not the sexpr
                    arg-strs (mapv (:zstring zfn-map) args)
+                   arg-strs (mapv add-double-quotes sexpr arg-strs)
                    seq-of-seqs (partition arg-vec-len arg-vec-len [] arg-strs)
-                   max-width-vec (column-alignment max-variance seq-of-seqs)
+                   max-width-vec (column-alignment max-variance
+                                                   seq-of-seqs
+                                                   nil
+                                                   :no-string-adj?)
                    alignment-vec (cumulative-alignment max-width-vec)]
                #_(prn "max-width-vec:" max-width-vec
                       "alignment-vec:" alignment-vec)
@@ -224,10 +235,16 @@
 ; uses the new variance-based justification capabilities.
 ;
 (defn jrequireguide
-  "Justify the first things in a series of require vectors."
+  "Justify the first things in a variety of settings.  The first argument
+  is the things to recognize, and can be :require, :require-macros, or 
+  :import. :require and :require-macros are handled the same, and :import
+  is handled differently since it has the values all in the same expression."
   ([] "jrequireguide")
-  ([options len sexpr]
-   (when (= (first sexpr) :require)
+  ; If you call a guide with partial because it has its a required first
+  ; argument, ; the "no-argument" arity must include the first argument!
+  ([keyword] "jrequireguide")
+  ([keyword options len sexpr]
+   (when (= (first sexpr) keyword)
      (let [vectors (filter vector? sexpr)
            max-width-vec (column-alignment (:max-variance (:justify (:pair
                                                                       options)))
@@ -236,22 +253,24 @@
                                            1)
            _ (dbg-s options :guide "jrequireguide max-width-vec:" max-width-vec)
            max-first (first max-width-vec)
+           element-guide :element-pair-*
            vector-guide (if max-first
-                          [:mark-at 0 (inc max-first) :element :align 0
-                           :element-pair-*]
+                          (if (= (first sexpr) :import)
+                            [:mark-at 0 (inc max-first) :element :align 0
+                             :indent-here #_(+ max-first 2) :element-*]
+                            [:mark-at 0 (inc max-first) :element :align 0
+                             element-guide])
                           ; We can't justify things, fall back to this.
-                          [:element :element-pair-*])]
+                          [:element element-guide])]
        ; Do this for all of the first level vectors below the :require, but
        ; no other vectors more deeply nested.
        {:next-inner {:vector {:option-fn (fn [_ _ _] {:guide vector-guide}),
                               :wrap-multi? true,
                               :hang? true},
                      :pair {:justify? true},
-		     :next-inner-restore [[:vector :option-fn]
-		                          [:vector :wrap-multi?]
-					  [:vector :hang?]
-					  [:pair :justify?]]
-		     }}))))
+                     :next-inner-restore
+                       [[:vector :option-fn] [:vector :wrap-multi?]
+                        [:vector :hang?] [:pair :justify?]]}}))))
 
 ; Do this to use the above:
 ;

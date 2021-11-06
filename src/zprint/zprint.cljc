@@ -2337,6 +2337,8 @@
                    "hanging:" (pr-str hanging)
                    "flow:" (pr-str flow))
             hr-good? (and (:hang? (caller options))
+			  ; no point in calling good-enough if no hr-lines
+			  hr-lines
                           (good-enough? caller
                                         options
                                         :none-hang-one

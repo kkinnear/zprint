@@ -843,7 +843,7 @@
       :quote-wrap {:doc "Wrap quoted lists to right margin, like vectors",
                    :fn-map {:quote [:wrap
                                     {:list {:indent 1},
-                                     :next-inner {:list {:indent 2}}}]}},
+                                     :next-inner-restore [[:list :indent]]}]}}
       :jrequireguide {:list {:option-fn (partial jrequireguide :require)}},
       :jrequiremacrosguide {:list {:option-fn (partial jrequireguide :require-macros)}},
       :jimportguide {:list {:option-fn (partial jrequireguide :import)}},

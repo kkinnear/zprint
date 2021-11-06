@@ -9,8 +9,16 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
- * A more nuanced approach to justification, based on the variance of the lengths of the left-hand elements in a binding vector, map, or cond.  If the variance is too great, up to two pairs are left out of the justification.  If that doesn't bring the variance into line, the pairs aren't justified.  `{:style :justified}` to try it out!
- * Two new styles for formatting `ns` macros: `{:style :require-justify}` and `{:style :require-pair}`.  They are similar in clarifying the first elements appearing in vectors inside of a `(:require ...)`.  `:require-justify` justifies the first elements across the vectors where possible, while `:require-pair` does not.
+ * New version of rewrite-clj now used for both .clj and .cljs.  Many thanks to
+ @lread for picking up support and extensions for rewrite-clj and merging 
+ rewrite-cljs with it to create a unified Clojure parsing library.  This
+ will fix a number of bugs that were parser related.
+ * You can now format values in maps differently, based on which key the value
+ is associated with. `{:map {:key-value-options {key-1 options-map-1 
+ key-2 options-map-2 ...}}` lets you specify an options map to be used 
+ for formatting the value of any specific key in a map.  
+ * A number of new styles: `:ns-justify` and `:quote-wrap` to specify a few.
+ * A more nuanced approach to justification, based on the variance of the lengths of the left-hand elements in a binding vector, map, or cond.  If the variance is too great, up to two pairs are left out of the justification.  If that doesn't bring the variance into line, none of the pairs aren't justified.  `{:style :justified}` to try it out!
  * The `are` macro is now formatted readably by default.
  * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
  * [Check formatting of files without altering them](./doc/using/files.md), using `-c` or `--check`: `$ zprint -c *.clj`.

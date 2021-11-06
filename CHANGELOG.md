@@ -20,6 +20,16 @@ All notable changes to this project will be documented in this file.
   * `{:list {:wrap? true}}` will cause a list to wrap just like vectors
   do by default.  You can this this for a function using the `:wrap` 
   function type, but now you can get it for lists in general as well.
+
+  * New styles: `:require-macros-justify` and `:import-justify`, as well as
+  `:ns-justify` that justifies wraps each of them together with the existing
+  `:require-justify`.  Each of the `*-justify` has an associated style:
+  `:rj-var`, `:rjm-var`, and `:ij-var` which allows you to change the
+  `:max-variance` for justification separately for each.  Issue #166.
+
+  * New style: `:quote-wrap`, to be used where you want quoted lists
+  to wrap (like vectors) and not trail down the page as lists will do
+  by default.  Issue #175.
   
 ### Changed
 
@@ -65,7 +75,9 @@ All notable changes to this project will be documented in this file.
 
   * Fixed `:quote` to change indent to 1.  Issue #175.
 
-  * `##NaN`, etc, now work.  Used new parser!  Issue #153.
+  * `##NaN`, etc, now work.  Used new parser! Many thanks to @lread
+  for stepping up to support rewrite-clj and merging rewrite-cljs with
+  it! Issue #153.
 
   * Fixed a failure when using `:range`, if one of lines specified fell
   on an unevaluated expression, things didn't work.  Issue #190.

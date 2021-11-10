@@ -13,11 +13,13 @@ a number of major source code formattng approaches.
  @lread for picking up support and extensions for rewrite-clj and merging 
  rewrite-cljs with it to create a unified Clojure parsing library.  This
  will fix a number of bugs that were parser related.
- * You can now format values in maps differently, based on which key the value
- is associated with. `{:map {:key-value-options {key-1 options-map-1 
+ * You can now format values in maps differently, based on the key with
+ which a value is associated.  {:map {:key-value-options {key-1 options-map-1 
  key-2 options-map-2 ...}}` lets you specify an options map to be used 
- for formatting the value of any specific key in a map.  
- * A number of new styles: `:ns-justify` and `:quote-wrap` to specify a few.
+ for formatting the value of any specific key in any map.  
+ * A number of new styles: `:ns-justify`, which will nicely format `ns` macros.
+ `:quote-wrap` which will cause a quoted list to wrap, and not format each item
+ running down the page, to mention a few.
  * A more nuanced approach to justification, based on the variance of the lengths of the left-hand elements in a binding vector, map, or cond.  If the variance is too great, up to two pairs are left out of the justification.  If that doesn't bring the variance into line, none of the pairs aren't justified.  `{:style :justified}` to try it out!
  * The `are` macro is now formatted readably by default.
  * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
@@ -115,7 +117,7 @@ Some commonly used styles:
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
-### Clojure 1.9, 1.10, 1.10.3, 1.11.0-alpha1:
+### Clojure 1.9, 1.10, 1.10.3, 1.11.0-alpha2:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
@@ -125,10 +127,9 @@ __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 zprint has been tested in each of the following environments:
 
-  * Clojurescript 1.10.520
-    - figwheel 0.5.19
-    - shadow-cljs 2.8.62
-  * `planck` 2.25.0
+  * figwheel-main 0.2.14 (Clojurescript 1.10.879)
+  * shadow-cljs 2.8.93
+  * `planck` 2.25.0 (Clojurescript 1.10.597)
 
 It requires `tools.reader` at least 1.0.5, which all of the environments
 above contain.

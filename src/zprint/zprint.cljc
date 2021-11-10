@@ -5405,14 +5405,11 @@
                      ((:dzprint options) {} (into [] (condense-depth 1 out))))
               out)
           (if (> index 3000)
-            (do (throw (#?(:clj Exception.
+            (throw (#?(:clj Exception.
                            :cljs js/Error.)
                         (str "When processing a guide"
                                " the iteration limit of 3000 was"
                              " reached!" (first guide-seq))))
-                " group only :element is allowed,"
-                " but encountered: '"
-                out)
             (let [first-guide-seq (first guide-seq)
                   _ (dbg-s
                       options

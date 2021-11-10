@@ -204,6 +204,7 @@
   every seq but the last.  In addition, for every seq that is shorter
   than the longest one, fill out the missing elements with nils."
   ([seq-of-seqs max-len no-string-adj?]
+   #_(println "size-and-extend-butlast: seq-of-seqs" seq-of-seqs)
    (let [len (dec (apply max (map count seq-of-seqs)))
          len (if max-len (min max-len len) len)
          seq-of-sizes (mapv (partial size-and-extend len no-string-adj?)

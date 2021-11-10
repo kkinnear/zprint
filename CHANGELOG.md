@@ -22,10 +22,11 @@ All notable changes to this project will be documented in this file.
   function type, but now you can get it for lists in general as well.
 
   * New styles: `:require-macros-justify` and `:import-justify`, as well as
-  `:ns-justify` that justifies wraps each of them together with the existing
-  `:require-justify`.  Each of the `*-justify` has an associated style:
+  `:ns-justify` that includes both of them together with the existing
+  `:require-justify`.  Each of the `-justify` styles has an associated style:
   `:rj-var`, `:rjm-var`, and `:ij-var` which allows you to change the
-  `:max-variance` for justification separately for each.  Issue #166.
+  `:max-variance` for justification separately for each by redefining
+  them as changes to the `:style-map`.  Issue #166.
 
   * New style: `:quote-wrap`, to be used where you want quoted lists
   to wrap (like vectors) and not trail down the page as lists will do

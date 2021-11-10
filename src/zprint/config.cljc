@@ -852,7 +852,7 @@
       :rjm-var {:doc "Set max-variance for :require-justify-macros",
                :pair {:justify {:max-variance 20}}},
       :ij-var {:doc "Set max-variance for :import-justify",
-               :pair {:justify {:max-variance 20}}},
+               :pair {:justify {:max-variance 1000}}},
       :require-justify {:doc "Justify namespaces in :require",
                         :fn-map 
 			{":require"

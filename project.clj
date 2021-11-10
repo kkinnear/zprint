@@ -44,9 +44,10 @@
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],
           :metadata {:doc/format :markdown}}
   :dependencies [[org.clojure/clojure "1.10.3"]
-                 #_[org.clojure/clojure "1.11.0-alpha1"]
+                 #_[org.clojure/clojure "1.11.0-alpha2"]
                  #_[org.clojure/clojure "1.10.0"]
                  #_[org.clojure/clojure "1.9.0"]
                  #_[org.clojure/clojure "1.8.0"]
                  [borkdude/sci "0.2.5"]
-                 [rewrite-clj/rewrite-clj "1.0.699-alpha"]])
+                 [rewrite-clj "1.0.699-alpha"]
+		 ])

@@ -1431,23 +1431,6 @@
         justify-width (when each-one-line? (first alignment))]
     justify-width))
 
-(defn fzprint-justify-width-alt
-  "Figure the width for a justification of a set of pairs in coll.  
-  Also, decide if it makes any sense to justify the pairs at all.
-  For instance, they all need to be one-line."
-  [caller {{:keys [justify?]} caller, :as options} ind coll]
-  (let [firsts (remove nil?
-                 (map #(when (> (count %) 1) (fzprint* options ind (first %)))
-                   coll))
-        #_(def just firsts)
-        style-seq (map (partial style-lines options ind) firsts)
-        #_(def styleseq style-seq)
-        each-one-line? (reduce #(when %1 (= (first %2) 1)) true style-seq)
-        #_(def eol each-one-line?)
-        justify-width (when each-one-line?
-                        (reduce #(max %1 (second %2)) 0 style-seq))]
-    (when justify-width (- justify-width ind))))
-
 (defn fit-within?
   "Take a size and a collection of vectors with two or more elements
   per vector.  The elements are zlocs, the vectors are not.  Return

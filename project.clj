@@ -9,7 +9,6 @@
   :profiles
     {:repl {:dependencies [#_[com.taoensso/tufte "1.1.1"]
                            #_[org.clojure/clojurescript "1.9.946"]
-                           ;[rum "0.10.8"];
                            [better-cond "1.0.1"]
                            [olical/cljs-test-runner "3.7.0"]
                            [pjstadig/humane-test-output "0.10.0"]
@@ -49,5 +48,4 @@
                  #_[org.clojure/clojure "1.9.0"]
                  #_[org.clojure/clojure "1.8.0"]
                  [borkdude/sci "0.2.5"]
-                 [rewrite-clj "1.0.699-alpha"]
-		 ])
+                 [rewrite-clj "1.0.699-alpha"]])

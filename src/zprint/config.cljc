@@ -1503,25 +1503,6 @@
   ([doc-string doc-map existing-map new-map]
    (apply-style doc-string doc-map existing-map new-map [])))
 
-(defn apply-style-alt
-  "Given an existing-map and a new-map, if the new-map specifies a
-  style, apply it if it exists, looking first in the new-map for the style
-  and then in the existing-map for the style.  Otherwise do nothing. 
-  Return [updated-map new-doc-map error-string]"
-  [doc-string doc-map existing-map new-map]
-  (let [style-name (get new-map :style :not-specified)]
-    (if (or (= style-name :not-specified) (nil? style-name))
-      [existing-map doc-map nil]
-      (if (not (coll? style-name))
-        (apply-one-style doc-string
-                         new-map
-                         [existing-map doc-map nil]
-                         style-name)
-        (reduce (partial apply-one-style doc-string new-map)
-          [existing-map doc-map nil]
-          style-name)))))
-
-
 ;;
 ;; # File Access
 ;;

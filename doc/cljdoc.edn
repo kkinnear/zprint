@@ -24,6 +24,8 @@
                   {:file "doc/getting/macos.md"}]
                  ["standalone binary for Linux"
                   {:file "doc/getting/linux.md"}]
+                 ["extension for VS Code"
+                  {:file "doc/getting/vscode.md"}]
                  ["uberjar for any Java enabled platform"
                   {:file "doc/getting/uberjar.md"}]
                  ["accelerated uberjar for any Java enabled platform"

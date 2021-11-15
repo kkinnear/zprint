@@ -66,6 +66,7 @@ In addition, zprint is very handy [__to use at the REPL__](./doc/types/repl.md).
 
   * [a standalone binary for macOS](./doc/getting/macos.md)    _starts in <50 ms_
   * [a standalone binary for Linux](./doc/getting/linux.md)    _starts in <50 ms_
+  * [a VS Code extension for zprint](./doc/getting/vscode.md)
   * [an uberjar for any Java enabled platform](./doc/getting/uberjar.md)    _starts in several seconds_
   * [an accelerated uberjar for any Java enabled platform](./doc/getting/appcds.md)    _starts in about 1s_
   * [a library to use at the REPL](./doc/using/repl.md)

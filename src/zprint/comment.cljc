@@ -5,7 +5,7 @@
                        [dbg-pr dbg dbg-form dbg-print zfuture]]])
             [clojure.string :as s]
             [zprint.zfns :refer [zstring ztag]]
-	    [rewrite-clj.zip :as z :refer [left* up* tag length]]
+            [rewrite-clj.zip :as z :refer [left* up* tag length]]
             #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 #_(tufte/add-basic-println-handler! {})
@@ -398,10 +398,9 @@
                      nil
                      (if last-indent
                        (conj current-seq [last-indent index])
-                       (throw
-                             (#?(:clj Exception.
-                                 :cljs js/Error.)
-                              (str "find-aligned-inline-comments a:" index))))
+                       (throw (#?(:clj Exception.
+                                  :cljs js/Error.)
+                               (str "find-aligned-inline-comments a:" index))))
                      current-column
                      ; distance from last inline comment is zero
                      0
@@ -413,10 +412,9 @@
                      nil
                      (if last-indent
                        [[last-indent index]]
-                       (throw
-                             (#?(:clj Exception.
-                                 :cljs js/Error.)
-                              (str "find-aligned-inline-comments b:" index))))
+                       (throw (#?(:clj Exception.
+                                  :cljs js/Error.)
+                               (str "find-aligned-inline-comments b:" index))))
                      ; new starting column
                      start-column
                      ; distance from the last inline comment is zero
@@ -478,10 +476,9 @@
                    nil
                    (if last-indent
                      (conj current-seq [last-indent index])
-                     (throw
-                           (#?(:clj Exception.
-                               :cljs js/Error.)
-                            (str "find-consecutive-inline-comments:" index))))
+                     (throw (#?(:clj Exception.
+                                :cljs js/Error.)
+                             (str "find-consecutive-inline-comments:" index))))
                    out)
           (or (= e :indent) (= e :newline))
             (recur (next cvec)

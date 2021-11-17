@@ -485,8 +485,8 @@
                 ; would configure everything, but it is just for
                 ; operational options, and the new-map doesn't ever
                 ; get used as the 'real' options map.
-                (let [[new-map doc-map errors]
-                        (config-and-validate-all op-options)
+                (let [[new-map doc-map errors] (config-and-validate-all
+                                                 op-options)
                       #_(println "post config-and-validate-all"
                                  "\nnew-map selections:" (select-op-options
                                                            new-map)

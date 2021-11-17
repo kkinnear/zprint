@@ -321,14 +321,14 @@
 (s/def ::input (only-keys :opt-un [::range]))
 ; When you modify list, you are also modifying vector-fn (see below)
 (s/def ::list
-  (only-keys :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair?
-                      ::hang-diff ::hang-avoid ::hang-expand ::hang-size ::hang?
-                      ::indent ::hang-accept ::ha-depth-factor ::ha-width-factor
-                      ::indent-arg ::option-fn ::pair-hang?
-                      ::return-altered-zipper ::respect-bl? ::respect-nl?
-                      ::indent-only? ::indent-only-style ::replacement-string
-                      ::wrap-coll? ::wrap-after-multi? ::wrap-multi? 
-		      ::force-nl? ::wrap?]))
+  (only-keys
+    :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair? ::hang-diff
+             ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
+             ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent-arg
+             ::option-fn ::pair-hang? ::return-altered-zipper ::respect-bl?
+             ::respect-nl? ::indent-only? ::indent-only-style
+             ::replacement-string ::wrap-coll? ::wrap-after-multi? ::wrap-multi?
+             ::force-nl? ::wrap?]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
@@ -377,7 +377,7 @@
                       :alt/extend ::binding ::pair ::map ::parse]))
 
 (s/def ::next-inner (s/nilable ::options))
-  
+
 (s/def ::set-elements
   (s/or :string string?
         :fn-type ::fn-type

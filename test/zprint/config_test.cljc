@@ -4,7 +4,7 @@
     [expectations.clojure.test #?(:clj :refer
                                   :cljs :refer-macros)
                                  [defexpect expect]]
-    [zprint.zutil ]
+    [zprint.zutil]
     #?(:clj [clojure.edn :as edn])
     #?(:clj [clojure.java.io :as io])
     #?(:clj [clojure.string :as str])
@@ -13,7 +13,8 @@
     [rewrite-clj.parser :as    p
                         :refer [parse-string parse-string-all]]
     [rewrite-clj.node   :as n]
-    [rewrite-clj.zip    :as z :refer [edn*]])
+    [rewrite-clj.zip    :as    z
+                        :refer [edn*]])
   #?(:clj (:import (com.sun.net.httpserver HttpHandler HttpServer)
                    (java.net InetSocketAddress)
                    (java.io File ByteArrayOutputStream PrintStream)
@@ -823,17 +824,17 @@
        :tab {:expand? true, :size 8},
        :width 80}))
 
-;;
-;; # See if we can get calculated-options to work with config-and-validate
-;;
+  ;;
+  ;; # See if we can get calculated-options to work with config-and-validate
+  ;;
 
-(expect
-  "(defn cvtest\n  \"This is to see whether we need determine options.\"\n  []\n  (let [x {:c 3, :a 1, :b 2}\n        y #{:z :y :z}]\n    (if (= (:b x) 2) (println \"hi\") (println \"there\"))))"
-  (zprint-str
-    "(defn cvtest\n  \"This is to see whether we need determine options.\"\n  []\n  (let [x {:b 2 :c 3 :a 1}\n        y #{:z :y :z}]\n   (if (= (:b x) 2)\n     (println \"hi\")\n     (println \"there\"))))\n"
-    {:parse-string? true,
-     :fn-map {"defn" [:arg1-body
-                      {:map {:key-order [:c], :sort-in-code? true}}]}}))
+  (expect
+    "(defn cvtest\n  \"This is to see whether we need determine options.\"\n  []\n  (let [x {:c 3, :a 1, :b 2}\n        y #{:z :y :z}]\n    (if (= (:b x) 2) (println \"hi\") (println \"there\"))))"
+    (zprint-str
+      "(defn cvtest\n  \"This is to see whether we need determine options.\"\n  []\n  (let [x {:b 2 :c 3 :a 1}\n        y #{:z :y :z}]\n   (if (= (:b x) 2)\n     (println \"hi\")\n     (println \"there\"))))\n"
+      {:parse-string? true,
+       :fn-map {"defn" [:arg1-body
+                        {:map {:key-order [:c], :sort-in-code? true}}]}}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

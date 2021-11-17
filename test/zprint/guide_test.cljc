@@ -2198,8 +2198,7 @@
    4 (foo y) (bar z))")
 
   (def are1a
-"(are [x y z] (= x y z)\n   3 (stuff y) (bother z)\n   4 (foo y) (bar z)\n   'this is (a test)\n   (quote 'this) is [:only :a :test])"
-)
+    "(are [x y z] (= x y z)\n   3 (stuff y) (bother z)\n   4 (foo y) (bar z)\n   'this is (a test)\n   (quote 'this) is [:only :a :test])")
 
   (def are2 "(are [x y] (= x y)  
   2 (+ 1 1)
@@ -2292,36 +2291,36 @@
   ;; Justification in areguide
   ;;
 
-(expect
-  "(are [x y z] (= x y z)\n  3 (stuff y) (bother z)\n  4 (foo y)   (bar z))"
-  (zprint-str
-    are1
-    {:parse-string? true,
-     :fn-map {"are" [:guided
-                     {:list {:option-fn (partial areguide
-                                                 {:justify? true,
-                                                  :max-variance 20})}}]}}))
+  (expect
+    "(are [x y z] (= x y z)\n  3 (stuff y) (bother z)\n  4 (foo y)   (bar z))"
+    (zprint-str
+      are1
+      {:parse-string? true,
+       :fn-map {"are" [:guided
+                       {:list {:option-fn (partial areguide
+                                                   {:justify? true,
+                                                    :max-variance 20})}}]}}))
 
-(expect
-  "(are [x y z] (= x y z)\n  3     (stuff y) (bother z)\n  4     (foo y)   (bar z)\n  'this is        (a test)\n  (quote 'this) is [:only :a :test])"
-  (zprint-str
-    are1a
-    {:parse-string? true,
-     :fn-map {"are" [:guided
-                     {:list {:option-fn (partial areguide
-                                                 {:justify? true,
-                                                  :max-variance 20})}}]}}))
+  (expect
+    "(are [x y z] (= x y z)\n  3     (stuff y) (bother z)\n  4     (foo y)   (bar z)\n  'this is        (a test)\n  (quote 'this) is [:only :a :test])"
+    (zprint-str
+      are1a
+      {:parse-string? true,
+       :fn-map {"are" [:guided
+                       {:list {:option-fn (partial areguide
+                                                   {:justify? true,
+                                                    :max-variance 20})}}]}}))
 
 
-(expect
-  "(are [x y z] (= x y z)\n  3             (stuff y) (bother z)\n  4             (foo y)   (bar z)\n  'this         is        (a test)\n  (quote 'this) is        [:only :a :test])"
-  (zprint-str
-    are1a
-    {:parse-string? true,
-     :fn-map {"are" [:guided
-                     {:list {:option-fn (partial areguide
-                                                 {:justify? true,
-                                                  :max-variance 40})}}]}}))
+  (expect
+    "(are [x y z] (= x y z)\n  3             (stuff y) (bother z)\n  4             (foo y)   (bar z)\n  'this         is        (a test)\n  (quote 'this) is        [:only :a :test])"
+    (zprint-str
+      are1a
+      {:parse-string? true,
+       :fn-map {"are" [:guided
+                       {:list {:option-fn (partial areguide
+                                                   {:justify? true,
+                                                    :max-variance 40})}}]}}))
 
 
   (expect "(are [x y] (= x y)\n  2 (+ 1 1)\n  4 (* 2 2))"
@@ -2454,44 +2453,56 @@
     #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))")
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    [zprint.ansi        :refer [color-str]]\n    [zprint.config      :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
-    (zprint-str jr1
-                {:parse-string? true,
-                 :fn-map {":require" [:none
-                                      {:list {:option-fn (partial jrequireguide :require)}}]}}))
+    (zprint-str
+      jr1
+      {:parse-string? true,
+       :fn-map {":require" [:none
+                            {:list {:option-fn (partial jrequireguide
+                                                        :require)}}]}}))
 
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    [zprint.ansi        :refer [color-str]]\n    [zprint.config      :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
-    (zprint-str jr1
-                {:parse-string? true,
-                 :fn-map {":require" [:none
-                                      {:list {:option-fn (partial jrequireguide :require)}}]}}))
+    (zprint-str
+      jr1
+      {:parse-string? true,
+       :fn-map {":require" [:none
+                            {:list {:option-fn (partial jrequireguide
+                                                        :require)}}]}}))
 
 
   (expect
     "(ns ^:no-doc zprint.zprint\n  (:require #?@(:clj [[zprint.macros :refer\n                       [dbg-pr dbg dbg-form dbg-print zfuture]]])\n            [clojure.string :as s]\n            [zprint.finish  :refer [newline-vec]]\n            #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
-    (zprint-str jr2
-                {:parse-string? true,
-                 :fn-map {":require" [:none
-                                      {:list {:option-fn (partial jrequireguide :require)}}]}}))
+    (zprint-str
+      jr2
+      {:parse-string? true,
+       :fn-map {":require" [:none
+                            {:list {:option-fn (partial jrequireguide
+                                                        :require)}}]}}))
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    '[zprint.ansi :refer [color-str]]\n    ~`[zprint.config :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
-    (zprint-str jr3
-                {:parse-string? true,
-                 :fn-map {":require" [:none
-                                      {:list {:option-fn (partial jrequireguide :require)}}]}}))
+    (zprint-str
+      jr3
+      {:parse-string? true,
+       :fn-map {":require" [:none
+                            {:list {:option-fn (partial jrequireguide
+                                                        :require)}}]}}))
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    [zprint.ansi        :as    ansi\n                        :refer [color-str]]\n    [zprint.config      :as    config\n                        :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
-    (zprint-str jr4
-                {:parse-string? true,
-                 :fn-map {":require" [:none
-                                      {:list {:option-fn (partial jrequireguide :require)}}]}}))
+    (zprint-str
+      jr4
+      {:parse-string? true,
+       :fn-map {":require" [:none
+                            {:list {:option-fn (partial jrequireguide
+                                                        :require)}}]}}))
 
   (expect
     "(ns ^:no-doc zprint.zprint\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print zfuture]]])\n    [clojure.string     :as s]\n    [zprint.finish      :refer [newline-vec]]\n    [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr\n                                zseqnws zseqnws-w-nl zfocus-style zstart zfirst\n                                zfirst-no-comment zsecond znthnext zcount zmap\n                                zanonfn? zfn-obj? zfocus zfind-path zwhitespace?\n                                zlist? zcount-zloc-seq-nc-nws zvector? zmap?\n                                zset? zcoll? zuneval? zmeta? ztag zlast zarray?\n                                zatom? zderef zrecord? zns? zobj-to-vec\n                                zexpandarray znewline? zwhitespaceorcomment?\n                                zmap-all zpromise? zfuture? zdelay? zkeyword?\n                                zconstant? zagent? zreader-macro?\n                                zarray-to-shift-seq zdotdotdot zsymbol? znil?\n                                zreader-cond-w-symbol? zreader-cond-w-coll?\n                                zlift-ns zfind zmap-w-nl zmap-w-nl-comma\n                                ztake-append znextnws-w-nl znextnws\n                                znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?]]\n    [zprint.comment     :refer [blanks inlinecomment? length-before]]\n    [zprint.ansi        :as    ansi\n                        :refer [color-str]]\n    [zprint.config      :as    config\n                        :refer [validate-options merge-deep]]\n    [zprint.zutil       :refer [add-spec-to-docstring]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as z]\n    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))"
-    (zprint-str jr4
-                {:parse-string? true,
-                 :fn-map {":require" [:none
-                                      {:list {:option-fn (partial jrequireguide :require)}}]}}))
+    (zprint-str
+      jr4
+      {:parse-string? true,
+       :fn-map {":require" [:none
+                            {:list {:option-fn (partial jrequireguide
+                                                        :require)}}]}}))
 
 
   ;;
@@ -2798,31 +2809,25 @@
   ;;
 
   (expect
-"(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
-
+    "(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
     (zprint-str
       "  (defprotocol AProtocolName\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata true\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true}))
 
   (expect
-
-"(defprotocol AProtocolName\n  :extend-via-metadata true\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
-
+    "(defprotocol AProtocolName\n  :extend-via-metadata true\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
     (zprint-str
       "  (defprotocol AProtocolName\n   :extend-via-metadata true\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true}))
 
   (expect
-
-"(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
+    "(defprotocol AProtocolName\n  \"A doc string for AProtocol abstraction\"\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
     (zprint-str
       "  (defprotocol AProtocolName\n    \"A doc string for AProtocol abstraction\"\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true}))
 
   (expect
-"(defprotocol AProtocolName\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
-
-
+    "(defprotocol AProtocolName\n  (bar [this a b]\n    \"bar docs\")\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
     (zprint-str
       "  (defprotocol AProtocolName\n    (bar [this a b] \"bar docs\")\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true}))
@@ -2840,9 +2845,7 @@
   ;;
 
   (expect
-
-"(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
-
+    "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
     (zprint-str
       "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true, :style :respect-nl}))
@@ -2850,11 +2853,7 @@
 
 
   (expect
-"(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata\n  true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
-
-
-
-
+    "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata\n  true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
     (zprint-str
       "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata \n true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true, :style :respect-nl}))
@@ -2864,11 +2863,7 @@
   ;;
 
   (expect
-
-"(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
-
-
-
+    "(defprotocol AProtocolName\n\n  \"A doc string for AProtocol abstraction\"\n  :extend-via-metadata true\n\n  (bar [this a b]\n    \"bar docs\")\n\n  (baz [this a]\n       [this a b]\n       [this a b c]\n    \"baz docs\"))"
     (zprint-str
       "  (defprotocol AProtocolName\n\n    \"A doc string for AProtocol abstraction\"\n   :extend-via-metadata \n true\n\n    (bar [this a b] \"bar docs\")\n\n    (baz [this a] [this a b] [this a b c] \"baz docs\"))\n\n"
       {:parse-string? true, :style :respect-bl}))
@@ -2939,118 +2934,132 @@
       "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))\n"
       {:parse-string? true, :style :require-justify}))
 
-;;
-;; # Issue #166
-;;
+  ;;
+  ;; # Issue #166
+  ;;
 
-(expect
-"(:import\n  [callerxx aaaa bbbb ccc dddddd]\n  [really-longer-even this is a test this is only a test and it needs to go on\n                      for a very long time too]\n  [short    foo bar baz stuff bother this too is a test and it goes on for a\n            very long time]\n  [small    this one is also very small])"
-(zprint-str "(:import [callerxx  aaaa bbbb ccc dddddd] [really-longer-even this is a test this is only a test and it needs to go on for a very long time too] [short foo bar baz stuff bother this too is a test and it goes on for a very long time] [small this one is also very small])"  {:parse-string? true, :style :import-justify :style-map {:ij-var {:pair {:justify {:max-variance 20}}}} :width 80}))
+  (expect
+    "(:import\n  [callerxx aaaa bbbb ccc dddddd]\n  [really-longer-even this is a test this is only a test and it needs to go on\n                      for a very long time too]\n  [short    foo bar baz stuff bother this too is a test and it goes on for a\n            very long time]\n  [small    this one is also very small])"
+    (zprint-str
+      "(:import [callerxx  aaaa bbbb ccc dddddd] [really-longer-even this is a test this is only a test and it needs to go on for a very long time too] [short foo bar baz stuff bother this too is a test and it goes on for a very long time] [small this one is also very small])"
+      {:parse-string? true,
+       :style :import-justify,
+       :style-map {:ij-var {:pair {:justify {:max-variance 20}}}},
+       :width 80}))
 
-(expect
-"(:import\n  [callerxx           aaaa bbbb ccc dddddd]\n  [really-longer-even this is a test this is only a test and it needs to go on\n                      for a very long time too]\n  [short              foo bar baz stuff bother this too is a test and it goes on\n                      for a very long time]\n  [small              this one is also very small])"
-(zprint-str "(:import [callerxx  aaaa bbbb ccc dddddd] [really-longer-even this is a test this is only a test and it needs to go on for a very long time too] [short foo bar baz stuff bother this too is a test and it goes on for a very long time] [small this one is also very small])"  {:parse-string? true, :style :import-justify :style-map {:ij-var {:pair {:justify {:max-variance 2000}}}} :width 80}))
+  (expect
+    "(:import\n  [callerxx           aaaa bbbb ccc dddddd]\n  [really-longer-even this is a test this is only a test and it needs to go on\n                      for a very long time too]\n  [short              foo bar baz stuff bother this too is a test and it goes on\n                      for a very long time]\n  [small              this one is also very small])"
+    (zprint-str
+      "(:import [callerxx  aaaa bbbb ccc dddddd] [really-longer-even this is a test this is only a test and it needs to go on for a very long time too] [short foo bar baz stuff bother this too is a test and it goes on for a very long time] [small this one is also very small])"
+      {:parse-string? true,
+       :style :import-justify,
+       :style-map {:ij-var {:pair {:justify {:max-variance 2000}}}},
+       :width 80}))
 
-(def i166a
-"(ns my.awesome.app\n  (:require \n    [example.library :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\" :as firebase])\n  (:require-macros \n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns* disallowing-recur]]\n    [cljs.env.macros :as env]\n    [devcards.core :as dc :refer [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import\n    [java.io File]\n    [java.util HashMap ArrayList]\n    [org.apache.storm.task OutputCollector IBolt TopologyContext]         \n    [goog.net XhrIo])\n  (:use\n    [backtype.storm cluster util thrift config log]))\n")
-
-
-(expect
-"(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
-(zprint-str i166a {:parse-string? true :style :require-justify :style-map {:ij-var { :pair {:justify {:max-variance 20}}}} }))
-
-(expect
-"(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
-(zprint-str i166a {:parse-string? true :style :require-macros-justify :style-map {:ij-var { :pair {:justify {:max-variance 20}}}} }))
-
-(expect
-"(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import\n    [java.io   File]\n    [java.util HashMap ArrayList]\n    [org.apache.storm.task OutputCollector IBolt TopologyContext]\n    [goog.net  XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
-(zprint-str i166a {:parse-string? true :style :import-justify :style-map {:ij-var { :pair {:justify {:max-variance 20}}}} }))
+  (def i166a
+    "(ns my.awesome.app\n  (:require \n    [example.library :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\" :as firebase])\n  (:require-macros \n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns* disallowing-recur]]\n    [cljs.env.macros :as env]\n    [devcards.core :as dc :refer [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import\n    [java.io File]\n    [java.util HashMap ArrayList]\n    [org.apache.storm.task OutputCollector IBolt TopologyContext]         \n    [goog.net XhrIo])\n  (:use\n    [backtype.storm cluster util thrift config log]))\n")
 
 
-(def i166d
-"(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase]\n            [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.analyzer.macros.with.lots.of.extra.space :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [org.apache.storm.generated.very.long JavaObject Grouping\n            StormTopology StormTopology$_Fields Bolt Nimbus$Client\n            ComponentCommon Grouping$_Fields SpoutSpec NullStruct StreamInfo\n            GlobalStreamId ComponentObject ComponentObject$_Fields]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))\n")
+  (expect
+    "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166a
+                {:parse-string? true,
+                 :style :require-justify,
+                 :style-map {:ij-var {:pair {:justify {:max-variance 20}}}}}))
 
-(expect
+  (expect
+    "(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166a
+                {:parse-string? true,
+                 :style :require-macros-justify,
+                 :style-map {:ij-var {:pair {:justify {:max-variance 20}}}}}))
 
-"(ns my.awesome.app\n  (:require\n    [example.library                                :as library]\n    [\"@vimeo/player$default\"                        :as vimeo]\n    [\"@f/app$default\"                               :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
-
-(zprint-str i166d {:parse-string? true :style :ns-justify :style-map {:rj-var { :pair {:justify {:max-variance 2000}}}} }))
-
-
-(expect
-"(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros                          :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros                               :as env]\n    [devcards.core                                 :as    dc\n                                                   :refer [defcard defcard-doc\n                                                           deftest dom-node\n                                                           defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
-(zprint-str i166d {:parse-string? true :style :ns-justify :style-map {:rjm-var { :pair {:justify {:max-variance 2000}}}} }))
-
-
-(expect
-"(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
-(zprint-str i166d {:parse-string? true :style :ns-justify :style-map {:ij-var { :pair {:justify {:max-variance 2000}}}} }))
-
-;;
-;; Additional tests for use of lists instead of vectors
-;;
-
- (def
- i166f
-"(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    clojure.string\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [zprint.zprint      :as    zprint\n                        :refer [fzprint line-count max-width line-widths\n                                expand-tabs zcolor-map\n                                determine-ending-split-lines]]\n    [zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map\n                                color-comp-vec handle-lines]]\n    [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments\n                                fzprint-align-inline-comments blanks]]\n    [zprint.config      :as    config\n                        :refer [add-calculated-options config-set-options!\n                                get-options config-configure-all! reset-options!\n                                help-str get-explained-options\n                                get-explained-set-options\n                                get-explained-all-options get-default-options\n                                validate-options apply-style perform-remove\n                                no-color-map merge-deep sci-load-string\n\t\t\t\tconfig-and-validate\n\t\t\t\t]]\n    [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?\n                                find-root-and-path-nw]]\n    [zprint.sutil]\n    [zprint.focus       :refer [range-ssv]]\n    [zprint.range       :refer [expand-range-to-top-level split-out-range\n                                reassemble-range]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip :as z :refer [edn* string]]\n    #_[clojure.spec.alpha :as s])\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n\t\t        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))\n")
-
-(expect
-"(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    clojure.string\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [zprint.zprint      :as    zprint\n                        :refer [fzprint line-count max-width line-widths\n                                expand-tabs zcolor-map\n                                determine-ending-split-lines]]\n    [zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map\n                                color-comp-vec handle-lines]]\n    [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments\n                                fzprint-align-inline-comments blanks]]\n    [zprint.config      :as    config\n                        :refer [add-calculated-options config-set-options!\n                                get-options config-configure-all! reset-options!\n                                help-str get-explained-options\n                                get-explained-set-options\n                                get-explained-all-options get-default-options\n                                validate-options apply-style perform-remove\n                                no-color-map merge-deep sci-load-string\n                                config-and-validate]]\n    [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?\n                                find-root-and-path-nw]]\n    [zprint.sutil]\n    [zprint.focus       :refer [range-ssv]]\n    [zprint.range       :refer [expand-range-to-top-level split-out-range\n                                reassemble-range]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as    z\n                        :refer [edn* string]]\n    #_[clojure.spec.alpha :as s])\n  #?@(:clj ((:import\n              #?(:bb []\n                 :clj (java.net URL URLConnection))\n              #?(:bb []\n                 :clj (java.util.concurrent Executors))\n              (java.io     File)\n              (java.util   Date)))))"
-(zprint-str i166f {:parse-string? true :style :ns-justify}))
+  (expect
+    "(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import\n    [java.io   File]\n    [java.util HashMap ArrayList]\n    [org.apache.storm.task OutputCollector IBolt TopologyContext]\n    [goog.net  XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166a
+                {:parse-string? true,
+                 :style :import-justify,
+                 :style-map {:ij-var {:pair {:justify {:max-variance 20}}}}}))
 
 
-(def i166g
-"(ns zprint.core\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n                        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))\n")
+  (def i166d
+    "(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase]\n            [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.analyzer.macros.with.lots.of.extra.space :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [org.apache.storm.generated.very.long JavaObject Grouping\n            StormTopology StormTopology$_Fields Bolt Nimbus$Client\n            ComponentCommon Grouping$_Fields SpoutSpec NullStruct StreamInfo\n            GlobalStreamId ComponentObject ComponentObject$_Fields]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))\n")
 
-(expect
-"(ns zprint.core\n  #?@(:clj ((:import\n              #?(:bb []\n                 :clj (java.net URL URLConnection))\n              #?(:bb []\n                 :clj (java.util.concurrent Executors))\n              (java.io     File)\n              (java.util   Date)))))"
-
-(zprint-str i166g {:parse-string? true :style :ns-justify}))
-
-
-(def i166h
-"(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase]\n            [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.analyzer.macros.with.lots.of.extra.space :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import (java.io File)\n           (java.util HashMap ArrayList)\n           (org.apache.storm.task OutputCollector IBolt TopologyContext)\n           (org.apache.storm.generated JavaObject Grouping\n            StormTopology StormTopology$_Fields Bolt Nimbus$Client\n            ComponentCommon Grouping$_Fields SpoutSpec NullStruct :StreamInfo\n            GlobalStreamId :ComponentObject ComponentObject$_Fields)\n           (goog.net XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))\n")
+  (expect
+    "(ns my.awesome.app\n  (:require\n    [example.library                                :as library]\n    [\"@vimeo/player$default\"                        :as vimeo]\n    [\"@f/app$default\"                               :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166d
+                {:parse-string? true,
+                 :style :ns-justify,
+                 :style-map {:rj-var {:pair {:justify {:max-variance 2000}}}}}))
 
 
-(expect
-
-"(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import\n    (java.io                    File)\n    (java.util                  HashMap ArrayList)\n    (org.apache.storm.task      OutputCollector IBolt TopologyContext)\n    (org.apache.storm.generated JavaObject Grouping StormTopology\n                                StormTopology$_Fields Bolt Nimbus$Client\n                                ComponentCommon Grouping$_Fields SpoutSpec\n                                NullStruct :StreamInfo GlobalStreamId\n                                :ComponentObject ComponentObject$_Fields)\n    (goog.net                   XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))"
-
-
-(zprint-str i166h {:parse-string? true :style :ns-justify}))
-
-(def
- i166i
-"(ns my.awesome.app\n  (:import (java.io File)\n           (java.util HashMap ArrayList)\n           (org.apache.storm.task OutputCollector IBolt TopologyContext)\n           (org.apache.storm.generated JavaObject Grouping\n            StormTopology StormTopology$_Fields Bolt Nimbus$Client\n            ComponentCommon Grouping$_Fields SpoutSpec NullStruct :StreamInfo\n            GlobalStreamId :ComponentObject ComponentObject$_Fields)\n           (goog.net XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))\n")
-
-(expect
-
-"(ns my.awesome.app\n  (:import\n    (java.io                    File)\n    (java.util                  HashMap ArrayList)\n    (org.apache.storm.task      OutputCollector IBolt TopologyContext)\n    (org.apache.storm.generated JavaObject Grouping StormTopology\n                                StormTopology$_Fields Bolt Nimbus$Client\n                                ComponentCommon Grouping$_Fields SpoutSpec\n                                NullStruct :StreamInfo GlobalStreamId\n                                :ComponentObject ComponentObject$_Fields)\n    (goog.net                   XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))"
-
-(zprint-str i166i {:parse-string? true :style :ns-justify}))
+  (expect
+    "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros                          :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros                               :as env]\n    [devcards.core                                 :as    dc\n                                                   :refer [defcard defcard-doc\n                                                           deftest dom-node\n                                                           defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166d
+                {:parse-string? true,
+                 :style :ns-justify,
+                 :style-map {:rjm-var {:pair {:justify {:max-variance
+                                                          2000}}}}}))
 
 
-(def i166j
-"(ns my.awesome.app\n  (:import)\n  (:use [backtype.storm cluster util thrift config log]))\n")
+  (expect
+    "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166d
+                {:parse-string? true,
+                 :style :ns-justify,
+                 :style-map {:ij-var {:pair {:justify {:max-variance 2000}}}}}))
 
-(expect
-"(ns my.awesome.app\n  (:import)\n  (:use [backtype.storm cluster util thrift config log]))"
+  ;;
+  ;; Additional tests for use of lists instead of vectors
+  ;;
+
+  (def i166f
+    "(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    clojure.string\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [zprint.zprint      :as    zprint\n                        :refer [fzprint line-count max-width line-widths\n                                expand-tabs zcolor-map\n                                determine-ending-split-lines]]\n    [zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map\n                                color-comp-vec handle-lines]]\n    [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments\n                                fzprint-align-inline-comments blanks]]\n    [zprint.config      :as    config\n                        :refer [add-calculated-options config-set-options!\n                                get-options config-configure-all! reset-options!\n                                help-str get-explained-options\n                                get-explained-set-options\n                                get-explained-all-options get-default-options\n                                validate-options apply-style perform-remove\n                                no-color-map merge-deep sci-load-string\n\t\t\t\tconfig-and-validate\n\t\t\t\t]]\n    [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?\n                                find-root-and-path-nw]]\n    [zprint.sutil]\n    [zprint.focus       :refer [range-ssv]]\n    [zprint.range       :refer [expand-range-to-top-level split-out-range\n                                reassemble-range]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip :as z :refer [edn* string]]\n    #_[clojure.spec.alpha :as s])\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n\t\t        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))\n")
+
+  (expect
+    "(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    clojure.string\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [zprint.zprint      :as    zprint\n                        :refer [fzprint line-count max-width line-widths\n                                expand-tabs zcolor-map\n                                determine-ending-split-lines]]\n    [zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map\n                                color-comp-vec handle-lines]]\n    [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments\n                                fzprint-align-inline-comments blanks]]\n    [zprint.config      :as    config\n                        :refer [add-calculated-options config-set-options!\n                                get-options config-configure-all! reset-options!\n                                help-str get-explained-options\n                                get-explained-set-options\n                                get-explained-all-options get-default-options\n                                validate-options apply-style perform-remove\n                                no-color-map merge-deep sci-load-string\n                                config-and-validate]]\n    [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?\n                                find-root-and-path-nw]]\n    [zprint.sutil]\n    [zprint.focus       :refer [range-ssv]]\n    [zprint.range       :refer [expand-range-to-top-level split-out-range\n                                reassemble-range]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as    z\n                        :refer [edn* string]]\n    #_[clojure.spec.alpha :as s])\n  #?@(:clj ((:import\n              #?(:bb []\n                 :clj (java.net URL URLConnection))\n              #?(:bb []\n                 :clj (java.util.concurrent Executors))\n              (java.io     File)\n              (java.util   Date)))))"
+    (zprint-str i166f {:parse-string? true, :style :ns-justify}))
 
 
-(zprint-str i166j {:parse-string? true :style :ns-justify}))
+  (def i166g
+    "(ns zprint.core\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n                        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))\n")
+
+  (expect
+    "(ns zprint.core\n  #?@(:clj ((:import\n              #?(:bb []\n                 :clj (java.net URL URLConnection))\n              #?(:bb []\n                 :clj (java.util.concurrent Executors))\n              (java.io     File)\n              (java.util   Date)))))"
+    (zprint-str i166g {:parse-string? true, :style :ns-justify}))
 
 
-(def
-i166k
-"(ns my.awesome.app\n  (:import (java.io File)\n           [java.util HashMap ArrayList]\n           (org.apache.storm.task OutputCollector IBolt TopologyContext)\n           [org.apache.storm.generated JavaObject Grouping\n            StormTopology StormTopology$_Fields Bolt Nimbus$Client\n            ComponentCommon Grouping$_Fields SpoutSpec NullStruct :StreamInfo\n            GlobalStreamId :ComponentObject ComponentObject$_Fields]\n           (goog.net XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))\n")
+  (def i166h
+    "(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase]\n            [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.analyzer.macros.with.lots.of.extra.space :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import (java.io File)\n           (java.util HashMap ArrayList)\n           (org.apache.storm.task OutputCollector IBolt TopologyContext)\n           (org.apache.storm.generated JavaObject Grouping\n            StormTopology StormTopology$_Fields Bolt Nimbus$Client\n            ComponentCommon Grouping$_Fields SpoutSpec NullStruct :StreamInfo\n            GlobalStreamId :ComponentObject ComponentObject$_Fields)\n           (goog.net XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))\n")
 
 
-(expect
+  (expect
+    "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import\n    (java.io                    File)\n    (java.util                  HashMap ArrayList)\n    (org.apache.storm.task      OutputCollector IBolt TopologyContext)\n    (org.apache.storm.generated JavaObject Grouping StormTopology\n                                StormTopology$_Fields Bolt Nimbus$Client\n                                ComponentCommon Grouping$_Fields SpoutSpec\n                                NullStruct :StreamInfo GlobalStreamId\n                                :ComponentObject ComponentObject$_Fields)\n    (goog.net                   XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166h {:parse-string? true, :style :ns-justify}))
 
-"(ns my.awesome.app\n  (:import\n    (java.io                    File)\n    [java.util                  HashMap ArrayList]\n    (org.apache.storm.task      OutputCollector IBolt TopologyContext)\n    [org.apache.storm.generated JavaObject Grouping StormTopology\n                                StormTopology$_Fields Bolt Nimbus$Client\n                                ComponentCommon Grouping$_Fields SpoutSpec\n                                NullStruct :StreamInfo GlobalStreamId\n                                :ComponentObject ComponentObject$_Fields]\n    (goog.net                   XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))"
+  (def i166i
+    "(ns my.awesome.app\n  (:import (java.io File)\n           (java.util HashMap ArrayList)\n           (org.apache.storm.task OutputCollector IBolt TopologyContext)\n           (org.apache.storm.generated JavaObject Grouping\n            StormTopology StormTopology$_Fields Bolt Nimbus$Client\n            ComponentCommon Grouping$_Fields SpoutSpec NullStruct :StreamInfo\n            GlobalStreamId :ComponentObject ComponentObject$_Fields)\n           (goog.net XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))\n")
 
-(zprint-str i166k {:parse-string? true :style :ns-justify}))
+  (expect
+    "(ns my.awesome.app\n  (:import\n    (java.io                    File)\n    (java.util                  HashMap ArrayList)\n    (org.apache.storm.task      OutputCollector IBolt TopologyContext)\n    (org.apache.storm.generated JavaObject Grouping StormTopology\n                                StormTopology$_Fields Bolt Nimbus$Client\n                                ComponentCommon Grouping$_Fields SpoutSpec\n                                NullStruct :StreamInfo GlobalStreamId\n                                :ComponentObject ComponentObject$_Fields)\n    (goog.net                   XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166i {:parse-string? true, :style :ns-justify}))
+
+
+  (def i166j
+    "(ns my.awesome.app\n  (:import)\n  (:use [backtype.storm cluster util thrift config log]))\n")
+
+  (expect
+    "(ns my.awesome.app\n  (:import)\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166j {:parse-string? true, :style :ns-justify}))
+
+
+  (def i166k
+    "(ns my.awesome.app\n  (:import (java.io File)\n           [java.util HashMap ArrayList]\n           (org.apache.storm.task OutputCollector IBolt TopologyContext)\n           [org.apache.storm.generated JavaObject Grouping\n            StormTopology StormTopology$_Fields Bolt Nimbus$Client\n            ComponentCommon Grouping$_Fields SpoutSpec NullStruct :StreamInfo\n            GlobalStreamId :ComponentObject ComponentObject$_Fields]\n           (goog.net XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))\n")
+
+
+  (expect
+    "(ns my.awesome.app\n  (:import\n    (java.io                    File)\n    [java.util                  HashMap ArrayList]\n    (org.apache.storm.task      OutputCollector IBolt TopologyContext)\n    [org.apache.storm.generated JavaObject Grouping StormTopology\n                                StormTopology$_Fields Bolt Nimbus$Client\n                                ComponentCommon Grouping$_Fields SpoutSpec\n                                NullStruct :StreamInfo GlobalStreamId\n                                :ComponentObject ComponentObject$_Fields]\n    (goog.net                   XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str i166k {:parse-string? true, :style :ns-justify}))
 
 
 

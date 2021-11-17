@@ -22,7 +22,8 @@
     [rewrite-clj.parser :as    p
                         :refer [parse-string parse-string-all]]
     [rewrite-clj.node   :as n]
-    [rewrite-clj.zip    :as z :refer [edn*]]))
+    [rewrite-clj.zip    :as    z
+                        :refer [edn*]]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -2614,7 +2615,7 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception:  When :list called an option-fn named 'test' it failed because:" 
+         "java.lang.Exception:  When :list called an option-fn named 'test' it failed because:"
          (try (zprint "(a b c)"
                       {:parse-string? true,
                        :list {:option-fn (fn ([] "test")
@@ -2631,7 +2632,7 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception:  When :list called an option-fn it failed because:" 
+         "java.lang.Exception:  When :list called an option-fn it failed because:"
          (try (zprint "(a b c)"
                       {:parse-string? true,
                        :list {:option-fn (fn ([options len sexpr] (+ :a 0)))}})
@@ -3861,9 +3862,14 @@ ser/collect-vars-acc %1 %2) )))"
     ; an optional doc string
     "This is a test protocol for zprint!"
     ; method signatures
-     (stuffx [this x y] "stuff docstring")
-     (botherx [this] [this x] [this x y] "bother docstring")
-     (foox [this baz] "foo docstring"))
+     (stuffx [this x y]
+       "stuff docstring")
+     (botherx [this]
+              [this x]
+              [this x y]
+       "bother docstring")
+     (foox [this baz]
+       "foo docstring"))
 
   (expect
     "(extend ZprintType\n  ZprintProtocol\n    {:bar (fn [x y] (list x y)), :baz (fn ([x] (str x)) ([x y] (list x y)))})"
@@ -4117,10 +4123,10 @@ ser/collect-vars-acc %1 %2) )))"
   ;; :arg1-force-nl
   ;;
 
-  (expect 
-"(defprotocol P\n  (foo [this])\n  (bar-me [this]\n          [this y]))"
-          (zprint-str "(defprotocol P (foo [this]) (bar-me [this] [this y]))"
-                      {:parse-string? true}))
+  (expect
+    "(defprotocol P\n  (foo [this])\n  (bar-me [this]\n          [this y]))"
+    (zprint-str "(defprotocol P (foo [this]) (bar-me [this] [this y]))"
+                {:parse-string? true}))
 
 
   ;;
@@ -4128,7 +4134,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-"(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n  (bar-me [this]\n          [this y]))"
+    "(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n  (bar-me [this]\n          [this y]))"
     (zprint-str
       "(;stuff\ndefprotocol\n ;bother\nP (foo [this]) \n\n(bar-me [this] [this y]))"
       {:parse-string? true}))
@@ -4138,7 +4144,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-"(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n\n  (bar-me [this]\n          [this y]))"
+    "(;stuff\n defprotocol\n  ;bother\n  P\n  (foo [this])\n\n  (bar-me [this]\n          [this y]))"
     (zprint-str
       "(;stuff\ndefprotocol\n ;bother\nP (foo [this]) \n\n(bar-me [this] [this y]))"
       {:parse-string? true, :style :respect-nl}))
@@ -5867,38 +5873,34 @@ ser/collect-vars-acc %1 %2) )))"
                            :style :odr})
                         (catch :default e (str e)))))
 
-;;
-;; Lots of #188 issue with "..."
-;;
+  ;;
+  ;; Lots of #188 issue with "..."
+  ;;
 
-(expect "({:c/d :e, {a b, ...} :b})"
-        (zprint-str "({{a b ...} :b :c/d :e})"
-                    {:parse-string? true, :map {:lift-ns? true}}))
+  (expect "({:c/d :e, {a b, ...} :b})"
+          (zprint-str "({{a b ...} :b :c/d :e})"
+                      {:parse-string? true, :map {:lift-ns? true}}))
 
-(expect 
-"({:a 1, ...} {:b 2, ...})" 
-(zprint-str 
-"({:a 1, ...} {:b 2, ...})" 
-{:parse-string? true}))
+  (expect "({:a 1, ...} {:b 2, ...})"
+          (zprint-str "({:a 1, ...} {:b 2, ...})" {:parse-string? true}))
 
-(expect
-"#{:c {:a :b, ...}}"
-(zprint-str "#{{:a :b ...} :c}" {:parse-string? true}))
+  (expect "#{:c {:a :b, ...}}"
+          (zprint-str "#{{:a :b ...} :c}" {:parse-string? true}))
 
-(expect 
-"(test {:a 1, ...}\n      {:b 2, ...}\n      {:c 3, ...}\n      {:e 4, ...})"
-        (zprint-str "(test {:a 1 ...}{:b 2 ...} {:c 3 ...} {:e 4 ...})\n"
-                    {:parse-string? true,
-                     :fn-map {"test" [:none {:style :vector-pairs}]},
-                     :width 30}))
+  (expect
+    "(test {:a 1, ...}\n      {:b 2, ...}\n      {:c 3, ...}\n      {:e 4, ...})"
+    (zprint-str "(test {:a 1 ...}{:b 2 ...} {:c 3 ...} {:e 4 ...})\n"
+                {:parse-string? true,
+                 :fn-map {"test" [:none {:style :vector-pairs}]},
+                 :width 30}))
 
-;;
-;; unlift-ns? does it to symbols too
-;;
+  ;;
+  ;; unlift-ns? does it to symbols too
+  ;;
 
-(expect
-"#:c{:b 2, a 1}"
-(zprint-str "#:c{a 1 :b 2}" {:parse-string? true :map {:unlift-ns? true}}))
+  (expect "#:c{:b 2, a 1}"
+          (zprint-str "#:c{a 1 :b 2}"
+                      {:parse-string? true, :map {:unlift-ns? true}}))
 
   ;;
   ;; Issue #176 -- defprotocol and defrecord need -body when using
@@ -5992,21 +5994,21 @@ ser/collect-vars-acc %1 %2) )))"
     "(defn rod3\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b)\n           (list c d a b)\n         :else\n           (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
     (zprint-str rod3 {:parse-string? true, :style :rod, :width 30}))
 
-   ;;
-   ;; Rules of defn test to see if :next-inner-restore strategy works
-   ;;
+  ;;
+  ;; Rules of defn test to see if :next-inner-restore strategy works
+  ;;
 
-(expect
-  "(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list]\n                   c\n                   d\n                   a\n                   b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
-  (zprint-str
-    "\n(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n  ([a b c] (rod3 a b c nil)))"
-    {:parse-string? true, :style :rod, :fn-map {:vector :force-nl}}))
+  (expect
+    "(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list]\n                   c\n                   d\n                   a\n                   b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+    (zprint-str
+      "\n(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n  ([a b c] (rod3 a b c nil)))"
+      {:parse-string? true, :style :rod, :fn-map {:vector :force-nl}}))
 
-(expect
-  "(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
-  (zprint-str
-    "\n(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n  ([a b c] (rod3 a b c nil)))"
-    {:parse-string? true, :style :rod}))
+  (expect
+    "(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n\n  ([a b c]\n   (rod3 a b c nil)))"
+    (zprint-str
+      "\n(defn rod3a\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) ([list] c d a b)\n         :else (list a b c d)))\n  ([a b c] (rod3 a b c nil)))"
+      {:parse-string? true, :style :rod}))
 
   ;;
   ;; Test about whether things that are quoted are in-code? or not.  If there
@@ -6039,433 +6041,497 @@ ser/collect-vars-acc %1 %2) )))"
     (zprint-str qb {:parse-string? true, :fn-map {:quote :none}}))
 
 
-;;
-;; # :next-inner-restore
-;;
+  ;;
+  ;; # :next-inner-restore
+  ;;
 
-(expect
-  "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this have any blank lines] (in it)))"
-  (zprint-str
-    "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
+  (expect
+    "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this have any blank lines] (in it)))"
+    (zprint-str
+      "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
+      {:parse-string? true,
+       :fn-map {"defn" [:arg1-body
+                        {:list {:respect-nl? true},
+                         :map {:respect-nl? true},
+                         :vector {:respect-nl? true},
+                         :set {:respect-nl? true},
+                         :next-inner-restore
+                           [[:list :respect-nl?] [:map :respect-nl?]
+                            [:vector :respect-nl?] [:set :respect-nl?]]}]}}))
+
+  (expect
+    "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\n        blank lines]\n\n\n    (in it)))"
+    (zprint-str
+      "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
+      {:parse-string? true,
+       :fn-map {"defn" [:arg1-body {:style :respect-nl}]}}))
+
+  ;;
+  ;; :next-inner-restore for things that are nil initially
+  ;;
+
+  (expect "{:e {:e :f, :c :d, :a :b}, :c :d, :a :b}"
+          (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
+                      {:map {:key-order [:e :c :a]}}))
+
+  (expect "{:a :b, :c :d, :e {:a :b, :c :d, :e :f}}"
+          (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
+                      {:map {:key-order [:e :c :a]},
+                       :next-inner-restore [[:map :key-order]]}))
+
+  (expect "{:e {:a :b, :c :d, :e :f}, :c :d, :a :b}"
+          (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
+                      {:next-inner {:map {:key-order [:e :c :a]},
+                                    :next-inner-restore [[:map :key-order]]}}))
+
+  ;;
+  ;; :next-inner-restore for changes in constant-pairing configuration
+  ;;
+
+  (expect
+    "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
+    (zprint-str
+      mapp6
+      {:parse-string? true,
+       :fn-map {"app" [:none
+                       {:list {:constant-pair-min 1,
+                               :constant-pair-fn #(or (vector? %)
+                                                      (keyword? %))},
+                        :next-inner-restore [[:list :constant-pair-min]
+                                             [:list :constant-pair-fn]]}]},
+       :width 55}))
+
+  ;;
+  ;; :next-inner-restore for sets
+  ;;
+
+  (expect
+    "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id,\n        :pre preceding,\n        :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
+    (zprint-str
+      "(defn selected-protocol-for-indications\n  { :pre [(map? m) (empty? m)] :post [(not-empty %)] }\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :pre preceding :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
+      {:parse-string? true,
+       :fn-map {"defn" [:arg1-force-nl-body
+                        {:map {:force-nl? true,
+                               :sort-in-code? true,
+                               :key-no-sort #{":pre"}}}]}}))
+
+  (expect
+    "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:indications indications, :pre preceding, :procedure-id procedure-id}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
+    (zprint-str
+      "(defn selected-protocol-for-indications\n  { :pre [(map? m) (empty? m)] :post [(not-empty %)] }\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :pre preceding :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
+      {:parse-string? true,
+       :fn-map {"defn" [:arg1-force-nl-body
+                        {:next-inner {:map {:force-nl? true,
+                                            :sort-in-code? true,
+                                            :key-no-sort #{":pre"}},
+                                      :next-inner-restore [[:map :force-nl?]
+                                                           [[:map :key-no-sort]
+                                                            ":pre"]]}}]}}))
+
+  ;;
+  ;; # Issue #200 -- exception when using :arg2-extend when the input doesn't
+  ;; match extend-like input.
+  ;;
+
+  (expect "(deffoo Xyz []\n  (go []))"
+          (zprint-str "(deffoo Xyz []\n  (go []))\n"
+                      {:parse-string? true,
+                       :list {:respect-nl? true},
+                       :fn-map {"deffoo" :arg2-extend}}))
+  (expect "(defrecord ~tagname ~fields\n\n  (stuff)\n\n)"
+          (zprint-str
+            " (defrecord ~tagname ~fields\n\n          (stuff)\n\n          )"
+            {:parse-string? true, :list {:respect-nl? true}}))
+
+  ;;
+  ;; ## Test ##NaN
+  ;;
+
+  (expect "(def y ##NaN)" (zprint-str "(def y ##NaN)" {:parse-string? true}))
+
+  ;;
+  ;; # Issue #199 namespaced maps
+  ;;
+
+  (expect
+    "(is (= #::sut{:groups #{\"FOO_ADMIN\" \"FOO_USER\"}}\n       (sut/map->user {:groups [\"FOO_USER\" \"FOO_ADMIN\"]})))"
+    (zprint-str
+      "(is (= #::sut{:groups #{\"FOO_ADMIN\" \"FOO_USER\"}} (sut/map->user {:groups [\"FOO_USER\" \"FOO_ADMIN\"]})))"
+      {:parse-string? true}))
+
+
+  ;;
+  ;; Issue #184 -- don't print vectors on one line even if they fit.
+  ;;
+
+  (expect
+    "(s/def ::record\n  (s/keys :req-un [::reference-id\n                   ::record-number\n                   ::addresses\n                   ::contacts]\n          :opt-un [::birth-date\n                   ::family-name\n                   ::names]))"
+    (zprint-str
+      "(s/def ::record\n  (s/keys :req-un [::reference-id\n                   ::record-number\n                   ::addresses\n                   ::contacts]\n          :opt-un [::birth-date\n                   ::family-name\n                   ::names]))\n"
+      {:parse-string? true,
+       :fn-map {"s/keys" [:none {:vector {:force-nl? true}}]}}))
+
+  ;;
+  ;; Same thing for lists
+  ;;
+
+  (expect
+    "(def ^:private config-keys\n  '(bootstrapper\n    cassandra\n    graphql\n    http-client))"
+    (zprint-str
+      "(def ^:private config-keys  '(bootstrapper cassandra graphql http-client))\n"
+      {:parse-string? true, :list {:force-nl? true}}))
+
+  ;;
+  ;; :key-value-options
+  ;;
+
+  (expect "{:a :b, :c (this is a ...), :d (more testing)}"
+          (zprint-str {:a :b,
+                       :c '(this is a test this is only a test),
+                       :d '(more testing)}
+                      {:map {:key-value-options {:c {:max-length 3}}}}))
+
+  (expect
+    "{:a :b,\n :c ##,\n :d (more testing)}"
+    (zprint-str
+      {:a :b, :c '(this is a test this is only a test), :d '(more testing)}
+      {:map {:key-value-options {:c {:max-length 0},
+                                 :d {:list {:force-nl? true}}}}}))
+
+  ;;
+  ;; Issue 153 where new stuff didn't format like old stuff
+  ;;
+
+  (expect
+    "(this is\n      (->> (this is a test this is only a test of whether or it fits in eightyx)\n           more\n           stuff)\n      still\n      a\n      test)"
+    (zprint-str
+      "(this is\n      (->> (this is a test this is only a test of whether or it fits in eightyx)\n           more\n\t   stuff)\n      still\n      a\n      test)\n"
+      {:parse-string? true, :width 80}))
+
+  ;;
+  ;; More 153 issues, where restore didn't quite do it all
+  ;;
+
+  (expect
+    "(defn stuff\n  [{:keys [bother]}]\n  (let [bother-node (:node bother)\n        all (-> (bother/db bother-node)\n                (bother/q '{:find [(pull md [*])],\n                            :where [[md :xxxxxxx/type\n                                     :procurement-consideration]]}))\n        xf (comp (map first)\n                 (map mapper.procurment-consideration/bother-entity->model))]\n    (into [] xf all)))"
+    (zprint-str
+      "(defn stuff\n  [{:keys [bother]}]\n  (let [bother-node (:node bother)\n        all (-> (bother/db bother-node)\n                (bother/q '{:find [(pull md [*])]\n                          :where [[md :xxxxxxx/type :procurement-consideration]]}))\n        xf (comp (map first) (map mapper.procurment-consideration/bother-entity->model))]\n    (into [] xf all)))\n"
+      {:parse-string? true, :width 80}))
+
+  ;;
+  ;; This is where the fixes for extend processing got too carried away, and
+  ;; didn't allow a "nil" as a symbol.
+  ;;
+
+  (expect
+    "(extend-protocol interface.static-bus/Troubler\n  nil\n    (publish [_ trouble]\n      (logging/warn \"Troubler received nil payload, not troubling.\"\n                    (some->> trouble\n                             :id\n                             (hash-map :trouble-id)))))"
+    (zprint-str
+      "(extend-protocol interface.static-bus/Troubler\n nil\n   (publish [_ trouble]\n     (logging/warn \"Troubler received nil payload, not troubling.\"\n                   (some->> trouble\n                            :id\n                            (hash-map :trouble-id)))))\n"
+      {:parse-string? true}))
+
+  ;;
+  ;; Issue #204 -- odd behavior with :style :hiccup
+  ;;
+
+  (expect
+    "[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n             val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]"
+    (zprint-str
+      "[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
+      {:parse-string? true, :style :hiccup, :vector {:wrap? true}}))
+
+
+  (expect
+    "[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n             val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]"
+    (zprint-str
+      "[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
+      {:parse-string? true, :style :hiccup}))
+
+
+  (expect
+    "[a\n {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n           val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n       (str val1 val2))}]"
+    (zprint-str
+      "[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
+      {:parse-string? true}))
+
+  ;;
+  ;; Issue at end of #153 -- problems with alpha version of :next-inner :restore
+  ;;
+
+  (def i153pcs
     {:parse-string? true,
-     :fn-map {"defn" [:arg1-body {
-     
-                 :list {:respect-nl? true},
-                   :map {:respect-nl? true},
-                   :vector {:respect-nl? true},
-                   :set {:respect-nl? true},
+     :fn-map {"abc" [:none
+                     {:next-inner {:map {:force-nl? true},
+                                   :next-inner-restore [[:map :force-nl?]]}}],
+              "def" [:none
+                     {:next-inner {:list {:force-nl? true},
+                                   :next-inner-restore [[:list :force-nl?]]}}],
+              "ghi" [:none
+                     {:list {:force-nl? true},
+                      :next-inner-restore [[:list :force-nl?]]}]}})
 
-                            :next-inner-restore
-                            [[:list :respect-nl?]
-                             [:map :respect-nl?]
-                             [:vector :respect-nl?]
-                             [:set :respect-nl?]]
-     
-     
-     
-     
-     }]}}))
+  (expect
+    "(abc {:a :b,\n      :c :d}\n     (this is a test {:e :f, :g :h})\n     (def {:a :b, :c :d}\n          (this is\n                a\n                test\n                {:e :f, :g :h}))\n     (ghi {:a :b, :c :d}\n          (this is a test {:e :f, :g :h})))"
+    (zprint-str
+      "(abc {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (def {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (ghi {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
+      i153pcs))
 
-(expect
-  "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\n        blank lines]\n\n\n    (in it)))"
-  (zprint-str
-    "(defn restore\n\n  \"this is a test\"\n\n  [this is only a test]\n\n  (let [does this\n\n        have any\n\t\n\tblank lines]\n   \n\n     (in it)))\n"
-    {:parse-string? true, :fn-map {"defn" [:arg1-body {:style :respect-nl}]}}))
 
-;;
-;; :next-inner-restore for things that are nil initially
-;;
+  (expect
+    "(def {:a :b, :c :d}\n     (this is\n           a\n           test\n           {:e :f, :g :h})\n     (abc {:a :b,\n           :c :d}\n          (this is a test {:e :f, :g :h}))\n     (ghi {:a :b, :c :d}\n          (this is a test {:e :f, :g :h})))"
+    (zprint-str
+      "(def {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (abc {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (ghi {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
+      i153pcs))
 
-(expect "{:e {:e :f, :c :d, :a :b}, :c :d, :a :b}"
-        (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
-                    {:map {:key-order [:e :c :a]}}))
+  (expect
+    "(ghi {:a :b, :c :d}\n     (this is a test {:e :f, :g :h})\n     (abc {:a :b,\n           :c :d}\n          (this is a test {:e :f, :g :h}))\n     (def {:a :b, :c :d}\n          (this is\n                a\n                test\n                {:e :f, :g :h})))"
+    (zprint-str
+      "(ghi {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (abc {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (def {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
+      i153pcs))
 
-(expect "{:a :b, :c :d, :e {:a :b, :c :d, :e :f}}"
-        (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
-                    {:map {:key-order [:e :c :a]},
-                     :next-inner-restore [[:map :key-order]]}))
-
-(expect "{:e {:a :b, :c :d, :e :f}, :c :d, :a :b}"
-        (zprint-str {:a :b, :c :d, :e {:a :b, :c :d, :e :f}}
-                    {:next-inner {:map {:key-order [:e :c :a]},
-                                  :next-inner-restore [[:map :key-order]]}}))
-
-;;
-;; :next-inner-restore for changes in constant-pairing configuration
-;;
-
-(expect
-
-"(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
-
-  (zprint-str
-    mapp6
-    {:parse-string? true,
-     :fn-map {"app" [:none
-                     {:list {:constant-pair-min 1,
-                             :constant-pair-fn #(or (vector? %) (keyword? %))},
-                      :next-inner-restore [[:list :constant-pair-min]
-                                           [:list :constant-pair-fn]]}]},
-     :width 55}))
-
-;;
-;; :next-inner-restore for sets
-;;
-
-(expect
-  "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id,\n        :pre preceding,\n        :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
-  (zprint-str
-    "(defn selected-protocol-for-indications\n  { :pre [(map? m) (empty? m)] :post [(not-empty %)] }\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :pre preceding :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
-    {:parse-string? true,
-     :fn-map {"defn" [:arg1-force-nl-body
-                      {:map {:force-nl? true,
-                             :sort-in-code? true,
-                             :key-no-sort #{":pre"}}}]}}))
-
-(expect
-  "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:indications indications, :pre preceding, :procedure-id procedure-id}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
-  (zprint-str
-    "(defn selected-protocol-for-indications\n  { :pre [(map? m) (empty? m)] :post [(not-empty %)] }\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :pre preceding :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
-    {:parse-string? true,
-     :fn-map {"defn" [:arg1-force-nl-body
+  (def i153tas
+    {:fn-map {"->" [:noarg1-body
+                    {:list {:constant-pair? false},
+                     :next-inner-restore [[:list :constant-pair?]]}],
+              "->>" [:force-nl-body
+                     {:list {:constant-pair? false},
+                      :next-inner-restore [[:list :constant-pair?]]}],
+              "defn" [:arg1-body
                       {:next-inner {:map {:force-nl? true,
-                                          :sort-in-code? true,
-                                          :key-no-sort #{":pre"}},
-                                    :next-inner-restore [[:map :force-nl?]
-                                                         [[:map :key-no-sort]
-                                                          ":pre"]]}}]}}))
+                                          :key-order [:pre :post],
+                                          :sort-in-code? false,
+                                          :sort? true},
+                                    :next-inner-restore
+                                      [[:map :force-nl?] [:map :key-order]
+                                       [:map :sort-in-code?] [:map :sort?]]}}]},
+     :parse-string? true})
 
-;;
-;; # Issue #200 -- exception when using :arg2-extend when the input doesn't
-;; match extend-like input.
-;;
-
-(expect "(deffoo Xyz []\n  (go []))"
-        (zprint-str "(deffoo Xyz []\n  (go []))\n"
-                    {:parse-string? true,
-                     :list {:respect-nl? true},
-                     :fn-map {"deffoo" :arg2-extend}}))
-(expect "(defrecord ~tagname ~fields\n\n  (stuff)\n\n)"
-        (zprint-str
-          " (defrecord ~tagname ~fields\n\n          (stuff)\n\n          )"
-          {:parse-string? true, :list {:respect-nl? true}}))
-
-;;
-;; ## Test ##NaN
-;;
-
-(expect "(def y ##NaN)"
-  (zprint-str "(def y ##NaN)" {:parse-string? true}))
-
-;;
-;; # Issue #199 namespaced maps
-;;
-
-(expect
-  "(is (= #::sut{:groups #{\"FOO_ADMIN\" \"FOO_USER\"}}\n       (sut/map->user {:groups [\"FOO_USER\" \"FOO_ADMIN\"]})))"
-  (zprint-str
-    "(is (= #::sut{:groups #{\"FOO_ADMIN\" \"FOO_USER\"}} (sut/map->user {:groups [\"FOO_USER\" \"FOO_ADMIN\"]})))"
-    {:parse-string? true}))
+  (expect
+    "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
+    (zprint-str
+      "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)], :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
+      i153tas))
 
 
-;;
-;; Issue #184 -- don't print vectors on one line even if they fit.
-;;
+  ;;
+  ;; Fix bug encountered when dealing with issue #205 discussion
+  ;;
 
-(expect
-  "(s/def ::record\n  (s/keys :req-un [::reference-id\n                   ::record-number\n                   ::addresses\n                   ::contacts]\n          :opt-un [::birth-date\n                   ::family-name\n                   ::names]))"
-  (zprint-str
-    "(s/def ::record\n  (s/keys :req-un [::reference-id\n                   ::record-number\n                   ::addresses\n                   ::contacts]\n          :opt-un [::birth-date\n                   ::family-name\n                   ::names]))\n"
-    {:parse-string? true,
-     :fn-map {"s/keys" [:none {:vector {:force-nl? true}}]}}))
-
-;;
-;; Same thing for lists
-;;
-
-(expect
-  "(def ^:private config-keys\n  '(bootstrapper\n    cassandra\n    graphql\n    http-client))"
-  (zprint-str
-    "(def ^:private config-keys  '(bootstrapper cassandra graphql http-client))\n"
-    {:parse-string? true, :list {:force-nl? true}}))
-
-;;
-;; :key-value-options
-;;
-
-(expect "{:a :b, :c (this is a ...), :d (more testing)}"
-        (zprint-str
-          {:a :b, :c '(this is a test this is only a test), :d '(more testing)}
-          {:map {:key-value-options {:c {:max-length 3}}}}))
-
-(expect "{:a :b,\n :c ##,\n :d (more testing)}"
-        (zprint-str
-          {:a :b, :c '(this is a test this is only a test), :d '(more testing)}
-          {:map {:key-value-options {:c {:max-length 0},
-                                     :d {:list {:force-nl? true}}}}}))
-
-;;
-;; Issue 153 where new stuff didn't format like old stuff
-;;
-
-(expect
-"(this is\n      (->> (this is a test this is only a test of whether or it fits in eightyx)\n           more\n           stuff)\n      still\n      a\n      test)"
-(zprint-str 
-"(this is\n      (->> (this is a test this is only a test of whether or it fits in eightyx)\n           more\n\t   stuff)\n      still\n      a\n      test)\n"
-{:parse-string? true :width 80}))
-
-;;
-;; More 153 issues, where restore didn't quite do it all
-;;
-
-(expect
-"(defn stuff\n  [{:keys [bother]}]\n  (let [bother-node (:node bother)\n        all (-> (bother/db bother-node)\n                (bother/q '{:find [(pull md [*])],\n                            :where [[md :xxxxxxx/type\n                                     :procurement-consideration]]}))\n        xf (comp (map first)\n                 (map mapper.procurment-consideration/bother-entity->model))]\n    (into [] xf all)))"
-(zprint-str 
-"(defn stuff\n  [{:keys [bother]}]\n  (let [bother-node (:node bother)\n        all (-> (bother/db bother-node)\n                (bother/q '{:find [(pull md [*])]\n                          :where [[md :xxxxxxx/type :procurement-consideration]]}))\n        xf (comp (map first) (map mapper.procurment-consideration/bother-entity->model))]\n    (into [] xf all)))\n"
-{:parse-string? true :width 80}))
-
-;;
-;; This is where the fixes for extend processing got too carried away, and
-;; didn't allow a "nil" as a symbol.
-;;
-
-(expect
-"(extend-protocol interface.static-bus/Troubler\n  nil\n    (publish [_ trouble]\n      (logging/warn \"Troubler received nil payload, not troubling.\"\n                    (some->> trouble\n                             :id\n                             (hash-map :trouble-id)))))"
-(zprint-str 
-"(extend-protocol interface.static-bus/Troubler\n nil\n   (publish [_ trouble]\n     (logging/warn \"Troubler received nil payload, not troubling.\"\n                   (some->> trouble\n                            :id\n                            (hash-map :trouble-id)))))\n"
-{:parse-string? true}))
-
-;;
-;; Issue #204 -- odd behavior with :style :hiccup
-;;
-
-(expect
-"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n             val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]"
- (zprint-str 
-"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
- {:parse-string? true :style :hiccup :vector {:wrap? true}}))
-
-
-(expect
-"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n             val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]"
-(zprint-str 
-"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
-{:parse-string? true :style :hiccup}))
-
-
-(expect
-"[a\n {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n           val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n       (str val1 val2))}]"
-(zprint-str 
-"[a {:a (let [val1 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\" val2 \"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]\n         (str val1 val2))}]\n"
-{:parse-string? true}))
-
-;;
-;; Issue at end of #153 -- problems with alpha version of :next-inner :restore
-;;
-
-(def i153pcs
-  {:parse-string? true,
-   :fn-map {"abc" [:none
-                   {:next-inner {:map {:force-nl? true},
-                                 :next-inner-restore [[:map :force-nl?]]}}],
-            "def" [:none
-                   {:next-inner {:list {:force-nl? true},
-                                 :next-inner-restore [[:list :force-nl?]]}}],
-            "ghi" [:none
-                   {:list {:force-nl? true},
-                    :next-inner-restore [[:list :force-nl?]]}]}})
-
-(expect
-  "(abc {:a :b,\n      :c :d}\n     (this is a test {:e :f, :g :h})\n     (def {:a :b, :c :d}\n          (this is\n                a\n                test\n                {:e :f, :g :h}))\n     (ghi {:a :b, :c :d}\n          (this is a test {:e :f, :g :h})))"
-  (zprint-str
-    "(abc {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (def {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (ghi {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
-    i153pcs))
-
-
-(expect
-  "(def {:a :b, :c :d}\n     (this is\n           a\n           test\n           {:e :f, :g :h})\n     (abc {:a :b,\n           :c :d}\n          (this is a test {:e :f, :g :h}))\n     (ghi {:a :b, :c :d}\n          (this is a test {:e :f, :g :h})))"
-  (zprint-str
-    "(def {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (abc {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (ghi {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
-    i153pcs))
-
-(expect
-  "(ghi {:a :b, :c :d}\n     (this is a test {:e :f, :g :h})\n     (abc {:a :b,\n           :c :d}\n          (this is a test {:e :f, :g :h}))\n     (def {:a :b, :c :d}\n          (this is\n                a\n                test\n                {:e :f, :g :h})))"
-  (zprint-str
-    "(ghi {:a :b :c :d} (this is a test {:e :f :g :h}) \n     (abc {:a :b :c :d} (this is a test {:e :f :g :h}))\n     (def {:a :b :c :d} (this is a test {:e :f :g :h}))\n     )\n"
-    i153pcs))
-
-(def i153tas
-{:fn-map
-   {"->" [:noarg1-body
-          {:list {:constant-pair? false},
-           :next-inner-restore [[:list :constant-pair?]]}],
-    "->>" [:force-nl-body
-           {:list {:constant-pair? false},
-            :next-inner-restore [[:list :constant-pair?]]}],
-    "defn"
-      [:arg1-body
-       {:next-inner {:map {:force-nl? true,
-                           :key-order [:pre :post],
-                           :sort-in-code? false,
-                           :sort? true},
-                     :next-inner-restore [[:map :force-nl?] [:map :key-order]
-                                          [:map :sort-in-code?]
-                                          [:map :sort?]]}}]},
- :parse-string? true})
-
-(expect
-  "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)],\n   :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
-  (zprint-str
-    "(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)], :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n"
-    i153tas))
-
-
-;;
-;; Fix bug encountered when dealing with issue #205 discussion
-;;
-
-(expect
-  "(when errors\n  (json-api/error \"\" :errors errors))"
-  (zprint-str
-    "(when errors (json-api/error \"\" :errors errors))\n"
-    {:parse-string? true,
-     :fn-map
-       {"when" [:arg1-body
-                {:list
-                   {:option-fn
-                      (fn ([] "(when * (json-api/error ...)) never on one line")
+  (expect
+    "(when errors\n  (json-api/error \"\" :errors errors))"
+    (zprint-str
+      "(when errors (json-api/error \"\" :errors errors))\n"
+      {:parse-string? true,
+       :fn-map
+         {"when" [:arg1-body
+                  {:list
+                     {:option-fn
+                        (fn
+                          ([] "(when * (json-api/error ...)) never on one line")
                           ([opts n exprs]
                            (when (and (>= n 3)
                                       (= (first (nth exprs 2)) 'json-api/error))
                              {:fn-style :arg1-force-nl-body})))},
-                 :next-inner {:list {:option-fn nil}}}]}}))
+                   :next-inner {:list {:option-fn nil}}}]}}))
 
-;;
-;; Problem when the first thing in a vector is not sexpr-able, and you use
-;; :style :keyword-respect-nl  Issue #206
+  ;;
+  ;; Problem when the first thing in a vector is not sexpr-able, and you use
+  ;; :style :keyword-respect-nl  Issue #206
 
-(expect "[#_a 1]"
-        (zprint-str "[#_a\n 1]\n"
-                    {:parse-string? true, :style :keyword-respect-nl}))
+  (expect "[#_a 1]"
+          (zprint-str "[#_a\n 1]\n"
+                      {:parse-string? true, :style :keyword-respect-nl}))
 
-(expect "[#_a :test\n 1]"
-        (zprint-str "[#_a :test\n1]\n"
-                    {:parse-string? true, :style :keyword-respect-nl}))
+  (expect "[#_a :test\n 1]"
+          (zprint-str "[#_a :test\n1]\n"
+                      {:parse-string? true, :style :keyword-respect-nl}))
 
-;;
-;; Issue #209 -- indent-only causes any expression containing () to be 
-;; dropped!
-;;
+  ;;
+  ;; Issue #209 -- indent-only causes any expression containing () to be
+  ;; dropped!
+  ;;
 
-(expect "(def a ())"
-        (zprint-str "(def a ())\n" {:parse-string? true, :style :indent-only}))
+  (expect "(def a ())"
+          (zprint-str "(def a ())\n"
+                      {:parse-string? true, :style :indent-only}))
 
-(expect "()"
-        (zprint-str "()" {:parse-string? true, :style :indent-only}))
+  (expect "()" (zprint-str "()" {:parse-string? true, :style :indent-only}))
 
-;;
-;; Issue #166 -- problems with justification of strings!
-;;
+  ;;
+  ;; Issue #166 -- problems with justification of strings!
+  ;;
 
-(expect
-  "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
-  (zprint-str
-    "(ns my.awesome.app\n  (:require \n    [example.library :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\" :as firebase])\n  (:require-macros \n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns* disallowing-recur]]\n    [cljs.env.macros :as env]\n    [devcards.core :as dc :refer [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import\n    [java.io File]\n    [java.util HashMap ArrayList]\n    [org.apache.storm.task OutputCollector IBolt TopologyContext]         \n    [goog.net XhrIo])\n  (:use\n    [backtype.storm cluster util thrift config log]))\n"
-    {:parse-string? true,
-     :style :require-justify,
-     :style-map {:rj-var {:pair {:justify {:max-variance 1000}}}}}))
+  (expect
+    "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
+    (zprint-str
+      "(ns my.awesome.app\n  (:require \n    [example.library :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\" :as firebase])\n  (:require-macros \n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns* disallowing-recur]]\n    [cljs.env.macros :as env]\n    [devcards.core :as dc :refer [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import\n    [java.io File]\n    [java.util HashMap ArrayList]\n    [org.apache.storm.task OutputCollector IBolt TopologyContext]         \n    [goog.net XhrIo])\n  (:use\n    [backtype.storm cluster util thrift config log]))\n"
+      {:parse-string? true,
+       :style :require-justify,
+       :style-map {:rj-var {:pair {:justify {:max-variance 1000}}}}}))
 
-;;
-;; # :indent-here and friends
-;;
+  ;;
+  ;; # :indent-here and friends
+  ;;
 
-(expect
-"(stuff (caller aaaa bbbb\n                    ccc dddddd))"
-(zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :indent-here :element :newline :element-*]],  :width 80}))
+  (expect "(stuff (caller aaaa bbbb\n                    ccc dddddd))"
+          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :guide-debug [:list 2
+                                     [:element :element :indent-here :element
+                                      :newline :element-*]],
+                       :width 80}))
 
-(expect
-"(stuff (caller aaaa    bbbb\n                       ccc dddddd))"
-(zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :indent-here :element :newline :element-*]],  :width 80}))
+  (expect "(stuff (caller aaaa    bbbb\n                       ccc dddddd))"
+          (zprint-str "(stuff (caller aaaa bbbb ccc dddddd))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :guide-debug [:list 2
+                                     [:element :element :spaces 4 :indent-here
+                                      :element :newline :element-*]],
+                       :width 80}))
 
-;;
-;; # :spaces before and after :align
-;;
+  ;;
+  ;; # :spaces before and after :align
+  ;;
 
- (expect
-"(stuff (caller aaaa    bbbb\n                            ccc))"
- (zprint-str "(stuff (caller aaaa bbbb ccc))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :element]],  :width 36}))
+  (expect
+    "(stuff (caller aaaa    bbbb\n                            ccc))"
+    (zprint-str "(stuff (caller aaaa bbbb ccc))"
+                {:parse-string? true,
+                 :list {:respect-nl? false},
+                 :guide-debug [:list 2
+                               [:element :element :spaces 4 :mark 0 :element
+                                :newline :align 0 :spaces 5 :element]],
+                 :width 36}))
 
- (expect
-"(stuff (caller aaaa    bbbb\n         ccc                ddd))"
-(zprint-str "(stuff (caller aaaa bbbb ccc ddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :element  :align 0 :spaces 5 :element]],  :width 36}))
+  (expect
+    "(stuff (caller aaaa    bbbb\n         ccc                ddd))"
+    (zprint-str "(stuff (caller aaaa bbbb ccc ddd))"
+                {:parse-string? true,
+                 :list {:respect-nl? false},
+                 :guide-debug [:list 2
+                               [:element :element :spaces 4 :mark 0 :element
+                                :newline :element :align 0 :spaces 5 :element]],
+                 :width 36}))
 
-(expect
-"(stuff (caller aaaa    bbbb\n         ccc           ddd))"
-(zprint-str "(stuff (caller aaaa bbbb ccc ddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :element :spaces 5 :align 0 :element]],  :width 36}))
+  (expect
+    "(stuff (caller aaaa    bbbb\n         ccc           ddd))"
+    (zprint-str "(stuff (caller aaaa bbbb ccc ddd))"
+                {:parse-string? true,
+                 :list {:respect-nl? false},
+                 :guide-debug [:list 2
+                               [:element :element :spaces 4 :mark 0 :element
+                                :newline :element :spaces 5 :align 0 :element]],
+                 :width 36}))
 
-;;
-;; # Spaces before and after align, with :indent-here involved
-;;
+  ;;
+  ;; # Spaces before and after align, with :indent-here involved
+  ;;
 
-(expect
-"(stuff\n  (caller aaaa    bbbb\n                       ccc\n                       dddd eeee\n                       fffff gggg\n                       hhhh iii jjj\n                       kkk lll mmm))"
-(zprint-str "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :indent-here :element :newline :element-*]],  :width 36}))
+  (expect
+    "(stuff\n  (caller aaaa    bbbb\n                       ccc\n                       dddd eeee\n                       fffff gggg\n                       hhhh iii jjj\n                       kkk lll mmm))"
+    (zprint-str
+      "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :guide-debug [:list 2
+                     [:element :element :spaces 4 :mark 0 :element :newline
+                      :align 0 :spaces 5 :indent-here :element :newline
+                      :element-*]],
+       :width 36}))
 
-(expect
-"(stuff\n  (caller aaaa    bbbb\n                ccc\n                dddd eeee fffff gggg\n                hhhh iii jjj kkk lll\n                mmm))"
-(zprint-str "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces -2 :indent-here :element :newline :element-*]],  :width 36}))
+  (expect
+    "(stuff\n  (caller aaaa    bbbb\n                ccc\n                dddd eeee fffff gggg\n                hhhh iii jjj kkk lll\n                mmm))"
+    (zprint-str
+      "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :guide-debug [:list 2
+                     [:element :element :spaces 4 :mark 0 :element :newline
+                      :align 0 :spaces -2 :indent-here :element :newline
+                      :element-*]],
+       :width 36}))
 
-;;
-;; # negative space after align
-;;
+  ;;
+  ;; # negative space after align
+  ;;
 
-(expect
-"(stuff (caller aaaa    bbbb\n                    ccc\n                       dddd))"
-(zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces -3 :indent-align 0  :element :newline :element-*]],  :width 50}))
-
-
-;;
-;; # :spaces are additive in guides
-;;
-
- (expect
-"(stuff (caller aaaa       bbbb ccc dddd))"
- (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :spaces 3 :element-*]],  :width 80}))
-
-;;
-;; # :indent-align
-;;
-
-(expect
-"(stuff (caller aaaa    bbbb\n                                 ccc\n                       dddd))"
-(zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :spaces 5 :indent-align 0  :element :newline :element-*]],  :width 50}))
+  (expect
+    "(stuff (caller aaaa    bbbb\n                    ccc\n                       dddd))"
+    (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"
+                {:parse-string? true,
+                 :list {:respect-nl? false},
+                 :guide-debug [:list 2
+                               [:element :element :spaces 4 :mark 0 :element
+                                :newline :align 0 :spaces -3 :indent-align 0
+                                :element :newline :element-*]],
+                 :width 50}))
 
 
-(expect
-"(stuff (caller aaaa    bbbb\n                                 ccc\n         dddd))"
-(zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :spaces 5 :indent-align 1  :element :newline :element-*]],  :width 50}))
+  ;;
+  ;; # :spaces are additive in guides
+  ;;
 
-;;
-;; # Some tests for comment API, also Issue #191 changes
-;;
+  (expect
+    "(stuff (caller aaaa       bbbb ccc dddd))"
+    (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"
+                {:parse-string? true,
+                 :list {:respect-nl? false},
+                 :guide-debug
+                   [:list 2 [:element :element :spaces 4 :spaces 3 :element-*]],
+                 :width 80}))
 
-(expect
-";!zprint {:format :off}\n  (this is\n a test)\n\n\n    (stuff \n bother)\n\n"
-(zprint-file-str 
-";!zprint {:format :off}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
-"" {}))
+  ;;
+  ;; # :indent-align
+  ;;
 
-(expect
-";!zprint {:format :skip}\n  (this is\n a test)\n\n\n(stuff bother)\n\n"
-(zprint-file-str 
-";!zprint {:format :skip}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
-"" {}))
+  (expect
+    "(stuff (caller aaaa    bbbb\n                                 ccc\n                       dddd))"
+    (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"
+                {:parse-string? true,
+                 :list {:respect-nl? false},
+                 :guide-debug [:list 2
+                               [:element :element :spaces 4 :mark 0 :element
+                                :newline :align 0 :spaces 5 :spaces 5
+                                :indent-align 0 :element :newline :element-*]],
+                 :width 50}))
 
-(expect
-";!zprint {:parse {:left-space :keep}}\n  (this is a test)\n\n\n    (stuff bother)\n\n"
-(zprint-file-str 
-";!zprint {:parse {:left-space :keep}}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
-"" {}))
+
+  (expect
+    "(stuff (caller aaaa    bbbb\n                                 ccc\n         dddd))"
+    (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"
+                {:parse-string? true,
+                 :list {:respect-nl? false},
+                 :guide-debug [:list 2
+                               [:element :element :spaces 4 :mark 0 :element
+                                :newline :align 0 :spaces 5 :spaces 5
+                                :indent-align 1 :element :newline :element-*]],
+                 :width 50}))
+
+  ;;
+  ;; # Some tests for comment API, also Issue #191 changes
+  ;;
+
+  (expect
+    ";!zprint {:format :off}\n  (this is\n a test)\n\n\n    (stuff \n bother)\n\n"
+    (zprint-file-str
+      ";!zprint {:format :off}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
+      ""
+      {}))
+
+  (expect
+    ";!zprint {:format :skip}\n  (this is\n a test)\n\n\n(stuff bother)\n\n"
+    (zprint-file-str
+      ";!zprint {:format :skip}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
+      ""
+      {}))
+
+  (expect
+    ";!zprint {:parse {:left-space :keep}}\n  (this is a test)\n\n\n    (stuff bother)\n\n"
+    (zprint-file-str
+      ";!zprint {:parse {:left-space :keep}}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
+      ""
+      {}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

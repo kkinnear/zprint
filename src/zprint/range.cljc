@@ -1,6 +1,6 @@
 (ns ^:no-doc zprint.range
   (:require [clojure.string :as s]
-	    [zprint.util :refer [abs]]
+            [zprint.util :refer [abs]]
             [rewrite-clj.parser :as p]
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z]))
@@ -182,10 +182,10 @@
         ;  {:col 1, :end-col 70, :end-row 26, :row 22}
         ;  {:col 1, :end-col 48, :end-row 29, :row 27}]
         row-vec (->> (p/parse-string-all filestring)
-	            n/children
-		    (remove n/whitespace?)
-		    (remove #(= (n/tag %) :comment))
-		    (mapv meta))
+                     n/children
+                     (remove n/whitespace?)
+                     (remove #(= (n/tag %) :comment))
+                     (mapv meta))
         _ (when dbg? (prn row-vec))
         ; Figure out which expression start falls within, after making
         ; it a one-based line number.  -idx are indexes into row-vec,
@@ -197,7 +197,7 @@
                      (if (number? start-row-idx)
                        (str "row:" (nth row-vec start-row-idx)
                             " previous row:" (nth row-vec
-                                                 (max 0 (dec start-row-idx))))
+                                                  (max 0 (dec start-row-idx))))
                        "")))
         actual-start
           ; -1 is a signal to not start at the beginning unless the end is
@@ -215,11 +215,11 @@
         ; actual-start.  But not if it is zero or negative, since we don't
         ; want to mess with the range if it encompasses the beginning of
         ; the file.
-	;
-	; The point of this is to make sure that we catch any comments that
-	; might contain zprint directives in them, so ultimately we are 
-	; setting actual-start to the first non-blank line after the end of
-	; the previous top-level form.
+        ;
+        ; The point of this is to make sure that we catch any comments that
+        ; might contain zprint directives in them, so ultimately we are
+        ; setting actual-start to the first non-blank line after the end of
+        ; the previous top-level form.
         actual-start (if (or (< actual-start 1) (>= actual-start line-count))
                        actual-start
                        (next-non-blank-line lines actual-start))

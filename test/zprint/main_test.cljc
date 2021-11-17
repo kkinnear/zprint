@@ -13,12 +13,12 @@
     #?(:cljs [cljs.tools.reader :refer [read-string]])
     #?(:clj [zprint.main :refer [-main]])
     #?(:clj [clojure.java.shell :refer [sh]])
-    [clojure.string :refer [split join]]
-    [zprint.core    :refer [zprint-str set-options! czprint-str
-                            zprint-file-str]]
-    [zprint.zprint  :refer [line-count]]
-    [zprint.config  :as    config
-                    :refer [about merge-deep]]
+    [clojure.string            :refer [split join]]
+    [zprint.core               :refer [zprint-str set-options! czprint-str
+                                       zprint-file-str]]
+    [zprint.zprint             :refer [line-count]]
+    [zprint.config             :as    config
+                               :refer [about merge-deep]]
     #_[zprint.config :refer :all :exclude
        [set-options! configure-all! get-options]]
     #?@(:clj [[clojure.repl :refer :all]])))

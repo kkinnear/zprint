@@ -10,7 +10,7 @@
     [zprint.finish      :refer [newline-vec]]
     [zprint.zfns        :refer [zstring znumstr zbyte-array? zcomment? zsexpr
                                 zseqnws zseqnws-w-nl zfocus-style zstart zfirst
-                   zfirst-sexpr zsecond znthnext zcount zmap
+                                zfirst-sexpr zsecond znthnext zcount zmap
                                 zanonfn? zfn-obj? zfocus zfind-path zwhitespace?
                                 zlist? zcount-zloc-seq-nc-nws zvector? zmap?
                                 zset? zcoll? zuneval? zmeta? ztag zlast zarray?
@@ -23,14 +23,15 @@
                                 zlift-ns zfind zmap-w-nl zmap-w-nl-comma
                                 ztake-append znextnws-w-nl znextnws
                                 znamespacedmap? zmap-w-bl zseqnws-w-bl zsexpr?
-				zmap-no-comment zfn-map]]
+                                zmap-no-comment zfn-map]]
     [zprint.comment     :refer [blanks inlinecomment? length-before]]
     [zprint.ansi        :refer [color-str]]
     [zprint.config      :refer [validate-options merge-deep]]
     [zprint.zutil       :refer [add-spec-to-docstring]]
     [zprint.util        :refer [column-width-variance median mean percent-gt-n]]
     [rewrite-clj.parser :as p]
-    [rewrite-clj.zip    :as z :refer [edn* tag right* down*]]
+    [rewrite-clj.zip    :as    z
+                        :refer [edn* tag right* down*]]
     #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 #_(tufte/add-basic-println-handler! {})
@@ -112,8 +113,7 @@
 (defn zsexpr-token?
   "Call zsexpr?, but only if zloc is a :token"
   [zloc]
-  (when (= (ztag zloc) :token)
-    (zsexpr? zloc)))
+  (when (= (ztag zloc) :token) (zsexpr? zloc)))
 
 (defn empty-coll
   "For the major collections, returns a empty one. Essentially an
@@ -177,24 +177,23 @@
   [caller options option-fn zloc]
   #_(prn "call-option-fn caller:" caller)
   (let [sexpr-seq (get-sexpr options zloc)
-	; Add the current zloc to the options for the option-fn
-	options (assoc options :zloc zloc :caller caller)]
+        ; Add the current zloc to the options for the option-fn
+        options (assoc options
+                  :zloc zloc
+                  :caller caller)]
     (internal-config-and-validate
       options
-      (try (option-fn options (count sexpr-seq) sexpr-seq)
-           (catch #?(:clj Exception
-                     :cljs :default)
-             e
-	     (do
-	     (dbg-s options :guide-exception
-
-	        "Failure in option-fn:" (throw e))
-
-             (throw (#?(:clj Exception.
-                        :cljs js/Error.)
-                     (str " When " caller
-                          " called an option-fn" (option-fn-name option-fn)
-                          " it failed because: " e))))))
+      (try
+        (option-fn options (count sexpr-seq) sexpr-seq)
+        (catch #?(:clj Exception
+                  :cljs :default)
+          e
+          (do (dbg-s options :guide-exception "Failure in option-fn:" (throw e))
+              (throw (#?(:clj Exception.
+                         :cljs js/Error.)
+                      (str " When " caller
+                           " called an option-fn" (option-fn-name option-fn)
+                           " it failed because: " e))))))
       (str caller
            " :option-fn" (option-fn-name option-fn)
            " called with an sexpr of length " (count sexpr-seq))
@@ -271,8 +270,8 @@
 ;;
 
 #?(:bb (defn zpmap
-           ([options f coll] (map f coll))
-           ([options f coll1 coll2] (map f coll1 coll2)))
+         ([options f coll] (map f coll))
+         ([options f coll1 coll2] (map f coll1 coll2)))
    :clj (defn zpmap
           ([options f coll]
            (if (:parallel? options) (pmap f coll) (map f coll)))
@@ -1052,7 +1051,8 @@
         ; modifier, but at present modifiers are only for extend and
         ; key-value-color is only for maps, so they can't both show up
         ; at once.
-        value-color-map (and key-value-color (key-value-color (get-sexpr options lloc)))
+        value-color-map (and key-value-color
+                             (key-value-color (get-sexpr options lloc)))
         local-roptions (if value-color-map
                          (merge-deep local-roptions
                                      {:color-map value-color-map})
@@ -1060,22 +1060,17 @@
         roptions (if value-color-map
                    (merge-deep roptions {:color-map value-color-map})
                    roptions)
-
-
-	; If we have a key-value-options map, and the key we have matches
-	; any of the keys in the map, then merge the resulting options map
-	; into the current options for the value.
-        value-options-map (and key-value-options 
-	                       (key-value-options (get-sexpr options lloc)))
+        ; If we have a key-value-options map, and the key we have matches
+        ; any of the keys in the map, then merge the resulting options map
+        ; into the current options for the value.
+        value-options-map (and key-value-options
+                               (key-value-options (get-sexpr options lloc)))
         local-roptions (if value-options-map
                          (merge-deep local-roptions value-options-map)
                          local-roptions)
         roptions (if value-options-map
                    (merge-deep roptions value-options-map)
                    roptions)
-
-
-
         ; It is possible that lloc is a modifier, and if we have exactly
         ; three things, we will pull rloc in with it, and move xloc to rloc.
         ; If it is just two, we'll leave it to be handled normally.
@@ -1091,7 +1086,8 @@
         local-color (get key-depth-color (dec map-depth))
         ; Doesn't work if we have a modifier, but at this point, key-color
         ; is only for maps and modifiers are only for extend.
-        local-color (if key-color (key-color (get-sexpr options lloc)) local-color)
+        local-color
+          (if key-color (key-color (get-sexpr options lloc)) local-color)
         #_local-color
         #_(cond (and map-depth (= caller :map) (= map-depth 2)) :green
                 (and map-depth (= caller :map) (= map-depth 1)) :blue
@@ -1841,9 +1837,9 @@
       #_(prn "remaining:" (zprint.repl/pseqzseq remaining))
       #_(prn "out:" (zprint.repl/pseqzseq out))
       (if (empty? remaining)
-          (let [result (persistent! out)]
-	        #_(def pasn result)
-		result)
+        (let [result (persistent! out)]
+          #_(def pasn result)
+          result)
         (let [[next-remaining new-out]
                 (cond
                   (and (or (zsymbol? (ffirst remaining))
@@ -1988,7 +1984,9 @@
                   (concat-no-nil [[(str " ") :none :whitespace 5]]
                                  (fzfn (in-hang options) hindent zloc)))
         #_(prn "fzprint-hang: first hanging:" (first hanging) (second hanging))
-  _ (dbg options "fzprint-hang: caller:" caller "hang?" ((options caller) :hang?))
+        _ (dbg options
+               "fzprint-hang: caller:" caller
+               "hang?" ((options caller) :hang?))
         hanging (when (not= (nth (second hanging) 2) :comment-inline) hanging)
         hang-count (or zloc-count (zcount zloc))
         hr-lines (style-lines options (dec hindent) hanging)
@@ -2057,12 +2055,12 @@
     (if-not coll
       nil
       (let [zloc (first coll)]
-	#_(prn "check-for-coll? zloc:" (ztag zloc))
+        #_(prn "check-for-coll? zloc:" (ztag zloc))
         (cond (znewline? zloc) (recur (next coll))
               (zcoll? zloc) true
-	      (zsymbol? zloc) nil
-	      (znil? zloc) nil
-	      ; if we don't know what it is, should we skip it?
+              (zsymbol? zloc) nil
+              (znil? zloc) nil
+              ; if we don't know what it is, should we skip it?
               :else (recur (next coll)))))))
 
 (defn check-for-first-coll?
@@ -2088,7 +2086,7 @@
     ; element.  If we find any, we don't do the map-two-up, but rather
     ; fzprint-hang-remaining.
     (if (check-for-first-coll? part)
-      ; The input does *not* look like an extend, so we won't try to 
+      ; The input does *not* look like an extend, so we won't try to
       ; format it like one.
       (dbg-form
         options
@@ -2320,8 +2318,8 @@
                    "hanging:" (pr-str hanging)
                    "flow:" (pr-str flow))
             hr-good? (and (:hang? (caller options))
-			  ; no point in calling good-enough if no hr-lines
-			  hr-lines
+                          ; no point in calling good-enough if no hr-lines
+                          hr-lines
                           (good-enough? caller
                                         options
                                         :none-hang-one
@@ -2446,7 +2444,7 @@
          pair-size 0
          actual-pair-size 0]
     (let [element (first zloc-seq-rev)]
-       #_(prn "count-constant-pairs: element-count:" element-count
+      #_(prn "count-constant-pairs: element-count:" element-count
              "paired-element-count:" paired-element-count
              "constant-required:" constant-required?
              "pair-size:" pair-size
@@ -2457,8 +2455,8 @@
         ; seen the end of it, and return
         [(- element-count pair-size) (- paired-element-count actual-pair-size)]
         (let [comment-or-newline? (zcomment-or-newline? element)]
-          #_(prn "count-constant-pair:" (get-sexpr options element) 
-	       "constant-pair-fn:" constant-pair-fn)
+          #_(prn "count-constant-pair:" (get-sexpr options element)
+                 "constant-pair-fn:" constant-pair-fn)
           (if (and (not comment-or-newline?)
                    constant-required?
                    (if constant-pair-fn
@@ -2651,7 +2649,7 @@
              _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
              hanging
                (#?@(:bb [do]
-	            :clj [zfuture options]
+                    :clj [zfuture options]
                     :cljs [do])
                 (let [hang-result
                         (when hang?
@@ -2708,7 +2706,7 @@
              #_(inc-pass-count)
              flow (when flow?
                     (#?@(:bb [do]
-		         :clj [zfuture options]
+                         :clj [zfuture options]
                          :cljs [do])
                      (let [flow-result
                              (if-not pair-seq
@@ -2855,7 +2853,7 @@
                   (count pair-seq))
            flow
              (#?@(:bb [do]
-	          :clj [zfuture options]
+                  :clj [zfuture options]
                   :cljs [do])
               (let [flow-result (if-not pair-seq
                                   ; We don't have any constant pairs
@@ -2951,7 +2949,7 @@
            _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
            hanging
              (#?@(:bb [do]
-	          :clj [zfuture options]
+                  :clj [zfuture options]
                   :cljs [do])
               (let [hang-result
                       (when hang?
@@ -3555,8 +3553,8 @@
                    "flow-indent:" flow-indent
                    "actual-ind:" actual-ind
                    "comma?" (:comma? (caller options))
-		   "zloc" (zstring zloc)
-		   "zloc-seq" (map zstring zloc-seq))
+                   "zloc" (zstring zloc)
+                   "zloc-seq" (map zstring zloc-seq))
          coll-print (fzprint-seq options ind zloc-seq)
          _ (dbg-pr options "fzprint-indent: coll-print:" coll-print)
          indent-only-style (:indent-only-style (caller options))
@@ -3749,9 +3747,12 @@
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl fn-style
            quote?],
     :as options} ind zloc]
-  (dbg-s options :next-inner "fzprint-list*: ind:" ind "fn-style:" fn-style "option-fn:" 
-        (:option-fn (options caller))
-	"rightcnt:" (:rightcnt options))  
+  (dbg-s options
+         :next-inner
+         "fzprint-list*: ind:" ind
+         "fn-style:" fn-style
+         "option-fn:" (:option-fn (options caller))
+         "rightcnt:" (:rightcnt options))
   ; We don't need to call get-respect-indent here, because all of the
   ; callers of fzprint-list* define respect-nl?, respect-bl? and indent-only?
   (let [max-length (get-max-length options)
@@ -3820,11 +3821,11 @@
         ; Do we have a [fn-style options] vector?
         ; **** NOTE: The options map can change here, and if it does,
         ; some of the things found in it above would have to change too!
-        options 
+        options
           ; The config-and-validate allows us to use :style in the options
-          ; map associated with a function. We don't need to validate 
-	  ; (second fn-style), as that was already done.  But this
-          ; allows us to use :style and other stuff.  
+          ; map associated with a function. We don't need to validate
+          ; (second fn-style), as that was already done.  But this
+          ; allows us to use :style and other stuff.
           ;
           ; There could be two option maps in the fn-style vector:
           ;   [:fn-style {:option :map}]
@@ -3963,7 +3964,7 @@
             (and one-line-ok?
                  (allow-one-line? options (zcount arg-2-zloc) :binding-vector))
             one-line-ok?)
-	one-line-ok? (if (:force-nl? (options caller)) nil one-line-ok?)
+        one-line-ok? (if (:force-nl? (options caller)) nil one-line-ok?)
         ; remove -body from fn-style if it was there
         fn-style (or (body-map fn-style) fn-style)
         ; All styles except :hang, :flow, and :flow-body and :binding need
@@ -4065,7 +4066,7 @@
             "in-code?" (:in-code? options)
             "rightcnt:" (:rightcnt options)
             "replacement-string:" (:replacement-string (caller options))
-	    "force-nl?" (:force-nl? (caller options))
+            "force-nl?" (:force-nl? (caller options))
             ":ztype:" (:ztype options))
         one-line (if (and (zero? len) (= pre-arg-1-style-vec :noseq))
                    :empty
@@ -4182,13 +4183,14 @@
           (concat-no-nil l-str-vec
                          pre-arg-1-style-vec
                          (fzprint* loptions (inc ind) arg-1-zloc)
-			 ; Removed the assoc-in 7/26/21 since I can't
-			 ; see that it could be used.  Maybe it is left
-			 ; over from when a zloc was passed down and not
-			 ; a zloc-seq?
-                         (fzprint-hang options #_(assoc-in options
-                                         [:pair :respect-nl?]
-                                         (:respect-nl? (caller options)))
+                         ; Removed the assoc-in 7/26/21 since I can't
+                         ; see that it could be used.  Maybe it is left
+                         ; over from when a zloc was passed down and not
+                         ; a zloc-seq?
+                         (fzprint-hang options
+                                       #_(assoc-in options
+                                           [:pair :respect-nl?]
+                                           (:respect-nl? (caller options)))
                                        :pair-fn
                                        arg-1-indent
                                        (+ indent ind)
@@ -4493,8 +4495,7 @@
                                                     (+ indent ind)
                                                     zloc-seq-right-second))
                         r-str-vec)))
-      (or (= fn-style :wrap)
-          (:wrap? (caller options)))
+      (or (= fn-style :wrap) (:wrap? (caller options)))
         (let [new-ind (+ indent ind)
               coll-print (fzprint-seq options new-ind zloc-seq)
               _ (dbg-pr options "fzprint-list*: :wrap coll-print:" coll-print)
@@ -4826,10 +4827,8 @@
           ; These values are true for this and next line.
           options (if rightmost-zloc? options (not-rightmost options))
           align-ind (when align-key (get mark-map align-key))
-	  ; If we have both align-ind and spaces, then add the spaces
-	  align-ind 
-	    (when align-ind (if spaces (+ align-ind spaces) align-ind))
-
+          ; If we have both align-ind and spaces, then add the spaces
+          align-ind (when align-ind (if spaces (+ align-ind spaces) align-ind))
           ; Find out how big the incoming pairs (or guided-newline) is
           incoming-lines
             (style-lines options (or #_pair-ind (+ indent ind)) incoming-seq)
@@ -5388,11 +5387,11 @@
                      ((:dzprint options) {} (into [] (condense-depth 1 out))))
               out)
           (if (> index 3000)
-            (throw (#?(:clj Exception.
-                           :cljs js/Error.)
-                        (str "When processing a guide"
-                               " the iteration limit of 3000 was"
-                             " reached!" (first guide-seq))))
+            (throw
+              (#?(:clj Exception.
+                  :cljs js/Error.)
+               (str "When processing a guide" " the iteration limit of 3000 was"
+                    " reached!" (first guide-seq))))
             (let [first-guide-seq (first guide-seq)
                   _ (dbg-s
                       options
@@ -5666,13 +5665,13 @@
                            ;   guide-seq)))
                            (assoc param-map
                              :indent
-                               ; This needs to be the alignment if we 
-			       ; have some, or the cur-ind + spaces 
-			       ; if we have some.  Not always adding it to
-                               ; spaces.  Note that the align-key value 
-			       ; from mark-map - cur-ind is the number 
-			       ; of spaces we need, not the indent.  
-			       ; The indent would be the align value - the ind.
+                               ; This needs to be the alignment if we
+                               ; have some, or the cur-ind + spaces
+                               ; if we have some.  Not always adding it to
+                               ; spaces.  Note that the align-key value
+                               ; from mark-map - cur-ind is the number
+                               ; of spaces we need, not the indent.
+                               ; The indent would be the align value - the ind.
                                (guide-here param-map mark-map)) ; assoc :indent
                            mark-map
                            previous-data
@@ -5696,9 +5695,9 @@
                            (inc index)
                            (assoc param-map
                              :indent
-                               ; Note that the align-key value from 
-			       ; mark-map - cur-ind is the number of spaces 
-			       ; we need, not the indent.  The indent
+                               ; Note that the align-key value from
+                               ; mark-map - cur-ind is the number of spaces
+                               ; we need, not the indent.  The indent
                                ; would be the align value - the ind.
                                (or (when (get mark-map align-key)
                                      (max 0
@@ -6330,14 +6329,14 @@
                 _ (log-lines options "fzprint-vec*:" new-ind one-line)
                 _ (dbg-pr options
                           "fzprint-vec*: new-ind:" new-ind
-			  "force-nl?" force-nl?
+                          "force-nl?" force-nl?
                           "one-line:" one-line)
                 one-line-lines (style-lines options new-ind one-line)]
             (if (zero? len)
               (concat-no-nil l-str-vec r-str-vec)
               (when one-line-lines
-                (if (and (not force-nl?) 
-		         (fzfit-one-line options one-line-lines))
+                (if (and (not force-nl?)
+                         (fzfit-one-line options one-line-lines))
                   (concat-no-nil l-str-vec one-line r-str-vec)
                   (if indent-only?
                     ; Indent Only
@@ -6354,7 +6353,7 @@
                     (if (or (and (not wrap-coll?)
                                  (any-zcoll? options new-ind zloc))
                             (not wrap?)
-			    force-nl?)
+                            force-nl?)
                       (concat-no-nil l-str-vec
                                      (apply concat-no-nil
                                        (precede-w-nl options
@@ -6494,12 +6493,11 @@
       (throw
         (#?(:clj Exception.
             :cljs js/Error.)
-         (str
-           "Internal Error!  Please submit an issue with an example"
-           " of how to reproduce this error!" 
-	   " count-newline-types: more than one type or wrong type! count: "
-             count-of-types
-           " style-vec: " newline-style-vec))))
+         (str "Internal Error!  Please submit an issue with an example"
+                " of how to reproduce this error!"
+              " count-newline-types: more than one type or wrong type! count: "
+                count-of-types
+              " style-vec: " newline-style-vec))))
     (count newline-style-vec)))
 
 (defn count-right-blanks
@@ -6941,7 +6939,7 @@
                        :agent "Agent@")
             arg-1 (str type-str (hash-identity-str zloc))
             #?@(:bb [_ nil]
-	        :clj [arg-1
+                :clj [arg-1
                       (if (and (= zloc-type :agent) (agent-error zloc))
                         (str arg-1 " FAILED")
                         arg-1)])
@@ -7319,10 +7317,11 @@
   (let [avail (- width indent)
         ; note that depth affects how comments are printed, toward the end
         options (assoc options :depth (inc depth))
-
-	; Can't use dbg-s directly here, as it is also a local value!
-        _ (dbg-s-pr options :next-inner "fzprint* **** next-inner:" (:next-inner options))
-
+        ; Can't use dbg-s directly here, as it is also a local value!
+        _ (dbg-s-pr options
+                    :next-inner
+                    "fzprint* **** next-inner:"
+                    (:next-inner options))
         options (if next-inner
                   ; There are two kinds of next-inner maps.  The normal
                   ; kind is something to add to the current options map,
@@ -7330,7 +7329,7 @@
                   ; reasons explained below.  The other kind is a map that
                   ; was saved and we are just restoring it, and that will
                   ; entirely replace the current options map.
-		    (integrate-next-inner options)
+                  (integrate-next-inner options)
                   options)
         options (if (or dbg? dbg-print? dbg-s)
                   (assoc options
@@ -7339,18 +7338,19 @@
                                            in-hang? "h"
                                            :else ".")))
                   options)
-        _ (dbg-s-pr options :next-inner
-               "fzprint* **** rightcnt:"
-               rightcnt
-               "depth:"
-               depth
-               "indent:"
-               indent
-               "in-hang?:"
-               in-hang?
-	       ":next-inner:"
-	       (:next-inner options)
-               (pr-str (zstring zloc)))
+        _ (dbg-s-pr options
+                    :next-inner
+                    "fzprint* **** rightcnt:"
+                    rightcnt
+                    "depth:"
+                    depth
+                    "indent:"
+                    indent
+                    "in-hang?:"
+                    in-hang?
+                    ":next-inner:"
+                    (:next-inner options)
+                    (pr-str (zstring zloc)))
         dbg-data @fzprint-dbg
         dbg-focus? (and dbg? (= dbg-data (second (zfind-path zloc))))
         options (if dbg-focus? (assoc options :dbg :on) options)
@@ -7520,9 +7520,9 @@
         style-vec (fzprint* (assoc options
                               :depth 0
                               :map-depth 0
-			      ; Add a map of zfns to the options for use
-			      ; by guides that need them.
-			      :zfn-map (zfn-map))
+                              ; Add a map of zfns to the options for use
+                              ; by guides that need them.
+                              :zfn-map (zfn-map))
                             indent
                             zloc)]
     #_(def fsv style-vec)

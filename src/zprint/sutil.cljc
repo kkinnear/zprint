@@ -1,7 +1,7 @@
 (ns ^:no-doc zprint.sutil
   (:require clojure.string
             #?@(:bb []
-	        :clj [[zprint.macros :refer [do-redef-vars]]])
+                :clj [[zprint.macros :refer [do-redef-vars]]])
             zprint.zfns
             #?@(:clj [[zprint.redef]])
             #?@(:cljs [[cljs.reader :refer [read-string]]])))

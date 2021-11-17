@@ -638,7 +638,7 @@
 
   #?(:clj
        (expect
-         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because:" 
+         "java.lang.Exception: Unable to create zprint options-map from: '{:format\n' found in !zprint directive number: 1 because:"
          (try
            (zprint-file-str
              "#!/usr/bin/env bb\n\n;!zprint {:format\n\n(ns hello\n  (:require [clojure.java.io :refer [file]]\n            [clojure.java.shell :refer [sh]]))\n\n"
@@ -655,58 +655,58 @@
              {})
            (catch :default e (clean-exception (str e))))))
 
-;;
-;; Issue 191 -- spaces lost before inline comments at top level
-;;
-;; In addition, this brought up the issue of what to do for top level
-;; expressions that are on the same line.  Now they aren't, just because
-;; we don't know what to do with :respect-nl if they are.
+  ;;
+  ;; Issue 191 -- spaces lost before inline comments at top level
+  ;;
+  ;; In addition, this brought up the issue of what to do for top level
+  ;; expressions that are on the same line.  Now they aren't, just because
+  ;; we don't know what to do with :respect-nl if they are.
 
-(expect "(s/def ::graphical-scoring ::legacy-tree) ;; just so you know\n"
-        (zprint-file-str
-          "(s/def ::graphical-scoring ::legacy-tree) ;; just so you know\n"
-          "stuff"
-          {}))
+  (expect "(s/def ::graphical-scoring ::legacy-tree) ;; just so you know\n"
+          (zprint-file-str
+            "(s/def ::graphical-scoring ::legacy-tree) ;; just so you know\n"
+            "stuff"
+            {}))
 
-(expect
-  "(s/def ::graphical-scoring ::legacy-tree)\n(stuff bother)   ;; just so you know\n\n(last line)\n"
-  (zprint-file-str
-    "(s/def ::graphical-scoring ::legacy-tree)  (stuff bother)   ;; just so you know\n\n(last line)\n"
-    "stuff"
-    {}))
+  (expect
+    "(s/def ::graphical-scoring ::legacy-tree)\n(stuff bother)   ;; just so you know\n\n(last line)\n"
+    (zprint-file-str
+      "(s/def ::graphical-scoring ::legacy-tree)  (stuff bother)   ;; just so you know\n\n(last line)\n"
+      "stuff"
+      {}))
 
 
-(expect
-  "(s/def ::graphical-scoring ::legacy-tree)\n(stuff and bother)   ;; just so you know\n\n(last line)\n"
-  (zprint-file-str
-    "(s/def ::graphical-scoring ::legacy-tree)  (stuff and\n                                                  bother)   ;; just so you know\n\n(last line)\n"
-    "stuff"
-    {}))
+  (expect
+    "(s/def ::graphical-scoring ::legacy-tree)\n(stuff and bother)   ;; just so you know\n\n(last line)\n"
+    (zprint-file-str
+      "(s/def ::graphical-scoring ::legacy-tree)  (stuff and\n                                                  bother)   ;; just so you know\n\n(last line)\n"
+      "stuff"
+      {}))
 
-(expect
-  "(s/def ::graphical-scoring ::legacy-tree)\n(stuff and\n       bother)   ;; just so you know\n\n(last line)\n"
-  (zprint-file-str
-    "(s/def ::graphical-scoring ::legacy-tree)  (stuff and\n                                                  bother)   ;; just so you know\n\n(last line)\n"
-    "stuff"
-    {:style :respect-nl}))
+  (expect
+    "(s/def ::graphical-scoring ::legacy-tree)\n(stuff and\n       bother)   ;; just so you know\n\n(last line)\n"
+    (zprint-file-str
+      "(s/def ::graphical-scoring ::legacy-tree)  (stuff and\n                                                  bother)   ;; just so you know\n\n(last line)\n"
+      "stuff"
+      {:style :respect-nl}))
 
-;;
-;; Tab expansion
-;;
+  ;;
+  ;; Tab expansion
+  ;;
 
-(expect
-  "(this is a test)\n(this is only a test) ; comment with    tabs\n(foo)\n(def bar baz)"
-  (zprint-file-str
-    "(this is a test)\n(this is\tonly\ta\ttest) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
-    "stuff"
-    {}))
+  (expect
+    "(this is a test)\n(this is only a test) ; comment with    tabs\n(foo)\n(def bar baz)"
+    (zprint-file-str
+      "(this is a test)\n(this is\tonly\ta\ttest) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
+      "stuff"
+      {}))
 
-(expect
-  "(this is a test)\n(this is only a test) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
-  (zprint-file-str
-    "(this is a test)\n(this is\tonly\ta\ttest) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
-    "stuff"
-    {:tab {:expand? false}}))
+  (expect
+    "(this is a test)\n(this is only a test) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
+    (zprint-file-str
+      "(this is a test)\n(this is\tonly\ta\ttest) ; comment\twith\ttabs\n(foo)\n(def bar baz)"
+      "stuff"
+      {:tab {:expand? false}}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

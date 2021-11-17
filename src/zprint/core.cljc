@@ -23,8 +23,7 @@
                                 get-explained-all-options get-default-options
                                 validate-options apply-style perform-remove
                                 no-color-map merge-deep sci-load-string
-				config-and-validate
-				]]
+                                config-and-validate]]
     [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?
                                 find-root-and-path-nw]]
     [zprint.sutil]
@@ -32,12 +31,13 @@
     [zprint.range       :refer [expand-range-to-top-level split-out-range
                                 reassemble-range]]
     [rewrite-clj.parser :as p]
-    [rewrite-clj.zip :as z :refer [edn* string]]
+    [rewrite-clj.zip    :as    z
+                        :refer [edn* string]]
     #_[clojure.spec.alpha :as s])
   #?@(:clj ((:import #?(:bb []
                         :clj (java.net URL URLConnection))
                      #?(:bb []
-		        :clj (java.util.concurrent Executors))
+                        :clj (java.util.concurrent Executors))
                      (java.io File)
                      (java.util Date)))))
 
@@ -314,10 +314,10 @@
           ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
           ; the rewrite-clj parse would "convert" them all to \n for us,
           ; which is really what we need anyway.
-	  ;
-	  ; On the ohter hand, breaking it into lines to do the tab expansion
-	  ; is considerably faster than just doing it on the whole file when
-	  ; a tab is found.
+          ;
+          ; On the ohter hand, breaking it into lines to do the tab expansion
+          ; is considerably faster than just doing it on the whole file when
+          ; a tab is found.
           x (clojure.string/join "\n" lines)
           n (p/parse-string (clojure.string/trim x))]
       (when n [(edn* n) line-ending]))
@@ -465,7 +465,7 @@
                                        (:auto-width? (get-options))))
                 (let [terminal-width-fn
                         #?(:bb nil
-			   :clj (resolve 'table.width/detect-terminal-width)
+                           :clj (resolve 'table.width/detect-terminal-width)
                            :cljs nil)
                       actual-width (when terminal-width-fn (terminal-width-fn))]
                   (when (number? actual-width) {:width actual-width})))
@@ -560,7 +560,7 @@
                    (if-let [fn-name (:fn-name actual-options)]
                      (if (:docstring? (:spec actual-options))
                        #?(:bb actual-options
-		          :clj (assoc-in actual-options
+                          :clj (assoc-in actual-options
                                  [:spec :value]
                                  (get-docstring-spec actual-options fn-name))
                           :cljs actual-options)
@@ -689,17 +689,18 @@
               ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
               ; the rewrite-clj parse would "convert" them all to \n for us,
               ; which is really what we need anyway.
-	  ;
-	  ; On the ohter hand, breaking it into lines to do the tab expansion
-	  ; is considerably faster than just doing it on the whole file when
-	  ; a tab is found.
+              ;
+              ; On the ohter hand, breaking it into lines to do the tab
+              ; expansion
+              ; is considerably faster than just doing it on the whole file when
+              ; a tab is found.
               coll (clojure.string/join "\n" lines)
               result (process-multiple-forms (parse-string-all-options
                                                rest-options)
                                              zprint-str-internal
                                              ":parse-string-all? call"
                                              (edn* (p/parse-string-all coll)))
-	      #_(def pmr-result result)
+              #_(def pmr-result result)
               str-w-line-endings
                 (if (or (nil? line-ending) (= line-ending "\n"))
                   result
@@ -1009,8 +1010,11 @@
   element in the file.  The output is [next-options output-str zprint-num], 
   since reductions is used to call this function.  See process-multiple-forms
   for what is actually done with the various :format values."
-  [rest-options zprint-fn zprint-specifier
-   [next-options _ indent zprint-num previous-newline?] form]
+  [rest-options
+   zprint-fn
+   zprint-specifier
+   [next-options _ indent zprint-num previous-newline?]
+   form]
   (let [comment? (zcomment? form)
         newline? (znewline? form)
         ; This includes newlines
@@ -1071,22 +1075,21 @@
               (zprint-fn internal-options form)))
         ; Implement left-space keep when *after* doing zprint (or not) on
         ; the next thing, using the indent passed along in reduce.
-        new-output-str
-          (cond
-            skip-since-spaces? output-str
-            newline? output-str
-            comment? (str (blanks indent) output-str)
-            (and (not previous-newline?)
-                 (= (:left-space (:parse decision-options)) :keep))
-              (str "\n" (blanks indent) output-str)
-            (not previous-newline?) (str "\n" output-str)
-            ; previous was newline is now implied
-	    (or (= (:left-space (:parse decision-options)) :keep)
-	        (= (:format decision-options) :skip)
-	        (= (:format decision-options) :off))
-              (str (blanks indent) output-str)
-            :else output-str)
-        #_ (do (println "-----------------------")
+        new-output-str (cond
+                         skip-since-spaces? output-str
+                         newline? output-str
+                         comment? (str (blanks indent) output-str)
+                         (and (not previous-newline?)
+                              (= (:left-space (:parse decision-options)) :keep))
+                           (str "\n" (blanks indent) output-str)
+                         (not previous-newline?) (str "\n" output-str)
+                         ; previous was newline is now implied
+                         (or (= (:left-space (:parse decision-options)) :keep)
+                             (= (:format decision-options) :skip)
+                             (= (:format decision-options) :off))
+                           (str (blanks indent) output-str)
+                         :else output-str)
+        #_(do (println "-----------------------")
               (println "form:")
               (prn (string (or (zprint.zutil/zfirst form) form)))
               (println "space-count:" space-count)
@@ -1098,7 +1101,7 @@
               (println "interpose:" (:interpose (:parse decision-options)))
               (println "left-space:" (:left-space (:parse decision-options)))
               (println "new-options:" new-options)
-	      (println "(:format decision-options)" (:format decision-options))
+              (println "(:format decision-options)" (:format decision-options))
               (println "(:indent next-options):" (:indent next-options))
               (println "internal-options:" internal-options)
               (println "next-options:" next-options)
@@ -1114,7 +1117,9 @@
     (when error-str (println "Warning: " error-str))
     [(cond local? (merge-deep next-options new-options)
            (or comment? whitespace-form?) next-options
-           :else {}) output-str (or space-count 0)
+           :else {})
+     output-str
+     (or space-count 0)
      (if new-options (inc zprint-num) zprint-num)
      ; note that comments come with newline, unfortunately
      (if skip-since-spaces? previous-newline? (or newline? comment?))]))
@@ -1287,11 +1292,10 @@
              ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
              ; the rewrite-clj parse would "convert" them all to \n for us,
              ; which is really what we need anyway.
-	  ;
-	  ; On the ohter hand, breaking it into lines to do the tab expansion
-	  ; is considerably faster than just doing it on the whole file when
-	  ; a tab is found.
-
+             ;
+             ; On the ohter hand, breaking it into lines to do the tab expansion
+             ; is considerably faster than just doing it on the whole file when
+             ; a tab is found.
              filestring (clojure.string/join "\n" lines)
              range-start (:start (:range (:input (get-options))))
              ; If shebang correct for one less line

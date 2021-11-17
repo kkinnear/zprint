@@ -4,22 +4,22 @@
   #?@(:cljs [[:require-macros
               [zprint.macros :refer
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
-  (:require #?@(:clj [[zprint.macros :refer
-                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-            clojure.string
-            [clojure.set :refer [difference]]
-            [clojure.data :as d]
-            [zprint.spec :refer [validate-basic coerce-to-boolean]]
-            [zprint.rewrite :refer [sort-dependencies]]
-            [zprint.guide :refer
-             [jrequireguide defprotocolguide signatureguide1 odrguide guideguide
-              rodguide areguide]]
-            #?@(:bb []
-                ; To completely remove sci, comment out the following line.
-                :clj [[sci.core :as sci]]
-                :cljs [[sci.core :as sci]])
-            #?(:clj [clojure.edn :refer [read-string]]
-               :cljs [cljs.reader :refer [read-string]]))
+  (:require
+    #?@(:clj [[zprint.macros :refer
+               [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+    clojure.string
+    [clojure.set    :refer [difference]]
+    [clojure.data   :as d]
+    [zprint.spec    :refer [validate-basic coerce-to-boolean]]
+    [zprint.rewrite :refer [sort-dependencies]]
+    [zprint.guide   :refer [jrequireguide defprotocolguide signatureguide1
+                            odrguide guideguide rodguide areguide]]
+    #?@(:bb []
+        ; To completely remove sci, comment out the following line.
+        :clj [[sci.core :as sci]]
+        :cljs [[sci.core :as sci]])
+    #?(:clj [clojure.edn :refer [read-string]]
+       :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
 
 ;;
@@ -65,8 +65,8 @@
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma? :key-value]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
-   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning :key-value] :tuning
-   :perf-vs-format [:url :cache-path]
+   [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning :key-value]
+   :tuning :perf-vs-format [:url :cache-path]
    [:binding :hang-accept :ha-depth-factor :ha-width-factor]
    [:extend :hang-accept :ha-depth-factor :ha-width-factor]
    [:list :hang-accept :ha-depth-factor :ha-width-factor]
@@ -309,14 +309,12 @@
 ;;
 
 (def zfnstyle
-
-   {"->" [:noarg1-body
+  {"->" [:noarg1-body
+         {:list {:constant-pair? false},
+          :next-inner-restore [[:list :constant-pair?]]}],
+   "->>" [:force-nl-body
           {:list {:constant-pair? false},
            :next-inner-restore [[:list :constant-pair?]]}],
-    "->>" [:force-nl-body
-           {:list {:constant-pair? false},
-            :next-inner-restore [[:list :constant-pair?]]}],
-
    ":import" :force-nl-body,
    ":require" :force-nl-body,
    "=" :hang,
@@ -342,30 +340,26 @@
    "defcc" :arg1-mixin,
    "defcs" :arg1-mixin,
    "defmacro" :arg1-body,
-   "defexpect" [:arg1-body {
-
-		   ; This replicates :style :respect-nl, but
-		   ; is done explicitly here in case that style
-		   ; changes, so that the :next-inner-restore will
-		   ; still be accurate
-                   :list {:respect-nl? true},
-                   :map {:respect-nl? true},
-                   :vector {:respect-nl? true},
-                   :set {:respect-nl? true},
-
-                            :next-inner-restore
-			    [[:list :respect-nl?]
-			     [:map :respect-nl?]
-			     [:vector :respect-nl?]
-			     [:set :respect-nl?]]}]
-   
-
+   "defexpect" [:arg1-body
+                {; This replicates :style :respect-nl, but
+                 ; is done explicitly here in case that style
+                 ; changes, so that the :next-inner-restore will
+                 ; still be accurate
+                 :list {:respect-nl? true},
+                 :map {:respect-nl? true},
+                 :vector {:respect-nl? true},
+                 :set {:respect-nl? true},
+                 :next-inner-restore [[:list :respect-nl?] [:map :respect-nl?]
+                                      [:vector :respect-nl?]
+                                      [:set :respect-nl?]]}],
    "defmethod" :arg2,
    "defmulti" :arg1-body,
    "defn" :arg1-body,
    "defn-" :arg1-body,
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
-   "defprotocol" [:none-body {:style :defprotocolguide :fn-map {:default-not-none [:none {:style :signature1}]}}],
+   "defprotocol" [:none-body
+                  {:style :defprotocolguide,
+                   :fn-map {:default-not-none [:none {:style :signature1}]}}],
    "defrecord" :arg2-extend-body,
    "deftest" :arg1-body,
    "deftype" :arg2-extend-body,
@@ -427,10 +421,9 @@
    "with-redefs-fn" :arg1-body,
    :quote [:none
            {:list {:hang? false, :indent 1},
-	    ; This probably isn't going to make any difference, as 
-	    ; quote? sticks around for a good long time.
-	    :next-inner-restore [[:list :hang?] [:list :indent]]}]
-	    })
+            ; This probably isn't going to make any difference, as
+            ; quote? sticks around for a good long time.
+            :next-inner-restore [[:list :hang?] [:list :indent]]}]})
 
 ;;
 ;; ## The global defaults
@@ -522,7 +515,7 @@
    :list {:constant-pair-fn nil,
           :constant-pair-min 4,
           :constant-pair? true,
-	  :force-nl? false,
+          :force-nl? false,
           :hang-avoid 0.5,
           :hang-diff 1,
           :hang-expand 2.0,
@@ -540,7 +533,7 @@
           :respect-bl? false,
           :respect-nl? false,
           :replacement-string nil,
-	  :wrap? false,
+          :wrap? false,
           :wrap-coll? true,
           :wrap-after-multi? true,
           :wrap-multi? true},
@@ -663,9 +656,9 @@
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
       :areguide {:doc "Allow modification of areguide in :fn-map",
-                 :list {:option-fn (partial areguide {:justify? true})}}
+                 :list {:option-fn (partial areguide {:justify? true})}},
       :areguide-nj {:doc "Do nice are formatting, but don't justify",
-                 :list {:option-fn (partial areguide {:justify? false})}}
+                    :list {:option-fn (partial areguide {:justify? false})}},
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros",
          :fn-map
@@ -843,40 +836,29 @@
       :quote-wrap {:doc "Wrap quoted lists to right margin, like vectors",
                    :fn-map {:quote [:wrap
                                     {:list {:indent 1},
-                                     :next-inner-restore [[:list :indent]]}]}}
+                                     :next-inner-restore [[:list :indent]]}]}},
       :jrequireguide {:list {:option-fn (partial jrequireguide :require)}},
-      :jrequiremacrosguide {:list {:option-fn (partial jrequireguide :require-macros)}},
+      :jrequiremacrosguide {:list {:option-fn (partial jrequireguide
+                                                       :require-macros)}},
       :jimportguide {:list {:option-fn (partial jrequireguide :import)}},
       :rj-var {:doc "Set max-variance for :require-justify",
                :pair {:justify {:max-variance 20}}},
       :rjm-var {:doc "Set max-variance for :require-justify-macros",
-               :pair {:justify {:max-variance 20}}},
+                :pair {:justify {:max-variance 20}}},
       :ij-var {:doc "Set max-variance for :import-justify",
                :pair {:justify {:max-variance 1000}}},
       :require-justify {:doc "Justify namespaces in :require",
-                        :fn-map 
-			{":require"
-                                   [:flow {:style [:jrequireguide :rj-var]}]
-				   }},
-
-      :require-macros-justify {:doc "Justify namespaces in :require-macros",
-                        :fn-map 
-			{
-			":require-macros"
-                                   [:flow {:style [:jrequiremacrosguide :rjm-var]}]
-				   }},
-
-
+                        :fn-map {":require"
+                                   [:flow {:style [:jrequireguide :rj-var]}]}},
+      :require-macros-justify
+        {:doc "Justify namespaces in :require-macros",
+         :fn-map {":require-macros"
+                    [:flow {:style [:jrequiremacrosguide :rjm-var]}]}},
       :import-justify {:doc "Justify :import",
-                        :fn-map 
-			{
-			":import"
-                                   [:flow {:style [:jimportguide :ij-var]}]
-				   }},
-
-      :ns-justify {:style [:require-justify :require-macros-justify :import-justify]}
-
-
+                       :fn-map {":import" [:flow
+                                           {:style [:jimportguide :ij-var]}]}},
+      :ns-justify {:style [:require-justify :require-macros-justify
+                           :import-justify]},
       :require-pair
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none
@@ -964,7 +946,7 @@
             :option-fn-first nil,
             :option-fn nil,
             :fn-format nil,
-	    :force-nl? false,
+            :force-nl? false,
             :hang? nil,
             :respect-bl? false,
             :respect-nl? false,
@@ -1357,8 +1339,7 @@
   ([op-options]
    ; Any config changes prior to this will be lost, as
    ; config-and-validate-all works from the default options!
-   (let [[zprint-options doc-map errors]
-           (config-and-validate-all op-options)]
+   (let [[zprint-options doc-map errors] (config-and-validate-all op-options)]
      (if errors
        errors
        (do (reset-options! zprint-options doc-map)
@@ -1519,7 +1500,7 @@
 ;;
 
 ;;
-;; Allow user defined option maps to access to the internally defined 
+;; Allow user defined option maps to access to the internally defined
 ;; guide functions.
 ;;
 
@@ -1707,21 +1688,20 @@
 
 
 #?(:clj (do #_(defn get-stack-trace
-          "Get the current stack trace as a string."
-          []
-          (with-out-str (clojure.stacktrace/print-stack-trace
-                          (Exception. "get*stack*trace"))))))
+                "Get the current stack trace as a string."
+                []
+                (with-out-str (clojure.stacktrace/print-stack-trace
+                                (Exception. "get*stack*trace"))))))
 
 (defn update-next-inner
   "Update the current :next-inner map in the options map.  If the
   :next-inner doesn't exist or the value is map, just add to it.  If the
   value is a vector of maps, then update the first map in the vector."
   [options ks ks-value]
-
-  (dbg-s options :next-inner-restore
-       "update-next-inner: ks:" ks
-       "ks-value:" ks-value)
-
+  (dbg-s options
+         :next-inner-restore
+         "update-next-inner: ks:" ks
+         "ks-value:" ks-value)
   (let [next-inner (:next-inner options :unset)]
     (cond (or (map? next-inner) (= :unset next-inner))
             (assoc-in options (concat [:next-inner] ks) ks-value)
@@ -1749,11 +1729,11 @@
       ; shows up in :next-inner
       (let [ks-value (get-in existing-map restore-vector :unset)]
         (if (= ks-value :unset)
-	  (if (= (first restore-vector) :fn-map)
-	  ; We are operating on the :fn-map, where if something isn't
-	  ; set, when restoring things, it should be :none
-	  (update-next-inner new-updated-map restore-vector :none)
-          new-updated-map)
+          (if (= (first restore-vector) :fn-map)
+            ; We are operating on the :fn-map, where if something isn't
+            ; set, when restoring things, it should be :none
+            (update-next-inner new-updated-map restore-vector :none)
+            new-updated-map)
           (update-next-inner new-updated-map restore-vector ks-value)
           #_(assoc-in options
               (concat [:next-inner] restore-vector)
@@ -1917,9 +1897,7 @@
         zprintrc-file (str home file-separator zprintrc)
         [opts-rcfile errors-rcfile rc-filename :as home-config]
           (when (and home file-separator)
-            (get-config-from-path [zprintrc zprintedn]
-                                  file-separator
-                                  [home]))
+            (get-config-from-path [zprintrc zprintedn] file-separator [home]))
         [updated-map new-doc-map rc-errors]
           (config-and-validate (str "Home directory file: " rc-filename)
                                default-doc-map
@@ -1955,9 +1933,7 @@
                      (or (:cwd-zprintrc? search-map)
                          (:cwd-zprintrc? op-options))
                      file-separator)
-            (get-config-from-path [zprintrc zprintedn]
-                                  file-separator
-                                  ["."]))
+            (get-config-from-path [zprintrc zprintedn] file-separator ["."]))
         [updated-map new-doc-map cwd-rc-errors]
           (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
                                search-doc-map
@@ -1971,13 +1947,12 @@
                      (interpose "\n"
                        (filter identity
                          (list op-option-errors
-			       errors-rcfile
+                               errors-rcfile
                                rc-errors
                                search-errors-rcfile
                                search-rc-errors
                                cwd-errors-rcfile
-                               cwd-rc-errors
-			       ))))
+                               cwd-rc-errors))))
         all-errors (if (empty? all-errors) nil all-errors)]
     [updated-map new-doc-map all-errors]))
 

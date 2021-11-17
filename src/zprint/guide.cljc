@@ -5,7 +5,7 @@
   (:require #?@(:clj [[zprint.macros :refer
                        [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
             [clojure.string :as s]
-	    [rewrite-clj.zip :as z]
+            [rewrite-clj.zip :as z]
             [zprint.util :refer [abs column-alignment cumulative-alignment]]))
 
 ;;

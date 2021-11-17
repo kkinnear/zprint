@@ -1,16 +1,18 @@
 ;!zprint {:style :require-justify}
 (ns ^:no-doc zprint.zutil
-  (:require #?@(:bb []
-                :clj [[zprint.macros :refer [do-redef-vars]]])
-            clojure.string
-            zprint.zfns
-            #?@(:clj [[zprint.redef]])
-            [rewrite-clj.parser :as p]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z :refer
-             [down* up* right* left* next* prev* replace* insert-right* edn*
-              sexpr string tag skip whitespace-or-comment? length rightmost?
-              leftmost?]]))
+  (:require
+    #?@(:bb []
+        :clj [[zprint.macros :refer [do-redef-vars]]])
+    clojure.string
+    zprint.zfns
+    #?@(:clj [[zprint.redef]])
+    [rewrite-clj.parser :as p]
+    [rewrite-clj.node   :as n]
+    [rewrite-clj.zip    :as    z
+                        :refer [down* up* right* left* next* prev* replace*
+                                insert-right* edn* sexpr string tag skip
+                                whitespace-or-comment? length rightmost?
+                                leftmost?]]))
 
 ;;
 ;; # Zipper oriented style printers
@@ -375,8 +377,7 @@
       out
       (let [comment? (= (z/tag nloc) :comment)
             nl? (= (z/tag nloc) :newline)
-            result (when (not (or (whitespace? nloc) comment? nl?))
-                     (zfn nloc))]
+            result (when (not (or (whitespace? nloc) comment? nl?)) (zfn nloc))]
         (recur (right* nloc) comment? (if result (conj out result) out))))))
 
 
@@ -739,11 +740,11 @@
               #_(println "unlift k: namespace:" current-ns)]
           (if-not k
             [nil out]
-	    ; If we have a current-ns on a key, we can't unlift
+            ; If we have a current-ns on a key, we can't unlift
             (cond current-ns [ns pair-seq]
-	          ; We aren't going to unlift anything but a keyword
-		  (not (zkeyword? k)) [ns pair-seq]
-		  ; Skip single things
+                  ; We aren't going to unlift anything but a keyword
+                  (not (zkeyword? k)) [ns pair-seq]
+                  ; Skip single things
                   (= (count pair) 1) (recur (next pair-seq) (conj out pair))
                   :else
                     (recur
@@ -752,9 +753,9 @@
                             ; put ns with k
                             (cons (edn* (n/token-node
                                           (symbol
-					    ; If k is a zkeyword? then it
-					    ; is a :token, and will not
-					    ; have a problem with z/sexpr
+                                            ; If k is a zkeyword? then it
+                                            ; is a :token, and will not
+                                            ; have a problem with z/sexpr
                                             (str ns "/" (name (z/sexpr k))))))
                                   rest-of-pair)))))))
     :else [ns pair-seq]))

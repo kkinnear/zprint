@@ -6445,6 +6445,28 @@ ser/collect-vars-acc %1 %2) )))"
 "(stuff (caller aaaa    bbbb\n                                 ccc\n         dddd))"
 (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"  {:parse-string? true,  :list {:respect-nl? false},  :guide-debug [:list 2  [:element :element :spaces 4 :mark 0 :element :newline :align 0 :spaces 5 :spaces 5 :indent-align 1  :element :newline :element-*]],  :width 50}))
 
+;;
+;; # Some tests for comment API, also Issue #191 changes
+;;
+
+(expect
+";!zprint {:format :off}\n  (this is\n a test)\n\n\n    (stuff \n bother)\n\n"
+(zprint-file-str 
+";!zprint {:format :off}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
+"" {}))
+
+(expect
+";!zprint {:format :skip}\n  (this is\n a test)\n\n\n(stuff bother)\n\n"
+(zprint-file-str 
+";!zprint {:format :skip}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
+"" {}))
+
+(expect
+";!zprint {:parse {:left-space :keep}}\n  (this is a test)\n\n\n    (stuff bother)\n\n"
+(zprint-file-str 
+";!zprint {:parse {:left-space :keep}}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
+"" {}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

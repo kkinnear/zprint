@@ -242,6 +242,8 @@
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
 (s/def ::fn-style (s/nilable ::fn-type))
+(s/def ::real-nl? ::boolean)
+(s/def ::real-nl-length number?)
 (s/def ::record-type? ::boolean)
 (s/def ::respect-nl? ::boolean)
 (s/def ::respect-bl? ::boolean)
@@ -353,7 +355,7 @@
 (s/def ::guide ::guide-seq)
 (s/def ::guide-debug ::guide-debug-seq)
 (s/def ::more-options (s/nilable ::options))
-(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths]))
+(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths ::real-nl? ::real-nl-length]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent

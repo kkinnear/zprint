@@ -665,6 +665,15 @@
               tuple
               (if add-previous-to-out? (conj out previous-tuple) out))))))))
 
+(defn ^:no-doc real-nl
+  "Look at a string, and if it is itself a string, then if the length 
+  is over :output :real-nl-length, then replace \n with a real newline."
+  [real-nl-length s]
+  (if (and (>= (count s) real-nl-length)
+           (clojure.string/starts-with? s "\""))
+    (clojure.string/replace s "\\n" "\n")
+    s))
+    
 (defn ^:no-doc zprint-str-internal
   "Take a zipper or string and pretty print with fzprint, 
   output a str.  Key :color? is false by default, and should
@@ -755,9 +764,18 @@
             comp-style (compress-style wrapped-style-vec)
             #_(def cps comp-style)
             ; don't do extra processing unless we really need it
+	    _ (def fcs (mapv first comp-style))
+	    _ (def le line-ending)
             color-style (if (or accept-vec focus-vec (:color? options))
                           (color-comp-vec comp-style)
-                          (apply str (mapv first comp-style)))
+			  (if (:real-nl? (:output options))
+                            (apply str 
+			      (mapv 
+			        (comp 
+				  (partial real-nl 
+			                   (:real-nl-length (:output options)))                                   first) 
+			         comp-style))
+                            (apply str (mapv first comp-style))))
             #_(def cs color-style)
             str-w-line-endings
               (if (or (nil? line-ending) (= line-ending "\n"))

@@ -1,6 +1,6 @@
 {:aliases
    {:cljs-runner {:extra-deps {com.github.seancorfield/expectations
-                                 {:mvn/version "2.0.0-alpha2"},
+                                 {:mvn/version "2.0.143"},
                                olical/cljs-test-runner {:mvn/version "3.7.0"},
                                pjstadig/humane-test-output {:mvn/version
                                                               "0.10.0"}},
@@ -8,7 +8,7 @@
                   :main-opts ["-m" "cljs-test-runner.main" "--doo-opts"
                               "dooopts.edn" "-x" "planck"]},
     :cljtest {:extra-deps {com.github.seancorfield/expectations
-                             {:mvn/version "2.0.0-alpha2"}},
+                             {:mvn/version "2.0.143"}},
               :extra-paths ["test"]},
     :humane {:extra-deps {pjstadig/humane-test-output {:mvn/version "0.10.0"}}},
     :runner {:extra-deps {com.cognitect/test-runner

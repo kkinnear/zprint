@@ -205,6 +205,7 @@
   than the longest one, fill out the missing elements with nils."
   ([seq-of-seqs max-len no-string-adj?]
    #_(println "size-and-extend-butlast: seq-of-seqs" seq-of-seqs)
+   #_(println "no-string-adj?" no-string-adj?)
    (let [len (dec (apply max (map count seq-of-seqs)))
          len (if max-len (min max-len len) len)
          seq-of-sizes (mapv (partial size-and-extend len no-string-adj?)
@@ -245,18 +246,24 @@
   quotes unless no-string-adj? is non-nil, in which case these
   routines assume that was already handled.  If number-of-columns
   is given, only justify that many columns, else justify all but
-  the last."
+  the last. Note that if the max-variance is exceeded after having
+  skipped the largest and second largest in a column, then the return
+  is nil, signifying that justification is not possible."
   ([max-variance seq-of-seqs number-of-columns no-string-adj?]
    (let [columns (create-columns seq-of-seqs number-of-columns no-string-adj?)
+	 #_(println "column count:" (count columns))
          max-width-vec
            (second
              (reduce
                (fn [[columns max-width-vec] index]
                  (let [[max-width new-columns]
                          (column-width-variance max-variance columns index)]
+		   #_(println "max-width:" max-width)
                    (if max-width
                      [new-columns (conj max-width-vec max-width)]
-                     (reduced [columns max-width-vec]))))
+		     ; If we fail, then fail completely, don't return a
+		     ; short max-width-vec!  Issue #212.
+                     (reduced [columns nil]))))
                [columns []]
                (range (count columns))))]
      max-width-vec))

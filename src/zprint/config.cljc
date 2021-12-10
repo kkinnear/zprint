@@ -661,7 +661,7 @@
                  :record {:hang? true}},
       :areguide {:doc "Allow modification of areguide in :fn-map",
                  :list {:option-fn (partial areguide {:justify? true})}},
-      :areguide-nj {:doc "Do nice are formatting, but don't justify",
+      :areguide-nj {:doc "Do nice are formatting, but don't justify, use only in :fn-map",
                     :list {:option-fn (partial areguide {:justify? false})}},
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros",

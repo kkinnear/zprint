@@ -3061,6 +3061,47 @@
     "(ns my.awesome.app\n  (:import\n    (java.io                    File)\n    [java.util                  HashMap ArrayList]\n    (org.apache.storm.task      OutputCollector IBolt TopologyContext)\n    [org.apache.storm.generated JavaObject Grouping StormTopology\n                                StormTopology$_Fields Bolt Nimbus$Client\n                                ComponentCommon Grouping$_Fields SpoutSpec\n                                NullStruct :StreamInfo GlobalStreamId\n                                :ComponentObject ComponentObject$_Fields]\n    (goog.net                   XhrIo))\n  (:use [backtype.storm cluster util thrift config log]))"
     (zprint-str i166k {:parse-string? true, :style :ns-justify}))
 
+;;
+;; Issue #212
+;;
+;; Problems with justification in areguide, as well as incorrect string lengths
+;;
+
+(def i212e
+  "(deftest test\n           (are [a b c d e] (= a b c d)\n             \"1\"    1  'stuff \"1\" 1\n             \"1\"    1  333 \"BCDEFGHI\" \"1\"\n             \"1\"    1 6 \"ABCDEFGHIJKL\" \"1\"))\n")
+
+(expect
+  "(deftest test\n  (are [a b c d e] (= a b c d)\n    \"1\" 1 'stuff \"1\"            1\n    \"1\" 1 333    \"BCDEFGHI\"     \"1\"\n    \"1\" 1 6      \"ABCDEFGHIJKL\" \"1\"))"
+  (zprint-str i212e
+              {:parse-string? true, :pair {:justify {:max-variance 1000}}}))
+
+
+(expect
+  "(deftest test\n  (are [a b c d e] (= a b c d)\n    \"1\" 1 'stuff \"1\"        1\n    \"1\" 1 333    \"BCDEFGHI\" \"1\"\n    \"1\" 1 6      \"ABCDEFGHIJKL\" \"1\"))"
+  (zprint-str i212e {:parse-string? true}))
+
+
+(expect
+  "(deftest test\n  (are [a b c d e] (= a b c d)\n    \"1\" 1 'stuff \"1\" 1\n    \"1\" 1 333 \"BCDEFGHI\" \"1\"\n    \"1\" 1 6 \"ABCDEFGHIJKL\" \"1\"))"
+  (zprint-str i212e
+              {:parse-string? true,
+               :fn-map {"are" [:guided {:style :areguide-nj}]}}))
+
+
+(def i212
+  "(deftest test\n           (are [a b c d] (= a b c d)\n             \"1\"    \"1\" \"1\" \"1\"\n             \"1\"    \"1\" \"ABCDEFGHI\" \"1\"\n             \"1\"    \"1\" \"ABCDEFGHI\" \"1\"))\n")
+
+(expect
+  "(deftest test\n  (are [a b c d] (= a b c d)\n    \"1\" \"1\" \"1\" \"1\"\n    \"1\" \"1\" \"ABCDEFGHI\" \"1\"\n    \"1\" \"1\" \"ABCDEFGHI\" \"1\"))"
+  (zprint-str i212
+              {:parse-string? true,
+               :fn-map {"are" [:guided {:style :areguide-nj}]}}))
+
+
+(expect
+  "(deftest test\n  (are [a b c d] (= a b c d)\n    \"1\" \"1\" \"1\"         \"1\"\n    \"1\" \"1\" \"ABCDEFGHI\" \"1\"\n    \"1\" \"1\" \"ABCDEFGHI\" \"1\"))"
+  (zprint-str i212 {:parse-string? true}))
+
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

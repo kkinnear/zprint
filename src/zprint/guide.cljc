@@ -172,7 +172,11 @@
                    args (drop 3 zloc-seq-nc)
                    ; Get the lengths of the actual zloc values, not the sexpr
                    arg-strs (mapv (:zstring zfn-map) args)
-                   arg-strs (mapv add-double-quotes sexpr arg-strs)
+		   #_(prn "early arg-strs:" arg-strs)
+	      ; This makes strings too long, but it was 
+	      ; presumably added for some reason?  Issue #212
+              ; arg-strs (mapv add-double-quotes (drop 3 sexpr) arg-strs)
+		   #_(prn "later arg-strs:" arg-strs)
                    seq-of-seqs (partition arg-vec-len arg-vec-len [] arg-strs)
                    max-width-vec (column-alignment max-variance
                                                    seq-of-seqs
@@ -508,6 +512,7 @@
    :indent-reset 0,
    :spaces 1,
    :mark-at 2,
+   :mark-at-indent 2,
    :mark 1,
    :align 1,
    :group-begin 0,
@@ -520,7 +525,7 @@
   "Figure out the arg-count for a guide."
   [[guide running-arg-count] command]
   (if (zero? running-arg-count)
-    (let [command-arg-count (guide-arg-count command)
+    (let [command-arg-count (or (guide-arg-count command) 0)
           before (:before (guide-insert command))
           after (:after (guide-insert command))]
       [(cond-> guide

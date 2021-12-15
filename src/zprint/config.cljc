@@ -590,8 +590,8 @@
    :output {:focus {:zloc? false, :surround nil}, 
             :lines nil, 
 	    :elide nil
-	    :real-nl? false
-	    :real-nl-length 20},
+	    :real-le? false
+	    :real-le-length 20},
    :pair {:flow? false,
           :force-nl? nil,
           :hang-diff 1,

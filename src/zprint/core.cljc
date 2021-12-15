@@ -665,14 +665,22 @@
               tuple
               (if add-previous-to-out? (conj out previous-tuple) out))))))))
 
-(defn ^:no-doc real-nl
-  "Look at a string, and if it is itself a string, then if the length 
-  is over :output :real-nl-length, then replace \n with a real newline."
-  [real-nl-length s]
-  (if (and (>= (count s) real-nl-length)
-           (clojure.string/starts-with? s "\""))
-    (clojure.string/replace s "\\n" "\n")
-    s))
+(defn ^:no-doc real-le
+  "Look at a single element in a style-vec string, and if the string at
+  first is itself a string, then if the length is over 
+  :output :real-le-length, then replace any escaped line endings
+  with 'real' line endings."
+  [real-le-length [s :as element]]
+  #_(prn "real-le real-le-length" real-le-length " s:" s " element:" element)
+  (if (and (>= (count s) real-le-length) (clojure.string/starts-with? s "\""))
+    (do #_(println "real-le ++++++++++")
+	; Replace the string with one where line endings become 'real'
+        (assoc element
+          0 (-> s
+                (clojure.string/replace "\\n" "\n")
+                (clojure.string/replace "\\r\\n" "\r\n")
+                (clojure.string/replace "\\r" "\r"))))
+    element))
     
 (defn ^:no-doc zprint-str-internal
   "Take a zipper or string and pretty print with fzprint, 
@@ -760,22 +768,27 @@
             wrapped-style-vec (if (:wrap? (:comment options))
                                 (fzprint-wrap-comments options str-style-vec)
                                 str-style-vec)
-            #_(def ssvy wrapped-style-vec)
+            _ (def ssvy wrapped-style-vec)
+	    ; wrapped-style-vec is still a full style vec, 
+	    ; with individual elements in it
+
+	    wrapped-style-vec (if (:real-le? (:output options))
+	                          (mapv 
+				    (partial 
+				      real-le
+				      (:real-le-length (:output options)))
+				    wrapped-style-vec)
+				    wrapped-style-vec)
+				      
+				          
             comp-style (compress-style wrapped-style-vec)
-            #_(def cps comp-style)
+            _ (def cps comp-style)
             ; don't do extra processing unless we really need it
 	    _ (def fcs (mapv first comp-style))
 	    _ (def le line-ending)
             color-style (if (or accept-vec focus-vec (:color? options))
                           (color-comp-vec comp-style)
-			  (if (:real-nl? (:output options))
-                            (apply str 
-			      (mapv 
-			        (comp 
-				  (partial real-nl 
-			                   (:real-nl-length (:output options)))                                   first) 
-			         comp-style))
-                            (apply str (mapv first comp-style))))
+                          (apply str (mapv first comp-style)))
             #_(def cs color-style)
             str-w-line-endings
               (if (or (nil? line-ending) (= line-ending "\n"))

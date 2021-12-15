@@ -4266,6 +4266,41 @@ handling for bad paths is some sort of exception.
 If you have a structure like this: `[:a [:b [:c :d] :e :f]]`
 then the path `[1 1 0]` would highlight the `:c`.  The path `[1 1]` would
 highlight the `[:c :d]`.  The path `[0]` would highlight the `:a`.
+
+
+#### :real-le? _false_
+Determines whether to output actual line endings (i.e. `real-le`) instead
+of escape characters when they appear within Clojure(script) strings.
+
+The line endings handled by `:real-le?` are these:
+```
+        (clojure.string/replace "\\n" "\n")
+        (clojure.string/replace "\\r\\n" "\r\n")
+        (clojure.string/replace "\\r" "\r")))
+```
+
+This will turn "\n" into a string containing a single newline character.
+If, of course, the `:real-le-length` were set to 2 or less.  Note that
+the default for `:real-le-length` is 20.
+
+__NOTE: Avoid enabling this for code, as strings like `"\n"` will be replaced
+with quotes around an actual newline character if the `:real-le-length` is
+2 or less.  This feature is designed to be used when creating output, not
+for code.__
+
+#### :real-le-length _20_
+
+If `:real-le? true` is enabled, escaped line endings will be replaced by
+the actual line endings. See `:real-le?` for which line endings will be
+changed.  The value in the `:real-le-length` is that only line endings
+in strings whose length is equal to or greater than `:real-le-length`
+will be converted.  
+
+__NOTE: Avoid enabling this in code, as any string in the code which
+contains any of the line endings given above in `:real-le?` will be changed
+to the actual ASCII characters for the line ending.  This is almost
+certainly NOT what you want when formatting code__.  
+
 ______
 ## :pair
 

@@ -897,7 +897,14 @@
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
-            :fn-map {"defn" [:guided {:list {:option-fn rodguide}}]}},
+            :fn-map {"defn" 
+	             [:guided {:list {:option-fn (partial rodguide {:multi-arity-nl? true})}}]}},
+      :rod-no-ma-nl
+      {:doc "Rules of defn, experimental. No newlines between arities.  Very likely to change.",
+            :fn-map {"defn" [:guided {:list {:option-fn (partial rodguide {:multi-arity-nl? false})}}]}},
+
+
+
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},

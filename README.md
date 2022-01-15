@@ -243,13 +243,11 @@ for everybody!
 
 ### Acknowledgements
 
-At the core of `zprint` is the `rewrite-clj` library by Yannick
-Scherer, which will parse Clojure source into a zipper.  This is a
-great library!  I would not have attempted `zprint` if `rewrite-clj`
-didn't exist to build upon.  The Clojurescript port relies on Magnus
-Rundberget's port of `rewrite-clj` to Clojurescript, `rewrite-cljs`.
-It too worked with no issues when porting to Clojurescript!
-
+At the core of `zprint` is the `rewrite-clj` library originally
+created by Yannick Scherer, ported to Clojurescript by Magnus
+Rundberget, and recently merged into a single, supported, documented,
+and updated library by Lee Read.  This is a great library!  I would not have
+attempted `zprint` if `rewrite-clj` didn't exist to build upon.
 
 ## License
 

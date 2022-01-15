@@ -37,16 +37,23 @@
   "Given a structure which starts with defn, create a guide for the
   'rules of defn', an alternative approach to formatting a defn."
   ([] "rodguide")
-  ([options len sexpr]
+  ; If you call a guide with partial because it has its own options map,
+  ; the "no-argument" arity must include the options map!
+  ([rod-options] "rodguide")
+  ; Since we have released this before, we will also allow it to be called
+  ; without are-options
+  ([options len sexpr] (rodguide {} options len sexpr))
+  ([rod-options options len sexpr]
    (when (= (str (first sexpr)) "defn")
-     (let [docstring? (string? (nth sexpr 2))
+     (let [multi-arity-nl? (get rod-options :multi-arity-nl? true)
+           docstring? (string? (nth sexpr 2))
            rest (nthnext sexpr (if docstring? 3 2))
            multi-arity? (not (vector? (first rest)))
            rest (if multi-arity? rest (next rest))
            rest-guide (repeat (dec (count rest)) :element)
            rest-guide
              (into []
-                   (if multi-arity?
+                   (if (and multi-arity? multi-arity-nl?)
                      (interleave rest-guide (repeat :newline) (repeat :newline))
                      (interleave rest-guide (repeat :newline))))
            ; Make interleave into interpose

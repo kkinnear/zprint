@@ -20,7 +20,8 @@
  :deps {#_#_org.clojure/clojure {:mvn/version "1.9.0"},
         #_#_org.clojure/clojurescript {:mvn/version "1.9.946"},
         #_#_org.clojure/clojure {:mvn/version "1.10.3"},
-        borkdude/sci {:mvn/version "0.2.5"},
+        #_#_borkdude/sci {:mvn/version "0.2.5"},
+        org.babashka/sci {:mvn/version "0.2.8"},
         ; To use zprint with babashka, include the following dependency:
         ;
         ;borkdude/spartan.spec {:git/url

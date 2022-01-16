@@ -1,6 +1,6 @@
 (ns ^:no-doc zprint.range
   (:require [clojure.string :as s]
-            [zprint.util :refer [abs]]
+            [zprint.util :refer [local-abs]]
             [rewrite-clj.parser :as p]
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z]))
@@ -123,10 +123,10 @@
                (do #_(println "find-row: maybe-index:" maybe-index
                               "row-vec-index:" row-vec-index
                               "previous-index:" previous-index
-                              "abs:" (abs (- row-vec-index previous-index)))
+                              "abs:" (local-abs (- row-vec-index previous-index)))
                    (recur ((if (= maybe-index :before) - +)
                             row-vec-index
-                            (int (/ (abs (- row-vec-index previous-index)) 2)))
+                            (int (/ (local-abs (- row-vec-index previous-index)) 2)))
                           row-vec-index
                           (inc tries)))))))))
   ([row-vec n dbg?] (find-row row-vec n dbg? 4)))

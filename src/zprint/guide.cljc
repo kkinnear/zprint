@@ -6,7 +6,7 @@
                        [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
             [clojure.string :as s]
             [rewrite-clj.zip :as z]
-            [zprint.util :refer [abs column-alignment cumulative-alignment]]))
+            [zprint.util :refer [column-alignment cumulative-alignment]]))
 
 ;;
 ;; Contains functions which can be called with {:option-fn <fn>} to produce

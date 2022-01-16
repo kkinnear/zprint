@@ -118,7 +118,7 @@ Some commonly used styles:
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
-### Clojure 1.9, 1.10, 1.10.3, 1.11.0-alpha2:
+### Clojure 1.9, 1.10, 1.10.3, 1.11.0-alpha4:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
@@ -251,6 +251,6 @@ attempted `zprint` if `rewrite-clj` didn't exist to build upon.
 
 ## License
 
-Copyright © 2016-2020 Kim Kinnear
+Copyright © 2016-2022 Kim Kinnear
 
 Distributed under the MIT License.  See the file LICENSE for details.

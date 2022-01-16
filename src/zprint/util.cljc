@@ -1,7 +1,7 @@
 (ns ^:no-doc zprint.util
   (:require [clojure.string :as s]))
 
-(defn abs "Return the absolute value of a number." [n] (if (neg? n) (- n) n))
+(defn local-abs "Return the absolute value of a number." [n] (if (neg? n) (- n) n))
 
 (defn size
   "Return the size of an sexpr, essentially the number of characters

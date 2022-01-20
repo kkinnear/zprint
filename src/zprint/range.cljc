@@ -207,7 +207,7 @@
                 (and (= start-row-idx :before-beginning) (not (neg? start))) 0
                 (= start-row-idx :before-beginning) -1
                 (= start-row-idx 0) 0
-                (= start-row-idx :beyond-end) line-count
+                (= start-row-idx :beyond-end) -1 
                 ; normal case -- the line beyond the previous form
                 ; where (dec start-row-idx) is presumably the previous form
                 :else (:end-row (get row-vec (dec start-row-idx))))
@@ -233,8 +233,12 @@
         actual-end (cond
                      (or (= end-row-idx :fail) (= end-row-idx :beyond-end))
                        ; We are beyond the end or it didn't parse, say the
-                       ; end is beyond the last line.
-                       line-count
+                       ; end is beyond the last line, unless the start was
+		       ; also beyond the last line, in which case we will
+		       ; do nothing.
+		       (if (= start-row-idx :beyond-end)
+		          -1
+                         line-count)
                      (= end-row-idx :before-beginning)
                        ; Someone is confused here too, say the end is the
                        ; start.

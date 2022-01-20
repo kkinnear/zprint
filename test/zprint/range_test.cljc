@@ -262,6 +262,91 @@
       "stuff"
       {:input {:range {:start 3, :end 7}}, :dbg? false}))
 
+   ;;
+   ;; New addtion: {:output {:range? true}} returns the actual-start and
+   ;; actual-end in a vector.
+   ;;
+
+  (def sb2
+    "#!/usr/bin/env bb\n\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n(defn ortst\n\"This is a test\"\n{:added 1.0, :static true}\n([x y] (or (list (list (list y (list x)))) ())))\n\n\n")
+
+
+(expect
+[{:range {:actual-start 0, :actual-end 6}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))"]
+(zprint-file-str range1 "stuff" {:input {:range {:start 2 :end 5}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start -1, :actual-end -1}} ""]
+(zprint-file-str range1 "stuff" {:input {:range {:start 7 :end 9}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start -1, :actual-end -1}} ""]
+(zprint-file-str range1 "stuff" {:input {:range {:start -1 :end -1}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start -1, :actual-end -1}} ""]
+(zprint-file-str range1 "stuff" {:input {:range {:start -1 :end -2}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start -1, :actual-end -1}} ""]
+(zprint-file-str range1 "stuff" {:input {:range {:start 0 :end -2}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start -1, :actual-end -1}} ""]
+(zprint-file-str range1 "stuff" {:input {:range {:start 0 :end 0}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 0, :actual-end 6}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))"]
+(zprint-file-str range1 "stuff" {:input {:range {:start 5 :end 3}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 0, :actual-end 28}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"]
+(zprint-file-str range1 "stuff" {:input {:range {:start -1 :end 1000}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 0, :actual-end 28}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"]
+(zprint-file-str range1 "stuff" {:input {:range {:start nil :end 1000}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 0, :actual-end 28}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n;!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"]
+(zprint-file-str range1 "stuff" {:input {:range {:start 5 :end nil}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 8, :actual-end 28}} ";!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n\n#?(:clj (defn zpmap\n          ([options f coll]\n           (if (:parallel? options) (pmap f coll) (map f coll)))\n          ([options f coll1 coll2]\n           (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))\n   :cljs (defn zpmap\n           ([options f coll] (map f coll))\n           ([options f coll1 coll2] (map f coll1 coll2))))\n"]
+(zprint-file-str range1 "stuff" {:input {:range {:start 9 :end nil}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 0, :actual-end 14}} "#!/usr/bin/env bb\n\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0, :static true}\n  ([x y] (or (list (list (list y (list x)))) ())))\n\n\n"]
+(zprint-file-str sb2 "stuff" {:input {:range {:start 0 :end nil}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 0, :actual-end 14}} "#!/usr/bin/env bb\n\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0, :static true}\n  ([x y] (or (list (list (list y (list x)))) ())))\n\n\n"]
+(zprint-file-str sb2 "stuff" {:input {:range {:start -1 :end nil}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 0, :actual-end 7}} "#!/usr/bin/env bb\n\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))"]
+(zprint-file-str sb2 "stuff" {:input {:range {:start 3 :end 4}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start -1, :actual-end -1}} ""]
+(zprint-file-str sb2 "stuff" {:input {:range {:start 8 :end 8}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 0, :actual-end 7}} "#!/usr/bin/env bb\n\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))"]
+(zprint-file-str sb2 "stuff" {:input {:range {:start 7 :end 7}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 9, :actual-end 12}} "(defn ortst\n  \"This is a test\"\n  {:added 1.0, :static true}\n  ([x y] (or (list (list (list y (list x)))) ())))"]
+(zprint-file-str sb2 "stuff" {:input {:range {:start 9 :end 9}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start -1, :actual-end -1}} ""]
+(zprint-file-str sb2 "stuff" {:input {:range {:start 13 :end 1000}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start -1, :actual-end -1}} ""]
+(zprint-file-str sb2 "stuff" {:input {:range {:start 13 :end nil}} :output {:range? true}}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

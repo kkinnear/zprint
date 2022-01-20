@@ -3166,6 +3166,11 @@ be the end of the file.
 If both start-line-number and end-line-number are within the same
 gap between expressions, nothing will be formatted.
 
+If the start-line-number is missing but an end-line-number appears,
+the start-line-number will be zero.  If the end-line-number is missing,
+but a start-line-number appears, then the range will be from the
+start-line-number to the end of the file.
+
 Note that zprint will not leave trailing spaces on a line, but
 this is only true for lines that are part of the range -- the other lines
 are untouched.
@@ -3173,6 +3178,13 @@ are untouched.
 If any problems occur when trying to determine the current or previous
 expressions (since a quick parse of the entire string (file) is required
 for this to happen), the entire string (file) is formatted. 
+
+Note that `{:output {:range? true}}` will, when coupled with an 
+input range, output only the formatted range and the actual range
+used for that formatting -- which may well be different from the
+range specified on input, as discussed above,  as zprint will adjust 
+the range to emcompass
+entire top level expressions.  See `:output :range?` for details.
 _____
 ## :list
 
@@ -4300,6 +4312,110 @@ __NOTE: Avoid enabling this in code, as any string in the code which
 contains any of the line endings given above in `:real-le?` will be changed
 to the actual ASCII characters for the line ending.  This is almost
 certainly NOT what you want when formatting code__.  
+
+#### :range? _false_
+
+Only recognized when calling `zprint-file-str` (which is what all of
+the pre-built binaries use), and where there is a specification of an
+input range, as in: `{:input {:range {:start n :end m}}}`.
+
+The purpose of the `{:output {:range? true}}` capability is to
+allow zprint to be given a stream of lines and a range specification
+for what to format within that stream.  Then zprint will figure out
+the range of lines which encompasses the smallest top-level expression
+or expressions covered by the specified range, and will return the formatted
+output for those lines in addition to reporting the actual range of lines
+used to create the formatted output. 
+
+The output when `:range?` is `true` consists of a vector where
+the first element is a map describing the range actually used, and the
+second element is a string which is the result of formatting that
+range from the input.
+
+Specifically:
+
+```
+[{:range {:actual-start s :actual-end t}} "..."]
+```
+
+For example, for a file which looks like this:
+
+```
+0
+1 (defmacro diff-com
+2 "Is community formatting different?"
+3 [f]
+4 `(if (=(zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))
+5 "true"
+6 (zprint-fn-str ~f)))
+7
+8 ;!zprint {:format :next :width 25}
+9
+10 (defn ortst
+11 "This is a test"
+12 {:added 1.0 :static true}
+13 ([x y]
+14 (or (list
+15 (list
+16 (list
+17 y
+18 (list x))))
+19 ())))
+20
+21 #?(:clj (defn zpmap
+22 ([options f coll]
+23 (if (:parallel? options) (pmap f coll) (map f coll)))
+24 ([options f coll1 coll2]
+25 (if (:parallel? options) (pmap f coll1 coll2) (map f coll1 coll2))))
+26 :cljs (defn zpmap
+27 ([options f coll] (map f coll))
+28 ([options f coll1 coll2] (map f coll1 coll2))))
+```
+Then this invocation of `zprint-file-str`:
+```
+(zprint-file-str range1 "stuff" {:input {:range {:start 11 :end 12}} :output {:range? true}})
+```
+will yield this ouput:
+```
+[{:range {:actual-start 8, :actual-end 19}} ";!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))"]
+```
+You can see that the input range has been expanded to cover the
+entire top-level function definition, as well as the `;!zprint`
+directive in the comment above it.
+
+The string output looks like this:
+
+```
+0 ;!zprint {:format :next :width 25}
+1
+2 (defn ortst
+3   "This is a test"
+4   {:added 1.0,
+5    :static true}
+6   ([x y]
+7    (or (list
+8          (list
+9            (list y
+10                  (list
+11                    x))))
+12        ())))
+```
+
+and is one line longer than the difference between the
+`actual-start` and `actual-end`.  The `actual-start` and
+`actual-end` relate to the lines changed in the input
+stream, and in particular the number of lines in the formatted
+output string have no relation to the number of lines between the
+`actual-start` and `actual-end`.  It may be larger, smaller, or
+the same.
+
+If the input range specification selects only blank lines or
+top level comments in the input, then there is no formatting
+to be performed, and in this case the output will be:
+```
+[{:range {:actual-start -1 :actual-end -1}} ""]
+```
+which is an indication that nothing has changed.
 
 ______
 ## :pair

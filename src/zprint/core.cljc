@@ -1358,15 +1358,18 @@
              [before-lines range after-lines]
                (when (and actual-start actual-end)
                  (split-out-range lines actual-start actual-end))
+             range-includes-end? (zero? (count after-lines))
              filestring (if range (clojure.string/join "\n" range) filestring)
+             ends-with-nl? (clojure.string/ends-with? file-str "\n")
              _ (when (and actual-start actual-end)
                  (dbg-pr new-options
                          "zprint-file-str: lines count:" (count lines)
                          "before count:" (count before-lines)
                          "range count:" (count range)
                          "after count:" (count after-lines)
-                         "range:" range))
-             ends-with-nl? (clojure.string/ends-with? file-str "\n")
+                         "ends-with-nl?" ends-with-nl?
+                         "range:" range
+                         "filestring:" filestring))
              forms (edn* (p/parse-string-all filestring))
              pmf-options {:process-bang-zprint? true}
              pmf-options (if (:interpose (:parse (get-options)))
@@ -1382,19 +1385,69 @@
                                              zprint-specifier
                                              forms)
              _ (dbg-pr new-options "zprint-file-str: out-str:" out-str)
+             range-output? (and (:range? (:output (get-options)))
+                                (or range-start range-end))
+             ; Figure a corrected range start and end from the
+             ; actual start and end if we need it.
+             [corrected-start corrected-end]
+               (when range-output?
+                 (let [actual-start (if (= actual-end -1)
+                                      actual-start
+                                      (max actual-start 0))]
+                   [(cond (and (or (= actual-start 0) (= actual-start -1))
+                               shebang)
+                            actual-start
+                          shebang (inc actual-start)
+                          :else actual-start)
+                    (let [line-count (count lines)
+                          ; Because of the way that split and join work, the
+                          ; split needs the -1.  But this means that if the
+                          ; last thing in the lines vector is a "",
+                          ; then that means that it is one too big.
+                          ; Sigh.
+                          line-count
+                            (if (= (last lines) "") (dec line-count) line-count)
+                          max-end (dec line-count)
+                          line-count (if shebang (inc line-count) line-count)
+                          actual-end
+                            (if (> actual-end max-end) max-end actual-end)]
+                      (if (and shebang (not= actual-end -1))
+                        (inc actual-end)
+                        actual-end))]))
+             _ (when range-output?
+                 (dbg-pr new-options
+                         "actual-start:" actual-start
+                         "actual-end:" actual-end
+                         "shebang" shebang
+                         "(count lines):" (count lines)
+                         "corrected-start:" corrected-start
+                         "corrected-end:" corrected-end))
              ; If we did a range, insert the formatted range back into
-             ; the before and after lines.
-             out-str (if range
+             ; the before and after lines  Unless we are going to output
+             ; just the range.
+             out-str (if (and range (not range-output?))
                        (reassemble-range before-lines out-str after-lines)
                        out-str)
-             out-str (if shebang (str shebang "\n" out-str) out-str)
-             out-str (if (and ends-with-nl?
+             ; (if shebang (str shebang "\n" out-str) out-str)
+             out-str (if range-output?
+                       (if (and shebang (= corrected-start 0))
+                         (str shebang "\n" out-str)
+                         out-str)
+                       (if shebang (str shebang "\n" out-str) out-str))
+             out-str (if (and (if range-output? range-includes-end? true)
+                              ends-with-nl?
                               (not (clojure.string/ends-with? out-str "\n")))
                        (str out-str "\n")
-                       out-str)]
-         (if (= line-ending "\n")
-           out-str
-           (clojure.string/replace out-str "\n" line-ending)))
+                       out-str)
+             out-str (if (= line-ending "\n")
+                       out-str
+                       (clojure.string/replace out-str "\n" line-ending))]
+         (if range-output?
+           ; We aren't doing just string output, but rather a vector
+           ; with the actual range we used, and then the string.
+           [{:range {:actual-start corrected-start, :actual-end corrected-end}}
+            out-str]
+           out-str))
        (finally (reset-options! original-options original-doc-map)))))
   ([file-str zprint-specifier new-options]
    (zprint-file-str file-str

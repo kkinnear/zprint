@@ -233,6 +233,7 @@
 (s/def ::path (s/coll-of number? :kind sequential?))
 (s/def ::paths ::path-seq)
 (s/def ::range (only-keys :opt-un [::start ::end]))
+(s/def ::range? ::boolean)
 (s/def ::ignore-if-parse-fails (s/nilable (s/coll-of ::ignore-args :kind set?)))
 (s/def ::key-no-sort (s/nilable (s/coll-of ::ignore-args :kind set?)))
 (s/def ::replacement-string (s/nilable string?))
@@ -355,7 +356,7 @@
 (s/def ::guide ::guide-seq)
 (s/def ::guide-debug ::guide-debug-seq)
 (s/def ::more-options (s/nilable ::options))
-(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths ::real-le? ::real-le-length]))
+(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths ::real-le? ::real-le-length ::range?]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent

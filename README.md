@@ -9,6 +9,8 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
+ * Fixed issue with Clojure 1.11.0-alpha4.
+ * Implemented `{:output {:range? true}}` to ease integration with IDE's.
  * New version of rewrite-clj now used for both .clj and .cljs.  Many thanks to
  @lread for picking up support and extensions for rewrite-clj and merging 
  rewrite-cljs with it to create a unified Clojure parsing library.  This

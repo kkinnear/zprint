@@ -275,33 +275,35 @@
   split the sequence of lines into three parts: [before-lines range
   after-lines].  If any of these collections would be empty, return
   an empty sequence. End must be equal to or greater than start. If
-  end is neg?, there will be no range."
+  end is neg?, there will be no range. Note that for begin and range
+  if they have something after them, we will add a null string to them,
+  so that a join will have a newline on the end of it."
   [lines start end]
   (let [start (max start 0)
         before start
         range (if (neg? end) 0 (inc (- end start)))
-        after (- (dec (count lines)) end)]
+        after (- (dec (count lines)) end)
+        before-lines (into [] (take before lines))
+        range-lines (into [] (take range (drop before lines)))
+        after-lines (take after (drop (+ before range) lines))
+        ; Fix up newlines at the end of before and range as
+        ; needed to ensure their last lines are terminated.
+        before-lines
+          (if (not (empty? range-lines)) (conj before-lines "") before-lines)
+        range-lines
+          (if (not (empty? after-lines)) (conj range-lines "") range-lines)]
     #_(println "before:" before "range:" range "after:" after)
-    [(take before lines) (take range (drop before lines))
-     (take after (drop (+ before range) lines))]))
+    [before-lines range-lines after-lines]))
 
 (defn reassemble-range
   "Given before-lines, range, and after-lines where before-lines
   and after-lines are sequences of lines, and range is a string
   which has been formatted, reassemble these three chunks into a
-  single string with appropriate newlines joining them together.
-  Note that this is *not* an inverse to split-out-range, because
-  in that routine range is a seq of lines, and in this routine
-  range is a string.  Note also that we only join them with a 
-  newline if there are two pieces, otherwise we get extra lines."
+  single string.  Because split-out-range worked hard to figure
+  out how to terminate before-lines and range with a newline,
+  this is really pretty simple."
   [before-lines range after-lines]
-  (let [before? (not (empty? before-lines))
-        before-lines (if before? (clojure.string/join "\n" before-lines) "")
-        range? (not (empty? range))
-        after? (not (empty? after-lines))
-        after-lines (if after? (clojure.string/join "\n" after-lines) "")
-        before-range (if (and before? range?) "\n" "")
-        range-after (if (and range? after?) "\n" "")
-        range-after (if (and (not range?) before? after?) "\n" range-after)]
-    (str before-lines before-range range range-after after-lines)))
+  (let [before-str (clojure.string/join "\n" before-lines)
+        after-str (clojure.string/join "\n" after-lines)]
+    (str before-str range after-str)))
 

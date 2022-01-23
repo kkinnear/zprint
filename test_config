@@ -566,7 +566,7 @@ output_length=`$command --explain-all 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-expected_length=804
+expected_length=817
 
 if [[ $output_length != $expected_length ]]
   then

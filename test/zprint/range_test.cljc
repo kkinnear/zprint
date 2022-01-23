@@ -272,31 +272,31 @@
 
 
 (expect
-[{:range {:actual-start 0, :actual-end 6}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))"]
+[{:range {:actual-start 0, :actual-end 6}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n"]
 (zprint-file-str range1 "stuff" {:input {:range {:start 2 :end 5}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start -1, :actual-end -1}} ""]
+[{:range {:actual-start -1, :actual-end -1}} nil]
 (zprint-file-str range1 "stuff" {:input {:range {:start 7 :end 9}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start -1, :actual-end -1}} ""]
+[{:range {:actual-start -1, :actual-end -1}} nil]
 (zprint-file-str range1 "stuff" {:input {:range {:start -1 :end -1}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start -1, :actual-end -1}} ""]
+[{:range {:actual-start -1, :actual-end -1}} nil]
 (zprint-file-str range1 "stuff" {:input {:range {:start -1 :end -2}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start -1, :actual-end -1}} ""]
+[{:range {:actual-start -1, :actual-end -1}} nil]
 (zprint-file-str range1 "stuff" {:input {:range {:start 0 :end -2}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start -1, :actual-end -1}} ""]
+[{:range {:actual-start -1, :actual-end -1}} nil]
 (zprint-file-str range1 "stuff" {:input {:range {:start 0 :end 0}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start 0, :actual-end 6}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))"]
+[{:range {:actual-start 0, :actual-end 6}} "\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n"]
 (zprint-file-str range1 "stuff" {:input {:range {:start 5 :end 3}} :output {:range? true}}))
 
 (expect
@@ -324,28 +324,42 @@
 (zprint-file-str sb2 "stuff" {:input {:range {:start -1 :end nil}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start 0, :actual-end 7}} "#!/usr/bin/env bb\n\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))"]
+[{:range {:actual-start 0, :actual-end 7}} "#!/usr/bin/env bb\n\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n"]
 (zprint-file-str sb2 "stuff" {:input {:range {:start 3 :end 4}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start -1, :actual-end -1}} ""]
+[{:range {:actual-start -1, :actual-end -1}} nil]
 (zprint-file-str sb2 "stuff" {:input {:range {:start 8 :end 8}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start 0, :actual-end 7}} "#!/usr/bin/env bb\n\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))"]
+[{:range {:actual-start 0, :actual-end 7}} "#!/usr/bin/env bb\n\n(defmacro diff-com\n  \"Is community formatting different?\"\n  [f]\n  `(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n     \"true\"\n     (zprint-fn-str ~f)))\n"]
 (zprint-file-str sb2 "stuff" {:input {:range {:start 7 :end 7}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start 9, :actual-end 12}} "(defn ortst\n  \"This is a test\"\n  {:added 1.0, :static true}\n  ([x y] (or (list (list (list y (list x)))) ())))"]
+[{:range {:actual-start 9, :actual-end 12}} "(defn ortst\n  \"This is a test\"\n  {:added 1.0, :static true}\n  ([x y] (or (list (list (list y (list x)))) ())))\n"]
 (zprint-file-str sb2 "stuff" {:input {:range {:start 9 :end 9}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start -1, :actual-end -1}} ""]
+[{:range {:actual-start -1, :actual-end -1}} nil]
 (zprint-file-str sb2 "stuff" {:input {:range {:start 13 :end 1000}} :output {:range? true}}))
 
 (expect
-[{:range {:actual-start -1, :actual-end -1}} ""]
+[{:range {:actual-start -1, :actual-end -1}} nil]
 (zprint-file-str sb2 "stuff" {:input {:range {:start 13 :end nil}} :output {:range? true}}))
+
+(def rg2 "0\n1\n2\n3\n4\n5\n6\n7\n8\n9")
+
+(expect
+[{:range {:actual-start 3, :actual-end 9}} "3\n4\n5\n6\n7\n8\n9"]
+(zprint-file-str rg2 "stuff" {:style :respect-nl, :input {:range {:start 3, :end 9}},  :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 3, :actual-end 8}} "3\n4\n5\n6\n7\n8\n"]
+(zprint-file-str rg2 "stuff" {:style :respect-nl, :input {:range {:start 3, :end 8}},  :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 3, :actual-end 9}} "3\n4\n5\n6\n7\n8\n9"]
+(zprint-file-str rg2 "stuff" {:style :respect-nl, :input {:range {:start 3, :end 10}},  :output {:range? true}}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

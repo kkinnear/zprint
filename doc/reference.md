@@ -4335,8 +4335,11 @@ range from the input.
 Specifically:
 
 ```
-[{:range {:actual-start s :actual-end t}} "..."]
+[{:range {:actual-start s :actual-end t}} string-or-nil]
 ```
+The second element of the vector will be a string (possibly null) unless
+the `actual-start` and `actual-end` are both -1, indicating nothing
+was formattd, in which case the second element will be nil.
 
 For example, for a file which looks like this:
 
@@ -4377,7 +4380,7 @@ Then this invocation of `zprint-file-str`:
 ```
 will yield this ouput:
 ```
-[{:range {:actual-start 8, :actual-end 19}} ";!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))"]
+[{:range {:actual-start 8, :actual-end 19}} ";!zprint {:format :next :width 25}\n\n(defn ortst\n  \"This is a test\"\n  {:added 1.0,\n   :static true}\n  ([x y]\n   (or (list\n         (list\n           (list y\n                 (list\n                   x))))\n       ())))\n"]
 ```
 You can see that the input range has been expanded to cover the
 entire top-level function definition, as well as the `;!zprint`
@@ -4413,7 +4416,7 @@ If the input range specification selects only blank lines or
 top level comments in the input, then there is no formatting
 to be performed, and in this case the output will be:
 ```
-[{:range {:actual-start -1 :actual-end -1}} ""]
+[{:range {:actual-start -1 :actual-end -1}} nil]
 ```
 which is an indication that nothing has changed.
 

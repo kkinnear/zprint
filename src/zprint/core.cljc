@@ -1360,6 +1360,10 @@
                  (split-out-range lines actual-start actual-end))
              range-includes-end? (zero? (count after-lines))
              filestring (if range (clojure.string/join "\n" range) filestring)
+	     range-ends-with-nl? 
+	       (when (and range
+	                  (not range-includes-end?))
+		  (clojure.string/ends-with? filestring "\n"))
              ends-with-nl? (clojure.string/ends-with? file-str "\n")
              _ (when (and actual-start actual-end)
                  (dbg-pr new-options
@@ -1367,6 +1371,7 @@
                          "before count:" (count before-lines)
                          "range count:" (count range)
                          "after count:" (count after-lines)
+			 "range-ends-with-nl?" range-ends-with-nl?
                          "ends-with-nl?" ends-with-nl?
                          "range:" range
                          "filestring:" filestring))
@@ -1422,6 +1427,12 @@
                          "(count lines):" (count lines)
                          "corrected-start:" corrected-start
                          "corrected-end:" corrected-end))
+	     ; Clean up the end of the range if it ended with a nl.
+	     out-str (if (and range 
+	                      range-ends-with-nl?
+                              (not (clojure.string/ends-with? out-str "\n")))
+                       (str out-str "\n")
+		       out-str)
              ; If we did a range, insert the formatted range back into
              ; the before and after lines  Unless we are going to output
              ; just the range.
@@ -1445,8 +1456,13 @@
          (if range-output?
            ; We aren't doing just string output, but rather a vector
            ; with the actual range we used, and then the string.
+	   ; Unless the start and end are -1, which means we didn't do 
+	   ; anything, in which case the output is nil.
            [{:range {:actual-start corrected-start, :actual-end corrected-end}}
-            out-str]
+            (if (and (= corrected-start -1)
+	             (= corrected-end -1))
+		  nil
+		  out-str)]
            out-str))
        (finally (reset-options! original-options original-doc-map)))))
   ([file-str zprint-specifier new-options]

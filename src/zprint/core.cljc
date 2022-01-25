@@ -329,7 +329,7 @@
 
 (declare zprint-str-internal)
 
-(defn dzprint-zipper
+(defn ^:no-doc dzprint-zipper
   "If we are running in zipper mode, do an internal version of zprint
   on a structure."
   [options coll]
@@ -343,7 +343,7 @@
            e
            coll-str))))
 
-(defn dzprint-sexpr
+(defn ^:no-doc dzprint-sexpr
   "If we are running in zipper mode, do an internal version of zprint
   on a structure."
   [options coll]

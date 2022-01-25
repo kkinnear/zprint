@@ -1,7 +1,10 @@
 (ns ^:no-doc zprint.util
   (:require [clojure.string :as s]))
 
-(defn local-abs "Return the absolute value of a number." [n] (if (neg? n) (- n) n))
+(defn local-abs
+  "Return the absolute value of a number."
+  [n]
+  (if (neg? n) (- n) n))
 
 (defn size
   "Return the size of an sexpr, essentially the number of characters
@@ -251,18 +254,18 @@
   is nil, signifying that justification is not possible."
   ([max-variance seq-of-seqs number-of-columns no-string-adj?]
    (let [columns (create-columns seq-of-seqs number-of-columns no-string-adj?)
-	 #_(println "column count:" (count columns))
+         #_(println "column count:" (count columns))
          max-width-vec
            (second
              (reduce
                (fn [[columns max-width-vec] index]
                  (let [[max-width new-columns]
                          (column-width-variance max-variance columns index)]
-		   #_(println "max-width:" max-width)
+                   #_(println "max-width:" max-width)
                    (if max-width
                      [new-columns (conj max-width-vec max-width)]
-		     ; If we fail, then fail completely, don't return a
-		     ; short max-width-vec!  Issue #212.
+                     ; If we fail, then fail completely, don't return a
+                     ; short max-width-vec!  Issue #212.
                      (reduced [columns nil]))))
                [columns []]
                (range (count columns))))]

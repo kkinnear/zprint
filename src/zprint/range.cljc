@@ -120,15 +120,17 @@
              (or (= maybe-index :before-beginning) (= maybe-index :beyond-end))
                maybe-index
              :else ; Has to be :before or :after
-               (do #_(println "find-row: maybe-index:" maybe-index
-                              "row-vec-index:" row-vec-index
-                              "previous-index:" previous-index
-                              "abs:" (local-abs (- row-vec-index previous-index)))
-                   (recur ((if (= maybe-index :before) - +)
-                            row-vec-index
-                            (int (/ (local-abs (- row-vec-index previous-index)) 2)))
+               (do
+                 #_(println "find-row: maybe-index:" maybe-index
+                            "row-vec-index:" row-vec-index
+                            "previous-index:" previous-index
+                            "abs:" (local-abs (- row-vec-index previous-index)))
+                 (recur ((if (= maybe-index :before) - +)
                           row-vec-index
-                          (inc tries)))))))))
+                          (int (/ (local-abs (- row-vec-index previous-index))
+                                  2)))
+                        row-vec-index
+                        (inc tries)))))))))
   ([row-vec n dbg?] (find-row row-vec n dbg? 4)))
 
 (defn next-non-blank-line
@@ -207,7 +209,7 @@
                 (and (= start-row-idx :before-beginning) (not (neg? start))) 0
                 (= start-row-idx :before-beginning) -1
                 (= start-row-idx 0) 0
-                (= start-row-idx :beyond-end) -1 
+                (= start-row-idx :beyond-end) -1
                 ; normal case -- the line beyond the previous form
                 ; where (dec start-row-idx) is presumably the previous form
                 :else (:end-row (get row-vec (dec start-row-idx))))
@@ -234,11 +236,9 @@
                      (or (= end-row-idx :fail) (= end-row-idx :beyond-end))
                        ; We are beyond the end or it didn't parse, say the
                        ; end is beyond the last line, unless the start was
-		       ; also beyond the last line, in which case we will
-		       ; do nothing.
-		       (if (= start-row-idx :beyond-end)
-		          -1
-                         line-count)
+                       ; also beyond the last line, in which case we will
+                       ; do nothing.
+                       (if (= start-row-idx :beyond-end) -1 line-count)
                      (= end-row-idx :before-beginning)
                        ; Someone is confused here too, say the end is the
                        ; start.

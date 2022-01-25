@@ -179,11 +179,11 @@
                    args (drop 3 zloc-seq-nc)
                    ; Get the lengths of the actual zloc values, not the sexpr
                    arg-strs (mapv (:zstring zfn-map) args)
-		   #_(prn "early arg-strs:" arg-strs)
-	      ; This makes strings too long, but it was 
-	      ; presumably added for some reason?  Issue #212
-              ; arg-strs (mapv add-double-quotes (drop 3 sexpr) arg-strs)
-		   #_(prn "later arg-strs:" arg-strs)
+                   #_(prn "early arg-strs:" arg-strs)
+                   ; This makes strings too long, but it was
+                   ; presumably added for some reason?  Issue #212
+                   ; arg-strs (mapv add-double-quotes (drop 3 sexpr) arg-strs)
+                   #_(prn "later arg-strs:" arg-strs)
                    seq-of-seqs (partition arg-vec-len arg-vec-len [] arg-strs)
                    max-width-vec (column-alignment max-variance
                                                    seq-of-seqs

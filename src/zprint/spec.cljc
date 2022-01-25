@@ -356,7 +356,9 @@
 (s/def ::guide ::guide-seq)
 (s/def ::guide-debug ::guide-debug-seq)
 (s/def ::more-options (s/nilable ::options))
-(s/def ::output (only-keys :opt-un [::focus ::lines ::elide ::paths ::real-le? ::real-le-length ::range?]))
+(s/def ::output
+  (only-keys :opt-un [::focus ::lines ::elide ::paths ::real-le?
+                      ::real-le-length ::range?]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent

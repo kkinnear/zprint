@@ -674,14 +674,14 @@
   #_(prn "real-le real-le-length" real-le-length " s:" s " element:" element)
   (if (and (>= (count s) real-le-length) (clojure.string/starts-with? s "\""))
     (do #_(println "real-le ++++++++++")
-	; Replace the string with one where line endings become 'real'
+        ; Replace the string with one where line endings become 'real'
         (assoc element
           0 (-> s
                 (clojure.string/replace "\\n" "\n")
                 (clojure.string/replace "\\r\\n" "\r\n")
                 (clojure.string/replace "\\r" "\r"))))
     element))
-    
+
 (defn ^:no-doc zprint-str-internal
   "Take a zipper or string and pretty print with fzprint, 
   output a str.  Key :color? is false by default, and should
@@ -769,23 +769,18 @@
                                 (fzprint-wrap-comments options str-style-vec)
                                 str-style-vec)
             #_(def ssvy wrapped-style-vec)
-	    ; wrapped-style-vec is still a full style vec, 
-	    ; with individual elements in it
-
-	    wrapped-style-vec (if (:real-le? (:output options))
-	                          (mapv 
-				    (partial 
-				      real-le
-				      (:real-le-length (:output options)))
-				    wrapped-style-vec)
-				    wrapped-style-vec)
-				      
-				          
+            ; wrapped-style-vec is still a full style vec,
+            ; with individual elements in it
+            wrapped-style-vec
+              (if (:real-le? (:output options))
+                (mapv (partial real-le (:real-le-length (:output options)))
+                  wrapped-style-vec)
+                wrapped-style-vec)
             comp-style (compress-style wrapped-style-vec)
             #_(def cps comp-style)
             ; don't do extra processing unless we really need it
-	    #_(def fcs (mapv first comp-style))
-	    #_(def le line-ending)
+            #_(def fcs (mapv first comp-style))
+            #_(def le line-ending)
             color-style (if (or accept-vec focus-vec (:color? options))
                           (color-comp-vec comp-style)
                           (apply str (mapv first comp-style)))
@@ -1360,10 +1355,8 @@
                  (split-out-range lines actual-start actual-end))
              range-includes-end? (zero? (count after-lines))
              filestring (if range (clojure.string/join "\n" range) filestring)
-	     range-ends-with-nl? 
-	       (when (and range
-	                  (not range-includes-end?))
-		  (clojure.string/ends-with? filestring "\n"))
+             range-ends-with-nl? (when (and range (not range-includes-end?))
+                                   (clojure.string/ends-with? filestring "\n"))
              ends-with-nl? (clojure.string/ends-with? file-str "\n")
              _ (when (and actual-start actual-end)
                  (dbg-pr new-options
@@ -1371,7 +1364,7 @@
                          "before count:" (count before-lines)
                          "range count:" (count range)
                          "after count:" (count after-lines)
-			 "range-ends-with-nl?" range-ends-with-nl?
+                         "range-ends-with-nl?" range-ends-with-nl?
                          "ends-with-nl?" ends-with-nl?
                          "range:" range
                          "filestring:" filestring))
@@ -1427,19 +1420,18 @@
                          "(count lines):" (count lines)
                          "corrected-start:" corrected-start
                          "corrected-end:" corrected-end))
-	     ; Clean up the end of the range if it ended with a nl.
-	     out-str (if (and range 
-	                      range-ends-with-nl?
+             ; Clean up the end of the range if it ended with a nl.
+             out-str (if (and range
+                              range-ends-with-nl?
                               (not (clojure.string/ends-with? out-str "\n")))
                        (str out-str "\n")
-		       out-str)
+                       out-str)
              ; If we did a range, insert the formatted range back into
              ; the before and after lines  Unless we are going to output
              ; just the range.
              out-str (if (and range (not range-output?))
                        (reassemble-range before-lines out-str after-lines)
                        out-str)
-             ; (if shebang (str shebang "\n" out-str) out-str)
              out-str (if range-output?
                        (if (and shebang (= corrected-start 0))
                          (str shebang "\n" out-str)
@@ -1456,13 +1448,10 @@
          (if range-output?
            ; We aren't doing just string output, but rather a vector
            ; with the actual range we used, and then the string.
-	   ; Unless the start and end are -1, which means we didn't do 
-	   ; anything, in which case the output is nil.
+           ; Unless the start and end are -1, which means we didn't do
+           ; anything, in which case the output is nil.
            [{:range {:actual-start corrected-start, :actual-end corrected-end}}
-            (if (and (= corrected-start -1)
-	             (= corrected-end -1))
-		  nil
-		  out-str)]
+            (if (and (= corrected-start -1) (= corrected-end -1)) nil out-str)]
            out-str))
        (finally (reset-options! original-options original-doc-map)))))
   ([file-str zprint-specifier new-options]

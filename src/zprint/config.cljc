@@ -587,12 +587,12 @@
    :max-length 1000000,
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
-   :output {:focus {:zloc? false, :surround nil}, 
-            :lines nil, 
-	    :elide nil
-	    :range? nil
-	    :real-le? false
-	    :real-le-length 20},
+   :output {:focus {:zloc? false, :surround nil},
+            :lines nil,
+            :elide nil,
+            :range? nil,
+            :real-le? false,
+            :real-le-length 20},
    :pair {:flow? false,
           :force-nl? nil,
           :hang-diff 1,
@@ -662,8 +662,9 @@
                  :record {:hang? true}},
       :areguide {:doc "Allow modification of areguide in :fn-map",
                  :list {:option-fn (partial areguide {:justify? true})}},
-      :areguide-nj {:doc "Do nice are formatting, but don't justify, use only in :fn-map",
-                    :list {:option-fn (partial areguide {:justify? false})}},
+      :areguide-nj
+        {:doc "Do nice are formatting, but don't justify, use only in :fn-map",
+         :list {:option-fn (partial areguide {:justify? false})}},
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros",
          :fn-map
@@ -898,14 +899,17 @@
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
-            :fn-map {"defn" 
-	             [:guided {:list {:option-fn (partial rodguide {:multi-arity-nl? true})}}]}},
+            :fn-map {"defn" [:guided
+                             {:list {:option-fn (partial rodguide
+                                                         {:multi-arity-nl?
+                                                            true})}}]}},
       :rod-no-ma-nl
-      {:doc "Rules of defn, experimental. No newlines between arities.  Very likely to change.",
-            :fn-map {"defn" [:guided {:list {:option-fn (partial rodguide {:multi-arity-nl? false})}}]}},
-
-
-
+        {:doc
+           "Rules of defn, experimental. No newlines between arities.  Very likely to change.",
+         :fn-map {"defn" [:guided
+                          {:list {:option-fn (partial rodguide
+                                                      {:multi-arity-nl?
+                                                         false})}}]}},
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},

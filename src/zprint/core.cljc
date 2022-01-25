@@ -768,7 +768,7 @@
             wrapped-style-vec (if (:wrap? (:comment options))
                                 (fzprint-wrap-comments options str-style-vec)
                                 str-style-vec)
-            _ (def ssvy wrapped-style-vec)
+            #_(def ssvy wrapped-style-vec)
 	    ; wrapped-style-vec is still a full style vec, 
 	    ; with individual elements in it
 
@@ -782,10 +782,10 @@
 				      
 				          
             comp-style (compress-style wrapped-style-vec)
-            _ (def cps comp-style)
+            #_(def cps comp-style)
             ; don't do extra processing unless we really need it
-	    _ (def fcs (mapv first comp-style))
-	    _ (def le line-ending)
+	    #_(def fcs (mapv first comp-style))
+	    #_(def le line-ending)
             color-style (if (or accept-vec focus-vec (:color? options))
                           (color-comp-vec comp-style)
                           (apply str (mapv first comp-style)))

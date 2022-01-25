@@ -4406,7 +4406,7 @@ The string output looks like this:
 
 and is one line longer than the difference between the
 `actual-start` and `actual-end`.  The `actual-start` and
-`actual-end` relate to the lines changed in the input
+`actual-end` relate to the lines selected for formatting in the input
 stream, and in particular the number of lines in the formatted
 output string have no relation to the number of lines between the
 `actual-start` and `actual-end`.  It may be larger, smaller, or
@@ -4419,6 +4419,20 @@ to be performed, and in this case the output will be:
 [{:range {:actual-start -1 :actual-end -1}} nil]
 ```
 which is an indication that nothing has changed.
+
+The purpose of this capability is to ease integration of zprint
+into an extension for an editor or an IDE.  You can pass in the
+`{:input {:range {:start m :end n}}}` without regard to whether
+or not they encompass entire top level expressions, and zprint will
+figure out how to expand them to cover the minimally correct number
+of lines beyond the start and end.  Using `{:output {:range? true}}`,
+zprint will tell you the lines that it figured out, and will return
+just the formatted output related to those lines.
+
+Were you to use this capability to integrate with an editor or IDE,
+you would replace the lines `:actual-start` through `:actual-end`
+in the input document with the formatted output returned in the
+string.
 
 ______
 ## :pair

@@ -1,16 +1,66 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.1 - 2021-11-18
+## 1.2.1 - 2022-01-26
 
 ### Added
 
+  * Added the capability to get "real" newlines (or whatever line endings
+  are used) in strings. `{:output {:real-le? true :real-le-length 20}}`
+  controls this, with "real" line endings replacing the escaped versions
+  (e.g "\n") in strings whose length is equal or greater than 
+  `:real-le-length`, which defaults to 20.  This should __only__ be used 
+  when creating output as opposed to formatting code.  Issue #38.
+
+  * Added a new capability to recover the adjusted range and formatted
+  output for just that range when using `{:input {:range {:start n
+  :end m}}}`.  If you also include `{:output {:range? true}}` the
+  return is a vector with: `[{:range {:actual-start s :actual-end
+  t}} "..."]` where the "..." is the formatted output for the range
+  of `:actual-start` to `:actual-end` in the string (file) input
+  to `zprint-file-str`. This is important because zprint will always
+  expand the given `:start` and `:end` to encompass entire top-level
+  expressions.  Using `{:output {:range? true}}` allows you to
+  recover the expanded range that zprint used, as well as just the
+  formatted lines for that range.  If the `:actual-start` and
+  `:actual-end` are both -1, that signals that no formatting was
+  performed, the string (the second thing in the vector) is replaced
+  by `nil`.  This will occur when the input range included only
+  lines for which no formatting was possible, typically blank lines
+  or lines with only comments.  The purpose of this capability is
+  to ease integration of zprint into an extension for an editor or
+  an IDE.  You can pass in the start and end without regard to
+  whether or not they encompass entire top level expressions, and
+  zprint will figure out how to expand them to cover the minimally
+  correct number of lines beyond the start and end.  Using `{:output
+  {:range? true}}`, zprint will tell you the lines that it figured
+  out, and will return just the formatted output related to those
+  lines.  Note that the `:actual-start` and `:actual-end` refer to
+  lines in the input file (string).  The number of lines encompassed
+  by the `:actual-start` and `:actual-end` will, in general, not
+  be the same as the number of lines in the string returned as the
+  formatted output.  It will certainly be related, but may be larger,
+  the same, or smaller.  Were you to use this capability to integrate
+  with an editor or IDE, you would replace the lines `:actual-start`
+  through `:actual-end` in the input document with the formatted
+  output returned in the string.
   
 ### Changed
 
+  * Enhanced the processing for the experimental `:rod` ("Rules of
+  Defn") style to allow similar processing except for not having
+  blank lines between multiple arities in a function.  New style:
+  `:rod-no-ma-nl`, which stands for "rules-of-defn no multi-arity
+  newline".  Issue #170.
 
 ### Fixed
 
+  * Fixed problem in formatting of `are` expressions. There were two
+  problems, where some expressions wouldn't format with the correct number
+  of columns, and the columns were usually too wide as well.  Issue #212.
+
+  * Fixed issue where the local `abs` function conflicted with the new
+  `abs` function added to Clojure 1.11.0-alpha4.  Issue #215.
 
 ## 1.2.0 - 2021-11-18
 

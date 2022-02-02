@@ -44,7 +44,7 @@
   ; without are-options
   ([options len sexpr] (rodguide {} options len sexpr))
   ([rod-options options len sexpr]
-   (when (= (str (first sexpr)) "defn")
+   (when (or (= (str (first sexpr)) "defn") (= (str (first sexpr)) "defn-"))
      (let [multi-arity-nl? (get rod-options :multi-arity-nl? true)
            docstring? (string? (nth sexpr 2))
            rest (nthnext sexpr (if docstring? 3 2))

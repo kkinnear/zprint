@@ -902,14 +902,21 @@
             :fn-map {"defn" [:guided
                              {:list {:option-fn (partial rodguide
                                                          {:multi-arity-nl?
-                                                            true})}}]}},
+                                                            true})}}],
+                     "defn-" [:guided
+                              {:list {:option-fn (partial rodguide
+                                                          {:multi-arity-nl?
+                                                             true})}}]}},
       :rod-no-ma-nl
         {:doc
            "Rules of defn, experimental. No newlines between arities.  Very likely to change.",
-         :fn-map {"defn" [:guided
-                          {:list {:option-fn (partial rodguide
-                                                      {:multi-arity-nl?
-                                                         false})}}]}},
+         :fn-map
+           {"defn" [:guided
+                    {:list {:option-fn (partial rodguide
+                                                {:multi-arity-nl? false})}}],
+            "defn-" [:guided
+                     {:list {:option-fn (partial rodguide
+                                                 {:multi-arity-nl? false})}}]}},
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
@@ -1427,78 +1434,98 @@
 ;;
 
 (declare apply-style)
+(declare internal-config)
 
 (defn apply-one-style
-  "Take a [doc-string new-map [existing-map doc-map error-str] style-name]
-  and produce a new [existing-map doc-map error-str] from the style defined
-  in the new-map if it exists, or the existing-map if it doesn't."
+  "Take a [doc-string new-map styles-applied [existing-map doc-map
+  error-str] style-name] and produce a new [existing-map doc-map
+  error-str] from the style defined in the new-map if it exists,
+  or the existing-map if it doesn't."
   [doc-string new-map [existing-map doc-map error-str] style-name]
   (if (or (= style-name :not-specified) (nil? style-name))
     [existing-map doc-map nil]
     (let [style-map (if (= style-name :default)
                       (get-default-options)
                       (or (get-in new-map [:style-map style-name])
-                          (get-in existing-map [:style-map style-name])))]
+                          (get-in existing-map [:style-map style-name])))
+          ; Remove the :doc key from the style, or it will end up in
+          ; the top level options map.
+          style-map (dissoc style-map :doc)
+          ; Note that styles-applied is initialized in config-and-validate
+          ; to be [].
+          existing-map (assoc existing-map
+                         :styles-applied (conj (:styles-applied existing-map)
+                                               style-name))]
       (if style-map
-        (let [updated-map (merge-deep existing-map style-map)
-              updated-map (assoc updated-map
-                            :styles-applied (conj
-                                              (if (:styles-applied updated-map)
-                                                (:styles-applied updated-map)
-                                                [])
-                                              style-name))
-              doc-map (when doc-map
-                        (assoc doc-map
-                          :styles-applied (:styles-applied updated-map)))]
-          [updated-map
-           (when doc-map
-             (diff-deep-ks (str doc-string " specified :style " style-name)
-                           doc-map
-                           (key-seq style-map)
-                           updated-map)) nil])
-        [existing-map doc-map (str "Style '" style-name "' not found!")]))))
+        (let [[updated-map new-doc-map error-vec]
+                (internal-config
+                  (str doc-string " specified :style " style-name)
+                  doc-map
+                  existing-map
+                  style-map)
+              new-doc-map (when new-doc-map
+                            (assoc new-doc-map
+                              :styles-applied (:styles-applied updated-map)))]
+          [updated-map new-doc-map
+           (when (or error-str error-vec)
+             (str error-str (when error-str ",") error-vec))])
+        [existing-map doc-map
+         (str error-str
+              (when error-str ",")
+              (str "Style '" style-name "' not found!"))]))))
 
 (defn apply-style
   "Given an existing-map and a new-map, if the new-map specifies a
   style, apply it if it exists, looking first in the new-map for the style
   and then in the existing-map for the style.  Otherwise do nothing. 
+  Use config-and-validate to actually apply the style, which in turn
+  means that we need to pass down styles-applied through that routine.
   Return [updated-map new-doc-map error-string]"
-  ([doc-string doc-map existing-map new-map styles-applied]
-   (let [style-name (get new-map :style :not-specified)]
-     (if (or (= style-name :not-specified) (nil? style-name))
-       [existing-map doc-map nil]
-       (if (some #(= % style-name) styles-applied)
-         ; We have already done this style
-         (throw (#?(:clj Exception.
-                    :cljs js/Error.)
-                 (str "Circular style error: style " style-name
-                      " has already been applied: " styles-applied)))
-         (let [[updated-map new-doc-map error-string]
-                 (if (not (coll? style-name))
-                   (apply-one-style doc-string
-                                    new-map
-                                    [existing-map doc-map nil]
-                                    style-name)
-                   (reduce (partial apply-one-style doc-string new-map)
-                     [existing-map doc-map nil]
-                     style-name))
-               another-style-name (get updated-map :style :not-specified)]
-           ; Do we have a style invocation in the updated-map?
-           (if (or (= another-style-name :not-specified)
-                   (nil? another-style-name))
-             [updated-map new-doc-map error-string]
-             ; Yes, we have a style invocation in the updated-map, so Move
-             ; the style invocation from the updated-map to the new-map, and
-             ; keep at it until we don't have a style in the updated-map
-             (recur doc-string
-                    new-doc-map
-                    (dissoc updated-map :style)
-                    (assoc new-map :style another-style-name)
-                    (reduce conj
-                      styles-applied
-                      (if (keyword? style-name) [style-name] style-name)))))))))
-  ([doc-string doc-map existing-map new-map]
-   (apply-style doc-string doc-map existing-map new-map [])))
+  [doc-string doc-map existing-map new-map]
+  (let [style-name (get new-map :style :not-specified)]
+    (if (or (= style-name :not-specified) (nil? style-name))
+      [existing-map doc-map nil]
+      (if (some #(= % style-name)
+                (:styles-applied existing-map)
+                #_styles-applied)
+        ; We have already done this style
+        [existing-map doc-map
+         (str "Circular style error: style '"
+              style-name
+              "' has already been applied in this call."
+              "  Styles already applied: "
+              (:styles-applied existing-map))]
+        (let [[updated-map new-doc-map error-string]
+                (if (not (coll? style-name))
+                  (apply-one-style doc-string
+                                   new-map
+                                   [existing-map doc-map nil]
+                                   style-name)
+                  (reduce (partial apply-one-style doc-string new-map)
+                    [existing-map doc-map nil]
+                    style-name))
+              another-style-name (get updated-map :style :not-specified)
+              another-style? (not (or (= another-style-name :not-specified)
+                                      (nil? another-style-name)))
+              another-style-error
+                (when another-style?
+                  (str "Internal Error: While processing style: '"
+                       style-name
+                       "' found that"
+                       " this style: '"
+                       another-style-name
+                       "' showed up in :style,"
+                       " Styles already applied: " (:styles-already-applied
+                                                     existing-map)
+                       " Please submit an issue on GitHub regarding"
+                         " this problem!"))]
+          (if another-style?
+            ; We found another style in the :style of the updated map!
+            [updated-map new-doc-map
+             (if error-string
+               (str error-string "," another-style-error)
+               another-style-error)]
+            [updated-map new-doc-map error-string]))))))
 
 ;;
 ;; # File Access
@@ -1821,11 +1848,54 @@
            (:next-inner result))
     result))
 
+(defn internal-config
+  "Do the internals of config-and-validate.  This is also what is
+  called when styles are being processed.  Returns [updated-map
+  new-doc-map error-str]"
+  [doc-string doc-map existing-map new-map]
+  (if (not (empty? new-map))
+    (let [; remove set elements, and then remove the :remove key too
+          [existing-map new-map new-doc-map]
+            (perform-remove doc-string doc-map existing-map new-map)
+          ; Before we do styles, if any, we need to make sure that the
+          ; style map has all of the data, including the new style-map
+          ; entries.
+          existing-map (let [new-style-map (:style-map new-map)]
+                         (if (nil? new-style-map)
+                           existing-map
+                           (merge-deep existing-map
+                                       {:style-map (:style-map new-map)})))
+          ; do style early, so other things in new-map can override it
+          [updated-map new-doc-map style-errors]
+            (apply-style doc-string new-doc-map existing-map new-map)
+          ; Now that we've done the style, remove it so that the doc-map
+          ; doesn't get overridden
+          new-map (dissoc new-map :style)
+          ; Do the actual merge of the majority of the data
+          new-updated-map (merge-deep updated-map new-map)
+          ; before we update the map, see if we have anything to remember
+          ; in :next-inner-restore
+          new-updated-map (if (:next-inner-restore new-updated-map)
+                            (process-restore new-updated-map existing-map)
+                            new-updated-map)
+          new-doc-map (diff-deep-ks doc-string
+                                    new-doc-map
+                                    (key-seq (dissoc new-map
+                                                     :next-inner-restore))
+                                    new-updated-map)]
+      [(add-calculated-options new-updated-map) new-doc-map style-errors])
+    ; if we didn't get a map, just return something with no changes
+    [existing-map doc-map nil]))
+
 (defn config-and-validate
-  "Validate a new map and merge it correctly into the existing options map.
-  You MUST do this whenever you have an options map which is to be merged 
-  into an existing options map, since a simple merge-deep will miss things 
-  like styles. Returns [updated-map new-doc-map error-vec]
+  "Validate a new map and merge it correctly into the existing
+  options map.  You MUST do this whenever you have an options map
+  which is to be merged into an existing options map, since a simple
+  merge-deep will miss things like styles. Returns [updated-map
+  new-doc-map error-str] It is important that this routine not throw
+  exceptions on errors, but rather return them in the error-str.
+  Various routines that call this one will wrap any errors in a
+  larger context to make the response to the user more useful.
   Depends on existing-map to be the full, current options map!"
   ([doc-string doc-map existing-map new-map validate?]
    #?(:clj (do #_(println "\n\nconfig-and-validate: "
@@ -1842,36 +1912,16 @@
                 :cljs nil)
            new-map (coerce-to-boolean new-map)
            errors (when validate? (validate-options new-map doc-string))
-           ; remove set elements, and then remove the :remove key too
-           [existing-map new-map new-doc-map]
-             (perform-remove doc-string doc-map existing-map new-map)
-           ; do style early, so other things in new-map can override it
-           [updated-map new-doc-map style-errors]
-             (apply-style doc-string new-doc-map existing-map new-map)
-           ; Now that we've done the style, remove it so that the doc-map
-           ; doesn't get overridden
-           new-map (dissoc new-map :style)
-           errors (if style-errors (str errors " " style-errors) errors)
-           #_(println "config-and-validate: new-map:" new-map
-                      "updated-map:" (if (vector? updated-map)
-                                       updated-map
-                                       "updated-map-not-vector"))
-           new-updated-map (merge-deep updated-map new-map)
-           ; before we update the map, see if we have anything to remember
-           ; in :next-inner-restore
-           new-updated-map (if (:next-inner-restore new-updated-map)
-                             (process-restore new-updated-map existing-map)
-                             new-updated-map)
-           #_(when (vector? new-updated-map)
-               (println "config-and-validate: after next-inner-restore new-map:"
-                          new-map
-                        "new-updated-map:" new-updated-map))
-           new-doc-map (diff-deep-ks doc-string
-                                     new-doc-map
-                                     (key-seq (dissoc new-map
-                                                      :next-inner-restore))
-                                     new-updated-map)]
-       [(add-calculated-options new-updated-map) new-doc-map errors])
+           ; The meat of this routine is internal-config
+           [updated-map new-doc-map internal-errors]
+             (internal-config doc-string
+                              doc-map
+                              ; Remove previous :styles-applied, if any
+                              ; and start fresh.
+                              (assoc existing-map :styles-applied [])
+                              new-map)]
+       [updated-map new-doc-map
+        (if internal-errors (str errors " " internal-errors) errors)])
      ; if we didn't get a map, just return something with no changes
      [existing-map doc-map nil]))
   ([doc-string doc-map existing-map new-map]

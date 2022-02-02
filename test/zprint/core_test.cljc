@@ -708,47 +708,47 @@
       "stuff"
       {:tab {:expand? false}}))
 
-;;
-;; Issue #38 -- output line endings for real, not just escape characters
-;;
+  ;;
+  ;; Issue #38 -- output line endings for real, not just escape characters
+  ;;
 
-(def i38b
-  "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\\r\\\\n\" \"\\r\\n\")\n        (clojure.string/replace \"\\\\r\" \"\\r\")))\n")
-
-
-
-(expect
-  "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\n\" \"\n\")\n        (clojure.string/replace \"\\\r\\\n\" \"\r\n\")\n        (clojure.string/replace \"\\\r\" \"\r\")))"
-  (zprint-str i38b
-              {:parse-string? true,
-               :output {:real-le? true, :real-le-length 4}}))
+  (def i38b
+    "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\\r\\\\n\" \"\\r\\n\")\n        (clojure.string/replace \"\\\\r\" \"\\r\")))\n")
 
 
-(expect
-  "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\r\\\n\" \"\r\n\")\n        (clojure.string/replace \"\\\r\" \"\\r\")))"
-  (zprint-str i38b
-              {:parse-string? true,
-               :output {:real-le? true, :real-le-length 5}}))
+
+  (expect
+    "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\n\" \"\n\")\n        (clojure.string/replace \"\\\r\\\n\" \"\r\n\")\n        (clojure.string/replace \"\\\r\" \"\r\")))"
+    (zprint-str i38b
+                {:parse-string? true,
+                 :output {:real-le? true, :real-le-length 4}}))
 
 
-(expect
-  "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\r\\\n\" \"\r\n\")\n        (clojure.string/replace \"\\\\r\" \"\\r\")))"
-  (zprint-str i38b
-              {:parse-string? true,
-               :output {:real-le? true, :real-le-length 6}}))
-
-(expect
-  "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\r\\\n\" \"\\r\\n\")\n        (clojure.string/replace \"\\\\r\" \"\\r\")))"
-  (zprint-str i38b
-              {:parse-string? true,
-               :output {:real-le? true, :real-le-length 8}}))
+  (expect
+    "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\r\\\n\" \"\r\n\")\n        (clojure.string/replace \"\\\r\" \"\\r\")))"
+    (zprint-str i38b
+                {:parse-string? true,
+                 :output {:real-le? true, :real-le-length 5}}))
 
 
-(expect
-  "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\\r\\\\n\" \"\\r\\n\")\n        (clojure.string/replace \"\\\\r\" \"\\r\")))"
-  (zprint-str i38b
-              {:parse-string? true,
-               :output {:real-le? true, :real-le-length 9}}))
+  (expect
+    "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\r\\\n\" \"\r\n\")\n        (clojure.string/replace \"\\\\r\" \"\\r\")))"
+    (zprint-str i38b
+                {:parse-string? true,
+                 :output {:real-le? true, :real-le-length 6}}))
+
+  (expect
+    "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\r\\\n\" \"\\r\\n\")\n        (clojure.string/replace \"\\\\r\" \"\\r\")))"
+    (zprint-str i38b
+                {:parse-string? true,
+                 :output {:real-le? true, :real-le-length 8}}))
+
+
+  (expect
+    "(assoc element\n  0 (-> s\n        (clojure.string/replace \"\\\\n\" \"\\n\")\n        (clojure.string/replace \"\\\\r\\\\n\" \"\\r\\n\")\n        (clojure.string/replace \"\\\\r\" \"\\r\")))"
+    (zprint-str i38b
+                {:parse-string? true,
+                 :output {:real-le? true, :real-le-length 9}}))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

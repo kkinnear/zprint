@@ -836,6 +836,33 @@
        :fn-map {"defn" [:arg1-body
                         {:map {:key-order [:c], :sort-in-code? true}}]}}))
 
+  ;
+  ; Define one new complex style and then apply two complex styles
+  ;
+  ; Issue #217
+
+  (expect
+    (more-of options
+      [:flow {:style [:jimportguide :ij-var]}] (get (:fn-map options) ":import")
+      [:flow {:style [:jrequireguide :rj-var]}] (get (:fn-map options)
+                                                     ":require")
+      [:flow {:style [:jrequiremacrosguide :rjm-var]}] (get (:fn-map options)
+                                                            ":require-macros")
+      0 (:indent (:map options))
+      true (:nl-separator? (:map options))
+      {:doc "style :a", :style [:map-nl :keyword-respect-nl]} (:a (:style-map
+                                                                    options)))
+    (with-redefs [zprint.config/configured-options
+                    (atom zprint.config/default-zprint-options)
+                  zprint.config/explained-options
+                    (atom zprint.config/default-zprint-options)
+                  zprint.config/explained-sequence (atom 1)]
+      (set-options! {:style [:a :ns-justify],
+                     :style-map {:a {:doc "style :a",
+                                     :style [:map-nl :keyword-respect-nl]}}})
+      (get-options)))
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

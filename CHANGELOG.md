@@ -1,15 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.2 - 2022-01-26
+## 1.2.2 - 2022-02-11
 
 ### Added
 
+  * Added `"defn-"` to style `:rod` (which previously modified only
+  `"defn"`).
   
 ### Changed
 
 
 ### Fixed
+
+  * Fixed problem with complex `:style` configurations, where styles
+  specified in a vector (in order to all be used) didn't configure
+  properly if they also specified multiple styles if a vector.
+  Issue #217.
 
 
 ## 1.2.1 - 2022-01-26

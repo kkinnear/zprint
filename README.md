@@ -22,7 +22,7 @@ a number of major source code formattng approaches.
  * A number of new styles: `:ns-justify`, which will nicely format `ns` macros.
  `:quote-wrap` which will cause a quoted list to wrap, and not format each item
  running down the page, to mention a few.
- * A more nuanced approach to justification, based on the variance of the lengths of the left-hand elements in a binding vector, map, or cond.  If the variance is too great, up to two pairs are left out of the justification.  If that doesn't bring the variance into line, none of the pairs aren't justified.  `{:style :justified}` to try it out!
+ * A more nuanced approach to justification, based on the variance of the lengths of the left-hand elements in a binding vector, map, or cond.  If the variance is too great, up to two pairs are left out of the justification.  If that doesn't bring the variance into line, none of the pairs are justified.  `{:style :justified}` to try it out!
  * The `are` macro is now formatted readably by default.
  * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
  * [Check formatting of files without altering them](./doc/using/files.md), using `-c` or `--check`: `$ zprint -c *.clj`.

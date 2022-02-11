@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 1.2.3 - 2022-02-11
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## 1.2.2 - 2022-02-11
 
 ### Added
@@ -8,9 +16,6 @@ All notable changes to this project will be documented in this file.
   * Added `"defn-"` to style `:rod` (which previously modified only
   `"defn"`).
   
-### Changed
-
-
 ### Fixed
 
   * Fixed problem with complex `:style` configurations, where styles

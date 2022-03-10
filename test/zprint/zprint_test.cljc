@@ -6533,6 +6533,42 @@ ser/collect-vars-acc %1 %2) )))"
       ""
       {}))
 
+;;
+;; Issue #224 -- print just the map from metadata on the same line
+;; as the def.
+;;
+
+(def i224a
+  "(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n")
+
+(expect
+  "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+  (zprint-str i224a {:parse-string? true}))
+
+(expect
+  "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+  (zprint-str i224a {:parse-string? true, :meta {:split? true}}))
+
+(expect
+"(deftest ^{:database true,\n           ::test.hooks/system-init-keys system-keys,\n           :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str "(deftest ^{:database true \n ::test.hooks/system-init-keys \n system-keys :another-map-key :another-map-value}\n\n         websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))\n" {:parse-string? true  :meta {:split? true}}))
+
+(expect
+"(deftest ^{:database true,\n           ::test.hooks/system-init-keys\n             system-keys,\n           :another-map-key :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))"
+(zprint-str "(deftest ^{:database true \n ::test.hooks/system-init-keys \n system-keys :another-map-key :another-map-value}\n\n         websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))\n" {:parse-string? true  :meta {:split? true} :style :respect-nl}))
+
+(def i224c
+  "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n")
+
+(expect
+  "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+  (zprint-str i224c {:parse-string? true, :meta {:split? false}}))
+
+(expect
+  "(deftest ^{:database true}\n  websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+  (zprint-str i224c {:parse-string? true, :meta {:split? true}}))
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

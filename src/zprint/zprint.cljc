@@ -3038,6 +3038,28 @@
     (dbg-pr options "fzprint-get-zloc-seq:" (map zstring zloc-seq))
     zloc-seq))
 
+(declare drop-thru-first-non-whitespace)
+
+(defn extract-meta
+  "Given a zloc, if it is a zmeta?, then add everything other than the map
+  to the output."
+  [caller options out-vec element]
+  (if (zmeta? element)
+    (apply conj
+      (conj out-vec element)
+      (drop-thru-first-non-whitespace 
+        (fzprint-get-zloc-seq caller options element)))
+    (conj out-vec element)))
+
+(defn fzprint-split-meta-in-seq
+  "Given the results from fzprint-get-zloc-seq, if any of the elements are
+  zmeta?, then if :meta :split? true, make the second element of the meta
+  an independent element in the outer seq.  Returns a zloc-seq."
+  [caller options zloc-seq]
+  (if (:split? (:meta options))
+    (reduce (partial extract-meta caller options) [] zloc-seq)
+    zloc-seq))
+
 (defn newline-or-comment?
   "Given an zloc, is it a newline or a comment?"
   [zloc]
@@ -3159,7 +3181,8 @@
   [caller options ind zloc]
   (if-not (= (:ztype options) :zipper)
     [:noseq (first zloc) 0 zloc]
-    (let [zloc-seq (fzprint-get-zloc-seq caller options zloc)]
+    (let [zloc-seq (fzprint-get-zloc-seq caller options zloc)
+          zloc-seq (fzprint-split-meta-in-seq caller options zloc-seq)]
       ; Start at -1 so that when fzprint-up-to-next-zloc skips, it goes
       ; to zero.
       (fzprint-up-to-next-zloc caller options ind [nil nil -1 zloc-seq]))))
@@ -3888,6 +3911,8 @@
         ; out above.
         fn-style (or (:fn-style new-options) fn-style)
         guide (or (:guide options) (guide-debug caller options))
+	; Remove :guide and any forced :fn-style from options so they only
+	; happen once!
         options (dissoc options :guide :fn-style)
         #_(println "\nguide after:" guide "\nguide options:" (:guide options))
         _ (when guide (dbg-pr options "fzprint-list* guide:" guide))
@@ -7073,6 +7098,26 @@
                                          (into {} zloc))
                        r-str-vec)))))
 
+(defn drop-thru-first-non-whitespace
+  "Drop elements of the sequence up to and including the first element
+  that is not zwhitespace?"
+  [coll]
+  (let [no-whitespace (drop-while zwhitespace? coll)]
+    (drop 1 no-whitespace)))
+
+(defn take-thru-first-non-whitespace
+  "Take all elements of the sequence up to and including the first element
+  that is not zwhitespace?"
+  [coll]
+  (loop [coll coll
+         out []]
+    (if coll
+      (let [element (first coll)]
+        (if (not (zwhitespace? element))
+          (conj out element)
+          (recur (next coll) (conj out element))))
+      out)))
+
 (defn fzprint-meta
   "Print the two items in a meta node.  Different because it doesn't print
   a single collection, so it doesn't do any indent or rightmost.  It also
@@ -7083,13 +7128,21 @@
         r-str ""
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options ind zloc r-str)
-        zloc-seq (fzprint-get-zloc-seq :list options zloc)]
+	; i224
+        zloc-seq (fzprint-get-zloc-seq :list options zloc)
+	zloc-seq 
+          (if (:split? (:meta options))
+	    ; If we are splitting the meta, we already pulled out 
+	    ; everything but the map into the outer zloc-seq
+	    ; in fzprint-split-meta-in-seq prior to calling this routine.
+	    (take-thru-first-non-whitespace zloc-seq)
+	    zloc-seq)]
     (dbg-pr options "fzprint-meta: zloc:" (zstring zloc))
     (concat-no-nil l-str-vec
                    (if (:indent-only? (:list options))
-                     ; Since l-str isn't a "pair" and shouldn't be considered in
-                     ; the
-                     ; indent, we don't tell fzprint-indent abouit.
+                     ; Since l-str isn't a "pair" and shouldn't be 
+		     ; considered in the indent, we don't tell 
+		     ; fzprint-indent about it.
                      (fzprint-indent :vector
                                      l-str
                                      ""
@@ -7105,9 +7158,8 @@
                        options
                        ; no indent for second line, as the leading ^ is
                        ; not a normal collection beginning
-                       ; Generate a separate indent for the first thing, and use
-                       ; ind
-                       ; for the remaining.
+                       ; Generate a separate indent for the first thing, 
+		       ; and use ind for the remaining.
                        (apply vector
                          (+ (count l-str) ind)
                          (repeat (dec (count zloc-seq)) ind))

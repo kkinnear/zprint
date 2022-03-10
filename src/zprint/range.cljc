@@ -1,6 +1,7 @@
 (ns ^:no-doc zprint.range
   (:require [clojure.string :as s]
             [zprint.util :refer [local-abs]]
+	    [zprint.config]
             [rewrite-clj.parser :as p]
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z]))
@@ -306,4 +307,50 @@
   (let [before-str (clojure.string/join "\n" before-lines)
         after-str (clojure.string/join "\n" after-lines)]
     (str before-str range after-str)))
+
+;;
+;; # Comment API Selection 
+;;
+
+(defn comment-api?
+  "Predicate to detect !zprint comments."
+  [s]
+  (when (clojure.string/starts-with? s ";")
+    (let [s-onesemi (clojure.string/replace s #"^;+" ";")]
+      (clojure.string/starts-with? s ";!zprint "))))
+
+(defn get-comment-api
+  "Given the lines from split-out-range, scan through the before-lines
+  and all of the ;!zprint comment API lines and return all of them
+  unchanged. Don't look at the option maps, so there can't be errors.
+  Returns [lines]."
+  [before-lines]
+  (filterv comment-api? before-lines))
+
+(defn wrap-comment-api
+  "When the previous comment-api lines are being processed by process-form
+  it has to know to ignore {:format :next} {:format :skip}.  It has to know
+  that these are previous comment-api lines, and the way it will know is
+  that we will prepend a ;!zprint {:!zprint-elide-skip-next? true}
+  and we will append a ;!zprint {:!zprint-elide-skip-next? false} to these
+  lines -- but only if there are any."
+  [before-lines]
+  (let [comment-api-lines (get-comment-api before-lines)]
+    (if (not (empty? comment-api-lines))
+      (into []
+            (concat [";!zprint {:!zprint-elide-skip-next? true}"]
+                    comment-api-lines
+                    [";!zprint {:!zprint-elide-skip-next? false}"]))
+      [])))
+
+(defn drop-lines
+  "Given a count of lines to drop and a string from which to drop them,
+  return a new string with this many lines less. Assumes that we are
+  working with canonical line endings in s, that is all line endings
+  are \n in s."
+  [drop-count s]
+  (let [lines (clojure.string/split s #"\n" -1)
+        remaining-lines (drop drop-count lines)
+        out-str (clojure.string/join "\n" remaining-lines)]
+    out-str))
 

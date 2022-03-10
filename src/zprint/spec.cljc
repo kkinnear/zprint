@@ -171,6 +171,7 @@
 (s/def ::constant-pair? ::boolean)
 (s/def ::constant-pair-min number?)
 (s/def ::constant-pair-fn (s/nilable fn?))
+(s/def ::continue-after-!zprint-error? ::boolean)
 (s/def ::count? ::boolean)
 (s/def ::directory (s/nilable string?))
 (s/def ::docstring? ::boolean)
@@ -232,7 +233,8 @@
      :cljs false?))
 (s/def ::path (s/coll-of number? :kind sequential?))
 (s/def ::paths ::path-seq)
-(s/def ::range (only-keys :opt-un [::start ::end]))
+(s/def ::range (only-keys :opt-un [::start ::end ::use-previous-!zprint?
+                                   ::continue-after-!zprint-error?]))
 (s/def ::range? ::boolean)
 (s/def ::ignore-if-parse-fails (s/nilable (s/coll-of ::ignore-args :kind set?)))
 (s/def ::key-no-sort (s/nilable (s/coll-of ::ignore-args :kind set?)))
@@ -256,13 +258,14 @@
 (s/def ::unlift-ns? ::boolean)
 (s/def ::lift-ns-in-code? ::boolean)
 (s/def ::to-string? ::boolean)
+(s/def ::use-previous-!zprint? ::boolean)
 (s/def ::value zany?)
 (s/def ::wrap? ::boolean)
 (s/def ::wrap-after-multi? ::boolean)
 (s/def ::wrap-coll? ::boolean)
 (s/def ::wrap-multi? ::boolean)
 (s/def ::zloc? ::boolean)
-
+(s/def ::!zprint-elide-skip-next? ::boolean)
 
 ;;
 ;; # Elements of the top level options map
@@ -350,6 +353,7 @@
 (s/def ::max-hang-depth number?)
 (s/def ::max-hang-span number?)
 (s/def ::max-length ::number-or-vector-of-numbers)
+(s/def ::meta (only-keys :opt-un [::split?]))
 (s/def ::no-justify (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
@@ -401,6 +405,7 @@
                       ::wrap?]))
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
+(s/def ::split? ::boolean)
 (s/def ::style ::style-value)
 (s/def ::styles-applied (s/nilable ::vec-or-list-of-keyword))
 (s/def ::style-map (s/nilable (s/map-of keyword? ::options)))
@@ -443,7 +448,8 @@
              ::style-map ::tab ::test-for-eol-blanks? ::trim-comments? ::tuning
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
-             ::force-validate? ::doc ::next-inner-restore ::fn-style]))
+             ::force-validate? ::doc ::next-inner-restore ::fn-style
+	     ::!zprint-elide-skip-next? ::meta]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

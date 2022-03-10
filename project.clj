@@ -5,7 +5,7 @@
             :url "https://opensource.org/licenses/MIT",
             :key "mit",
             :year 2015}
-  :plugins [[lein-doo "0.1.10"] [lein-codox "0.10.3"] [lein-zprint "1.2.0"]]
+  :plugins [[lein-doo "0.1.10"] [lein-codox "0.10.3"] [lein-zprint "1.2.3"]]
   :profiles {:repl {:dependencies [#_[com.taoensso/tufte "1.1.1"]
                                    #_[org.clojure/clojurescript "1.9.946"]
                                    [better-cond "1.0.1"]

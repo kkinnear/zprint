@@ -62,6 +62,7 @@
   [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
    :dbg-ge :file? :spaces? :process-bang-zprint? :trim-comments? :zipper?
    :indent :remove :return-cvec? :test-for-eol-blanks?
+   :!zprint-elide-skip-next?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma? :key-value]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
@@ -475,7 +476,10 @@
                :uneval :magenta,
                :user-fn :black},
    :comment
-     {:count? false, :wrap? true, :inline? true, :inline-align-style :aligned},
+     {:count? false, 
+      :wrap? true, 
+      :inline? true, 
+      :inline-align-style :aligned},
    :configured? false,
    :cwd-zprintrc? false,
    :dbg-ge nil,
@@ -509,7 +513,10 @@
    :future {:object? false},
    ; This is used for {:parse {:left-space :keep}}
    :indent 0,
-   :input {:range {:start nil, :end nil}},
+   :input {:range {:start nil, 
+                   :end nil
+		   :use-previous-!zprint? false
+		   :continue-after-!zprint-error? false}},
    ; When you change :list, you should also change :vector-fn, since it
    ; becomes the current :list when
    :list {:constant-pair-fn nil,
@@ -585,6 +592,7 @@
    :max-hang-depth 300,
    :max-hang-span 4,
    :max-length 1000000,
+   :meta {:split? false}
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
    :output {:focus {:zloc? false, :surround nil},
@@ -1003,7 +1011,8 @@
                :wrap-multi? true},
    :width 80,
    :url {:cache-dir "urlcache", :cache-secs 300},
-   :zipper? false})
+   :zipper? false
+   :!zprint-elide-skip-next? false})
 
 ;; Returns nil for all of the colors
 (def no-color-map
@@ -2021,6 +2030,34 @@
                                cwd-rc-errors))))
         all-errors (if (empty? all-errors) nil all-errors)]
     [updated-map new-doc-map all-errors]))
+
+
+;;
+;; ## Parse a comment to see if it has an options map in it
+;;
+
+(defn get-options-from-comment
+  "s is string containing a comment.  See if it starts out ;!zprint
+  (with any number of ';' allowed), and if it does, attempt to parse
+  it as an options-map.  Return [options error-str] with only options
+  populated if it works, and only error-str if it doesn't.  Can't use
+  config-and-validate here as we don't have anything to merge into.
+  Use sci/eval-string to create sandboxed functions if any exist in
+  the options map."
+  [zprint-num s]
+  (let [s-onesemi (clojure.string/replace s #"^;+" ";")
+        comment-split (clojure.string/split s-onesemi #"^;!zprint ")]
+    (when-let [possible-options (second comment-split)]
+      (try
+        [(sci-load-string possible-options) nil]
+        (catch #?(:clj Exception
+                  :cljs :default)
+          e
+          ; If it doesn't work, an error-str!
+          [nil
+           (str "Unable to create zprint options-map from: '" possible-options
+                "' found in !zprint directive number: " zprint-num
+                " because: " e)])))))
 
 ;;
 ;; # Help

@@ -56,6 +56,7 @@ the a variety of major source code formattng approaches.
       * [:future](#agent-atom-delay-fn-future-promise)
       * [:list](#list)
       * [:map](#map)
+      * [:meta](#meta)
       * [:object](#object)
       * [:pair](#pair)
       * [:pair-fn](#pair-fn)
@@ -353,6 +354,7 @@ the way that zprint outputs your code or data.   If you do, read on...
   * [:future](#agent-atom-delay-fn-future-promise)
   * [:list](#list)
   * [:map](#map)
+  * [:meta](#meta)
   * [:object](#object)
   * [:pair](#pair)
   * [:pair-fn](#pair-fn)
@@ -416,6 +418,7 @@ of the options map looks like this:
  :map {...},
  :max-depth 1000,
  :max-length 1000,
+ :meta {...},
  :object {...},
  :pair {...},
  :pair-fn {...},
@@ -3185,6 +3188,22 @@ used for that formatting -- which may well be different from the
 range specified on input, as discussed above,  as zprint will adjust 
 the range to emcompass
 entire top level expressions.  See `:output :range?` for details.
+
+##### :use-previous-!zprint? _false_
+
+When processing a range within file string, examine the lines of the file
+prior to the range and extract all of the previous `!zprint` lines, and
+interpret those that will affect the formatted range.  The point is to
+format the range in the same way as it would be formatted if the entire
+file were to be formatted.
+
+##### :continue-after-!zprint-error? _false_
+
+If an error is encountered in a `;!zprint` directive, continue processing
+instead of throwing an exception.  If `:output :range?` is true, the errors
+encountered will be returned in a vector which is the value of the
+key `:errors` in the map.
+
 _____
 ## :list
 
@@ -4230,6 +4249,25 @@ will be followed, of course with the constraint that existing
 newlines will be included wherever they appear.
 
 _____
+## :meta
+
+Affects how metadata elements are processed.
+
+#### :split? _false_
+
+Normally metadata elements are parsed and processed as a single
+unit with two elements, the map or keyword for the metadata, and
+the symbol to which the metadata is attached.  If you configure
+`:split?` to be `true`, these two elements are disconnected from
+each other, and they will be handled separately (just like they
+appear to be in the code).
+
+Thus, for a `def` with metadata in a map, the `:meta` is configured
+as `:split?`, then the map for the metadata will appear in the
+`:arg1-body` position, and the symbol will appear flowed below it.
+The same holds true for a keyword for the metadata.
+
+_____
 ## :object
 
 When elements are formatted with `:object?` `true`, then the output
@@ -4433,6 +4471,12 @@ Were you to use this capability to integrate with an editor or IDE,
 you would replace the lines `:actual-start` through `:actual-end`
 in the input document with the formatted output returned in the
 string.
+
+If `{:input {:range {:continue-after-!zprint-errors? true}}}` is 
+configured, any errors encountered during the processing of `;!zprint`
+directives are returned in a vector which is the value of the `:errors`
+key in the `:range` map returned when `{:output {:range? true}}`
+is configured.
 
 ______
 ## :pair

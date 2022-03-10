@@ -1480,7 +1480,7 @@
              [out-str error-vec] (process-multiple-forms pmf-options
                                              zprint-str-internal
                                              zprint-specifier
-                           
+                                             forms)
              _ (dbg-pr new-options "zprint-file-str: out-str:" out-str)
 	     error-vec (when (not (empty? error-vec)) error-vec)
 	     ; Get rid of any added comment-api lines on the front of

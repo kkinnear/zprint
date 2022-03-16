@@ -531,7 +531,8 @@
   ;; or a structure when we are already using it on the other thing.
   ;;
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (defn multi-test-fail
          "Test the multithreaded capabilities and that they fail when they are  
   supposed to.  This *should* fail!!!."
@@ -564,7 +565,8 @@
                               {:parse-string-all? true, :color? false})))
 
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "multi-test-fail got an exception as it was supposed to do"
          (try

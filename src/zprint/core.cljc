@@ -475,13 +475,10 @@
         [special-option new-options])))
 
 (defn ^:no-doc determine-options
-  "Take some internal-options and the & rest of a zprint/czprint
-  call and figure out the options and width and all of that. Note
-  that internal-options MUST NOT be a full options-map.  It needs
-  to be just the options that have been requested for this invocation.
-  Does auto-width if that is requested, and determines if there are
-  'special-options', which may short circuit the other options
-  processing. Returns [special-option actual-options]"
+  "Take some options from a zprint/czprint call and merge them into
+  the actual options. Note that rest-options MUST NOT be a full
+  options-map.  It needs to be just the options that have been
+  requested for this invocation.  Returns actual-options"
   [rest-options]
   #_(println "\n\ndetermine-options:" rest-options
              "\n\n" (zprint.config/get-stack-trace))

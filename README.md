@@ -16,7 +16,7 @@ a number of major source code formattng approaches.
  rewrite-cljs with it to create a unified Clojure parsing library.  This
  will fix a number of bugs that were parser related.
  * You can now format values in maps differently, based on the key with
- which a value is associated.  {:map {:key-value-options {key-1 options-map-1 
+ which a value is associated.  `{:map {:key-value-options {key-1 options-map-1 
  key-2 options-map-2 ...}}` lets you specify an options map to be used 
  for formatting the value of any specific key in any map.  
  * A number of new styles: `:ns-justify`, which will nicely format `ns` macros.

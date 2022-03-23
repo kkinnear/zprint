@@ -763,7 +763,7 @@
 
   (expect ["\n\n" ";;stuff\n" "(list :a :b)" "\n\n"]
           (zprint.zutil/zmap-all
-            (partial zprint-str-internal {:zipper? true, :color? false})
+            (partial zprint-str-internal (zprint.config/get-options) {:zipper? true, :color? false})
             (edn* (p/parse-string-all "\n\n;;stuff\n(list :a :b)\n\n"))))
 
   ;;

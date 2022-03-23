@@ -335,8 +335,9 @@
   [options coll]
   (let [coll-str (pr-str coll)]
     (try (str "\n"
-              (zprint-str-internal (merge-deep {:parse-string? true} options)
-                                   coll-str))
+              (zprint-str-internal (get-options) 
+	                           (merge-deep {:parse-string? true} options)
+                                    coll-str))
          ; If it doesn't work for some reason, just output the string
          (catch #?(:clj Exception
                    :cljs :default)
@@ -347,7 +348,7 @@
   "If we are running in zipper mode, do an internal version of zprint
   on a structure."
   [options coll]
-  (try (str "\n" (zprint-str-internal options coll))
+  (try (str "\n" (zprint-str-internal (get-options) options coll))
        ; If it doesn't work for some reason, just output the string
        (catch #?(:clj Exception
                  :cljs :default)
@@ -433,7 +434,7 @@
   is requested, and determines if there are 'special-options', which
   may short circuit the other options processing. 
   Returns [special-option rest-options]"
-  [internal-options [width-or-options options]]
+  [full-options internal-options [width-or-options options]]
   #_(println "process-rest-options: internal-options:" internal-options
              "width-or-options:" width-or-options
              "options:" options)
@@ -448,7 +449,7 @@
                    width-or-options)
                 [nil width-or-options]
                 [width-or-options nil])
-            configure-errors (when-not (:configured? (get-options))
+            configure-errors (when-not (:configured? full-options)
                                (configure-all!))
             width (when (number? width-or-options) width-or-options)
             rest-options (cond (and width (map? options)) options
@@ -462,7 +463,7 @@
                          ; check both new-options and already
                          ; configured ones
                          (:auto-width? new-options
-                                       (:auto-width? (get-options))))
+                                       (:auto-width? full-options)))
                 (let [terminal-width-fn
                         #?(:bb nil
                            :clj (resolve 'table.width/detect-terminal-width)
@@ -479,15 +480,15 @@
   the actual options. Note that rest-options MUST NOT be a full
   options-map.  It needs to be just the options that have been
   requested for this invocation.  Returns actual-options"
-  [rest-options]
+  [full-options rest-options]
   #_(println "\n\ndetermine-options:" rest-options
              "\n\n" (zprint.config/get-stack-trace))
   (let [; Do what config-and-validate does, minus the doc-map
-        configure-errors (when-not (:configured? (get-options))
+        configure-errors (when-not (:configured? full-options)
                            (configure-all!))
         [actual-options _ errors] (config-and-validate "determine-options"
                                                        nil
-                                                       (get-options)
+                                                       full-options
                                                        rest-options)
         combined-errors
           (str (when configure-errors
@@ -696,6 +697,130 @@
   Special processing for :parse-string-all?, with
   not only a different code path, but a different default for 
   :parse {:interpose nil} to {:interpose true}"
+  [full-options internal-options coll & rest]
+  (let [[special-option rest-options] (process-rest-options full-options
+                                                            internal-options
+                                                            rest)]
+    #_(println "special-option:" special-option "rest-options:" rest-options)
+    (dbg rest-options "zprint-str-internal VVVVVVVVVVVVVVVV")
+    (when (range-specified? rest-options)
+        (throw (#?(:clj Exception.
+                   :cljs js/Error.)
+                (str "Only zprint-file-str supports these range operations: {:input {:range {:start ... :end ...} :output {:range? true}}!"))))
+    (if (:parse-string-all? rest-options)
+      (if (string? coll)
+        (let [[line-ending lines] (determine-ending-split-lines coll)
+              current-options (merge-deep full-options rest-options)
+              lines (if (:expand? (:tab current-options))
+                      (map (partial expand-tabs (:size (:tab current-options)))
+                        lines)
+                      lines)
+              ; Glue lines back together with \n line ending, to work around
+              ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
+              ; the rewrite-clj parse would "convert" them all to \n for us,
+              ; which is really what we need anyway.
+              ;
+              ; On the ohter hand, breaking it into lines to do the tab
+              ; expansion is considerably faster than just doing it on 
+	      ; the whole file when a tab is found.
+              coll (clojure.string/join "\n" lines)
+	      psa-options (parse-string-all-options rest-options)
+              [result error-vec] (process-multiple-forms 
+					       full-options
+	                                       psa-options
+	      #_(parse-string-all-options rest-options)
+                                             zprint-str-internal
+                                             ":parse-string-all? call"
+                                             (edn* (p/parse-string-all coll)))
+	      ; Note that we don't use error-vec, because it should never
+	      ; have anything in it.  Any errors should have been thrown
+	      ; already.
+              #_(def pmr-result result)
+              str-w-line-endings
+                (if (or (nil? line-ending) (= line-ending "\n"))
+                  result
+                  (clojure.string/replace result "\n" line-ending))]
+          (dbg rest-options "zprint-str-internal ^^^ pmf ^^^ pmf ^^^ pmf ^^^")
+          str-w-line-endings)
+        (throw (#?(:clj Exception.
+                   :cljs js/Error.)
+                (str ":parse-string-all? requires a string!"))))
+      (let [actual-options (determine-options full-options rest-options)
+            [cvec options line-ending]
+              (zprint* coll special-option actual-options)
+            #_(println "special-option:" special-option
+                       "actual-options:" (apply sorted-map
+                                           (flatten (seq actual-options)))
+                       "\n\n\noptions:" (apply sorted-map
+                                          (flatten (seq options))))
+            #_(def aopt actual-options)
+            cvec-wo-empty cvec
+            #_(def cvwoe cvec-wo-empty)
+            focus-vec (if-let [path (:path (:focus (:output options)))]
+                        (range-ssv cvec-wo-empty path))
+            #_(println "focus-vec:" focus-vec)
+            accept-vec (handle-lines options cvec-wo-empty focus-vec)
+            #_(println "accept-vec:" accept-vec)
+            #_(def av accept-vec)
+            #_(println "elide:" (:elide (:output options)))
+            eol-blanks (when (:test-for-eol-blanks? options)
+                         (find-eol-blanks options cvec-wo-empty coll nil))
+            eol-str (when (not (empty? eol-blanks))
+                      (str "=======  eol-blanks: " eol-blanks))
+            inline-style-vec (if (:inline? (:comment options))
+                               (fzprint-inline-comments options cvec-wo-empty)
+                               cvec-wo-empty)
+            #_(def ssvi inline-style-vec)
+            inline-style-vec (if (:inline? (:comment options))
+                               (fzprint-align-inline-comments options
+                                                              inline-style-vec)
+                               inline-style-vec)
+            #_(def ssvia inline-style-vec)
+            str-style-vec (cvec-to-style-vec {:style-map no-style-map,
+                                              :elide (:elide (:output options))}
+                                             inline-style-vec
+                                             #_cvec-wo-empty
+                                             focus-vec
+                                             accept-vec)
+            #_(def ssvx str-style-vec)
+            wrapped-style-vec (if (:wrap? (:comment options))
+                                (fzprint-wrap-comments options str-style-vec)
+                                str-style-vec)
+            #_(def ssvy wrapped-style-vec)
+            ; wrapped-style-vec is still a full style vec,
+            ; with individual elements in it
+            wrapped-style-vec
+              (if (:real-le? (:output options))
+                (mapv (partial real-le (:real-le-length (:output options)))
+                  wrapped-style-vec)
+                wrapped-style-vec)
+            comp-style (compress-style wrapped-style-vec)
+            #_(def cps comp-style)
+            ; don't do extra processing unless we really need it
+            #_(def fcs (mapv first comp-style))
+            #_(def le line-ending)
+            color-style (if (or accept-vec focus-vec (:color? options))
+                          (color-comp-vec comp-style)
+                          (apply str (mapv first comp-style)))
+            #_(def cs color-style)
+            str-w-line-endings
+              (if (or (nil? line-ending) (= line-ending "\n"))
+                color-style
+                (clojure.string/replace color-style "\n" line-ending))]
+        (dbg rest-options "zprint-str-internal ^^^^^^^^^^^^^^^^^^")
+        (if eol-str
+          eol-str
+          (if (:return-cvec? options)
+            (remove-newline-indent-locs cvec)  ; i132
+            str-w-line-endings))))))
+
+(defn ^:no-doc zprint-str-internal-alt
+  "Take a zipper or string and pretty print with fzprint, 
+  output a str.  Key :color? is false by default, and should
+  be set to true in internal-options to make things colored.
+  Special processing for :parse-string-all?, with
+  not only a different code path, but a different default for 
+  :parse {:interpose nil} to {:interpose true}"
   [internal-options coll & rest]
   (let [[special-option rest-options] (process-rest-options internal-options
                                                             rest)]
@@ -724,8 +849,7 @@
               coll (clojure.string/join "\n" lines)
 	      psa-options (parse-string-all-options rest-options)
               [result error-vec] (process-multiple-forms psa-options
-	      #_(parse-string-all-options
-                                               rest-options)
+	      #_(parse-string-all-options rest-options)
                                              zprint-str-internal
                                              ":parse-string-all? call"
                                              (edn* (p/parse-string-all coll)))
@@ -851,7 +975,7 @@
       (zprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (apply zprint-str-internal {} coll rest))
+  (apply zprint-str-internal (get-options) {} coll rest))
 
 (defn czprint-str
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -870,7 +994,7 @@
       (czprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (apply zprint-str-internal {:color? true} coll rest))
+  (apply zprint-str-internal (get-options) {:color? true} coll rest))
 
 (defn zprint
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -889,7 +1013,7 @@
       (zprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (println (apply zprint-str-internal {} coll rest)))
+  (println (apply zprint-str-internal (get-options) {} coll rest)))
 
 (defn czprint
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -908,7 +1032,7 @@
       (czprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (println (apply zprint-str-internal {:color? true} coll rest)))
+  (println (apply zprint-str-internal (get-options) {:color? true} coll rest)))
 
 #?(:clj
      (defmacro zprint-fn-str
@@ -926,6 +1050,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(apply zprint-str-internal
+	  (get-options)
           {:parse-string? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
@@ -948,6 +1073,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(apply zprint-str-internal
+	  (get-options)
           {:parse-string? true, :color? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
@@ -969,6 +1095,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(println (apply zprint-str-internal
+		   (get-options)
                    {:parse-string? true, :fn-name '~fn-name}
                    (get-fn-source '~fn-name)
                    ~@rest
@@ -991,6 +1118,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(println (apply zprint-str-internal
+		   (get-options)
                    {:parse-string? true, :color? true, :fn-name '~fn-name}
                    (get-fn-source '~fn-name)
                    ~@rest
@@ -1015,6 +1143,228 @@
 ;!zprint {:format :next :vector {:wrap? false}}
 
 (defn ^:no-doc process-form
+  "Take one form from a file and process it.  The primary goal is
+  of course to produce a string to put into the output file.  In
+  addition, see if that string starts with ;!zprint and if it does,
+  pass along that information back to the caller.  The input is a
+  [[next-options <previous-string> indent zprint-num previous-newline? 
+  error-vec] form] , where next-options accumulates the information to be
+  applied to the next non-comment/non-whitespace element in the
+  file.  The output is [next-options output-str indent zprint-num
+  previous-newline? error-vec], since reductions is used to call this function.
+  See process-multiple-forms for what is actually done with the
+  various :format values."
+  [rest-options zprint-fn zprint-specifier
+   [full-options next-options _ indent zprint-num previous-newline? error-vec]
+   form]
+  ; Note that next-options are not validated at this point, they are raw
+  ; options.  But you can't validate them without merging them into
+  ; the (get-options) full option map.
+  #_(prn "-----------")
+  #_(prn "process-form: form:" (string form))
+  #_(prn "process-form: error-vec:" error-vec)
+  #_(prn "process-form: next-options:" next-options)
+  #_(prn "process-form: (:format full-options):" (:format full-options))
+  (let [comment? (zcomment? form)
+        newline? (znewline? form)
+        ; This includes newlines
+        whitespace-form? (whitespace? form)
+        [new-options error-str] (when (and comment?
+                                           (zero? indent)
+                                           (:process-bang-zprint? rest-options))
+                                  (get-options-from-comment (inc zprint-num)
+                                                            (string form)))
+        ; Handle errors getting the options
+        [error-vec inc-zprint-num?]
+          (if error-str [(conj error-vec error-str) true] [error-vec false])
+        #_(println "new-options:" new-options)
+        #_(println "error-str:" error-str)
+        continue-after-!zprint-error? (:continue-after-!zprint-error?
+                                        (:range (:input full-options)))
+        #_(println "continue-after-!zprint-error:"
+                   continue-after-!zprint-error?)
+        ; Develop the internal-options we want to call the zprint-fn
+        ; with, and also an options map with those integrated we can use
+        ; to decide what we are doing ourselves. zprint-fn will integrate
+        ; them into the options map as well.
+        next-options
+          (if (zero? indent) next-options (assoc next-options :indent indent))
+        internal-options (if (empty? next-options)
+                           rest-options
+                           (merge-deep rest-options next-options))
+        ; Merge internal-options into the options map, using config-and-validate
+        ; so that we get styles and all of that done correctly
+        #_(println " process-form: zprint-num" zprint-num)
+        [decision-options error-vec internal-options next-options]
+          (if next-options
+            (let [[updated-map _ error-str] (config-and-validate
+                                              (str ";!zprint number "
+                                                     ; No inc, as it came in
+                                                     ; with next-options
+                                                     zprint-num
+                                                   " in " zprint-specifier)
+                                              nil
+                                              full-options
+                                              internal-options)]
+              (if error-str
+                ; If we have an error, skip next-options in case we are
+                ; going to continue processing.
+                (do #_(println " process-form: error-str:" error-str)
+                    [full-options (conj error-vec error-str) rest-options {}])
+                [updated-map error-vec internal-options next-options]))
+            [full-options error-vec])
+        ; This will catch errors from the config-and-validate as well as
+        ; any errors from the get-options-from-comment, if we aren't ignoring
+        ; the errors.
+        _ (when (and (not (empty? error-vec))
+                     (not continue-after-!zprint-error?))
+            (throw (#?(:clj Exception.
+                       :cljs js/Error.)
+                    (apply str (interpose "; " error-vec)))))
+        ; Now make decisions about things
+        interpose? (:interpose (:parse decision-options))
+        previous-newline? (or interpose? previous-newline?)
+        space-count (when whitespace-form?
+                      (if interpose?
+                        ; we are getting rid of all whitespace between expr
+                        0
+                        (spaces? (string form))
+                        #_(if (= (:left-space (:parse decision-options)) :drop)
+                            ; we are getting rid of just spaces between expr
+                            (spaces? (string form))
+                            nil)))
+        ; Causes fzprint-style to drop whatever it is printing
+        drop? (not (not (and space-count
+                             (not (= :skip (:format next-options)))
+                             (or interpose?
+                                 (= (:left-space (:parse decision-options))
+                                    :drop)))))
+        #_(println " process-form: drop?" drop?)
+        #_(println " process-form: space-count" space-count)
+        #_(println " process-form: whitespace-form" whitespace-form?)
+        #_(println " process-form: (spaces? (string form))"
+                   (spaces? (string form)))
+        #_(println " process-form: interpose?" interpose?)
+        ; If this was a ;!zprint line, don't wrap it
+        local-options
+          (if new-options
+            {:comment {:wrap? false}, :zipper? true, :file? true, :drop? drop?}
+            {:zipper? true, :file? true, :drop? drop?})
+        internal-options (merge-deep internal-options local-options)
+        skip-since-spaces? (and space-count (not= space-count 0))
+        #_(println "width:" (:width full-options)
+                   "format internal:" (:format internal-options)
+                   "format decision:" (:format decision-options))
+        output-str
+          ; This breaks left-space keep by itself...
+          (if skip-since-spaces?
+            ; It is just spaces, don't print anything yet
+            ""
+            ; Should we zprint this form?
+            (if (or (= :off (:format decision-options))
+                    (and (not (or comment? whitespace-form?))
+                         ; used to be next-options but if not a comment then
+                         ; they are in internal-options
+                         (= :skip (:format internal-options))))
+              (do #_(println "********* format internal" (:format
+                                                           internal-options)
+                             "format decision" (:format decision-options))
+                  (string form))
+              ; call zprint-str-internal or an alternative if one exists
+              (zprint-fn full-options internal-options form)))
+        ; Implement left-space keep when *after* doing zprint (or not) on
+        ; the next thing, using the indent passed along in reduce.
+        #_(prn "process-form: late form:" (string form))
+        #_(prn "process-form: output-str:" output-str)
+        #_(prn "process-form: (:format decision-options):"
+               (:format decision-options))
+        new-output-str (cond
+                         skip-since-spaces? output-str
+                         newline? output-str
+                         comment? (str (blanks indent) output-str)
+                         (and (not previous-newline?)
+                              (= (:left-space (:parse decision-options)) :keep))
+                           (str "\n" (blanks indent) output-str)
+                         (not previous-newline?) (str "\n" output-str)
+                         ; previous was newline is now implied
+                         (or (= (:left-space (:parse decision-options)) :keep)
+                             (= (:format decision-options) :skip)
+                             (= (:format decision-options) :off))
+                           (str (blanks indent) output-str)
+                         :else output-str)
+        #_(prn "process-form: new-output-str:" new-output-str)
+        #_(do (println "-----------------------")
+              (println "form:")
+              (prn (string (or (zprint.zutil/zfirst form) form)))
+              (println "space-count:" space-count)
+              (println "indent:" indent)
+              (println "newline?" newline?)
+              (println "previous-newline?" previous-newline?)
+              (println "whitespace-form?:" whitespace-form?)
+              (println "interpose?" interpose?)
+              (println "interpose:" (:interpose (:parse decision-options)))
+              (println "left-space:" (:left-space (:parse decision-options)))
+              (println "new-options:" new-options)
+              (println "(:format decision-options)" (:format decision-options))
+              (println "(:indent next-options):" (:indent next-options))
+              (println "internal-options:" internal-options)
+              (println "next-options:" next-options)
+              (prn "output-str:" output-str)
+              (prn "new-output-str:" new-output-str))
+        output-str new-output-str
+        local? (or (= :skip (:format new-options))
+                   (= :next (:format new-options)))
+        ; If we are ignoring {:format :skip} and {:format :next}, then
+        ; forget about new-options (and, of course, local?)
+        [new-options local? inc-zprint-num?]
+          (if (and local? (:!zprint-elide-skip-next? full-options))
+            [nil nil true]
+            [new-options local? inc-zprint-num?])
+        ; Handle new-options, which are the options from a !zprint options map
+        ; Deal with catching errors on the set-options! and validate when
+        ; merging into the next-options, like we do in the cond below
+        #_(println "new-options width:" (:width new-options)
+                   "new-options format:" (:format new-options))
+        [error-vec full-options]
+          (if (and new-options (not local?))
+            (let [[updated-map _ error-str] (config-and-validate
+                                              (str ";!zprint number "
+                                                     ; No inc, as it came in
+                                                     ; with next-options
+                                                     (inc zprint-num)
+                                                   " in " zprint-specifier)
+                                              nil
+                                              full-options
+                                              new-options)]
+              (if error-str
+                [(conj error-vec error-str) full-options]
+                [error-vec updated-map]))
+            [error-vec full-options])]
+    ; If we are not continuing after errors, deal with any we have
+    #_(prn "error-vec:" error-vec)
+    (when (and (not (empty? error-vec)) (not continue-after-!zprint-error?))
+      (throw (#?(:clj Exception.
+                 :cljs js/Error.)
+              (apply str (interpose "; " error-vec)))))
+    ; Next options last until the first non-comment non-whitespace
+    ; form, then they go away.
+    [full-options
+     (cond local? (merge-deep next-options new-options)
+           (or comment? whitespace-form?) next-options
+           :else {}) output-str (or space-count 0)
+     ; Increment the zprint-num (or not).  We count the ones with
+     ; skip and next even when skipping them, thus inc-zprint-num?
+     (if (and (or new-options inc-zprint-num?)
+              ; Don't count the ones added by wrap-comment-api
+              (= (get new-options :!zprint-elide-skip-next? :not-found)
+                 :not-found))
+       (inc zprint-num)
+       zprint-num)
+     ; note that comments come with newline, unfortunately
+     (if skip-since-spaces? previous-newline? (or newline? comment?))
+     error-vec]))
+
+(defn ^:no-doc process-form-alt
   "Take one form from a file and process it.  The primary goal is
   of course to produce a string to put into the output file.  In
   addition, see if that string starts with ;!zprint and if it does,
@@ -1338,9 +1688,9 @@
   a file or a string), and not only format them for output but also
   handle comments containing ;!zprint that affect the options-map
   throughout the processing. Returns [out-str error-vec]"
-  [rest-options zprint-fn zprint-specifier forms]
+  [full-options rest-options zprint-fn zprint-specifier forms]
   (let [interpose-option (or (:interpose (:parse rest-options))
-                             (:interpose (:parse (get-options))))
+                             (:interpose (:parse full-options)))
         interpose-str
           (cond (or (nil? interpose-option) (false? interpose-option)) nil
                 (string? interpose-option) interpose-option
@@ -1353,13 +1703,13 @@
         seq-of-zprint-fn
           (reductions
             (partial process-form rest-options zprint-fn zprint-specifier)
-            [{} "" 0 0 true []]
+            [full-options {} "" 0 0 true []]
             (zmap-all identity forms))
         #_(def sozf seq-of-zprint-fn)
-        seq-of-strings (map second seq-of-zprint-fn)
+        seq-of-strings (map #(nth % 2) #_second seq-of-zprint-fn)
 	; We were acccumulating the errors into the vector
 	#_ (println "last seq-of-zprint-fn:" (last seq-of-zprint-fn))
-	error-vec (nth (last seq-of-zprint-fn) 5)
+	error-vec (nth (last seq-of-zprint-fn) 6 #_5)
        #_#_ error-str (when (not (empty? error-vec))
 	             (apply str (interpose "; " error-vec)))]
     #_(def sos seq-of-strings)
@@ -1373,6 +1723,225 @@
 ;;
 
 (defn zprint-file-str
+  "Take a string, which typically holds the contents of an entire
+  file, but doesn't have to, and format the entire string, outputing
+  a formatted string.  It respects white space at the top level,
+  while ignoring it within all top level forms (unless :indent-only,
+  :respect-bl, or :respect-nl are used).  It allows comments at the
+  top level, as well as in function definitions, and also supports
+  ;!zprint directives at the top level. See File Comment API for
+  information on ;!zprint directives. zprint-specifier is the thing
+  that will be used in messages if errors are detected in ;!zprint
+  directives, so it should identify the file (or other element) to
+  allow the user to find the problem. new-options is an options-map
+  containing options to be used when doing the formatting (and will
+  be overriddden by any options in ;!zprint directives).  doc-str
+  is an optional string to be used when setting the new-options
+  into the configuration."
+  ([file-str zprint-specifier new-options doc-str]
+   (let [full-options (get-options)
+         full-options
+           (let [[updated-map _ error-str]
+                   (config-and-validate doc-str nil full-options new-options)]
+             (if error-str
+               (throw (#?(:clj Exception.
+                          :cljs js/Error.)
+                       error-str))
+               updated-map))]
+       #_(println "zprint-file-str: :color?" (:color? full-options))
+       ; Make sure to get trailing newlines by using -1
+       (let [; If the filestring starts with #!, remove it and save it
+             [shebang file-str] (remove-shebang file-str)
+             [line-ending lines] (determine-ending-split-lines file-str)
+             lines (if (:expand? (:tab full-options))
+                     (map (partial expand-tabs (:size (:tab full-options)))
+                       lines)
+                     lines)
+             ; Glue lines back together with \n line ending, to work around
+             ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
+             ; the rewrite-clj parse would "convert" them all to \n for us,
+             ; which is really what we need anyway.
+             ;
+             ; On the ohter hand, breaking it into lines to do the tab expansion
+             ; is considerably faster than just doing it on the whole file when
+             ; a tab is found.
+             filestring (clojure.string/join "\n" lines)
+             range-start (:start (:range (:input full-options)))
+             ; If shebang correct for one less line
+             range-start (when range-start
+                           (if shebang (dec range-start) range-start))
+             range-end (:end (:range (:input full-options)))
+             ; If shebang correct for one less line
+             range-end (when range-end (if shebang (dec range-end) range-end))
+             _ (when (or range-start range-end)
+                 (dbg new-options
+                      "zprint-file-str: range-start:" range-start
+                      "range-end:" range-end))
+             ; If we are doing ranges, we really care about lines being a
+             ; vector
+             lines (if (and (or range-start range-end) (not (vector? lines)))
+                     (into [] lines)
+                     lines)
+             [actual-start actual-end] (when (or range-start range-end)
+                                         (expand-range-to-top-level
+                                           filestring
+                                           lines
+                                           range-start
+                                           range-end
+                                           (:dbg? full-options)))
+             _ (when (or range-start range-end)
+                 (dbg new-options
+                      "zprint-file-str: actual-start:" actual-start
+                      "actual-end:" actual-end))
+             [before-lines range after-lines]
+               (when (and actual-start actual-end)
+                 (split-out-range lines actual-start actual-end))
+             range-includes-end? (zero? (count after-lines))
+             use-previous-!zprint? (:use-previous-!zprint?
+                                     (:range (:input full-options)))
+             comment-api-lines (when use-previous-!zprint?
+                                 (wrap-comment-api before-lines))
+             #_(prn "comment-api-lines:" comment-api-lines)
+             range (if (and range comment-api-lines)
+                     ; (count  comment-api-lines) is the count to remove later
+                     (into [] (concat comment-api-lines range))
+                     range)
+             filestring (if range (clojure.string/join "\n" range) filestring)
+             range-ends-with-nl? (when (and range (not range-includes-end?))
+                                   (clojure.string/ends-with? filestring "\n"))
+             ends-with-nl? (clojure.string/ends-with? file-str "\n")
+             _ (when (and actual-start actual-end)
+                 (dbg-pr new-options
+                         "zprint-file-str: lines count:" (count lines)
+                         "before count:" (count before-lines)
+                         "range count:" (count range)
+                         "after count:" (count after-lines)
+                         "range-ends-with-nl?" range-ends-with-nl?
+                         "ends-with-nl?" ends-with-nl?
+                         "range:" range
+                         "filestring:" filestring))
+             forms (edn* (p/parse-string-all filestring))
+             pmf-options {:process-bang-zprint? true}
+             pmf-options (if (:interpose (:parse full-options))
+                           (assoc pmf-options :trim-comments? true)
+                           pmf-options)
+             pmf-options (if shebang
+                           (merge-deep pmf-options
+                                       (:more-options (:script full-options)))
+                           pmf-options)
+             #_(def fileforms (zmap-all identity forms))
+             [out-str error-vec] (process-multiple-forms full-options
+	                                                 pmf-options
+                                                         zprint-str-internal
+                                                         zprint-specifier
+                                                         forms)
+             _ (dbg-pr new-options "zprint-file-str: out-str:" out-str)
+             error-vec (when (not (empty? error-vec)) error-vec)
+             ; Get rid of any added comment-api lines on the front of
+             ; a range.  If it wasn't a range, then comment-api-lines
+             ; can't be non-null.
+             out-str (if comment-api-lines
+                       (drop-lines (count comment-api-lines) out-str)
+                       out-str)
+             range-output? (and (:range? (:output full-options))
+                                (or range-start range-end))
+             ; Note that we would not expect to have a non-nil error-vec
+             ; unless we have continue-after-!zprint-error? true
+             continue-after-!zprint-error? (:continue-after-!zprint-error?
+                                             (:range (:input full-options)))
+             ; We can only continue beyond here with a non-nil error-vec
+             ; if we are doing range-output?, because otherwise we don't
+             ; have anything to do with the errors.
+             _ (when (and error-vec (not range-output?))
+                 (throw (#?(:clj Exception.
+                            :cljs js/Error.)
+                         (apply str (interpose "; " error-vec)))))
+             ; Figure a corrected range start and end from the
+             ; actual start and end if we need it.
+             [corrected-start corrected-end]
+               (when range-output?
+                 (let [actual-start (if (= actual-end -1)
+                                      actual-start
+                                      (max actual-start 0))]
+                   [(cond (and (or (= actual-start 0) (= actual-start -1))
+                               shebang)
+                            actual-start
+                          shebang (inc actual-start)
+                          :else actual-start)
+                    (let [line-count (count lines)
+                          ; Because of the way that split and join work, the
+                          ; split needs the -1.  But this means that if the
+                          ; last thing in the lines vector is a "",
+                          ; then that means that it is one too big.
+                          ; Sigh.
+                          line-count
+                            (if (= (last lines) "") (dec line-count) line-count)
+                          max-end (dec line-count)
+                          line-count (if shebang (inc line-count) line-count)
+                          actual-end
+                            (if (> actual-end max-end) max-end actual-end)]
+                      (if (and shebang (not= actual-end -1))
+                        (inc actual-end)
+                        actual-end))]))
+             _ (when range-output?
+                 (dbg-pr new-options
+                         "actual-start:" actual-start
+                         "actual-end:" actual-end
+                         "shebang" shebang
+                         "(count lines):" (count lines)
+                         "corrected-start:" corrected-start
+                         "corrected-end:" corrected-end
+                         "error-vec:" error-vec))
+             ; Clean up the end of the range if it ended with a nl.
+             out-str (if (and range
+                              range-ends-with-nl?
+                              (not (clojure.string/ends-with? out-str "\n")))
+                       (str out-str "\n")
+                       out-str)
+             ; If we did a range, insert the formatted range back into
+             ; the before and after lines  Unless we are going to output
+             ; just the range.
+             out-str (if (and range (not range-output?))
+                       (reassemble-range before-lines out-str after-lines)
+                       out-str)
+             out-str (if range-output?
+                       (if (and shebang (= corrected-start 0))
+                         (str shebang "\n" out-str)
+                         out-str)
+                       (if shebang (str shebang "\n" out-str) out-str))
+             out-str (if (and (if range-output? range-includes-end? true)
+                              ends-with-nl?
+                              (not (clojure.string/ends-with? out-str "\n")))
+                       (str out-str "\n")
+                       out-str)
+             out-str (if (= line-ending "\n")
+                       out-str
+                       (clojure.string/replace out-str "\n" line-ending))]
+         (if range-output?
+           ; We aren't doing just string output, but rather a vector
+           ; with the actual range we used, and then the string.
+           ; Unless the start and end are -1, which means we didn't do
+           ; anything, in which case the output is nil.
+           ;
+           ; Don't return :errors unless there really are errors.
+           [(if (and continue-after-!zprint-error? error-vec)
+              {:range {:actual-start corrected-start,
+                       :actual-end corrected-end,
+                       :errors error-vec}}
+              {:range {:actual-start corrected-start,
+                       :actual-end corrected-end}})
+            (if (and (= corrected-start -1) (= corrected-end -1)) nil out-str)]
+           out-str))
+       ))
+  ([file-str zprint-specifier new-options]
+   (zprint-file-str file-str
+                    zprint-specifier
+                    new-options
+                    "zprint-file-str input"))
+  ([file-str zprint-specifier]
+   (zprint-file-str file-str zprint-specifier nil nil)))
+
+(defn zprint-file-str-alt
   "Take a string, which typically holds the contents of an entire
   file, but doesn't have to, and format the entire string, outputing
   a formatted string.  It respects white space at the top level,

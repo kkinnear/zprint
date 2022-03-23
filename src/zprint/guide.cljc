@@ -50,7 +50,10 @@
            rest (nthnext sexpr (if docstring? 3 2))
            multi-arity? (not (vector? (first rest)))
            rest (if multi-arity? rest (next rest))
-           rest-guide (repeat (dec (count rest)) :element)
+           #_#_zfn-map (:zfn-map options)
+           #_#_rest-count ((:zcount zfn-map) (:zloc options))
+	   ; It is not just that the count is off.
+           rest-guide (repeat (dec #_rest-count (count rest)) :element)
            rest-guide
              (into []
                    (if (and multi-arity? multi-arity-nl?)

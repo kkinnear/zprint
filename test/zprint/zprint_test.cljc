@@ -1326,7 +1326,8 @@
     (zprint-str "(let [a b c d e f] (list a b c d e f))"
                 {:parse-string? true, :binding {:flow? true}}))
 
-  #?(:clj  ; Keep the deftype on the next line
+  #?(:bb nil
+     :clj  ; Keep the deftype on the next line
        (deftype Typetest [cnt _meta]
          clojure.lang.IHashEq
            (hasheq [this] (list this))
@@ -1344,7 +1345,8 @@
   clojure.lang.IMeta
     (meta [_] _meta))")
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest
@@ -1406,7 +1408,8 @@
   ;; fn-style->caller.
   ;;
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest [cnt _meta] clojure.lang.IHashEq (hasheq [this] (list this)) clojure.lang.Counted (count [_] cnt) clojure.lang.IMeta (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest
@@ -1419,7 +1422,8 @@
                 {:parse-string? true,
                  :extend {:flow? false, :force-nl? false}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this] (list this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest
@@ -1556,7 +1560,8 @@
   ;; # :extend -- support :hang? for :extend
   ;;
 
-  #?(:clj  ; Keep the deftype on the next line
+  #?(:bb nil
+     :clj  ; Keep the deftype on the next line
        (deftype Typetest1 [cnt _meta]
          clojure.lang.IHashEq
            (hasheq [this]

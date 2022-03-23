@@ -15,7 +15,8 @@
     [rewrite-clj.node   :as n]
     [rewrite-clj.zip    :as    z
                         :refer [edn*]])
-  #?(:clj (:import (com.sun.net.httpserver HttpHandler HttpServer)
+  #?(:bb (:import )
+     :clj (:import (com.sun.net.httpserver HttpHandler HttpServer)
                    (java.net InetSocketAddress)
                    (java.io File ByteArrayOutputStream PrintStream)
                    (java.util Date))))
@@ -424,7 +425,8 @@
   ;; is because the tests manipulate the cache file in various ways as part of
   ;; the testing.
 
-  #?(:clj (def url-cache-path
+  #?(:bb nil
+     :clj (def url-cache-path
             (let [options {}
                   cache-loc (or (:location (:cache options)) "")
                   ; If we have no cache-loc, make it the current directory
@@ -450,7 +452,8 @@
   ;;
 
 
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             (more-of options
               1 (get options :max-depth))
             (let [options-file (File/createTempFile "load-options" "1")
@@ -469,7 +472,8 @@
                 (get-options)))))
 
   ; Extend with set-options
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             (more-of options
               2 (get options :max-depth)
               22 (get options :max-length))
@@ -490,7 +494,8 @@
                 (get-options)))))
 
   ; Cached
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             (more-of options
               3 (get options :max-depth))
             (let [options-file (File/createTempFile "load-options" "3")
@@ -517,7 +522,8 @@
                 (get-options)))))
 
   ; Expired cache, get rempte
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             (more-of options
               44 (get options :max-depth))
             (let [options-file (File/createTempFile "load-options" "4")
@@ -543,7 +549,8 @@
                 (get-options)))))
 
   ; Good url, corrupt cache
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             (more-of options
               5 (get options :max-depth))
             (let [options-file (File/createTempFile "load-options" "5")
@@ -562,7 +569,8 @@
                 (.delete cache-file)
                 (get-options)))))
 
-  #?(:clj (expect Exception
+  #?(:bb nil
+     :clj (expect Exception
                   (with-redefs [zprint.config/configured-options
                                   (atom zprint.config/default-zprint-options)
                                 zprint.config/explained-options
@@ -573,7 +581,8 @@
   ; Bad url, no cache
 
   ; Write url, bad content, no cache
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             Exception
             (let [options-file (File/createTempFile "url-bad-content" "1")]
               (spit options-file "{bad-content")
@@ -585,7 +594,8 @@
                 (load-options! nil (.toURL options-file))))))
 
   ; Bad url, but cache
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             (more-of options
               6 (get options :max-depth))
             (let [options-file (File/createTempFile "load-options" "6")
@@ -607,7 +617,8 @@
                 (get-options)))))
 
   ; Bad url, expired cache
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             (more-of [options std-err]
               7 (get options :max-depth)
               true (some? (re-matches #"WARN: using expired cache config for.*"
@@ -636,7 +647,8 @@
   ; max-age for cache expiry and overrides Expires,
   ; else Expires by itself sets cache
 
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             (more-of [options cache1 cache2]
               true (<= (System/currentTimeMillis)
                        (:expires cache1)
@@ -696,7 +708,8 @@
 
   ; Cached via url-cache-path and url-cache-secs
 
-  #?(:clj (expect (more-of [options cache]
+  #?(:bb nil
+     :clj (expect (more-of [options cache]
                     9 (:max-depth options)
                     9 (get-in cache [:options :max-depth])
                     0 (:cache-secs (:url options))

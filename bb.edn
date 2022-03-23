@@ -13,6 +13,8 @@
                   :task (apply tr/-main
                                "-d" "test"
                                "-n" "zprint.core-test"
+                               "-n" "zprint.config-test"
+                               ;"-n" "zprint.zprint-test"
                                "-n" "zprint.finish-test"
                                "-n" "zprint.guide-test"
                                "-n" "zprint.main-test"

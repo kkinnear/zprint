@@ -5820,16 +5820,18 @@ ser/collect-vars-acc %1 %2) )))"
   ;; and :map {:key-no-sort ...}
   ;;
 
-  #?(:clj
-       (expect
-         "java.lang.Exception: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
-         (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                          {:parse-string? true, :style :odr})
-              (catch Exception e (str e))))
-     :cljs (expect "[{aaa, c 3, g 2, k 1}]"
-                   (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                                    {:parse-string? true, :style :odr})
-                        (catch :default e (str e)))))
+#?(:clj
+     (expect
+       "java.lang.Exception: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+       (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                        {:parse-string? true, :style :odr})
+            (catch Exception e (str e))))
+   :cljs
+     (expect
+       "Error: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'Error: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+       (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                        {:parse-string? true, :style :odr})
+            (catch :default e (str e)))))
 
   (expect "[{aaa, c 3, g 2, k 1}]"
           (zprint-str "[{k 1 g 2 c 3 aaa}]"
@@ -5860,23 +5862,24 @@ ser/collect-vars-acc %1 %2) )))"
                        :remove {:map {:key-no-sort #{"..."}}},
                        :style :odr}))
 
-  #?(:clj
-       (expect
-         "java.lang.Exception: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
-         (try (zprint-str vbm
-                          {:parse-string? true,
-                           :remove {:map {:key-no-sort #{"..."}},
-                                    :parse {:ignore-if-parse-fails #{"..."}}},
-                           :style :odr})
-              (catch Exception e (str e))))
-     :cljs (expect "[{..., :a 1, :b 2}]"
-                   (try (zprint-str
-                          vbm
-                          {:parse-string? true,
-                           :remove {:map {:key-no-sort #{"..."}},
-                                    :parse {:ignore-if-parse-fails #{"..."}}},
-                           :style :odr})
-                        (catch :default e (str e)))))
+#?(:clj
+     (expect
+       "java.lang.Exception: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+       (try (zprint-str vbm
+                        {:parse-string? true,
+                         :remove {:map {:key-no-sort #{"..."}},
+                                  :parse {:ignore-if-parse-fails #{"..."}}},
+                         :style :odr})
+            (catch Exception e (str e))))
+   :cljs
+     (expect
+       "Error: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'Error: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+       (try (zprint-str vbm
+                        {:parse-string? true,
+                         :remove {:map {:key-no-sort #{"..."}},
+                                  :parse {:ignore-if-parse-fails #{"..."}}},
+                         :style :odr})
+            (catch :default e (str e)))))
 
   ;;
   ;; Lots of #188 issue with "..."

@@ -4824,6 +4824,7 @@
     ; remove it, or we're going to do a lot of nothing
     [(dissoc param-map :group-seq) previous-data out]
     (let [group-seq (if (and (empty? group-seq) zloc) nil group-seq)
+          uneval? (= (ztag zloc) :uneval)
           guided-newline? (= next-guide :newline)
           ; incoming-pairs is [pair-ind pair-result]
           do-pairs? (or (= next-guide :pair-end)
@@ -5116,6 +5117,9 @@
               ; Comments cause an overflow of the size, forcing the next
               ; thing onto a new line
               (or comment? comment-inline?) (inc width)
+	      ; Uneval stuff with a previous newline will force the next
+	      ; thing onto a new line
+	      (and uneval? previous-newline?) (inc width)
               ; If is multi-line, and we have more than one line, and
               ; we don't allow anything after a multi-line thing on
               ; the same line, then force the next thing onto a new line

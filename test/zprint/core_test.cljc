@@ -471,7 +471,9 @@
 
 
   (comment
-    ; None of this would work with clojurescript!
+    ; All of these tests that use redef-state are on hold until 
+    ; the new expectations supports it.  They don't, of course, work in
+    ; Clojurescript either.
     (def fs
       (mapv slurp
         ["src/zprint/core.cljc" "src/zprint/zutil.cljc"
@@ -549,6 +551,31 @@
                            (doall (zprint.core/zprint-file-str % "x"))
                            (doall (zprint-str %)))
                         fss)))))
+
+;;
+;; Issue #226 -- thread safety when running two copies of zprint-file-str
+;; at the same time.  This will not always fail, even when it is broken,
+;; but it will fail maybe 50% of the time.
+#?(:bb nil
+   :clj (expect
+          '(true true true true)
+          (pmap
+            (fn [specimen]
+              (let [format (fn [s]
+                             (zprint.core/zprint-file-str
+                               s
+                               "_"
+                               {:color? false,
+                                :width 120,
+                                :style [:community :justified :map-nl :pair-nl
+                                        :binding-nl :rod :hiccup],
+                                :map {:sort? false}}))]
+                (= (format specimen)
+                   (format (format specimen))
+                   (format (format (format specimen))))))
+            [(slurp "src/zprint/core.cljc") (slurp "src/zprint/main.cljc")
+             (slurp "src/zprint/core.cljc") (slurp "src/zprint/main.cljc")])))
+
 
   ;
   ; These two tests are from finish_test.clj, and both should work before

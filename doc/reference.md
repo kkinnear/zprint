@@ -2584,7 +2584,7 @@ This works independently for `:pair`, `:binding`, and `:map`.
 Turn on [justification](#a-note-on-justifying-two-up-printing).
 Default is nil (justification off).
 
-#### :justify {:max-variance 1000 :underscore? _false_}
+#### :justify {:max-variance 1000, :ignore-for-variance #{}, :no-justify #{}}
 
 Parameters to control justification:
 
@@ -2868,7 +2868,7 @@ course, the canonical example.
 ##### :hang-expand _2_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000 :underscore? _false_}
+##### :justify {:max-variance 1000, :no-justify #{"_"}, :ignore-for-variance nil}
 
 #### :force-nl?  _true_
 
@@ -3660,7 +3660,7 @@ hangs.
 ##### :hang-expand _1000.0_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000}
+##### :justify {:max-variance 1000, :ignore-for-variance nil, :no-justify nil}
 
 #### :flow? _false_
 
@@ -4490,7 +4490,7 @@ which has -pair in its function type (e.g. `:arg1-pair`, `:pair-fn`,
 ##### :hang-expand _2_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000}
+##### :justify {:max-variance 1000, :ignore-for-variance #{":else"}, :no-justify nil}
 
 #### :force-nl? _false_
 

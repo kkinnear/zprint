@@ -1045,6 +1045,8 @@
 
 (def explained-sequence (atom 1))
 
+(def write-options? (atom nil))
+
 ;;
 ;; # Utility functions for manipulating option maps
 ;;
@@ -1230,6 +1232,14 @@
   []
   (assoc @configured-options :version (about)))
 
+(declare configure-if-needed!)
+
+(defn get-configured-options
+  "Do a (get-options), but make sure that they are configured first."
+  []
+  (configure-if-needed! {} :report-errors)
+  (get-options))
+
 (defn get-default-options
   "Return the base default options."
   []
@@ -1323,10 +1333,20 @@
 ;; # Configure Everything
 ;;
 
+(defn ensure-option-access
+  "Throw an exception if write-options? is not true."
+  [s]
+  (when-not @write-options?
+    (throw
+      (#?(:clj Exception.
+          :cljs js/Error.)
+       (str "Routine: '" s "' requires option access and does not have it!")))))
+
 (defn internal-set-options!
   "Validate the new options, and update both the saved options
   and the doc-map as well.  Will throw an exceptino for errors."
   [doc-string doc-map existing-options new-options]
+  (ensure-option-access "internal-set-options!")
   (let [[updated-map new-doc-map error-vec]
           (config-and-validate doc-string doc-map existing-options new-options)]
     (if error-vec
@@ -1363,6 +1383,7 @@
 
 ;;
 ;; End "detect in a REPL" code
+;;
 
 (defn config-configure-all!
   "Do external configuration regardless of whether or not it has
@@ -1371,13 +1392,23 @@
   ([op-options]
    ; Any config changes prior to this will be lost, as
    ; config-and-validate-all works from the default options!
+   (ensure-option-access "config-configure-all!")
+   #_(println "config-configure-all!")
    (let [[zprint-options doc-map errors] (config-and-validate-all op-options)]
      (if errors
        errors
        (do (reset-options! zprint-options doc-map)
-           (config-set-options! {:configured? true} "internal")
-           ; If we are running in a repl,
-           ; then turn on :parallel?
+           ; We used to call
+           ; (config-set-options! {:configured? true} "internal")
+           ; but if you do that, configure-if-needed! is called after
+           ; someone already has the write-options? atom set to true,
+           ; and the processing for that is not reentrant. So it will
+           ; time out.
+           (internal-set-options! "internal"
+                                  (get-explained-all-options)
+                                  (get-options)
+                                  {:configured? true})
+           ; If we are running in a repl, then turn on :parallel?
            ; the first time we run unless it has been explicitly
            ; set by some external configuration
            (when (and (is-in-repl?)
@@ -1389,6 +1420,80 @@
            nil))))
   ([] (config-configure-all! nil)))
 
+(defn lock-options
+  "Attempt to lock the options using the write-options? atom.
+  Tries 1000 times, waiting 1ms between tries. Always returns nil."
+  []
+  (loop [n 0]
+    (if (or (compare-and-set! write-options? nil true) (> n 1000))
+      nil
+      (do #_(println "sleeping for 1 ms")
+          #?(:bb nil
+             :clj (Thread/sleep 1))
+          (recur (inc n))))))
+
+(defn unlock-options
+  "Unlock the options using write-options?"
+  []
+  (when-not (compare-and-set! write-options? true nil)
+    (throw
+      (#?(:clj Exception.
+          :cljs js/Error.)
+       (str
+         "When unlocking the options, we found we didn't have them locked!")))))
+
+(defn protected-configure-all!
+  "Call config-configure-all!, but protect the call by gaining
+  access to the options using lock-options and unlock-options."
+  []
+  (lock-options)
+  (let [error-vec (config-configure-all!)]
+    (unlock-options)
+    error-vec))
+
+(defn configure-if-needed!
+  "Test to see if we are already configured, and if we are not,
+  then perform a configuration and return any errors detected.  If
+  no-configure? is non-nil then don't read in any files.  This does
+  not set :configured? true, so if you call with no-configure? true
+  you better set :configured? true yourself!  Handle multithreaded
+  case of several executions of zprint-str-internal at once, each
+  trying to figure out if we are already configured.  If no-unlock?
+  is true, then don't (unlock-options) when finished."
+  ([op-options report-errors? no-configure-all? no-unlock?]
+   #_(println "configure-if-needed! write-options?" @write-options?
+              "no-configure-all?" no-configure-all?
+              "no-unlock?" no-unlock?)
+   (if (:configured? (get-options))
+     ; We are already configured
+     (if no-unlock?
+       ; we need to lock, even though we are configured
+       (lock-options)
+       nil)
+     ; We are not, presently, configured - gain access to the options
+     (do (lock-options)
+         ; Configure from external files, unless someone configured them
+         ; already while we were waiting for access, or we were told to
+         ; not configure them from external files.
+         (let [error-vec (when-not (or (:configured? (get-options))
+                                       no-configure-all?)
+                           #_(println "calling configure-configure-all!")
+                           (config-configure-all! op-options))]
+           (when (and report-errors? (not (empty? error-vec)))
+             ; If we are exiting, unlock regardless of whether we were
+             ; requested to do so.
+             (unlock-options)
+             (throw
+               (#?(:clj Exception.
+                   :cljs js/Error.)
+                (str "When configuring these errors were found: " error-vec))))
+           ; Unlock options unless requested not to
+           (when-not no-unlock? (unlock-options))
+           error-vec))))
+  ([] (configure-if-needed! {} nil nil nil))
+  ([op-options report-errors?]
+   (configure-if-needed! op-options report-errors? nil nil)))
+
 (defn config-set-options!
   "Add some options to the current options, checking to make sure
   that they are correct. op-options are operational options that
@@ -1396,10 +1501,13 @@
   not affect the format of the output directly."
   ([new-options doc-str op-options]
    ; avoid infinite recursion, while still getting the doc-map updated
-   (let [error-vec (when (and (not (:configured? (get-options)))
-                              (not (:configured? new-options)))
-                     (config-configure-all! op-options))]
+   (let [error-vec (configure-if-needed! op-options
+                                         nil ; report-errors?
+                                         (:configured? new-options)
+                                         :no-unlock)]
      (when error-vec
+       ; Unlock before we exit with throw
+       (unlock-options)
        (throw
          (#?(:clj Exception.
              :cljs js/Error.)
@@ -1407,14 +1515,16 @@
      (internal-set-options! doc-str
                             (get-explained-all-options)
                             (get-options)
-                            new-options)))
+                            new-options)
+     ; Unlock the options now
+     (unlock-options)))
   ([new-options]
    (config-set-options! new-options
                         (str "repl or api call " (inc-explained-sequence))
                         (select-op-options new-options)))
   ([new-options doc-str]
    (config-set-options! new-options doc-str (select-op-options new-options))))
-
+	 
 ;;
 ;; # Options Validation Functions
 ;;
@@ -2029,6 +2139,7 @@
                                cwd-errors-rcfile
                                cwd-rc-errors))))
         all-errors (if (empty? all-errors) nil all-errors)]
+    #_(println "finished config-and-validate-all!")
     [updated-map new-doc-map all-errors]))
 
 

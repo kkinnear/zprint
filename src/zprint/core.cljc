@@ -23,7 +23,9 @@
                                 get-explained-all-options get-default-options
                                 validate-options apply-style perform-remove
                                 no-color-map merge-deep sci-load-string
-                                config-and-validate get-options-from-comment]]
+                                config-and-validate get-options-from-comment
+				protected-configure-all! configure-if-needed!
+				get-configured-options]]
     [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?
                                 find-root-and-path-nw]]
     [zprint.sutil]
@@ -277,7 +279,7 @@
   been done, replacing any existing configuration.  Returns nil if successful,
   a vector of errors if not."
   []
-  (config-configure-all!))
+  (protected-configure-all!))
 
 ;;
 ;; # Zipper determination and handling
@@ -449,8 +451,6 @@
                    width-or-options)
                 [nil width-or-options]
                 [width-or-options nil])
-            configure-errors (when-not (:configured? full-options)
-                               (configure-all!))
             width (when (number? width-or-options) width-or-options)
             rest-options (cond (and width (map? options)) options
                                (map? width-or-options) width-or-options)
@@ -483,21 +483,15 @@
   [full-options rest-options]
   #_(println "\n\ndetermine-options:" rest-options
              "\n\n" (zprint.config/get-stack-trace))
-  (let [; Do what config-and-validate does, minus the doc-map
-        configure-errors (when-not (:configured? full-options)
-                           (configure-all!))
-        [actual-options _ errors] (config-and-validate "determine-options"
+  (let [[actual-options _ errors] (config-and-validate "determine-options"
                                                        nil
                                                        full-options
                                                        rest-options)
-        combined-errors
-          (str (when configure-errors
-                 (str "Global configuration errors: " configure-errors))
-               (when errors (str "Option errors in this call: " errors)))]
-    (if (not (empty? combined-errors))
+        errors (when errors (str "Option errors in this call: " errors))]
+    (if (not (empty? errors))
       (throw (#?(:clj Exception.
                  :cljs js/Error.)
-              combined-errors))
+              errors))
       #_(def dout actual-options)
       actual-options)))
 
@@ -854,7 +848,7 @@
       (zprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (apply zprint-str-internal (get-options) {} coll rest))
+  (apply zprint-str-internal (get-configured-options) {} coll rest))
 
 (defn czprint-str
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -873,7 +867,7 @@
       (czprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (apply zprint-str-internal (get-options) {:color? true} coll rest))
+  (apply zprint-str-internal (get-configured-options) {:color? true} coll rest))
 
 (defn zprint
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -892,7 +886,7 @@
       (zprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (println (apply zprint-str-internal (get-options) {} coll rest)))
+  (println (apply zprint-str-internal (get-configured-options) {} coll rest)))
 
 (defn czprint
   "Take coll, a Clojure data structure or a string containing Clojure code or
@@ -911,7 +905,7 @@
       (czprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (println (apply zprint-str-internal (get-options) {:color? true} coll rest)))
+  (println (apply zprint-str-internal (get-configured-options) {:color? true} coll rest)))
 
 #?(:clj
      (defmacro zprint-fn-str
@@ -929,7 +923,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(apply zprint-str-internal
-	  (get-options)
+	  (get-configured-options)
           {:parse-string? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
@@ -952,7 +946,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(apply zprint-str-internal
-	  (get-options)
+	  (get-configured-options)
           {:parse-string? true, :color? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
@@ -974,7 +968,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(println (apply zprint-str-internal
-		   (get-options)
+		   (get-configured-options)
                    {:parse-string? true, :fn-name '~fn-name}
                    (get-fn-source '~fn-name)
                    ~@rest
@@ -997,7 +991,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(println (apply zprint-str-internal
-		   (get-options)
+		   (get-configured-options)
                    {:parse-string? true, :color? true, :fn-name '~fn-name}
                    (get-fn-source '~fn-name)
                    ~@rest
@@ -1399,7 +1393,7 @@
   is an optional string to be used when setting the new-options
   into the configuration."
   ([file-str zprint-specifier new-options doc-str]
-   (let [full-options (get-options)
+   (let [full-options (get-configured-options)
          full-options
            (let [[updated-map _ error-str]
                    (config-and-validate doc-str nil full-options new-options)]

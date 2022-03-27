@@ -98,7 +98,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style :justified})
             (:justify? (:binding (get-options)))))
 
@@ -122,7 +123,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style :justified})
             (get-options)))
 
@@ -146,7 +148,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style :justified})
             (set-options! {:style :community})
             (get-options)))
@@ -173,7 +176,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style [:community :justified]})
             (get-options)))
 
@@ -185,7 +189,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style :extend-nl})
             (get-options)))
 
@@ -207,7 +212,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style :pair-nl})
             (get-options)))
 
@@ -218,7 +224,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style :binding-nl})
             (get-options)))
 
@@ -235,7 +242,8 @@
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-options
                     (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
+                  zprint.config/explained-sequence (atom 1)
+		  zprint.config/write-options? (atom nil)]
       (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
                                                           #{"stuff"}}}}})
       (get-options)))
@@ -248,7 +256,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+		        zprint.config/write-options? (atom nil)]
             (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
                                                                 #{"stuff"}}}}})
             (set-options! {:style :tst-style-1})
@@ -262,7 +271,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+		        zprint.config/write-options? (atom nil)]
             (set-options! {:style :tst-style-1,
                            :style-map {:tst-style-1 {:extend {:modifiers
                                                                 #{"stuff"}}}}})
@@ -278,7 +288,8 @@
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-options
                     (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
+                  zprint.config/explained-sequence (atom 1)
+		  zprint.config/write-options? (atom nil)]
       (set-options! {:style :tst-style-2,
                      :style-map {:tst-style-1 {:extend {:modifiers #{"stuff"}}},
                                  :tst-style-2 {:style :tst-style-1}}})
@@ -294,7 +305,8 @@
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-options
                     (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
+                  zprint.config/explained-sequence (atom 1)
+		  zprint.config/write-options? (atom nil)]
       (set-options! {:style-map {:x {:style :y}, :y {:style :x}}, :style :x})
       (get-options)))
 
@@ -307,7 +319,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style-map
                              {:x {:style :y}, :y {:style :z}, :z {:style :x}},
                            :style :x})
@@ -322,7 +335,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
                                                                 #{"stuff"}}}}})
             (set-options! {:style :tst-style-1})
@@ -339,7 +353,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
                                                                 #{"stuff"}}}}})
             (set-options! {:style :tst-style-1})
@@ -356,7 +371,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:fn-force-nl #{:binding}})
             (get-explained-all-options)))
   ;
@@ -373,7 +389,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (get-options)))
 
   ; Can we set an options map on let?
@@ -385,7 +402,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:fn-map {"let" [:binding {:width 99}]}})
             (get-options)))
 
@@ -398,7 +416,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:fn-map {"let" [:binding {:width "a"}]}})
             (get-options)))
 
@@ -412,7 +431,8 @@
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-options
                     (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
+                  zprint.config/explained-sequence (atom 1)
+		  zprint.config/write-options? (atom nil)]
       (set-options!
         {:fn-map {"xx" [:arg1-body
                         {:fn-map {":export" [:flow {:list {:hang true}}]}}]}})
@@ -466,7 +486,8 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-options
                               (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)]
+                            zprint.config/explained-sequence (atom 1)
+		            zprint.config/write-options? (atom nil)]
                 (load-options! nil (.toURL options-file))
                 (.delete cache-file)
                 (get-options)))))
@@ -487,7 +508,8 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-options
                               (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)]
+                            zprint.config/explained-sequence (atom 1)
+		            zprint.config/write-options? (atom nil)]
                 (set-options! {:max-length 22})
                 (load-options! nil (.toURL options-file))
                 ;(.delete cache-file)
@@ -508,7 +530,8 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-options
                               (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)]
+                            zprint.config/explained-sequence (atom 1)
+		            zprint.config/write-options? (atom nil)]
                 (load-options! nil (.toURL options-file))
                 (while (not (.exists cache-file)) ;default 5 min
                                                   ;cache
@@ -536,7 +559,8 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-options
                               (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)]
+                            zprint.config/explained-sequence (atom 1)
+		            zprint.config/write-options? (atom nil)]
                 (load-options! nil (.toURL options-file))
                 (while (not (.exists cache-file)) (Thread/sleep 10))
                 ; expired cache
@@ -563,7 +587,8 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-options
                               (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)]
+                            zprint.config/explained-sequence (atom 1)
+		            zprint.config/write-options? (atom nil)]
                 (spit cache-file "{bad-cache")       ;corrupt edn
                 (load-options! nil (.toURL options-file))
                 (.delete cache-file)
@@ -575,7 +600,8 @@
                                   (atom zprint.config/default-zprint-options)
                                 zprint.config/explained-options
                                   (atom zprint.config/default-zprint-options)
-                                zprint.config/explained-sequence (atom 1)]
+                                zprint.config/explained-sequence (atom 1)
+				zprint.config/write-options? (atom nil)]
                     (load-options! nil "http://b.a.d.u.r.l")
                     (get-options))))
   ; Bad url, no cache
@@ -590,7 +616,8 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-options
                               (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)]
+                            zprint.config/explained-sequence (atom 1)
+			    zprint.config/write-options? (atom nil)]
                 (load-options! nil (.toURL options-file))))))
 
   ; Bad url, but cache
@@ -608,7 +635,8 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-options
                               (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)]
+                            zprint.config/explained-sequence (atom 1)
+			    zprint.config/write-options? (atom nil)]
                 (load-options! nil (.toURL options-file))
                 (while (not (.exists cache-file)) (Thread/sleep 10))
                 (.delete options-file)               ;break url
@@ -634,7 +662,8 @@
                               (atom zprint.config/default-zprint-options)
                             zprint.config/explained-options
                               (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)]
+                            zprint.config/explained-sequence (atom 1)
+			    zprint.config/write-options? (atom nil)]
                 ; expire cache
                 (spit cache-file
                       (print-str {:expires 0, :options {:max-depth 7}}))
@@ -662,7 +691,8 @@
                             (atom zprint.config/default-zprint-options)
                           zprint.config/explained-options
                             (atom zprint.config/default-zprint-options)
-                          zprint.config/explained-sequence (atom 1)]
+                          zprint.config/explained-sequence (atom 1)
+			  zprint.config/write-options? (atom nil)]
               (let [body "{:max-depth 8}"
                     first-request (atom true)
                     http-server
@@ -721,7 +751,8 @@
                                     (atom zprint.config/default-zprint-options)
                                   zprint.config/explained-options
                                     (atom zprint.config/default-zprint-options)
-                                  zprint.config/explained-sequence (atom 1)]
+                                  zprint.config/explained-sequence (atom 1)
+				  zprint.config/write-options? (atom nil)]
                       (set-options! {:configured? true,
                                      :url {:cache-secs 0,
                                            ; cache-path only exists for this
@@ -751,7 +782,8 @@
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-options
                     (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
+                  zprint.config/explained-sequence (atom 1)
+		  zprint.config/write-options? (atom nil)]
       (set-options! {:coerce-to-false 'stuff, :record {:to-string? 'stuff}})
       (get-options)))
 
@@ -768,7 +800,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options! {:fn-map {"quote" [:replace-w-string
                                              {:list {:replacement-string "'"}}
                                              ; This is incorrect, and should
@@ -783,7 +816,8 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-options
                           (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)]
+                        zprint.config/explained-sequence (atom 1)
+			zprint.config/write-options? (atom nil)]
             (set-options!
               {:fn-map {"quote" [:replace-w-string
                                  {:list {:replacement-string "'"}} {:width 20}
@@ -869,7 +903,8 @@
                     (atom zprint.config/default-zprint-options)
                   zprint.config/explained-options
                     (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)]
+                  zprint.config/explained-sequence (atom 1)
+		  zprint.config/write-options? (atom nil)]
       (set-options! {:style [:a :ns-justify],
                      :style-map {:a {:doc "style :a",
                                      :style [:map-nl :keyword-respect-nl]}}})

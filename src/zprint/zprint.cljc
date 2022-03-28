@@ -3503,17 +3503,6 @@
   ([caller options ind actual-ind coll-print indent]
    (indent-zmap caller options ind actual-ind coll-print indent nil)))
 
-; TODO: Fix these, they both need a lot of work
-; Do we really need both, or just figure out the hang
-; ones?
-
-(def hang-indent #{:hang :none :none-body})
-
-(def flow-indent
-  #{:binding :arg1 :arg1-body :hang :fn :noarg1-body :noarg1 :arg2 :arg2-fn
-    :arg1-force-nl :gt2-force-nl :gt3-force-nl :flow :flow-body :force-nl-body
-    :force-nl})
-
 (defn newline-seq?
   "Given a vector of vectors, decide if we should merge these individually
   into the top level vector."
@@ -3649,7 +3638,7 @@
 (def body-set
   #{:binding :arg1-> :arg2 :arg2-fn :arg2-pair :pair-fn :fn :arg1-body
     :arg1-pair-body :none-body :noarg1-body :flow-body :arg2-extend-body
-    :arg1-force-nl-body})
+    :arg1-force-nl-body :guided-body})
 
 (def body-map
   {:arg1-body :arg1,
@@ -3659,7 +3648,8 @@
    :none-body :none,
    :flow-body :flow,
    :noarg1-body :noarg1,
-   :force-nl-body :force-nl})
+   :force-nl-body :force-nl
+   :guided-body :guided})
 
 ;;
 ;; If the noarg1? value is set, this is the mapping for functions
@@ -3970,6 +3960,7 @@
         ; set indent based on fn-style
         indent (if (body-set fn-style) indent (or indent-arg indent))
         indent (+ indent (dec l-str-len))
+	#_(prn "fzprint-list* indent:" indent "indent-arg:" indent-arg)
         ; If we have a :guide value, then we are going to use it no
         ; matter the fn-style we had before.  Note that we kept the
         ; original fn-style around long enough to get the indent figured

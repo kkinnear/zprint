@@ -64,6 +64,7 @@
    :indent :remove :return-cvec? :test-for-eol-blanks?
    :!zprint-elide-skip-next?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma? :key-value]
+   [:output :elide :lines]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning :key-value]
@@ -907,11 +908,11 @@
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
-            :fn-map {"defn" [:guided
+            :fn-map {"defn" [:guided-body
                              {:list {:option-fn (partial rodguide
                                                          {:multi-arity-nl?
                                                             true})}}],
-                     "defn-" [:guided
+                     "defn-" [:guided-body
                               {:list {:option-fn (partial rodguide
                                                           {:multi-arity-nl?
                                                              true})}}]}},

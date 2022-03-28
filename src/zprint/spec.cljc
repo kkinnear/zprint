@@ -94,7 +94,7 @@
     :arg2-extend :arg2-pair :arg2-fn :none :none-body :arg1-force-nl
     :gt2-force-nl :gt3-force-nl :flow :flow-body :force-nl-body :force-nl
     :pair-fn :arg1-mixin :arg2-mixin :indent :replace-w-string :guided
-    :arg1-force-nl-body :arg2-extend-body :wrap})
+    :arg1-force-nl-body :arg2-extend-body :wrap :guided-body})
 (s/def ::fn-type-w-map
   (s/or :general-options (s/tuple ::fn-type ::options)
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))

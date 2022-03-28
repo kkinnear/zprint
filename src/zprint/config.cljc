@@ -359,7 +359,7 @@
    "defn" :arg1-body,
    "defn-" :arg1-body,
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
-   "defprotocol" [:none-body
+   "defprotocol" [:guided-body
                   {:style :defprotocolguide,
                    :fn-map {:default-not-none [:none {:style :signature1}]}}],
    "defrecord" :arg2-extend-body,
@@ -920,10 +920,10 @@
         {:doc
            "Rules of defn, experimental. No newlines between arities.  Very likely to change.",
          :fn-map
-           {"defn" [:guided
+           {"defn" [:guided-body
                     {:list {:option-fn (partial rodguide
                                                 {:multi-arity-nl? false})}}],
-            "defn-" [:guided
+            "defn-" [:guided-body
                      {:list {:option-fn (partial rodguide
                                                  {:multi-arity-nl? false})}}]}},
       :signature1 {:doc

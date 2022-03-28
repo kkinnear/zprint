@@ -6576,6 +6576,16 @@ ser/collect-vars-acc %1 %2) )))"
   "(deftest ^{:database true}\n  websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
   (zprint-str i224c {:parse-string? true, :meta {:split? true}}))
 
+;;
+;; Issue #223 -- :community and :rod don't compose well
+;;
+
+(expect
+  "(defn foo [x]\n  (println x \"Hello, World!\")\n  (println x \"Hello, World!\")\n  (println x \"Hello, World!\"))"
+  (zprint-str
+    "(defn foo [x]\n (println x \"Hello, World!\")\n (println x \"Hello, World!\")\n (println x \"Hello, World!\"))\n"
+    {:parse-string? true, :style [:community :rod]}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

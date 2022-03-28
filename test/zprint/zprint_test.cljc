@@ -3914,7 +3914,7 @@ ser/collect-vars-acc %1 %2) )))"
       {:parse-string? true, :style :respect-nl}))
 
   (expect
-    "(extend-type ZprintType\n  ZprintProtocol\n    (more [a b]\n      (and a b))\n    (and-more ([a]\n               (nil? a))\n              ([a b]\n               (or a b))))"
+"(extend-type ZprintType\n  ZprintProtocol\n    (more [a b]\n      (and a b))\n    (and-more\n      ([a]\n       (nil? a))\n      ([a b]\n       (or a b))))"
     (zprint-str
       "(extend-type ZprintType\n      ZprintProtocol\n        (more [a b] \n\t(and a b))\n        (and-more ([a] \n\t(nil? a)) ([a b] \n\t(or a b))))"
       {:parse-string? true, :style :respect-nl}))
@@ -6585,6 +6585,45 @@ ser/collect-vars-acc %1 %2) )))"
   (zprint-str
     "(defn foo [x]\n (println x \"Hello, World!\")\n (println x \"Hello, World!\")\n (println x \"Hello, World!\"))\n"
     {:parse-string? true, :style [:community :rod]}))
+
+;;
+;; Issue #221 -- fix :fn to handle multiple arities (and also to work with
+;; #fn-force-nl).
+;;
+
+(expect
+"(extend-type ZprintType\n  ZprintProtocol\n    (more [a b]\n      (and a b))\n    (and-more\n      ([a] (nil? a))\n      ([a b] (or a b))))"
+(zprint-str "(extend-type ZprintType\n  ZprintProtocol\n (more [a b] \n\t(and a b))\n  (and-more ([a] \n\t(nil? a)) ([a b] \n\t(or a b))))" {:parse-string? true :fn-force-nl #{:fn}}))
+
+(expect
+"(extend-type ZprintType\n  ZprintProtocol\n    (more [a b] (and a b))\n    (and-more\n      ([a] (nil? a))\n      ([a b] (or a b))))"
+(zprint-str "(extend-type ZprintType\n  ZprintProtocol\n (more [a b] \n\t(and a b))\n  (and-more ([a] \n\t(nil? a)) ([a b] \n\t(or a b))))" {:parse-string? true :width 30}))
+
+(expect
+"(letfn [(first-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))\n        (second-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))]\n  (other-stuff))"
+(zprint-str 
+"(letfn [(first-fn [arg1 arg2]\n                  (-> (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (-> (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
+{:parse-string? true}))
+
+(expect
+"(defn print-balance\n  [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn\n      [(transform [acc item]\n         (assoc acc\n           (separate-words (clean-key item)) (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))"
+(zprint-str 
+"(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                     (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"
+{:parse-string? true}))
+
+(expect
+"(letfn [(first-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))]\n  (other-stuff))"
+(zprint-str 
+"(letfn [(first-fn [arg1 arg2]\n                  (-> (doing-stuff)\n                      (and-more-stuff)))]\n    (other-stuff))\n"
+{:parse-string? true}))
+
+(expect
+"(letfn [(first-fn [arg1 arg2] (this (doing-stuff) (and-more-stuff)))\n        (second-fn [arg1 arg2] (test (doing-stuff) (and-more-stuff)))]\n  (other-stuff))"
+(zprint-str 
+"(letfn [(first-fn [arg1 arg2]\n                  (this (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (test (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
+{:parse-string? true}))
+
+
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

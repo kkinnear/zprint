@@ -3983,6 +3983,11 @@
         one-line-ok? (if (:force-nl? (options caller)) nil one-line-ok?)
         ; remove -body from fn-style if it was there
         fn-style (or (body-map fn-style) fn-style)
+	; Fix up :fn for multi-arity functions
+	; If the second thing is a list, :fn maps to :flow in this case
+	fn-style (if (and (= fn-style :fn) (zlist? arg-2-zloc))
+	              :flow
+		      fn-style)
         ; All styles except :hang, :flow, and :flow-body and :binding need
         ; three elements minimum. We could put this in the fn-map,
         ; but until there are more than three (well four) exceptions, seems

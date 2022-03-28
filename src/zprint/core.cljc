@@ -1107,6 +1107,8 @@
                             (spaces? (string form))
                             nil)))
         ; Causes fzprint-style to drop whatever it is printing
+	; The (not (not )) construct ensures that drop? is a boolean, not
+	; some random nil/non-nil thing.
         drop? (not (not (and space-count
                              (not (= :skip (:format next-options)))
                              (or interpose?

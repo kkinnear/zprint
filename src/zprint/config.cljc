@@ -385,7 +385,9 @@
    "if-some" :binding,
    "interpose" :arg1,
    "let" :binding,
-   "letfn" :binding,
+   "letfn" [:guided-body
+            {:guide [:element :options {:next-inner {:fn-style :fn}}
+                     :element-best :options-reset :newline :element-best-*]}],
    "loop" :binding,
    "map" :arg1,
    "mapcat" :arg1,

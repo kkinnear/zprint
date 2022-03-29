@@ -6695,6 +6695,18 @@ ser/collect-vars-acc %1 %2) )))"
 "(deftest\n  ^{:database-a-bit-longer :does-not-fit, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
 {:parse-string? true :style :meta-alt}))
 
+ (expect
+ "(deftest\n\n  ^{:database true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+ (zprint-str 
+ "(deftest\n\n  ^{:database \n  true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key \n    :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+ {:parse-string? true :style [:meta-alt :respect-bl]}))
+
+(expect
+"(deftest\n\n  ^{:database\n      true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key\n      :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+ "(deftest\n\n  ^{:database \n  true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key \n    :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style [:meta-alt :respect-nl]}))
+
 ;;
 ;; With :style :community
 ;;

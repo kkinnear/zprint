@@ -3041,8 +3041,8 @@
 (declare drop-thru-first-non-whitespace)
 
 (defn extract-meta
-  "Given a zloc, if it is a zmeta?, then add everything other than the map
-  to the output."
+  "Given a zloc, if it is a zmeta?, then add everything other than the 
+  first thing to the output."
   [caller options out-vec element]
   (if (zmeta? element)
     (apply conj
@@ -3053,8 +3053,9 @@
 
 (defn fzprint-split-meta-in-seq
   "Given the results from fzprint-get-zloc-seq, if any of the elements are
-  zmeta?, then if :meta :split? true, make the second element of the meta
-  an independent element in the outer seq.  Returns a zloc-seq."
+  zmeta?, then if :meta :split? true, make the second and succeeding
+  elements of the meta an independent element in the outer seq.  
+  Returns a zloc-seq."
   [caller options zloc-seq]
   (if (:split? (:meta options))
     (reduce (partial extract-meta caller options) [] zloc-seq)
@@ -7133,7 +7134,7 @@
 	zloc-seq 
           (if (:split? (:meta options))
 	    ; If we are splitting the meta, we already pulled out 
-	    ; everything but the map into the outer zloc-seq
+	    ; everything but the first thing into the outer zloc-seq
 	    ; in fzprint-split-meta-in-seq prior to calling this routine.
 	    (take-thru-first-non-whitespace zloc-seq)
 	    zloc-seq)]

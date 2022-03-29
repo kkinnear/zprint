@@ -250,6 +250,9 @@
 ;;
 ;; :arg2
 ;;
+;; NOTE: This is implemented as a body function, i.e., like it was
+;; :arg2-body.
+;;
 ;; Print the first argument on the same line as the function name, and
 ;; if it fits then print the second argument on the same line as the function
 ;; name if it fits.
@@ -815,6 +818,22 @@
                :map {:indent 0, :nl-separator? true}},
       :map-nl-all {:doc "Add newline between all map pairs",
                    :map {::indent 0, :nl-separator-all? true}},
+
+      :meta-base {:doc "Alternative format for metadata. Experimental."
+             :list {:option-fn 
+	              (fn ([] "meta-base-option-fn") 
+	                  ([opts n exprs] 
+			   (when (meta (second exprs)) 
+			     {:meta {:split? true} 
+			      :list {:hang-expand 0} 
+			      :fn-style :arg2
+			      :next-inner-restore [[:list :option-fn] 
+			                           [:list :hang-expand]]})))}}
+
+      :meta-alt {:doc "Alternative for metadata. Experimental."
+                 :fn-map {"def" [:arg2 {:style :meta-base}]
+		          "deftest" [:arg2 {:style :meta-base}]}}
+
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
       :vector-pairs {:doc "Consider vectors 'constants' for constant pairing",
@@ -888,7 +907,7 @@
                                                  {:vector {:fn-format :none},
                                                   :vector-fn {:constant-pair-min
                                                                 1}}))
-                                              ([] "require-pair"))}}]}},
+                                              ([] "require-pair-option-fn"))}}]}},
       :respect-bl {:doc "Enable respect blank lines for every type",
                    :list {:respect-bl? true},
                    :map {:respect-bl? true},

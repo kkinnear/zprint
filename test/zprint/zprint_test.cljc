@@ -6623,6 +6623,173 @@ ser/collect-vars-acc %1 %2) )))"
 "(letfn [(first-fn [arg1 arg2]\n                  (this (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (test (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
 {:parse-string? true}))
 
+;;
+;; Alternative way to format metadata.  Also, :meta :eplit? true tests.
+;;
+;; Issue #224
+;;
+
+(expect
+"(def\n  ^{:doc\n      \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n  default-json-serde\n  serde/json-camel-kebab-serde)"
+(zprint-str 
+"(def ^{:doc \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n     default-json-serde\n  serde/json-camel-kebab-serde)\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest \n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest ^:database-stuff-and-bother  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(def ^:private foo \"bar\")"
+(zprint-str 
+"(def ^:private foo \"bar\")\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (foo))"
+(zprint-str 
+"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event (foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest\n  ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+(expect
+"(deftest\n  ^{:database-a-bit-longer :does-not-fit,\n    ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest\n  ^{:database-a-bit-longer :does-not-fit, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style :meta-alt}))
+
+;;
+;; With :style :community
+;;
+
+; i224
+
+(expect
+"(def\n  ^{:doc\n    \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n  default-json-serde\n  serde/json-camel-kebab-serde)"
+(zprint-str 
+"(def ^{:doc \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n     default-json-serde\n  serde/json-camel-kebab-serde)\n"
+{:parse-string? true :style [:meta-alt :community]}))
+
+; i224a
+
+(expect
+"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
+{:parse-string? true :style [:meta-alt :community]}))
+
+; i224b
+;
+; This does odd things, and hasn't any meta data anyway
+
+#_(expect
+"(deftest websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest \n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
+{:parse-string? true :style [:community :meta-alt]}))
+
+; i224c
+
+(expect
+"(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n"
+{:parse-string? true :style [:community :meta-alt]}))
+
+; i224d
+
+(expect
+"(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style [:community :meta-alt]}))
+
+; i224e
+
+(expect
+"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest ^:database-stuff-and-bother  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style [:meta-alt :community]}))
+
+; i224f
+
+(expect
+"(def ^:private foo \"bar\")"
+(zprint-str 
+"(def ^:private foo \"bar\")\n"
+{:parse-string? true :style [:meta-alt :community]}))
+
+; i224g
+
+(expect
+"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style [:community :meta-alt]}))
+
+; i224h
+
+(expect
+"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (foo))"
+(zprint-str 
+"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event (foo))\n"
+{:parse-string? true :style [:community :meta-alt]}))
+
+; i224i
+
+(expect
+"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest\n  ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style [:meta-alt :community]}))
+
+; i224j
+
+(expect
+"(deftest\n  ^{:database-a-bit-longer :does-not-fit,\n    ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+(zprint-str 
+"(deftest\n  ^{:database-a-bit-longer :does-not-fit, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+{:parse-string? true :style [:community :meta-alt]}))
+
+
 
 
 

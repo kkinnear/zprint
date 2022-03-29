@@ -1048,6 +1048,8 @@ later arguments is controlled by `:list {:indent n}`
     (more-process tag foo bar))
 ```
 
+Note: This is implemented as a "body" function, as if it were `:arg2-body`.
+
 #### :arg2-pair
 
 Just like :arg2, but prints the third through last arguments as pairs.
@@ -1062,6 +1064,9 @@ or not hanging well, the flow indent is controlled by `:pair {:indent n}`.
     :bar "bar"
     "baz")
 ```
+Note: This is implemented as a "body" function, as if it were `:arg2-pair-body`.
+
+
 #### :arg2-fn
 
 Just like :arg2, but prints the third through last arguments as functions.
@@ -1071,6 +1076,9 @@ Just like :arg2, but prints the third through last arguments as functions.
     (stuff [] bother)
     (foo [bar] baz))
 ```
+
+Note: This is implemented as a "body" function, as if it were `:arg2-fn-body`.
+
 
 #### :binding _(function type)_
 
@@ -4262,7 +4270,7 @@ the symbol to which the metadata is attached.  If you configure
 each other, and they will be handled separately (just like they
 appear to be in the code).
 
-Thus, for a `def` with metadata in a map, the `:meta` is configured
+Thus, for a `def` with metadata in a map, if the `:meta` is configured
 as `:split?`, then the map for the metadata will appear in the
 `:arg1-body` position, and the symbol will appear flowed below it.
 The same holds true for a keyword for the metadata.

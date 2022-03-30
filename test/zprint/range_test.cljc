@@ -430,6 +430,207 @@
                             :input {:range {:start 3, :end 10}},
                             :output {:range? true}}))
 
+;;
+;; :use-previous-!zprint? 
+;; :continue-after-!zprint-error?
+;;
+
+; has a bad width and a bad wrap?
+(def capi4
+"(def abc
+:def
+:ijk)
+
+;!zprint {:format :off}
+
+(def r
+:s :t
+:u
+:v)
+
+;!zprint {:format :on}
+
+(def b
+:c 
+:d
+:e
+:f)
+
+;!zprint {:format :skip}
+
+(def h
+:i 
+:j
+:k)
+
+;!zprint {:format :next :vector {:wrapx? false}}
+
+(def j 
+[:t 
+:u
+:v
+:w])
+
+;!zprint {:widthx 20}
+
+(def jfkdsj dlkfjsdl
+djlfsdj
+sdjlfdjsl
+jsdlfjl
+jsdfjsl
+ sdjfj
+ jskldfjls
+ jsdlfkdsjlk
+ sjfldj)
+
+;!zprint {:style :respect-bl}
+
+(def a
+c
+d
+g
+e)
+
+;!zprint {:style :pair-nl-all}
+
+(defn abc
+[d e f]
+
+(h fkds ldskfjls sjlsld lkdsjfl lkjsldfj 
+i 
+j))
+")
+
+; has a bad width and a bad wrap? and :continue-after-!zprint-error? true
+(def capi4a
+"(def abc
+:def
+:ijk)
+
+;!zprint {:format :off}
+
+(def r
+:s :t
+:u
+:v)
+
+;!zprint {:format :on :input {:range {:continue-after-!zprint-error? true}}}
+
+(def b
+:c 
+:d
+:e
+:f)
+
+;!zprint {:format :skip}
+
+(def h
+:i 
+:j
+:k)
+
+;!zprint {:format :next :vector {:wrapx? false}}
+
+(def j 
+[:t 
+:u
+:v
+:w])
+
+;!zprint {:widthx 20}
+
+(def jfkdsj dlkfjsdl
+djlfsdj
+sdjlfdjsl
+jsdlfjl
+jsdfjsl
+ sdjfj
+ jskldfjls
+ jsdlfkdsjlk
+ sjfldj)
+
+;!zprint {:style :respect-bl}
+
+(def a
+c
+d
+g
+e)
+
+;!zprint {:style :pair-nl-all}
+
+(defn abc
+[d e f]
+
+(h fkds ldskfjls sjlsld lkdsjfl lkjsldfj 
+i 
+j))
+")
+
+
+(expect
+[{:range {:actual-start 54, :actual-end 61}} ";!zprint {:style :pair-nl-all}\n\n(defn abc [d e f] (h fkds ldskfjls sjlsld lkdsjfl lkjsldfj i j))\n"]
+(zprint-file-str capi4 "test" {:input {:range {:start 57 :end 57 :continue-after-!zprint-error? true}} :output {:range? true}}))
+
+(expect
+[{:range {:actual-start 54, :actual-end 61, :errors ["In ;!zprint number 5 in test, In the key-sequence [:widthx] the key :widthx was not recognized as valid!"]}} ";!zprint {:style :pair-nl-all}\n\n(defn abc\n  [d e f]\n\n  (h fkds ldskfjls sjlsld lkdsjfl lkjsldfj i j))\n"]
+(zprint-file-str capi4 "test" {:input {:range {:start 57 :end 57 :continue-after-!zprint-error? true :use-previous-!zprint? true}} :output {:range? true}}))
+
+(expect
+  "!zprint number 5 in test, In the key-sequence [:widthx] the key :widthx was not recognized as valid!"
+  (try (zprint-file-str capi4
+                        "test"
+                        {:input {:range {:start 57,
+                                         :end 57,
+                                         :continue-after-!zprint-error? false,
+                                         :use-previous-!zprint? true}},
+                         :output {:range? true}})
+       (catch #?(:clj Exception
+                 :cljs :default)
+         e
+         (clojure.string/replace (str e) #".*In ;" ""))))
+
+(expect
+  [{:range
+      {:actual-start 26,
+       :actual-end 32,
+       :errors
+         ["In ;!zprint number 4 in test, In the key-sequence [:vector :wrapx?] the key :wrapx? was not recognized as valid!"]}}
+   ";!zprint {:format :next :vector {:wrapx? false}}\n\n(def j [:t :u :v :w])\n"]
+  (zprint-file-str capi4
+                   "test"
+                   {:input {:range {:start 30,
+                                    :end 30,
+                                    :continue-after-!zprint-error? true,
+                                    :use-previous-!zprint? true}},
+                    :output {:range? true}}))
+
+(expect
+  [{:range {:actual-start 54, :actual-end 61}}
+   ";!zprint {:style :pair-nl-all}\n\n(defn abc [d e f] (h fkds ldskfjls sjlsld lkdsjfl lkjsldfj i j))\n"]
+  (zprint-file-str capi4a
+                   "test"
+                   {:input {:range {:start 57,
+                                    :end 57,
+                                    :continue-after-!zprint-error? false,
+                                    :use-previous-!zprint? false}},
+                    :output {:range? true}}))
+
+(expect
+  [{:range
+      {:actual-start 54,
+       :actual-end 61,
+       :errors
+         ["In ;!zprint number 5 in test, In the key-sequence [:widthx] the key :widthx was not recognized as valid!"]}}
+   ";!zprint {:style :pair-nl-all}\n\n(defn abc\n  [d e f]\n\n  (h fkds ldskfjls sjlsld lkdsjfl lkjsldfj i j))\n"]
+  (zprint-file-str capi4a
+                   "test"
+                   {:input {:range {:start 57,
+                                    :end 57,
+                                    :continue-after-!zprint-error? false,
+                                    :use-previous-!zprint? true}},
+                    :output {:range? true}}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

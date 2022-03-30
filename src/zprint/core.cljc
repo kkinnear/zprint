@@ -719,10 +719,9 @@
 	      ; the whole file when a tab is found.
               coll (clojure.string/join "\n" lines)
 	      psa-options (parse-string-all-options rest-options)
-              [result error-vec] (process-multiple-forms 
+              [result error-vec final-options] (process-multiple-forms 
 					       full-options
 	                                       psa-options
-	      #_(parse-string-all-options rest-options)
                                              zprint-str-internal
                                              ":parse-string-all? call"
                                              (edn* (p/parse-string-all coll)))
@@ -1343,7 +1342,7 @@
   "Take a sequence of forms (which are zippers of the elements of
   a file or a string), and not only format them for output but also
   handle comments containing ;!zprint that affect the options-map
-  throughout the processing. Returns [out-str error-vec]"
+  throughout the processing. Returns [out-str error-vec final-options]"
   [full-options rest-options zprint-fn zprint-specifier forms]
   (let [interpose-option (or (:interpose (:parse rest-options))
                              (:interpose (:parse full-options)))
@@ -1365,15 +1364,16 @@
         seq-of-strings (map #(nth % 2) #_second seq-of-zprint-fn)
 	; We were acccumulating the errors into the vector
 	#_ (println "last seq-of-zprint-fn:" (last seq-of-zprint-fn))
-	error-vec (nth (last seq-of-zprint-fn) 6 #_5)
-       #_#_ error-str (when (not (empty? error-vec))
-	             (apply str (interpose "; " error-vec)))]
+	last-seq (last seq-of-zprint-fn)
+	error-vec (nth last-seq 6 )
+	final-options (first last-seq)]
     #_(def sos seq-of-strings)
     #_(def is interpose-str)
     [(if interpose-str
       (apply str (interpose-w-comment seq-of-strings interpose-str))
       (apply str seq-of-strings))
-     error-vec]))
+     error-vec
+     final-options]))
 ;;
 ;; ## Process an entire file
 ;;
@@ -1486,7 +1486,7 @@
                                        (:more-options (:script full-options)))
                            pmf-options)
              #_(def fileforms (zmap-all identity forms))
-             [out-str error-vec] (process-multiple-forms full-options
+             [out-str error-vec final-options] (process-multiple-forms full-options
 	                                                 pmf-options
                                                          zprint-str-internal
                                                          zprint-specifier
@@ -1503,8 +1503,11 @@
                                 (or range-start range-end))
              ; Note that we would not expect to have a non-nil error-vec
              ; unless we have continue-after-!zprint-error? true
+	     ; NOTE: the use of final-options, not full-options here, so
+	     ; that you can set :continue-after-!zprint-error? true in
+	     ; ;!zprint directive, and get the error output in the map.
              continue-after-!zprint-error? (:continue-after-!zprint-error?
-                                             (:range (:input full-options)))
+                                             (:range (:input final-options)))
              ; We can only continue beyond here with a non-nil error-vec
              ; if we are doing range-output?, because otherwise we don't
              ; have anything to do with the errors.

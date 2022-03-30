@@ -3212,6 +3212,11 @@ instead of throwing an exception.  If `:output :range?` is true, the errors
 encountered will be returned in a vector which is the value of the
 key `:errors` in the map.
 
+Note that you can set this to `true` in a `;!zprint` directive, which 
+will cause errors in `;!zprint` directives to be ignored if the other
+required conditions are met.  However, the caller of `zprint-file-str` 
+may not be prepared to handle any errors that appear in the output map!
+
 _____
 ## :list
 

@@ -6801,6 +6801,14 @@ ser/collect-vars-acc %1 %2) )))"
 "(deftest\n  ^{:database-a-bit-longer :does-not-fit, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
 {:parse-string? true :style [:community :meta-alt]}))
 
+;;
+;; Issue #230
+;;
+
+(expect
+"(let)"
+(zprint-file-str "(let)" "stuff" {}))
+
 
 
 

@@ -1,13 +1,50 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.3 - 2022-02-11
+## 1.2.3 - 2022-04-1
 
 ### Added
 
+  * New `:range` configuration options: `:use-previous-!zprint?` and
+  `:continue-after-!zprint-error?`.  These allow someone doing `:range`
+  formatting on a file (string) which has `;!zprint` formatting directives
+  to have the lines in the range formatted the same when doing just the 
+  range or the whole file.  `:use-previous-!zprint?` if true will scan
+  all previous `;!zprint` directives prior to formatting the range.
+  `:continue-after-!zprint-error?` if true will ignore errors in
+  any `;!zprint` directives, and output any errors in the map 
+  returned by `:output {:range? true}`.
+
+  * An alternative way to format metadata was created.  It is 
+  `:style :meta-alt`.  It is presently experiemental.  Issue #224.
+
 ### Changed
 
+  * The `:fn` function type didn't handle multi-arity functions well.
+  Now they flow instead of hanging.
+
 ### Fixed
+
+  * Removed obsolete underscore from docs and specs.  Issue #220.
+
+  * `letfn` didn't indent its fns like fns.  Now it does.  And if they
+  are multi-arity, the various arities don't hang, but rather flow.
+  Issue #221.
+
+  * Several tests failed when running with new version of `planck`, and
+  therefore new version of Clojurescript.  Now they don't.  Issue #222.
+
+  * The styles `:community` and `:rod` didn't compose, because `:guided`
+  was not considered a "body" function type.  Now they do.
+  Issue #223.
+
+  * `zprint-file-str` was not thread-safe, for a variety of reasons.
+  Now it is, and configuration is thread-safe as well.  Issue #226.
+
+  * A function with `:binding` function type would cause an NPE if
+  it had no binding vector.  That is, `(let)` would not format successfully.
+  Now it is fine.  Issue #230.
+
 
 ## 1.2.2 - 2022-02-11
 

@@ -399,11 +399,13 @@
   "Return the count of non-whitespace elements in zloc.  Comments are
   counted as one thing, commas are ignored as whitespace."
   [zloc]
-  (loop [nloc (down* zloc)
-         i 0]
-    (if-not nloc
-      i
-      (recur (right* nloc) (if (not (whitespace? nloc)) (inc i) i)))))
+  (if (nil? zloc)
+    0
+    (loop [nloc (down* zloc)
+           i 0]
+      (if-not nloc
+        i
+        (recur (right* nloc) (if (not (whitespace? nloc)) (inc i) i))))))
 
 ; Used in core.cljc
 (defn zmap-all

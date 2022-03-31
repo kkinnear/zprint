@@ -1467,11 +1467,16 @@
 (defn protected-configure-all!
   "Call config-configure-all!, but protect the call by gaining
   access to the options using lock-options and unlock-options."
-  []
-  (lock-options)
-  (let [error-vec (config-configure-all!)]
-    (unlock-options)
-    error-vec))
+  ([]
+   (lock-options)
+   (let [error-vec (config-configure-all!)]
+     (unlock-options)
+     error-vec))
+  ([op-options]
+   (lock-options)
+   (let [error-vec (config-configure-all! op-options)]
+     (unlock-options)
+     error-vec)))
 
 (defn configure-if-needed!
   "Test to see if we are already configured, and if we are not,

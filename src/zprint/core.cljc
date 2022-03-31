@@ -278,8 +278,8 @@
   "Do external configuration regardless of whether or not it already
   been done, replacing any existing configuration.  Returns nil if successful,
   a vector of errors if not."
-  []
-  (protected-configure-all!))
+  ([] (protected-configure-all!))
+  ([op-options] (protected-configure-all! op-options)))
 
 ;;
 ;; # Zipper determination and handling

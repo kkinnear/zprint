@@ -1098,7 +1098,9 @@
                      (not continue-after-!zprint-error?))
             (throw (#?(:clj Exception.
                        :cljs js/Error.)
-                    (apply str (interpose "; " error-vec)))))
+                    ; Without this str, graalvm can't find the class
+                    ; and properly handle the thrown exception!
+                    (str (apply str (interpose "; " error-vec))))))
         ; Now make decisions about things
         interpose? (:interpose (:parse decision-options))
         previous-newline? (or interpose? previous-newline?)
@@ -1225,7 +1227,7 @@
     (when (and (not (empty? error-vec)) (not continue-after-!zprint-error?))
       (throw (#?(:clj Exception.
                  :cljs js/Error.)
-              (apply str (interpose "; " error-vec)))))
+              (str (apply str (interpose "; " error-vec))))))
     ; Next options last until the first non-comment non-whitespace
     ; form, then they go away.
     [full-options
@@ -1520,7 +1522,7 @@
            _ (when (and error-vec (not range-output?))
                (throw (#?(:clj Exception.
                           :cljs js/Error.)
-                       (apply str (interpose "; " error-vec)))))
+                       (str (apply str (interpose "; " error-vec))))))
            ; Figure a corrected range start and end from the
            ; actual start and end if we need it.
            [corrected-start corrected-end]

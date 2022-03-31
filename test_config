@@ -988,7 +988,7 @@ rm test_config.map2.clj
 # -w with two files, the first of which fails to format
 #
 
-echo "...........  -w test with two files, the first which fails to format"
+echo "...........  -w test with two files, the first which fails to format: bad !zprint map"
 
 echo ";!zprint {:format" >test_config.map1.clj
 echo "{:this :is :a :test :thix :is :only :a :test :foo :bar :baz}" >>test_config.map1.clj
@@ -1015,6 +1015,40 @@ rm test_config.diff.out
 rm test_config.map1.clj
 rm test_config.map1.clj.save
 rm test_config.map2.clj
+
+
+#
+# -w with two files, the first of which fails to format with bad key in !zprint
+#
+
+echo "...........  -w test with two files, the first which fails to format: bad !zprint key"
+
+echo ";!zprint {:widthx 90}" >test_config.map1.clj
+echo "{:this :is :a :test :thix :is :only :a :test :foo :bar :baz}" >>test_config.map1.clj
+cp test_config.map1.clj test_config.map1.clj.save
+cp test_config.map.clj test_config.map2.clj
+$command -w test_config.map1.clj test_config.map2.clj 2> test_config.stderr.out > test_config.stdout.out
+diff test_config.map1.clj test_config.map1.clj.save >test_config.diff.out
+output_length=`cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "-w length is $output_length"
+
+expected_length=343
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
+    cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
+    wc -c test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
+
+fi
+rm test_config.stdout.out
+rm test_config.stderr.out
+rm test_config.diff.out
+rm test_config.map1.clj
+rm test_config.map1.clj.save
+rm test_config.map2.clj
+
 
 #
 # local .zprintrc having a fn that is actually used

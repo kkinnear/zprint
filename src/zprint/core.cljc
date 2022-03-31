@@ -24,8 +24,8 @@
                                 validate-options apply-style perform-remove
                                 no-color-map merge-deep sci-load-string
                                 config-and-validate get-options-from-comment
-				protected-configure-all! configure-if-needed!
-				get-configured-options]]
+                                protected-configure-all! configure-if-needed!
+                                get-configured-options]]
     [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?
                                 find-root-and-path-nw]]
     [zprint.sutil]
@@ -337,9 +337,9 @@
   [options coll]
   (let [coll-str (pr-str coll)]
     (try (str "\n"
-              (zprint-str-internal (get-options) 
-	                           (merge-deep {:parse-string? true} options)
-                                    coll-str))
+              (zprint-str-internal (get-options)
+                                   (merge-deep {:parse-string? true} options)
+                                   coll-str))
          ; If it doesn't work for some reason, just output the string
          (catch #?(:clj Exception
                    :cljs :default)
@@ -462,8 +462,7 @@
               (when (and (not width)
                          ; check both new-options and already
                          ; configured ones
-                         (:auto-width? new-options
-                                       (:auto-width? full-options)))
+                         (:auto-width? new-options (:auto-width? full-options)))
                 (let [terminal-width-fn
                         #?(:bb nil
                            :clj (resolve 'table.width/detect-terminal-width)
@@ -692,15 +691,16 @@
   not only a different code path, but a different default for 
   :parse {:interpose nil} to {:interpose true}"
   [full-options internal-options coll & rest]
-  (let [[special-option rest-options] (process-rest-options full-options
-                                                            internal-options
-                                                            rest)]
+  (let [[special-option rest-options]
+          (process-rest-options full-options internal-options rest)]
     #_(println "special-option:" special-option "rest-options:" rest-options)
     (dbg rest-options "zprint-str-internal VVVVVVVVVVVVVVVV")
     (when (range-specified? rest-options)
-        (throw (#?(:clj Exception.
-                   :cljs js/Error.)
-                (str "Only zprint-file-str supports these range operations: {:input {:range {:start ... :end ...} :output {:range? true}}!"))))
+      (throw
+        (#?(:clj Exception.
+            :cljs js/Error.)
+         (str
+           "Only zprint-file-str supports these range operations: {:input {:range {:start ... :end ...} :output {:range? true}}!"))))
     (if (:parse-string-all? rest-options)
       (if (string? coll)
         (let [[line-ending lines] (determine-ending-split-lines coll)
@@ -715,19 +715,19 @@
               ; which is really what we need anyway.
               ;
               ; On the ohter hand, breaking it into lines to do the tab
-              ; expansion is considerably faster than just doing it on 
-	      ; the whole file when a tab is found.
+              ; expansion is considerably faster than just doing it on
+              ; the whole file when a tab is found.
               coll (clojure.string/join "\n" lines)
-	      psa-options (parse-string-all-options rest-options)
-              [result error-vec final-options] (process-multiple-forms 
-					       full-options
-	                                       psa-options
-                                             zprint-str-internal
-                                             ":parse-string-all? call"
-                                             (edn* (p/parse-string-all coll)))
-	      ; Note that we don't use error-vec, because it should never
-	      ; have anything in it.  Any errors should have been thrown
-	      ; already.
+              psa-options (parse-string-all-options rest-options)
+              [result error-vec final-options]
+                (process-multiple-forms full-options
+                                        psa-options
+                                        zprint-str-internal
+                                        ":parse-string-all? call"
+                                        (edn* (p/parse-string-all coll)))
+              ; Note that we don't use error-vec, because it should never
+              ; have anything in it.  Any errors should have been thrown
+              ; already.
               #_(def pmr-result result)
               str-w-line-endings
                 (if (or (nil? line-ending) (= line-ending "\n"))
@@ -904,7 +904,11 @@
       (czprint nil :explain) ; to see the current options-map"
   {:doc/format :markdown}
   [coll & rest]
-  (println (apply zprint-str-internal (get-configured-options) {:color? true} coll rest)))
+  (println (apply zprint-str-internal
+             (get-configured-options)
+             {:color? true}
+             coll
+             rest)))
 
 #?(:clj
      (defmacro zprint-fn-str
@@ -922,7 +926,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(apply zprint-str-internal
-	  (get-configured-options)
+          (get-configured-options)
           {:parse-string? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
@@ -945,7 +949,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(apply zprint-str-internal
-	  (get-configured-options)
+          (get-configured-options)
           {:parse-string? true, :color? true, :fn-name '~fn-name}
           (get-fn-source '~fn-name)
           ~@rest
@@ -967,7 +971,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(println (apply zprint-str-internal
-		   (get-configured-options)
+                   (get-configured-options)
                    {:parse-string? true, :fn-name '~fn-name}
                    (get-fn-source '~fn-name)
                    ~@rest
@@ -990,7 +994,7 @@
        {:doc/format :markdown}
        [fn-name & rest]
        `(println (apply zprint-str-internal
-		   (get-configured-options)
+                   (get-configured-options)
                    {:parse-string? true, :color? true, :fn-name '~fn-name}
                    (get-fn-source '~fn-name)
                    ~@rest
@@ -1026,7 +1030,9 @@
   previous-newline? error-vec], since reductions is used to call this function.
   See process-multiple-forms for what is actually done with the
   various :format values."
-  [rest-options zprint-fn zprint-specifier
+  [rest-options
+   zprint-fn
+   zprint-specifier
    [full-options next-options _ indent zprint-num previous-newline? error-vec]
    form]
   ; Note that next-options are not validated at this point, they are raw
@@ -1106,8 +1112,8 @@
                             (spaces? (string form))
                             nil)))
         ; Causes fzprint-style to drop whatever it is printing
-	; The (not (not )) construct ensures that drop? is a boolean, not
-	; some random nil/non-nil thing.
+        ; The (not (not )) construct ensures that drop? is a boolean, not
+        ; some random nil/non-nil thing.
         drop? (not (not (and space-count
                              (not (= :skip (:format next-options)))
                              (or interpose?
@@ -1225,7 +1231,9 @@
     [full-options
      (cond local? (merge-deep next-options new-options)
            (or comment? whitespace-form?) next-options
-           :else {}) output-str (or space-count 0)
+           :else {})
+     output-str
+     (or space-count 0)
      ; Increment the zprint-num (or not).  We count the ones with
      ; skip and next even when skipping them, thus inc-zprint-num?
      (if (and (or new-options inc-zprint-num?)
@@ -1362,18 +1370,16 @@
             (zmap-all identity forms))
         #_(def sozf seq-of-zprint-fn)
         seq-of-strings (map #(nth % 2) #_second seq-of-zprint-fn)
-	; We were acccumulating the errors into the vector
-	#_ (println "last seq-of-zprint-fn:" (last seq-of-zprint-fn))
-	last-seq (last seq-of-zprint-fn)
-	error-vec (nth last-seq 6 )
-	final-options (first last-seq)]
+        ; We were acccumulating the errors into the vector
+        #_(println "last seq-of-zprint-fn:" (last seq-of-zprint-fn))
+        last-seq (last seq-of-zprint-fn)
+        error-vec (nth last-seq 6)
+        final-options (first last-seq)]
     #_(def sos seq-of-strings)
     #_(def is interpose-str)
     [(if interpose-str
-      (apply str (interpose-w-comment seq-of-strings interpose-str))
-      (apply str seq-of-strings))
-     error-vec
-     final-options]))
+       (apply str (interpose-w-comment seq-of-strings interpose-str))
+       (apply str seq-of-strings)) error-vec final-options]))
 ;;
 ;; ## Process an entire file
 ;;
@@ -1404,194 +1410,191 @@
                           :cljs js/Error.)
                        error-str))
                updated-map))]
-       #_(println "zprint-file-str: :color?" (:color? full-options))
-       ; Make sure to get trailing newlines by using -1
-       (let [; If the filestring starts with #!, remove it and save it
-             [shebang file-str] (remove-shebang file-str)
-             [line-ending lines] (determine-ending-split-lines file-str)
-             lines (if (:expand? (:tab full-options))
-                     (map (partial expand-tabs (:size (:tab full-options)))
-                       lines)
-                     lines)
-             ; Glue lines back together with \n line ending, to work around
-             ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
-             ; the rewrite-clj parse would "convert" them all to \n for us,
-             ; which is really what we need anyway.
-             ;
-             ; On the ohter hand, breaking it into lines to do the tab expansion
-             ; is considerably faster than just doing it on the whole file when
-             ; a tab is found.
-             filestring (clojure.string/join "\n" lines)
-             range-start (:start (:range (:input full-options)))
-             ; If shebang correct for one less line
-             range-start (when range-start
-                           (if shebang (dec range-start) range-start))
-             range-end (:end (:range (:input full-options)))
-             ; If shebang correct for one less line
-             range-end (when range-end (if shebang (dec range-end) range-end))
-             _ (when (or range-start range-end)
-                 (dbg new-options
-                      "zprint-file-str: range-start:" range-start
-                      "range-end:" range-end))
-             ; If we are doing ranges, we really care about lines being a
-             ; vector
-             lines (if (and (or range-start range-end) (not (vector? lines)))
-                     (into [] lines)
-                     lines)
-             [actual-start actual-end] (when (or range-start range-end)
-                                         (expand-range-to-top-level
-                                           filestring
-                                           lines
-                                           range-start
-                                           range-end
-                                           (:dbg? full-options)))
-             _ (when (or range-start range-end)
-                 (dbg new-options
-                      "zprint-file-str: actual-start:" actual-start
-                      "actual-end:" actual-end))
-             [before-lines range after-lines]
-               (when (and actual-start actual-end)
-                 (split-out-range lines actual-start actual-end))
-             range-includes-end? (zero? (count after-lines))
-             use-previous-!zprint? (:use-previous-!zprint?
-                                     (:range (:input full-options)))
-             comment-api-lines (when use-previous-!zprint?
-                                 (wrap-comment-api before-lines))
-             #_(prn "comment-api-lines:" comment-api-lines)
-             range (if (and range comment-api-lines)
-                     ; (count  comment-api-lines) is the count to remove later
-                     (into [] (concat comment-api-lines range))
-                     range)
-             filestring (if range (clojure.string/join "\n" range) filestring)
-             range-ends-with-nl? (when (and range (not range-includes-end?))
-                                   (clojure.string/ends-with? filestring "\n"))
-             ends-with-nl? (clojure.string/ends-with? file-str "\n")
-             _ (when (and actual-start actual-end)
-                 (dbg-pr new-options
-                         "zprint-file-str: lines count:" (count lines)
-                         "before count:" (count before-lines)
-                         "range count:" (count range)
-                         "after count:" (count after-lines)
-                         "range-ends-with-nl?" range-ends-with-nl?
-                         "ends-with-nl?" ends-with-nl?
-                         "range:" range
-                         "filestring:" filestring))
-             forms (edn* (p/parse-string-all filestring))
-             pmf-options {:process-bang-zprint? true}
-             pmf-options (if (:interpose (:parse full-options))
-                           (assoc pmf-options :trim-comments? true)
-                           pmf-options)
-             pmf-options (if shebang
-                           (merge-deep pmf-options
-                                       (:more-options (:script full-options)))
-                           pmf-options)
-             #_(def fileforms (zmap-all identity forms))
-             [out-str error-vec final-options] (process-multiple-forms full-options
-	                                                 pmf-options
-                                                         zprint-str-internal
-                                                         zprint-specifier
-                                                         forms)
-             _ (dbg-pr new-options "zprint-file-str: out-str:" out-str)
-             error-vec (when (not (empty? error-vec)) error-vec)
-             ; Get rid of any added comment-api lines on the front of
-             ; a range.  If it wasn't a range, then comment-api-lines
-             ; can't be non-null.
-             out-str (if comment-api-lines
-                       (drop-lines (count comment-api-lines) out-str)
-                       out-str)
-             range-output? (and (:range? (:output full-options))
-                                (or range-start range-end))
-             ; Note that we would not expect to have a non-nil error-vec
-             ; unless we have continue-after-!zprint-error? true
-	     ; NOTE: the use of final-options, not full-options here, so
-	     ; that you can set :continue-after-!zprint-error? true in
-	     ; ;!zprint directive, and get the error output in the map.
-             continue-after-!zprint-error? (:continue-after-!zprint-error?
-                                             (:range (:input final-options)))
-             ; We can only continue beyond here with a non-nil error-vec
-             ; if we are doing range-output?, because otherwise we don't
-             ; have anything to do with the errors.
-             _ (when (and error-vec (not range-output?))
-                 (throw (#?(:clj Exception.
-                            :cljs js/Error.)
-                         (apply str (interpose "; " error-vec)))))
-             ; Figure a corrected range start and end from the
-             ; actual start and end if we need it.
-             [corrected-start corrected-end]
-               (when range-output?
-                 (let [actual-start (if (= actual-end -1)
-                                      actual-start
-                                      (max actual-start 0))]
-                   [(cond (and (or (= actual-start 0) (= actual-start -1))
-                               shebang)
-                            actual-start
-                          shebang (inc actual-start)
-                          :else actual-start)
-                    (let [line-count (count lines)
-                          ; Because of the way that split and join work, the
-                          ; split needs the -1.  But this means that if the
-                          ; last thing in the lines vector is a "",
-                          ; then that means that it is one too big.
-                          ; Sigh.
-                          line-count
-                            (if (= (last lines) "") (dec line-count) line-count)
-                          max-end (dec line-count)
-                          line-count (if shebang (inc line-count) line-count)
-                          actual-end
-                            (if (> actual-end max-end) max-end actual-end)]
-                      (if (and shebang (not= actual-end -1))
-                        (inc actual-end)
-                        actual-end))]))
-             _ (when range-output?
-                 (dbg-pr new-options
-                         "actual-start:" actual-start
-                         "actual-end:" actual-end
-                         "shebang" shebang
-                         "(count lines):" (count lines)
-                         "corrected-start:" corrected-start
-                         "corrected-end:" corrected-end
-                         "error-vec:" error-vec))
-             ; Clean up the end of the range if it ended with a nl.
-             out-str (if (and range
-                              range-ends-with-nl?
-                              (not (clojure.string/ends-with? out-str "\n")))
-                       (str out-str "\n")
-                       out-str)
-             ; If we did a range, insert the formatted range back into
-             ; the before and after lines  Unless we are going to output
-             ; just the range.
-             out-str (if (and range (not range-output?))
-                       (reassemble-range before-lines out-str after-lines)
-                       out-str)
-             out-str (if range-output?
-                       (if (and shebang (= corrected-start 0))
-                         (str shebang "\n" out-str)
-                         out-str)
-                       (if shebang (str shebang "\n" out-str) out-str))
-             out-str (if (and (if range-output? range-includes-end? true)
-                              ends-with-nl?
-                              (not (clojure.string/ends-with? out-str "\n")))
-                       (str out-str "\n")
-                       out-str)
-             out-str (if (= line-ending "\n")
-                       out-str
-                       (clojure.string/replace out-str "\n" line-ending))]
-         (if range-output?
-           ; We aren't doing just string output, but rather a vector
-           ; with the actual range we used, and then the string.
-           ; Unless the start and end are -1, which means we didn't do
-           ; anything, in which case the output is nil.
+     #_(println "zprint-file-str: :color?" (:color? full-options))
+     ; Make sure to get trailing newlines by using -1
+     (let [; If the filestring starts with #!, remove it and save it
+           [shebang file-str] (remove-shebang file-str)
+           [line-ending lines] (determine-ending-split-lines file-str)
+           lines (if (:expand? (:tab full-options))
+                   (map (partial expand-tabs (:size (:tab full-options))) lines)
+                   lines)
+           ; Glue lines back together with \n line ending, to work around
+           ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
+           ; the rewrite-clj parse would "convert" them all to \n for us,
+           ; which is really what we need anyway.
            ;
-           ; Don't return :errors unless there really are errors.
-           [(if (and continue-after-!zprint-error? error-vec)
-              {:range {:actual-start corrected-start,
-                       :actual-end corrected-end,
-                       :errors error-vec}}
-              {:range {:actual-start corrected-start,
-                       :actual-end corrected-end}})
-            (if (and (= corrected-start -1) (= corrected-end -1)) nil out-str)]
-           out-str))
-       ))
+           ; On the ohter hand, breaking it into lines to do the tab expansion
+           ; is considerably faster than just doing it on the whole file when
+           ; a tab is found.
+           filestring (clojure.string/join "\n" lines)
+           range-start (:start (:range (:input full-options)))
+           ; If shebang correct for one less line
+           range-start (when range-start
+                         (if shebang (dec range-start) range-start))
+           range-end (:end (:range (:input full-options)))
+           ; If shebang correct for one less line
+           range-end (when range-end (if shebang (dec range-end) range-end))
+           _ (when (or range-start range-end)
+               (dbg new-options
+                    "zprint-file-str: range-start:" range-start
+                    "range-end:" range-end))
+           ; If we are doing ranges, we really care about lines being a
+           ; vector
+           lines (if (and (or range-start range-end) (not (vector? lines)))
+                   (into [] lines)
+                   lines)
+           [actual-start actual-end] (when (or range-start range-end)
+                                       (expand-range-to-top-level
+                                         filestring
+                                         lines
+                                         range-start
+                                         range-end
+                                         (:dbg? full-options)))
+           _ (when (or range-start range-end)
+               (dbg new-options
+                    "zprint-file-str: actual-start:" actual-start
+                    "actual-end:" actual-end))
+           [before-lines range after-lines]
+             (when (and actual-start actual-end)
+               (split-out-range lines actual-start actual-end))
+           range-includes-end? (zero? (count after-lines))
+           use-previous-!zprint? (:use-previous-!zprint?
+                                   (:range (:input full-options)))
+           comment-api-lines (when use-previous-!zprint?
+                               (wrap-comment-api before-lines))
+           #_(prn "comment-api-lines:" comment-api-lines)
+           range (if (and range comment-api-lines)
+                   ; (count  comment-api-lines) is the count to remove later
+                   (into [] (concat comment-api-lines range))
+                   range)
+           filestring (if range (clojure.string/join "\n" range) filestring)
+           range-ends-with-nl? (when (and range (not range-includes-end?))
+                                 (clojure.string/ends-with? filestring "\n"))
+           ends-with-nl? (clojure.string/ends-with? file-str "\n")
+           _ (when (and actual-start actual-end)
+               (dbg-pr new-options
+                       "zprint-file-str: lines count:" (count lines)
+                       "before count:" (count before-lines)
+                       "range count:" (count range)
+                       "after count:" (count after-lines)
+                       "range-ends-with-nl?" range-ends-with-nl?
+                       "ends-with-nl?" ends-with-nl?
+                       "range:" range
+                       "filestring:" filestring))
+           forms (edn* (p/parse-string-all filestring))
+           pmf-options {:process-bang-zprint? true}
+           pmf-options (if (:interpose (:parse full-options))
+                         (assoc pmf-options :trim-comments? true)
+                         pmf-options)
+           pmf-options (if shebang
+                         (merge-deep pmf-options
+                                     (:more-options (:script full-options)))
+                         pmf-options)
+           #_(def fileforms (zmap-all identity forms))
+           [out-str error-vec final-options] (process-multiple-forms
+                                               full-options
+                                               pmf-options
+                                               zprint-str-internal
+                                               zprint-specifier
+                                               forms)
+           _ (dbg-pr new-options "zprint-file-str: out-str:" out-str)
+           error-vec (when (not (empty? error-vec)) error-vec)
+           ; Get rid of any added comment-api lines on the front of
+           ; a range.  If it wasn't a range, then comment-api-lines
+           ; can't be non-null.
+           out-str (if comment-api-lines
+                     (drop-lines (count comment-api-lines) out-str)
+                     out-str)
+           range-output? (and (:range? (:output full-options))
+                              (or range-start range-end))
+           ; Note that we would not expect to have a non-nil error-vec
+           ; unless we have continue-after-!zprint-error? true
+           ; NOTE: the use of final-options, not full-options here, so
+           ; that you can set :continue-after-!zprint-error? true in
+           ; ;!zprint directive, and get the error output in the map.
+           continue-after-!zprint-error? (:continue-after-!zprint-error?
+                                           (:range (:input final-options)))
+           ; We can only continue beyond here with a non-nil error-vec
+           ; if we are doing range-output?, because otherwise we don't
+           ; have anything to do with the errors.
+           _ (when (and error-vec (not range-output?))
+               (throw (#?(:clj Exception.
+                          :cljs js/Error.)
+                       (apply str (interpose "; " error-vec)))))
+           ; Figure a corrected range start and end from the
+           ; actual start and end if we need it.
+           [corrected-start corrected-end]
+             (when range-output?
+               (let [actual-start
+                       (if (= actual-end -1) actual-start (max actual-start 0))]
+                 [(cond (and (or (= actual-start 0) (= actual-start -1))
+                             shebang)
+                          actual-start
+                        shebang (inc actual-start)
+                        :else actual-start)
+                  (let [line-count (count lines)
+                        ; Because of the way that split and join work, the
+                        ; split needs the -1.  But this means that if the
+                        ; last thing in the lines vector is a "",
+                        ; then that means that it is one too big.
+                        ; Sigh.
+                        line-count
+                          (if (= (last lines) "") (dec line-count) line-count)
+                        max-end (dec line-count)
+                        line-count (if shebang (inc line-count) line-count)
+                        actual-end
+                          (if (> actual-end max-end) max-end actual-end)]
+                    (if (and shebang (not= actual-end -1))
+                      (inc actual-end)
+                      actual-end))]))
+           _ (when range-output?
+               (dbg-pr new-options
+                       "actual-start:" actual-start
+                       "actual-end:" actual-end
+                       "shebang" shebang
+                       "(count lines):" (count lines)
+                       "corrected-start:" corrected-start
+                       "corrected-end:" corrected-end
+                       "error-vec:" error-vec))
+           ; Clean up the end of the range if it ended with a nl.
+           out-str (if (and range
+                            range-ends-with-nl?
+                            (not (clojure.string/ends-with? out-str "\n")))
+                     (str out-str "\n")
+                     out-str)
+           ; If we did a range, insert the formatted range back into
+           ; the before and after lines  Unless we are going to output
+           ; just the range.
+           out-str (if (and range (not range-output?))
+                     (reassemble-range before-lines out-str after-lines)
+                     out-str)
+           out-str (if range-output?
+                     (if (and shebang (= corrected-start 0))
+                       (str shebang "\n" out-str)
+                       out-str)
+                     (if shebang (str shebang "\n" out-str) out-str))
+           out-str (if (and (if range-output? range-includes-end? true)
+                            ends-with-nl?
+                            (not (clojure.string/ends-with? out-str "\n")))
+                     (str out-str "\n")
+                     out-str)
+           out-str (if (= line-ending "\n")
+                     out-str
+                     (clojure.string/replace out-str "\n" line-ending))]
+       (if range-output?
+         ; We aren't doing just string output, but rather a vector
+         ; with the actual range we used, and then the string.
+         ; Unless the start and end are -1, which means we didn't do
+         ; anything, in which case the output is nil.
+         ;
+         ; Don't return :errors unless there really are errors.
+         [(if (and continue-after-!zprint-error? error-vec)
+            {:range {:actual-start corrected-start,
+                     :actual-end corrected-end,
+                     :errors error-vec}}
+            {:range {:actual-start corrected-start, :actual-end corrected-end}})
+          (if (and (= corrected-start -1) (= corrected-end -1)) nil out-str)]
+         out-str))))
   ([file-str zprint-specifier new-options]
    (zprint-file-str file-str
                     zprint-specifier

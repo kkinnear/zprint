@@ -233,8 +233,9 @@
      :cljs false?))
 (s/def ::path (s/coll-of number? :kind sequential?))
 (s/def ::paths ::path-seq)
-(s/def ::range (only-keys :opt-un [::start ::end ::use-previous-!zprint?
-                                   ::continue-after-!zprint-error?]))
+(s/def ::range
+  (only-keys :opt-un [::start ::end ::use-previous-!zprint?
+                      ::continue-after-!zprint-error?]))
 (s/def ::range? ::boolean)
 (s/def ::ignore-if-parse-fails (s/nilable (s/coll-of ::ignore-args :kind set?)))
 (s/def ::key-no-sort (s/nilable (s/coll-of ::ignore-args :kind set?)))
@@ -449,7 +450,7 @@
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
-	     ::!zprint-elide-skip-next? ::meta]))
+             ::!zprint-elide-skip-next? ::meta]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

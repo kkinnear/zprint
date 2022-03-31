@@ -3047,7 +3047,7 @@
   (if (zmeta? element)
     (apply conj
       (conj out-vec element)
-      (drop-thru-first-non-whitespace 
+      (drop-thru-first-non-whitespace
         (fzprint-get-zloc-seq caller options element)))
     (conj out-vec element)))
 
@@ -3649,7 +3649,7 @@
    :none-body :none,
    :flow-body :flow,
    :noarg1-body :noarg1,
-   :force-nl-body :force-nl
+   :force-nl-body :force-nl,
    :guided-body :guided})
 
 ;;
@@ -3902,8 +3902,8 @@
         ; out above.
         fn-style (or (:fn-style new-options) fn-style)
         guide (or (:guide options) (guide-debug caller options))
-	; Remove :guide and any forced :fn-style from options so they only
-	; happen once!
+        ; Remove :guide and any forced :fn-style from options so they only
+        ; happen once!
         options (dissoc options :guide :fn-style)
         #_(println "\nguide after:" guide "\nguide options:" (:guide options))
         _ (when guide (dbg-pr options "fzprint-list* guide:" guide))
@@ -3961,7 +3961,7 @@
         ; set indent based on fn-style
         indent (if (body-set fn-style) indent (or indent-arg indent))
         indent (+ indent (dec l-str-len))
-	#_(prn "fzprint-list* indent:" indent "indent-arg:" indent-arg)
+        #_(prn "fzprint-list* indent:" indent "indent-arg:" indent-arg)
         ; If we have a :guide value, then we are going to use it no
         ; matter the fn-style we had before.  Note that we kept the
         ; original fn-style around long enough to get the indent figured
@@ -3984,11 +3984,9 @@
         one-line-ok? (if (:force-nl? (options caller)) nil one-line-ok?)
         ; remove -body from fn-style if it was there
         fn-style (or (body-map fn-style) fn-style)
-	; Fix up :fn for multi-arity functions
-	; If the second thing is a list, :fn maps to :flow in this case
-	fn-style (if (and (= fn-style :fn) (zlist? arg-2-zloc))
-	              :flow
-		      fn-style)
+        ; Fix up :fn for multi-arity functions
+        ; If the second thing is a list, :fn maps to :flow in this case
+        fn-style (if (and (= fn-style :fn) (zlist? arg-2-zloc)) :flow fn-style)
         ; All styles except :hang, :flow, and :flow-body and :binding need
         ; three elements minimum. We could put this in the fn-map,
         ; but until there are more than three (well four) exceptions, seems
@@ -5114,9 +5112,9 @@
               ; Comments cause an overflow of the size, forcing the next
               ; thing onto a new line
               (or comment? comment-inline?) (inc width)
-	      ; Uneval stuff with a previous newline will force the next
-	      ; thing onto a new line
-	      (and uneval? previous-newline?) (inc width)
+              ; Uneval stuff with a previous newline will force the next
+              ; thing onto a new line
+              (and uneval? previous-newline?) (inc width)
               ; If is multi-line, and we have more than one line, and
               ; we don't allow anything after a multi-line thing on
               ; the same line, then force the next thing onto a new line
@@ -7103,8 +7101,7 @@
   "Drop elements of the sequence up to and including the first element
   that is not zwhitespace?"
   [coll]
-  (let [no-whitespace (drop-while zwhitespace? coll)]
-    (drop 1 no-whitespace)))
+  (let [no-whitespace (drop-while zwhitespace? coll)] (drop 1 no-whitespace)))
 
 (defn take-thru-first-non-whitespace
   "Take all elements of the sequence up to and including the first element
@@ -7129,21 +7126,20 @@
         r-str ""
         l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options ind zloc r-str)
-	; i224
+        ; i224
         zloc-seq (fzprint-get-zloc-seq :list options zloc)
-	zloc-seq 
-          (if (:split? (:meta options))
-	    ; If we are splitting the meta, we already pulled out 
-	    ; everything but the first thing into the outer zloc-seq
-	    ; in fzprint-split-meta-in-seq prior to calling this routine.
-	    (take-thru-first-non-whitespace zloc-seq)
-	    zloc-seq)]
+        zloc-seq (if (:split? (:meta options))
+                   ; If we are splitting the meta, we already pulled out
+                   ; everything but the first thing into the outer zloc-seq
+                   ; in fzprint-split-meta-in-seq prior to calling this routine.
+                   (take-thru-first-non-whitespace zloc-seq)
+                   zloc-seq)]
     (dbg-pr options "fzprint-meta: zloc:" (zstring zloc))
     (concat-no-nil l-str-vec
                    (if (:indent-only? (:list options))
-                     ; Since l-str isn't a "pair" and shouldn't be 
-		     ; considered in the indent, we don't tell 
-		     ; fzprint-indent about it.
+                     ; Since l-str isn't a "pair" and shouldn't be
+                     ; considered in the indent, we don't tell
+                     ; fzprint-indent about it.
                      (fzprint-indent :vector
                                      l-str
                                      ""
@@ -7159,8 +7155,8 @@
                        options
                        ; no indent for second line, as the leading ^ is
                        ; not a normal collection beginning
-                       ; Generate a separate indent for the first thing, 
-		       ; and use ind for the remaining.
+                       ; Generate a separate indent for the first thing,
+                       ; and use ind for the remaining.
                        (apply vector
                          (+ (count l-str) ind)
                          (repeat (dec (count zloc-seq)) ind))

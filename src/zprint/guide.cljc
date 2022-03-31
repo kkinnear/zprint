@@ -52,7 +52,7 @@
            rest (if multi-arity? rest (next rest))
            #_#_zfn-map (:zfn-map options)
            #_#_rest-count ((:zcount zfn-map) (:zloc options))
-	   ; It is not just that the count is off.
+           ; It is not just that the count is off.
            rest-guide (repeat (dec #_rest-count (count rest)) :element)
            rest-guide
              (into []

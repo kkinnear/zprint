@@ -305,7 +305,8 @@
   [& args]
   ; Turn off multi-zprint locking since graalvm can't handle it, and
   ; we only do one zprint at a time here in the uberjar.
-  #?(:bb nil :clj (zprint.redef/remove-locking))
+  #?(:bb nil
+     :clj (zprint.redef/remove-locking))
   (let [debug? (and args (= (first args) ":debug"))
         args (if debug? (next args) args)
         before-last-switch (elements-before-last-switch args)

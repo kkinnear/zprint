@@ -61,11 +61,9 @@
 (def explain-hide-keys
   [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
    :dbg-ge :file? :spaces? :process-bang-zprint? :trim-comments? :zipper?
-   :indent :remove :return-cvec? :test-for-eol-blanks?
-   :!zprint-elide-skip-next?
+   :indent :remove :return-cvec? :test-for-eol-blanks? :!zprint-elide-skip-next?
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma? :key-value]
-   [:output :elide :lines]
-   [:pair :justify-hang :justify-tuning]
+   [:output :elide :lines] [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning :key-value]
    :tuning :perf-vs-format [:url :cache-path]
@@ -482,10 +480,7 @@
                :uneval :magenta,
                :user-fn :black},
    :comment
-     {:count? false, 
-      :wrap? true, 
-      :inline? true, 
-      :inline-align-style :aligned},
+     {:count? false, :wrap? true, :inline? true, :inline-align-style :aligned},
    :configured? false,
    :cwd-zprintrc? false,
    :dbg-ge nil,
@@ -519,10 +514,10 @@
    :future {:object? false},
    ; This is used for {:parse {:left-space :keep}}
    :indent 0,
-   :input {:range {:start nil, 
-                   :end nil
-		   :use-previous-!zprint? false
-		   :continue-after-!zprint-error? false}},
+   :input {:range {:start nil,
+                   :end nil,
+                   :use-previous-!zprint? false,
+                   :continue-after-!zprint-error? false}},
    ; When you change :list, you should also change :vector-fn, since it
    ; becomes the current :list when
    :list {:constant-pair-fn nil,
@@ -598,7 +593,7 @@
    :max-hang-depth 300,
    :max-hang-span 4,
    :max-length 1000000,
-   :meta {:split? false}
+   :meta {:split? false},
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
    :output {:focus {:zloc? false, :surround nil},
@@ -775,17 +770,18 @@
       :hiccup {:doc "Format vectors containing hiccup information better",
                :vector
                  {:option-fn
-                    (fn ([] "hiccup-option-fn")
-                        ([opts n exprs]
-                         (let [hiccup? (and (>= n 2)
-                                            (or (keyword? (first exprs))
-                                                (symbol? (first exprs)))
-                                            (map? (second exprs)))]
-                           (cond (and hiccup? (not (:fn-format (:vector opts))))
-                                   {:vector {:fn-format :arg1-force-nl}}
-                                 (and (not hiccup?) (:fn-format (:vector opts)))
-                                   {:vector {:fn-format nil}}
-                                 :else nil)))),
+                    (fn
+                      ([] "hiccup-option-fn")
+                      ([opts n exprs]
+                       (let [hiccup? (and (>= n 2)
+                                          (or (keyword? (first exprs))
+                                              (symbol? (first exprs)))
+                                          (map? (second exprs)))]
+                         (cond (and hiccup? (not (:fn-format (:vector opts))))
+                                 {:vector {:fn-format :arg1-force-nl}}
+                               (and (not hiccup?) (:fn-format (:vector opts)))
+                                 {:vector {:fn-format nil}}
+                               :else nil)))),
                   :wrap? false},
                :vector-fn {:indent 1, :indent-arg 1}},
       :indent-only {:doc "Enable indent only for every type of structure",
@@ -809,31 +805,30 @@
       :keyword-respect-nl
         {:doc "When a vector starts with a :keyword, :respect-nl in it",
          :vector {:option-fn-first
-                    (fn ([] "keyword-respect-nl-option-fn-first")
-                        ([options element]
-                         (let [k? (keyword? element)]
-                           (when (not= k? (:respect-nl? (:vector options)))
-                             {:vector {:respect-nl? k?}}))))}},
+                    (fn
+                      ([] "keyword-respect-nl-option-fn-first")
+                      ([options element]
+                       (let [k? (keyword? element)]
+                         (when (not= k? (:respect-nl? (:vector options)))
+                           {:vector {:respect-nl? k?}}))))}},
       :map-nl {:doc "Add newline after every value that flows",
                :map {:indent 0, :nl-separator? true}},
       :map-nl-all {:doc "Add newline between all map pairs",
                    :map {::indent 0, :nl-separator-all? true}},
-
-      :meta-base {:doc "Alternative format for metadata. Experimental."
-             :list {:option-fn 
-	              (fn ([] "meta-base-option-fn") 
-	                  ([opts n exprs] 
-			   (when (meta (second exprs)) 
-			     {:meta {:split? true} 
-			      :list {:hang-expand 0} 
-			      :fn-style :arg2
-			      :next-inner-restore [[:list :option-fn] 
-			                           [:list :hang-expand]]})))}}
-
-      :meta-alt {:doc "Alternative for metadata. Experimental."
-                 :fn-map {"def" [:arg2 {:style :meta-base}]
-		          "deftest" [:arg2 {:style :meta-base}]}}
-
+      :meta-base {:doc "Alternative format for metadata. Experimental.",
+                  :list {:option-fn (fn
+                                      ([] "meta-base-option-fn")
+                                      ([opts n exprs]
+                                       (when (meta (second exprs))
+                                         {:meta {:split? true},
+                                          :list {:hang-expand 0},
+                                          :fn-style :arg2,
+                                          :next-inner-restore
+                                            [[:list :option-fn]
+                                             [:list :hang-expand]]})))}},
+      :meta-alt {:doc "Alternative for metadata. Experimental.",
+                 :fn-map {"def" [:arg2 {:style :meta-base}],
+                          "deftest" [:arg2 {:style :meta-base}]}},
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
       :vector-pairs {:doc "Consider vectors 'constants' for constant pairing",
@@ -899,15 +894,16 @@
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none
                               {:vector {:option-fn
-                                          (fn ([opts n exprs]
-                                               (if-not (clojure.string/includes?
-                                                         (str (first exprs))
-                                                         ".")
-                                                 {:vector {:fn-format nil}}
-                                                 {:vector {:fn-format :none},
-                                                  :vector-fn {:constant-pair-min
-                                                                1}}))
-                                              ([] "require-pair-option-fn"))}}]}},
+                                          (fn
+                                            ([opts n exprs]
+                                             (if-not (clojure.string/includes?
+                                                       (str (first exprs))
+                                                       ".")
+                                               {:vector {:fn-format nil}}
+                                               {:vector {:fn-format :none},
+                                                :vector-fn {:constant-pair-min
+                                                              1}}))
+                                            ([] "require-pair-option-fn"))}}]}},
       :respect-bl {:doc "Enable respect blank lines for every type",
                    :list {:respect-bl? true},
                    :map {:respect-bl? true},
@@ -1033,7 +1029,7 @@
                :wrap-multi? true},
    :width 80,
    :url {:cache-dir "urlcache", :cache-secs 300},
-   :zipper? false
+   :zipper? false,
    :!zprint-elide-skip-next? false})
 
 ;; Returns nil for all of the colors
@@ -1551,7 +1547,7 @@
                         (select-op-options new-options)))
   ([new-options doc-str]
    (config-set-options! new-options doc-str (select-op-options new-options))))
-	 
+
 ;;
 ;; # Options Validation Functions
 ;;

@@ -75,7 +75,7 @@
 (def zfind nil)
 (def ztake-append nil)
 
-(defn zfn-map [] {:zmap-no-comment zmap-no-comment, 
-                  :zstring zstring
-                  :zcount zcount})
+(defn zfn-map
+  []
+  {:zmap-no-comment zmap-no-comment, :zstring zstring, :zcount zcount})
 

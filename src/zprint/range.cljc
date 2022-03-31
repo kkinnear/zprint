@@ -1,7 +1,7 @@
 (ns ^:no-doc zprint.range
   (:require [clojure.string :as s]
             [zprint.util :refer [local-abs]]
-	    [zprint.config]
+            [zprint.config]
             [rewrite-clj.parser :as p]
             [rewrite-clj.node :as n]
             [rewrite-clj.zip :as z]))
@@ -309,7 +309,7 @@
     (str before-str range after-str)))
 
 ;;
-;; # Comment API Selection 
+;; # Comment API Selection
 ;;
 
 (defn comment-api?

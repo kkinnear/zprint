@@ -9,6 +9,9 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
+ * The library is now thread-safe (only if you format all strings or all
+ structures.  You can't intermix them simultaneously.)
+ * Tests now also run in babaska (thanks to @borkdude)
  * Fixed issue with Clojure 1.11.0-alpha4.
  * Implemented `{:output {:range? true}}` to ease integration with IDE's.
  * New version of rewrite-clj now used for both .clj and .cljs.  Many thanks to
@@ -223,6 +226,7 @@ A number of folks have contributed to zprint, not all of whom
 show up on GitHub because I have integrated the code or suggestions manually.
 __Thanks for all of the great contributions!__
 
+  * Tests running in babashka: @borkdude
   * Additional colors and color-map entries: @RingMan
   * Updated `rewrite-cljs` dependency to `0.4.5` @rundis/
   * Readme updates: @mathiasn, @Quezion, @vemv, @arichiardi, @bhurlow, @kommen.

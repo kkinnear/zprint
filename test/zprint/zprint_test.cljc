@@ -455,11 +455,11 @@
   (expect 2 (line-count (zprint-str sets 33 {:parse-string? true})))
 
   (def rs (make-record :reallylongleft :r))
-  (expect 1 (line-count (zprint-str rs 53)))
-  (expect 1 (line-count (zprint-str rs 52)))
-  (expect 1 (line-count (zprint-str rs 51)))
-  (expect 2 (line-count (zprint-str rs 50)))
-  (expect 2 (line-count (zprint-str rs 49)))
+  (expect 1 (line-count (zprint-str rs #?(:bb 64 :clj 53 :cljs 53))))
+  (expect 1 (line-count (zprint-str rs #?(:bb 63 :clj 52 :cljs 52))))
+  (expect 1 (line-count (zprint-str rs #?(:bb 62 :clj 51 :cljs 51))))
+  (expect 2 (line-count (zprint-str rs #?(:bb 61 :clj 50 :cljs 50))))
+  (expect 2 (line-count (zprint-str rs #?(:bb 60 :clj 49 :cljs 49))))
 
   ;;
   ;; Lest these look like "of course" tests, remember that
@@ -921,14 +921,18 @@
   ;; # Agents
   ;;
 
-  #?(:clj (def ag (agent [:a :b])))
+  #?(:bb nil
+     :clj (def ag (agent [:a :b])))
 
-  #?(:clj (expect "#<Agent [:a :b]>"
+  #?(:bb nil
+     :clj (expect "#<Agent [:a :b]>"
                   (clojure.string/replace (zprint-str ag) #"\@[0-9a-f]*" "")))
 
-  #?(:clj (def agf (agent [:c :d])))
+  #?(:bb nil
+     :clj (def agf (agent [:c :d])))
 
-  #?(:clj (expect
+  #?(:bb nil
+     :clj (expect
             "#<Agent FAILED [:c :d]>"
             (do (send agf + 5)
                 ; Wait a bit for the send to get to the agent and for the
@@ -1357,7 +1361,8 @@
     (zprint-str zprint.zprint-test/Typeteststr
                 {:parse-string? true, :extend {:flow? false}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest {:extend {:flow? true}})))
@@ -1435,7 +1440,8 @@
                 200
                 {:parse-string? true, :extend {:flow? false, :force-nl? true}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest
@@ -1447,7 +1453,8 @@
                 200
                 {:parse-string? true, :extend {:flow? true, :force-nl? true}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest
@@ -1494,7 +1501,8 @@
                 {:parse-string? true,
                  :binding {:flow? true, :nl-separator? true}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest {:extend {:flow? true}})))
@@ -1504,7 +1512,8 @@
     (zprint-str zprint.zprint-test/Typeteststr
                 {:parse-string? true, :extend {:flow? true}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this] (list this))\n\n  clojure.lang.Counted\n    (count [_] cnt)\n\n  clojure.lang.IMeta\n    (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest
@@ -1582,7 +1591,8 @@
   clojure.lang.IMeta
     (meta [_] _meta))")
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq (hasheq [this]\n                         (list this)\n                         (list this this)\n                         (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest1
@@ -1594,7 +1604,8 @@
                 60
                 {:parse-string? true, :extend {:flow? false, :hang? true}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  clojure.lang.Counted (count [_] cnt)\n  clojure.lang.IMeta (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest1
@@ -1606,7 +1617,8 @@
                 60
                 {:parse-string? true, :extend {:flow? false, :hang? false}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest1
@@ -1618,7 +1630,8 @@
                 60
                 {:parse-string? true, :extend {:flow? true, :hang? true}}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(deftype Typetest1 [cnt _meta]\n  clojure.lang.IHashEq\n    (hasheq [this]\n      (list this)\n      (list this this)\n      (list this this this this))\n  clojure.lang.Counted\n    (count [_] cnt)\n  clojure.lang.IMeta\n    (meta [_] _meta))"
          (zprint-fn-str zprint.zprint-test/->Typetest1
@@ -1676,7 +1689,11 @@
           (and a b c (bother this)) (format other stuff))
     (list a :b :c \"d\")))")
 
-  #?(:clj
+  ; The :bb behavior of the #?(:clj ; comment\n (defn ...)) is diffeent
+  ; from the :clj behavior.  Enough so that this test doesn't really
+  ; work for ::
+  #?(:bb nil
+     :clj
        (expect
          "(defn zctest8x\n  []\n  (let\n    [a (list\n         'with\n         'arguments)\n     foo nil\n     bar true\n     baz \"stuff\"\n     other 1\n     bother 2\n     stuff 3\n     now 4\n     output 5\n     b 3\n     c 5\n     this \"is\"]\n    (cond\n      (or foo\n          bar\n          baz)\n        (format\n          output\n          now)\n      :let\n        [stuff\n           (and\n             bother\n             foo\n             bar)\n         bother\n           (or\n             other\n             output\n             foo)]\n      (and a\n           b\n           c\n           (bother\n             this))\n        (format\n          other\n          stuff))\n    (list a\n          :b\n          :c\n          \"d\")))"
          (zprint-fn-str zprint.zprint-test/zctest8x 20)))
@@ -1685,7 +1702,8 @@
     "(defn zctest8x\n  []\n  (let\n    [a (list\n         'with\n         'arguments)\n     foo nil\n     bar true\n     baz \"stuff\"\n     other 1\n     bother 2\n     stuff 3\n     now 4\n     output 5\n     b 3\n     c 5\n     this \"is\"]\n    (cond\n      (or foo\n          bar\n          baz)\n        (format\n          output\n          now)\n      :let\n        [stuff\n           (and\n             bother\n             foo\n             bar)\n         bother\n           (or\n             other\n             output\n             foo)]\n      (and a\n           b\n           c\n           (bother\n             this))\n        (format\n          other\n          stuff))\n    (list a\n          :b\n          :c\n          \"d\")))"
     (zprint-str zprint.zprint-test/zctest8xstr 20 {:parse-string? true}))
 
-  #?(:clj
+  #?(:bb nil
+     :clj
        (expect
          "(defn zctest8x\n  []\n  (let\n    [a (list\n         'with\n         'arguments)\n     foo nil\n     bar true\n     baz \"stuff\"\n     other 1\n     bother 2\n     stuff 3\n     now 4\n     output 5\n     b 3\n     c 5\n     this \"is\"]\n    (cond\n      (or foo\n          bar\n          baz)\n        (format\n          output\n          now)\n\n      :let\n        [stuff\n           (and\n             bother\n             foo\n             bar)\n         bother\n           (or\n             other\n             output\n             foo)]\n\n      (and a\n           b\n           c\n           (bother\n             this))\n        (format\n          other\n          stuff))\n    (list a\n          :b\n          :c\n          \"d\")))"
          (zprint-fn-str zprint.zprint-test/zctest8x
@@ -3109,24 +3127,54 @@
 
   (def rml (make-record :reallylongleft {:r :s, [[:t] :u :v] :x}))
 
-  (expect "#zprint.zprint.r {:left :reallylongleft, ...}"
+  (expect #?(:bb "#sci.impl.records.SciRecord {:left :reallylongleft, ...}"
+             :clj "#zprint.zprint.r {:left :reallylongleft, ...}"
+             :cljs "#zprint.zprint.r {:left :reallylongleft, ...}")
           (zprint-str rml {:max-length 1}))
 
-  (expect
-    "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}"
+  (expect #?(:bb 
+ "#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, [[:t] :u :v] :x}}"
+  
+             :clj "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}"
+             :cljs "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}")
     (zprint-str rml))
 
-  (expect
-    "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
-    (zprint-str rml {:max-length 2}))
+(expect
+  #?(:bb
 
-  (expect "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, ...}}"
+"#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, [[:t] :u ...] :x}}"
+
+     :clj "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
+     :cljs "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
+     
+     )
+  (zprint-str rml {:max-length 2}))
+
+  (expect 
+       #?(:bb 
+
+"#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, ...}}"
+
+  :clj "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, ...}}"
+  :cljs "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, ...}}"
+  )
           (zprint-str rml {:max-length [2 1 0]}))
 
-  (expect "#zprint.zprint.r {:left :reallylongleft, :right ##}"
+  (expect 
+       #?(:bb
+
+"#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right ##}"
+
+  :clj "#zprint.zprint.r {:left :reallylongleft, :right ##}"
+  :cljs "#zprint.zprint.r {:left :reallylongleft, :right ##}"
+  )
           (zprint-str rml {:max-length [2 0]}))
 
-  (expect "#zprint.zprint.r {:left :reallylongleft, :right ##}"
+  (expect 
+       #?(:bb
+"#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right ##}"
+       :clj "#zprint.zprint.r {:left :reallylongleft, :right ##}"
+       :cljs "#zprint.zprint.r {:left :reallylongleft, :right ##}")
           (zprint-str rml {:max-length [3 0]}))
 
   ;; Can we read back records that we have written out?
@@ -3134,8 +3182,11 @@
   ;; Issue #105
   ;;
   ;; This doesn't seem to work in cljs in any case, oddly enough.
+  ;; Nor does it work for :bb, you get:
+  ;; java.lang.Exception: No reader function for tag sci.impl.records.SciRecord
 
-  #?(:clj (expect rml (read-string (zprint-str rml))))
+  #?(:bb nil
+     :clj (expect rml (read-string (zprint-str rml))))
 
   ;; depth
 

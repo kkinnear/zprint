@@ -6203,9 +6203,8 @@ With [Leiningen](https://leiningen.org/) installed, run
 lein with-profile expectations test
 ```
 
-from the root directory of this repo.  There are over 1300 Clojure tests.  
-It will take upwards of 30 seconds for them all to run on something other
-than the latest hardware.
+from the root directory of this repo.  There are over 1500 Clojure tests.  
+It will take upwards of 30 seconds for them all to run.
 
 Another test:
 
@@ -6213,7 +6212,8 @@ Another test:
   version), and it will run another series of more complex tests.
   Each test will say what it is testing.  It does produce output, but
   the lines starting with "...." are simply a report of what is being
-  tested.  Any failures are clearly delineated as failures.
+  tested.  Any failures are clearly delineated as failures  Of course,
+  you have to build the uberjar first: `lein clean`, `lein uberjar`.
 
 ### Clojurescript
 
@@ -6225,6 +6225,14 @@ To run the Clojurescript tests, run:
 
 `clj -A:cljs-runner`
 
-There are over 1290 tests.  They take a __really__ long time to execute.
+There are over 1400 tests.  They take a long time to execute.
+
+### Babashka
+
+You can run most of the Clojure tests in babashka:
+```
+bb test:bb
+```
+
   
 

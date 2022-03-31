@@ -39,3 +39,5 @@ build.cljs
 .hg/
 lbin/
 .planck_cache/
+.lsp/
+zprintl.txt

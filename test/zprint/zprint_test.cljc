@@ -455,11 +455,31 @@
   (expect 2 (line-count (zprint-str sets 33 {:parse-string? true})))
 
   (def rs (make-record :reallylongleft :r))
-  (expect 1 (line-count (zprint-str rs #?(:bb 64 :clj 53 :cljs 53))))
-  (expect 1 (line-count (zprint-str rs #?(:bb 63 :clj 52 :cljs 52))))
-  (expect 1 (line-count (zprint-str rs #?(:bb 62 :clj 51 :cljs 51))))
-  (expect 2 (line-count (zprint-str rs #?(:bb 61 :clj 50 :cljs 50))))
-  (expect 2 (line-count (zprint-str rs #?(:bb 60 :clj 49 :cljs 49))))
+  (expect 1
+          (line-count (zprint-str rs
+                                  #?(:bb 64
+                                     :clj 53
+                                     :cljs 53))))
+  (expect 1
+          (line-count (zprint-str rs
+                                  #?(:bb 63
+                                     :clj 52
+                                     :cljs 52))))
+  (expect 1
+          (line-count (zprint-str rs
+                                  #?(:bb 62
+                                     :clj 51
+                                     :cljs 51))))
+  (expect 2
+          (line-count (zprint-str rs
+                                  #?(:bb 61
+                                     :clj 50
+                                     :cljs 50))))
+  (expect 2
+          (line-count (zprint-str rs
+                                  #?(:bb 60
+                                     :clj 49
+                                     :cljs 49))))
 
   ;;
   ;; Lest these look like "of course" tests, remember that
@@ -762,9 +782,11 @@
   ;;
 
   (expect ["\n\n" ";;stuff\n" "(list :a :b)" "\n\n"]
-          (zprint.zutil/zmap-all
-            (partial zprint-str-internal (zprint.config/get-options) {:zipper? true, :color? false})
-            (edn* (p/parse-string-all "\n\n;;stuff\n(list :a :b)\n\n"))))
+          (zprint.zutil/zmap-all (partial zprint-str-internal
+                                          (zprint.config/get-options)
+                                          {:zipper? true, :color? false})
+                                 (edn* (p/parse-string-all
+                                         "\n\n;;stuff\n(list :a :b)\n\n"))))
 
   ;;
   ;; #Deref
@@ -2639,19 +2661,21 @@
   #?(:clj
        (expect
          "java.lang.Exception:  When :list called an option-fn named 'test' it failed because:"
-         (try (zprint "(a b c)"
-                      {:parse-string? true,
-                       :list {:option-fn (fn ([] "test")
-                                             ([options len sexpr] (+ :a 0)))}})
-              (catch Exception e (clean-exception (str e)))))
+         (try
+           (zprint "(a b c)"
+                   {:parse-string? true,
+                    :list {:option-fn
+                             (fn ([] "test") ([options len sexpr] (+ :a 0)))}})
+           (catch Exception e (clean-exception (str e)))))
      :cljs
        (expect
          "Error:  When :list called an option-fn named 'test' it failed because: Error: 0 is not ISeqable"
-         (try (zprint "(a b c)"
-                      {:parse-string? true,
-                       :list {:option-fn (fn ([] "test")
-                                             ([options len sexpr] (seq 0)))}})
-              (catch :default e (str e)))))
+         (try
+           (zprint "(a b c)"
+                   {:parse-string? true,
+                    :list {:option-fn
+                             (fn ([] "test") ([options len sexpr] (seq 0)))}})
+           (catch :default e (str e)))))
 
   #?(:clj
        (expect
@@ -2673,16 +2697,16 @@
          "java.lang.Exception: When :vector called an option-fn-first with ':a' failed because:"
          (try (zprint "[:a :b :c]"
                       {:parse-string? true,
-                       :vector {:option-fn-first (fn ([options sexpr]
-                                                      (+ :a 0)))}})
+                       :vector {:option-fn-first
+                                  (fn ([options sexpr] (+ :a 0)))}})
               (catch Exception e (clean-exception (str e)))))
      :cljs
        (expect
          "Error: When :vector called an option-fn-first with ':a' failed because: Error: 0 is not ISeqable"
          (try (zprint "[:a :b :c]"
                       {:parse-string? true,
-                       :vector {:option-fn-first (fn ([options sexpr]
-                                                      (seq 0)))}})
+                       :vector {:option-fn-first (fn
+                                                   ([options sexpr] (seq 0)))}})
               (catch :default e (str e)))))
 
   #?(:clj
@@ -3132,50 +3156,44 @@
              :cljs "#zprint.zprint.r {:left :reallylongleft, ...}")
           (zprint-str rml {:max-length 1}))
 
-  (expect #?(:bb 
- "#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, [[:t] :u :v] :x}}"
-  
-             :clj "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}"
-             :cljs "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}")
+  (expect
+    #?(:bb
+         "#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, [[:t] :u :v] :x}}"
+       :clj
+         "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}"
+       :cljs
+         "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u :v] :x}}")
     (zprint-str rml))
 
-(expect
-  #?(:bb
+  (expect
+    #?(:bb
+         "#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, [[:t] :u ...] :x}}"
+       :clj
+         "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
+       :cljs
+         "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}")
+    (zprint-str rml {:max-length 2}))
 
-"#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, [[:t] :u ...] :x}}"
+  (expect
+    #?(:bb
+         "#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, ...}}"
+       :clj "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, ...}}"
+       :cljs "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, ...}}")
+    (zprint-str rml {:max-length [2 1 0]}))
 
-     :clj "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
-     :cljs "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, [[:t] :u ...] :x}}"
-     
-     )
-  (zprint-str rml {:max-length 2}))
-
-  (expect 
-       #?(:bb 
-
-"#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right {:r :s, ...}}"
-
-  :clj "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, ...}}"
-  :cljs "#zprint.zprint.r {:left :reallylongleft, :right {:r :s, ...}}"
-  )
-          (zprint-str rml {:max-length [2 1 0]}))
-
-  (expect 
-       #?(:bb
-
-"#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right ##}"
-
-  :clj "#zprint.zprint.r {:left :reallylongleft, :right ##}"
-  :cljs "#zprint.zprint.r {:left :reallylongleft, :right ##}"
-  )
-          (zprint-str rml {:max-length [2 0]}))
-
-  (expect 
-       #?(:bb
-"#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right ##}"
+  (expect
+    #?(:bb
+         "#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right ##}"
        :clj "#zprint.zprint.r {:left :reallylongleft, :right ##}"
        :cljs "#zprint.zprint.r {:left :reallylongleft, :right ##}")
-          (zprint-str rml {:max-length [3 0]}))
+    (zprint-str rml {:max-length [2 0]}))
+
+  (expect
+    #?(:bb
+         "#sci.impl.records.SciRecord {:left :reallylongleft,\n                             :right ##}"
+       :clj "#zprint.zprint.r {:left :reallylongleft, :right ##}"
+       :cljs "#zprint.zprint.r {:left :reallylongleft, :right ##}")
+    (zprint-str rml {:max-length [3 0]}))
 
   ;; Can we read back records that we have written out?
   ;;
@@ -3965,7 +3983,7 @@ ser/collect-vars-acc %1 %2) )))"
       {:parse-string? true, :style :respect-nl}))
 
   (expect
-"(extend-type ZprintType\n  ZprintProtocol\n    (more [a b]\n      (and a b))\n    (and-more\n      ([a]\n       (nil? a))\n      ([a b]\n       (or a b))))"
+    "(extend-type ZprintType\n  ZprintProtocol\n    (more [a b]\n      (and a b))\n    (and-more\n      ([a]\n       (nil? a))\n      ([a b]\n       (or a b))))"
     (zprint-str
       "(extend-type ZprintType\n      ZprintProtocol\n        (more [a b] \n\t(and a b))\n        (and-more ([a] \n\t(nil? a)) ([a b] \n\t(or a b))))"
       {:parse-string? true, :style :respect-nl}))
@@ -5871,18 +5889,18 @@ ser/collect-vars-acc %1 %2) )))"
   ;; and :map {:key-no-sort ...}
   ;;
 
-#?(:clj
-     (expect
-       "java.lang.Exception: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
-       (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                        {:parse-string? true, :style :odr})
-            (catch Exception e (str e))))
-   :cljs
-     (expect
-       "Error: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'Error: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
-       (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
-                        {:parse-string? true, :style :odr})
-            (catch :default e (str e)))))
+  #?(:clj
+       (expect
+         "java.lang.Exception: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+         (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                          {:parse-string? true, :style :odr})
+              (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error: Unable to parse the string '[{k 1 g 2 c 3 aaa}]' because of 'Error: No value supplied for key: aaa'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+         (try (zprint-str "[{k 1 g 2 c 3 aaa}]"
+                          {:parse-string? true, :style :odr})
+              (catch :default e (str e)))))
 
   (expect "[{aaa, c 3, g 2, k 1}]"
           (zprint-str "[{k 1 g 2 c 3 aaa}]"
@@ -5913,24 +5931,24 @@ ser/collect-vars-acc %1 %2) )))"
                        :remove {:map {:key-no-sort #{"..."}}},
                        :style :odr}))
 
-#?(:clj
-     (expect
-       "java.lang.Exception: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
-       (try (zprint-str vbm
-                        {:parse-string? true,
-                         :remove {:map {:key-no-sort #{"..."}},
-                                  :parse {:ignore-if-parse-fails #{"..."}}},
-                         :style :odr})
-            (catch Exception e (str e))))
-   :cljs
-     (expect
-       "Error: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'Error: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
-       (try (zprint-str vbm
-                        {:parse-string? true,
-                         :remove {:map {:key-no-sort #{"..."}},
-                                  :parse {:ignore-if-parse-fails #{"..."}}},
-                         :style :odr})
-            (catch :default e (str e)))))
+  #?(:clj
+       (expect
+         "java.lang.Exception: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'java.lang.IllegalArgumentException: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+         (try (zprint-str vbm
+                          {:parse-string? true,
+                           :remove {:map {:key-no-sort #{"..."}},
+                                    :parse {:ignore-if-parse-fails #{"..."}}},
+                           :style :odr})
+              (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error: Unable to parse the string '[{:a 1 :b 2 ...}]' because of 'Error: No value supplied for key: ...'.  Consider adding any unallowed elements to {:parse {:ignore-if-parse-fails #{ <string> }}}"
+         (try (zprint-str vbm
+                          {:parse-string? true,
+                           :remove {:map {:key-no-sort #{"..."}},
+                                    :parse {:ignore-if-parse-fails #{"..."}}},
+                           :style :odr})
+              (catch :default e (str e)))))
 
   ;;
   ;; Lots of #188 issue with "..."
@@ -6592,273 +6610,275 @@ ser/collect-vars-acc %1 %2) )))"
       ""
       {}))
 
-;;
-;; Issue #224 -- print just the map from metadata on the same line
-;; as the def.
-;;
+  ;;
+  ;; Issue #224 -- print just the map from metadata on the same line
+  ;; as the def.
+  ;;
 
-(def i224a
-  "(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n")
+  (def i224a
+    "(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n")
 
-(expect
-  "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-  (zprint-str i224a {:parse-string? true}))
+  (expect
+    "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str i224a {:parse-string? true}))
 
-(expect
-  "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-  (zprint-str i224a {:parse-string? true, :meta {:split? true}}))
+  (expect
+    "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str i224a {:parse-string? true, :meta {:split? true}}))
 
-(expect
-"(deftest ^{:database true,\n           ::test.hooks/system-init-keys system-keys,\n           :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str "(deftest ^{:database true \n ::test.hooks/system-init-keys \n system-keys :another-map-key :another-map-value}\n\n         websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))\n" {:parse-string? true  :meta {:split? true}}))
+  (expect
+    "(deftest ^{:database true,\n           ::test.hooks/system-init-keys system-keys,\n           :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^{:database true \n ::test.hooks/system-init-keys \n system-keys :another-map-key :another-map-value}\n\n         websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))\n"
+      {:parse-string? true, :meta {:split? true}}))
 
-(expect
-"(deftest ^{:database true,\n           ::test.hooks/system-init-keys\n             system-keys,\n           :another-map-key :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))"
-(zprint-str "(deftest ^{:database true \n ::test.hooks/system-init-keys \n system-keys :another-map-key :another-map-value}\n\n         websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))\n" {:parse-string? true  :meta {:split? true} :style :respect-nl}))
+  (expect
+    "(deftest ^{:database true,\n           ::test.hooks/system-init-keys\n             system-keys,\n           :another-map-key :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))"
+    (zprint-str
+      "(deftest ^{:database true \n ::test.hooks/system-init-keys \n system-keys :another-map-key :another-map-value}\n\n         websocket-diagnostic-report-measurements-updated-event\n\n  (let [foo (bar \"1\")]\n    foo))\n"
+      {:parse-string? true, :meta {:split? true}, :style :respect-nl}))
 
-(def i224c
-  "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n")
+  (def i224c
+    "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n")
 
-(expect
-  "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
-  (zprint-str i224c {:parse-string? true, :meta {:split? false}}))
+  (expect
+    "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str i224c {:parse-string? true, :meta {:split? false}}))
 
-(expect
-  "(deftest ^{:database true}\n  websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
-  (zprint-str i224c {:parse-string? true, :meta {:split? true}}))
+  (expect
+    "(deftest ^{:database true}\n  websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str i224c {:parse-string? true, :meta {:split? true}}))
 
-;;
-;; Issue #223 -- :community and :rod don't compose well
-;;
+  ;;
+  ;; Issue #223 -- :community and :rod don't compose well
+  ;;
 
-(expect
-  "(defn foo [x]\n  (println x \"Hello, World!\")\n  (println x \"Hello, World!\")\n  (println x \"Hello, World!\"))"
-  (zprint-str
-    "(defn foo [x]\n (println x \"Hello, World!\")\n (println x \"Hello, World!\")\n (println x \"Hello, World!\"))\n"
-    {:parse-string? true, :style [:community :rod]}))
+  (expect
+    "(defn foo [x]\n  (println x \"Hello, World!\")\n  (println x \"Hello, World!\")\n  (println x \"Hello, World!\"))"
+    (zprint-str
+      "(defn foo [x]\n (println x \"Hello, World!\")\n (println x \"Hello, World!\")\n (println x \"Hello, World!\"))\n"
+      {:parse-string? true, :style [:community :rod]}))
 
-;;
-;; Issue #221 -- fix :fn to handle multiple arities (and also to work with
-;; #fn-force-nl).
-;;
+  ;;
+  ;; Issue #221 -- fix :fn to handle multiple arities (and also to work with
+  ;; #fn-force-nl).
+  ;;
 
-(expect
-"(extend-type ZprintType\n  ZprintProtocol\n    (more [a b]\n      (and a b))\n    (and-more\n      ([a] (nil? a))\n      ([a b] (or a b))))"
-(zprint-str "(extend-type ZprintType\n  ZprintProtocol\n (more [a b] \n\t(and a b))\n  (and-more ([a] \n\t(nil? a)) ([a b] \n\t(or a b))))" {:parse-string? true :fn-force-nl #{:fn}}))
+  (expect
+    "(extend-type ZprintType\n  ZprintProtocol\n    (more [a b]\n      (and a b))\n    (and-more\n      ([a] (nil? a))\n      ([a b] (or a b))))"
+    (zprint-str
+      "(extend-type ZprintType\n  ZprintProtocol\n (more [a b] \n\t(and a b))\n  (and-more ([a] \n\t(nil? a)) ([a b] \n\t(or a b))))"
+      {:parse-string? true, :fn-force-nl #{:fn}}))
 
-(expect
-"(extend-type ZprintType\n  ZprintProtocol\n    (more [a b] (and a b))\n    (and-more\n      ([a] (nil? a))\n      ([a b] (or a b))))"
-(zprint-str "(extend-type ZprintType\n  ZprintProtocol\n (more [a b] \n\t(and a b))\n  (and-more ([a] \n\t(nil? a)) ([a b] \n\t(or a b))))" {:parse-string? true :width 30}))
+  (expect
+    "(extend-type ZprintType\n  ZprintProtocol\n    (more [a b] (and a b))\n    (and-more\n      ([a] (nil? a))\n      ([a b] (or a b))))"
+    (zprint-str
+      "(extend-type ZprintType\n  ZprintProtocol\n (more [a b] \n\t(and a b))\n  (and-more ([a] \n\t(nil? a)) ([a b] \n\t(or a b))))"
+      {:parse-string? true, :width 30}))
 
-(expect
-"(letfn [(first-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))\n        (second-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))]\n  (other-stuff))"
-(zprint-str 
-"(letfn [(first-fn [arg1 arg2]\n                  (-> (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (-> (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
-{:parse-string? true}))
+  (expect
+    "(letfn [(first-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))\n        (second-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))]\n  (other-stuff))"
+    (zprint-str
+      "(letfn [(first-fn [arg1 arg2]\n                  (-> (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (-> (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
+      {:parse-string? true}))
 
-(expect
-"(defn print-balance\n  [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn\n      [(transform [acc item]\n         (assoc acc\n           (separate-words (clean-key item)) (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))"
-(zprint-str 
-"(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                     (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"
-{:parse-string? true}))
+  (expect
+    "(defn print-balance\n  [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn\n      [(transform [acc item]\n         (assoc acc\n           (separate-words (clean-key item)) (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))"
+    (zprint-str
+      "(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                     (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"
+      {:parse-string? true}))
 
-(expect
-"(letfn [(first-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))]\n  (other-stuff))"
-(zprint-str 
-"(letfn [(first-fn [arg1 arg2]\n                  (-> (doing-stuff)\n                      (and-more-stuff)))]\n    (other-stuff))\n"
-{:parse-string? true}))
+  (expect
+    "(letfn [(first-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))]\n  (other-stuff))"
+    (zprint-str
+      "(letfn [(first-fn [arg1 arg2]\n                  (-> (doing-stuff)\n                      (and-more-stuff)))]\n    (other-stuff))\n"
+      {:parse-string? true}))
 
-(expect
-"(letfn [(first-fn [arg1 arg2] (this (doing-stuff) (and-more-stuff)))\n        (second-fn [arg1 arg2] (test (doing-stuff) (and-more-stuff)))]\n  (other-stuff))"
-(zprint-str 
-"(letfn [(first-fn [arg1 arg2]\n                  (this (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (test (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
-{:parse-string? true}))
+  (expect
+    "(letfn [(first-fn [arg1 arg2] (this (doing-stuff) (and-more-stuff)))\n        (second-fn [arg1 arg2] (test (doing-stuff) (and-more-stuff)))]\n  (other-stuff))"
+    (zprint-str
+      "(letfn [(first-fn [arg1 arg2]\n                  (this (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (test (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
+      {:parse-string? true}))
 
-;;
-;; Alternative way to format metadata.  Also, :meta :eplit? true tests.
-;;
-;; Issue #224
-;;
+  ;;
+  ;; Alternative way to format metadata.  Also, :meta :eplit? true tests.
+  ;;
+  ;; Issue #224
+  ;;
 
-(expect
-"(def\n  ^{:doc\n      \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n  default-json-serde\n  serde/json-camel-kebab-serde)"
-(zprint-str 
-"(def ^{:doc \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n     default-json-serde\n  serde/json-camel-kebab-serde)\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(def\n  ^{:doc\n      \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n  default-json-serde\n  serde/json-camel-kebab-serde)"
+    (zprint-str
+      "(def ^{:doc \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n     default-json-serde\n  serde/json-camel-kebab-serde)\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest \n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest \n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest ^:database-stuff-and-bother  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^:database-stuff-and-bother  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(def ^:private foo \"bar\")"
-(zprint-str 
-"(def ^:private foo \"bar\")\n"
-{:parse-string? true :style :meta-alt}))
+  (expect "(def ^:private foo \"bar\")"
+          (zprint-str "(def ^:private foo \"bar\")\n"
+                      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (foo))"
-(zprint-str 
-"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event (foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (foo))"
+    (zprint-str
+      "(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event (foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest\n  ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest\n  ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
-(expect
-"(deftest\n  ^{:database-a-bit-longer :does-not-fit,\n    ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest\n  ^{:database-a-bit-longer :does-not-fit, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style :meta-alt}))
+  (expect
+    "(deftest\n  ^{:database-a-bit-longer :does-not-fit,\n    ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest\n  ^{:database-a-bit-longer :does-not-fit, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style :meta-alt}))
 
- (expect
- "(deftest\n\n  ^{:database true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
- (zprint-str 
- "(deftest\n\n  ^{:database \n  true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key \n    :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
- {:parse-string? true :style [:meta-alt :respect-bl]}))
+  (expect
+    "(deftest\n\n  ^{:database true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest\n\n  ^{:database \n  true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key \n    :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style [:meta-alt :respect-bl]}))
 
-(expect
-"(deftest\n\n  ^{:database\n      true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key\n      :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
- "(deftest\n\n  ^{:database \n  true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key \n    :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style [:meta-alt :respect-nl]}))
+  (expect
+    "(deftest\n\n  ^{:database\n      true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key\n      :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest\n\n  ^{:database \n  true,\n\n    ::test.hooks/system-init-keys system-keys,\n\n    :another-map-key \n    :another-map-value}\n\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style [:meta-alt :respect-nl]}))
 
-;;
-;; With :style :community
-;;
+  ;;
+  ;; With :style :community
+  ;;
 
-; i224
+  ; i224
 
-(expect
-"(def\n  ^{:doc\n    \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n  default-json-serde\n  serde/json-camel-kebab-serde)"
-(zprint-str 
-"(def ^{:doc \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n     default-json-serde\n  serde/json-camel-kebab-serde)\n"
-{:parse-string? true :style [:meta-alt :community]}))
+  (expect
+    "(def\n  ^{:doc\n    \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n  default-json-serde\n  serde/json-camel-kebab-serde)"
+    (zprint-str
+      "(def ^{:doc \"Json serde. This enables our default camel-case out kebab case in behaviour.\"}\n     default-json-serde\n  serde/json-camel-kebab-serde)\n"
+      {:parse-string? true, :style [:meta-alt :community]}))
 
-; i224a
+  ; i224a
 
-(expect
-"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
-{:parse-string? true :style [:meta-alt :community]}))
+  (expect
+    "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
+      {:parse-string? true, :style [:meta-alt :community]}))
 
-; i224b
-;
-; This does odd things, and hasn't any meta data anyway
+  ; i224b
+  ;
+  ; This does odd things, and hasn't any meta data anyway
 
-#_(expect
-"(deftest websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest \n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
-{:parse-string? true :style [:community :meta-alt]}))
+  #_(expect
+      "(deftest websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+      (zprint-str
+        "(deftest \n         websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")]\n    foo))\n"
+        {:parse-string? true, :style [:community :meta-alt]}))
 
-; i224c
+  ; i224c
 
-(expect
-"(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n"
-{:parse-string? true :style [:community :meta-alt]}))
+  (expect
+    "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^{:database true} websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")]\n    foo))\n"
+      {:parse-string? true, :style [:community :meta-alt]}))
 
-; i224d
+  ; i224d
 
-(expect
-"(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style [:community :meta-alt]}))
+  (expect
+    "(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^:database websocket-diagnostic-and-a-bit-more\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style [:community :meta-alt]}))
 
-; i224e
+  ; i224e
 
-(expect
-"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest ^:database-stuff-and-bother  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style [:meta-alt :community]}))
+  (expect
+    "(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest ^:database-stuff-and-bother  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style [:meta-alt :community]}))
 
-; i224f
+  ; i224f
 
-(expect
-"(def ^:private foo \"bar\")"
-(zprint-str 
-"(def ^:private foo \"bar\")\n"
-{:parse-string? true :style [:meta-alt :community]}))
+  (expect "(def ^:private foo \"bar\")"
+          (zprint-str "(def ^:private foo \"bar\")\n"
+                      {:parse-string? true, :style [:meta-alt :community]}))
 
-; i224g
+  ; i224g
 
-(expect
-"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style [:community :meta-alt]}))
+  (expect
+    "(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style [:community :meta-alt]}))
 
-; i224h
+  ; i224h
 
-(expect
-"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (foo))"
-(zprint-str 
-"(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event (foo))\n"
-{:parse-string? true :style [:community :meta-alt]}))
+  (expect
+    "(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event\n  (foo))"
+    (zprint-str
+      "(deftest\n  ^{:database true,\n    ::test.hooks/system-init-keys system-keys,\n    :another-map-key :another-map-value}\n  websocket-diagnostic-report-measurements-updated-event (foo))\n"
+      {:parse-string? true, :style [:community :meta-alt]}))
 
-; i224i
+  ; i224i
 
-(expect
-"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest\n  ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style [:meta-alt :community]}))
+  (expect
+    "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest\n  ^{:database true, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style [:meta-alt :community]}))
 
-; i224j
+  ; i224j
 
-(expect
-"(deftest\n  ^{:database-a-bit-longer :does-not-fit,\n    ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
-(zprint-str 
-"(deftest\n  ^{:database-a-bit-longer :does-not-fit, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
-{:parse-string? true :style [:community :meta-alt]}))
+  (expect
+    "(deftest\n  ^{:database-a-bit-longer :does-not-fit,\n    ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str
+      "(deftest\n  ^{:database-a-bit-longer :does-not-fit, ::test.hooks/system-init-keys system-keys}\n  websocket-diagnostic-report-measurements-updated-event\n  (let [foo (bar \"1\")] foo))\n"
+      {:parse-string? true, :style [:community :meta-alt]}))
 
-;;
-;; Issue #230
-;;
+  ;;
+  ;; Issue #230
+  ;;
 
-(expect
-"(let)"
-(zprint-file-str "(let)" "stuff" {}))
+  (expect "(let)" (zprint-file-str "(let)" "stuff" {}))
 
 
 

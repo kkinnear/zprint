@@ -676,7 +676,7 @@
                 (clojure.string/replace "\\r" "\r"))))
     element))
 
-(defn range-specified?
+(defn ^:no-doc range-specified?
   "Return true if the start or end of a range is specified, or if
   :output :range? is true."
   [options]

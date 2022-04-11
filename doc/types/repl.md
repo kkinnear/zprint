@@ -432,6 +432,7 @@ nicely formatted, of course..
 ```
 ### Specs for Functions
 You can get specs for function from the `(doc ...)` macro too.
+
 ```clojure
 zprint.core=> (doc defn)
 -------------------------

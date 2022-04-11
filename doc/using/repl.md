@@ -43,10 +43,63 @@ like this:
 ```
 
 ### deps.edn
+
 ```clojure
 {:deps {org.clojure/clojure {:mvn/version "1.9.0"},
         zprint {:mvn/version "1.2.3"}}}
 ```
+
+### Shadow-cljs
+
+```clojure
+ % more shadow-cljs.edn
+;; shadow-cljs configuration
+{:source-paths
+ ["src/dev"
+  "src/main"
+  "src/test"]
+
+ :dependencies
+ [[zprint "1.2.3"]]
+
+ :builds
+ {}}
+```
+
+### Figwheel
+
+As `rebel-readline` uses `rewrite-cljs`, a bit more care is needed.
+
+One approach is to exclude it from `rebel-readline`:
+
+```clojure
+% more deps.edn
+{:deps {com.bhauman/figwheel-main {:mvn/version "0.2.16"},
+        com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4" :exclusions [rewrite-cljs/rewrite-cljs]},
+        org.clojure/clojure {:mvn/version "1.11.1"},
+        org.clojure/clojurescript {:mvn/version "1.11.4"},
+        zprint/zprint {:mvn/version "1.2.3"}},
+ ;; setup some development paths
+ :paths ["src" "target" "resources"],
+ ;; setup a helpful alias to start the build
+ :aliases {:build-dev {:main-opts ["-m" "figwheel.main" "-r"]}}}
+```
+
+Another is to just leave `rebel-readline` out altogether:
+
+```clojure
+% more deps.edn
+{:deps {com.bhauman/figwheel-main {:mvn/version "0.2.16"},
+        #_com.bhauman/rebel-readline-cljs #_{:mvn/version "0.1.4"},
+        org.clojure/clojure {:mvn/version "1.11.1"},
+        org.clojure/clojurescript {:mvn/version "1.11.4"},
+        zprint/zprint {:mvn/version "1.2.2"}},
+ ;; setup some development paths
+ :paths ["src" "target" "resources"],
+ ;; setup a helpful alias to start the build
+ :aliases {:build-dev {:main-opts ["-m" "figwheel.main" "-r"]}}}
+```
+
 ## 2. Require zprint when you run the REPL
 You need to get it availble to you when you run the REPL.
 ```clojure

@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.3 - 2022-04-1
+## 1.2.3 - 2022-04-13
 
 ### Added
 
@@ -45,6 +45,10 @@ All notable changes to this project will be documented in this file.
   it had no binding vector.  That is, `(let)` would not format successfully.
   Now it is fine.  Issue #230.
 
+  * Figured out Figwheel issues. Rebel-readline uses rewrite-cljs, which
+  conflicts with rewrite-clj V1. To use rebel-readline: 
+  `com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4" :exclusions [rewrite-cljs/rewrite-cljs]}` 
+  Issue #231.
 
 ## 1.2.2 - 2022-02-11
 

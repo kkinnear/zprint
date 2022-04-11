@@ -12,7 +12,7 @@ a number of major source code formattng approaches.
  * The library is now thread-safe (only if you format all strings or all
  structures.  You can't intermix them simultaneously.)
  * Tests now also run in babaska (thanks to @borkdude)
- * Fixed issue with Clojure 1.11.0-alpha4.
+ * Tested with Clojure `1.11.1`, Clojurescript `1.11.4`
  * Implemented `{:output {:range? true}}` to ease integration with IDE's.
  * New version of rewrite-clj now used for both .clj and .cljs.  Many thanks to
  @lread for picking up support and extensions for rewrite-clj and merging 
@@ -123,7 +123,7 @@ Some commonly used styles:
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
-### Clojure 1.9, 1.10, 1.10.3, 1.11.0-alpha4:
+### Clojure 1.9, 1.10, 1.10.3, 1.11.1:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
@@ -133,9 +133,9 @@ __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
 zprint has been tested in each of the following environments:
 
-  * figwheel-main 0.2.14 (Clojurescript 1.10.879)
-  * shadow-cljs 2.8.93
-  * `planck` 2.25.0 (Clojurescript 1.10.597)
+  * figwheel-main 0.2.16 (Clojurescript 1.11.4)
+  * shadow-cljs 2.18.0
+  * `planck` 2.26.0 (Clojurescript 1.10.914)
 
 It requires `tools.reader` at least 1.0.5, which all of the environments
 above contain.

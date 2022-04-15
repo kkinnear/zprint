@@ -13,14 +13,14 @@ You may wish to name it something different so that any scripts that
 you have will use the new version without requiring a change.  We
 will assume that you have renamed it `zprint`.
 ```
-mv zprintl-1.2.3 zprint
+mv zprintl-1.2.4 zprint
 ```
 
 Note that you can always find the version of zprintl (no matter what
 you called it), by giving it the -v switch:
 ```
 ./zprint -v
-zprint-1.2.3
+zprint-1.2.4
 ```
 
 ## 3. Put zprint into a directory in your path

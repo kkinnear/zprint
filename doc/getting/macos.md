@@ -15,7 +15,7 @@ You may wish to name it something different so that any scripts that
 you have will use the new version without requiring a change.  We
 will assume that you have renamed it `zprint`.
 ```
-mv zprintm-1.2.3 zprint
+mv zprintm-1.2.4 zprint
 ```
 
 Note that you can always find the version of zprintm (no matter what

@@ -21,13 +21,13 @@ in the dependencies.  For example:
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [zprint "1.2.3"]]
+                 [zprint "1.2.4"]]
   :repl-options {:init-ns zpuse.core})
 ```
 
 __Even better -- put it in the:__ 
 
-`:profiles {:dev {:dependencies [zprint "1.2.3]}}`
+`:profiles {:dev {:dependencies [zprint "1.2.4]}}`
 
 like this:
 
@@ -37,7 +37,7 @@ like this:
   :url "http://example.com/FIXME"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
-  :profiles {:dev {:dependencies [zprint "1.2.3]}}
+  :profiles {:dev {:dependencies [zprint "1.2.4]}}
   :dependencies [[org.clojure/clojure "1.10.0"]]
   :repl-options {:init-ns zpuse.core})
 ```
@@ -46,7 +46,7 @@ like this:
 
 ```clojure
 {:deps {org.clojure/clojure {:mvn/version "1.9.0"},
-        zprint {:mvn/version "1.2.3"}}}
+        zprint {:mvn/version "1.2.4"}}}
 ```
 
 ### Shadow-cljs
@@ -60,7 +60,7 @@ like this:
   "src/test"]
 
  :dependencies
- [[zprint "1.2.3"]]
+ [[zprint "1.2.4"]]
 
  :builds
  {}}
@@ -78,7 +78,7 @@ One approach is to exclude it from `rebel-readline`:
         com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4" :exclusions [rewrite-cljs/rewrite-cljs]},
         org.clojure/clojure {:mvn/version "1.11.1"},
         org.clojure/clojurescript {:mvn/version "1.11.4"},
-        zprint/zprint {:mvn/version "1.2.3"}},
+        zprint/zprint {:mvn/version "1.2.4"}},
  ;; setup some development paths
  :paths ["src" "target" "resources"],
  ;; setup a helpful alias to start the build
@@ -228,7 +228,7 @@ zpuse.core=>
 You can get the entire API by asking for help:
 ```clojure
 zpuse.core=> (zp/czprint nil :help)
-zprint-1.2.3
+zprint-1.2.4
 
  The basic call uses defaults, prints to stdout
 

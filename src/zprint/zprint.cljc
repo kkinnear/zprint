@@ -1365,7 +1365,8 @@
                ; with.  Possibly a hang-remaining call might fix it.
                (concat-no-nil
                  arg-1
-                 (fzprint-flow-seq options
+                 (fzprint-flow-seq caller
+		                   options
                                    (+ indent ind)
                                    (if modifier? (nnext pair) (next pair))
                                    :force-nl
@@ -2216,7 +2217,8 @@
   Let this routine do it for you, as it needs to know one is there
   in order to properly deal with any newlines in the actual stream.
   Else you will get two where you only should have one."
-  ([options ind zloc-seq force-nl? nl-first?]
+  ([caller {{:keys [nl-count]} caller, :as options} ind zloc-seq force-nl?
+    nl-first?]
    (dbg-pr options
            "fzprint-flow-seq: count zloc-seq:" (count zloc-seq)
            "nl-first?" nl-first?
@@ -2228,17 +2230,19 @@
          _ (log-lines options "fzprint-flow-seq:" ind one-line)
          one-line-lines (style-lines options ind one-line)]
      (dbg-pr options "fzprint-flow-seq: coll-print:" coll-print)
-     (dbg-form options
-               "fzprint-flow-seq: exit:"
-               (if (and (not force-nl?) (fzfit-one-line options one-line-lines))
-                 one-line
-                 (if (not (empty? coll-print))
-                   (apply concat-no-nil
-                     (precede-w-nl options ind coll-print (not nl-first?)))
-                   :noseq)))))
-  ([options ind zloc-seq] (fzprint-flow-seq options ind zloc-seq nil nil))
-  ([options ind zloc-seq force-nl?]
-   (fzprint-flow-seq options ind zloc-seq force-nl? nil)))
+     (dbg-form
+       options
+       "fzprint-flow-seq: exit:"
+       (if (and (not force-nl?) (fzfit-one-line options one-line-lines))
+         one-line
+         (if (not (empty? coll-print))
+           (apply concat-no-nil
+             (precede-w-nl options ind coll-print (not nl-first?) nl-count))
+           :noseq)))))
+  ([caller options ind zloc-seq]
+   (fzprint-flow-seq caller options ind zloc-seq nil nil))
+  ([caller options ind zloc-seq force-nl?]
+   (fzprint-flow-seq caller options ind zloc-seq force-nl? nil)))
 
 (defn fzprint-hang-one
   "Try out the given zloc, and if it fits on the current line, just
@@ -2655,7 +2659,8 @@
                         (when hang?
                           (if-not pair-seq
                             ; There are no paired elements
-                            (fzprint-flow-seq (in-hang options)
+                            (fzprint-flow-seq caller
+			                      (in-hang options)
                                               hindent
                                               seq-right
                                               :force-nl
@@ -2670,6 +2675,7 @@
                                   (ensure-end-w-nl
                                     hindent
                                     (fzprint-flow-seq
+				      caller
                                       (not-rightmost (in-hang options))
                                       hindent
                                       (take non-paired-item-count seq-right)
@@ -2711,7 +2717,8 @@
                      (let [flow-result
                              (if-not pair-seq
                                ; We don't have any constant pairs
-                               (fzprint-flow-seq options
+                               (fzprint-flow-seq caller
+			                         options
                                                  findent
                                                  seq-right
                                                  :force-nl
@@ -2724,6 +2731,7 @@
                                    (ensure-end-w-nl
                                      findent
                                      (fzprint-flow-seq
+				       caller
                                        (not-rightmost options)
                                        findent
                                        (take non-paired-item-count seq-right)
@@ -3141,7 +3149,7 @@
           [:noseq next-zloc next-count zloc-seq]
           ; There were newlines or comments (or both) before the first
           ; interesting zloc
-          (let [coll-print (fzprint-flow-seq options ind pre-next-zloc-seq)
+          (let [coll-print (fzprint-flow-seq caller options ind pre-next-zloc-seq)
                 ; we are set up for fzprint-seq, but fzprint-flow-seq does
                 ; a full-on style-vec, so turn it back into fzprint-seq style
                 ; output
@@ -4155,7 +4163,7 @@
         ; thing to print and use fzprint*.  len only counts the non-comment
         ; and non-nl elements, and there might be other things to print.
         (concat-no-nil l-str-vec
-                       (fzprint-flow-seq roptions one-line-ind zloc-seq)
+                       (fzprint-flow-seq caller roptions one-line-ind zloc-seq)
                        r-str-vec)
       ; In general, we don't have a fn-style if we have less than 3 elements.
       ; However, :binding is allowed with any number up to this point, so we
@@ -4525,7 +4533,8 @@
             (concat-no-nil
               l-str-vec
               (apply concat-no-nil
-                (precede-w-nl options new-ind coll-print :no-nl-first))
+                (precede-w-nl options new-ind coll-print :no-nl-first
+		(:nl-count (caller options))))
               r-str-vec)
             ; Since there are either no collections in this vector
             ; or ; set ; or ; whatever, or if there are,
@@ -4598,7 +4607,8 @@
                       (let [local-indent (+ default-indent ind indent-adj)]
                         (concat-no-nil ;[[(str "\n" (blanks local-indent)) :none
                                        ;:indent]]
-                          (fzprint-flow-seq (noarg1 options fn-style)
+                          (fzprint-flow-seq caller
+			                    (noarg1 options fn-style)
                                             local-indent
                                             ;(nthnext (zmap identity
                                             ;zloc) 1)
@@ -6383,7 +6393,10 @@
                                        (precede-w-nl options
                                                      new-ind
                                                      coll-print
-                                                     :no-nl-first))
+                                                     :no-nl-first
+						     (:nl-count
+						     (caller options))
+						     ))
                                      r-str-vec)
                       ; Since there are either no collections in this vector
                       ; or set or whatever, or if there are, it is ok to
@@ -6438,71 +6451,114 @@
   a newline in the style-vecs is where we wanted one, well and good.
   Comments are now not recognized as different, increasing our
   appreciation of diversity.  If not-first? is truthy, then don't
-  put a newline before the first element."
-  [options ind coll not-first?]
+  put a newline before the first element.  nl-count is the count
+  of newlines after the first.  If it is nil, assume 1.  It may be
+  a vector of newlines, and the next element of the vector is used after
+  any non-comment non-newline is processed.  The last element of the
+  vector is used once it runs out."
+  [options ind coll not-first? nl-count]
   (dbg-pr options
           "precede-w-nl: (count coll)" (count coll)
-          "not-first?" not-first?)
-  (loop [coll coll
-         ind-seq (if (coll? ind) ind (vector ind))
-         out (transient [])
-         added-nl? not-first?]
-    (if (empty? coll)
-      (let [result (persistent! out)
-            _ (dbg-pr options "precede-w-nl: exit:" result)
-            ; If the thing before the last was a comment, then remove the
-            ; last thing (which must be a newline, though we didn't put
-            ; it there)
-            previous-element-index (- (count result) 2)
-            previous-type (when (not (neg? previous-element-index))
-                            (nth (first (nth result previous-element-index))
-                                 2))]
-        result)
-      (let [[[s color what] :as element] (first coll)
-            ; This element may have many things in it, or sometimes
-            ; just one.
-            ;
-            ; I believe that if the first thing is a newline then they
-            ; must all be newlines.  We could check the last, or all of
-            ; them here, I suppose.  But these have to come from
-            ; fzprint-newline, to the best of my knowledge, and that is
-            ; how it works.
-            indent (first ind-seq)
-            newline? (= what :newline)
-            ; Let's make sure about the last
-            last-what (nth (last element) 2)]
-        (dbg-pr options "precede-w-nl: element:" element "added-nl?:" added-nl?)
-        (recur (next coll)
-               ; Move along ind-seq until we reach the last one, then just
-               ; keep using the last one.
-               (if-let [next-ind (next ind-seq)]
-                 next-ind
-                 ind-seq)
-               (if newline?
-                 ; It is a :newline, so just use it as it is.
-                 ; Except if the next thing out is also a newline, we'll have
-                 ; trailing spaces after this newline, which is unlovely.
-                 (let [next-coll (next coll)]
-                   (if (empty? next-coll)
-                     (conj! out element)
-                     (let [[[_ _ next-what]] (first next-coll)]
-                       (if (= next-what :newline)
-                         ; don't put out a newline with spaces before another
-                         ; newline
-                         (conj! out [["\n" color what]])
-                         (conj! out element)))))
-                 ; It is not a :newline, so we want to make sure we have a
-                 ; newline in front of it, unless we already have one..
-                 (if added-nl?
-                   ; We already have a newline in front of it
-                   (conj! out element)
-                   ; We need both a newline and the element
-                   (conj-it! out
-                             [[(str "\n" (blanks indent)) :none :indent 28]]
-                             element)))
-               ; Is there a newline as the last thing we just did?
-               ; Two ways for that to happen.
-               newline?)))))
+          "not-first?" not-first?
+          "nl-count:" nl-count)
+  (let [nl-count (or nl-count 1)
+        ; If it isn't a vector, make it one
+        nl-count (if (vector? nl-count) nl-count [nl-count])
+        nl-count (into [1] nl-count)]
+    (loop [coll coll
+           ind-seq (if (coll? ind) ind (vector ind))
+           out (transient [])
+           added-nl? not-first?
+           ; We only do one nl at the beginning, regardless of nl-count
+           num-nl (if not-first? (first nl-count) (dec (first nl-count)))
+           nl-count-vec nl-count]
+      (if (empty? coll)
+        (let [result (persistent! out)
+              _ (dbg-pr options "precede-w-nl: exit:" result)
+              ; If the thing before the last was a comment, then remove the
+              ; last thing (which must be a newline, though we didn't put
+              ; it there)
+              previous-element-index (- (count result) 2)
+              previous-type (when (not (neg? previous-element-index))
+                              (nth (first (nth result previous-element-index))
+                                   2))]
+          result)
+        (let [[[s color what] :as element] (first coll)
+              ; This element may have many things in it, or sometimes
+              ; just one.
+              ;
+              ; I believe that if the first thing is a newline then they
+              ; must all be newlines.  We could check the last, or all of
+              ; them here, I suppose.  But these have to come from
+              ; fzprint-newline, to the best of my knowledge, and that is
+              ; how it works.
+              indent (first ind-seq)
+              newline? (= what :newline)
+              ; Don't pick up embedded comments
+              comment? (= what :comment)
+              comment-inline? (= what :comment-inline)
+              ; Let's make sure about the last
+              last-what (nth (last element) 2)]
+          (dbg-pr options
+                  "precede-w-nl: element:" element
+                  "added-nl?" added-nl?
+                  "num-nl:" num-nl
+                  "comment?" comment?)
+          (recur
+            (next coll)
+            ; Move along ind-seq until we reach the last one, then just
+            ; keep using the last one.
+            (if-let [next-ind (next ind-seq)]
+              next-ind
+              ind-seq)
+            (if newline?
+              ; It is a :newline, so just use it as it is.
+              ; Except if the next thing out is also a newline, we'll have
+              ; trailing spaces after this newline, which we need to prevent.
+              ; The next thing coming along could be a newline, or we could be
+              ; going to output a newline ourselves.  Either means that we
+              ; should not be doing spaces after a newline now.
+              (let [next-coll (next coll)]
+                (if (empty? next-coll)
+                  (conj! out element)
+                  (let [[[_ _ next-what]] (first next-coll)
+                        next-nl-count-vec nl-count-vec]
+                    (dbg-pr options
+                            "precede-w-nl next-what:" next-what
+                            "(inc num-nl):" (inc num-nl)
+                            "(first next-nl-count-vec):" (first
+                                                           next-nl-count-vec))
+                    (if (or (= next-what :newline)
+                            (< (inc num-nl) (first next-nl-count-vec)))
+                      ; don't put out a newline with spaces before another
+                      ; newline -- note that what == :newline here
+                      (conj! out [["\n" color :newline 3]])
+                      (conj! out element)))))
+              ; It is not a :newline, so we want to make sure we have
+              ; the proper number of newlines in front of it.
+              (if (>= num-nl (first nl-count-vec))
+                ; We already have enough newlines in front of it
+                (conj! out element)
+                ; We need some newlines and the element
+                (conj-it! out
+                          [[(str (apply str
+                                   (repeat (- (first nl-count-vec) num-nl)
+                                           "\n"))
+                                 (blanks indent)) :none :indent 28]]
+                          element)))
+            ; Is there a newline as the last thing we just did?
+            ; Two ways for that to happen. (which are???)
+            newline?
+            ; Count the newlines we have output
+            (if newline?
+              (inc num-nl)
+              (if comment? (dec (first nl-count-vec)) 0))
+            ; Move along nl-count-vec until we reach the last one,
+            ; then just keep using the last one.  Don't move if it is a
+            ; newline or either type of comment.
+            (if (or newline? comment? comment-inline?)
+              nl-count-vec
+              (if (next nl-count-vec) (next nl-count-vec) nl-count-vec))))))))
 
 (defn count-newline-types
   "Analyze a style-vec which contains only newlines, and return the count 
@@ -6684,12 +6740,10 @@
                      (not= what :comment)
                      (not= what :comment-inline)
                      ; Is there a non comment or non newline/indent
-                     ; element
-                     ; left in coll, or is this the last one?
+                     ; element left in coll, or is this the last one?
                      ; This returns the [hangflow style-vec], but we
-                     ; are not
-                     ; using the data, just the existence of the thing
-                     ; here
+                     ; are not using the data, just the existence of 
+		     ; the thing here
                      ; Fix for Issue #137.
                      (next-non-comment-nl (next coll)))
                 ; should we put an extra new-line before the next
@@ -7150,6 +7204,7 @@
                                      nil
                                      :first-indent-only?)
                      (fzprint-flow-seq
+		       :meta
                        ; No rightmost, because this isn't a collection.
                        ; This is essentially two separate things.
                        options
@@ -7263,7 +7318,8 @@
                         floc
                         nil)
           ; not reader-cond?
-          (fzprint-flow-seq options
+          (fzprint-flow-seq :reader-cond
+	                    options
                             (+ indent ind)
                             (let [zloc-seq
                                     (cond respect-nl? (zmap-w-nl identity zloc)

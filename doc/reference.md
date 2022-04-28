@@ -3661,6 +3661,33 @@ newlines when formatting lists.  Existing formatting configuration
 will be followed, of course with the constraint that existing
 newlines will be included wherever they appear.
 
+#### :nl-count _nil_
+
+This is the number of newlines to put between the elements of the list.
+
+It does not trigger a flow (you would use `:hang? false` for that).
+
+It is either a number of newlines (where 2 would be how to get one
+blank line), or a vector of the number of newlines, where `[1 2 3]` would
+give you a normal newline for the first, and one blank line between the second
+and third elements, and then two blank lines between all remaining elements.
+The final value is repeated as necessary if there are not "enough" for the
+number of elements in the list.  Comments are kept with the following
+elements, so the next element in the vector is only used when it isn't
+a comment.  
+
+Note that there is always a single newline before the
+list -- the `:nl-count` is used only after the first element.  Note also 
+that the first few elements of any list which starts with a function
+that has a `fn-type` in the `:fn-map` are formatted explicitly and do
+not interact with the `:nl-count`.  The `:nl-count` is only used after
+the initial few elements are formatted as specified by the `fn-type`.
+
+This capability is something that is building block to get particular
+formatting in some special cases where a `fn-type` is in use`.  
+It isn't meant to be a generally useful capabiity to, say, 
+format all lists with extra lines between them.
+
 _____
 ## :map
 

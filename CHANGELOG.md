@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * `{:list {:nl-count <n>}}` to add additional newlines in lists.
+
 ### Changed
 
 ### Fixed

@@ -226,6 +226,7 @@
 (s/def ::no-validate? ::boolean)
 (s/def ::nl-separator? ::boolean)
 (s/def ::nl-separator-all? ::boolean)
+(s/def ::nl-count ::number-or-vector-of-numbers)
 (s/def ::object? ::boolean)
 (s/def ::pair-hang? ::boolean)
 (s/def ::parallel?
@@ -312,7 +313,7 @@
 (s/def ::extend
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::modifiers ::nl-separator?]))
+                      ::modifiers ::nl-separator? ::nl-count]))
 (s/def :alt/extend (only-keys :opt-un [::modifiers]))
 (s/def ::file? ::boolean)
 (s/def ::fn-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
@@ -335,7 +336,7 @@
              ::option-fn ::pair-hang? ::return-altered-zipper ::respect-bl?
              ::respect-nl? ::indent-only? ::indent-only-style
              ::replacement-string ::wrap-coll? ::wrap-after-multi? ::wrap-multi?
-             ::force-nl? ::wrap?]))
+             ::force-nl? ::wrap? ::nl-count]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map

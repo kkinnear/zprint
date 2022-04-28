@@ -14,6 +14,7 @@
     [zprint.rewrite :refer [sort-dependencies]]
     [zprint.guide   :refer [jrequireguide defprotocolguide signatureguide1
                             odrguide guideguide rodguide areguide]]
+    [zprint.optionfn   :refer [rodfn]]
     #?@(:bb []
         ; To completely remove sci, comment out the following line.
         :clj [[sci.core :as sci]]
@@ -536,6 +537,7 @@
           :indent-arg nil,
           :indent-only? false,
           :indent-only-style :input-hang,
+	  :nl-count nil
           :option-fn nil,
           :pair-hang? true,
           :respect-bl? false,
@@ -925,12 +927,12 @@
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
-            :fn-map {"defn" [:guided-body
-                             {:list {:option-fn (partial rodguide
+            :fn-map {"defn" [:none #_:guided-body
+                             {:list {:option-fn (partial rodfn #_rodguide
                                                          {:multi-arity-nl?
                                                             true})}}],
-                     "defn-" [:guided-body
-                              {:list {:option-fn (partial rodguide
+                     "defn-" [:none #_:guided-body
+                              {:list {:option-fn (partial rodfn #_rodguide
                                                           {:multi-arity-nl?
                                                              true})}}]}},
       :rod-no-ma-nl
@@ -1696,7 +1698,8 @@
                                'guideguide zprint.guide/guideguide,
                                'rodguide zprint.guide/rodguide,
                                'areguide zprint.guide/areguide,
-                               'odrguide zprint.guide/odrguide}}})
+                               'odrguide zprint.guide/odrguide
+			       'rodfn zprint.optionfn/rodfn}}})
 (def sci-ctx
   #?(:bb nil
      ;:clj nil

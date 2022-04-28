@@ -4,8 +4,6 @@
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
   (:require #?@(:clj [[zprint.macros :refer
                        [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-            [clojure.string :as s]
-            [rewrite-clj.zip :as z]
             [zprint.util :refer [column-alignment cumulative-alignment]]))
 
 ;;
@@ -41,7 +39,7 @@
   ; the "no-argument" arity must include the options map!
   ([rod-options] "rodguide")
   ; Since we have released this before, we will also allow it to be called
-  ; without are-options
+  ; without rod-options
   ([options len sexpr] (rodguide {} options len sexpr))
   ([rod-options options len sexpr]
    (when (or (= (str (first sexpr)) "defn") (= (str (first sexpr)) "defn-"))

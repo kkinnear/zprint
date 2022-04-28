@@ -13,8 +13,12 @@ if [[ $2 != "uberjar" ]]
 	command="./zprintl-$1"
 	if [[ $2 != "graalvm-linux" ]]
 	  then
-	    echo "Second argument must be uberjar or graalvm-mac or graalvm-linux!"
-	    exit 1
+	    command="./zprint.clj"
+	    if [[ $2 != "babashka" ]]
+	      then
+		echo "Second argument must be uberjar or graalvm-mac or graalvm-linux or babashka!"
+		exit 1
+	    fi
 	fi
     fi
 fi

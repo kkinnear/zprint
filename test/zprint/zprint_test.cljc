@@ -6880,6 +6880,52 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect "(let)" (zprint-file-str "(let)" "stuff" {}))
 
+  ;;
+  ;; Multiple line capability in precede-w-nl.  i:list {:nl-count ...}}
+  ;;
+
+(def pwnl2
+"(this is\n\n a test \n\n this is \n\n only a test)")
+(def pwnl2a
+"(this is\n\n a test ;this is an inline comment \n\n ;this is a comemnt \n this is \n\n only a test)")
+
+ (expect
+"(this\n  is\n  a\n  test\n  this\n  is\n  only\n  a\n  test)"
+ (zprint-str pwnl2 {:parse-string? true :list {:force-nl? true :hang? false :nl-count 1 :respect-nl? false}}))
+
+(expect
+"(this\n  is\n\n  a\n\n  test\n\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
+(zprint-str pwnl2 {:parse-string? true :list {:force-nl? true :hang? false :nl-count 2 :respect-nl? false}}))
+
+(expect
+"(this\n  is\n\n  a\n  test\n\n  this\n  is\n\n  only\n  a\n  test)"
+(zprint-str pwnl2 {:parse-string? true :list {:force-nl? true :hang? false :nl-count 1 :respect-nl? true}}))
+
+(expect
+"(this\n  is\n\n  a\n\n  test\n\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
+(zprint-str pwnl2 {:parse-string? true :list {:force-nl? true :hang? false :nl-count 2 :respect-nl? true}}))
+
+(expect
+"(this\n  is\n  a\n  test ;this is an inline comment\n  ;this is a comemnt\n  this\n  is\n  only\n  a\n  test)"
+(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count 1 :respect-nl? false}}))
+
+(expect
+"(this\n  is\n\n  a\n\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
+(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count 2 :respect-nl? false}}))
+
+(expect
+"(this\n  is\n\n  a\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n  is\n\n  only\n  a\n  test)"
+(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count 1 :respect-nl? true}}))
+
+(expect
+"(this\n  is\n\n  a\n\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
+(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count 2 :respect-nl? true}}))
+
+(expect
+"(this\n  is\n\n  a\n\n\n  test ;this is an inline comment\n\n\n\n  ;this is a comemnt\n  this\n\n\n\n\n  is\n\n\n\n\n\n  only\n\n\n\n\n\n\n  a\n\n\n\n\n\n\n\n  test)"
+(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count [2 3 4 5 6 7 8 9] :respect-nl? false}}))
+
+
 
 
 

@@ -3757,6 +3757,22 @@
 (declare any-zcoll?)
 (declare wrap-zmap)
 
+(defn lookup-fn-str
+  "Look up the fn-str in the :fn-map.  If the result is another string,
+  look that up.  Prevent infinite loops."
+  ([fn-map fn-str fn-str-set]
+   (if (fn-str-set fn-str)
+     (throw (#?(:clj Exception.
+                :cljs js/Error.)
+             (str "Circular :fn-map lookup! fn-str: '" fn-str
+                  "' has already been used in this lookup."  
+		  " fn-strs in this lookup: " fn-str-set)))
+     (let [result (fn-map fn-str)]
+       (when result
+         (if (string? result)
+           (lookup-fn-str fn-map result (conj fn-str-set fn-str))
+           result)))))
+  ([fn-map fn-str] (lookup-fn-str fn-map fn-str #{})))
 
 (defn fzprint-list*
   "Print a list, which might be a list or an anon fn.  
@@ -3820,8 +3836,8 @@
         ; Look up the fn-str in both fn-maps, and then if we don't get
         ; something, look up the fn-type in both maps.
         fn-style (or fn-style
-                     (fn-map fn-str)
-                     (user-fn-map fn-str)
+                     (lookup-fn-str fn-map fn-str) 
+                     (lookup-fn-str user-fn-map fn-str) 
                      (fn-map fn-type)
                      (user-fn-map fn-type))
         ; if we don't have a function style after all of that, let's see

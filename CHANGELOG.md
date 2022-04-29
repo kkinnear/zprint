@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * You can now alias one funtion in the `:fn-map` to another. The
+  key is (as always) the function name as a string, and the value is
+  another function name, also as a string.  Thus `{:fn-map {"mydefn" 
+  "defn"}}` will cause the function "mydefn" to be formatted however
+  "defn" is formatted.
+
   * `{:list {:nl-count <n>}}` to add additional newlines in lists.
 
 ### Changed

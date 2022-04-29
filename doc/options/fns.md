@@ -8,12 +8,31 @@ a function "type" for formatting.  This is the `:fn-map`.
 Generally, if a function call fits on the current
 line, none of these classifications matter.  These only come into play
 when the function call doesn't fit on the current line.  
+(Though you can configure a particular function type to always create
+multi-line output.)
 
 You can add additional function name -> function type mappings to
 the `:fn-map`, or you can change the existing `:fn-map` mapping to
 be one more to your liking.
 
-### What does a function type look like?
+You can also "alias" one function to another, so that the aliased function
+will be formatted like the one to which it is aliased.
+
+### How to alias one function to another
+
+This simple approach will let you define some function as formatting
+identically to some other function:
+
+The options map to do this is: `{:fn-map {"mydefn" "defn"}}`.  This,
+for example, will alias "mydefn" to be formatted like "defn".  If the
+formatting for "defn" is changed by a `:style`, then the formatting
+for "mydefn" will change as well.  The alias lookup is performed when
+"mydefn" is encountered for formatting.  
+
+If this simple aliasing will work for you, you don't have figure out
+anything else about the `:fn-map`.
+
+### How to define a function by function type
 
 A function type can be:
   * a simple keyword, for example: `:arg1`

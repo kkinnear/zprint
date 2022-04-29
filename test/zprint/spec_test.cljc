@@ -23,7 +23,13 @@
   ;; # Random tests, see more systematic tests below
   ;;
 
+  ;; This used to fail, but now works due to the alias capability:
+
   (expect
+  nil
+    (explain-more (s/explain-data :zprint.spec/options {:fn-map {"a" "b"}})))
+
+  #_(expect
     "The value of the key-sequence [:fn-map \"a\"] -> \"b\" was not recognized as valid!"
     (explain-more (s/explain-data :zprint.spec/options {:fn-map {"a" "b"}})))
 

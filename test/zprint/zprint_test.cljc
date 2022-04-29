@@ -6925,10 +6925,41 @@ ser/collect-vars-acc %1 %2) )))"
 "(this\n  is\n\n  a\n\n\n  test ;this is an inline comment\n\n\n\n  ;this is a comemnt\n  this\n\n\n\n\n  is\n\n\n\n\n\n  only\n\n\n\n\n\n\n  a\n\n\n\n\n\n\n\n  test)"
 (zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count [2 3 4 5 6 7 8 9] :respect-nl? false}}))
 
+;;
+;; ## New capability -- strings as values in :fn-map, allows alias of
+;; fn names.
+;;
 
+(def
+are1b
+"(arex [x y z] (= x y z)\n   3 (stuff y) (bother z)\n   4 (foo y) (bar z))")
 
+(expect
+"(arex [x y z] (= x y z)\n  3 (stuff y) (bother z)\n  4 (foo y)   (bar z))"
+(zprint-str are1b {:parse-string? true :fn-map {"arex" "arey" "arey" "arez" "arez" "are"}}))
 
-
+#?(:clj
+     (expect
+       "java.lang.Exception: Circular :fn-map lookup! fn-str: 'arex' has already been used in this lookup. "
+       (try
+         (zprint-str are1b
+                     {:parse-string? true,
+                      :fn-map {"arex" "arey", "arey" "arex"}})
+         (catch Exception e
+           ; Set's don't print deterministically
+           (clojure.string/replace (str e) (re-find #"fn-strs.*" (str e)) ""))))
+   :cljs
+     (expect
+       "Error: Circular :fn-map lookup! fn-str: 'arex' has already been used in this lookup. "
+       (try (zprint-str are1b
+                        {:parse-string? true,
+                         :fn-map {"arex" "arey", "arey" "arex"}})
+            (catch :default e
+              ; Set's don't print deterministically
+              (clojure.string/replace (str e)
+                                      (re-find #"fn-strs.*" (str e))
+                                      "")))))
+		    
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

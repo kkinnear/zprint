@@ -930,7 +930,9 @@ While most functions will pretty print without special processing,
 some functions are more clearly comprehended when processed specially for
 pretty printing.  Generally, if a function call fits on the current
 line, none of these classifications matter.  These only come into play
-when the function call doesn't fit on the current line.  The following
+when the function call doesn't fit on the current line, although
+you can define a function type to never allow it to formatted on
+a single line.  The following
 examples are shown with an implied width of well less than 80 columns
 in order to demonstrate the function style in a concise manner.
 
@@ -956,44 +958,53 @@ it finds it, then it uses that.  If it doesn't find it, and the
 function string has a "/" in it, it then looks up string to the right
 of the "/".
 
+There are three possible types values for a key in the `:fn-map`:
 
-The available classifications are:
+  1. A function type (see below for the list of possible function types).
+
+  2. A vector, containing a function type and an options map to use
+  whenever this function is formatted.
+
+  3. A string, which is the name of another function in the `:fn-map`.
+  In this case, the value of that string will be used.  These can
+  chain up to any (reasonable) level, but no circular references
+  are allowed and will throw an exception if encountered.
+
+
+The available classifications (i.e. function types) are:
 
 #### :arg1
 
-Print the first argument on the same line as the function, if possible.
-Later arguments are indented the amount specified by `:list {:indent-arg n}`,
-or `:list {:indent n}` if `:indent-arg` is not specified.
+Print the first argument on the same line as the function, if
+possible.  Later arguments are indented the amount specified by
+`:list {:indent-arg n}`, or `:list {:indent n}` if `:indent-arg`
+is not specified.
 
 ```clojure
  (apply str
-   "prepend this one"
-   (generate-strings from arguments))
+   "prepend this one" (generate-strings from arguments))
 ```
 
 #### :arg1-body
 
-Print the first argument on the same line as the function, if possible.
-Later arguments are indented the amount specified by `:list {:indent n}`.
+Print the first argument on the same line as the function, if
+possible.  Later arguments are indented the amount specified by
+`:list {:indent n}`.
 
 ```clojure
  (if (= a 1)
-   (map inc coll)
-   (map dec coll))
-```
-#### :arg1-pair
+   (map inc coll) (map dec coll))
+``` #### :arg1-pair
 
 The function has an important first argument, then the rest of the
-arguments are paired up. Leftmost part of the pair is indented
-by `:list {:indent-arg n}` if it is specified, and `:list {:indent n}`
+arguments are paired up. Leftmost part of the pair is indented by
+`:list {:indent-arg n}` if it is specified, and `:list {:indent n}`
 if it is not.
 
 ```clojure
  (assoc my-map
-   :key1 :val1
-   :key2 :val2)
-```
-#### :arg1-pair-body
+   :key1 :val1 :key2 :val2)
+``` #### :arg1-pair-body
 
 The function has an important first argument, then the rest of the
 arguments are paired up.  The leftmost part of the pair is indented
@@ -1001,96 +1012,85 @@ by the amount specified by `:list {:indent n}`.
 
 ```clojure
  (case fn-style
-   :arg1 nil
-   :arg1-pair :pair
-   :arg1-extend :extend
-   :arg2 :arg1
-   :arg2-pair :arg1-pair
-   fn-style)
+   :arg1 nil :arg1-pair :pair :arg1-extend :extend :arg2 :arg1
+   :arg2-pair :arg1-pair fn-style)
 ```
 
 #### :arg1-force-nl
 
-This is like `:arg1`, but since it appears in `:fn-force-nl`, it will
-never print on one line even if it would otherwise fit.
+This is like `:arg1`, but since it appears in `:fn-force-nl`, it
+will never print on one line even if it would otherwise fit.
 
 #### :arg1-mixin
 
-Print Rum `defc`, `defcc`, and `defcs` macros in a standard
-way.  Puts the mixins under the first line, and above the
-argument vector.  Does not require `<`, will operate properly
-with any element in that position. Allows but does not require
-a docstring.
+Print Rum `defc`, `defcc`, and `defcs` macros in a standard way.
+Puts the mixins under the first line, and above the argument vector.
+Does not require `<`, will operate properly with any element in
+that position. Allows but does not require a docstring.
 
-```clojure
-(rum/defcs component
-  "This is a docstring for the component."
-  < rum/static
-    rum/reactive
-    (rum/local 0 ::count)
-    (rum/local "" ::text)
-  [state label]
-  (let [count-atom (::count state)
-        text-atom (::text state)]
+```clojure (rum/defcs component
+  "This is a docstring for the component." < rum/static
+    rum/reactive (rum/local 0 ::count) (rum/local "" ::text)
+  [state label] (let [count-atom (::count state)
+	text-atom (::text state)]
     [:div]))
 ```
 
 #### :arg2
 
-Print the first argument on the same line as the function name if it will
-fit on the same line. If it does, print the second argument
+Print the first argument on the same line as the function name if
+it will fit on the same line. If it does, print the second argument
 on the same line as the first argument if it fits. Indentation of
 later arguments is controlled by `:list {:indent n}`
 
 ```clojure
   (as-> initial-value tag
-    (process stuff tag bother)
-    (more-process tag foo bar))
+    (process stuff tag bother) (more-process tag foo bar))
 ```
 
-Note: This is implemented as a "body" function, as if it were `:arg2-body`.
+Note: This is implemented as a "body" function, as if it were
+`:arg2-body`.
 
 #### :arg2-pair
 
-Just like :arg2, but prints the third through last arguments as pairs.
-Indentation of the leftmost elements of the pairs is controlled by
-`:list {:indent n}`.  If any of the rightmost elements end up not fitting
-or not hanging well, the flow indent is controlled by `:pair {:indent n}`.
+Just like :arg2, but prints the third through last arguments as
+pairs.  Indentation of the leftmost elements of the pairs is
+controlled by `:list {:indent n}`.  If any of the rightmost elements
+end up not fitting or not hanging well, the flow indent is controlled
+by `:pair {:indent n}`.
 
 ```clojure
   (condp = stuff
-    :bother "bother"
-    :foo "foo"
-    :bar "bar"
-    "baz")
-```
-Note: This is implemented as a "body" function, as if it were `:arg2-pair-body`.
+    :bother "bother" :foo "foo" :bar "bar" "baz")
+``` Note: This is implemented as a "body" function, as if it were
+`:arg2-pair-body`.
 
 
 #### :arg2-fn
 
-Just like :arg2, but prints the third through last arguments as functions.
+Just like :arg2, but prints the third through last arguments as
+functions.
 
 ```clojure
   (proxy [Classname] []
-    (stuff [] bother)
-    (foo [bar] baz))
+    (stuff [] bother) (foo [bar] baz))
 ```
 
-Note: This is implemented as a "body" function, as if it were `:arg2-fn-body`.
+Note: This is implemented as a "body" function, as if it were
+`:arg2-fn-body`.
 
 
 #### :binding _(function type)_
 
-The function has a binding clause as its first argument.
-Print the binding clause two-up (as pairs)  The indent for any wrapped
-binding element is :binding `{:indent n}`, the indent for the functions
+The function has a binding clause as its first argument.  Print the
+binding clause two-up (as pairs)  The indent for any wrapped binding
+element is :binding `{:indent n}`, the indent for the functions
 executed after the binding is `:list {:indent n}`.
 
 ```clojure
  (let [first val1
        second
-         (calculate second using a lot of arguments)
+	 (calculate second using a lot of arguments)
        c d]
    (+ a c))
 ```
@@ -1099,58 +1099,51 @@ executed after the binding is `:list {:indent n}`.
 
 The function has a series of clauses which are paired.  Whether or
 not the paired clauses use hang or flow with respect to the function
-name is controlled by `:pair-fn {:hang? boolean}` and the indent of
-the leftmost element is controlled by `:pair-fn {:indent n}`.
+name is controlled by `:pair-fn {:hang? boolean}` and the indent
+of the leftmost element is controlled by `:pair-fn {:indent n}`.
 
 The actual formatting of the pairs themselves is controlled by
-`:pair`.  The controls for `:pair-fn` govern how to handle the
-block of pairs -- whether or not they should be in a hang with
-respect to the function name.  The controls for how the elements
-within the pairs are printed are governed by `:pair`. For instance,
-the indent of any of the rightmost elements of the pair if they
-don't fit on the same line or don't hang well is `:pair {:indent
-n}`.
+`:pair`.  The controls for `:pair-fn` govern how to handle the block
+of pairs -- whether or not they should be in a hang with respect
+to the function name.  The controls for how the elements within the
+pairs are printed are governed by `:pair`. For instance, the indent
+of any of the rightmost elements of the pair if they don't fit on
+the same line or don't hang well is `:pair {:indent n}`.
 
 ```clojure
  (cond
-   (and (= a 1) (> b 3)) (vector c d e)
-   (= d 4) (inc a))
+   (and (= a 1) (> b 3)) (vector c d e) (= d 4) (inc a))
 ```
 
-Note that :pair-fn will correctly format pairs where the test is a keyword 
-and the expression is a vector, as in 'better-cond'.  For example (drawn
-from the 'better-cond' readme) this is how zprint will format the following
-expression by default:
+Note that :pair-fn will correctly format pairs where the test is a
+keyword and the expression is a vector, as in 'better-cond'.  For
+example (drawn from the 'better-cond' readme) this is how zprint
+will format the following expression by default:
 
-```clojure
-(cond
-  (odd? a) 1
-  :let [a (quot a 2)]
-  :when-let [x (fn-which-may-return-falsey a)
-             y (fn-which-may-return-falsey (* 2 a))]
+```clojure (cond
+  (odd? a) 1 :let [a (quot a 2)] :when-let [x (fn-which-may-return-falsey
+  a)
+	     y (fn-which-may-return-falsey (* 2 a))]
   :when-some [b (fn-which-may-return-nil x)
-              c (fn-which-may-return-nil y)]
-  :when (seq x)
-  :do (println x)
-  (odd? (+ x y)) 2
-  3)
+	      c (fn-which-may-return-nil y)]
+  :when (seq x) :do (println x) (odd? (+ x y)) 2 3)
 ```
 
-Every keyword whose symbol appears in the `:fn-map` (and is therefore likely
-to be a built-in function) which has a vector following it will have that
-vector formatted as a binding vector.  In addition, every keyword whose
-symbol appears in the `:fn-map` but does not have a vector following it,
-will be formatted in such a way that the expr after it will be on the
-same line if at all possible, regardless of the settings for how to 
-manage pairs.
+Every keyword whose symbol appears in the `:fn-map` (and is therefore
+likely to be a built-in function) which has a vector following it
+will have that vector formatted as a binding vector.  In addition,
+every keyword whose symbol appears in the `:fn-map` but does not
+have a vector following it, will be formatted in such a way that
+the expr after it will be on the same line if at all possible,
+regardless of the settings for how to manage pairs.
 
 #### :hang
 
-The function has a series of arguments where it would be nice
-to put the first on the same line as the function and then
-indent the rest to that level.  This would usually always be nice,
-but zprint tries extra hard for these.  The indent when the arguments
-don't hang well is `:list {:indent n}`.
+The function has a series of arguments where it would be nice to
+put the first on the same line as the function and then indent the
+rest to that level.  This would usually always be nice, but zprint
+tries extra hard for these.  The indent when the arguments don't
+hang well is `:list {:indent n}`.
 
 ```clojure
  (and (= i 1)
@@ -1160,94 +1153,84 @@ don't hang well is `:list {:indent n}`.
 #### :extend _(function type)_
 
 The s-expression has a series of symbols with one or more forms
-following each.  The level of indent is configurable by `:extend {:indent n}`.
+following each.  The level of indent is configurable by `:extend
+{:indent n}`.
 
 ```clojure
   (reify
     stuff
       (bother [] (println))
     morestuff
-      (really [] (print x))
-      (sure [] (print y))
-      (more-even [] (print z)))
+      (really [] (print x)) (sure [] (print y)) (more-even [] (print
+      z)))
 ```
 
 #### :arg1-extend
 
-For the several functions which have an single argument
-prior to the :extend syntax.  They must have one argument,
-and if the second argument is a vector, it is also handled
-separately from the :extend syntax.  The level of indent is controlled
-by `:extend {:indent n}`
+For the several functions which have an single argument prior to
+the :extend syntax.  They must have one argument, and if the second
+argument is a vector, it is also handled separately from the :extend
+syntax.  The level of indent is controlled by `:extend {:indent n}`
 
 ```clojure
   (extend-protocol ZprintProtocol
     ZprintType
-      (more-stuff [x] (str x))
-      (more-bother [y] (list y))
-      (more-foo [z] (nil? z))))
+      (more-stuff [x] (str x)) (more-bother [y] (list y)) (more-foo
+      [z] (nil? z))))
 
   (deftype ZprintType
-    [a b c]
-    ZprintProtocol
-      (stuff [this x y] a)
-      (bother [this] b)
-      (bother [this x] (list x c))
-      (bother [this x y] (list x y a b)))
+    [a b c] ZprintProtocol
+      (stuff [this x y] a) (bother [this] b) (bother [this x] (list
+      x c)) (bother [this x y] (list x y a b)))
 ```
 
 #### :arg1->
 
-Print the first argument on the same line as
-the function, if possible.  Later arguments go
-indented and `:arg1` and `:arg-1-pair` top level fns
-are become `:none` and `:pair`, respectively.
+Print the first argument on the same line as the function, if
+possible.  Later arguments go indented and `:arg1` and `:arg-1-pair`
+top level fns are become `:none` and `:pair`, respectively.
 
-Currently `->` is `:narg1-body`, however, and there
-are no `:arg1->` functions.
+Currently `->` is `:narg1-body`, however, and there are no `:arg1->`
+functions.
 
 ```clojure
   (-> opts
     (assoc
-      :stuff (list "and" "bother"))
-      (dissoc :things))
+      :stuff (list "and" "bother")) (dissoc :things))
 ```
 
 #### :noarg1-body
 
-Print the function in whatever way is possible without
-special handling.  However, top level fns become
-different based on the lack of their first argument.
-Thus, `:arg1` becomes `:none`, `:arg1-pair` becomes `:pair`,
-etc.
+Print the function in whatever way is possible without special
+handling.  However, top level fns become different based on the
+lack of their first argument.  Thus, `:arg1` becomes `:none`,
+`:arg1-pair` becomes `:pair`, etc.
 
 ```clojure
   (-> opts
       (assoc
-        :stuff (list "and" "bother"))
+	:stuff (list "and" "bother"))
       (dissoc :things))
 ```
 
 #### :force-nl and :force-nl-body
 
 Tag a function which should not format with all of its arguments
-on the same line even if they fit.  Note that this function
-type has to show up in the set that is the value of :fn-force-nl
-to have any effect.
+on the same line even if they fit.  Note that this function type
+has to show up in the set that is the value of :fn-force-nl to have
+any effect.
 
 ```clojure
   (->> opts
-       foo
-       bar
-       baz)
+       foo bar baz)
 ```
 
 #### :fn
 
-Print the first argument on the same line as the `(fn ...)` if it will
-fit on the same line. If it does, and the second argument is a vector,
-print it on the same line as the first argument if it fits.  Indentation
-is controlled by `:list {:indent n}`.
+Print the first argument on the same line as the `(fn ...)` if it
+will fit on the same line. If it does, and the second argument is
+a vector, print it on the same line as the first argument if it
+fits.  Indentation is controlled by `:list {:indent n}`.
 
 ```clojure
   (fn [a b c]
@@ -1262,28 +1245,27 @@ is controlled by `:list {:indent n}`.
 #### :flow and :flow-body
 
 Don't hang under any circumstances. `:flow` assumes that the function
-has arguments, `:flow-body` assumes that the arguments are body elements.
-The only difference is when there are different indents for arguments
-and body elements.  Note that both `:flow` and `:flow-body` appear in
-the set `:fn-force-nl`, so that they will also never print one one line.
+has arguments, `:flow-body` assumes that the arguments are body
+elements.  The only difference is when there are different indents
+for arguments and body elements.  Note that both `:flow` and
+`:flow-body` appear in the set `:fn-force-nl`, so that they will
+also never print one one line.
 
 ```clojure
   (foo
-    (bar a b c)
-    (baz d e f))
+    (bar a b c) (baz d e f))
 ```
 
 #### :wrap
 
-Output the expression by formatting all of the arguments onto the same
-line until that line is full, and then continue placing all of the
-arguments on the next line.  This is similar to how vectors are formatted
-by default.  Note that the `:indent` for lists is not changed by this
-function type.  You may find it useful to set the `:indent` for `:list`
-to 1 when using this function type.
+Output the expression by formatting all of the arguments onto the
+same line until that line is full, and then continue placing all
+of the arguments on the next line.  This is similar to how vectors
+are formatted by default.  Note that the `:indent` for lists is not
+changed by this function type.  You may find it useful to set the
+`:indent` for `:list` to 1 when using this function type.
 
-```clojure
-{:fn-map {"my-fn" [:wrap {:list {:indent 1}}]}}
+```clojure {:fn-map {"my-fn" [:wrap {:list {:indent 1}}]}}
 ```
 
 #### :gt2-force-nl and :gt3-force-nl
@@ -1317,7 +1299,7 @@ if it is specified, and `:list {:indent n}` if it is not.
 #### :none-body
 
 Like none, but the indent for arguments that don't hang or fit
-on the same is always `:list {:indent n}`.
+on the same line is always `:list {:indent n}`.
 
 ### Changing or Adding Function Classifications
 

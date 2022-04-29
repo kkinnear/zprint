@@ -98,8 +98,17 @@
 (s/def ::fn-type-w-map
   (s/or :general-options (s/tuple ::fn-type ::options)
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
+; This dance with making the :fn-alias really "deep" is because of the
+; heuristics in explain-more, which tends to use the "simplest" problem 
+; that is found.  And the string tended to be the simplest problem, so that
+; more important things were obscured.
+(s/def ::fn-deep-alias string?)
+(s/def ::fn-alias 
+  (s/or :string ::fn-deep-alias
+        :also-string ::fn-deep-alias))
 (s/def ::fn-specifier
   (s/or :simple-type ::fn-type
+        :alias-type ::fn-alias
         :complex-type ::fn-type-w-map))
 (s/def ::format-value #{:on :off :next :skip})
 (s/def ::nilable-number (s/nilable number?))

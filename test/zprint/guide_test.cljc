@@ -1701,6 +1701,24 @@
                       :group-end :element-pair-group]],
        :width 16}))
 
+  ;;
+  ;; # :element-best-first
+  ;;
+
+(expect
+  "(defmethod some-defmethod\n  :some-dispatch-value\n  [a b c]\n  (println a)\n  (println b)\n  (println c))"
+  (zprint-str
+    "(defmethod some-defmethod :some-dispatch-value [a b c]\n  (println a)\n  (println b)\n  (println c))\n"
+    {:parse-string? true,
+     :guide-debug [:list 1
+                   [:element :element-best :element-best-first
+                    :element-best-first :newline :element-newline-best-*]],
+     :width 40}))
+
+  ;;
+  ;; # Explicit guide test
+  ;;
+
 
   ;;
   ;; # rodguide

@@ -3110,6 +3110,71 @@ by `{:extend {:modifiers #{<element1> <element2>}}}` are added to
 the set (as opposed to replacing the set entirely). You can remove
 elements from the set by `{:remove {:extend {:modifers #{<thing-to-remove>}}}}`.
 
+#### :nl-count _nil_
+
+This is the number of newlines to put between the fns under each
+protocol.
+
+It is either a number of newlines (where 2 would be how to get one
+blank line), or a vector of the number of newlines, where `[1 2 3]` would
+give you a normal newline for the first, and one blank line between the second
+and third elements, and then two blank lines between all remaining elements.
+The final value is repeated as necessary if there are not "enough" for the
+number of elements in the list.  Comments are kept with the following
+elements, so the next element in the vector is only used when it isn't
+a comment.  
+
+Note that there is always a single newline before the
+first function.
+
+An example:
+
+```
+; No :nl-count
+
+(czprint i229ea {:parse-string? true :extend {:nl-separator? true}})
+(extend-type ExtendedType
+  AProtocol
+    (doit [this] (run! println [1 2 3]) (println this))
+    (dothat [this that])
+    (domore [this that])
+
+  AnotherProtocol
+    (xdoit [this])
+    (xdothat [this that])
+    (xdomore [this that])
+
+  MoreProtocol
+    (xdoit [this])
+    (xdothat [this that])
+    (xdomore [this that]))
+
+; :nl-count 2
+
+(czprint i229ea {:parse-string? true :extend {:nl-separator? true :nl-count 2}})
+(extend-type ExtendedType
+  AProtocol
+    (doit [this] (run! println [1 2 3]) (println this))
+
+    (dothat [this that])
+
+    (domore [this that])
+
+  AnotherProtocol
+    (xdoit [this])
+
+    (xdothat [this that])
+
+    (xdomore [this that])
+
+  MoreProtocol
+    (xdoit [this])
+
+    (xdothat [this that])
+
+    (xdomore [this that]))
+```
+
 _____
 ## :input
 
@@ -3666,7 +3731,7 @@ not interact with the `:nl-count`.  The `:nl-count` is only used after
 the initial few elements are formatted as specified by the `fn-type`.
 
 This capability is something that is building block to get particular
-formatting in some special cases where a `fn-type` is in use`.  
+formatting in some special cases where a `fn-type` is in use`.
 It isn't meant to be a generally useful capabiity to, say, 
 format all lists with extra lines between them.
 

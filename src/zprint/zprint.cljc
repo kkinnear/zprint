@@ -4833,7 +4833,7 @@
     :as options} zloc rightmost-zloc? next-guide cur-index guide-seq
    element-index index
    {:keys [excess-guided-newline-count align-key last-cur-index rightcnt cur-ind
-           ind indent spaces one-line-ind group-seq],
+           ind indent spaces one-line-ind group-seq all-fit?],
     :as param-map} mark-map
    [previous-newline? previous-guided-newline? unguided-newline-out?
     previous-comment? :as previous-data] out]
@@ -4914,10 +4914,14 @@
                       (= next-guide :element-newline-best-*))
                     [true group-seq]
                   (or (= next-guide :element-best)
+		      (= next-guide :element-best-first)
                       (= next-guide :element-best-*))
                     [true [zloc]])
           try-this? (and (or zloc do-pairs? group-seq)
                          (not previous-newline?)
+			 (if (= next-guide :element-best-first)
+			   all-fit?
+			   true)
                          (not guided-newline?)
                          (or do-hang-remaining?
                              (and (< cur-ind width) (< this-ind width))))
@@ -5149,6 +5153,7 @@
               ; we *do* allow things after the last line, then the length
               ; of the last line is the new cur-ind.
               (and multi? (> linecnt 1)) last-width
+	      ; This is the old fit?
               fit? last-width
               ; When this is (+ indent ind), that is part of what  makes
               ; :spaces after a newline be "spaces beyond the indent",
@@ -5169,7 +5174,9 @@
               newline? (if (zero? element-index) one-line-ind (+ indent ind))
               :else last-width)
           param-map (dissoc param-map :excess-guided-newline-count #_:align-key)
-          param-map (assoc param-map :cur-ind new-ind)]
+          param-map (assoc param-map 
+	              :cur-ind new-ind 
+		      :all-fit? (and fit? all-fit?))]
       ; We used to forget about spaces here in some situations, but
       ; really we only wanted to forget about them after :element or
       ; :element-align or :newline (a guided one), so we do that in
@@ -5258,6 +5265,7 @@
         "\nnew-ind:" new-ind
         "\nwidth:" width
         "\nfit?" fit?
+        "\nall-fit?" all-fit?
         "\nfail-fit?" fail-fit?)
       [;
        ; param-map
@@ -5418,7 +5426,8 @@
                         :indent local-indent,
                         :last-cur-index last-cur-index,
                         :rightcnt rightcnt,
-                        :initial-options options}
+                        :initial-options options
+			:all-fit? true}
              mark-map {}
              [previous-newline? previous-guided-newline? unguided-newline-out?
               previous-comment? :as previous-data]
@@ -6139,6 +6148,7 @@
                 (or (= first-guide-seq :element)
                     (= first-guide-seq :element-guide)
                     (= first-guide-seq :element-best)
+                    (= first-guide-seq :element-best-first)
                     (= first-guide-seq :element-best-*)
                     (= first-guide-seq :element-*)
                     (= first-guide-seq :element-binding-vec))

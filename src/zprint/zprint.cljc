@@ -3647,7 +3647,7 @@
 (def body-set
   #{:binding :arg1-> :arg2 :arg2-fn :arg2-pair :pair-fn :fn :arg1-body
     :arg1-pair-body :none-body :noarg1-body :flow-body :arg2-extend-body
-    :arg1-force-nl-body :guided-body})
+    :arg1-force-nl-body :arg2-force-nl-body :guided-body})
 
 (def body-map
   {:arg1-body :arg1,
@@ -3658,7 +3658,8 @@
    :flow-body :flow,
    :noarg1-body :noarg1,
    :force-nl-body :force-nl,
-   :guided-body :guided})
+   :guided-body :guided
+   :arg2-force-nl-body :arg2-force-nl})
 
 ;;
 ;; If the noarg1? value is set, this is the mapping for functions
@@ -4259,6 +4260,7 @@
       ; needs (> len 2) but we already checked for that above in fn-style
       (or (and (= fn-style :fn) (not (zlist? arg-2-zloc)))
           (= fn-style :arg2)
+          (= fn-style :arg2-force-nl)
           (= fn-style :arg2-fn)
           (= fn-style :arg2-pair)
           (= fn-style :arg2-extend))
@@ -4314,6 +4316,7 @@
                     (concat-no-nil
                       first-two
                       (if (or (= fn-style :arg2)
+			      (= fn-style :arg2-force-nl)
                               (= fn-style :arg2-pair)
                               (= fn-style :arg2-fn)
                               (= fn-style :arg2-extend)

@@ -504,7 +504,8 @@
             :nl-separator? false},
    :file? false,
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
-                  :arg1-force-nl :arg1-force-nl-body :flow-body},
+                  :arg1-force-nl :arg1-force-nl-body :flow-body
+		  :arg2-force-nl-body :arg2-force-nl},
    :fn-gt2-force-nl #{:gt2-force-nl :binding #_:binding-vector :pair-fn},
    :fn-gt3-force-nl #{:gt3-force-nl :arg1-pair :arg1-pair-body},
    :fn-map zfnstyle,
@@ -926,6 +927,7 @@
                        :map {:respect-nl? false},
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
+      :rod-base {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
             :fn-map {"defn" [:none #_:guided-body
                              {:list {:option-fn (partial rodfn #_rodguide

@@ -6590,7 +6590,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-    ";!zprint {:format :off}\n  (this is\n a test)\n\n\n    (stuff \n bother)\n\n"
+    ";!zprint {:format :off}\n  (this is\n a test)\n\n\n    (stuff\n bother)\n\n"
     (zprint-file-str
       ";!zprint {:format :off}\n  (this is\n a test)\n   \n   \n    (stuff \n bother)\n  \n"
       ""

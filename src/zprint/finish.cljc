@@ -1,6 +1,7 @@
 (ns ^:no-doc zprint.finish
   (:require [clojure.string :as s]
             [zprint.ansi :refer [color-str]]
+            [zprint.hiccup :refer [hiccup-color-str]]
             [zprint.focus :refer [type-ssv range-ssv]]))
 
 ;;
@@ -67,7 +68,13 @@
   [ctx idx [s keyword-color element]]
   (let [style (ground-color-to-style ctx s keyword-color element idx)]
     #_(prn "s:" s "keyword-color:" keyword-color "style:" style)
-    (when style [s (when (not= style :none) style) element])))
+    ; This used to turn color :none into nil, but now it doesn't, 
+    ; but only for :hiccup and :html, so that they will interact 
+    ; with things with color :none.
+    (when style [s 
+                 (when (or (not= style :none) (not (:none-to-nil? ctx))) 
+		       style) 
+	         element])))
 
 (defn trim-vec
   "Take a vector of any length, and trim it to be
@@ -226,19 +233,49 @@
 
 (defn color-style
   "Turn a [string :color] into an ansi colored string."
-  [[s color]]
+  [color-fn [s color]]
   (if (nil? color)
     s
-    (if (coll? color) (apply color-str s color) (color-str s color))))
+    (if (coll? color) (apply color-fn s color) (color-fn s color))))
 
 (defn color-comp-vec
   "Use output from compress-style -- but just the [string :style] part,
   which since we used identity as the color map, should be just
   [string :color].  Produce a single string with ansi escape sequences embedded
   in it."
-  [comp-vec]
-  (apply str (mapv color-style comp-vec)))
+  [options comp-vec]
+  (let [output-format (:format (:output options))]
+    #_(println "color-comp-vec: output-format:" output-format)
+    (cond (= :string output-format)
+            (apply str (mapv (partial color-style color-str) comp-vec))
+          (or (= :hiccup output-format)
+              (= :hiccup-multiple output-format)
+              (= :html output-format))
+            (mapv (partial color-style hiccup-color-str) comp-vec))))
 
+(defn create-hvec-or-str
+  "Given a string, if we are using :hiccup, :hiccup-multiple, or :html,
+  the return a hvec that has been run through color-comp-vec.  Otherwise
+  just return the string.  Returns [hiccup? s-or-hvec], where hiccup?
+  is true if any of :hiccup, :hiccup-multiple, or :html are true."
+  ([options s hiccup?]
+   #_(prn "create-hvec-or-str?: s" s)
+   (let [hiccup? (if (= hiccup? :unknown)
+                   (or (= :hiccup (:format (:output options)))
+                       (= :hiccup-multiple (:format (:output options)))
+                       (= :html (:format (:output options))))
+                   hiccup?)]
+     (if hiccup?
+       (let [newline? (clojure.string/includes? s "\n")
+             spaces? (clojure.string/includes? s " ")
+             what (cond (and newline? spaces?) :indent
+                        newline? :newline
+                        spaces? :whitespace
+                        :else :whitespace)
+             new-hvec (color-comp-vec options [[s :none what]])]
+         [hiccup? new-hvec])
+       [hiccup? s])))
+  ([options s] (create-hvec-or-str options s :unknown)))
 
 ;;
 ;; # Cursor

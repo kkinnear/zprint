@@ -330,6 +330,7 @@
     zprint.zfns/znewline? (constantly false)
     zprint.zfns/zwhitespaceorcomment? (constantly false)
     zprint.zfns/zmap-all map
+    zprint.zfns/zmap-all-nl-comment map
     zprint.zfns/zfuture?
     #?(:clj future?
        :cljs (constantly false))

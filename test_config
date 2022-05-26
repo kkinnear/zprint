@@ -116,6 +116,7 @@ if [[ $output_length != $expected_length ]]
   then
     echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
+    $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj | od -c 
 
 fi
 
@@ -570,7 +571,7 @@ output_length=`$command --explain-all 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-expected_length=856
+expected_length=868
 
 if [[ $output_length != $expected_length ]]
   then
@@ -1170,6 +1171,46 @@ if [[ $output_length != $expected_length ]]
     wc -c test_config.stdout.clj test_config.diff.out test_config.stderr.out
 
 fi
+
+#
+# test basic html output
+#
+
+echo "...........  html output"
+
+#
+# Create necessary files
+#
+
+echo "(a :b \"c\")" >test_config.source.clj
+
+echo "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(a<br>&nbsp&nbsp:b<br>&nbsp&nbsp\"c\")</span><span style=\"color:black\"><br></span></p>" >test_config.out.clj
+
+#
+# Do test
+#
+
+$command '{:width 4 :output {:format :html}}' <test_config.source.clj 2> test_config.stderr.out > test_config.stdout.clj
+
+# Add newline to end of test output, so that diff won't complain
+
+echo "" >>test_config.stdout.clj
+
+diff test_config.stdout.clj test_config.out.clj >test_config.diff.out
+output_length=`cat test_config.stdout.clj test_config.diff.out test_config.stderr.out | wc -c`
+output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
+#echo "length is $output_length"
+
+expected_length=186
+
+if [[ $output_length != $expected_length ]]
+  then
+    echo "html output failed to have correct count of chars, should be $expected_length, was: $output_length"
+    cat test_config.stdout.clj test_config.diff.out test_config.stderr.out
+    wc -c test_config.stdout.clj test_config.diff.out test_config.stderr.out
+
+fi
+
 
 rm test_config.stdout.clj
 rm test_config.stderr.out

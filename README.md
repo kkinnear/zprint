@@ -9,6 +9,9 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
+ * Hiccup or HTML output now available!  Library `-str` fns and prebuilt
+ binaries support `{:output {:format :hiccup}}` and `{:output {:format :html}}`.
+ Alpha for now --  as always, let me know of any issues.
  * The library is now thread-safe (only if you format all strings or all
  structures.  You can't intermix them simultaneously.)
  * Tests now also run in babaska (thanks to @borkdude)

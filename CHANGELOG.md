@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file.
 
   * `{:list {:nl-count <n>}}` to add additional newlines in lists.
 
+  * Hiccup and HTML output now available from all library fns that end with 
+  `-str`, and the prebuilt binaries.  Use `{:output {:format :hiccup}}` or
+  `{:output {:format :html}}` to get this type of output.  This is a
+  new, capability, ALPHA quality for now.  Issue/Discussion #214.
+
 ### Changed
 
 ### Fixed

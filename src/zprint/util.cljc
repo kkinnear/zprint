@@ -1,6 +1,12 @@
 (ns ^:no-doc zprint.util
   (:require [clojure.string :as s]))
 
+(defn dissoc-two
+  "Do a simple dissoc-in for two levels.  Does not remove the
+  second map if it is empty."
+  [m [k1 k2]]
+  (assoc m k1 (dissoc (get m k1) k2)))
+
 (defn local-abs
   "Return the absolute value of a number."
   [n]

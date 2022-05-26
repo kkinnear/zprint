@@ -4404,6 +4404,31 @@ If you have a structure like this: `[:a [:b [:c :d] :e :f]]`
 then the path `[1 1 0]` would highlight the `:c`.  The path `[1 1]` would
 highlight the `[:c :d]`.  The path `[0]` would highlight the `:a`.
 
+#### :format _:string_
+
+Controls the format of the output.  The default is `:string`, which is
+what zprint has always produced until release `1.2.4`.  The other
+options are `:hiccup` and `:html`.  These other options are only supported for
+the library fns ending in `-str`, and the pre-built binaries (which also
+use `zprint-file-str` to produce their output).  This is because these
+are the only fns whose return values are meaningful.  In the case of 
+`{:output {:format :hiccup}}`, the return isn't actually a string, but
+rather a vector of hiccup structures.  It was designed to be compatible
+with `hiccup.core/html`.  Note that `{:color? true}` is also supported
+for all of the `-str` fns and the pre-built binaries, so that you can
+have your hiccup or HTML output colored or not.
+
+The hiccup/html output is wrapped in a single paragraph.  The style
+for that paragraph is a string which you can configure.
+
+##### :paragraph _{:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}_
+
+This is the style for the paragraph wrapping any hiccup or HTML output.  You
+can configure this string to be anything you want.  Of course, if the font
+is not a monospace font, the results will be ... probably not what you wanted.
+
+The font size has no relation to the number of characters in a line of
+output, which is still controlled by `{:width ...}`.
 
 #### :real-le? _false_
 Determines whether to output actual line endings (i.e. `real-le`) instead
@@ -4718,8 +4743,9 @@ This controls several aspects of how the input is handled.
 #### :interpose _nil_
 
 When a file is being processed by `zprint-file-str` (which is what
-the pre-built binaries use, and is also available in the library
-using `:parse-string-all`), normally the spaces between top level
+the pre-built binaries use, and is also available in the library) or
+by other library routines when `:parse-string-all? true` is used,
+normally the blank lines between top level
 expressions are untouched.
 
 However, you can force a fixed amount of space between top level expressions
@@ -4741,8 +4767,11 @@ with a new-line, or the resulting formatting will not be correct.
 
 #### :left-space _:drop_
 
+
 The choices for `:left-space` are `:keep` and `:drop`, with `:drop` being
-the default and only supported value.
+the default. `:left-space :keep` will keep any spaces on a line prior to a 
+top level expression. 
+This is ignored when `:interpose` is anything but `false`.
 
 #### :ignore-if-parse-fails _#{"..."}_
 

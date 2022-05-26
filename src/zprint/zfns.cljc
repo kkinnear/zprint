@@ -58,6 +58,7 @@
 (def znewline? nil)
 (def zwhitespaceorcomment? nil)
 (def zmap-all nil)
+(def zmap-all-nl-comment nil)
 (def zpromise? nil)
 (def zfuture? nil)
 (def zdelay? nil)

@@ -416,6 +416,27 @@
          out []]
     (if-not nloc out (recur (right* nloc) (conj out (zfn nloc))))))
 
+(defn zmap-all-nl-comment
+  "Return a vector containing the return of applying a function to 
+  every zloc inside of zloc. The newline that shows
+  up in every comment is also split out into a separate zloc."
+  [zfn zloc]
+  #_(prn "zmap-all-nl-comment: zloc" (z/string zloc))
+  (loop [nloc (down* zloc)
+         previous-comment? nil
+         out []]
+    (if-not nloc
+      out
+      (let [comment? (= (z/tag nloc) :comment)
+            nl? (= (z/tag nloc) :newline)
+            ; This may reset the nloc for the rest of the sequence!
+            nloc (if comment? (split-newline-from-comment nloc) nloc)
+            result (zfn nloc) #_(when (or (not (whitespace? nloc))
+                             (and nl? previous-comment?))
+                     (zfn nloc))]
+        (recur (right* nloc) comment? (if result (conj out result) out))))))
+
+
 (defn zseqnws
   "Return a seq of all of the non-whitespace children of zloc."
   [zloc]
@@ -821,6 +842,7 @@
     zprint.zfns/znewline? znewline?
     zprint.zfns/zwhitespaceorcomment? whitespace-or-comment?
     zprint.zfns/zmap-all zmap-all
+    zprint.zfns/zmap-all-nl-comment zmap-all-nl-comment
     zprint.zfns/zpromise? (constantly false)
     zprint.zfns/zfuture? (constantly false)
     zprint.zfns/zdelay? (constantly false)

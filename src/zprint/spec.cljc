@@ -112,6 +112,7 @@
         :alias-type ::fn-alias
         :complex-type ::fn-type-w-map))
 (s/def ::format-value #{:on :off :next :skip})
+(s/def :alt/format-value #{:string :hiccup :html})
 (s/def ::nilable-number (s/nilable number?))
 (s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
 (s/def ::style-value
@@ -257,6 +258,7 @@
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
 (s/def ::fn-style (s/nilable ::fn-type))
+(s/def ::fn-str (s/nilable string?))
 (s/def ::real-le? ::boolean)
 (s/def ::real-le-length number?)
 (s/def ::record-type? ::boolean)
@@ -266,6 +268,7 @@
 (s/def ::sort? ::boolean)
 (s/def ::sort-in-code? ::boolean)
 (s/def ::start (s/nilable number?))
+(s/def :alt/style (s/nilable string?))
 (s/def ::lift-ns? ::boolean)
 (s/def ::unlift-ns? ::boolean)
 (s/def ::lift-ns-in-code? ::boolean)
@@ -333,6 +336,7 @@
 (s/def ::fn-name zany?)
 (s/def ::fn-obj (only-keys :opt-un [::object?]))
 (s/def ::format ::format-value)
+(s/def :alt/format :alt/format-value)
 (s/def ::future (only-keys :opt-un [::object?]))
 (s/def ::ignore-for-variance (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::indent number?)
@@ -374,12 +378,15 @@
 (s/def ::more-options (s/nilable ::options))
 (s/def ::output
   (only-keys :opt-un [::focus ::lines ::elide ::paths ::real-le?
-                      ::real-le-length ::range?]))
+                      ::real-le-length ::range? :alt/format
+		      ::paragraph]))
 (s/def ::pair
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
                       ::justify? ::justify ::justify-hang ::justify-tuning
                       ::nl-separator? ::nl-separator-all?]))
+(s/def ::paragraph
+  (only-keys :opt-un [:alt/style]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
 (s/def ::parse
@@ -461,7 +468,7 @@
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
-             ::!zprint-elide-skip-next? ::meta]))
+             ::!zprint-elide-skip-next? ::meta ::fn-str]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

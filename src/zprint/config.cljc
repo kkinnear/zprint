@@ -12,6 +12,7 @@
     [clojure.data   :as d]
     [zprint.spec    :refer [validate-basic coerce-to-boolean]]
     [zprint.rewrite :refer [sort-dependencies]]
+    [zprint.util :refer [dissoc-two]]
     [zprint.guide   :refer [jrequireguide defprotocolguide signatureguide1
                             odrguide guideguide rodguide areguide]]
     [zprint.optionfn   :refer [rodfn]]
@@ -63,6 +64,7 @@
   [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
    :dbg-ge :file? :spaces? :process-bang-zprint? :trim-comments? :zipper?
    :indent :remove :return-cvec? :test-for-eol-blanks? :!zprint-elide-skip-next?
+   :fn-str
    [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma? :key-value]
    [:output :elide :lines] [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
@@ -599,12 +601,17 @@
    :meta {:split? false},
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
-   :output {:focus {:zloc? false, :surround nil},
-            :lines nil,
-            :elide nil,
-            :range? nil,
-            :real-le? false,
-            :real-le-length 20},
+   :output 
+     {:format :string
+      :focus {:zloc? false, :surround nil},
+      :lines nil,
+      :elide nil,
+      :paragraph 
+	{:style 
+	  "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+      :range? nil,
+      :real-le? false,
+      :real-le-length 20},
    :pair {:flow? false,
           :force-nl? nil,
           :hang-diff 1,
@@ -1206,12 +1213,6 @@
   "Return current explained-seqence and add one to it."
   []
   (swap! explained-sequence inc))
-
-(defn dissoc-two
-  "Do a simple dissoc-in for two levels.  Does not remove the
-  second map if it is empty."
-  [m [k1 k2]]
-  (assoc m k1 (dissoc (get m k1) k2)))
 
 (defn add-calculated-options
   "Take an updated-map and generate calculated options

@@ -16,7 +16,8 @@
                                 zset? zcoll? zuneval? zmeta? ztag zlast zarray?
                                 zatom? zderef zrecord? zns? zobj-to-vec
                                 zexpandarray znewline? zwhitespaceorcomment?
-                                zmap-all zpromise? zfuture? zdelay? zkeyword?
+                                zmap-all zmap-all-nl-comment 
+				zpromise? zfuture? zdelay? zkeyword?
                                 zconstant? zagent? zreader-macro?
                                 zarray-to-shift-seq zdotdotdot zsymbol? znil?
                                 zreader-cond-w-symbol? zreader-cond-w-coll?
@@ -3775,6 +3776,8 @@
            result)))))
   ([fn-map fn-str] (lookup-fn-str fn-map fn-str #{})))
 
+(declare fzprint-noformat)
+
 (defn fzprint-list*
   "Print a list, which might be a list or an anon fn.  
   Lots of work to make a list look good, as that is typically code. 
@@ -3792,6 +3795,8 @@
          "fn-style:" fn-style
          "option-fn:" (:option-fn (options caller))
          "rightcnt:" (:rightcnt options))
+  (if (= (:format options) :off)
+    (fzprint-noformat l-str r-str options zloc)
   ; We don't need to call get-respect-indent here, because all of the
   ; callers of fzprint-list* define respect-nl?, respect-bl? and indent-only?
   (let [max-length (get-max-length options)
@@ -4637,7 +4642,7 @@
                     ; Nothing else after arg-1-zloc
                     :noseq))
                 :noseq)
-              r-str-vec))))
+              r-str-vec)))))
 
 (defn fzprint-list
   "Pretty print and focus style a :list element."
@@ -5366,6 +5371,8 @@
 
 (defn comment-or-newline?
   "Is this element in the output from fzprint-seq a comment or a newline?"
+  ; Should this include :indent?  Maybe not, as it looks like it is used
+  ; only for constant pairing?
   [element]
   (let [element-type (nth (first element) 2)]
     (or (= element-type :comment)
@@ -6277,6 +6284,9 @@
        "indent:" indent
        "caller:" caller
        "ztag:" (ztag zloc))
+  (if (= (:format options) :off)
+    (fzprint-noformat l-str r-str options zloc)
+
   (if (and binding? (= (:depth options) 1))
     (fzprint-binding-vec options ind zloc)
     (let [[respect-nl? respect-bl? indent-only?]
@@ -6440,7 +6450,7 @@
                                   "fzprint-vec*: wrap coll-print:"
                                   coll-print)
                           (wrap-zmap caller options new-ind new-ind coll-print))
-                        r-str-vec)))))))))))
+                        r-str-vec))))))))))))
 
 (defn fzprint-vec
   [options ind zloc]
@@ -6818,6 +6828,10 @@
      :as map-options}
       caller,
     :as options} ind zloc ns]
+
+  (if (= (:format options) :off)
+    (fzprint-noformat l-str r-str options zloc)
+
   (let [[respect-nl? respect-bl? indent-only?]
           (get-respect-indent options caller :map)]
     (dbg-pr options "fzprint-map* caller:" caller)
@@ -6939,7 +6953,7 @@
                       (:map options) ;nl-separator?
                       comma?
                       pair-print)
-                    r-str-vec))))))))))
+                    r-str-vec)))))))))))
 
 (defn fzprint-map
   "Format a real map."
@@ -7435,6 +7449,49 @@
           (= next-inner :unset) options
           :else options)))
 
+;;
+;; Print exactly as we got it, but colorize (or :hiccup or :html) it.
+;;
+;; Except, remove any spaces prior to newlines.
+;;
+
+(defn remove-spaces-pre-nl
+  "Take a style vec and remove any :whitespace element prior to a :newline
+  or an :indent element."
+  [svec]
+  (loop [nvec svec
+         out []]
+    (if (empty? nvec)
+      out
+      (let [[_ _ this-what :as this-vec] (first nvec)
+            [_ _ next-what :as next-vec] (second nvec)]
+        (recur (next nvec)
+               (if (and (= this-what :whitespace)
+                        (or (= next-what :newline) (= next-what :indent)))
+                 out
+                 (conj out this-vec)))))))
+
+(defn fzprint-noformat
+  "Take a collection, and map fzprint* across it to get it colorized, but
+  take every single whitespace and everything.  It should come out just like
+  it went in, but with colors (or whatever)."
+  [l-str r-str options zloc]
+  (let [l-str-vec [[l-str (zcolor-map options l-str) :left]]
+        r-str-vec (rstr-vec options 0 zloc r-str)
+        fzprint*-seq (zmap-all-nl-comment (partial fzprint* options 0) zloc)
+        _ (dbg-s-pr options
+                    :noformat
+                    "fzprint-noformat fzprint*-seq:"
+                    fzprint*-seq)
+        concat-vec
+          (concat-no-nil l-str-vec (apply concat fzprint*-seq) r-str-vec)
+        _ (dbg-s-pr options :noformat "fzprint-noformat concat-vec:" concat-vec)
+        remove-spaces-vec (remove-spaces-pre-nl concat-vec)
+        _ (dbg-s-pr options
+                    :noformat
+                    "fzprint-noformat remove-spaces-vec:"
+                    remove-spaces-vec)]
+    remove-spaces-vec))
 ;;
 ;; # The center of the zprint universe
 ;;

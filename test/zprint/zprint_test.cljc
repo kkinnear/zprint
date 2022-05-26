@@ -6960,6 +6960,36 @@ are1b
                                       (re-find #"fn-strs.*" (str e))
                                       "")))))
 		    
+  ;;
+  ;; Add :max-gap to :justify for lots of things.  This tests pairs.
+  ;;
+  ;; Issue #239
+  ;;
+
+(def pair1
+"
+(defn pair1
+  [a b c d]
+  (cond (nil? a) a
+        (a-very-long-function? b) b
+        :else c))")
+
+(expect
+"(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
+(zprint-str pair1 {:parse-string? true :pair {:justify? true :justify {:max-variance 80 :max-gap 17}}}))
+
+(expect
+"(defn pair1\n  [a b c d]\n  (cond (nil? a)                  a\n        (a-very-long-function? b) b\n        :else                     c))"
+(zprint-str pair1 {:parse-string? true :pair {:justify? true :justify {:max-variance 80 :max-gap 18}}}))
+
+(expect
+"(defn pair1\n  [a b c d]\n  (cond (nil? a)                  a\n        (a-very-long-function? b) b\n        :else                     c))"
+(zprint-str pair1 {:parse-string? true :pair {:justify? true :justify {:max-variance 80 :max-gap 21 :ignore-for-variance nil}}}))
+
+(expect
+"(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
+(zprint-str pair1 {:parse-string? true :pair {:justify? true :justify {:max-variance 80 :max-gap 20 :ignore-for-variance nil}}}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

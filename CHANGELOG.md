@@ -18,6 +18,16 @@ All notable changes to this project will be documented in this file.
   `{:output {:format :html}}` to get this type of output.  This is a
   new, capability, ALPHA quality for now.  Issue/Discussion #214.
 
+  * Another way to prevent justification of things that will look
+  bad. In addition to `{:pair {:justify {:max-variance 20}}}` there
+  is now the, perhaps easier to understand, `{:pair {:justify
+  {:max-gap n}}}`, where n is maximum number spaces which will show
+  up between the left and right columns of a bunch of pairs being
+  justified.  Note that the `:max-gap` is calculated after the
+  `:no-justify` and `:ignore-for-variance` elements are removed.
+  So if you want them included when calculating the `:max-gap`, you
+  need to adjust these parameters as well. Issue #239.
+
 ### Changed
 
 ### Fixed

@@ -453,7 +453,8 @@
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
              :justify
-               {:max-variance 20, :no-justify #{"_"}, :ignore-for-variance nil},
+               {:max-variance 20, :no-justify #{"_"}, :ignore-for-variance nil
+	        :max-gap nil},
              :justify? false,
              :nl-separator? false,
              :nl-separator-all? false},
@@ -580,7 +581,8 @@
          :nl-separator-all? false,
          :flow? false,
          :justify? false,
-         :justify {:max-variance 20, :ignore-for-variance nil, :no-justify nil},
+         :justify {:max-variance 20, :ignore-for-variance nil, :no-justify nil
+	           :max-gap nil},
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
          :respect-bl? false,
@@ -625,7 +627,8 @@
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
           :justify {:max-variance 20,
                     :ignore-for-variance #{":else"},
-                    :no-justify nil},
+                    :no-justify nil
+		    :max-gap nil},
           :justify? false,
           :nl-separator? false,
           :nl-separator-all? false},

@@ -1408,8 +1408,22 @@
         #_(def styleseq style-seq)
         each-one-line? (reduce #(when %1 (= (first %2) 1)) true style-seq)
         #_(def eol each-one-line?)
+	; max-gap is nilable, so make sure it is a number
+	max-gap-configured (:max-gap justify)
+	max-gap-allowed (or max-gap-configured 1000)
+	max-gap (if max-gap-configured
+	(let [widths (mapv second style-seq)]
+	           (if (not (empty? widths))
+		     (let [max-width (apply max widths)
+		           min-width (apply min widths)]
+		       ; Add one for the space
+		       (inc (- max-width min-width)))
+		      0))
+		      0)
+	#_(def mg [max-gap max-gap-allowed])
+	max-gap-ok? (<= max-gap max-gap-allowed)
         max-variance (:max-variance justify)
-        alignment (when each-one-line?
+        alignment (when (and each-one-line? max-gap-ok?)
                     (column-width-variance max-variance
                                            [(vec (map #(- (second %) ind)
                                                    style-seq))]

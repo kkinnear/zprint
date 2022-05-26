@@ -2654,6 +2654,21 @@ the set to customize the justification process.
 Note that (for efficiency reasons) you can add only the string
 values of things to not justify to the set `:no-justify`.
 
+##### :max-gap  _number or nil_
+
+This provides another way to prevent justification of something
+that will "look bad".  When `:max-gap` is non-nil, the longest and
+shortest of the things on the "left" will be compared, and the
+max-gap will be the difference (plus one for the space after).  If
+this number is less than or equal to the configured `:max-gap`,
+then it will attempt to justify.  Note that it must also pass the
+`:max-variance` check before it will successfully justify.
+
+The `:max-gap` is calculated after the `:no-justify` and
+`:ignore-for-variance` elements are removed.  So if you want them
+included when calculating the `:max-gap`, you need to adjust these
+parameters as well. 
+
 ## Configuring functions to make formatting changes based on content
 
 There are several places in the options map where user defined

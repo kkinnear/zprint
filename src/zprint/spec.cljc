@@ -217,7 +217,7 @@
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
 (s/def ::justify
-  (only-keys :opt-un [::max-variance ::ignore-for-variance ::no-justify]))
+  (only-keys :opt-un [::max-variance ::ignore-for-variance ::no-justify ::max-gap]))
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
 (s/def ::justify-tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
@@ -233,6 +233,7 @@
 (s/def ::lines ::line-seq)
 (s/def ::location (s/nilable string?))
 (s/def ::max-variance number?)
+(s/def ::max-gap (s/nilable number?))
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::no-validate? ::boolean)
 (s/def ::nl-separator? ::boolean)

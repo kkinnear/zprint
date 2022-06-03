@@ -416,6 +416,7 @@
    "when-let" :binding,
    "when-not" :arg1-body,
    "when-some" :binding,
+   "while" :arg1-body
    "with-bindings" :arg1,
    "with-bindings*" :arg1,
    "with-local-vars" :binding,

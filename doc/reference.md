@@ -2569,6 +2569,17 @@ second element of the pair was formatted.  Some examples:
 ```
 This works independently for `:pair`, `:binding`, and `:map`.
 
+##### :flow-all-if-any? _false_
+
+There are pairs in functions like `cond`, in maps, and in bindings.
+When the right hand part of the pair doesn't fit, it "flows" onto the
+next line.  You can configure zprint to flow all of the right
+hand pairs onto the next line if any of them flow because they don't
+fit.  This will certainly make things take more vertical space, but
+the additional consistency may make the pairs more easily distinguishable.
+You can enable this in any of the three possible places by setting
+`:flow-all-if-any? true` in `:pair`, `:map`, or `:binding`.
+
 #### :justify? _false_
 
 Turn on [justification](#a-note-on-justifying-two-up-printing).
@@ -2668,6 +2679,7 @@ The `:max-gap` is calculated after the `:no-justify` and
 `:ignore-for-variance` elements are removed.  So if you want them
 included when calculating the `:max-gap`, you need to adjust these
 parameters as well. 
+
 
 ## Configuring functions to make formatting changes based on content
 

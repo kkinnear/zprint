@@ -191,6 +191,7 @@
 (s/def ::end (s/nilable number?))
 (s/def ::expand? ::boolean)
 (s/def ::flow? ::boolean)
+(s/def ::flow-all-if-any? ::boolean)
 (s/def ::focus (only-keys :opt-un [::zloc? ::path ::surround]))
 (s/def ::force-validate? ::boolean)
 (s/def ::force-nl? ::boolean)
@@ -291,7 +292,7 @@
 (s/def ::array (only-keys :opt-un [::hex? ::indent ::object? ::wrap?]))
 (s/def ::atom (only-keys :opt-un [::object?]))
 (s/def ::binding
-  (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
+  (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
                       ::justify? ::justify ::justify-hang ::justify-tuning
                       ::nl-separator? ::nl-separator-all?]))
@@ -356,7 +357,7 @@
 (s/def ::vector-fn ::list)
 (s/def ::map
   (only-keys
-    :opt-un [::comma? ::flow? ::force-nl? ::hang-adjust ::hang-diff
+    :opt-un [::comma? ::flow? ::flow-all-if-any? ::force-nl? ::hang-adjust ::hang-diff
              ::hang-accept ::ha-depth-factor ::ha-width-factor ::hang-expand
              ::hang? ::indent ::indent-only? ::justify? ::justify-hang ::justify
              ::justify-tuning ::key-color ::key-value-color ::key-depth-color
@@ -382,7 +383,7 @@
                       ::real-le-length ::range? :alt/format
 		      ::paragraph]))
 (s/def ::pair
-  (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
+  (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
                       ::justify? ::justify ::justify-hang ::justify-tuning
                       ::nl-separator? ::nl-separator-all?]))

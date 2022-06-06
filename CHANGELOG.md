@@ -9,9 +9,10 @@ All notable changes to this project will be documented in this file.
   key is (as always) the function name as a string, and the value is
   another function name, also as a string.  Thus `{:fn-map {"mydefn" 
   "defn"}}` will cause the function "mydefn" to be formatted however
-  "defn" is formatted.
+  "defn" is formatted.  (Part of Issue/Discussion #236.)
 
   * `{:list {:nl-count <n>}}` to add additional newlines in lists.
+  (Part of Issue/Discussion #236)
 
   * Hiccup and HTML output now available from all library fns that end with 
   `-str`, and the prebuilt binaries.  Use `{:output {:format :hiccup}}` or
@@ -27,6 +28,16 @@ All notable changes to this project will be documented in this file.
   `:no-justify` and `:ignore-for-variance` elements are removed.
   So if you want them included when calculating the `:max-gap`, you
   need to adjust these parameters as well. Issue #239.
+
+  * There are pairs in functions like `cond`, in maps, and in bindings.
+  When the right hand part of the pair doesn't fit, it "flows" onto the
+  next line.  A new feature is now available to flow all of the right
+  hand pairs onto the next line if any of them flow because they don't
+  fit.  This will certainly make things take more vertical space, but
+  the additional consistency may make the pairs more easily distinguishable.
+  You can enable this in any of the three possible places by setting
+  `:flow-all-if-any? true` in `:pair`, `:map`, or `:binding`.
+  Issue #235.
 
 ### Changed
 

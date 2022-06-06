@@ -998,6 +998,7 @@
             key-depth-color key-value-color key-value-options justify]}
       caller,
     :as options} ind commas? justify-width justify-options rightmost-pair?
+    force-flow?
    [lloc rloc xloc :as pair]]
   (if dbg-cnt? (println "two-up: caller:" caller "hang?" hang? "dbg?" dbg?))
   (dbg-s options
@@ -1022,9 +1023,11 @@
               "in-hang?" in-hang?
               "do-in-hang?" do-in-hang?
               "flow?" flow?
+	      "force-flow?" force-flow?
               "commas?" commas?
               "rightmost-pair?" rightmost-pair?)))
-  (let [local-hang? (or one-line? hang?)
+  (let [flow? (or flow? force-flow?)
+        local-hang? (or one-line? hang?)
         indent (or indent indent-arg)
         ; We get options and justify-options.  Generally we want to use
         ; the justify-options, unless we are not justifying, in which
@@ -1156,8 +1159,12 @@
     (dbg-pr options "fzprint-two-up: arg-1:" arg-1)
     (when (and arg-1 (or arg-1-fit? (not in-hang?)))
       (cond
-        arg-1-newline? [:flow arg-1]
-        (= (count pair) 1) [:hang (fzprint* roptions ind lloc)]
+	; This used to always :flow 
+        arg-1-newline? [(if force-flow? :flow :hang) arg-1]
+	; This is what does comments, and will cause an infinite loop
+	; in fzprint-map-two-up with flow-all-if-any? true, 
+	; since it used to always hang even if force-flow? was true.
+        (= (count pair) 1) [(if force-flow? :flow :hang) (fzprint* roptions ind lloc)]
         (or (= (count pair) 2) (and modifier? (= (count pair) 3)))
           ;concat-no-nil
           ;  arg-1
@@ -1307,6 +1314,7 @@
                   (prn "fzprint-two-up: hanging-indent:" hanging-indent)
                   (prn "fzprint-two-up: hanging-lines:" hanging-lines)
                   (prn "fzprint-two-up: flow?:" flow?)
+                  (prn "fzprint-two-up: force-flow?:" force-flow?)
                   (prn "fzprint-two-up: flow-it?:" flow-it?)
                   (prn "fzprint-two-up: fit?:" fit?)
                   (prn "fzprint-two-up: flow-indent:" flow-indent)
@@ -1511,7 +1519,9 @@
                  (-> options
                      (merge-deep {caller (caller-options :justify-hang)})
                      (merge-deep {:tuning (caller-options :justify-tuning)}))
-                 options)]
+                 options)
+	      force-flow? nil
+	      flow-all-if-any? (:flow-all-if-any? (caller justify-options))]
         #_(def jo (conj jo [justify-width justify-options]))
         (let [beginning-coll (butlast coll)
               ; If beginning-coll is () because there is only a single pair
@@ -1524,6 +1534,7 @@
                 (if one-line? (fit-within? (- width ind) beginning-coll) true)
               _ (dbg options
                      "fzprint-map-two-up: remaining:" (- width ind)
+		     "flow-all-if-any?" flow-all-if-any?
                      "beginning-remaining:" beginning-remaining)
               beginning (when beginning-remaining
                           (zpmap options
@@ -1534,7 +1545,9 @@
                                           commas?
                                           justify-width
                                           justify-options
-                                          nil)
+                                          nil ; rightmost-pair?
+					  force-flow? ; force-flow?
+					  )
                                  beginning-coll))
               ; this line will fix the justify, but not necessarily
               ; the rest of the problems with hangflow output -- like
@@ -1562,10 +1575,27 @@
                                                           justify-width
                                                           justify-options
                                                           :rightmost-pair
+							  force-flow? ; force-flow?
                                                           (first end-coll))]
                       [end-result]))
               result (cond (= len 1) end
-                           :else (concat-no-nil beginning end))]
+                           :else (concat-no-nil beginning end))
+	      [flow-all-if-any-fail? result hang-flow-set]
+	        (if flow-all-if-any?
+		   (let [hang-flow-set (set (mapv first result))]
+		     (if (<= (count hang-flow-set) 1)
+		       [false result hang-flow-set]
+		       [true nil hang-flow-set]))
+		   [false result nil])
+	      _ (when force-flow?
+		   (let [hang-flow-set (set (mapv first result))]
+		     (when (> (count hang-flow-set) 1)
+		       (dbg-pr options 
+		         "fzprint-map-two-up: ****************#############"
+			 " force-flow? didn't yield a single value in"
+			 " hang-flow-set:" hang-flow-set))))
+	           
+			   ]
           (dbg-pr options
                   "fzprint-map-two-up: len:" len
                   "(nil? end):" (nil? end)
@@ -1575,10 +1605,18 @@
                   "(count end):" (count end)
                   "(count beginnging):" (count beginning)
                   "justify-width:" justify-width
-                  "result:" result)
+		  "flow-all-if-any?" flow-all-if-any?
+		  "flow-all-if-any-fail?" flow-all-if-any-fail?
+		  "hang-flow-set:" hang-flow-set)
+           (dbg options
+                  "fzprint-map-two-up: result:" 
+                             ((:dzprint options) {} result)
+		  #_result
+		  )
           ; if we got a result or we didn't but it wasn't because we
           ; were trying to justify things
-          (if (or result (not justify-width))
+          (if (and (or result (not justify-width))
+	           (not flow-all-if-any-fail?))
             (do #_(let [pair-lens (pair-lengths options ind result)]
                     (println "result:"
                              ((:dzprint options) {} result)
@@ -1590,7 +1628,12 @@
                 result)
             ; try again, without justify-width
             (do #_(println "recur!!" ((:dzprint options) {} (take 6 beginning)))
-                (recur nil options))))))))
+                (recur nil options flow-all-if-any-fail? 
+		; Prevent infinite loop if something is odd about the
+		; :hang and :flow in the returns from fzprint-two-up.
+		(if flow-all-if-any-fail? nil flow-all-if-any?)
+		
+		))))))))
 
 ;;
 ;; ## Support sorting of map keys

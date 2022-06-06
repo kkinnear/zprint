@@ -442,6 +442,7 @@
    :array {:hex? false, :indent 1, :object? false, :wrap? true},
    :atom {:object? false},
    :binding {:flow? false,
+	  :flow-all-if-any? false
              :force-nl? false,
              :hang-diff 1,
              :hang-expand 2.0,
@@ -580,6 +581,7 @@
          :nl-separator? false,
          :nl-separator-all? false,
          :flow? false,
+	  :flow-all-if-any? false
          :justify? false,
          :justify {:max-variance 20, :ignore-for-variance nil, :no-justify nil
 	           :max-gap nil},
@@ -615,6 +617,7 @@
       :real-le? false,
       :real-le-length 20},
    :pair {:flow? false,
+	  :flow-all-if-any? false
           :force-nl? nil,
           :hang-diff 1,
           :hang-expand 2.0,

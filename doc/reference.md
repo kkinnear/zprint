@@ -4445,6 +4445,12 @@ with `hiccup.core/html`.  Note that `{:color? true}` is also supported
 for all of the `-str` fns and the pre-built binaries, so that you can
 have your hiccup or HTML output colored or not.
 
+This capability is __not__ supported for most uses of `:range` in
+`zprint-file-str`.  It is, however, supported for the case where
+`:range` is in use, and `:output {:range? true}` is used.  This is
+where the only output returned is for the specfied (or really, expanded)
+range.
+
 The hiccup/html output is wrapped in a single paragraph.  The style
 for that paragraph is a string which you can configure.
 

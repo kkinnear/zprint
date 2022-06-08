@@ -1,7 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.4 - 2022-04-15
+## 1.2.4-alpha1 - 2022-06-09
+
+THIS IS AN ALPHA RELEASE, NOT FULLY TESTED.  PLEASE DO NOT USE IN PRODUCTION.
 
 ### Added
 

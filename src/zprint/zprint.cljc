@@ -3826,9 +3826,11 @@
    (if (fn-str-set fn-str)
      (throw (#?(:clj Exception.
                 :cljs js/Error.)
-             (str "Circular :fn-map lookup! fn-str: '" fn-str
-                  "' has already been used in this lookup."  
-		  " fn-strs in this lookup: " fn-str-set)))
+             (str "Circular :fn-map lookup! fn-str: '"
+                  fn-str
+                  "' has already been used in this lookup."
+                  " fn-strs in this lookup: "
+                  fn-str-set)))
      (let [result (fn-map fn-str)]
        (when result
          (if (string? result)
@@ -3887,9 +3889,12 @@
              (if new-fn-type
                (lookup-fn-type-map options new-fn-type fn-type-set)
                [options new-fn-type])]
-       #_(println "handle-fn-style: :fn-style:" fn-style "new-fn-type" new-fn-type"latest-fn-type" latest-fn-type "count new-options:" (count new-options)
-                "count options-map" (count options-map)
-		":fn" (:fn (:fn-type-map options)))
+       #_(println "handle-fn-style: :fn-style:" fn-style
+                  "new-fn-type" new-fn-type
+                  "latest-fn-type" latest-fn-type
+                  "count new-options:" (count new-options)
+                  "count options-map" (count options-map)
+                  ":fn" (:fn (:fn-type-map options)))
        (if options-map
          [(first (zprint.config/config-and-validate "fn-style:"
                                                     nil
@@ -4035,6 +4040,7 @@
                                                       nil ; validate?
                    ))
             options)
+
         ; Do we have an option-fn to call and maybe get a new options
         ; map.  We might have developed this from the options map in
         ; the vector above.  In fact, we hope so, because otherwise we

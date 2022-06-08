@@ -17,6 +17,7 @@
     [zprint.comment     :refer [blanks]]
     [zprint.zutil]
     [zprint.config      :refer [merge-deep]]
+    [zprint.optionfn    :refer [rodfn]]
     #?@(:clj ([clojure.repl :refer [source-fn]]))
     [zprint.core-test   :refer [trim-gensym-regex x8]]
     [rewrite-clj.parser :as    p
@@ -7065,6 +7066,44 @@ i235
 (expect
 "(cond (simple-check)\n        (short-function-call)\n      (and (much-more-complicated-check)\n           (an-even-longer-check-that-is-too-long))\n        (look-im-on-the-next-line)\n      :else\n        (another-short-call))"
 (zprint-str i235 {:parse-string? true :dbg? false :pair {:flow-all-if-any? true :justify? true :justify {:max-variance 30}} :width 80}))
+
+;;
+;; :fn-type-map
+;;
+
+ (def
+ i229u
+"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n    \n    ([this]\n     (doit [this nil])))\n  \n  (dothat [this that])\n\n  (domore [this that])\n  \n  AnotherProtocol\n  (xdoit [this])\n  \n  (xdothat [this that])\n  \n  (xdomore [this that]))\n")
+
+
+(expect
+"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
+(zprint-str i229u {:parse-string? true :extend {:nl-count 2, :nl-separator? true :indent 0} :fn-type-map {:fn [:none {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}]}}))
+
+(expect
+"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n    (doit\n      ([this that] (run! println [1 2 3]) (println this))\n      ([this] (doit [this nil])))\n    (dothat [this that])\n    (domore [this that])\n  AnotherProtocol\n    (xdoit [this])\n    (xdothat [this that])\n    (xdomore [this that]))"
+(zprint-str i229u {:parse-string? true}))
+
+;;
+;; Indirection
+;;
+
+(expect
+"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
+(zprint-str i229u {:parse-string? true :extend {:nl-count 2, :nl-separator? true :indent 0} :fn-type-map {:arg2 [:none {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}] :fn :arg2}}))
+
+;;
+;; Can we get rid of it with :next-inner?
+;;
+
+ (def
+ i229ua
+"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (let [myfn (fn ([x] (println x)) ([x y] (+ x y)))] (more stuff))\n     (println this))\n    \n    ([this]\n     (doit [this nil])))\n  \n  (dothat [this that])\n\n  (domore [this that])\n  \n  AnotherProtocol\n  (xdoit [this])\n  \n  (xdothat [this that])\n  \n  (xdomore [this that]))\n")
+
+(expect
+"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (let [myfn (fn ([x] (println x)) ([x y] (+ x y)))] (more stuff))\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
+(zprint-str i229ua {:parse-string? true :extend {:nl-count 2, :nl-separator? true :indent 0} :fn-type-map {:fn [:none {:list {:option-fn (partial rodfn {:multi-arity-nl? true})} :next-inner {:fn-type-map {:fn nil}}}]}}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

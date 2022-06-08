@@ -39,6 +39,18 @@ All notable changes to this project will be documented in this file.
   `:flow-all-if-any? true` in `:pair`, `:map`, or `:binding`.
   Issue #235.
 
+  * EXPERIMENTAL: Every function type is now looked up in the `:fn-type-map`.
+  The value of the function type is the same as the value of the keys in
+  the `:fn-map` -- either a function type, or a vector containing a function
+  type and an options map.  In most cases you don't want one function type
+  to simply alias another, so the usual value of a key in the `:fn-type-map`
+  would be a vector containing a function type and an options map to be used
+  then this function type is encountered.  Note that this is EXPERIMENTAL
+  and may well be removed.  Note also that you cannot define your own
+  function types -- the only allowed keys in the `:fn-type-map` are the
+  existing, known, function types.
+  
+
 ### Changed
 
 ### Fixed

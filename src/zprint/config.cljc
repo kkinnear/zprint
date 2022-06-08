@@ -513,6 +513,7 @@
    :fn-gt2-force-nl #{:gt2-force-nl :binding #_:binding-vector :pair-fn},
    :fn-gt3-force-nl #{:gt3-force-nl :arg1-pair :arg1-pair-body},
    :fn-map zfnstyle,
+   :fn-type-map {}
    :fn-name nil,
    :fn-obj {:object? false},
    :force-eol-blanks? false,

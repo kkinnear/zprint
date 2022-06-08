@@ -111,6 +111,9 @@
   (s/or :simple-type ::fn-type
         :alias-type ::fn-alias
         :complex-type ::fn-type-w-map))
+(s/def ::fn-type-specifier
+  (s/nilable (s/or :simple-type ::fn-type
+                   :complex-type ::fn-type-w-map)))
 (s/def ::format-value #{:on :off :next :skip})
 (s/def :alt/format-value #{:string :hiccup :html})
 (s/def ::nilable-number (s/nilable number?))
@@ -163,6 +166,10 @@
   (s/nilable (s/map-of (s/or :specific-function-name string?
                              :generic-function-configuration ::fn-map-keys)
                        ::fn-specifier)))
+; This will not let people define their own fn-types, just modify the
+; built-in ones.
+(s/def ::fn-type-map-value
+  (s/nilable (s/map-of ::fn-type ::fn-type-specifier)))
 (s/def ::number-or-vector-of-numbers
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))
@@ -335,6 +342,7 @@
 (s/def ::fn-gt2-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
 (s/def ::fn-gt3-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
 (s/def ::fn-map ::fn-map-value)
+(s/def ::fn-type-map ::fn-type-map-value)
 (s/def ::fn-name zany?)
 (s/def ::fn-obj (only-keys :opt-un [::object?]))
 (s/def ::format ::format-value)
@@ -470,7 +478,8 @@
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
-             ::!zprint-elide-skip-next? ::meta ::fn-str]))
+             ::!zprint-elide-skip-next? ::meta ::fn-str
+	     ::fn-type-map]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

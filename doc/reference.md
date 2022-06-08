@@ -1079,6 +1079,15 @@ functions.
 Note: This is implemented as a "body" function, as if it were
 `:arg2-fn-body`.
 
+#### :arg2-extend-body
+
+For things like `deftype` and `defrecord`, where the body of the 
+form is like `extend`, but the first two arguments are important.
+
+#### :arg2-force-nl, arg2-force-nl-body
+
+Just like `:arg2`, but never print on one line.  Both argument and
+body types.
 
 #### :binding _(function type)_
 
@@ -1831,6 +1840,22 @@ will yield a value for `:fn-gt3-force-nl` of `#{:gt3-force-nl :arg1-pair-body}`.
 If both additions and removals are specified in the same options map, the
 removals are performed first and the additions second.
 
+### Altering the processing of function types
+
+EXPERIMENTAL: may be removed or changed!
+
+Whenever a function type is encountered, it is looked up in the `:fn-type-map`.
+If it isn't found (which is the usual case), then it is processed as defined
+above.  If the key is encountered, the value of the key is used.  The values
+of the keys have the same format as the value of the keys in the `:fn-map`,
+with the exclusion of string values (used for aliasing in the `:fn-map`).
+The usual value for a function type in the `:fn-type-map` would be a vector
+with a function type, and an options map to use during the formatting of
+any function which has that function type.
+
+Modifying the `:fn-type-map` can allow you to change the formatting for
+every function which uses that type instead of having to make identical 
+changes to every function in the `:fn-map`.
 
 ### Detailed Configuration for maps, lists, vectors, etc.
 

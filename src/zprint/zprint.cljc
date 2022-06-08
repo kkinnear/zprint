@@ -30,6 +30,7 @@
     [zprint.config      :refer [validate-options merge-deep]]
     [zprint.zutil       :refer [add-spec-to-docstring]]
     [zprint.util        :refer [column-width-variance median mean percent-gt-n]]
+    [zprint.optionfn    :refer [rodfn]]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
                         :refer [edn* tag right* down*]]
@@ -1098,6 +1099,8 @@
                 (and map-depth (= caller :map) (= map-depth 3)) :yellow
                 (and map-depth (= caller :map) (= map-depth 4)) :red
                 :else nil)
+	#_(println "fzprint-two-up: :fn" (:fn-type-map options))
+	#_(println "fzprint-two-up: :next-inner" (:next-inner options))
         arg-1 (fzprint* loptions ind lloc)
         no-justify (:no-justify justify)
         ; If we have a newline, make it one shorter since we did a newline
@@ -3833,6 +3836,71 @@
            result)))))
   ([fn-map fn-str] (lookup-fn-str fn-map fn-str #{})))
 
+(defn get-correct-options-map
+  "Given a fn-style, which might be a keyword or might be avector with 
+  one or two options maps, get the correct one based on the :ztype 
+  in the options. Returns [fn-style options-map]"
+  [options fn-style]
+  (if (vector? fn-style)
+    (if (= (count fn-style) 2)
+      ; only one option map
+      [(first fn-style) (second fn-style)]
+      ; Two options maps, pick the right one
+      [(first fn-style)
+       (if (= :zipper (:ztype options)) (second fn-style) (nth fn-style 2))])
+    ; Just a fn-style, no options map
+    [fn-style nil]))
+
+(declare handle-fn-style)
+
+(defn lookup-fn-type-map
+  "Given a keyword fn-type, look it up in the fn-type-map and handle
+  any aliasing and options maps that come up. This includes adding 
+  options maps to the options. Returns [options fn-style]"
+  ; In this routine, fn-type is a keyword, and fn-style might be a bare
+  ; fn-type, or it might be a vector with options maps.
+  ([options fn-type fn-type-set]
+   (if (fn-type-set fn-type)
+     (throw (#?(:clj Exception.
+                :cljs js/Error.)
+             (str "Circular :fn-type-map lookup! fn-type: '"
+                  fn-type
+                  "' has already been used in this lookup."
+                  " fn-types in this lookup: "
+                  fn-type-set)))
+     (let [fn-style ((:fn-type-map options) fn-type)]
+       (if fn-style
+         ; We got something, let's see what we got
+         (handle-fn-style options fn-style (conj fn-type-set fn-type))
+         [options fn-type]))))
+  ([options fn-type] (lookup-fn-type-map fn-type #{})))
+
+(defn handle-fn-style
+  "Takes current options map and a fn-style, which might be a single
+  fn-type, and might be a vector with one or two options maps, and handles
+  the lookups. Returns [new-options fn-type]"
+  ([options fn-style fn-type-set]
+   (if fn-style
+     ; We got something, let's see what we got
+     (let [[new-fn-type options-map] (get-correct-options-map options fn-style)
+           [new-options latest-fn-type]
+             (if new-fn-type
+               (lookup-fn-type-map options new-fn-type fn-type-set)
+               [options new-fn-type])]
+       #_(println "handle-fn-style: :fn-style:" fn-style "new-fn-type" new-fn-type"latest-fn-type" latest-fn-type "count new-options:" (count new-options)
+                "count options-map" (count options-map)
+		":fn" (:fn (:fn-type-map options)))
+       (if options-map
+         [(first (zprint.config/config-and-validate "fn-style:"
+                                                    nil
+                                                    new-options
+                                                    options-map
+                                                    ; validate?
+                                                    nil)) latest-fn-type]
+         [new-options latest-fn-type]))
+     [options fn-style]))
+  ([options fn-style] (handle-fn-style options fn-style #{})))
+
 (declare fzprint-noformat)
 
 (defn fzprint-list*
@@ -3843,7 +3911,7 @@
    ; The options map can get re-written down a bit below, so don't get
    ; anything with destructuring that might change with a rewritten  options
    ; map!
-   {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl fn-style
+   {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl 
            quote?],
     :as options} ind zloc]
   (dbg-s options
@@ -3881,6 +3949,10 @@
         ; Expand fn-str to really be the thing to look up in the fn-map
         fn-str (if-not arg-1-coll? (zstring arg-1-zloc))
         ; If we don't have a fn-str, then we might have a fn-type.
+	; NOTE WELL: a fn-style is a :arg1 or something like that.  This
+	; is called a ::fn-type in the spec!
+	; Here, a fn-type is a keyword of the "type" of the fn-str,
+	; i.e. :list, :map, :vector or :set.
         fn-type (when-not fn-str
                   (cond (zlist? arg-1-zloc) :list
                         (zmap? arg-1-zloc) :map
@@ -3899,8 +3971,11 @@
         ; Look up the fn-str in both fn-maps, and then if we don't get
         ; something, look up the fn-type in both maps.
         fn-style (or fn-style
+		     ; This is where we would need to handle option maps
+		     ; if we are doing that.
                      (lookup-fn-str fn-map fn-str) 
                      (lookup-fn-str user-fn-map fn-str) 
+		     ; See if the "type" of the fn-str is defined
                      (fn-map fn-type)
                      (user-fn-map fn-type))
         ; if we don't have a function style after all of that, let's see
@@ -3922,7 +3997,15 @@
         ; Do we have a [fn-style options] vector?
         ; **** NOTE: The options map can change here, and if it does,
         ; some of the things found in it above would have to change too!
-        options
+
+	; This not only looks up the fn-style, but also handles any
+	; vector that might be present in the initial fn-style.
+	vector-fn-style? (vector? fn-style)
+	; After this, it isn't a vector any more...
+	[options fn-style] (handle-fn-style options fn-style)
+	#_(println "fzprint-list: count options" (count options))
+
+        #_#_options
           ; The config-and-validate allows us to use :style in the options
           ; map associated with a function. We don't need to validate
           ; (second fn-style), as that was already done.  But this
@@ -3998,7 +4081,7 @@
         ; new stuff.  This will probably change only zloc-seq because
         ; of :respect-nl? or :indent-only?
         [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
-          (if (or (vector? fn-style) new-options)
+          (if (or vector-fn-style? #_(vector? fn-style) new-options)
             (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
             first-data)
         ; Get rid of the any vector surrounding the fn-style.

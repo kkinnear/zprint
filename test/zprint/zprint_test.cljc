@@ -7104,6 +7104,13 @@ i235
 "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (let [myfn (fn ([x] (println x)) ([x y] (+ x y)))] (more stuff))\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
 (zprint-str i229ua {:parse-string? true :extend {:nl-count 2, :nl-separator? true :indent 0} :fn-type-map {:fn [:none {:list {:option-fn (partial rodfn {:multi-arity-nl? true})} :next-inner {:fn-type-map {:fn nil}}}]}}))
 
+;;
+;; Namespaced maps don't work with :indexed-only
+;;
+
+(expect "#:a{:b 1}"
+        (zprint-str "#:a{:b 1}\n" {:parse-string? true, :style :indent-only}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

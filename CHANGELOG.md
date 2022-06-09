@@ -57,6 +57,8 @@ THIS IS AN ALPHA RELEASE, NOT FULLY TESTED.  PLEASE DO NOT USE IN PRODUCTION.
 
 ### Fixed
 
+  * Namespaced maps don't work with `:style :indent-only`.  Issue #242.
+
 ## 1.2.3 - 2022-04-13
 
 ### Added

@@ -6983,6 +6983,8 @@
     (dbg-pr options "fzprint-map* caller:" caller)
     (if indent-only?
       (let [options (assoc options :map-depth (inc map-depth))
+	    ; Put a namespaced map back together
+            l-str (if ns (str "#" ns l-str) l-str)
             l-str-vec [[l-str (zcolor-map options l-str) :left]]
             r-str-vec (rstr-vec options ind zloc r-str)]
         (if (zero? (zcount zloc))

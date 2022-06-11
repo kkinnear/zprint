@@ -3613,10 +3613,13 @@
   ([caller l-str r-str options ind zloc fn-style arg-1-indent
     first-indent-only?]
    (let [flow-indent (:indent (caller options))
+         l-str-len (count l-str)
+	 ; Make sure that the flow-indent deals with the size of the
+	 ; l-str -- important for anonymous functions
+	 flow-indent (+ flow-indent (- l-str-len 1))
          ; If it is a map, then an indent of (count l-str) (which is 1)
          ; is all that makes sense.
          flow-indent (if (= caller :map) (count l-str) flow-indent)
-         l-str-len (count l-str)
          flow-indent (if (and (> flow-indent l-str-len) (= caller :list))
                        ; If we don't think this could be a fn, indent minimally
                        (if arg-1-indent flow-indent l-str-len)

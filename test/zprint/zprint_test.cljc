@@ -7111,6 +7111,18 @@ i235
 (expect "#:a{:b 1}"
         (zprint-str "#:a{:b 1}\n" {:parse-string? true, :style :indent-only}))
 
+;;
+;; :indent-only issues with indent for anon-fns
+;;
+;; Issue #243
+;;
+
+(expect
+  "#(let [really-long-text-so-it-puts-on-two-lines %]\n   really-long-test-so-it-puts-on-two-lines)"
+  (zprint-str
+    "#(let [really-long-text-so-it-puts-on-two-lines %]\n         really-long-test-so-it-puts-on-two-lines)\n"
+    {:parse-string? true, :style :indent-only}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

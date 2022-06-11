@@ -57,7 +57,10 @@ THIS IS AN ALPHA RELEASE, NOT FULLY TESTED.  PLEASE DO NOT USE IN PRODUCTION.
 
 ### Fixed
 
-  * Namespaced maps don't work with `:style :indent-only`.  Issue #242.
+  * Namespaced maps don't work with `:style :indent-only`: the namespace
+  goes missing! Issue #242.
+
+  * Indent on anonymous fns is wrong with `:style :indent-only`.  Issue #243.
 
 ## 1.2.3 - 2022-04-13
 

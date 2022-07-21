@@ -4458,6 +4458,8 @@ highlight the `[:c :d]`.  The path `[0]` would highlight the `:a`.
 
 #### :format _:string_
 
+__EXPERIMENTAL__
+
 Controls the format of the output.  The default is `:string`, which is
 what zprint has always produced until release `1.2.4`.  The other
 options are `:hiccup` and `:html`.  These other options are only supported for

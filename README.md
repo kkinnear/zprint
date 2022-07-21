@@ -9,9 +9,12 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
+ * You can alias function formatting in the `:fn-map`.  If the value in
+ the `:fn-map` is a string, then the formatting for that function is used.
+ This makes having one function format like another much easier to configure.
  * Hiccup or HTML output now available!  Library `-str` fns and prebuilt
  binaries support `{:output {:format :hiccup}}` and `{:output {:format :html}}`.
- Alpha for now --  as always, let me know of any issues.
+ EXPERIMENTAL for now --  as always, please let me know of any issues.
  * The library is now thread-safe (only if you format all strings or all
  structures.  You can't intermix them simultaneously.)
  * Tests now also run in babaska (thanks to @borkdude)

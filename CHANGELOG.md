@@ -1,9 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.4-alpha1 - 2022-06-09
-
-THIS IS AN ALPHA RELEASE, NOT FULLY TESTED.  PLEASE DO NOT USE IN PRODUCTION.
+## 1.2.4 - 2022-07-07
 
 ### Added
 
@@ -47,7 +45,7 @@ THIS IS AN ALPHA RELEASE, NOT FULLY TESTED.  PLEASE DO NOT USE IN PRODUCTION.
   type and an options map.  In most cases you don't want one function type
   to simply alias another, so the usual value of a key in the `:fn-type-map`
   would be a vector containing a function type and an options map to be used
-  then this function type is encountered.  Note that this is EXPERIMENTAL
+  when this function type is encountered.  Note that this is EXPERIMENTAL
   and may well be removed.  Note also that you cannot define your own
   function types -- the only allowed keys in the `:fn-type-map` are the
   existing, known, function types.

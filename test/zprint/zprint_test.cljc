@@ -7105,6 +7105,32 @@ i235
 (zprint-str i229ua {:parse-string? true :extend {:nl-count 2, :nl-separator? true :indent 0} :fn-type-map {:fn [:none {:list {:option-fn (partial rodfn {:multi-arity-nl? true})} :next-inner {:fn-type-map {:fn nil}}}]}}))
 
 ;;
+;; Try multiple option maps in :fn-type-map, and see which has precedence
+;;
+
+(def wchkds
+"(defn wchkd
+  [x]
+[:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50 53 56 59 62 65 68 71 74 77 80])
+")
+
+(expect
+"(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50 53 56 59 62 65 68\n   71 74 77 80])"
+(zprint-str wchkds {:parse-string? true :width 50 :fn-map {"defn" [:arg2 {:width 70}]} :fn-type-map {:arg2 [:hang {:width 30}] :hang [:arg1 {:width 40}]}}))
+
+(expect
+"(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29\n   32 35 38 41 44 47 50 53 56\n   59 62 65 68 71 74 77 80])"
+(zprint-str wchkds {:parse-string? true :width 50 :fn-map {"defn" [:arg2 {}]} :fn-type-map {:arg2 [:hang {:width 30}] :hang [:arg1 {:width 40}]}}))
+
+(expect
+"(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38\n   41 44 47 50 53 56 59 62 65 68 71 74\n   77 80])"
+(zprint-str wchkds {:parse-string? true :width 50 :fn-map {"defn" [:arg2 {}]} :fn-type-map {:arg2 [:hang {}] :hang [:arg1 {:width 40}]}}))
+
+(expect
+"(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50\n   53 56 59 62 65 68 71 74 77 80])"
+(zprint-str wchkds {:parse-string? true :width 50 :fn-map {"defn" [:arg2 {}]} :fn-type-map {:arg2 [:hang {}] :hang [:arg1 {}]}}))
+
+;;
 ;; Namespaced maps don't work with :indexed-only
 ;;
 

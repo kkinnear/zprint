@@ -60,6 +60,9 @@ All notable changes to this project will be documented in this file.
 
   * Indent on anonymous fns is wrong with `:style :indent-only`.  Issue #243.
 
+  * `{:meta {:split? true}}` doesn't properly handle multiple `^:stuff` 
+  metadata elements.  It leaves someout.  Issue #245.
+
 ## 1.2.3 - 2022-04-13
 
 ### Added

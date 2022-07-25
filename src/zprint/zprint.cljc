@@ -186,7 +186,10 @@
     (internal-config-and-validate
       options
       (try
-        (option-fn options (count sexpr-seq) sexpr-seq)
+	(dbg-pr options "call-option-fn sexpr-seq:" sexpr-seq)
+	(let [result (option-fn options (count sexpr-seq) sexpr-seq)]
+	   (dbg-pr options "call-option-fn result:" result)
+	   result)
         (catch #?(:clj Exception
                   :cljs :default)
           e
@@ -3110,6 +3113,21 @@
 (declare drop-thru-first-non-whitespace)
 
 (defn extract-meta
+  "Given a zloc, if it is a zmeta?, then add all of the things at
+  the beginning (which are :meta) to the ouput and then the last
+  thing (which should be :token) to the output."
+  [caller options out-vec element]
+  (if (zmeta? element)
+    (let [remaining (drop-thru-first-non-whitespace
+                      (fzprint-get-zloc-seq caller options element))]
+      #_(dbg-pr options "extract-meta remaining:" remaining)
+      (if (= (ztag (first remaining)) :meta)
+        ; do it again
+        (extract-meta caller options (conj out-vec element) (first remaining))
+        (apply conj (conj out-vec element) remaining)))
+    (conj out-vec element)))
+
+(defn extract-meta-alt
   "Given a zloc, if it is a zmeta?, then add everything other than the 
   first thing to the output."
   [caller options out-vec element]
@@ -3126,9 +3144,14 @@
   elements of the meta an independent element in the outer seq.  
   Returns a zloc-seq."
   [caller options zloc-seq]
-  (if (:split? (:meta options))
-    (reduce (partial extract-meta caller options) [] zloc-seq)
-    zloc-seq))
+  (let [result (if (:split? (:meta options))
+                 (reduce (partial extract-meta caller options) [] zloc-seq)
+                 zloc-seq)]
+    (dbg-pr options
+            "fzprint-split-meta-in-seq: split?" (:split? (:meta options))
+            "result:" (map zstring result)
+            "tags:" (map ztag result))
+    result))
 
 (defn newline-or-comment?
   "Given an zloc, is it a newline or a comment?"
@@ -3249,6 +3272,7 @@
   pre-first-style-vec will be :noseq if there isn't anything, and first-count
   is what you give to nthnext to get to the first-zloc in zloc-seq."
   [caller options ind zloc]
+  (dbg-pr options "fzprint-up-to-first-zloc")
   (if-not (= (:ztype options) :zipper)
     [:noseq (first zloc) 0 zloc]
     (let [zloc-seq (fzprint-get-zloc-seq caller options zloc)
@@ -4088,7 +4112,8 @@
         _ (when guide (dbg-pr options "fzprint-list* guide:" guide))
         ; If we messed with the options for any of two reasons, then find
         ; new stuff.  This will probably change only zloc-seq because
-        ; of :respect-nl? or :indent-only?
+        ; of :respect-nl? or :indent-only?  But :meta {:split? true} could
+	; change it as well.
         [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
           (if (or vector-fn-style? #_(vector? fn-style) new-options)
             (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
@@ -7382,7 +7407,7 @@
                    ; in fzprint-split-meta-in-seq prior to calling this routine.
                    (take-thru-first-non-whitespace zloc-seq)
                    zloc-seq)]
-    (dbg-pr options "fzprint-meta: zloc:" (zstring zloc))
+    (dbg-pr options "fzprint-meta: zloc:" (zstring zloc) "zloc-seq" (map zstring zloc-seq))
     (concat-no-nil l-str-vec
                    (if (:indent-only? (:list options))
                      ; Since l-str isn't a "pair" and shouldn't be
@@ -7580,6 +7605,7 @@
   the value of :next-inner is a vector of maps, then config-and-validate
   each of the maps in turn."
   [options]
+  (dbg-pr options "integrate-next-inner:")
   (let [next-inner (:next-inner options :unset)]
     (cond (map? next-inner) (first (zprint.config/config-and-validate
                                      "next-inner:"

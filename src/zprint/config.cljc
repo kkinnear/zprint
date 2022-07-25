@@ -845,7 +845,7 @@
                                              [:list :hang-expand]]})))}},
       :meta-alt {:doc "Alternative for metadata. Experimental.",
                  :fn-map {"def" [:arg2 {:style :meta-base}],
-                          "deftest" [:arg2 {:style :meta-base}]}},
+                          "deftest" [:arg1-body {:style :meta-base}]}},
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
       :vector-pairs {:doc "Consider vectors 'constants' for constant pairing",

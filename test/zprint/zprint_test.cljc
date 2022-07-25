@@ -7149,6 +7149,18 @@ i235
     "#(let [really-long-text-so-it-puts-on-two-lines %]\n         really-long-test-so-it-puts-on-two-lines)\n"
     {:parse-string? true, :style :indent-only}))
 
+;;
+;; Issue #245 -- :meta {:split? true} leaves out all but the first ^:stuff
+;; metadata element
+;;
+
+(expect
+  "(def ^:const\n  ^:private\n  ^:test\n  ^:lots\n  ^:of\n  ^:meta\n  ^:stuff\n  port-file-name\n  \".nrepl-port\")"
+  (zprint-str
+    " (def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name \".nrepl-port\")\n"
+    {:parse-string? true, :meta {:split? true}}))
+
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

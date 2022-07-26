@@ -10,7 +10,7 @@
     [rewrite-clj.node   :as n]
     [rewrite-clj.zip    :as    z
                         :refer [down* up* right* left* next* prev* replace*
-                                insert-right* edn* sexpr string tag skip
+                                insert-right* of-node* sexpr string tag skip
                                 whitespace-or-comment? length rightmost?
                                 leftmost?]]))
 
@@ -197,7 +197,7 @@
     (when (not (nil? nloc))
       (if (zthing? nloc) i (recur (zrightnws nloc) (inc i))))))
 
-(defn znl [] "Return a zloc which is a newline." (edn* (p/parse-string "\n")))
+(defn znl [] "Return a zloc which is a newline." (of-node* (p/parse-string "\n")))
 
 (defn multi-nl
   "Return a sequence of zloc newlines."
@@ -602,7 +602,7 @@
 (defn zdotdotdot
   "Return a zloc that will turn into a string of three dots."
   []
-  (edn* (p/parse-string "...")))
+  (of-node* (p/parse-string "...")))
 
 (defn zconstant?
   "Returns true if this is a keyword, string, or number, in other words,
@@ -662,12 +662,12 @@
   #_(println "spec-str:" spec-str)
   (if-let [doc-zloc (find-docstring zloc)]
     (let [new-doc-zloc (replace* doc-zloc
-                                 (z/node (edn* (p/parse-string
+                                 (z/node (of-node* (p/parse-string
                                                  (str "\""
                                                       (str (sexpr doc-zloc))
                                                       spec-str
                                                       "\"")))))]
-      (edn* (z/root new-doc-zloc)))
+      (of-node* (z/root new-doc-zloc)))
     zloc))
 
 (defn zloc-to-keyword
@@ -733,13 +733,13 @@
                       (recur ns
                              (next pair-seq)
                              (conj out
-                                   (cons (edn* (n/token-node (strip-ns (z/sexpr
+                                   (cons (of-node* (n/token-node (strip-ns (z/sexpr
                                                                          k))))
                                          rest-of-pair))))
                     (recur current-ns
                            (next pair-seq)
                            (conj out
-                                 (cons (edn* (n/token-node (strip-ns (z/sexpr
+                                 (cons (of-node* (n/token-node (strip-ns (z/sexpr
                                                                        k))))
                                        rest-of-pair))))
                   (when (= (count pair) 1)
@@ -774,7 +774,7 @@
                       (next pair-seq)
                       (conj out
                             ; put ns with k
-                            (cons (edn* (n/token-node
+                            (cons (of-node* (n/token-node
                                           (symbol
                                             ; If k is a zkeyword? then it
                                             ; is a :token, and will not

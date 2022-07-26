@@ -24,5 +24,5 @@
         ;; To use zprint with babashka, include the following dependency:
 	;;    org.babashka/spec.alpha {:git/url "https://github.com/babashka/spec.alpha"
 	;;				      :sha "0dec1f88cbde74a0470b454396f09a03adb4ae39"}	
-        rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}},
+        rewrite-clj/rewrite-clj {:mvn/version "1.1.45"}},
  :paths ["src" "test" "cljs-test-runner-out/gen"]}

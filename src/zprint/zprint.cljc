@@ -33,7 +33,7 @@
     [zprint.optionfn    :refer [rodfn]]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
-                        :refer [edn* tag right* down*]]
+                        :refer [of-node* tag right* down*]]
     #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 #_(tufte/add-basic-println-handler! {})
@@ -147,7 +147,7 @@
             sexpr
               (try
                 (let [n (p/parse-string (clojure.string/trim new-s))
-                      new-zloc (edn* n)
+                      new-zloc (of-node* n)
                       sexpr (zsexpr new-zloc)]
                   sexpr)
                 (catch #?(:clj Exception

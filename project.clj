@@ -1,4 +1,4 @@
-(defproject zprint "1.2.4-alpha1"
+(defproject zprint "1.2.4"
   :description "Pretty print zippers and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License",
@@ -11,10 +11,10 @@
                                    [olical/cljs-test-runner "3.7.0"]
                                    [pjstadig/humane-test-output "0.10.0"]
                                    [org.clojure/core.match "0.3.0-alpha5"]
-				   [com.bhauman/rebel-readline "0.1.4"]
+				   #_[com.bhauman/rebel-readline "0.1.4"]
 [hiccup "1.0.5"]
                                    #_[clojure-future-spec "1.9.0-alpha17"]]},
-             :dev {:dependencies [[com.bhauman/rebel-readline "0.1.4"]
+             :dev {:dependencies [#_[com.bhauman/rebel-readline "0.1.4"]
 [hiccup "1.0.5"]
 	     
 	     ]}
@@ -51,4 +51,4 @@
                  #_[org.clojure/clojure "1.9.0"]
                  #_[org.clojure/clojure "1.8.0"]
                  [org.babashka/sci "0.3.4"]
-                 [rewrite-clj/rewrite-clj "1.0.767-alpha"]])
+                 [rewrite-clj/rewrite-clj "1.1.45"]])

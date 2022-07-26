@@ -36,7 +36,7 @@
                                 reassemble-range wrap-comment-api drop-lines]]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
-                        :refer [edn* string]]
+                        :refer [of-node* string]]
     #_[clojure.spec.alpha :as s])
   #?@(:clj ((:import #?(:bb []
                         :clj (java.net URL URLConnection))
@@ -324,7 +324,7 @@
           ; a tab is found.
           x (clojure.string/join "\n" lines)
           n (p/parse-string (clojure.string/trim x))]
-      (when n [(edn* n) line-ending]))
+      (when n [(of-node* n) line-ending]))
     (when (zipper? x) [x nil])))
 
 ;;
@@ -766,7 +766,7 @@
                                         {} 
                                         zprint-str-internal
                                         ":parse-string-all? call"
-                                        (edn* (p/parse-string-all coll)))
+                                        (of-node* (p/parse-string-all coll)))
               ; Note that we don't use error-vec, because it should never
               ; have anything in it.  Any errors should have been thrown
               ; already.
@@ -1675,7 +1675,7 @@
                        "ends-with-nl?" ends-with-nl?
                        "range-lines:" range-lines
                        "filestring:" filestring))
-           forms (edn* (p/parse-string-all filestring))
+           forms (of-node* (p/parse-string-all filestring))
            pmf-options {:process-bang-zprint? true}
            pmf-options (if (:interpose (:parse full-options))
                          (assoc pmf-options :trim-comments? true)

@@ -1,0 +1,79 @@
+on:
+  - push
+
+jobs:
+  test-clj:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Setup Java
+        uses: actions/setup-java@v3.4.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@9.3
+        with:
+          cli: latest
+          lein: latest
+          bb: latest
+
+      - name: Cache
+        uses: actions/cache@v3.0.5
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+          key: cljdeps-${{ hashFiles('project.clj', 'deps.edn', 'bb.edn') }}
+          restore-keys: cljdeps-
+
+      - name: Uberjar
+        run: lein uberjar
+
+      - name: Babashka tests
+        run: bb test:bb
+
+      - name: Clojure tests
+        run: clojure -M:cljtest:humane:runner
+
+  test-cljs:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Setup Java
+        uses: actions/setup-java@v3.4.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@9.3
+        with:
+          cli: latest
+          lein: latest
+          bb: latest
+
+      - name: Cache
+        uses: actions/cache@v3.0.5
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+          key: cljdeps-${{ hashFiles('project.clj', 'deps.edn', 'bb.edn') }}
+          restore-keys: cljdeps-
+
+      - name: Uberjar
+        run: lein uberjar
+
+      - name: Install Planck
+        run: brew install planck
+
+      - name: ClojureScript tests
+        run: clojure -M:cljs-runner

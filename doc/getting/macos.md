@@ -14,9 +14,27 @@ The downloaded version of zprintm always has the version in the name.
 You may wish to name it something different so that any scripts that
 you have will use the new version without requiring a change.  We
 will assume that you have renamed it `zprint`.
+
 ```
 mv zprintm-1.2.4 zprint
 ```
+
+Note that you might *not* want to name it `zprint`, since there is also
+a `zprint` already available in MacOS.
+
+```
+ZPRINT(1)                    General Commands Manual                   ZPRINT(1)
+
+NAME
+     zprint – show information about kernel zones
+```
+so if you use `zprint` for the name of the Clojure formater you want
+to make sure that the location where the binary exists comes before
+wherever the system `zprint` might be located in your executable search
+path.  If you also use the
+system `zprint`, you probably don't want to name the formatter `zprint`
+as well.
+
 
 Note that you can always find the version of zprintm (no matter what
 you called it), by giving it the -v switch:

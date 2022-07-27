@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.4 - 2022-07-07
+## 1.2.4 - 2022-08-02
 
 ### Added
 
@@ -9,15 +9,19 @@ All notable changes to this project will be documented in this file.
   key is (as always) the function name as a string, and the value is
   another function name, also as a string.  Thus `{:fn-map {"mydefn" 
   "defn"}}` will cause the function "mydefn" to be formatted however
-  "defn" is formatted.  (Part of Issue/Discussion #236.)
+  "defn" is formatted. Issue #234. 
 
   * `{:list {:nl-count <n>}}` to add additional newlines in lists.
   (Part of Issue/Discussion #236)
 
-  * Hiccup and HTML output now available from all library fns that end with 
-  `-str`, and the prebuilt binaries.  Use `{:output {:format :hiccup}}` or
-  `{:output {:format :html}}` to get this type of output.  This is a
-  new, capability, ALPHA quality for now.  Issue/Discussion #214.
+  * Hiccup and HTML output now available from all library fns that
+  end with `-str`, and the prebuilt binaries.  Use `{:output {:format
+  :hiccup}}` or `{:output {:format :html}}` to get this type of
+  output.  This is a new, capability, ALPHA quality for now. Note
+  that you can adjust the `paragraph` output in the HTML. The current
+  default is `{:output {:paragraph {:style 
+  "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}}}`.
+  Issue/Discussion #214.
 
   * Another way to prevent justification of things that will look
   bad. In addition to `{:pair {:justify {:max-variance 20}}}` there
@@ -49,9 +53,11 @@ All notable changes to this project will be documented in this file.
   and may well be removed.  Note also that you cannot define your own
   function types -- the only allowed keys in the `:fn-type-map` are the
   existing, known, function types.
-  
 
 ### Changed
+
+  * Upgraded to newer `rewrite-clj`, and changed `edn*` to `of-node*` to
+  remove deprecation warnings.  Issue #247.
 
 ### Fixed
 

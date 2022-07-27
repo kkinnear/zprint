@@ -15,7 +15,7 @@
     [zprint.util :refer [dissoc-two]]
     [zprint.guide   :refer [jrequireguide defprotocolguide signatureguide1
                             odrguide guideguide rodguide areguide]]
-    [zprint.optionfn   :refer [rodfn]]
+    [zprint.optionfn   :refer [rodfn meta-base-fn]]
     #?@(:bb []
         ; To completely remove sci, comment out the following line.
         :clj [[sci.core :as sci]]
@@ -833,16 +833,8 @@
       :map-nl-all {:doc "Add newline between all map pairs",
                    :map {::indent 0, :nl-separator-all? true}},
       :meta-base {:doc "Alternative format for metadata. Experimental.",
-                  :list {:option-fn (fn
-                                      ([] "meta-base-option-fn")
-                                      ([opts n exprs]
-                                       (when (meta (second exprs))
-                                         {:meta {:split? true},
-                                          :list {:hang-expand 0},
-                                          :fn-style :arg2,
-                                          :next-inner-restore
-                                            [[:list :option-fn]
-                                             [:list :hang-expand]]})))}},
+                  :list {:option-fn meta-base-fn
+		         :next-inner-restore [[:list :option-fn]]}}
       :meta-alt {:doc "Alternative for metadata. Experimental.",
                  :fn-map {"def" [:arg2 {:style :meta-base}],
                           "deftest" [:arg1-body {:style :meta-base}]}},

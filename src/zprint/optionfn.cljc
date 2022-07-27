@@ -59,3 +59,28 @@
 ;    {:parse-string? true
 ;     :fn-map {"defn" [:none {:list {:option-fn rodfn}}]}})
 
+(defn meta-base-fn
+  "Look at a list, and if it has metadata, then based on the kind of
+  metadata, try to do it differently than the normal metadata output."
+  ([] "meta-base-fn")
+  ([opts n exprs]
+   (when (meta (second exprs))
+     #_(println (meta (second exprs)))
+     (let [zfn-map (:zfn-map opts)
+           zloc-seq-nc ((:zmap-no-comment zfn-map) identity (:zloc opts))
+           meta-zloc (second zloc-seq-nc)
+           #_(println "tag:" ((:ztag zfn-map) meta))
+           meta-seq ((:zmap-no-comment zfn-map) identity meta-zloc)
+           #_(println "count meta-seq:" (count meta-seq)
+                      "meta-seq:" (map (:zstring zfn-map) meta-seq))]
+       (if (meta (second meta-seq))
+         ; Figure out next-inner restore
+         nil
+         {:meta {:split? true},
+          :list {:hang-expand 0},
+          :fn-style (if (and (map? (meta (second exprs)))
+                             (> (count (keys (meta (second exprs)))) 1))
+                      :arg1-body
+                      :arg2),
+          :next-inner-restore [[:list :hang-expand]]})))))
+			  

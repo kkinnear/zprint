@@ -3127,17 +3127,6 @@
         (apply conj (conj out-vec element) remaining)))
     (conj out-vec element)))
 
-(defn extract-meta-alt
-  "Given a zloc, if it is a zmeta?, then add everything other than the 
-  first thing to the output."
-  [caller options out-vec element]
-  (if (zmeta? element)
-    (apply conj
-      (conj out-vec element)
-      (drop-thru-first-non-whitespace
-        (fzprint-get-zloc-seq caller options element)))
-    (conj out-vec element)))
-
 (defn fzprint-split-meta-in-seq
   "Given the results from fzprint-get-zloc-seq, if any of the elements are
   zmeta?, then if :meta :split? true, make the second and succeeding

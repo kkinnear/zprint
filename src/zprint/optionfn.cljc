@@ -72,8 +72,9 @@
            #_(println "tag:" ((:ztag zfn-map) meta))
            meta-seq ((:zmap-no-comment zfn-map) identity meta-zloc)
            #_(println "count meta-seq:" (count meta-seq)
-                      "meta-seq:" (map (:zstring zfn-map) meta-seq))]
-       (if (meta (second meta-seq))
+                      "meta-seq:" (map (:zstring zfn-map) meta-seq)
+                      "meta-seq-tag:" (map (:ztag zfn-map) meta-seq))]
+       (if (= :meta ((:ztag zfn-map) (second meta-seq)))
          ; Figure out next-inner restore
          nil
          {:meta {:split? true},

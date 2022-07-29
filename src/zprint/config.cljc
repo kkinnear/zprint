@@ -442,7 +442,7 @@
    :array {:hex? false, :indent 1, :object? false, :wrap? true},
    :atom {:object? false},
    :binding {:flow? false,
-	  :flow-all-if-any? false
+             :flow-all-if-any? false,
              :force-nl? false,
              :hang-diff 1,
              :hang-expand 2.0,
@@ -453,9 +453,10 @@
              :indent 2,
              :justify-hang {:hang-expand 5},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-             :justify
-               {:max-variance 20, :no-justify #{"_"}, :ignore-for-variance nil
-	        :max-gap nil},
+             :justify {:max-variance 20,
+                       :no-justify #{"_"},
+                       :ignore-for-variance nil,
+                       :max-gap nil},
              :justify? false,
              :nl-separator? false,
              :nl-separator-all? false},
@@ -509,11 +510,11 @@
    :file? false,
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
                   :arg1-force-nl :arg1-force-nl-body :flow-body
-		  :arg2-force-nl-body :arg2-force-nl},
+                  :arg2-force-nl-body :arg2-force-nl},
    :fn-gt2-force-nl #{:gt2-force-nl :binding #_:binding-vector :pair-fn},
    :fn-gt3-force-nl #{:gt3-force-nl :arg1-pair :arg1-pair-body},
    :fn-map zfnstyle,
-   :fn-type-map {}
+   :fn-type-map {},
    :fn-name nil,
    :fn-obj {:object? false},
    :force-eol-blanks? false,
@@ -543,7 +544,7 @@
           :indent-arg nil,
           :indent-only? false,
           :indent-only-style :input-hang,
-	  :nl-count nil
+          :nl-count nil,
           :option-fn nil,
           :pair-hang? true,
           :respect-bl? false,
@@ -582,10 +583,12 @@
          :nl-separator? false,
          :nl-separator-all? false,
          :flow? false,
-	  :flow-all-if-any? false
+         :flow-all-if-any? false,
          :justify? false,
-         :justify {:max-variance 20, :ignore-for-variance nil, :no-justify nil
-	           :max-gap nil},
+         :justify {:max-variance 20,
+                   :ignore-for-variance nil,
+                   :no-justify nil,
+                   :max-gap nil},
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
          :respect-bl? false,
@@ -606,19 +609,19 @@
    :meta {:split? false},
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
-   :output 
-     {:format :string
+   :output
+     {:format :string,
       :focus {:zloc? false, :surround nil},
       :lines nil,
       :elide nil,
-      :paragraph 
-	{:style 
-	  "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+      :paragraph
+        {:style
+           "font-size:20px;font-family: Lucidia Concole, Courier, monospace"},
       :range? nil,
       :real-le? false,
       :real-le-length 20},
    :pair {:flow? false,
-	  :flow-all-if-any? false
+          :flow-all-if-any? false,
           :force-nl? nil,
           :hang-diff 1,
           :hang-expand 2.0,
@@ -631,8 +634,8 @@
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
           :justify {:max-variance 20,
                     :ignore-for-variance #{":else"},
-                    :no-justify nil
-		    :max-gap nil},
+                    :no-justify nil,
+                    :max-gap nil},
           :justify? false,
           :nl-separator? false,
           :nl-separator-all? false},
@@ -787,18 +790,17 @@
       :hiccup {:doc "Format vectors containing hiccup information better",
                :vector
                  {:option-fn
-                    (fn
-                      ([] "hiccup-option-fn")
-                      ([opts n exprs]
-                       (let [hiccup? (and (>= n 2)
-                                          (or (keyword? (first exprs))
-                                              (symbol? (first exprs)))
-                                          (map? (second exprs)))]
-                         (cond (and hiccup? (not (:fn-format (:vector opts))))
-                                 {:vector {:fn-format :arg1-force-nl}}
-                               (and (not hiccup?) (:fn-format (:vector opts)))
-                                 {:vector {:fn-format nil}}
-                               :else nil)))),
+                    (fn ([] "hiccup-option-fn")
+                        ([opts n exprs]
+                         (let [hiccup? (and (>= n 2)
+                                            (or (keyword? (first exprs))
+                                                (symbol? (first exprs)))
+                                            (map? (second exprs)))]
+                           (cond (and hiccup? (not (:fn-format (:vector opts))))
+                                   {:vector {:fn-format :arg1-force-nl}}
+                                 (and (not hiccup?) (:fn-format (:vector opts)))
+                                   {:vector {:fn-format nil}}
+                                 :else nil)))),
                   :wrap? false},
                :vector-fn {:indent 1, :indent-arg 1}},
       :indent-only {:doc "Enable indent only for every type of structure",
@@ -822,19 +824,18 @@
       :keyword-respect-nl
         {:doc "When a vector starts with a :keyword, :respect-nl in it",
          :vector {:option-fn-first
-                    (fn
-                      ([] "keyword-respect-nl-option-fn-first")
-                      ([options element]
-                       (let [k? (keyword? element)]
-                         (when (not= k? (:respect-nl? (:vector options)))
-                           {:vector {:respect-nl? k?}}))))}},
+                    (fn ([] "keyword-respect-nl-option-fn-first")
+                        ([options element]
+                         (let [k? (keyword? element)]
+                           (when (not= k? (:respect-nl? (:vector options)))
+                             {:vector {:respect-nl? k?}}))))}},
       :map-nl {:doc "Add newline after every value that flows",
                :map {:indent 0, :nl-separator? true}},
       :map-nl-all {:doc "Add newline between all map pairs",
                    :map {::indent 0, :nl-separator-all? true}},
       :meta-base {:doc "Alternative format for metadata. Experimental.",
-                  :list {:option-fn meta-base-fn
-		         :next-inner-restore [[:list :option-fn]]}}
+                  :list {:option-fn meta-base-fn},
+                  :next-inner-restore [[:list :option-fn]]},
       :meta-alt {:doc "Alternative for metadata. Experimental.",
                  :fn-map {"def" [:arg2 {:style :meta-base}],
                           "deftest" [:arg1-body {:style :meta-base}]}},
@@ -902,17 +903,16 @@
       :require-pair
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none
-                              {:vector {:option-fn
-                                          (fn
-                                            ([opts n exprs]
-                                             (if-not (clojure.string/includes?
-                                                       (str (first exprs))
-                                                       ".")
-                                               {:vector {:fn-format nil}}
-                                               {:vector {:fn-format :none},
-                                                :vector-fn {:constant-pair-min
-                                                              1}}))
-                                            ([] "require-pair-option-fn"))}}]}},
+                              {:vector
+                                 {:option-fn
+                                    (fn ([opts n exprs]
+                                         (if-not (clojure.string/includes?
+                                                   (str (first exprs))
+                                                   ".")
+                                           {:vector {:fn-format nil}}
+                                           {:vector {:fn-format :none},
+                                            :vector-fn {:constant-pair-min 1}}))
+                                        ([] "require-pair-option-fn"))}}]}},
       :respect-bl {:doc "Enable respect blank lines for every type",
                    :list {:respect-bl? true},
                    :map {:respect-bl? true},
@@ -933,14 +933,16 @@
                        :map {:respect-nl? false},
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
-      :rod-base {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}
+      :rod-base {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}},
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
             :fn-map {"defn" [:none #_:guided-body
-                             {:list {:option-fn (partial rodfn #_rodguide
+                             {:list {:option-fn (partial rodfn
+                                                         #_rodguide
                                                          {:multi-arity-nl?
                                                             true})}}],
                      "defn-" [:none #_:guided-body
-                              {:list {:option-fn (partial rodfn #_rodguide
+                              {:list {:option-fn (partial rodfn
+                                                          #_rodguide
                                                           {:multi-arity-nl?
                                                              true})}}]}},
       :rod-no-ma-nl

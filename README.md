@@ -261,6 +261,12 @@ Rundberget, and recently merged into a single, supported, documented,
 and updated library by Lee Read.  This is a great library!  I would not have
 attempted `zprint` if `rewrite-clj` didn't exist to build upon.
 
+Additionally, allowing options maps containing functions to be read
+from files safely is made possible by `sci`, the Small Clojure Interpreter
+by Michael Borkent (@borkdude).  This is a very well designed and
+implemented addition to Clojure that required almost no effort to integrate
+into zprint.
+
 ## License
 
 Copyright © 2016-2022 Kim Kinnear

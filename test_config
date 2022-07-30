@@ -74,6 +74,10 @@ echo "{:color? true}" > test_config.edn
 
 rm -rf ~/.zprint/configurldir
 
+# exit-status
+
+tests_failed=0
+
 ###############################
 # 
 # Start of Tests
@@ -114,6 +118,7 @@ expected_length=197
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj | od -c 
@@ -136,6 +141,7 @@ expected_length=197
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
@@ -153,6 +159,7 @@ expected_length=323
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
@@ -170,6 +177,7 @@ expected_length=214
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
@@ -193,6 +201,7 @@ expected_length=226
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
@@ -214,6 +223,7 @@ expected_length=396
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
@@ -238,6 +248,7 @@ expected_length=192
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--url test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
@@ -273,6 +284,7 @@ expected_length=66
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--url with fn test failed to have correct count of characters, should be $expected_length, was: $output_length"
     $command --url-only 'http://127.0.0.1:8081/test_config.edn' <test_config.map.clj 
 
@@ -303,6 +315,7 @@ expected_length=15
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "basic config test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command <test_config.string.clj 
 
@@ -330,6 +343,7 @@ expected_length=15
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "basic config with comment in zprintrc test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command <test_config.string.clj 
 
@@ -360,6 +374,7 @@ expected_length=24
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "{:cwd-zprintrc? true} test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command '{:cwd-zprintrc? true}' <test_config.string.clj 
 
@@ -379,6 +394,7 @@ expected_length=24
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "{:search-config? true} test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command '{:search-config? true}' <test_config.string.clj 
 
@@ -398,6 +414,7 @@ expected_length=71
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "~/.zprintrc being used test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command <test_config.map.clj 
 
@@ -431,12 +448,14 @@ expected_chars=4
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo ".zprintrc being used test failed to have correct count of lines after grep for 'xxx' added by {:parse {:interpose ...}}, should be $expected_length, was: $output_length"
     $command  <test_config.string.clj 
 fi
 
 if [[ $char_length != $expected_chars ]]
   then
+    ((tests_failed++))
     echo ".zprintrc being used test failed to have correct count of chars after grep for 'xxx' added by {:parse {:interpose ...}}, should be $expected_chars, was: $char_length"
     $command  <test_config.string.clj 
 fi
@@ -465,6 +484,7 @@ expected_length=66
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "-d test -- ~/.zprintrc should not be used test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command -d <test_config.map.clj 
 
@@ -489,6 +509,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "bad ~/.zprintrc (invalid Clojure map) test failed to have correct count of lines after grep for 'EOF while reading', should be $expected_length, was: $output_length"
     $command <test_config.string.clj 
 
@@ -513,6 +534,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "invalid zprint options map in ~/.zprintrc test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command <test_config.string.clj 
 
@@ -535,6 +557,7 @@ echo "...........  -v test"
 zprint_version=`$command -v 2>&1 >/dev/null`
 if [[ $zprint_version != "zprint-$1" ]]
   then
+    ((tests_failed++))
     echo "-v test failed to have correct version, should be zprint-$1, was: $zprint-version"
     $command -v
 fi
@@ -555,6 +578,7 @@ expected_length=69
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "-h test failed to have correct count of chars, should be $expected_length, was: $output_length"
     $command -h
 fi
@@ -575,6 +599,7 @@ expected_length=877
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--explain-all test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -589,6 +614,7 @@ expected_length=16
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "--explain test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command '{:color? false}' --explain
 fi
@@ -617,6 +643,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo ":coerce-to-false test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -641,6 +668,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -661,6 +689,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -680,6 +709,7 @@ expected_length=0
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -697,6 +727,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -716,6 +747,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -735,6 +767,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -754,6 +787,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -772,6 +806,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -791,6 +826,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn in ~/.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -822,6 +858,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn is valid in ./.zprintrc test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command --explain-all
 fi
@@ -847,6 +884,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn on command line test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command '{:vector {:option-fn-first (fn [x y] {})}}' <test_config.string.clj 
 fi
@@ -868,6 +906,7 @@ expected_length=1
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "fn on command line test failed to have correct count of lines, should be $expected_length, was: $output_length"
     $command '{:vector {:option-fn-first (fn [x y] {})}}' <test_config.string.clj 
 fi
@@ -893,6 +932,7 @@ expected_length=66
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "-w test failed to have correct count of chars, should be 66, was: $output_length"
     cat test_config.map1.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.stderr.out test_config.stdout.out
@@ -919,6 +959,7 @@ expected_length=132
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
@@ -946,6 +987,7 @@ expected_length=268
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
@@ -979,6 +1021,7 @@ expected_length=238
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.map2.clj test_config.stderr.out test_config.stdout.out
@@ -1009,6 +1052,7 @@ expected_length=580
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
@@ -1042,6 +1086,7 @@ expected_length=343
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "-w test failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
     wc -c test_config.map1.clj test_config.diff.out test_config.map2.clj test_config.stderr.out test_config.stdout.out
@@ -1127,6 +1172,7 @@ expected_length=778
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "local .zprintrc having a fn that is used failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.stdout.clj test_config.diff.out test_config.stderr.out
     wc -c test_config.stdout.clj test_config.diff.out test_config.stderr.out
@@ -1166,6 +1212,7 @@ expected_length=69
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "command line access to guide option-fn failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.stdout.clj test_config.diff.out test_config.stderr.out
     wc -c test_config.stdout.clj test_config.diff.out test_config.stderr.out
@@ -1205,6 +1252,7 @@ expected_length=186
 
 if [[ $output_length != $expected_length ]]
   then
+    ((tests_failed++))
     echo "html output failed to have correct count of chars, should be $expected_length, was: $output_length"
     cat test_config.stdout.clj test_config.diff.out test_config.stderr.out
     wc -c test_config.stdout.clj test_config.diff.out test_config.stderr.out
@@ -1264,4 +1312,6 @@ fi
 #
 
 rm -rf 1
+
+exit ${tests_failed}
 

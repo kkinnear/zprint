@@ -94,17 +94,17 @@
     :arg2-extend :arg2-pair :arg2-fn :none :none-body :arg1-force-nl
     :gt2-force-nl :gt3-force-nl :flow :flow-body :force-nl-body :force-nl
     :pair-fn :arg1-mixin :arg2-mixin :indent :replace-w-string :guided
-    :arg1-force-nl-body :arg2-extend-body :wrap :guided-body
-    :arg2-force-nl-body :arg2-force-nl})
+    :arg1-force-nl-body :arg2-extend-body :wrap :guided-body :arg2-force-nl-body
+    :arg2-force-nl})
 (s/def ::fn-type-w-map
   (s/or :general-options (s/tuple ::fn-type ::options)
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
 ; This dance with making the :fn-alias really "deep" is because of the
-; heuristics in explain-more, which tends to use the "simplest" problem 
+; heuristics in explain-more, which tends to use the "simplest" problem
 ; that is found.  And the string tended to be the simplest problem, so that
 ; more important things were obscured.
 (s/def ::fn-deep-alias string?)
-(s/def ::fn-alias 
+(s/def ::fn-alias
   (s/or :string ::fn-deep-alias
         :also-string ::fn-deep-alias))
 (s/def ::fn-specifier
@@ -168,8 +168,7 @@
                        ::fn-specifier)))
 ; This will not let people define their own fn-types, just modify the
 ; built-in ones.
-(s/def ::fn-type-map-value
-  (s/nilable (s/map-of ::fn-type ::fn-type-specifier)))
+(s/def ::fn-type-map-value (s/nilable (s/map-of ::fn-type ::fn-type-specifier)))
 (s/def ::number-or-vector-of-numbers
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))
@@ -225,7 +224,8 @@
 (s/def ::interpose ::boolean-or-string)
 (s/def ::justify? ::boolean)
 (s/def ::justify
-  (only-keys :opt-un [::max-variance ::ignore-for-variance ::no-justify ::max-gap]))
+  (only-keys :opt-un [::max-variance ::ignore-for-variance ::no-justify
+                      ::max-gap]))
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
 (s/def ::justify-tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
@@ -299,10 +299,11 @@
 (s/def ::array (only-keys :opt-un [::hex? ::indent ::object? ::wrap?]))
 (s/def ::atom (only-keys :opt-un [::object?]))
 (s/def ::binding
-  (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff ::hang-expand ::hang?
-                      ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::justify? ::justify ::justify-hang ::justify-tuning
-                      ::nl-separator? ::nl-separator-all?]))
+  (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff
+                      ::hang-expand ::hang? ::hang-accept ::ha-depth-factor
+                      ::ha-width-factor ::indent ::justify? ::justify
+                      ::justify-hang ::justify-tuning ::nl-separator?
+                      ::nl-separator-all?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::call-stack (s/nilable (s/coll-of ::call-stack-frame :kind list?)))
 (s/def ::color-map
@@ -365,14 +366,15 @@
 (s/def ::vector-fn ::list)
 (s/def ::map
   (only-keys
-    :opt-un [::comma? ::flow? ::flow-all-if-any? ::force-nl? ::hang-adjust ::hang-diff
-             ::hang-accept ::ha-depth-factor ::ha-width-factor ::hang-expand
-             ::hang? ::indent ::indent-only? ::justify? ::justify-hang ::justify
-             ::justify-tuning ::key-color ::key-value-color ::key-depth-color
-             ::key-ignore ::key-ignore-silent ::key-order ::lift-ns?
-             ::lift-ns-in-code? ::key-no-sort ::nl-separator?
-             ::nl-separator-all? ::respect-bl? ::respect-nl? ::sort-in-code?
-             ::sort? ::unlift-ns? ::key-value-options]))
+    :opt-un [::comma? ::flow? ::flow-all-if-any? ::force-nl? ::hang-adjust
+             ::hang-diff ::hang-accept ::ha-depth-factor ::ha-width-factor
+             ::hang-expand ::hang? ::indent ::indent-only? ::justify?
+             ::justify-hang ::justify ::justify-tuning ::key-color
+             ::key-value-color ::key-depth-color ::key-ignore
+             ::key-ignore-silent ::key-order ::lift-ns? ::lift-ns-in-code?
+             ::key-no-sort ::nl-separator? ::nl-separator-all? ::respect-bl?
+             ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?
+             ::key-value-options]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -388,15 +390,14 @@
 (s/def ::more-options (s/nilable ::options))
 (s/def ::output
   (only-keys :opt-un [::focus ::lines ::elide ::paths ::real-le?
-                      ::real-le-length ::range? :alt/format
-		      ::paragraph]))
+                      ::real-le-length ::range? :alt/format ::paragraph]))
 (s/def ::pair
-  (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff ::hang-expand ::hang?
-                      ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::justify? ::justify ::justify-hang ::justify-tuning
-                      ::nl-separator? ::nl-separator-all?]))
-(s/def ::paragraph
-  (only-keys :opt-un [:alt/style]))
+  (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff
+                      ::hang-expand ::hang? ::hang-accept ::ha-depth-factor
+                      ::ha-width-factor ::indent ::justify? ::justify
+                      ::justify-hang ::justify-tuning ::nl-separator?
+                      ::nl-separator-all?]))
+(s/def ::paragraph (only-keys :opt-un [:alt/style]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
 (s/def ::parse
@@ -478,8 +479,7 @@
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
-             ::!zprint-elide-skip-next? ::meta ::fn-str
-	     ::fn-type-map]))
+             ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

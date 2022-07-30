@@ -6885,280 +6885,462 @@ ser/collect-vars-acc %1 %2) )))"
   ;; Multiple line capability in precede-w-nl.  i:list {:nl-count ...}}
   ;;
 
-(def pwnl2
-"(this is\n\n a test \n\n this is \n\n only a test)")
-(def pwnl2a
-"(this is\n\n a test ;this is an inline comment \n\n ;this is a comemnt \n this is \n\n only a test)")
+  (def pwnl2 "(this is\n\n a test \n\n this is \n\n only a test)")
+  (def pwnl2a
+    "(this is\n\n a test ;this is an inline comment \n\n ;this is a comemnt \n this is \n\n only a test)")
 
- (expect
-"(this\n  is\n  a\n  test\n  this\n  is\n  only\n  a\n  test)"
- (zprint-str pwnl2 {:parse-string? true :list {:force-nl? true :hang? false :nl-count 1 :respect-nl? false}}))
+  (expect
+    "(this\n  is\n  a\n  test\n  this\n  is\n  only\n  a\n  test)"
+    (zprint-str
+      pwnl2
+      {:parse-string? true,
+       :list {:force-nl? true, :hang? false, :nl-count 1, :respect-nl? false}}))
 
-(expect
-"(this\n  is\n\n  a\n\n  test\n\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
-(zprint-str pwnl2 {:parse-string? true :list {:force-nl? true :hang? false :nl-count 2 :respect-nl? false}}))
+  (expect
+    "(this\n  is\n\n  a\n\n  test\n\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
+    (zprint-str
+      pwnl2
+      {:parse-string? true,
+       :list {:force-nl? true, :hang? false, :nl-count 2, :respect-nl? false}}))
 
-(expect
-"(this\n  is\n\n  a\n  test\n\n  this\n  is\n\n  only\n  a\n  test)"
-(zprint-str pwnl2 {:parse-string? true :list {:force-nl? true :hang? false :nl-count 1 :respect-nl? true}}))
+  (expect
+    "(this\n  is\n\n  a\n  test\n\n  this\n  is\n\n  only\n  a\n  test)"
+    (zprint-str
+      pwnl2
+      {:parse-string? true,
+       :list {:force-nl? true, :hang? false, :nl-count 1, :respect-nl? true}}))
 
-(expect
-"(this\n  is\n\n  a\n\n  test\n\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
-(zprint-str pwnl2 {:parse-string? true :list {:force-nl? true :hang? false :nl-count 2 :respect-nl? true}}))
+  (expect
+    "(this\n  is\n\n  a\n\n  test\n\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
+    (zprint-str
+      pwnl2
+      {:parse-string? true,
+       :list {:force-nl? true, :hang? false, :nl-count 2, :respect-nl? true}}))
 
-(expect
-"(this\n  is\n  a\n  test ;this is an inline comment\n  ;this is a comemnt\n  this\n  is\n  only\n  a\n  test)"
-(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count 1 :respect-nl? false}}))
+  (expect
+    "(this\n  is\n  a\n  test ;this is an inline comment\n  ;this is a comemnt\n  this\n  is\n  only\n  a\n  test)"
+    (zprint-str
+      pwnl2a
+      {:parse-string? true,
+       :list {:force-nl? true, :hang? false, :nl-count 1, :respect-nl? false}}))
 
-(expect
-"(this\n  is\n\n  a\n\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
-(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count 2 :respect-nl? false}}))
+  (expect
+    "(this\n  is\n\n  a\n\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
+    (zprint-str
+      pwnl2a
+      {:parse-string? true,
+       :list {:force-nl? true, :hang? false, :nl-count 2, :respect-nl? false}}))
 
-(expect
-"(this\n  is\n\n  a\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n  is\n\n  only\n  a\n  test)"
-(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count 1 :respect-nl? true}}))
+  (expect
+    "(this\n  is\n\n  a\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n  is\n\n  only\n  a\n  test)"
+    (zprint-str
+      pwnl2a
+      {:parse-string? true,
+       :list {:force-nl? true, :hang? false, :nl-count 1, :respect-nl? true}}))
 
-(expect
-"(this\n  is\n\n  a\n\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
-(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count 2 :respect-nl? true}}))
+  (expect
+    "(this\n  is\n\n  a\n\n  test ;this is an inline comment\n\n  ;this is a comemnt\n  this\n\n  is\n\n  only\n\n  a\n\n  test)"
+    (zprint-str
+      pwnl2a
+      {:parse-string? true,
+       :list {:force-nl? true, :hang? false, :nl-count 2, :respect-nl? true}}))
 
-(expect
-"(this\n  is\n\n  a\n\n\n  test ;this is an inline comment\n\n\n\n  ;this is a comemnt\n  this\n\n\n\n\n  is\n\n\n\n\n\n  only\n\n\n\n\n\n\n  a\n\n\n\n\n\n\n\n  test)"
-(zprint-str pwnl2a {:parse-string? true :list {:force-nl? true :hang? false :nl-count [2 3 4 5 6 7 8 9] :respect-nl? false}}))
+  (expect
+    "(this\n  is\n\n  a\n\n\n  test ;this is an inline comment\n\n\n\n  ;this is a comemnt\n  this\n\n\n\n\n  is\n\n\n\n\n\n  only\n\n\n\n\n\n\n  a\n\n\n\n\n\n\n\n  test)"
+    (zprint-str pwnl2a
+                {:parse-string? true,
+                 :list {:force-nl? true,
+                        :hang? false,
+                        :nl-count [2 3 4 5 6 7 8 9],
+                        :respect-nl? false}}))
 
-;;
-;; ## New capability -- strings as values in :fn-map, allows alias of
-;; fn names.
-;;
+  ;;
+  ;; ## New capability -- strings as values in :fn-map, allows alias of
+  ;; fn names.
+  ;;
 
-(def
-are1b
-"(arex [x y z] (= x y z)\n   3 (stuff y) (bother z)\n   4 (foo y) (bar z))")
+  (def are1b
+    "(arex [x y z] (= x y z)\n   3 (stuff y) (bother z)\n   4 (foo y) (bar z))")
 
-(expect
-"(arex [x y z] (= x y z)\n  3 (stuff y) (bother z)\n  4 (foo y)   (bar z))"
-(zprint-str are1b {:parse-string? true :fn-map {"arex" "arey" "arey" "arez" "arez" "are"}}))
+  (expect
+    "(arex [x y z] (= x y z)\n  3 (stuff y) (bother z)\n  4 (foo y)   (bar z))"
+    (zprint-str are1b
+                {:parse-string? true,
+                 :fn-map {"arex" "arey", "arey" "arez", "arez" "are"}}))
 
-#?(:clj
-     (expect
-       "java.lang.Exception: Circular :fn-map lookup! fn-str: 'arex' has already been used in this lookup. "
-       (try
-         (zprint-str are1b
-                     {:parse-string? true,
-                      :fn-map {"arex" "arey", "arey" "arex"}})
-         (catch Exception e
-           ; Set's don't print deterministically
-           (clojure.string/replace (str e) (re-find #"fn-strs.*" (str e)) ""))))
-   :cljs
-     (expect
-       "Error: Circular :fn-map lookup! fn-str: 'arex' has already been used in this lookup. "
-       (try (zprint-str are1b
-                        {:parse-string? true,
-                         :fn-map {"arex" "arey", "arey" "arex"}})
-            (catch :default e
-              ; Set's don't print deterministically
-              (clojure.string/replace (str e)
-                                      (re-find #"fn-strs.*" (str e))
-                                      "")))))
-		    
+  #?(:clj
+       (expect
+         "java.lang.Exception: Circular :fn-map lookup! fn-str: 'arex' has already been used in this lookup. "
+         (try (zprint-str are1b
+                          {:parse-string? true,
+                           :fn-map {"arex" "arey", "arey" "arex"}})
+              (catch Exception e
+                ; Set's don't print deterministically
+                (clojure.string/replace (str e)
+                                        (re-find #"fn-strs.*" (str e))
+                                        ""))))
+     :cljs
+       (expect
+         "Error: Circular :fn-map lookup! fn-str: 'arex' has already been used in this lookup. "
+         (try (zprint-str are1b
+                          {:parse-string? true,
+                           :fn-map {"arex" "arey", "arey" "arex"}})
+              (catch :default e
+                ; Set's don't print deterministically
+                (clojure.string/replace (str e)
+                                        (re-find #"fn-strs.*" (str e))
+                                        "")))))
+
   ;;
   ;; Add :max-gap to :justify for lots of things.  This tests pairs.
   ;;
   ;; Issue #239
   ;;
 
-(def pair1
-"
+  (def pair1
+    "
 (defn pair1
   [a b c d]
   (cond (nil? a) a
         (a-very-long-function? b) b
         :else c))")
 
-(expect
-"(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
-(zprint-str pair1 {:parse-string? true :pair {:justify? true :justify {:max-variance 80 :max-gap 17}}}))
+  (expect
+    "(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
+    (zprint-str pair1
+                {:parse-string? true,
+                 :pair {:justify? true,
+                        :justify {:max-variance 80, :max-gap 17}}}))
 
-(expect
-"(defn pair1\n  [a b c d]\n  (cond (nil? a)                  a\n        (a-very-long-function? b) b\n        :else                     c))"
-(zprint-str pair1 {:parse-string? true :pair {:justify? true :justify {:max-variance 80 :max-gap 18}}}))
+  (expect
+    "(defn pair1\n  [a b c d]\n  (cond (nil? a)                  a\n        (a-very-long-function? b) b\n        :else                     c))"
+    (zprint-str pair1
+                {:parse-string? true,
+                 :pair {:justify? true,
+                        :justify {:max-variance 80, :max-gap 18}}}))
 
-(expect
-"(defn pair1\n  [a b c d]\n  (cond (nil? a)                  a\n        (a-very-long-function? b) b\n        :else                     c))"
-(zprint-str pair1 {:parse-string? true :pair {:justify? true :justify {:max-variance 80 :max-gap 21 :ignore-for-variance nil}}}))
+  (expect
+    "(defn pair1\n  [a b c d]\n  (cond (nil? a)                  a\n        (a-very-long-function? b) b\n        :else                     c))"
+    (zprint-str
+      pair1
+      {:parse-string? true,
+       :pair {:justify? true,
+              :justify
+                {:max-variance 80, :max-gap 21, :ignore-for-variance nil}}}))
 
-(expect
-"(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
-(zprint-str pair1 {:parse-string? true :pair {:justify? true :justify {:max-variance 80 :max-gap 20 :ignore-for-variance nil}}}))
+  (expect
+    "(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
+    (zprint-str
+      pair1
+      {:parse-string? true,
+       :pair {:justify? true,
+              :justify
+                {:max-variance 80, :max-gap 20, :ignore-for-variance nil}}}))
 
-;;
-;; tests for :flow-all-if-any?
-;;
-;; Binding:
-;;
+  ;;
+  ;; tests for :flow-all-if-any?
+  ;;
+  ;; Binding:
+  ;;
 
- (def
- pou12z
-"\n                                     (let [thread# (.thread e#)\n                                             ; the code below works as it slows down tracing\n\n\t\t\t\t\t\t ]\n\n\t\t\t\t\t\t (stuff)\n\n\n\t\t\t\t\t   )")
+  (def pou12z
+    "\n                                     (let [thread# (.thread e#)\n                                             ; the code below works as it slows down tracing\n\n\t\t\t\t\t\t ]\n\n\t\t\t\t\t\t (stuff)\n\n\n\t\t\t\t\t   )")
 
-(expect
-"(let [thread# (.thread e#)\n      ; the code below works as it slows down tracing\n     ]\n  (stuff))"
-(zprint-str pou12z {:parse-string? true :binding {:flow-all-if-any? true}}))
-
-
-(def avgt
-"(defn avg-time\n  \"Take a function of no arguments, and run it n times, dropping the\n  first 5 runs every time.\"\n  ([f n return?]\n   (if (< n 10)\n     (println \"n must be at least 10\")\n     (let [results (doall (repeatedly n #(with-out-str (time (f)))))\n           good-results (drop 5 results)\n           time-strs (mapv #(re-find #\"d*.\" %) good-results)\n           time-seq (mapv read-string time-strs)\n           sorted-time-seq (sort time-seq)\n           _ (when-not return? (println \"sorted-time-seq\" sorted-time-seq))\n           no-outliers-time-seq\n             (drop 2 (take (- (count sorted-time-seq) 2) sorted-time-seq))\n           _ (when-not return?\n               (println \"no-outliers-time-seq\" no-outliers-time-seq))\n           avg (arith-mean no-outliers-time-seq)\n           med (local-median no-outliers-time-seq)]\n       (if return?\n         (int avg)\n         (do (println \"Average:\" (int avg) \"ms.\")\n             (println \"Median: \" (int med) \"ms.\"))))))\n  ([f n] (avg-time f n nil)))")
-
-(expect
-"(defn avg-time\n  \"Take a function of no arguments, and run it n times, dropping the\n  first 5 runs every time.\"\n  ([f n return?]\n   (if (< n 10)\n     (println \"n must be at least 10\")\n     (let [results\n             (doall (repeatedly n #(with-out-str (time (f)))))\n           good-results\n             (drop 5 results)\n           time-strs\n             (mapv #(re-find #\"d*.\" %) good-results)\n           time-seq\n             (mapv read-string time-strs)\n           sorted-time-seq\n             (sort time-seq)\n           _\n             (when-not return? (println \"sorted-time-seq\" sorted-time-seq))\n           no-outliers-time-seq\n             (drop 2 (take (- (count sorted-time-seq) 2) sorted-time-seq))\n           _\n             (when-not return?\n               (println \"no-outliers-time-seq\" no-outliers-time-seq))\n           avg\n             (arith-mean no-outliers-time-seq)\n           med\n             (local-median no-outliers-time-seq)]\n       (if return?\n         (int avg)\n         (do (println \"Average:\" (int avg) \"ms.\")\n             (println \"Median: \" (int med) \"ms.\"))))))\n  ([f n] (avg-time f n nil)))"
-(zprint-str avgt {:parse-string? true :binding {:flow-all-if-any? true}}))
-
-;;
-;; map
-;;
-
- (def
- i48l
-{:abcdefghijkl [{:abcd "bar", :abcdefg [:a :ab :abc :x :l]} :s :t :u :v], :abce {:abcd :abcd, :abcdef {:abcd "foo"}}})
-
-(expect
-"{:abcdefghijkl\n   [{:abcd \"bar\",\n     :abcdefg [:a :ab :abc :x :l]}\n    :s :t :u :v],\n :abce\n   {:abcd :abcd,\n    :abcdef {:abcd \"foo\"}}}"
-(zprint-str i48l {:width 35 :map {:flow-all-if-any? true}}))
+  (expect
+    "(let [thread# (.thread e#)\n      ; the code below works as it slows down tracing\n     ]\n  (stuff))"
+    (zprint-str pou12z
+                {:parse-string? true, :binding {:flow-all-if-any? true}}))
 
 
-(def
-index-map
-{"mappings" {"lease4" {"_all" {"enabled" false}, "properties" {"failover-pair-name" {"index" false, "type" "keyword"}, "client-binary-client-id" {"type" "keyword"}, "failover-role" {"index" false, "type" "keyword"}, "class" {"index" false, "type" "keyword"}, "giaddr" {"type" "ip"}, "client-last-transaction-time" {"format" "yyyy-MM-dd HH:mm:ss", "type" "date"}, "flags" {"index" false, "type" "keyword"}, "failover-sequence-number" {"index" false, "type" "keyword"}, "start-time-of-state" {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"}, "write-time" {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"}, "binding-start-time" {"format" "yyyy-MM-dd HH:mm:ss", "type" "date"}, "state-serial" {"index" false, "type" "long"}, "address" {"type" "ip"}, "client-expiration-time" {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"}, "partner-expiration-time" {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"}, "data-source" {"index" false, "type" "keyword"}, "lease-renewal-time" {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"}, "state" {"type" "keyword"}, "version" {"index" false, "type" "keyword"}, "expiration" {"format" "yyyy-MM-dd HH:mm:ss", "type" "date"}, "state-expiration-time" {"format" "yyyy-MM-dd HH:mm:ss", "type" "date"}, "failover-lease-state" {"index" false, "type" "keyword"}, "client-creation-time" {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"}, "client-mac-addr" {"type" "keyword"}, "binding-end-time" {"format" "yyyy-MM-dd HH:mm:ss", "type" "date"}, "scope-name" {"type" "keyword"}, "client-flags" {"index" false, "type" "keyword"}}}}})
-(expect
-"{\"mappings\"\n   {\"lease4\"\n      {\"_all\"\n         {\"enabled\" false},\n       \"properties\"\n         {\"address\"\n            {\"type\" \"ip\"},\n          \"binding-end-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"binding-start-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"class\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"client-binary-client-id\"\n            {\"type\" \"keyword\"},\n          \"client-creation-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"client-expiration-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"client-flags\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"client-last-transaction-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"client-mac-addr\"\n            {\"type\" \"keyword\"},\n          \"data-source\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"expiration\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"failover-lease-state\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"failover-pair-name\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"failover-role\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"failover-sequence-number\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"flags\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"giaddr\"\n            {\"type\" \"ip\"},\n          \"lease-renewal-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"partner-expiration-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"scope-name\"\n            {\"type\" \"keyword\"},\n          \"start-time-of-state\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"state\"\n            {\"type\" \"keyword\"},\n          \"state-expiration-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"state-serial\"\n            {\"index\" false, \"type\" \"long\"},\n          \"version\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"write-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"}}}}}"
-(zprint-str index-map {:parse-string? false :map {:flow-all-if-any? true} :width 60}))
+  (def avgt
+    "(defn avg-time\n  \"Take a function of no arguments, and run it n times, dropping the\n  first 5 runs every time.\"\n  ([f n return?]\n   (if (< n 10)\n     (println \"n must be at least 10\")\n     (let [results (doall (repeatedly n #(with-out-str (time (f)))))\n           good-results (drop 5 results)\n           time-strs (mapv #(re-find #\"d*.\" %) good-results)\n           time-seq (mapv read-string time-strs)\n           sorted-time-seq (sort time-seq)\n           _ (when-not return? (println \"sorted-time-seq\" sorted-time-seq))\n           no-outliers-time-seq\n             (drop 2 (take (- (count sorted-time-seq) 2) sorted-time-seq))\n           _ (when-not return?\n               (println \"no-outliers-time-seq\" no-outliers-time-seq))\n           avg (arith-mean no-outliers-time-seq)\n           med (local-median no-outliers-time-seq)]\n       (if return?\n         (int avg)\n         (do (println \"Average:\" (int avg) \"ms.\")\n             (println \"Median: \" (int med) \"ms.\"))))))\n  ([f n] (avg-time f n nil)))")
 
- (def
- sort-demo
-[{:detail {:ident "64:c1:2f:34", :alternate "64:c1:2f:34", :string "datacenter", :interface "3.13.168.35"}, :direction :received, :connection "2795", :reference 14873, :type "get", :time 1425704001, :code "58601"} {:detail {:ident "64:c1:2f:34", :ip4 "3.13.168.151", :time "30m", :code "0xe4e9"}, :direction :transmitted, :connection "X13404", :reference 14133, :type "post", :time 1425704001, :code "0xe4e9"} {:direction :transmitted, :connection "X13404", :reference 14227, :type "post", :time 1425704001, :code "58601"} {:detail {:ident "50:56:a5:1d:61", :ip4 "3.13.171.81", :code "0x1344a676"}, :direction :received, :connection "2796", :reference 14133, :type "error", :time 1425704003, :code "0x1344a676"} {:detail {:ident "50:56:a5:1d:61", :alternate "01:50:56:a5:1d:61", :string "datacenter", :interface "3.13.168.35"}, :direction :transmitted, :connection "2796", :reference 14873, :type "error", :time 1425704003, :code "323266166"}])
+  (expect
+    "(defn avg-time\n  \"Take a function of no arguments, and run it n times, dropping the\n  first 5 runs every time.\"\n  ([f n return?]\n   (if (< n 10)\n     (println \"n must be at least 10\")\n     (let [results\n             (doall (repeatedly n #(with-out-str (time (f)))))\n           good-results\n             (drop 5 results)\n           time-strs\n             (mapv #(re-find #\"d*.\" %) good-results)\n           time-seq\n             (mapv read-string time-strs)\n           sorted-time-seq\n             (sort time-seq)\n           _\n             (when-not return? (println \"sorted-time-seq\" sorted-time-seq))\n           no-outliers-time-seq\n             (drop 2 (take (- (count sorted-time-seq) 2) sorted-time-seq))\n           _\n             (when-not return?\n               (println \"no-outliers-time-seq\" no-outliers-time-seq))\n           avg\n             (arith-mean no-outliers-time-seq)\n           med\n             (local-median no-outliers-time-seq)]\n       (if return?\n         (int avg)\n         (do (println \"Average:\" (int avg) \"ms.\")\n             (println \"Median: \" (int med) \"ms.\"))))))\n  ([f n] (avg-time f n nil)))"
+    (zprint-str avgt {:parse-string? true, :binding {:flow-all-if-any? true}}))
 
+  ;;
+  ;; map
+  ;;
 
-(expect
-"[{:code \"58601\",\n  :connection \"2795\",\n  :detail {:alternate \"64:c1:2f:34\",\n           :ident \"64:c1:2f:34\",\n           :interface \"3.13.168.35\",\n           :string \"datacenter\"},\n  :direction :received,\n  :reference 14873,\n  :time 1425704001,\n  :type \"get\"}\n {:code\n    \"0xe4e9\",\n  :connection\n    \"X13404\",\n  :detail\n    {:code \"0xe4e9\", :ident \"64:c1:2f:34\", :ip4 \"3.13.168.151\", :time \"30m\"},\n  :direction\n    :transmitted,\n  :reference\n    14133,\n  :time\n    1425704001,\n  :type\n    \"post\"}\n {:code \"58601\",\n  :connection \"X13404\",\n  :direction :transmitted,\n  :reference 14227,\n  :time 1425704001,\n  :type \"post\"}\n {:code \"0x1344a676\",\n  :connection \"2796\",\n  :detail {:code \"0x1344a676\", :ident \"50:56:a5:1d:61\", :ip4 \"3.13.171.81\"},\n  :direction :received,\n  :reference 14133,\n  :time 1425704003,\n  :type \"error\"}\n {:code \"323266166\",\n  :connection \"2796\",\n  :detail {:alternate \"01:50:56:a5:1d:61\",\n           :ident \"50:56:a5:1d:61\",\n           :interface \"3.13.168.35\",\n           :string \"datacenter\"},\n  :direction :transmitted,\n  :reference 14873,\n  :time 1425704003,\n  :type \"error\"}]"
-(zprint-str sort-demo {:parse-string? false  :map {:flow-all-if-any? true} :width 80}))
+  (def i48l
+    {:abcdefghijkl [{:abcd "bar", :abcdefg [:a :ab :abc :x :l]} :s :t :u :v],
+     :abce {:abcd :abcd, :abcdef {:abcd "foo"}}})
 
-;;
-;; pairs
-;;
-
- (def
- pair2
-"\n(defn pair1 \n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n\t:else c))")
-
-(expect
-"(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
-(zprint-str pair2 {:parse-string? true :dbg? false :pair {:flow-all-if-any? true :justify? true :justify {:max-variance 20}} :width 40}))
-
-(expect
-"(defn pair1\n  [a b c d]\n  (cond (nil? a)\n          a\n        (a-very-long-function?\n          b)\n          b\n        :else\n          c))"
-(zprint-str pair2 {:parse-string? true :dbg? false :pair {:flow-all-if-any? true :justify? true :justify {:max-variance 20}} :width 30}))
+  (expect
+    "{:abcdefghijkl\n   [{:abcd \"bar\",\n     :abcdefg [:a :ab :abc :x :l]}\n    :s :t :u :v],\n :abce\n   {:abcd :abcd,\n    :abcdef {:abcd \"foo\"}}}"
+    (zprint-str i48l {:width 35, :map {:flow-all-if-any? true}}))
 
 
-(def
-i235
-"(cond\n  (simple-check) (short-function-call)\n  (and (much-more-complicated-check) (an-even-longer-check-that-is-too-long))\n  (look-im-on-the-next-line)\n  :else (another-short-call))\n")
+  (def index-map
+    {"mappings"
+       {"lease4"
+          {"_all" {"enabled" false},
+           "properties"
+             {"failover-pair-name" {"index" false, "type" "keyword"},
+              "client-binary-client-id" {"type" "keyword"},
+              "failover-role" {"index" false, "type" "keyword"},
+              "class" {"index" false, "type" "keyword"},
+              "giaddr" {"type" "ip"},
+              "client-last-transaction-time" {"format" "yyyy-MM-dd HH:mm:ss",
+                                              "type" "date"},
+              "flags" {"index" false, "type" "keyword"},
+              "failover-sequence-number" {"index" false, "type" "keyword"},
+              "start-time-of-state"
+                {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"},
+              "write-time"
+                {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"},
+              "binding-start-time" {"format" "yyyy-MM-dd HH:mm:ss",
+                                    "type" "date"},
+              "state-serial" {"index" false, "type" "long"},
+              "address" {"type" "ip"},
+              "client-expiration-time"
+                {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"},
+              "partner-expiration-time"
+                {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"},
+              "data-source" {"index" false, "type" "keyword"},
+              "lease-renewal-time"
+                {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"},
+              "state" {"type" "keyword"},
+              "version" {"index" false, "type" "keyword"},
+              "expiration" {"format" "yyyy-MM-dd HH:mm:ss", "type" "date"},
+              "state-expiration-time" {"format" "yyyy-MM-dd HH:mm:ss",
+                                       "type" "date"},
+              "failover-lease-state" {"index" false, "type" "keyword"},
+              "client-creation-time"
+                {"format" "yyyy-MM-dd HH:mm:ss", "index" false, "type" "date"},
+              "client-mac-addr" {"type" "keyword"},
+              "binding-end-time" {"format" "yyyy-MM-dd HH:mm:ss",
+                                  "type" "date"},
+              "scope-name" {"type" "keyword"},
+              "client-flags" {"index" false, "type" "keyword"}}}}})
+  (expect
+    "{\"mappings\"\n   {\"lease4\"\n      {\"_all\"\n         {\"enabled\" false},\n       \"properties\"\n         {\"address\"\n            {\"type\" \"ip\"},\n          \"binding-end-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"binding-start-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"class\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"client-binary-client-id\"\n            {\"type\" \"keyword\"},\n          \"client-creation-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"client-expiration-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"client-flags\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"client-last-transaction-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"client-mac-addr\"\n            {\"type\" \"keyword\"},\n          \"data-source\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"expiration\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"failover-lease-state\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"failover-pair-name\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"failover-role\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"failover-sequence-number\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"flags\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"giaddr\"\n            {\"type\" \"ip\"},\n          \"lease-renewal-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"partner-expiration-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"scope-name\"\n            {\"type\" \"keyword\"},\n          \"start-time-of-state\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"},\n          \"state\"\n            {\"type\" \"keyword\"},\n          \"state-expiration-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\", \"type\" \"date\"},\n          \"state-serial\"\n            {\"index\" false, \"type\" \"long\"},\n          \"version\"\n            {\"index\" false, \"type\" \"keyword\"},\n          \"write-time\"\n            {\"format\" \"yyyy-MM-dd HH:mm:ss\",\n             \"index\" false,\n             \"type\" \"date\"}}}}}"
+    (zprint-str
+      index-map
+      {:parse-string? false, :map {:flow-all-if-any? true}, :width 60}))
 
-(expect
-"(cond (simple-check)\n        (short-function-call)\n      (and (much-more-complicated-check)\n           (an-even-longer-check-that-is-too-long))\n        (look-im-on-the-next-line)\n      :else\n        (another-short-call))"
-(zprint-str i235 {:parse-string? true :dbg? false :pair {:flow-all-if-any? true :justify? true :justify {:max-variance 30}} :width 80}))
+  (def sort-demo
+    [{:detail {:ident "64:c1:2f:34",
+               :alternate "64:c1:2f:34",
+               :string "datacenter",
+               :interface "3.13.168.35"},
+      :direction :received,
+      :connection "2795",
+      :reference 14873,
+      :type "get",
+      :time 1425704001,
+      :code "58601"}
+     {:detail {:ident "64:c1:2f:34",
+               :ip4 "3.13.168.151",
+               :time "30m",
+               :code "0xe4e9"},
+      :direction :transmitted,
+      :connection "X13404",
+      :reference 14133,
+      :type "post",
+      :time 1425704001,
+      :code "0xe4e9"}
+     {:direction :transmitted,
+      :connection "X13404",
+      :reference 14227,
+      :type "post",
+      :time 1425704001,
+      :code "58601"}
+     {:detail {:ident "50:56:a5:1d:61", :ip4 "3.13.171.81", :code "0x1344a676"},
+      :direction :received,
+      :connection "2796",
+      :reference 14133,
+      :type "error",
+      :time 1425704003,
+      :code "0x1344a676"}
+     {:detail {:ident "50:56:a5:1d:61",
+               :alternate "01:50:56:a5:1d:61",
+               :string "datacenter",
+               :interface "3.13.168.35"},
+      :direction :transmitted,
+      :connection "2796",
+      :reference 14873,
+      :type "error",
+      :time 1425704003,
+      :code "323266166"}])
 
-;;
-;; :fn-type-map
-;;
 
- (def
- i229u
-"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n    \n    ([this]\n     (doit [this nil])))\n  \n  (dothat [this that])\n\n  (domore [this that])\n  \n  AnotherProtocol\n  (xdoit [this])\n  \n  (xdothat [this that])\n  \n  (xdomore [this that]))\n")
+  (expect
+    "[{:code \"58601\",\n  :connection \"2795\",\n  :detail {:alternate \"64:c1:2f:34\",\n           :ident \"64:c1:2f:34\",\n           :interface \"3.13.168.35\",\n           :string \"datacenter\"},\n  :direction :received,\n  :reference 14873,\n  :time 1425704001,\n  :type \"get\"}\n {:code\n    \"0xe4e9\",\n  :connection\n    \"X13404\",\n  :detail\n    {:code \"0xe4e9\", :ident \"64:c1:2f:34\", :ip4 \"3.13.168.151\", :time \"30m\"},\n  :direction\n    :transmitted,\n  :reference\n    14133,\n  :time\n    1425704001,\n  :type\n    \"post\"}\n {:code \"58601\",\n  :connection \"X13404\",\n  :direction :transmitted,\n  :reference 14227,\n  :time 1425704001,\n  :type \"post\"}\n {:code \"0x1344a676\",\n  :connection \"2796\",\n  :detail {:code \"0x1344a676\", :ident \"50:56:a5:1d:61\", :ip4 \"3.13.171.81\"},\n  :direction :received,\n  :reference 14133,\n  :time 1425704003,\n  :type \"error\"}\n {:code \"323266166\",\n  :connection \"2796\",\n  :detail {:alternate \"01:50:56:a5:1d:61\",\n           :ident \"50:56:a5:1d:61\",\n           :interface \"3.13.168.35\",\n           :string \"datacenter\"},\n  :direction :transmitted,\n  :reference 14873,\n  :time 1425704003,\n  :type \"error\"}]"
+    (zprint-str
+      sort-demo
+      {:parse-string? false, :map {:flow-all-if-any? true}, :width 80}))
+
+  ;;
+  ;; pairs
+  ;;
+
+  (def pair2
+    "\n(defn pair1 \n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n\t:else c))")
+
+  (expect
+    "(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
+    (zprint-str
+      pair2
+      {:parse-string? true,
+       :dbg? false,
+       :pair
+         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 20}},
+       :width 40}))
+
+  (expect
+    "(defn pair1\n  [a b c d]\n  (cond (nil? a)\n          a\n        (a-very-long-function?\n          b)\n          b\n        :else\n          c))"
+    (zprint-str
+      pair2
+      {:parse-string? true,
+       :dbg? false,
+       :pair
+         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 20}},
+       :width 30}))
 
 
-(expect
-"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
-(zprint-str i229u {:parse-string? true :extend {:nl-count 2, :nl-separator? true :indent 0} :fn-type-map {:fn [:none {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}]}}))
+  (def i235
+    "(cond\n  (simple-check) (short-function-call)\n  (and (much-more-complicated-check) (an-even-longer-check-that-is-too-long))\n  (look-im-on-the-next-line)\n  :else (another-short-call))\n")
 
-(expect
-"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n    (doit\n      ([this that] (run! println [1 2 3]) (println this))\n      ([this] (doit [this nil])))\n    (dothat [this that])\n    (domore [this that])\n  AnotherProtocol\n    (xdoit [this])\n    (xdothat [this that])\n    (xdomore [this that]))"
-(zprint-str i229u {:parse-string? true}))
+  (expect
+    "(cond (simple-check)\n        (short-function-call)\n      (and (much-more-complicated-check)\n           (an-even-longer-check-that-is-too-long))\n        (look-im-on-the-next-line)\n      :else\n        (another-short-call))"
+    (zprint-str
+      i235
+      {:parse-string? true,
+       :dbg? false,
+       :pair
+         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 30}},
+       :width 80}))
 
-;;
-;; Indirection
-;;
+  ;;
+  ;; :fn-type-map
+  ;;
 
-(expect
-"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
-(zprint-str i229u {:parse-string? true :extend {:nl-count 2, :nl-separator? true :indent 0} :fn-type-map {:arg2 [:none {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}] :fn :arg2}}))
+  (def i229u
+    "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n    \n    ([this]\n     (doit [this nil])))\n  \n  (dothat [this that])\n\n  (domore [this that])\n  \n  AnotherProtocol\n  (xdoit [this])\n  \n  (xdothat [this that])\n  \n  (xdomore [this that]))\n")
 
-;;
-;; Can we get rid of it with :next-inner?
-;;
 
- (def
- i229ua
-"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (let [myfn (fn ([x] (println x)) ([x y] (+ x y)))] (more stuff))\n     (println this))\n    \n    ([this]\n     (doit [this nil])))\n  \n  (dothat [this that])\n\n  (domore [this that])\n  \n  AnotherProtocol\n  (xdoit [this])\n  \n  (xdothat [this that])\n  \n  (xdomore [this that]))\n")
+  (expect
+    "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
+    (zprint-str
+      i229u
+      {:parse-string? true,
+       :extend {:nl-count 2, :nl-separator? true, :indent 0},
+       :fn-type-map
+         {:fn [:none
+               {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}]}}))
 
-(expect
-"(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (let [myfn (fn ([x] (println x)) ([x y] (+ x y)))] (more stuff))\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
-(zprint-str i229ua {:parse-string? true :extend {:nl-count 2, :nl-separator? true :indent 0} :fn-type-map {:fn [:none {:list {:option-fn (partial rodfn {:multi-arity-nl? true})} :next-inner {:fn-type-map {:fn nil}}}]}}))
+  (expect
+    "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n    (doit\n      ([this that] (run! println [1 2 3]) (println this))\n      ([this] (doit [this nil])))\n    (dothat [this that])\n    (domore [this that])\n  AnotherProtocol\n    (xdoit [this])\n    (xdothat [this that])\n    (xdomore [this that]))"
+    (zprint-str i229u {:parse-string? true}))
 
-;;
-;; Try multiple option maps in :fn-type-map, and see which has precedence
-;;
+  ;;
+  ;; Indirection
+  ;;
 
-(def wchkds
-"(defn wchkd
+  (expect
+    "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
+    (zprint-str
+      i229u
+      {:parse-string? true,
+       :extend {:nl-count 2, :nl-separator? true, :indent 0},
+       :fn-type-map
+         {:arg2 [:none
+                 {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}],
+          :fn :arg2}}))
+
+  ;;
+  ;; Can we get rid of it with :next-inner?
+  ;;
+
+  (def i229ua
+    "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (let [myfn (fn ([x] (println x)) ([x y] (+ x y)))] (more stuff))\n     (println this))\n    \n    ([this]\n     (doit [this nil])))\n  \n  (dothat [this that])\n\n  (domore [this that])\n  \n  AnotherProtocol\n  (xdoit [this])\n  \n  (xdothat [this that])\n  \n  (xdomore [this that]))\n")
+
+  (expect
+    "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (let [myfn (fn ([x] (println x)) ([x y] (+ x y)))] (more stuff))\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
+    (zprint-str
+      i229ua
+      {:parse-string? true,
+       :extend {:nl-count 2, :nl-separator? true, :indent 0},
+       :fn-type-map {:fn [:none
+                          {:list {:option-fn (partial rodfn
+                                                      {:multi-arity-nl? true})},
+                           :next-inner {:fn-type-map {:fn nil}}}]}}))
+
+  ;;
+  ;; Try multiple option maps in :fn-type-map, and see which has precedence
+  ;;
+
+  (def wchkds
+    "(defn wchkd
   [x]
 [:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50 53 56 59 62 65 68 71 74 77 80])
 ")
 
-(expect
-"(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50 53 56 59 62 65 68\n   71 74 77 80])"
-(zprint-str wchkds {:parse-string? true :width 50 :fn-map {"defn" [:arg2 {:width 70}]} :fn-type-map {:arg2 [:hang {:width 30}] :hang [:arg1 {:width 40}]}}))
+  (expect
+    "(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50 53 56 59 62 65 68\n   71 74 77 80])"
+    (zprint-str
+      wchkds
+      {:parse-string? true,
+       :width 50,
+       :fn-map {"defn" [:arg2 {:width 70}]},
+       :fn-type-map {:arg2 [:hang {:width 30}], :hang [:arg1 {:width 40}]}}))
 
-(expect
-"(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29\n   32 35 38 41 44 47 50 53 56\n   59 62 65 68 71 74 77 80])"
-(zprint-str wchkds {:parse-string? true :width 50 :fn-map {"defn" [:arg2 {}]} :fn-type-map {:arg2 [:hang {:width 30}] :hang [:arg1 {:width 40}]}}))
+  (expect
+    "(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29\n   32 35 38 41 44 47 50 53 56\n   59 62 65 68 71 74 77 80])"
+    (zprint-str
+      wchkds
+      {:parse-string? true,
+       :width 50,
+       :fn-map {"defn" [:arg2 {}]},
+       :fn-type-map {:arg2 [:hang {:width 30}], :hang [:arg1 {:width 40}]}}))
 
-(expect
-"(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38\n   41 44 47 50 53 56 59 62 65 68 71 74\n   77 80])"
-(zprint-str wchkds {:parse-string? true :width 50 :fn-map {"defn" [:arg2 {}]} :fn-type-map {:arg2 [:hang {}] :hang [:arg1 {:width 40}]}}))
+  (expect
+    "(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38\n   41 44 47 50 53 56 59 62 65 68 71 74\n   77 80])"
+    (zprint-str wchkds
+                {:parse-string? true,
+                 :width 50,
+                 :fn-map {"defn" [:arg2 {}]},
+                 :fn-type-map {:arg2 [:hang {}], :hang [:arg1 {:width 40}]}}))
 
-(expect
-"(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50\n   53 56 59 62 65 68 71 74 77 80])"
-(zprint-str wchkds {:parse-string? true :width 50 :fn-map {"defn" [:arg2 {}]} :fn-type-map {:arg2 [:hang {}] :hang [:arg1 {}]}}))
+  (expect
+    "(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50\n   53 56 59 62 65 68 71 74 77 80])"
+    (zprint-str wchkds
+                {:parse-string? true,
+                 :width 50,
+                 :fn-map {"defn" [:arg2 {}]},
+                 :fn-type-map {:arg2 [:hang {}], :hang [:arg1 {}]}}))
 
-;;
-;; Namespaced maps don't work with :indexed-only
-;;
+  ;;
+  ;; Namespaced maps don't work with :indexed-only
+  ;;
 
-(expect "#:a{:b 1}"
-        (zprint-str "#:a{:b 1}\n" {:parse-string? true, :style :indent-only}))
+  (expect "#:a{:b 1}"
+          (zprint-str "#:a{:b 1}\n" {:parse-string? true, :style :indent-only}))
 
-;;
-;; :indent-only issues with indent for anon-fns
-;;
-;; Issue #243
-;;
+  ;;
+  ;; :indent-only issues with indent for anon-fns
+  ;;
+  ;; Issue #243
+  ;;
 
-(expect
-  "#(let [really-long-text-so-it-puts-on-two-lines %]\n   really-long-test-so-it-puts-on-two-lines)"
-  (zprint-str
-    "#(let [really-long-text-so-it-puts-on-two-lines %]\n         really-long-test-so-it-puts-on-two-lines)\n"
-    {:parse-string? true, :style :indent-only}))
+  (expect
+    "#(let [really-long-text-so-it-puts-on-two-lines %]\n   really-long-test-so-it-puts-on-two-lines)"
+    (zprint-str
+      "#(let [really-long-text-so-it-puts-on-two-lines %]\n         really-long-test-so-it-puts-on-two-lines)\n"
+      {:parse-string? true, :style :indent-only}))
 
-;;
-;; Issue #245 -- :meta {:split? true} leaves out all but the first ^:stuff
-;; metadata element
-;;
+  ;;
+  ;; Issue #245 -- :meta {:split? true} leaves out all but the first ^:stuff
+  ;; metadata element
+  ;;
 
-(expect
-  "(def ^:const\n  ^:private\n  ^:test\n  ^:lots\n  ^:of\n  ^:meta\n  ^:stuff\n  port-file-name\n  \".nrepl-port\")"
-  (zprint-str
-    " (def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name \".nrepl-port\")\n"
-    {:parse-string? true, :meta {:split? true}}))
+  (expect
+    "(def ^:const\n  ^:private\n  ^:test\n  ^:lots\n  ^:of\n  ^:meta\n  ^:stuff\n  port-file-name\n  \".nrepl-port\")"
+    (zprint-str
+      " (def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name \".nrepl-port\")\n"
+      {:parse-string? true, :meta {:split? true}}))
 
 
 

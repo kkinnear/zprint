@@ -78,6 +78,8 @@
 
 (defn zfn-map
   []
-  {:zmap-no-comment zmap-no-comment, :zstring zstring, :zcount zcount
+  {:zmap-no-comment zmap-no-comment,
+   :zstring zstring,
+   :zcount zcount,
    :ztag ztag})
 

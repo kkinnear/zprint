@@ -365,8 +365,8 @@
 
   (expect (more-of options
             #{:force-nl :flow :noarg1 :noarg1-body :force-nl-body :binding
-              :arg1-force-nl :arg1-force-nl-body :flow-body
-	      :arg2-force-nl :arg2-force-nl-body}
+              :arg1-force-nl :arg1-force-nl-body :flow-body :arg2-force-nl
+              :arg2-force-nl-body}
               (:value (:fn-force-nl options)))
           (with-redefs [zprint.config/configured-options
                           (atom zprint.config/default-zprint-options)

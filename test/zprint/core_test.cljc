@@ -779,141 +779,251 @@
                 {:parse-string? true,
                  :output {:real-le? true, :real-le-length 9}}))
 
-;;
-;; Tests for :output {:format :hiccup} and :output {:format :html}
-;;
-;; This first set tests if interpose work, and causes :left-space :keep
-;; to be ignored.
-;;
-;;
-;;  1. hiccup from zprint-str
-;;  2. html from zprint-str
-;;  3. 1 with parse-string-all
-;;  4. 2 with parse-string-all
-;;  5. hiccup from zprint-file-str
-;;  6. html from zprint-file-str
-;;  7. interpose with #3
-;;  8. interpose with #4
-;;  9. interpose with 5
-;;  10. interpose with 6
+  ;;
+  ;; Tests for :output {:format :hiccup} and :output {:format :html}
+  ;;
+  ;; This first set tests if interpose work, and causes :left-space :keep
+  ;; to be ignored.
+  ;;
+  ;;
+  ;;  1. hiccup from zprint-str
+  ;;  2. html from zprint-str
+  ;;  3. 1 with parse-string-all
+  ;;  4. 2 with parse-string-all
+  ;;  5. hiccup from zprint-file-str
+  ;;  6. html from zprint-file-str
+  ;;  7. interpose with #3
+  ;;  8. interpose with #4
+  ;;  9. interpose with 5
+  ;;  10. interpose with 6
 
-; Warmups
+  ; Warmups
 
-(expect
-"(defn abc [] (println :a))\n\n\n\n\n\n\n(println :a)"
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :parse {:left-space :keep :interpose "\n\n\n\n\n\n\n"}}))
+  (expect "(defn abc [] (println :a))\n\n\n\n\n\n\n(println :a)"
+          (zprint-str
+            "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+            {:parse-string-all? true,
+             :parse {:left-space :keep, :interpose "\n\n\n\n\n\n\n"}}))
 
-(expect
-"(defn abc [] (println :a))\n\n\n\n\n\n\n(println :a)"
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :parse {:left-space :keep :interpose "\n\n\n\n\n\n\n"} :output {:format :string}}))
+  (expect
+    "(defn abc [] (println :a))\n\n\n\n\n\n\n(println :a)"
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true,
+                 :parse {:left-space :keep, :interpose "\n\n\n\n\n\n\n"},
+                 :output {:format :string}}))
 
-; #1
+  ; #1
 
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"]]
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string? true :parse {:left-space :keep :interpose "\n\n\n\n\n\n\n"} :output {:format :hiccup}}))
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"}
+      "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"]]
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string? true,
+                 :parse {:left-space :keep, :interpose "\n\n\n\n\n\n\n"},
+                 :output {:format :hiccup}}))
 
-; #2
+  ; #2
 
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span></p>"
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string? true :parse {:left-space :keep :interpose "\n\n\n\n\n\n\n"} :output {:format :html}}))
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span></p>"
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string? true,
+                 :parse {:left-space :keep, :interpose "\n\n\n\n\n\n\n"},
+                 :output {:format :html}}))
 
-; For the :color? true tests, we had to make println a "fn" using the :fn-map,
-; so that it would also be blue when using cljs.
+  ; For the :color? true tests, we had to make println a "fn" using the :fn-map,
+  ; so that it would also be blue when using cljs.
 
-; 1 with :color? true
+  ; 1 with :color? true
 
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:green"} "("] [:span {:style "color:blue"} "defn"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "abc"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:purple"} "[]"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:green"} "("] [:span {:style "color:blue"} "println"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} "))"]]
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string? true :parse {:left-space :keep :interpose "\n\n\n\n\n\n\n"} :output {:format :hiccup} :color? true :fn-map {"println" :none}}))
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:green"} "("] [:span {:style "color:blue"} "defn"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "abc"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:purple"} "[]"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:green"} "("]
+     [:span {:style "color:blue"} "println"]
+     [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} "))"]]
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string? true,
+                 :parse {:left-space :keep, :interpose "\n\n\n\n\n\n\n"},
+                 :output {:format :hiccup},
+                 :color? true,
+                 :fn-map {"println" :none}}))
 
-; #2 with :color? true
+  ; #2 with :color? true
 
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:green\">(</span><span style=\"color:blue\">defn</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">abc</span><span style=\"color:black\">&nbsp</span><span style=\"color:purple\">[]</span><span style=\"color:black\">&nbsp</span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">))</span></p>"
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string? true :parse {:left-space :keep :interpose "\n\n\n\n\n\n\n"} :output {:format :html} :color? true :fn-map {"println" :none}}))
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:green\">(</span><span style=\"color:blue\">defn</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">abc</span><span style=\"color:black\">&nbsp</span><span style=\"color:purple\">[]</span><span style=\"color:black\">&nbsp</span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">))</span></p>"
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string? true,
+                 :parse {:left-space :keep, :interpose "\n\n\n\n\n\n\n"},
+                 :output {:format :html},
+                 :color? true,
+                 :fn-map {"println" :none}}))
 
-; 3 
+  ; 3
 
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(println&nbsp:a)"]]
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :output {:format :hiccup}}))
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"]
+     [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:black"} "(println&nbsp:a)"]]
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true, :output {:format :hiccup}}))
 
-; 4 
+  ; 4
 
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span><span style=\"color:black\"><br></span><span style=\"color:black\">(println&nbsp:a)</span></p>"
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :output {:format :html}}))
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span><span style=\"color:black\"><br></span><span style=\"color:black\">(println&nbsp:a)</span></p>"
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true, :output {:format :html}}))
 
-; 3 with :color? true
+  ; 3 with :color? true
 
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:green"} "("] [:span {:style "color:blue"} "defn"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "abc"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:purple"} "[]"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:green"} "("] [:span {:style "color:blue"} "println"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} "))"] [:span {:style "color:black"} "<br>"] [:span {:style "color:green"} "("] [:span {:style "color:blue"} "println"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} ")"]]
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :output {:format :hiccup} :color? true :fn-map {"println" :none}}))
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:green"} "("] [:span {:style "color:blue"} "defn"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "abc"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:purple"} "[]"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:green"} "("]
+     [:span {:style "color:blue"} "println"]
+     [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} "))"]
+     [:span {:style "color:black"} "<br>"] [:span {:style "color:green"} "("]
+     [:span {:style "color:blue"} "println"]
+     [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} ")"]]
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true,
+                 :output {:format :hiccup},
+                 :color? true,
+                 :fn-map {"println" :none}}))
 
-; 4 with :color? true
+  ; 4 with :color? true
 
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:green\">(</span><span style=\"color:blue\">defn</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">abc</span><span style=\"color:black\">&nbsp</span><span style=\"color:purple\">[]</span><span style=\"color:black\">&nbsp</span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">))</span><span style=\"color:black\"><br></span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">)</span></p>"
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :output {:format :html} :color? true :fn-map {"println" :none}}))
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:green\">(</span><span style=\"color:blue\">defn</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">abc</span><span style=\"color:black\">&nbsp</span><span style=\"color:purple\">[]</span><span style=\"color:black\">&nbsp</span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">))</span><span style=\"color:black\"><br></span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">)</span></p>"
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true,
+                 :output {:format :html},
+                 :color? true,
+                 :fn-map {"println" :none}}))
 
-; 7 
+  ; 7
 
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"] [:span {:style "color:black"} "<br><br><br><br><br><br><br>"] [:span {:style "color:black"} "(println&nbsp:a)"]]
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :parse {:left-space :keep :interpose "\n\n\n\n\n\n\n"} :output {:format :hiccup}}))
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"]
+     [:span {:style "color:black"} "<br><br><br><br><br><br><br>"]
+     [:span {:style "color:black"} "(println&nbsp:a)"]]
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true,
+                 :parse {:left-space :keep, :interpose "\n\n\n\n\n\n\n"},
+                 :output {:format :hiccup}}))
 
-;8 
+  ;8
 
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span><span style=\"color:black\"><br><br><br><br><br><br><br></span><span style=\"color:black\">(println&nbsp:a)</span></p>"
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :parse {:left-space :keep :interpose "\n\n\n\n\n\n\n"} :output {:format :html}}))
-
-
-; #5
-
- (expect
- [:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"] [:span {:style "color:black"} "<br><br><br><br><br>"] [:span {:style "color:black"} "(println&nbsp:a)"]]
- (zprint-file-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" "x" {:output {:format :hiccup}}))
-
-; #6
-
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span><span style=\"color:black\"><br><br><br><br><br></span><span style=\"color:black\">(println&nbsp:a)</span></p>"
-(zprint-file-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" "x" {:output {:format :html}}))
-
-; 9
-
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"] [:span {:style "color:black"} "<br><br><br>"] [:span {:style "color:black"} "(println&nbsp:a)"]]
-(zprint-file-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" "x" {:output {:format :hiccup} :parse {:interpose "\n\n\n"}}))
-
-; 10
-
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span><span style=\"color:black\"><br><br><br></span><span style=\"color:black\">(println&nbsp:a)</span></p>"
-(zprint-file-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" "x" {:output {:format :html} :parse {:interpose "\n\n\n"}}))
-
-; 9 with :color? true
-
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:green"} "("] [:span {:style "color:blue"} "defn"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "abc"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:purple"} "[]"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:green"} "("] [:span {:style "color:blue"} "println"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} "))"] [:span {:style "color:black"} "<br><br><br>"] [:span {:style "color:green"} "("] [:span {:style "color:blue"} "println"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} ")"]]
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :output {:format :hiccup} :parse {:interpose "\n\n\n"} :color? true :fn-map {"println" :none}}))
-
-; 10 with :color? true
-
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:green\">(</span><span style=\"color:blue\">defn</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">abc</span><span style=\"color:black\">&nbsp</span><span style=\"color:purple\">[]</span><span style=\"color:black\">&nbsp</span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">))</span><span style=\"color:black\"><br><br><br></span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">)</span></p>"
-(zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)" {:parse-string-all? true :output {:format :html} :parse {:interpose "\n\n\n"} :color? true :fn-map {"println" :none}}))
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span><span style=\"color:black\"><br><br><br><br><br><br><br></span><span style=\"color:black\">(println&nbsp:a)</span></p>"
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true,
+                 :parse {:left-space :keep, :interpose "\n\n\n\n\n\n\n"},
+                 :output {:format :html}}))
 
 
-;;
-;; :format :off tests
-;;
+  ; #5
 
-(def rffb
-"(defn reformat-form
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"]
+     [:span {:style "color:black"} "<br><br><br><br><br>"]
+     [:span {:style "color:black"} "(println&nbsp:a)"]]
+    (zprint-file-str
+      "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+      "x"
+      {:output {:format :hiccup}}))
+
+  ; #6
+
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span><span style=\"color:black\"><br><br><br><br><br></span><span style=\"color:black\">(println&nbsp:a)</span></p>"
+    (zprint-file-str
+      "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+      "x"
+      {:output {:format :html}}))
+
+  ; 9
+
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"} "(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))"]
+     [:span {:style "color:black"} "<br><br><br>"]
+     [:span {:style "color:black"} "(println&nbsp:a)"]]
+    (zprint-file-str
+      "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+      "x"
+      {:output {:format :hiccup}, :parse {:interpose "\n\n\n"}}))
+
+  ; 10
+
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">(defn&nbspabc&nbsp[]&nbsp(println&nbsp:a))</span><span style=\"color:black\"><br><br><br></span><span style=\"color:black\">(println&nbsp:a)</span></p>"
+    (zprint-file-str
+      "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+      "x"
+      {:output {:format :html}, :parse {:interpose "\n\n\n"}}))
+
+  ; 9 with :color? true
+
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:green"} "("] [:span {:style "color:blue"} "defn"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "abc"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:purple"} "[]"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:green"} "("]
+     [:span {:style "color:blue"} "println"]
+     [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} "))"]
+     [:span {:style "color:black"} "<br><br><br>"]
+     [:span {:style "color:green"} "("] [:span {:style "color:blue"} "println"]
+     [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:magenta"} ":a"] [:span {:style "color:green"} ")"]]
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true,
+                 :output {:format :hiccup},
+                 :parse {:interpose "\n\n\n"},
+                 :color? true,
+                 :fn-map {"println" :none}}))
+
+  ; 10 with :color? true
+
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:green\">(</span><span style=\"color:blue\">defn</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">abc</span><span style=\"color:black\">&nbsp</span><span style=\"color:purple\">[]</span><span style=\"color:black\">&nbsp</span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">))</span><span style=\"color:black\"><br><br><br></span><span style=\"color:green\">(</span><span style=\"color:blue\">println</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:a</span><span style=\"color:green\">)</span></p>"
+    (zprint-str "    (defn abc [] (println :a))      \n\n\n\n\n   (println :a)"
+                {:parse-string-all? true,
+                 :output {:format :html},
+                 :parse {:interpose "\n\n\n"},
+                 :color? true,
+                 :fn-map {"println" :none}}))
+
+
+  ;;
+  ;; :format :off tests
+  ;;
+
+  (def rffb
+    "(defn reformat-form
 [form & [{:as opts}]]
 ; This is a comment
 (-> form
@@ -924,15 +1034,16 @@ insert-missing-whitespace)
 (cond-> (:indentation? opts true)
 (reindent (:indents opts {})))))")
 
- (expect
-"(defn reformat-form\n[form & [{:as opts}]]\n; This is a comment\n(-> form\n#_(cond-> (:remove-surrounding-whitespace? opts true)\nremove-surrounding-whitespace)\n(cond-> (:insert-missing-whitespace? opts true)\ninsert-missing-whitespace)\n(cond-> (:indentation? opts true)\n(reindent (:indents opts )))))"
- (zprint-str rffb {:parse-string? true :format :off}))
+  (expect
+    "(defn reformat-form\n[form & [{:as opts}]]\n; This is a comment\n(-> form\n#_(cond-> (:remove-surrounding-whitespace? opts true)\nremove-surrounding-whitespace)\n(cond-> (:insert-missing-whitespace? opts true)\ninsert-missing-whitespace)\n(cond-> (:indentation? opts true)\n(reindent (:indents opts )))))"
+    (zprint-str rffb {:parse-string? true, :format :off}))
 
-(expect 709
-(count (zprint-str rffb {:parse-string? true :format :off :color? true})))
+  (expect
+    709
+    (count (zprint-str rffb {:parse-string? true, :format :off, :color? true})))
 
-(def rffc
-"(defn reformat-form
+  (def rffc
+    "(defn reformat-form
 [form & [{:as opts}]]
 ; This is a comment
 (-> form
@@ -944,20 +1055,20 @@ insert-missing-whitespace)
 (cond-> (:indentation? opts true)
 (reindent (:indents opts {})))))")
 
-(expect
-"(defn reformat-form\n  [form & [{:as opts}]]\n  ; This is a comment\n  (-> form\n      #_(cond-> (:remove-surrounding-whitespace? opts true)\n                  remove-surrounding-whitespace)      ; This is an inline\n                                                      ; comment\n      (cond-> (:insert-missing-whitespace? opts true) ; an aligned inline\n                                                      ; comment\n                ; This is a comment that is really much too long and will need\n                ; to wrap, somewhere around after the r in somewhere.\n                insert-missing-whitespace)\n      (cond-> (:indentation? opts true) (reindent (:indents opts {})))))"
-(zprint-str rffc {:parse-string? true}))
+  (expect
+    "(defn reformat-form\n  [form & [{:as opts}]]\n  ; This is a comment\n  (-> form\n      #_(cond-> (:remove-surrounding-whitespace? opts true)\n                  remove-surrounding-whitespace)      ; This is an inline\n                                                      ; comment\n      (cond-> (:insert-missing-whitespace? opts true) ; an aligned inline\n                                                      ; comment\n                ; This is a comment that is really much too long and will need\n                ; to wrap, somewhere around after the r in somewhere.\n                insert-missing-whitespace)\n      (cond-> (:indentation? opts true) (reindent (:indents opts {})))))"
+    (zprint-str rffc {:parse-string? true}))
 
-(expect
-"(defn reformat-form\n[form & [{:as opts}]]\n; This is a comment\n(-> form\n#_(cond-> (:remove-surrounding-whitespace? opts true)\nremove-surrounding-whitespace)                   ; This is an inline comment\n(cond-> (:insert-missing-whitespace? opts true)  ; an aligned inline comment\n; This is a comment that is really much too long and will need to wrap, somewhere around after the r in somewhere.\ninsert-missing-whitespace)\n(cond-> (:indentation? opts true)\n(reindent (:indents opts )))))"
-(zprint-str rffc {:parse-string? true :format :off}))
+  (expect
+    "(defn reformat-form\n[form & [{:as opts}]]\n; This is a comment\n(-> form\n#_(cond-> (:remove-surrounding-whitespace? opts true)\nremove-surrounding-whitespace)                   ; This is an inline comment\n(cond-> (:insert-missing-whitespace? opts true)  ; an aligned inline comment\n; This is a comment that is really much too long and will need to wrap, somewhere around after the r in somewhere.\ninsert-missing-whitespace)\n(cond-> (:indentation? opts true)\n(reindent (:indents opts )))))"
+    (zprint-str rffc {:parse-string? true, :format :off}))
 
-;; 
-;; :format :off in ;!zprint API
-;;
+  ;;
+  ;; :format :off in ;!zprint API
+  ;;
 
-(def capi1a
-"(def abc
+  (def capi1a
+    "(def abc
 :def
 :ijk)
 
@@ -969,106 +1080,228 @@ insert-missing-whitespace)
 :v)
 ")
 
-(expect
-"<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:green\">(</span><span style=\"color:blue\">def</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">abc</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:def</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:ijk</span><span style=\"color:green\">)</span><span style=\"color:black\"><br><br></span><span style=\"color:green\">;!zprint&nbsp{:format&nbsp:off}<br></span><span style=\"color:black\"><br></span><span style=\"color:green\">(</span><span style=\"color:blue\">def</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">r</span><span style=\"color:black\"><br></span><span style=\"color:magenta\">:s</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:t</span><span style=\"color:black\"><br></span><span style=\"color:magenta\">:u</span><span style=\"color:black\"><br></span><span style=\"color:magenta\">:v</span><span style=\"color:green\">)</span><span style=\"color:black\"><br></span></p>"
-(zprint-file-str capi1a "x" {:output {:format :html} :color? true}))
+  (expect
+    "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:green\">(</span><span style=\"color:blue\">def</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">abc</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:def</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:ijk</span><span style=\"color:green\">)</span><span style=\"color:black\"><br><br></span><span style=\"color:green\">;!zprint&nbsp{:format&nbsp:off}<br></span><span style=\"color:black\"><br></span><span style=\"color:green\">(</span><span style=\"color:blue\">def</span><span style=\"color:black\">&nbsp</span><span style=\"color:black\">r</span><span style=\"color:black\"><br></span><span style=\"color:magenta\">:s</span><span style=\"color:black\">&nbsp</span><span style=\"color:magenta\">:t</span><span style=\"color:black\"><br></span><span style=\"color:magenta\">:u</span><span style=\"color:black\"><br></span><span style=\"color:magenta\">:v</span><span style=\"color:green\">)</span><span style=\"color:black\"><br></span></p>"
+    (zprint-file-str capi1a "x" {:output {:format :html}, :color? true}))
 
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:green"} "("] [:span {:style "color:blue"} "def"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "abc"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:magenta"} ":def"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:magenta"} ":ijk"] [:span {:style "color:green"} ")"] [:span {:style "color:black"} "<br><br>"] [:span {:style "color:green"} ";!zprint&nbsp{:format&nbsp:off}<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:green"} "("] [:span {:style "color:blue"} "def"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "r"] [:span {:style "color:black"} "<br>"] [:span {:style "color:magenta"} ":s"] [:span {:style "color:black"} "&nbsp"] [:span {:style "color:magenta"} ":t"] [:span {:style "color:black"} "<br>"] [:span {:style "color:magenta"} ":u"] [:span {:style "color:black"} "<br>"] [:span {:style "color:magenta"} ":v"] [:span {:style "color:green"} ")"] [:span {:style "color:black"} "<br>"]]
-(zprint-file-str capi1a "x" {:output {:format :hiccup} :color? true}))
-
-
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "(def&nbspabc&nbsp:def&nbsp:ijk)"] [:span {:style "color:black"} "<br><br>"] [:span {:style "color:black"} ";!zprint&nbsp{:format&nbsp:off}<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(def&nbspr<br>:s&nbsp:t<br>:u<br>:v)"] [:span {:style "color:black"} "<br>"]]
-(zprint-file-str capi1a "x" {:output {:format :hiccup}}))
-
-;;
-;; :output :range? true :input :range :start :end
-;; :output :format :hiccup/:html
-;;
-
-(expect
-[{:range {:actual-start 4, :actual-end 9}} [:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} ";!zprint&nbsp{:format&nbsp:off}<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(def&nbspr<br>:s&nbsp:t<br>:u<br>:v)"] [:span {:style "color:black"} "<br>"]]]
-(zprint-file-str capi1a "x" {:output {:format :hiccup :range? true} :input {:range {:start 5 :end 8}}}))
-
-(expect
-[{:range {:actual-start 4, :actual-end 9}} "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">;!zprint&nbsp{:format&nbsp:off}<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(def&nbspr<br>:s&nbsp:t<br>:u<br>:v)</span><span style=\"color:black\"><br></span></p>"]
-(zprint-file-str capi1a "x" {:output {:format :html :range? true} :input {:range {:start 5 :end 8}}}))
-
-;;
-;; :hiccup and :html with ranges 
-;;
-
-  (def sb4    "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;comment\n\n(defn ortst\n\"This is a test\"\n{:added 1.0, :static true}\n([x y] (or (list (list (list y (list x)))) ())))\n\n\n")
-
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))"] [:span {:style "color:black"} "<br><br>"] [:span {:style "color:black"} ";comment<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"] [:span {:style "color:black"} "<br><br><br>"]]
-(zprint-file-str sb4 "junk" {:output {:format :hiccup}}))
-
-(expect
-[{:range {:actual-start 0, :actual-end 13}} [:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))"] [:span {:style "color:black"} "<br><br>"] [:span {:style "color:black"} ";comment<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"] [:span {:style "color:black"} "<br>"]]]
-(zprint-file-str sb4 "junk" {:input {:range {:start 4, :end 11}} :output {:range? true :format :hiccup}}))
-
-(expect
-[{:range {:actual-start 8, :actual-end 13}} [:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} ";comment<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"] [:span {:style "color:black"} "<br>"]]]
-(zprint-file-str sb4 "junk" {:input {:range {:start 11, :end 11}} :output {:range? true :format :hiccup}}))
-
-(expect
-[{:range {:actual-start 0, :actual-end 13}} "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\"><br></span><span style=\"color:black\">(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))</span><span style=\"color:black\"><br><br></span><span style=\"color:black\">;comment<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))</span><span style=\"color:black\"><br></span></p>"]
-(zprint-file-str sb4 "junk" {:input {:range {:start 4, :end 11}} :output {:range? true :format :html}}))
-
-(expect
-[{:range {:actual-start 8, :actual-end 13}} "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">;comment<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))</span><span style=\"color:black\"><br></span></p>"]
-(zprint-file-str sb4 "junk" {:input {:range {:start 11, :end 11}} :output {:range? true :format :html}}))
-
-;;
-;; :hiccup and :html with ranges and shebang
-;;
-
-  (def sb5    "#!/usr/bin/env bb\n\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;comment\n\n(defn ortst\n\"This is a test\"\n{:added 1.0, :static true}\n([x y] (or (list (list (list y (list x)))) ())))\n\n\n")
-
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "#!/usr/bin/env&nbspbb<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))"] [:span {:style "color:black"} "<br><br>"] [:span {:style "color:black"} ";comment<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"] [:span {:style "color:black"} "<br><br><br>"]]
-(zprint-file-str sb5 "junk" {:output {:format :hiccup}}))
-
-(expect
-[:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} "#!/usr/bin/env&nbspbb<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))"] [:span {:style "color:black"} "<br><br>"] [:span {:style "color:black"} ";comment<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"] [:span {:style "color:black"} "<br><br><br>"]]
-(zprint-file-str sb5 "junk" {:output {:format :hiccup}}))
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:green"} "("] [:span {:style "color:blue"} "def"]
+     [:span {:style "color:black"} "&nbsp"] [:span {:style "color:black"} "abc"]
+     [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:magenta"} ":def"]
+     [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:magenta"} ":ijk"] [:span {:style "color:green"} ")"]
+     [:span {:style "color:black"} "<br><br>"]
+     [:span {:style "color:green"} ";!zprint&nbsp{:format&nbsp:off}<br>"]
+     [:span {:style "color:black"} "<br>"] [:span {:style "color:green"} "("]
+     [:span {:style "color:blue"} "def"] [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:black"} "r"] [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:magenta"} ":s"]
+     [:span {:style "color:black"} "&nbsp"]
+     [:span {:style "color:magenta"} ":t"] [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:magenta"} ":u"] [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:magenta"} ":v"] [:span {:style "color:green"} ")"]
+     [:span {:style "color:black"} "<br>"]]
+    (zprint-file-str capi1a "x" {:output {:format :hiccup}, :color? true}))
 
 
-(expect
-[{:range {:actual-start 9, :actual-end 14}} [:p {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"} [:span {:style "color:black"} ";comment<br>"] [:span {:style "color:black"} "<br>"] [:span {:style "color:black"} "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"] [:span {:style "color:black"} "<br>"]]]
-(zprint-file-str sb5 "junk" {:input {:range {:start 11, :end 11}} :output {:range? true :format :hiccup}}))
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"} "(def&nbspabc&nbsp:def&nbsp:ijk)"]
+     [:span {:style "color:black"} "<br><br>"]
+     [:span {:style "color:black"} ";!zprint&nbsp{:format&nbsp:off}<br>"]
+     [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:black"} "(def&nbspr<br>:s&nbsp:t<br>:u<br>:v)"]
+     [:span {:style "color:black"} "<br>"]]
+    (zprint-file-str capi1a "x" {:output {:format :hiccup}}))
 
-(expect
-[{:range {:actual-start 0, :actual-end 14}} "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">#!/usr/bin/env&nbspbb<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))</span><span style=\"color:black\"><br><br></span><span style=\"color:black\">;comment<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))</span><span style=\"color:black\"><br></span></p>"]
-(zprint-file-str sb5 "junk" {:input {:range {:start 4, :end 11}} :output {:range? true :format :html}}))
+  ;;
+  ;; :output :range? true :input :range :start :end
+  ;; :output :format :hiccup/:html
+  ;;
 
-(expect
-[{:range {:actual-start 9, :actual-end 14}} "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">;comment<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))</span><span style=\"color:black\"><br></span></p>"]
-(zprint-file-str sb5 "junk" {:input {:range {:start 11, :end 11}} :output {:range? true :format :html}}))
+  (expect
+    [{:range {:actual-start 4, :actual-end 9}}
+     [:p
+      {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+      [:span {:style "color:black"} ";!zprint&nbsp{:format&nbsp:off}<br>"]
+      [:span {:style "color:black"} "<br>"]
+      [:span {:style "color:black"} "(def&nbspr<br>:s&nbsp:t<br>:u<br>:v)"]
+      [:span {:style "color:black"} "<br>"]]]
+    (zprint-file-str capi1a
+                     "x"
+                     {:output {:format :hiccup, :range? true},
+                      :input {:range {:start 5, :end 8}}}))
 
-;;
-;; Errors for specifiying :hiccup or :html and :input :range without
-;; :output :range?
-;;
+  (expect
+    [{:range {:actual-start 4, :actual-end 9}}
+     "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">;!zprint&nbsp{:format&nbsp:off}<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(def&nbspr<br>:s&nbsp:t<br>:u<br>:v)</span><span style=\"color:black\"><br></span></p>"]
+    (zprint-file-str capi1a
+                     "x"
+                     {:output {:format :html, :range? true},
+                      :input {:range {:start 5, :end 8}}}))
 
-#?(:clj
-     (expect
-       "java.lang.Exception: You have specified {:output {:format :html} as well as an {:input {:range ...}}, and this is only supported when also using {:output {:range? true}}, which was not specified!"
-       (try (zprint-file-str sb5
-                             "junk"
-                             {:input {:range {:start 4, :end 11}},
-                              :output {:format :html}})
-            (catch Exception e (str e))))
-   :cljs
-     (expect
-       "Error: You have specified {:output {:format :html} as well as an {:input {:range ...}}, and this is only supported when also using {:output {:range? true}}, which was not specified!"
-       (try (zprint-file-str sb5
-                             "junk"
-                             {:input {:range {:start 4, :end 11}},
-                              :output {:format :html}})
-            (catch :default e (str e)))))
+  ;;
+  ;; :hiccup and :html with ranges
+  ;;
+
+  (def sb4
+    "\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;comment\n\n(defn ortst\n\"This is a test\"\n{:added 1.0, :static true}\n([x y] (or (list (list (list y (list x)))) ())))\n\n\n")
+
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:black"}
+      "(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))"]
+     [:span {:style "color:black"} "<br><br>"]
+     [:span {:style "color:black"} ";comment<br>"]
+     [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:black"}
+      "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"]
+     [:span {:style "color:black"} "<br><br><br>"]]
+    (zprint-file-str sb4 "junk" {:output {:format :hiccup}}))
+
+  (expect
+    [{:range {:actual-start 0, :actual-end 13}}
+     [:p
+      {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+      [:span {:style "color:black"} "<br>"]
+      [:span {:style "color:black"}
+       "(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))"]
+      [:span {:style "color:black"} "<br><br>"]
+      [:span {:style "color:black"} ";comment<br>"]
+      [:span {:style "color:black"} "<br>"]
+      [:span {:style "color:black"}
+       "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"]
+      [:span {:style "color:black"} "<br>"]]]
+    (zprint-file-str sb4
+                     "junk"
+                     {:input {:range {:start 4, :end 11}},
+                      :output {:range? true, :format :hiccup}}))
+
+  (expect
+    [{:range {:actual-start 8, :actual-end 13}}
+     [:p
+      {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+      [:span {:style "color:black"} ";comment<br>"]
+      [:span {:style "color:black"} "<br>"]
+      [:span {:style "color:black"}
+       "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"]
+      [:span {:style "color:black"} "<br>"]]]
+    (zprint-file-str sb4
+                     "junk"
+                     {:input {:range {:start 11, :end 11}},
+                      :output {:range? true, :format :hiccup}}))
+
+  (expect
+    [{:range {:actual-start 0, :actual-end 13}}
+     "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\"><br></span><span style=\"color:black\">(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))</span><span style=\"color:black\"><br><br></span><span style=\"color:black\">;comment<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))</span><span style=\"color:black\"><br></span></p>"]
+    (zprint-file-str sb4
+                     "junk"
+                     {:input {:range {:start 4, :end 11}},
+                      :output {:range? true, :format :html}}))
+
+  (expect
+    [{:range {:actual-start 8, :actual-end 13}}
+     "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">;comment<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))</span><span style=\"color:black\"><br></span></p>"]
+    (zprint-file-str sb4
+                     "junk"
+                     {:input {:range {:start 11, :end 11}},
+                      :output {:range? true, :format :html}}))
+
+  ;;
+  ;; :hiccup and :html with ranges and shebang
+  ;;
+
+  (def sb5
+    "#!/usr/bin/env bb\n\n(defmacro diff-com\n\"Is community formatting different?\"\n[f]\n`(if (= (zprint-fn-str ~f) (zprint-fn-str ~f {:style :community}))\n\"true\"\n(zprint-fn-str ~f)))\n\n;comment\n\n(defn ortst\n\"This is a test\"\n{:added 1.0, :static true}\n([x y] (or (list (list (list y (list x)))) ())))\n\n\n")
+
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"} "#!/usr/bin/env&nbspbb<br>"]
+     [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:black"}
+      "(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))"]
+     [:span {:style "color:black"} "<br><br>"]
+     [:span {:style "color:black"} ";comment<br>"]
+     [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:black"}
+      "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"]
+     [:span {:style "color:black"} "<br><br><br>"]]
+    (zprint-file-str sb5 "junk" {:output {:format :hiccup}}))
+
+  (expect
+    [:p
+     {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+     [:span {:style "color:black"} "#!/usr/bin/env&nbspbb<br>"]
+     [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:black"}
+      "(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))"]
+     [:span {:style "color:black"} "<br><br>"]
+     [:span {:style "color:black"} ";comment<br>"]
+     [:span {:style "color:black"} "<br>"]
+     [:span {:style "color:black"}
+      "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"]
+     [:span {:style "color:black"} "<br><br><br>"]]
+    (zprint-file-str sb5 "junk" {:output {:format :hiccup}}))
+
+
+  (expect
+    [{:range {:actual-start 9, :actual-end 14}}
+     [:p
+      {:style "font-size:20px;font-family: Lucidia Concole, Courier, monospace"}
+      [:span {:style "color:black"} ";comment<br>"]
+      [:span {:style "color:black"} "<br>"]
+      [:span {:style "color:black"}
+       "(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))"]
+      [:span {:style "color:black"} "<br>"]]]
+    (zprint-file-str sb5
+                     "junk"
+                     {:input {:range {:start 11, :end 11}},
+                      :output {:range? true, :format :hiccup}}))
+
+  (expect
+    [{:range {:actual-start 0, :actual-end 14}}
+     "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">#!/usr/bin/env&nbspbb<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defmacro&nbspdiff-com<br>&nbsp&nbsp\"Is&nbspcommunity&nbspformatting&nbspdifferent?\"<br>&nbsp&nbsp[f]<br>&nbsp&nbsp`(if&nbsp(=&nbsp(zprint-fn-str&nbsp~f)&nbsp(zprint-fn-str&nbsp~f&nbsp{:style&nbsp:community}))<br>&nbsp&nbsp&nbsp&nbsp&nbsp\"true\"<br>&nbsp&nbsp&nbsp&nbsp&nbsp(zprint-fn-str&nbsp~f)))</span><span style=\"color:black\"><br><br></span><span style=\"color:black\">;comment<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))</span><span style=\"color:black\"><br></span></p>"]
+    (zprint-file-str sb5
+                     "junk"
+                     {:input {:range {:start 4, :end 11}},
+                      :output {:range? true, :format :html}}))
+
+  (expect
+    [{:range {:actual-start 9, :actual-end 14}}
+     "<p style=\"font-size:20px;font-family: Lucidia Concole, Courier, monospace\"><span style=\"color:black\">;comment<br></span><span style=\"color:black\"><br></span><span style=\"color:black\">(defn&nbsportst<br>&nbsp&nbsp\"This&nbspis&nbspa&nbsptest\"<br>&nbsp&nbsp{:added&nbsp1.0,&nbsp:static&nbsptrue}<br>&nbsp&nbsp([x&nbspy]&nbsp(or&nbsp(list&nbsp(list&nbsp(list&nbspy&nbsp(list&nbspx))))&nbsp())))</span><span style=\"color:black\"><br></span></p>"]
+    (zprint-file-str sb5
+                     "junk"
+                     {:input {:range {:start 11, :end 11}},
+                      :output {:range? true, :format :html}}))
+
+  ;;
+  ;; Errors for specifiying :hiccup or :html and :input :range without
+  ;; :output :range?
+  ;;
+
+  #?(:clj
+       (expect
+         "java.lang.Exception: You have specified {:output {:format :html} as well as an {:input {:range ...}}, and this is only supported when also using {:output {:range? true}}, which was not specified!"
+         (try (zprint-file-str sb5
+                               "junk"
+                               {:input {:range {:start 4, :end 11}},
+                                :output {:format :html}})
+              (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error: You have specified {:output {:format :html} as well as an {:input {:range ...}}, and this is only supported when also using {:output {:range? true}}, which was not specified!"
+         (try (zprint-file-str sb5
+                               "junk"
+                               {:input {:range {:start 4, :end 11}},
+                                :output {:format :html}})
+              (catch :default e (str e)))))
 
 
 

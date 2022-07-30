@@ -197,7 +197,10 @@
     (when (not (nil? nloc))
       (if (zthing? nloc) i (recur (zrightnws nloc) (inc i))))))
 
-(defn znl [] "Return a zloc which is a newline." (of-node* (p/parse-string "\n")))
+(defn znl
+  []
+  "Return a zloc which is a newline."
+  (of-node* (p/parse-string "\n")))
 
 (defn multi-nl
   "Return a sequence of zloc newlines."
@@ -431,9 +434,9 @@
             nl? (= (z/tag nloc) :newline)
             ; This may reset the nloc for the rest of the sequence!
             nloc (if comment? (split-newline-from-comment nloc) nloc)
-            result (zfn nloc) #_(when (or (not (whitespace? nloc))
-                             (and nl? previous-comment?))
-                     (zfn nloc))]
+            result (zfn nloc)
+            #_(when (or (not (whitespace? nloc)) (and nl? previous-comment?))
+                (zfn nloc))]
         (recur (right* nloc) comment? (if result (conj out result) out))))))
 
 
@@ -663,10 +666,10 @@
   (if-let [doc-zloc (find-docstring zloc)]
     (let [new-doc-zloc (replace* doc-zloc
                                  (z/node (of-node* (p/parse-string
-                                                 (str "\""
-                                                      (str (sexpr doc-zloc))
-                                                      spec-str
-                                                      "\"")))))]
+                                                     (str "\""
+                                                          (str (sexpr doc-zloc))
+                                                          spec-str
+                                                          "\"")))))]
       (of-node* (z/root new-doc-zloc)))
     zloc))
 
@@ -733,14 +736,14 @@
                       (recur ns
                              (next pair-seq)
                              (conj out
-                                   (cons (of-node* (n/token-node (strip-ns (z/sexpr
-                                                                         k))))
+                                   (cons (of-node* (n/token-node
+                                                     (strip-ns (z/sexpr k))))
                                          rest-of-pair))))
                     (recur current-ns
                            (next pair-seq)
                            (conj out
-                                 (cons (of-node* (n/token-node (strip-ns (z/sexpr
-                                                                       k))))
+                                 (cons (of-node* (n/token-node (strip-ns
+                                                                 (z/sexpr k))))
                                        rest-of-pair))))
                   (when (= (count pair) 1)
                     (recur ns (next pair-seq) (conj out pair)))))))))
@@ -770,17 +773,17 @@
                   ; Skip single things
                   (= (count pair) 1) (recur (next pair-seq) (conj out pair))
                   :else
-                    (recur
-                      (next pair-seq)
-                      (conj out
-                            ; put ns with k
-                            (cons (of-node* (n/token-node
-                                          (symbol
-                                            ; If k is a zkeyword? then it
-                                            ; is a :token, and will not
-                                            ; have a problem with z/sexpr
-                                            (str ns "/" (name (z/sexpr k))))))
-                                  rest-of-pair)))))))
+                    (recur (next pair-seq)
+                           (conj out
+                                 ; put ns with k
+                                 (cons (of-node*
+                                         (n/token-node
+                                           (symbol
+                                             ; If k is a zkeyword? then it
+                                             ; is a :token, and will not
+                                             ; have a problem with z/sexpr
+                                             (str ns "/" (name (z/sexpr k))))))
+                                       rest-of-pair)))))))
     :else [ns pair-seq]))
 
 ;!zprint {:vector {:respect-nl? true}}

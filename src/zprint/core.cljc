@@ -29,8 +29,8 @@
     [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?
                                 find-root-and-path-nw]]
     [zprint.sutil]
-    [zprint.util :refer [dissoc-two]]
-    [zprint.hiccup :refer [wrap-w-p hiccup->html]]
+    [zprint.util        :refer [dissoc-two]]
+    [zprint.hiccup      :refer [wrap-w-p hiccup->html]]
     [zprint.focus       :refer [range-ssv]]
     [zprint.range       :refer [expand-range-to-top-level split-out-range
                                 reassemble-range wrap-comment-api drop-lines]]
@@ -733,21 +733,17 @@
       (if (string? coll)
         (let [[line-ending lines] (determine-ending-split-lines coll)
               actual-options (determine-options full-options rest-options)
-	      ; Can we even do this?
-	      _ (check-output-format-string actual-options)
-	      ; Fix up :interpose and others
-	      actual-options (parse-string-all-options actual-options)
-
+              ; Can we even do this?
+              _ (check-output-format-string actual-options)
+              ; Fix up :interpose and others
+              actual-options (parse-string-all-options actual-options)
               ; Don't forget :html before we change it
-	      html? (= :html (:format (:output actual-options)))
-
-	      ; Turn :hiccup or :html into :hiccup-multiple
+              html? (= :html (:format (:output actual-options)))
+              ; Turn :hiccup or :html into :hiccup-multiple
               actual-options
-	       (if (or (= :hiccup (:format (:output actual-options))) html?)
-		 (assoc-in actual-options [:output :format] :hiccup-multiple)
-		 actual-options)
-
-
+                (if (or (= :hiccup (:format (:output actual-options))) html?)
+                  (assoc-in actual-options [:output :format] :hiccup-multiple)
+                  actual-options)
               lines (if (:expand? (:tab actual-options))
                       (map (partial expand-tabs (:size (:tab actual-options)))
                         lines)
@@ -762,8 +758,9 @@
               ; the whole file when a tab is found.
               coll (clojure.string/join "\n" lines)
               [result error-vec final-options]
-                (process-multiple-forms actual-options #_full-options
-                                        {} 
+                (process-multiple-forms actual-options
+                                        #_full-options
+                                        {}
                                         zprint-str-internal
                                         ":parse-string-all? call"
                                         (of-node* (p/parse-string-all coll)))
@@ -772,20 +769,19 @@
               ; already.
               #_(def pmr-result result)
               str-w-line-endings
-
-            (cond html? (->> result
-                                    (filter vector?)
-                                    (reduce into)
-                                    (wrap-w-p actual-options)
-                                    (hiccup->html))
-                         (= :hiccup-multiple (:format (:output actual-options)))
-                           (->> result
-                                (filter vector?)
-                                (reduce into)
-                                (wrap-w-p actual-options))
-                         (or (nil? line-ending) (= line-ending "\n")) result
-                         :else
-                           (clojure.string/replace result "\n" line-ending))]
+                (cond
+                  html? (->> result
+                             (filter vector?)
+                             (reduce into)
+                             (wrap-w-p actual-options)
+                             (hiccup->html))
+                  (= :hiccup-multiple (:format (:output actual-options)))
+                    (->> result
+                         (filter vector?)
+                         (reduce into)
+                         (wrap-w-p actual-options))
+                  (or (nil? line-ending) (= line-ending "\n")) result
+                  :else (clojure.string/replace result "\n" line-ending))]
           (dbg rest-options "zprint-str-internal ^^^ pmf ^^^ pmf ^^^ pmf ^^^")
           str-w-line-endings)
         (throw (#?(:clj Exception.
@@ -800,11 +796,10 @@
                        "\n\n\noptions:" (apply sorted-map
                                           (flatten (seq options))))
             #_(def aopt actual-options)
-	    _ (check-output-format-string actual-options)
-	    hiccup? (= :hiccup (:format (:output options)))
-	    hiccup-multiple? 
-	      (= :hiccup-multiple (:format (:output options)))
-	    html? (= :html (:format (:output options)))
+            _ (check-output-format-string actual-options)
+            hiccup? (= :hiccup (:format (:output options)))
+            hiccup-multiple? (= :hiccup-multiple (:format (:output options)))
+            html? (= :html (:format (:output options)))
             cvec-wo-empty cvec
             #_(def cvwoe cvec-wo-empty)
             focus-vec (if-let [path (:path (:focus (:output options)))]
@@ -818,30 +813,29 @@
                          (find-eol-blanks options cvec-wo-empty coll nil))
             eol-str (when (not (empty? eol-blanks))
                       (str "=======  eol-blanks: " eol-blanks))
-	    format-off? (= :off (:format options))
+            format-off? (= :off (:format options))
             inline-style-vec (if (:inline? (:comment options))
                                (fzprint-inline-comments options cvec-wo-empty)
                                cvec-wo-empty)
             #_(def ssvi inline-style-vec)
-            inline-style-vec (if (and (:inline? (:comment options))
-	                              (not format-off?))
-                               (fzprint-align-inline-comments options
-                                                              inline-style-vec)
-                               inline-style-vec)
+            inline-style-vec
+              (if (and (:inline? (:comment options)) (not format-off?))
+                (fzprint-align-inline-comments options inline-style-vec)
+                inline-style-vec)
             #_(def ssvia inline-style-vec)
-	    ; The map here is ctx to all of the downstream routines
-            str-style-vec (cvec-to-style-vec {:style-map no-style-map,
-                                              :elide (:elide (:output options))
-					      :none-to-nil?
-					      (if (or hiccup? hiccup-multiple?
-					              html?)
-						      false true)}
-                                             inline-style-vec
-                                             focus-vec
-                                             accept-vec)
+            ; The map here is ctx to all of the downstream routines
+            str-style-vec
+              (cvec-to-style-vec
+                {:style-map no-style-map,
+                 :elide (:elide (:output options)),
+                 :none-to-nil?
+                   (if (or hiccup? hiccup-multiple? html?) false true)}
+                inline-style-vec
+                focus-vec
+                accept-vec)
             #_(def ssvx str-style-vec)
             wrapped-style-vec (if (and (:wrap? (:comment options))
-	                               (not format-off?))
+                                       (not format-off?))
                                 (fzprint-wrap-comments options str-style-vec)
                                 str-style-vec)
             #_(def ssvy wrapped-style-vec)
@@ -857,25 +851,28 @@
             ; don't do extra processing unless we really need it
             #_(def fcs (mapv first comp-style))
             #_(def le line-ending)
-	    ; Fix this so :hiccup works w/out colors
-            color-style (if (or accept-vec focus-vec (:color? options)
-	                        hiccup? hiccup-multiple? html?)
+            ; Fix this so :hiccup works w/out colors
+            color-style (if (or accept-vec
+                                focus-vec
+                                (:color? options)
+                                hiccup?
+                                hiccup-multiple?
+                                html?)
                           (color-comp-vec options comp-style)
                           (apply str (mapv first comp-style)))
             #_(def cs color-style)
-	    #_(def oo (:output options))
-	    result (cond hiccup? (wrap-w-p options color-style)
-	                 hiccup-multiple? color-style
-	                 html? (->> color-style
-			           (wrap-w-p options)
-				   (hiccup->html))
-
-			 :else
-			  (if (or (nil? line-ending) (= line-ending "\n"))
-			    color-style
-			    (clojure.string/replace color-style "\n" line-ending)))
-			      
-	    #_(def rslt result)]
+            #_(def oo (:output options))
+            result (cond hiccup? (wrap-w-p options color-style)
+                         hiccup-multiple? color-style
+                         html? (->> color-style
+                                    (wrap-w-p options)
+                                    (hiccup->html))
+                         :else (if (or (nil? line-ending) (= line-ending "\n"))
+                                 color-style
+                                 (clojure.string/replace color-style
+                                                         "\n"
+                                                         line-ending)))
+            #_(def rslt result)]
         (dbg rest-options "zprint-str-internal ^^^^^^^^^^^^^^^^^^")
         (if eol-str
           eol-str
@@ -986,7 +983,7 @@
   [coll & rest]
   (println (apply zprint-str-internal
              (get-configured-options)
-             {:color? true :fn-str "czprint"}
+             {:color? true, :fn-str "czprint"}
              coll
              rest)))
 
@@ -1102,7 +1099,7 @@
 
 (defn ^:no-doc prepend-hvec-str
   "Given a vector containing a hiccup-vec or a string, prepend a
-  string into that hiccup-vec or onto the string." 
+  string into that hiccup-vec or onto the string."
   [options s hvec-or-str]
   #_(prn "prepend-hvec-str: s:" s "hvec-or-str:" hvec-or-str)
   (if (empty? s)
@@ -1272,8 +1269,9 @@
               (do #_(println "********* format internal" (:format
                                                            internal-options)
                              "format decision" (:format decision-options))
-		  (zprint-fn full-options (assoc internal-options
-		                              :format :off) form))
+                  (zprint-fn full-options
+                             (assoc internal-options :format :off)
+                             form))
               ; call zprint-str-internal or an alternative if one exists
               (zprint-fn full-options internal-options form)))
         ; Implement left-space keep when *after* doing zprint (or not) on
@@ -1281,42 +1279,47 @@
         #_(prn "process-form: late form:" (string form))
         #_(prn "process-form: output-str:" output-str)
         #_(prn "process-form: (:parse decision-options):"
-              (:parse decision-options))
+               (:parse decision-options))
         #_(prn "process-form: (:format (:output decision-options)):"
                (:format (:output decision-options)))
-	; Interesting question as to whether or not we should be using
-	; full-options or decision-options for the prepend-hvec-str
-	; below.  It is only looking at :ouput {:format ...}, and if
-	; you are changing that in ;!zprint directives, you are going to
-	; get junk.  But it seems more consistent to use decision-options
-	; than full-options.
-        new-output-str 
-	             (cond
-                         skip-since-spaces? output-str
-                         newline? output-str
-                         comment? (prepend-hvec-str decision-options (blanks indent) output-str)
-                         (and (not previous-newline?)
-                              (= (:left-space (:parse decision-options)) :keep))
-			   (do #_(println "process-form: :left-space :keep"
-			          "output-str:" output-str
-				  "(str \n (blanks indent))"  (str "\n" (blanks indent))
-				  "(prepend-hvec-str ...):"
-				  (prepend-hvec-str decision-options
-				    (str "\n" (blanks indent)) output-str))
-			   (prepend-hvec-str decision-options
-                           (str "\n" (blanks indent)) output-str))
-                         (not previous-newline?) 
-			      (prepend-hvec-str decision-options "\n" output-str)
-                         ; previous was newline is now implied
-                         (or (= (:left-space (:parse decision-options)) :keep)
-                             (= (:format decision-options) :skip)
-                             (= (:format decision-options) :off))
-			   (do #_(prn "process-form, :left-space :keep 2"
-			   (prepend-hvec-str decision-options (blanks indent) output-str))
-			          
-			   (prepend-hvec-str decision-options (blanks indent) output-str))
-                         :else output-str)
-	
+        ; Interesting question as to whether or not we should be using
+        ; full-options or decision-options for the prepend-hvec-str
+        ; below.  It is only looking at :ouput {:format ...}, and if
+        ; you are changing that in ;!zprint directives, you are going to
+        ; get junk.  But it seems more consistent to use decision-options
+        ; than full-options.
+        new-output-str
+          (cond skip-since-spaces? output-str
+                newline? output-str
+                comment?
+                  (prepend-hvec-str decision-options (blanks indent) output-str)
+                (and (not previous-newline?)
+                     (= (:left-space (:parse decision-options)) :keep))
+                  (do #_(println "process-form: :left-space :keep"
+                                 "output-str:" output-str
+                                 "(str \n (blanks indent))"
+                                   (str "\n" (blanks indent))
+                                 "(prepend-hvec-str ...):"
+                                   (prepend-hvec-str decision-options
+                                                     (str "\n" (blanks indent))
+                                                     output-str))
+                      (prepend-hvec-str decision-options
+                                        (str "\n" (blanks indent))
+                                        output-str))
+                (not previous-newline?)
+                  (prepend-hvec-str decision-options "\n" output-str)
+                ; previous was newline is now implied
+                (or (= (:left-space (:parse decision-options)) :keep)
+                    (= (:format decision-options) :skip)
+                    (= (:format decision-options) :off))
+                  (do #_(prn "process-form, :left-space :keep 2"
+                             (prepend-hvec-str decision-options
+                                               (blanks indent)
+                                               output-str))
+                      (prepend-hvec-str decision-options
+                                        (blanks indent)
+                                        output-str))
+                :else output-str)
         #_(prn "process-form: new-output-str:" new-output-str)
         #_(do (println "-----------------------")
               (println "form:")
@@ -1542,7 +1545,7 @@
     #_(def sos seq-of-strings)
     #_(def is interpose-str)
     [(if interpose-str
-       ; Used final-options here because rest and full options are 
+       ; Used final-options here because rest and full options are
        ; already integrated.
        (interpose-w-comment final-options seq-of-strings interpose-str)
        (if hiccup? seq-of-strings (apply str seq-of-strings))) error-vec
@@ -1579,7 +1582,7 @@
                updated-map))
          ; Don't forget :html before we change it
          html? (= :html (:format (:output full-options)))
-	 hiccup? (= :hiccup (:format (:output full-options)))
+         hiccup? (= :hiccup (:format (:output full-options)))
          ; Turn :hiccup or :html into :hiccup-multiple
          full-options
            (if (or (= :hiccup (:format (:output full-options))) html?)
@@ -1609,34 +1612,30 @@
            range-end (:end (:range (:input full-options)))
            ; If shebang correct for one less line
            range-end (when range-end (if shebang (dec range-end) range-end))
-	   range? (or range-start range-end)
+           range? (or range-start range-end)
            range-output? (and range? (:range? (:output full-options)))
-	   ; :hiccup and :html only allowed with range? if we also are
-	   ; doing range-output?, since range-output? only returns the
-	   ; actually formatted stuff.  Since formatting is what turns
-	   ; the output into :hiccup (and then into :html), that is the
-	   ; best we can do.  We could do :format :off for the rest, but
-	   ; that doesn't see like a useful thing to do at this point.
-	   _ (when (and (or hiccup? html?)
-	                range?
-			(not range-output?))
+           ; :hiccup and :html only allowed with range? if we also are
+           ; doing range-output?, since range-output? only returns the
+           ; actually formatted stuff.  Since formatting is what turns
+           ; the output into :hiccup (and then into :html), that is the
+           ; best we can do.  We could do :format :off for the rest, but
+           ; that doesn't see like a useful thing to do at this point.
+           _ (when (and (or hiccup? html?) range? (not range-output?))
                (throw (#?(:clj Exception.
                           :cljs js/Error.)
                        (str "You have specified {:output {:format "
-		            (if hiccup? ":hiccup" ":html")
-			    "} as well as an {:input {:range ...}},"
-			    " and this is only supported when also using"
-			    " {:output {:range? true}}, which was not"
-			    " specified!"))))
+                              (if hiccup? ":hiccup" ":html")
+                            "} as well as an {:input {:range ...}},"
+                              " and this is only supported when also using"
+                            " {:output {:range? true}}, which was not"
+                              " specified!"))))
            _ (when range?
                (dbg new-options
                     "zprint-file-str: range-start:" range-start
                     "range-end:" range-end))
            ; If we are doing ranges, we really care about lines being a
            ; vector
-           lines (if (and range? (not (vector? lines)))
-                   (into [] lines)
-                   lines)
+           lines (if (and range? (not (vector? lines))) (into [] lines) lines)
            [actual-start actual-end] (when range?
                                        (expand-range-to-top-level
                                          filestring
@@ -1658,10 +1657,12 @@
                                (wrap-comment-api before-lines))
            #_(prn "comment-api-lines:" comment-api-lines)
            range-lines (if (and range-lines comment-api-lines)
-                   ; (count  comment-api-lines) is the count to remove later
-                   (into [] (concat comment-api-lines range-lines))
-                   range-lines)
-           filestring (if range-lines (clojure.string/join "\n" range-lines) filestring)
+                         ; (count  comment-api-lines) is the count to remove
+                         ; later
+                         (into [] (concat comment-api-lines range-lines))
+                         range-lines)
+           filestring
+             (if range-lines (clojure.string/join "\n" range-lines) filestring)
            range-ends-with-nl? (when (and range-lines (not range-includes-end?))
                                  (clojure.string/ends-with? filestring "\n"))
            ends-with-nl? (clojure.string/ends-with? file-str "\n")
@@ -1692,7 +1693,7 @@
                                                zprint-specifier
                                                forms)
            _ (dbg-pr new-options "zprint-file-str: out-str:" out-str)
-	   #_ (prn "zprint-file-str: out-str:" out-str)
+           #_(prn "zprint-file-str: out-str:" out-str)
            error-vec (when (not (empty? error-vec)) error-vec)
            ; Get rid of any added comment-api lines on the front of
            ; a range.  If it wasn't a range, then comment-api-lines
@@ -1750,10 +1751,9 @@
                        "corrected-end:" corrected-end
                        "error-vec:" error-vec))
            ; Clean up the end of the range if it ended with a nl.
-	  
-           out-str  (if (and range-lines range-ends-with-nl?)
-	               (ensure-hvec-str-ends-with-nl full-options out-str)
-		       out-str)
+           out-str (if (and range-lines range-ends-with-nl?)
+                     (ensure-hvec-str-ends-with-nl full-options out-str)
+                     out-str)
            ; If we did a range, insert the formatted range back into
            ; the before and after lines  Unless we are going to output
            ; just the range.
@@ -1761,22 +1761,20 @@
                      (reassemble-range before-lines out-str after-lines)
                      out-str)
            ; Fix for :hiccup if we do it.
-	   #_ (println "actual-start:" actual-start)
-	   ; Remember that normally, the output from a range operation
-	   ; includes all of the lines, just the range lines were formatted.
-	   #_(def ostpr out-str)
-	   #_(def shb shebang)
-	   #_(def ast actual-start)
-           out-str (if range-output?
-                     (if (and shebang (= (max actual-start 0) 0))
-                       (prepend-hvec-str full-options
-		                      (str shebang "\n")
-				      out-str) 
-                       out-str)
-                     (if shebang (prepend-hvec-str full-options
-		                                   (str shebang "\n")
-						   out-str)
-				   out-str))
+           #_(println "actual-start:" actual-start)
+           ; Remember that normally, the output from a range operation
+           ; includes all of the lines, just the range lines were formatted.
+           #_(def ostpr out-str)
+           #_(def shb shebang)
+           #_(def ast actual-start)
+           out-str
+             (if range-output?
+               (if (and shebang (= (max actual-start 0) 0))
+                 (prepend-hvec-str full-options (str shebang "\n") out-str)
+                 out-str)
+               (if shebang
+                 (prepend-hvec-str full-options (str shebang "\n") out-str)
+                 out-str))
            out-str (if (and (if range-output? range-includes-end? true)
                             ends-with-nl?
                             (not (clojure.string/ends-with? out-str "\n"))

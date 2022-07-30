@@ -8,14 +8,14 @@
     #?@(:clj [[zprint.macros :refer
                [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
     clojure.string
-    [clojure.set    :refer [difference]]
-    [clojure.data   :as d]
-    [zprint.spec    :refer [validate-basic coerce-to-boolean]]
-    [zprint.rewrite :refer [sort-dependencies]]
-    [zprint.util :refer [dissoc-two]]
-    [zprint.guide   :refer [jrequireguide defprotocolguide signatureguide1
-                            odrguide guideguide rodguide areguide]]
-    [zprint.optionfn   :refer [rodfn meta-base-fn]]
+    [clojure.set     :refer [difference]]
+    [clojure.data    :as d]
+    [zprint.spec     :refer [validate-basic coerce-to-boolean]]
+    [zprint.rewrite  :refer [sort-dependencies]]
+    [zprint.util     :refer [dissoc-two]]
+    [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
+                             odrguide guideguide rodguide areguide]]
+    [zprint.optionfn :refer [rodfn meta-base-fn]]
     #?@(:bb []
         ; To completely remove sci, comment out the following line.
         :clj [[sci.core :as sci]]
@@ -64,9 +64,9 @@
   [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
    :dbg-ge :file? :spaces? :process-bang-zprint? :trim-comments? :zipper?
    :indent :remove :return-cvec? :test-for-eol-blanks? :!zprint-elide-skip-next?
-   :fn-str
-   [:object :wrap-after-multi? :wrap-coll?] [:reader-cond :comma? :key-value]
-   [:output :elide :lines] [:pair :justify-hang :justify-tuning]
+   :fn-str [:object :wrap-after-multi? :wrap-coll?]
+   [:reader-cond :comma? :key-value] [:output :elide :lines]
+   [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
    [:map :dbg-local? :hang-adjust :justify-hang :justify-tuning :key-value]
    :tuning :perf-vs-format [:url :cache-path]
@@ -790,17 +790,18 @@
       :hiccup {:doc "Format vectors containing hiccup information better",
                :vector
                  {:option-fn
-                    (fn ([] "hiccup-option-fn")
-                        ([opts n exprs]
-                         (let [hiccup? (and (>= n 2)
-                                            (or (keyword? (first exprs))
-                                                (symbol? (first exprs)))
-                                            (map? (second exprs)))]
-                           (cond (and hiccup? (not (:fn-format (:vector opts))))
-                                   {:vector {:fn-format :arg1-force-nl}}
-                                 (and (not hiccup?) (:fn-format (:vector opts)))
-                                   {:vector {:fn-format nil}}
-                                 :else nil)))),
+                    (fn
+                      ([] "hiccup-option-fn")
+                      ([opts n exprs]
+                       (let [hiccup? (and (>= n 2)
+                                          (or (keyword? (first exprs))
+                                              (symbol? (first exprs)))
+                                          (map? (second exprs)))]
+                         (cond (and hiccup? (not (:fn-format (:vector opts))))
+                                 {:vector {:fn-format :arg1-force-nl}}
+                               (and (not hiccup?) (:fn-format (:vector opts)))
+                                 {:vector {:fn-format nil}}
+                               :else nil)))),
                   :wrap? false},
                :vector-fn {:indent 1, :indent-arg 1}},
       :indent-only {:doc "Enable indent only for every type of structure",
@@ -824,11 +825,12 @@
       :keyword-respect-nl
         {:doc "When a vector starts with a :keyword, :respect-nl in it",
          :vector {:option-fn-first
-                    (fn ([] "keyword-respect-nl-option-fn-first")
-                        ([options element]
-                         (let [k? (keyword? element)]
-                           (when (not= k? (:respect-nl? (:vector options)))
-                             {:vector {:respect-nl? k?}}))))}},
+                    (fn
+                      ([] "keyword-respect-nl-option-fn-first")
+                      ([options element]
+                       (let [k? (keyword? element)]
+                         (when (not= k? (:respect-nl? (:vector options)))
+                           {:vector {:respect-nl? k?}}))))}},
       :map-nl {:doc "Add newline after every value that flows",
                :map {:indent 0, :nl-separator? true}},
       :map-nl-all {:doc "Add newline between all map pairs",
@@ -903,16 +905,17 @@
       :require-pair
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none
-                              {:vector
-                                 {:option-fn
-                                    (fn ([opts n exprs]
-                                         (if-not (clojure.string/includes?
-                                                   (str (first exprs))
-                                                   ".")
-                                           {:vector {:fn-format nil}}
-                                           {:vector {:fn-format :none},
-                                            :vector-fn {:constant-pair-min 1}}))
-                                        ([] "require-pair-option-fn"))}}]}},
+                              {:vector {:option-fn
+                                          (fn
+                                            ([opts n exprs]
+                                             (if-not (clojure.string/includes?
+                                                       (str (first exprs))
+                                                       ".")
+                                               {:vector {:fn-format nil}}
+                                               {:vector {:fn-format :none},
+                                                :vector-fn {:constant-pair-min
+                                                              1}}))
+                                            ([] "require-pair-option-fn"))}}]}},
       :respect-bl {:doc "Enable respect blank lines for every type",
                    :list {:respect-bl? true},
                    :map {:respect-bl? true},
@@ -1702,8 +1705,8 @@
                                'guideguide zprint.guide/guideguide,
                                'rodguide zprint.guide/rodguide,
                                'areguide zprint.guide/areguide,
-                               'odrguide zprint.guide/odrguide
-			       'rodfn zprint.optionfn/rodfn}}})
+                               'odrguide zprint.guide/odrguide,
+                               'rodfn zprint.optionfn/rodfn}}})
 (def sci-ctx
   #?(:bb nil
      ;:clj nil

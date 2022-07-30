@@ -68,13 +68,12 @@
   [ctx idx [s keyword-color element]]
   (let [style (ground-color-to-style ctx s keyword-color element idx)]
     #_(prn "s:" s "keyword-color:" keyword-color "style:" style)
-    ; This used to turn color :none into nil, but now it doesn't, 
-    ; but only for :hiccup and :html, so that they will interact 
+    ; This used to turn color :none into nil, but now it doesn't,
+    ; but only for :hiccup and :html, so that they will interact
     ; with things with color :none.
-    (when style [s 
-                 (when (or (not= style :none) (not (:none-to-nil? ctx))) 
-		       style) 
-	         element])))
+    (when style
+      [s (when (or (not= style :none) (not (:none-to-nil? ctx))) style)
+       element])))
 
 (defn trim-vec
   "Take a vector of any length, and trim it to be

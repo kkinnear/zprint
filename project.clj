@@ -11,13 +11,11 @@
                                    [olical/cljs-test-runner "3.7.0"]
                                    [pjstadig/humane-test-output "0.10.0"]
                                    [org.clojure/core.match "0.3.0-alpha5"]
-				   #_[com.bhauman/rebel-readline "0.1.4"]
-[hiccup "1.0.5"]
+                                   #_[com.bhauman/rebel-readline "0.1.4"]
+                                   [hiccup "1.0.5"]
                                    #_[clojure-future-spec "1.9.0-alpha17"]]},
              :dev {:dependencies [#_[com.bhauman/rebel-readline "0.1.4"]
-[hiccup "1.0.5"]
-	     
-	     ]}
+                                  [hiccup "1.0.5"]]},
              :expectations {:dependencies
                               [[com.github.seancorfield/expectations "2.0.143"]
                                [pjstadig/humane-test-output "0.10.0"]]},

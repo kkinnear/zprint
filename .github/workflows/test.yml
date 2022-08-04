@@ -40,6 +40,9 @@ jobs:
       - name: Clojure tests
         run: clojure -M:cljtest:humane:runner
 
+      - name: Integration tests
+        run: ./test_config $(awk -F "\"" '{print $2}' project.clj | head -n 1) uberjar
+
   test-cljs:
     runs-on: macos-latest
     steps:

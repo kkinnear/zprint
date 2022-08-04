@@ -34,8 +34,8 @@ jobs:
       - name: Uberjar
         run: lein uberjar
 
-      - name: Babashka tests
-        run: bb test:bb
+#      - name: Babashka tests
+#        run: bb test:bb
 
       - name: Clojure tests
         run: clojure -M:cljtest:humane:runner

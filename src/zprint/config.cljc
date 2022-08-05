@@ -14,7 +14,8 @@
     [zprint.rewrite  :refer [sort-dependencies]]
     [zprint.util     :refer [dissoc-two]]
     [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
-                             odrguide guideguide rodguide areguide]]
+                             odrguide guideguide rodguide areguide
+			     defprotocolguide-s]]
     [zprint.optionfn :refer [rodfn meta-base-fn]]
     #?@(:bb []
         ; To completely remove sci, comment out the following line.
@@ -36,7 +37,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-1.2.4"))
+(defn about "Return version of this program." [] (str "zprint-1.2.5"))
 
 ;;
 ;; # External Configuration
@@ -99,7 +100,7 @@
 ;; :arg1-body
 ;;
 ;; Print the first argument on the same line as
-;; the function, if possible.  Later body arguments go
+;; the function, if possible.  Later body arguments get
 ;; indented.
 ;;
 ;; (if (= a 1)
@@ -506,6 +507,7 @@
             :hang? true,
             :indent 2,
             :modifiers #{"static"},
+	    :nl-count nil
             :nl-separator? false},
    :file? false,
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
@@ -1701,6 +1703,8 @@
 (def opts
   {:namespaces {'clojure.core {'jrequireguide zprint.guide/jrequireguide,
                                'defprotocolguide zprint.guide/defprotocolguide,
+                               'defprotocolguide-s
+                                 zprint.guide/defprotocolguide-s,
                                'signatureguide1 zprint.guide/signatureguide1,
                                'guideguide zprint.guide/guideguide,
                                'rodguide zprint.guide/rodguide,

@@ -3722,13 +3722,14 @@
 (def body-set
   #{:binding :arg1-> :arg2 :arg2-fn :arg2-pair :pair-fn :fn :arg1-body
     :arg1-pair-body :none-body :noarg1-body :flow-body :arg2-extend-body
-    :arg1-force-nl-body :arg2-force-nl-body :guided-body})
+    :arg1-force-nl-body :arg2-force-nl-body :guided-body :arg1-extend-body})
 
 (def body-map
   {:arg1-body :arg1,
    :arg1-pair-body :arg1-pair,
    :arg1-force-nl-body :arg1-force-nl,
    :arg2-extend-body :arg2-extend,
+   :arg1-extend-body :arg1-extend
    :none-body :none,
    :flow-body :flow,
    :noarg1-body :noarg1,
@@ -3765,6 +3766,7 @@
    :extend :extend,
    :binding :binding,
    :arg1-extend :extend,
+   :arg1-extend-body :extend
    :arg2-extend :extend,
    :arg2-extend-body :extend,
    :pair-fn :pair})
@@ -5105,11 +5107,23 @@
                       (= next-guide :element-best-first)
                       (= next-guide :element-best-*))
                     [true [zloc]])
+          [do-extend? extend-seq]
+            (cond (or (= next-guide :element-newline-extend-group)
+                      (= next-guide :element-newline-extend-*))
+                    [true group-seq]
+                  (or (= next-guide :element-extend)
+                      (= next-guide :element-extend-first)
+                      (= next-guide :element-extend-*))
+                    [true [zloc]])
           try-this? (and (or zloc do-pairs? group-seq)
                          (not previous-newline?)
-                         (if (= next-guide :element-best-first) all-fit? true)
+                         (if (or (= next-guide :element-best-first) 
+			         (= next-guide :element-extend-first))
+			   all-fit? 
+			   true)
                          (not guided-newline?)
                          (or do-hang-remaining?
+			     do-extend?
                              (and (< cur-ind width) (< this-ind width))))
           this-result
             (when try-this?
@@ -5127,6 +5141,15 @@
                                      #_group-seq
                                      nil ;fn-type
                                    )
+                do-extend? 
+
+                      (prepend-nl options
+                                  (+ indent ind)
+                                  (fzprint-extend options
+						  ; Might be this-ind?
+						  this-ind
+						  extend-seq))
+		
                 ; We don't need to use fzprint-hang-unless-fail, because
                 ; that is pretty much what we are doing with everything.
                 (= next-guide :element-binding-vec)
@@ -5137,7 +5160,7 @@
                 :else (fzprint* (in-hang options) this-ind zloc)))
           ; If we did fzprint-hang-remaining and it has a single space at the
           ; beginning, then drop that space.
-          this-result (if (and do-hang-remaining?
+          this-result (if (and (or do-hang-remaining? do-extend?)
                                (= (nth (first this-result) 2) :whitespace)
                                (= (ffirst this-result) " "))
                         (next this-result)
@@ -5242,6 +5265,15 @@
                                                #_group-seq
                                                nil ;fn-type
                                              )
+		      do-extend?
+			  (prepend-nl options
+				      (+ indent ind)
+				      (fzprint-extend options
+						      ; Might be this-ind?
+						      next-ind
+						      extend-seq))
+
+
                           (= next-guide :element-binding-vec)
                             (fzprint-binding-vec options next-ind zloc)
                           (or (= next-guide :element-binding-group)
@@ -5254,6 +5286,7 @@
           ; do it ourselves since this is the "next" processing.
           #_(prn "***********" next-result)
           next-result (if (and (or do-hang-remaining?
+	                           do-extend?
                                    (= next-guide :element-binding-*)
                                    (= next-guide :element-binding-group))
                                (= (nth (first next-result) 2) :indent)
@@ -5429,6 +5462,7 @@
         "\n this-fit?" this-fit?
         "\n fail-fit?" fail-fit?
         "\n do-hang-remaining?" do-hang-remaining?
+        "\n do-extend?" do-extend?
         "\n regular-space:" regular-space
         "\n additional-spaces:" additional-spaces
         "\n beyond-cur-ind:" beyond-cur-ind
@@ -6198,6 +6232,7 @@
                 ; :element-newline-best-* also has to come after
                 ; newline handling
                 (or (= first-guide-seq :element-newline-best-*)
+		    (= first-guide-seq :element-newline-extend-*)
                     (= first-guide-seq :element-binding-*)
                     (= first-guide-seq :element-pair-*))
                   ; Consider everything else for a -* command.
@@ -6336,8 +6371,11 @@
                 (or (= first-guide-seq :element)
                     (= first-guide-seq :element-guide)
                     (= first-guide-seq :element-best)
+                    (= first-guide-seq :element-extend)
                     (= first-guide-seq :element-best-first)
+                    (= first-guide-seq :element-extend-first)
                     (= first-guide-seq :element-best-*)
+                    (= first-guide-seq :element-extend-*)
                     (= first-guide-seq :element-*)
                     (= first-guide-seq :element-binding-vec))
                   ; Do basic guided output, moving both cur-seq and guide-seq
@@ -6347,7 +6385,8 @@
                                                  first-guide-seq)
                                             :bright-red))
                         _ (when (and (or (= first-guide-seq :element-*)
-                                         (= first-guide-seq :element-best-*))
+                                         (= first-guide-seq :element-best-*)
+                                         (= first-guide-seq :element-extend-*))
                                      (not (empty? (next guide-seq))))
                             (throw
                               (#?(:clj Exception.
@@ -6375,7 +6414,8 @@
                                ; Make sure to consume the guide too
                                (nnext guide-seq)
                              (or (= first-guide-seq :element-*)
-                                 (= first-guide-seq :element-best-*))
+                                 (= first-guide-seq :element-best-*)
+                                 (= first-guide-seq :element-extend-*))
                                ; We just stay "stuck" on last command
                                ; in guide-seq for :element-* and
                                ; :element-best-*
@@ -6390,6 +6430,7 @@
                            options
                            new-out))
                 (or (= first-guide-seq :element-newline-best-group)
+                    (= first-guide-seq :element-newline-extend-group)
                     (= first-guide-seq :element-pair-group)
                     (= first-guide-seq :element-binding-group))
                   ; Operate on previously grouped elements

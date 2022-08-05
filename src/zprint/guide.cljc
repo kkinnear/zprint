@@ -588,3 +588,24 @@
                      :newline :element-*)]
      {:guide guide})))
 
+(defn defprotocolguide-s
+  "Handle defprotocol with options, uses extend."
+  ([] "defprotocolguide")
+  ([options len sexpr]
+   (when (= (first sexpr) 'defprotocol)
+     (let [remaining (nnext sexpr)
+           [docstring remaining] (if (string? (first remaining))
+                                   [(first remaining) (next remaining)]
+                                   [nil remaining])
+           pair-count (some identity
+                            (map-indexed (fn [idx item] (when (list? item) idx))
+                                         remaining))
+           pair-count (if (= pair-count 0) nil pair-count)
+           guide (cond-> [:element :element-best :newline]
+                   docstring (conj :element :newline)
+                   pair-count (conj :group-begin)
+                   pair-count (into (repeat pair-count :element))
+                   pair-count (conj :group-end :element-pair-group :newline)
+                   :else (conj :element-newline-extend-*))]
+       {:guide guide, :next-inner {:list {:option-fn nil}}}))))
+

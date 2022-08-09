@@ -1274,8 +1274,14 @@ are formatted by default.  Note that the `:indent` for lists is not
 changed by this function type.  You may find it useful to set the
 `:indent` for `:list` to 1 when using this function type.
 
-```clojure {:fn-map {"my-fn" [:wrap {:list {:indent 1}}]}}
+```clojure 
+{:fn-map {"my-fn" [:wrap {:list {:indent 1}}]}}
 ```
+
+When using this function type, you may find it useful to use
+`{:list {:no-wrap-after #{"stuff"}}}` where `stuff` is some element you 
+don't want to ever be the last element on a line.  See `:list :no-wrap-after`
+for more details.
 
 #### :gt2-force-nl and :gt3-force-nl
 
@@ -3787,6 +3793,37 @@ formatting in some special cases where a `fn-type` is in use`.
 It isn't meant to be a generally useful capabiity to, say, 
 format all lists with extra lines between them.
 
+`:list` supports some of the same keys as does vector:
+
+##### :no-wrap-after _nil_
+##### :wrap? _true_
+##### :wrap-coll? _true_
+##### :wrap-after-multi? _true_
+
+See the section on :vector for information on these keys.  A simple example:
+
+```
+(czprint i252d {:parse-string? true})
+(stuff example
+       vvvvvveeeeeeeerrrrrrryyyyy
+       looooooooooooonnnnggggg
+       paraaaaaaams
+       &
+       body)
+
+(czprint i252d {:parse-string? true :list {:wrap? true}})
+(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams &
+  body)
+
+(czprint i252d {:parse-string? true :list {:wrap? true :no-wrap-after #{"&"}}})
+(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams
+  & body)
+```
+
+Generally, `&` isn't something with special meaning in a list, but there
+may be something else that you wish to not dangle as the last element on
+a line when a list is being wrapped.
+
 _____
 ## :map
 
@@ -4950,6 +4987,7 @@ _____
 `:set` supports the same keys as does vector and a few more.
 
 ##### :indent _1_
+##### :no-wrap-after _nil_
 ##### :wrap? _true_
 ##### :wrap-coll? _true_
 ##### :wrap-after-multi? _true_
@@ -6194,6 +6232,42 @@ printed?
   "key" "value"}
  10 11 12 13 14 15 16 17 18 19
 ```
+
+#### :no-wrap-after _nil_
+
+There are times when you might like two elements that appear in a
+vector that is wrapping to not be separated by the line break.  For
+instance, this is not great:
+
+```
+(czprint i252a {:parse-string? true :width 79})
+(defn example
+  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams &
+   body]
+  (+ 1 2 3))
+```
+
+You can prevent vectors from wrapping between `&` and whatever comes
+immediately after by configuring `:no-wrap-after`, which is a set
+that contains strings.  For instance:
+
+```
+(czprint i252a {:parse-string? true :width 79 :vector {:no-wrap-after #{"&"}}})
+(defn example
+  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams
+   & body]
+  (+ 1 2 3))
+```
+
+will solve this particular problem.  
+
+It would make sense to simply configure `{:vector {:no-wrap-after #{"&"}}}` 
+globally, since it probably wouldn't affect anything but
+the argument vectors of functions, and in the event that `&` appeared
+by itself in a vector, the worst that would happen is that the `&`
+would end up on the next line if it was right at the end of the
+previous line, which you might not even notice.
+
 _____
 ## :vector-fn
 

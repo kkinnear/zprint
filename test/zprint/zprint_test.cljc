@@ -7342,6 +7342,39 @@ ser/collect-vars-acc %1 %2) )))"
       " (def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name \".nrepl-port\")\n"
       {:parse-string? true, :meta {:split? true}}))
 
+;;
+;; Add no-wrap-after to :vector, Issue #252
+;;
+
+(expect
+  "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams &\n   body]\n  (+ 1 2 3))"
+  (zprint-str
+    "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body]\n  (+ 1 2 3))\n"
+    {:parse-string? true, :width 79}))
+
+
+(expect
+  "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams\n   & body]\n  (+ 1 2 3))"
+  (zprint-str
+    "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body]\n  (+ 1 2 3))\n"
+    {:parse-string? true, :width 79, :vector {:no-wrap-after #{"&"}}}))
+
+;; Does it work for :wrap in lists as well?
+
+(expect
+  "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams &\n  body)"
+  (zprint-str
+    "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams & body)\n"
+    {:parse-string? true, :fn-map {"stuff" :wrap}}))
+
+(expect
+  "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams\n  & body)"
+  (zprint-str
+    "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams & body)\n"
+    {:parse-string? true,
+     :fn-map {"stuff" :wrap},
+     :list {:no-wrap-after #{"&"}}}))
+
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

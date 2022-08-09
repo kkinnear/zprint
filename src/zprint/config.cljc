@@ -547,6 +547,7 @@
           :indent-only? false,
           :indent-only-style :input-hang,
           :nl-count nil,
+	  :no-wrap-after nil
           :option-fn nil,
           :pair-hang? true,
           :respect-bl? false,
@@ -658,6 +659,7 @@
                  :sort-in-code? nil,
                  :sort? nil},
    :record {:hang? true, :record-type? true, :to-string? false},
+   ; All of the sets need to be here, so elements can be removed from them
    :remove {:fn-force-nl nil,
             :fn-gt2-force-nl nil,
             :fn-gt3-force-nl nil,
@@ -666,12 +668,14 @@
             :binding {:justify {:no-justify nil, :ignore-for-variance nil}},
             :map {:key-no-sort nil,
                   :justify {:no-justify nil, :ignore-for-variance nil}},
-            :parse {:ignore-if-parse-fails nil}},
+            :parse {:ignore-if-parse-fails nil}
+	    :vector {:no-wrap-after nil}},
    :return-cvec? false,
    :script {:more-options nil},
    :search-config? false,
    :set {:indent 2,
          :indent-only? false,
+	 :no-wrap-after nil
          :respect-bl? false,
          :respect-nl? false,
          :sort? true,
@@ -1014,6 +1018,7 @@
             :fn-format nil,
             :force-nl? false,
             :hang? nil,
+	    :no-wrap-after nil
             :respect-bl? false,
             :respect-nl? false,
             :wrap-after-multi? true,
@@ -1038,6 +1043,7 @@
                :indent-arg nil,
                :indent-only? false,
                :indent-only-style :input-hang,
+	       :no-wrap-after nil
                :pair-hang? true,
                :respect-bl? false,
                :respect-nl? false,

@@ -4854,7 +4854,7 @@
   and ind is where we should be after a newline."
   [caller
    {:keys [width rightcnt],
-    {:keys [wrap-after-multi? respect-nl?]} caller,
+    {:keys [wrap-after-multi? respect-nl? no-wrap-after]} caller,
     :as options} cur-ind ind coll-print]
   #_(prn "wrap-zmap:" coll-print)
   (let [last-index (dec (count coll-print))
@@ -4877,6 +4877,24 @@
                   last-width (last lines)
                   len (- last-width ind)
                   len (max 0 len)
+                  ; Do we have a no-wrap element?
+                  no-wrap-element? (when no-wrap-after
+                                     (no-wrap-after (first (first this-seq))))
+                  ; If we do, then add its length to the length of the
+                  ; existing element
+                  next-len (when (and no-wrap-element? (second cur-seq))
+                             (let [[linecnt max-width lines]
+                                     (style-lines options ind (second cur-seq))
+                                   last-width (last lines)]
+                               (max 0 (- last-width ind))))
+                  ; If we have a no-wrap element, make the index the index
+                  ; of the next element, so we handle rightcnt correctly
+                  original-len len
+                  [len index]
+                    (if next-len 
+		      ; Add the lengths together, and also one for the space
+		      [(+ len next-len 1) (inc index)] 
+		      [len index])
                   newline? (= (nth (first this-seq) 2) :newline)
                   comment?
                     (if respect-nl? nil (= (nth (first this-seq) 2) :comment))
@@ -4891,6 +4909,15 @@
                             (or (zero? index)
                                 (and (if multi? (= linecnt 1) true)
                                      (<= (+ cur-ind len) width))))
+                  _ (when no-wrap-element?
+                      (dbg-pr options
+                              "wrap-zmap: no-wrap-element:" (first (first
+                                                                     this-seq))
+                              "original-len:" original-len
+                              "next-len:" next-len
+                              "index:" index
+                              "rightcnt:" rightcnt
+                              "fit?" fit?))
                   new-ind (cond
                             ; Comments cause an overflow of the size
                             (or comment? comment-inline?) (inc width)
@@ -4911,7 +4938,10 @@
                   "\nlinecnt:" linecnt
                   "\nmax-width:" max-width
                   "\nlast-width:" last-width
+                  "\nno-wrap-element?" no-wrap-element?
+                  "\nnext-len:" next-len
                   "\nlen:" len
+                  "\nindex:" index
                   "\ncur-ind:" cur-ind
                   "\nnew-ind:" new-ind
                   "\nwidth:" width

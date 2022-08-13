@@ -609,3 +609,73 @@
                    :else (conj :element-newline-extend-*))]
        {:guide guide, :next-inner {:list {:option-fn nil}}}))))
 
+;;
+;; Temporary place to stash semantic2 to make collaboration easier
+;;
+;; -alt
+;;
+
+(def semantic2
+  ; version 0.1.5
+  ; Requires zprint 1.2.5
+  {:style-map
+     {:s1.0 {:doc "Set up community indentation",
+             :binding {:indent 0},
+             :list {:indent-arg 1},
+             :map {:indent 0},
+             :pair {:indent 0}},
+      :s1.1 {:doc "defn and fn",
+             :fn-map {"defn" [:force-nl-body {:style :rod-base}],
+                      "defn-" "defn",
+                      "fn" "defn"}},
+      :s1.2
+        {:doc "defprotocol, defrecord, deftype, extend-type, extend-protocol",
+         :fn-map {"defprotocol" [:arg1-extend-body
+                                 {:extend {:nl-count 2, :nl-separator? true},
+                                  :list {:option-fn defprotocolguide-s},
+                                  :fn-type-map {:fn :flow-body}}],
+                  "defrecord" [:arg2-extend-body {:style :s1.2-base}],
+                  "deftype" "defrecord",
+                  "extend-type" [:arg1-extend-body {:style :s1.2-base}],
+                  "extend-protocol" "extend-type"}},
+      :s1.2-base {:doc "Common code for extend things",
+                  :extend {:nl-count 2, :nl-separator? true, :indent 0},
+                  :fn-force-nl #{:fn},
+                  :fn-type-map {:fn [:force-nl-body {:style :rod-base}]},
+                  :next-inner {:next-inner {:fn-type-map {:fn nil}}}},
+      :s1.3 {:doc "defmethod",
+             :fn-map {"defmethod" [:guided-body
+                                   {:guide [:element :element-best
+                                            :element-best-first
+                                            :element-best-first :newline
+                                            :element-newline-best-*]}]}},
+      :s1.4 {:doc "if, if-not, handled now in s1.5"},
+      :s1.5
+        {:doc
+           "Don't format on single line: case cond-> cond->> when 
+            while when-not when-first locking let binding loop for doseq 
+            dotimes when-let if-let when-some if-some testing go-loop",
+         :binding {:force-nl? true},
+         :fn-force-nl #{:arg1-pair-body :arg1-body}},
+      :s1.6 {:doc "=, not=, or, and, <, >, <=, >=",
+             :fn-force-nl #{:hang},
+             :fn-map {"<" "=", ">" "=", "<=" "=", ">=" "="}},
+      :s1.7 {:doc "->, ->>", :remove {:fn-force-nl #{:noarg1-body}}},
+      :s1.8 {:doc "try, catch, finally",
+             :fn-map {"try" :flow-body,
+                      "catch" :arg2-force-nl-body,
+                      "finally" :flow-body}},
+      :s1.9 {:doc "other stuff"},
+      :s1.10 {:doc "cond do delay future comment alt! alt!! go thread",
+              :pair-fn {:hang? false},
+              :fn-map {"do" :flow-body,
+                       "delay" "do",
+                       "future" "do",
+                       "comment" "do",
+                       "go" "do",
+                       "thread" "do"}},
+      :sall {:doc "version 0.1.4",
+             :style [:s1.0 :s1.1 :s1.2 :s1.3 :s1.4 :s1.5 :s1.6 :s1.7 :s1.8 :s1.9
+                     :s1.10]}}})
+
+

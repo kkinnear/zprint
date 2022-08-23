@@ -15,6 +15,7 @@
 ; Keep tests from configuring from any $HOME/.zprintrc or local .zprintrc
 ;
 
+
 (set-options! {:configured? true})
 
 ;;
@@ -44,3 +45,4 @@
   (expect nil (z/string (zprint.zutil/znthnext za 5)))
 
 )
+

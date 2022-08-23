@@ -1304,7 +1304,6 @@ insert-missing-whitespace)
               (catch :default e (str e)))))
 
 
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

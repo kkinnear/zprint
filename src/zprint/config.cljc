@@ -366,6 +366,7 @@
    "defmulti" :arg1-body,
    "defn" :arg1-body,
    "defn-" :arg1-body,
+   "defonce" :arg1-body
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
    "defprotocol" [:guided-body
                   {:style :defprotocolguide,
@@ -426,6 +427,7 @@
    "when-let" :binding,
    "when-not" :arg1-body,
    "when-some" :binding,
+   "while" :arg1-body
    "with-bindings" :arg1-body,
    "with-bindings*" :arg1-body,
    "with-local-vars" :binding,

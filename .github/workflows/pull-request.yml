@@ -1,0 +1,152 @@
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-jar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Version
+        id: version
+        # Get version from project.clj
+        run: echo ::set-output name=zprint::$(awk -F "\"" '{print $2}' project.clj | head -n 1)
+
+      - name: Setup Clojure
+        uses: zharinov/clj-toolbox@v1.0.0
+        with:
+          leiningen: "2.9.10"
+
+      - name: Uberjar
+        run: lein uberjar
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jar-files
+          path: target/zprint-filter-${{ steps.version.outputs.zprint }}
+
+  build-native:
+    needs: build-jar
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: jar-files
+          path: target/
+
+      - name: Version
+        id: version
+        # Get version from uberjar name
+        run: echo ::set-output name=zprint::$(ls target/zprint-filter-* | sed 's/.*zprint-filter-//')
+
+      - name: Setup GraalVM
+        uses: zharinov/clj-toolbox@v1.0.0
+        with:
+          java: graalvm
+          java-version: 17
+
+      - name: Native image
+        env:
+          LC_ALL: C.UTF-8
+        run: native-image
+          --no-server
+          -J-Xmx7G
+          -J-Xms4G
+          -jar target/zprint-filter-${{ steps.version.outputs.zprint }}
+          -H:Name="zprintl-${{ steps.version.outputs.zprint }}"
+          -H:EnableURLProtocols=https,http
+          -H:+ReportExceptionStackTraces
+          --report-unsupported-elements-at-runtime
+          --initialize-at-build-time
+          --no-fallback
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: zprintl
+          path: zprintl-${{ steps.version.outputs.zprint }}
+
+  test-native:
+    needs: build-native
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Setup Babashka
+        uses: zharinov/clj-toolbox@v1.0.0
+        with:
+          babashka: "0.9.161"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: zprintl
+
+      - name: Version
+        id: version
+        # Get version from binary name
+        run: echo ::set-output name=zprint::$(ls zprintl-* | sed 's/zprintl-//')
+
+      - run: chmod +x zprintl-${{ steps.version.outputs.zprint }}
+
+      - name: Run tests
+        run: ./test_config ${{ steps.version.outputs.zprint }} graalvm-linux
+
+  test-clj:
+    needs: build-jar
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Setup Clojure
+        uses: zharinov/clj-toolbox@v1.0.0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: jar-files
+          path: target/
+
+      - name: Run tests
+        run: clojure -Srepro -M:cljtest:humane:runner
+
+  test-jar:
+    needs: build-jar
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Version
+        id: version
+        # Get version from project.clj
+        run: echo ::set-output name=zprint::$(awk -F "\"" '{print $2}' project.clj | head -n 1)
+
+      - name: Setup Clojure
+        uses: zharinov/clj-toolbox@v1.0.0
+        with:
+          babashka: "0.9.161"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: jar-files
+          path: target/
+
+      - name: Run tests
+        run: ./test_config ${{ steps.version.outputs.zprint }} uberjar

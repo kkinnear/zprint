@@ -94,7 +94,7 @@ tests_failed=0
 
 # Let it come up
 
-sleep 5
+sleep 10
 
 #
 # Try --url

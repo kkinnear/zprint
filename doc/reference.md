@@ -6358,6 +6358,8 @@ approaches.
 
 ## Testing and Development
 
+Note the default branch is now `main`.
+
 ### Clojure
 
 With [Leiningen](https://leiningen.org/) installed, run

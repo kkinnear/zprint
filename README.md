@@ -226,7 +226,7 @@ include the following library when using Clojure 1.8:
 Information on testing and development can be found 
 [here](./doc/reference.md#testing-and-development).
 
-NOTE: Changed the default branch to `main`.
+Note: Changed the default branch to `main`.
 
 ### Contributors
 

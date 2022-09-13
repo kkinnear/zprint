@@ -3722,7 +3722,12 @@
 (def body-set
   #{:binding :arg1-> :arg2 :arg2-fn :arg2-pair :pair-fn :fn :arg1-body
     :arg1-pair-body :none-body :noarg1-body :flow-body :arg2-extend-body
-    :arg1-force-nl-body :arg2-force-nl-body :guided-body :arg1-extend-body})
+    :arg1-force-nl-body :arg2-force-nl-body :guided-body :arg1-extend-body
+    :force-nl-body})
+
+;;
+;; Note Well -- every key in body-map should also appear in body-set!
+;;
 
 (def body-map
   {:arg1-body :arg1,

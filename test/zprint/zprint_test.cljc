@@ -7388,6 +7388,38 @@ ser/collect-vars-acc %1 %2) )))"
      :fn-map {"stuff" :wrap},
      :list {:no-wrap-after #{"&"}}}))
 
+;;
+;; Add :element-wrap-flow-* to guide
+;;
+
+(expect
+  "(let [example (data.example/get-by-org-id-and-items\n                db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
+  (zprint-str
+    "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
+    {:parse-string? true,
+     :fn-map {"get-by-org-id-and-items"
+                [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
+     :width 80}))
+
+
+(expect
+  "(let [example\n        (data.example/get-by-org-id-and-items\n          db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
+  (zprint-str
+    "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
+    {:parse-string? true,
+     :fn-map {"get-by-org-id-and-items"
+                [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
+     :width 60}))
+
+(expect
+  "(let [example (data.example/get-by-org-id-and-items\n                db-conn\n                true\n                [org-id]\n                {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
+  (zprint-str
+    "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
+    {:parse-string? true,
+     :fn-map {"get-by-org-id-and-items"
+                [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
+     :width 55}))
+
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

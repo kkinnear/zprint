@@ -5150,8 +5150,13 @@
                       (= next-guide :element-extend-first)
                       (= next-guide :element-extend-*))
                     [true [zloc]])
+          [do-wrap-flow? wrap-flow-seq]
+            (cond (or (= next-guide :element-wrap-flow-group)
+                      (= next-guide :element-wrap-flow-*))
+                    [true group-seq])
           try-this? (and (or zloc do-pairs? group-seq)
-                         (not previous-newline?)
+                         (or (not previous-newline?) 
+			     do-wrap-flow?)
                          (if (or (= next-guide :element-best-first) 
 			         (= next-guide :element-extend-first))
 			   all-fit? 
@@ -5159,6 +5164,7 @@
                          (not guided-newline?)
                          (or do-hang-remaining?
 			     do-extend?
+			     do-wrap-flow?
                              (and (< cur-ind width) (< this-ind width))))
           this-result
             (when try-this?
@@ -5176,6 +5182,10 @@
                                      #_group-seq
                                      nil ;fn-type
                                    )
+
+                do-wrap-flow? 
+                       (fzprint-one-line options this-ind wrap-flow-seq)
+		
                 do-extend? 
 
                       (prepend-nl options
@@ -5200,6 +5210,7 @@
                                (= (ffirst this-result) " "))
                         (next this-result)
                         this-result)
+	  #_ (println "this-result:" this-result)
           this-lines (style-lines options this-ind this-result)
           ; Force wrap-multi? true for this guide if we are doing binding,
           ; regardless of its value in the options map.
@@ -5300,6 +5311,19 @@
                                                #_group-seq
                                                nil ;fn-type
                                              )
+
+                          do-wrap-flow? (fzprint-hang-remaining
+                                               caller
+                                               options
+                                               #_(assoc options :dbg? true)
+                                               ; flow it if we are doing it here
+                                               next-ind
+                                               next-ind
+                                               wrap-flow-seq
+                                               #_group-seq
+                                               nil ;fn-type
+                                             )
+
 		      do-extend?
 			  (prepend-nl options
 				      (+ indent ind)
@@ -5319,9 +5343,10 @@
           ; If we did fzprint-hang-remaining and it has a newline at the
           ; beginning, then we should drop that because we are going to
           ; do it ourselves since this is the "next" processing.
-          #_(prn "***********" next-result)
+          #_ (prn "next-result" next-result)
           next-result (if (and (or do-hang-remaining?
 	                           do-extend?
+				   do-wrap-flow?
                                    (= next-guide :element-binding-*)
                                    (= next-guide :element-binding-group))
                                (= (nth (first next-result) 2) :indent)
@@ -5498,6 +5523,7 @@
         "\n fail-fit?" fail-fit?
         "\n do-hang-remaining?" do-hang-remaining?
         "\n do-extend?" do-extend?
+        "\n do-wrap-flow?" do-wrap-flow?
         "\n regular-space:" regular-space
         "\n additional-spaces:" additional-spaces
         "\n beyond-cur-ind:" beyond-cur-ind
@@ -6268,6 +6294,7 @@
                 ; newline handling
                 (or (= first-guide-seq :element-newline-best-*)
 		    (= first-guide-seq :element-newline-extend-*)
+		    (= first-guide-seq :element-wrap-flow-*)
                     (= first-guide-seq :element-binding-*)
                     (= first-guide-seq :element-pair-*))
                   ; Consider everything else for a -* command.
@@ -6466,6 +6493,7 @@
                            new-out))
                 (or (= first-guide-seq :element-newline-best-group)
                     (= first-guide-seq :element-newline-extend-group)
+                    (= first-guide-seq :element-wrap-flow-group)
                     (= first-guide-seq :element-pair-group)
                     (= first-guide-seq :element-binding-group))
                   ; Operate on previously grouped elements
@@ -7747,13 +7775,20 @@
   [l-str r-str options zloc]
   (let [l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options 0 zloc r-str)
+        len (zcount zloc)
+        _ (dbg-s-pr options
+                    :noformat
+                    "fzprint-noformat zloc" (zstring zloc)
+                    "len:" len)
         fzprint*-seq (zmap-all-nl-comment (partial fzprint* options 0) zloc)
         _ (dbg-s-pr options
                     :noformat
                     "fzprint-noformat fzprint*-seq:"
                     fzprint*-seq)
         concat-vec
-          (concat-no-nil l-str-vec (apply concat fzprint*-seq) r-str-vec)
+          (if (zero? len)
+            (concat-no-nil l-str-vec r-str-vec)
+            (concat-no-nil l-str-vec (apply concat fzprint*-seq) r-str-vec))
         _ (dbg-s-pr options :noformat "fzprint-noformat concat-vec:" concat-vec)
         remove-spaces-vec (remove-spaces-pre-nl concat-vec)
         _ (dbg-s-pr options

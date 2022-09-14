@@ -1035,11 +1035,11 @@ insert-missing-whitespace)
 (reindent (:indents opts {})))))")
 
   (expect
-    "(defn reformat-form\n[form & [{:as opts}]]\n; This is a comment\n(-> form\n#_(cond-> (:remove-surrounding-whitespace? opts true)\nremove-surrounding-whitespace)\n(cond-> (:insert-missing-whitespace? opts true)\ninsert-missing-whitespace)\n(cond-> (:indentation? opts true)\n(reindent (:indents opts )))))"
+    "(defn reformat-form\n[form & [{:as opts}]]\n; This is a comment\n(-> form\n#_(cond-> (:remove-surrounding-whitespace? opts true)\nremove-surrounding-whitespace)\n(cond-> (:insert-missing-whitespace? opts true)\ninsert-missing-whitespace)\n(cond-> (:indentation? opts true)\n(reindent (:indents opts {})))))"
     (zprint-str rffb {:parse-string? true, :format :off}))
 
   (expect
-    709
+    720
     (count (zprint-str rffb {:parse-string? true, :format :off, :color? true})))
 
   (def rffc
@@ -1060,7 +1060,7 @@ insert-missing-whitespace)
     (zprint-str rffc {:parse-string? true}))
 
   (expect
-    "(defn reformat-form\n[form & [{:as opts}]]\n; This is a comment\n(-> form\n#_(cond-> (:remove-surrounding-whitespace? opts true)\nremove-surrounding-whitespace)                   ; This is an inline comment\n(cond-> (:insert-missing-whitespace? opts true)  ; an aligned inline comment\n; This is a comment that is really much too long and will need to wrap, somewhere around after the r in somewhere.\ninsert-missing-whitespace)\n(cond-> (:indentation? opts true)\n(reindent (:indents opts )))))"
+    "(defn reformat-form\n[form & [{:as opts}]]\n; This is a comment\n(-> form\n#_(cond-> (:remove-surrounding-whitespace? opts true)\nremove-surrounding-whitespace)                   ; This is an inline comment\n(cond-> (:insert-missing-whitespace? opts true)  ; an aligned inline comment\n; This is a comment that is really much too long and will need to wrap, somewhere around after the r in somewhere.\ninsert-missing-whitespace)\n(cond-> (:indentation? opts true)\n(reindent (:indents opts {})))))"
     (zprint-str rffc {:parse-string? true, :format :off}))
 
   ;;

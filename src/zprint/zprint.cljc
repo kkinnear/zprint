@@ -3927,6 +3927,42 @@
      [options fn-style]))
   ([options fn-style] (handle-fn-style options fn-style #{})))
 
+(defn handle-new-fn-style
+  "If we have new-options, we might also have a new fn-style.  It might
+  be a traditional keyword, in which case we just return it as the new
+  fn-style.  But it might be a string, in which case we need to look it
+  up in the :fn-map, and deal with handling the results (or failure) of
+  that lookup.  In any case, return [options fn-style]"
+  [caller options fn-style new-options fn-map user-fn-map option-fn]
+  (if new-options
+    (let [new-fn-style (:fn-style new-options)]
+      (if new-fn-style
+        (if (string? new-fn-style)
+          (let [found-fn-style (or (lookup-fn-str fn-map new-fn-style)
+                                   (lookup-fn-str user-fn-map new-fn-style))]
+            (if found-fn-style
+              ; Found something, use that.
+              (handle-fn-style options found-fn-style)
+              ; Didn't find it.
+              (throw (#?(:clj Exception.
+                         :cljs js/Error.)
+                      (str " When "
+                           caller
+                           " called an option-fn "
+                           (option-fn-name option-fn)
+                           " it returned a fn-style which"
+                           " was a string '"
+                           new-fn-style
+                           "' which was not found in the :fn-map!")))))
+          ; It wasn't a string, but it might be a full-on
+          ; complex vector style
+          (handle-fn-style options new-fn-style))
+        ; Didn't get a new fn-style in new-options,
+        ; use the ones we already have
+        [options fn-style]))
+    ; Didn't get new-options at all
+    [options fn-style]))
+
 (declare fzprint-noformat)
 
 (defn fzprint-list*
@@ -4093,10 +4129,22 @@
                      "\nfn-style local:" fn-style
                      "\nguide:" (:guide options)
                      "\ncall-stack:" (:call-stack options))
+
+	  ; Handle a new fn-style in the options map return from the
+	  ; options-fn, as well as a string value, which means we need to
+	  ; do it "like that" function.
+	  [options fn-style] (handle-new-fn-style caller
+	                                          options 
+						  fn-style 
+						  new-options 
+						  fn-map 
+						  user-fn-map 
+						  option-fn)
+	  
           ; If we calculated a new fn-style in the option-fn,
           ; this will pick it up, else we will use the one that we figured
           ; out above.
-          fn-style (or (:fn-style new-options) fn-style)
+          #_#_fn-style (or (:fn-style new-options) fn-style)
           guide (or (:guide options) (guide-debug caller options))
           ; Remove :guide and any forced :fn-style from options so they only
           ; happen once!

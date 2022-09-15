@@ -7421,6 +7421,25 @@ ser/collect-vars-acc %1 %2) )))"
      :width 55}))
 
 
+;;
+;; The :fn-type return from an :option-fn can now be a string, and this
+;; will be an alias.
+;;
+
+(expect
+  "(defn regexa\n  \"This should format like when.\"\n  [this is a test]\n  (list this is a test)\n  (let [some stuff\n        more stuff\n        lots (when-tst stuff\n               this\n               needs\n               to\n               be\n               longer\n               than\n               one\n               lineeven\n               more\n               things)]\n    (stuff bother)))"
+  (zprint-str
+    "(defn regexa\n  \"This should format like when.\"\n  [this is a test]\n  (list this is a test)\n  (let [some stuff\n        more stuff\n        lots (when-tst stuff this needs to be longer than one lineeven more things)]\n    (stuff bother)))\n"
+    {:parse-string? true,
+     :fn-map {:default-not-none
+                [:none
+                 {:list {:option-fn (fn ([] "rulesfn")
+                                        ([options len sexpr]
+                                         (let [fn-str (str (first sexpr))]
+                                           (cond (re-find #"^when" fn-str)
+                                                   {:fn-style "when"}
+                                                 :else nil))))}}]}}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

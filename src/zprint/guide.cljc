@@ -610,13 +610,13 @@
        {:guide guide, :next-inner {:list {:option-fn nil}}}))))
 
 ;;
-;; Temporary place to stash semantic2 to make collaboration easier
+;; Temporary place to stash semantic3 to make collaboration easier
 ;;
 ;; -alt
 ;;
 
-(def semantic2
-  ; version 0.1.5
+(def semantic3
+  ; version 0.1.6
   ; Requires zprint 1.2.5
   {:style-map
      {:s1.0 {:doc "Set up community indentation",

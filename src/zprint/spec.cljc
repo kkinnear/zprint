@@ -266,7 +266,10 @@
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
-(s/def ::fn-style (s/nilable ::fn-type))
+(s/def ::fn-style (s/nilable (s/or :fn-type ::fn-type
+                                   :string string?)))
+
+
 (s/def ::fn-str (s/nilable string?))
 (s/def ::real-le? ::boolean)
 (s/def ::real-le-length number?)

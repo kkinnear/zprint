@@ -155,8 +155,7 @@ output_length=`$command --url 'http://127.0.0.1:8081/test_config.edn' <test_conf
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-#expected_length=323
-expected_length=322
+expected_length=323
 
 if [[ $output_length != $expected_length ]]
   then
@@ -596,7 +595,7 @@ output_length=`$command --explain-all 2>&1 >/dev/null | wc -l`
 output_length=`echo "${output_length}" | sed -e 's/^[[:space:]]*//'`
 #echo "length is $output_length"
 
-expected_length=877
+expected_length=890
 
 if [[ $output_length != $expected_length ]]
   then

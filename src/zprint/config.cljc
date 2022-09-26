@@ -14,7 +14,8 @@
     [zprint.rewrite  :refer [sort-dependencies]]
     [zprint.util     :refer [dissoc-two]]
     [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
-                             odrguide guideguide rodguide areguide]]
+                             odrguide guideguide rodguide areguide
+			     defprotocolguide-s]]
     [zprint.optionfn :refer [rodfn meta-base-fn]]
     #?@(:bb []
         ; To completely remove sci, comment out the following line.
@@ -36,7 +37,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-1.2.4"))
+(defn about "Return version of this program." [] (str "zprint-1.2.5"))
 
 ;;
 ;; # External Configuration
@@ -99,7 +100,7 @@
 ;; :arg1-body
 ;;
 ;; Print the first argument on the same line as
-;; the function, if possible.  Later body arguments go
+;; the function, if possible.  Later body arguments get
 ;; indented.
 ;;
 ;; (if (= a 1)
@@ -325,6 +326,8 @@
    ":require" :force-nl-body,
    "=" :hang,
    "alt" :pair-fn,
+   "alt!" :pair-fn,
+   "alt!!" :pair-fn,
    "and" :hang,
    "apply" :arg1,
    "are" [:guided {:style :areguide}],
@@ -340,6 +343,7 @@
    "cond" :pair-fn,
    "cond-let" :pair-fn,
    "cond->" :arg1-pair-body,
+   "cond->>" :arg1-pair-body,
    "condp" :arg2-pair,
    "def" :arg1-body,
    "defc" :arg1-mixin,
@@ -362,6 +366,7 @@
    "defmulti" :arg1-body,
    "defn" :arg1-body,
    "defn-" :arg1-body,
+   "defonce" :arg1-body
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
    "defprotocol" [:guided-body
                   {:style :defprotocolguide,
@@ -373,7 +378,7 @@
    "do" :none-body,
    "doseq" :binding,
    "dotimes" :binding,
-   "doto" :arg1,
+   "doto" :arg1-body,
    "extend" :arg1-extend,
    "extend-protocol" :arg1-extend,
    "extend-type" :arg1-extend,
@@ -383,6 +388,7 @@
    "fn" :fn,
    "fn*" :fn,
    "for" :binding,
+   "go-loop" :binding
    "if" :arg1-body,
    "if-let" :binding,
    "if-not" :arg1-body,
@@ -392,6 +398,7 @@
    "letfn" [:guided-body
             {:guide [:element :options {:next-inner {:fn-style :fn}}
                      :element-best :options-reset :newline :element-best-*]}],
+   "locking" :arg1-body
    "loop" :binding,
    "map" :arg1,
    "mapcat" :arg1,
@@ -413,14 +420,16 @@
    "some->" :force-nl-body,
    "some->>" :force-nl-body,
    "swap!" :arg2,
+   "testing" :arg1-body
    "try" :none-body,
    "when" :arg1-body,
    "when-first" :binding,
    "when-let" :binding,
    "when-not" :arg1-body,
    "when-some" :binding,
-   "with-bindings" :arg1,
-   "with-bindings*" :arg1,
+   "while" :arg1-body
+   "with-bindings" :arg1-body,
+   "with-bindings*" :arg1-body,
    "with-local-vars" :binding,
    "with-meta" :arg1-body,
    "with-open" :binding,
@@ -506,6 +515,7 @@
             :hang? true,
             :indent 2,
             :modifiers #{"static"},
+	    :nl-count nil
             :nl-separator? false},
    :file? false,
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
@@ -545,6 +555,7 @@
           :indent-only? false,
           :indent-only-style :input-hang,
           :nl-count nil,
+	  :no-wrap-after nil
           :option-fn nil,
           :pair-hang? true,
           :respect-bl? false,
@@ -656,6 +667,7 @@
                  :sort-in-code? nil,
                  :sort? nil},
    :record {:hang? true, :record-type? true, :to-string? false},
+   ; All of the sets need to be here, so elements can be removed from them
    :remove {:fn-force-nl nil,
             :fn-gt2-force-nl nil,
             :fn-gt3-force-nl nil,
@@ -664,12 +676,14 @@
             :binding {:justify {:no-justify nil, :ignore-for-variance nil}},
             :map {:key-no-sort nil,
                   :justify {:no-justify nil, :ignore-for-variance nil}},
-            :parse {:ignore-if-parse-fails nil}},
+            :parse {:ignore-if-parse-fails nil}
+	    :vector {:no-wrap-after nil}},
    :return-cvec? false,
    :script {:more-options nil},
    :search-config? false,
    :set {:indent 2,
          :indent-only? false,
+	 :no-wrap-after nil
          :respect-bl? false,
          :respect-nl? false,
          :sort? true,
@@ -1012,6 +1026,7 @@
             :fn-format nil,
             :force-nl? false,
             :hang? nil,
+	    :no-wrap-after nil
             :respect-bl? false,
             :respect-nl? false,
             :wrap-after-multi? true,
@@ -1036,6 +1051,7 @@
                :indent-arg nil,
                :indent-only? false,
                :indent-only-style :input-hang,
+	       :no-wrap-after nil
                :pair-hang? true,
                :respect-bl? false,
                :respect-nl? false,
@@ -1701,6 +1717,8 @@
 (def opts
   {:namespaces {'clojure.core {'jrequireguide zprint.guide/jrequireguide,
                                'defprotocolguide zprint.guide/defprotocolguide,
+                               'defprotocolguide-s
+                                 zprint.guide/defprotocolguide-s,
                                'signatureguide1 zprint.guide/signatureguide1,
                                'guideguide zprint.guide/guideguide,
                                'rodguide zprint.guide/rodguide,

@@ -95,7 +95,7 @@
     :gt2-force-nl :gt3-force-nl :flow :flow-body :force-nl-body :force-nl
     :pair-fn :arg1-mixin :arg2-mixin :indent :replace-w-string :guided
     :arg1-force-nl-body :arg2-extend-body :wrap :guided-body :arg2-force-nl-body
-    :arg2-force-nl})
+    :arg2-force-nl :arg1-extend-body})
 (s/def ::fn-type-w-map
   (s/or :general-options (s/tuple ::fn-type ::options)
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
@@ -266,7 +266,10 @@
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
-(s/def ::fn-style (s/nilable ::fn-type))
+(s/def ::fn-style (s/nilable (s/or :fn-type ::fn-type
+                                   :string string?)))
+
+
 (s/def ::fn-str (s/nilable string?))
 (s/def ::real-le? ::boolean)
 (s/def ::real-le-length number?)
@@ -361,7 +364,7 @@
              ::option-fn ::pair-hang? ::return-altered-zipper ::respect-bl?
              ::respect-nl? ::indent-only? ::indent-only-style
              ::replacement-string ::wrap-coll? ::wrap-after-multi? ::wrap-multi?
-             ::force-nl? ::wrap? ::nl-count]))
+             ::force-nl? ::wrap? ::nl-count ::no-wrap-after]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
@@ -383,6 +386,7 @@
 (s/def ::max-length ::number-or-vector-of-numbers)
 (s/def ::meta (only-keys :opt-un [::split?]))
 (s/def ::no-justify (s/nilable (s/coll-of string? :kind set?)))
+(s/def ::no-wrap-after (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
 (s/def ::old? ::boolean)
 (s/def ::guide ::guide-seq)
@@ -413,7 +417,7 @@
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-                      :alt/extend ::binding ::pair ::map ::parse]))
+                      :alt/extend ::binding ::pair ::map ::parse ::vector]))
 
 (s/def ::next-inner (s/nilable ::options))
 
@@ -432,7 +436,7 @@
 (s/def ::set
   (only-keys :opt-un [::indent ::indent-only? ::respect-bl? ::respect-nl?
                       ::sort? ::sort-in-code? ::wrap-after-multi? ::wrap-coll?
-                      ::wrap?]))
+                      ::wrap? ::no-wrap-after]))
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::split? ::boolean)
@@ -451,7 +455,8 @@
   (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?
                       ::option-fn-first ::option-fn ::fn-format
                       ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap?
-                      ::indent-only? ::hang? ::force-nl?]))
+                      ::indent-only? ::hang? ::force-nl?
+		      ::no-wrap-after]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))

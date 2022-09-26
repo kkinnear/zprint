@@ -3722,13 +3722,19 @@
 (def body-set
   #{:binding :arg1-> :arg2 :arg2-fn :arg2-pair :pair-fn :fn :arg1-body
     :arg1-pair-body :none-body :noarg1-body :flow-body :arg2-extend-body
-    :arg1-force-nl-body :arg2-force-nl-body :guided-body})
+    :arg1-force-nl-body :arg2-force-nl-body :guided-body :arg1-extend-body
+    :force-nl-body})
+
+;;
+;; Note Well -- every key in body-map should also appear in body-set!
+;;
 
 (def body-map
   {:arg1-body :arg1,
    :arg1-pair-body :arg1-pair,
    :arg1-force-nl-body :arg1-force-nl,
    :arg2-extend-body :arg2-extend,
+   :arg1-extend-body :arg1-extend
    :none-body :none,
    :flow-body :flow,
    :noarg1-body :noarg1,
@@ -3765,6 +3771,7 @@
    :extend :extend,
    :binding :binding,
    :arg1-extend :extend,
+   :arg1-extend-body :extend
    :arg2-extend :extend,
    :arg2-extend-body :extend,
    :pair-fn :pair})
@@ -3919,6 +3926,42 @@
          [new-options latest-fn-type]))
      [options fn-style]))
   ([options fn-style] (handle-fn-style options fn-style #{})))
+
+(defn handle-new-fn-style
+  "If we have new-options, we might also have a new fn-style.  It might
+  be a traditional keyword, in which case we just return it as the new
+  fn-style.  But it might be a string, in which case we need to look it
+  up in the :fn-map, and deal with handling the results (or failure) of
+  that lookup.  In any case, return [options fn-style]"
+  [caller options fn-style new-options fn-map user-fn-map option-fn]
+  (if new-options
+    (let [new-fn-style (:fn-style new-options)]
+      (if new-fn-style
+        (if (string? new-fn-style)
+          (let [found-fn-style (or (lookup-fn-str fn-map new-fn-style)
+                                   (lookup-fn-str user-fn-map new-fn-style))]
+            (if found-fn-style
+              ; Found something, use that.
+              (handle-fn-style options found-fn-style)
+              ; Didn't find it.
+              (throw (#?(:clj Exception.
+                         :cljs js/Error.)
+                      (str " When "
+                           caller
+                           " called an option-fn "
+                           (option-fn-name option-fn)
+                           " it returned a fn-style which"
+                           " was a string '"
+                           new-fn-style
+                           "' which was not found in the :fn-map!")))))
+          ; It wasn't a string, but it might be a full-on
+          ; complex vector style
+          (handle-fn-style options new-fn-style))
+        ; Didn't get a new fn-style in new-options,
+        ; use the ones we already have
+        [options fn-style]))
+    ; Didn't get new-options at all
+    [options fn-style]))
 
 (declare fzprint-noformat)
 
@@ -4086,10 +4129,22 @@
                      "\nfn-style local:" fn-style
                      "\nguide:" (:guide options)
                      "\ncall-stack:" (:call-stack options))
+
+	  ; Handle a new fn-style in the options map return from the
+	  ; options-fn, as well as a string value, which means we need to
+	  ; do it "like that" function.
+	  [options fn-style] (handle-new-fn-style caller
+	                                          options 
+						  fn-style 
+						  new-options 
+						  fn-map 
+						  user-fn-map 
+						  option-fn)
+	  
           ; If we calculated a new fn-style in the option-fn,
           ; this will pick it up, else we will use the one that we figured
           ; out above.
-          fn-style (or (:fn-style new-options) fn-style)
+          #_#_fn-style (or (:fn-style new-options) fn-style)
           guide (or (:guide options) (guide-debug caller options))
           ; Remove :guide and any forced :fn-style from options so they only
           ; happen once!
@@ -4852,7 +4907,7 @@
   and ind is where we should be after a newline."
   [caller
    {:keys [width rightcnt],
-    {:keys [wrap-after-multi? respect-nl?]} caller,
+    {:keys [wrap-after-multi? respect-nl? no-wrap-after]} caller,
     :as options} cur-ind ind coll-print]
   #_(prn "wrap-zmap:" coll-print)
   (let [last-index (dec (count coll-print))
@@ -4875,6 +4930,24 @@
                   last-width (last lines)
                   len (- last-width ind)
                   len (max 0 len)
+                  ; Do we have a no-wrap element?
+                  no-wrap-element? (when no-wrap-after
+                                     (no-wrap-after (first (first this-seq))))
+                  ; If we do, then add its length to the length of the
+                  ; existing element
+                  next-len (when (and no-wrap-element? (second cur-seq))
+                             (let [[linecnt max-width lines]
+                                     (style-lines options ind (second cur-seq))
+                                   last-width (last lines)]
+                               (max 0 (- last-width ind))))
+                  ; If we have a no-wrap element, make the index the index
+                  ; of the next element, so we handle rightcnt correctly
+                  original-len len
+                  [len index]
+                    (if next-len 
+		      ; Add the lengths together, and also one for the space
+		      [(+ len next-len 1) (inc index)] 
+		      [len index])
                   newline? (= (nth (first this-seq) 2) :newline)
                   comment?
                     (if respect-nl? nil (= (nth (first this-seq) 2) :comment))
@@ -4889,6 +4962,15 @@
                             (or (zero? index)
                                 (and (if multi? (= linecnt 1) true)
                                      (<= (+ cur-ind len) width))))
+                  _ (when no-wrap-element?
+                      (dbg-pr options
+                              "wrap-zmap: no-wrap-element:" (first (first
+                                                                     this-seq))
+                              "original-len:" original-len
+                              "next-len:" next-len
+                              "index:" index
+                              "rightcnt:" rightcnt
+                              "fit?" fit?))
                   new-ind (cond
                             ; Comments cause an overflow of the size
                             (or comment? comment-inline?) (inc width)
@@ -4909,7 +4991,10 @@
                   "\nlinecnt:" linecnt
                   "\nmax-width:" max-width
                   "\nlast-width:" last-width
+                  "\nno-wrap-element?" no-wrap-element?
+                  "\nnext-len:" next-len
                   "\nlen:" len
+                  "\nindex:" index
                   "\ncur-ind:" cur-ind
                   "\nnew-ind:" new-ind
                   "\nwidth:" width
@@ -5105,11 +5190,29 @@
                       (= next-guide :element-best-first)
                       (= next-guide :element-best-*))
                     [true [zloc]])
+          [do-extend? extend-seq]
+            (cond (or (= next-guide :element-newline-extend-group)
+                      (= next-guide :element-newline-extend-*))
+                    [true group-seq]
+                  (or (= next-guide :element-extend)
+                      (= next-guide :element-extend-first)
+                      (= next-guide :element-extend-*))
+                    [true [zloc]])
+          [do-wrap-flow? wrap-flow-seq]
+            (cond (or (= next-guide :element-wrap-flow-group)
+                      (= next-guide :element-wrap-flow-*))
+                    [true group-seq])
           try-this? (and (or zloc do-pairs? group-seq)
-                         (not previous-newline?)
-                         (if (= next-guide :element-best-first) all-fit? true)
+                         (or (not previous-newline?) 
+			     do-wrap-flow?)
+                         (if (or (= next-guide :element-best-first) 
+			         (= next-guide :element-extend-first))
+			   all-fit? 
+			   true)
                          (not guided-newline?)
                          (or do-hang-remaining?
+			     do-extend?
+			     do-wrap-flow?
                              (and (< cur-ind width) (< this-ind width))))
           this-result
             (when try-this?
@@ -5127,6 +5230,19 @@
                                      #_group-seq
                                      nil ;fn-type
                                    )
+
+                do-wrap-flow? 
+                       (fzprint-one-line options this-ind wrap-flow-seq)
+		
+                do-extend? 
+
+                      (prepend-nl options
+                                  (+ indent ind)
+                                  (fzprint-extend options
+						  ; Might be this-ind?
+						  this-ind
+						  extend-seq))
+		
                 ; We don't need to use fzprint-hang-unless-fail, because
                 ; that is pretty much what we are doing with everything.
                 (= next-guide :element-binding-vec)
@@ -5137,11 +5253,12 @@
                 :else (fzprint* (in-hang options) this-ind zloc)))
           ; If we did fzprint-hang-remaining and it has a single space at the
           ; beginning, then drop that space.
-          this-result (if (and do-hang-remaining?
+          this-result (if (and (or do-hang-remaining? do-extend?)
                                (= (nth (first this-result) 2) :whitespace)
                                (= (ffirst this-result) " "))
                         (next this-result)
                         this-result)
+	  #_ (println "this-result:" this-result)
           this-lines (style-lines options this-ind this-result)
           ; Force wrap-multi? true for this guide if we are doing binding,
           ; regardless of its value in the options map.
@@ -5242,6 +5359,28 @@
                                                #_group-seq
                                                nil ;fn-type
                                              )
+
+                          do-wrap-flow? (fzprint-hang-remaining
+                                               caller
+                                               options
+                                               #_(assoc options :dbg? true)
+                                               ; flow it if we are doing it here
+                                               next-ind
+                                               next-ind
+                                               wrap-flow-seq
+                                               #_group-seq
+                                               nil ;fn-type
+                                             )
+
+		      do-extend?
+			  (prepend-nl options
+				      (+ indent ind)
+				      (fzprint-extend options
+						      ; Might be this-ind?
+						      next-ind
+						      extend-seq))
+
+
                           (= next-guide :element-binding-vec)
                             (fzprint-binding-vec options next-ind zloc)
                           (or (= next-guide :element-binding-group)
@@ -5252,8 +5391,10 @@
           ; If we did fzprint-hang-remaining and it has a newline at the
           ; beginning, then we should drop that because we are going to
           ; do it ourselves since this is the "next" processing.
-          #_(prn "***********" next-result)
+          #_ (prn "next-result" next-result)
           next-result (if (and (or do-hang-remaining?
+	                           do-extend?
+				   do-wrap-flow?
                                    (= next-guide :element-binding-*)
                                    (= next-guide :element-binding-group))
                                (= (nth (first next-result) 2) :indent)
@@ -5429,6 +5570,8 @@
         "\n this-fit?" this-fit?
         "\n fail-fit?" fail-fit?
         "\n do-hang-remaining?" do-hang-remaining?
+        "\n do-extend?" do-extend?
+        "\n do-wrap-flow?" do-wrap-flow?
         "\n regular-space:" regular-space
         "\n additional-spaces:" additional-spaces
         "\n beyond-cur-ind:" beyond-cur-ind
@@ -6198,6 +6341,8 @@
                 ; :element-newline-best-* also has to come after
                 ; newline handling
                 (or (= first-guide-seq :element-newline-best-*)
+		    (= first-guide-seq :element-newline-extend-*)
+		    (= first-guide-seq :element-wrap-flow-*)
                     (= first-guide-seq :element-binding-*)
                     (= first-guide-seq :element-pair-*))
                   ; Consider everything else for a -* command.
@@ -6336,8 +6481,11 @@
                 (or (= first-guide-seq :element)
                     (= first-guide-seq :element-guide)
                     (= first-guide-seq :element-best)
+                    (= first-guide-seq :element-extend)
                     (= first-guide-seq :element-best-first)
+                    (= first-guide-seq :element-extend-first)
                     (= first-guide-seq :element-best-*)
+                    (= first-guide-seq :element-extend-*)
                     (= first-guide-seq :element-*)
                     (= first-guide-seq :element-binding-vec))
                   ; Do basic guided output, moving both cur-seq and guide-seq
@@ -6347,7 +6495,8 @@
                                                  first-guide-seq)
                                             :bright-red))
                         _ (when (and (or (= first-guide-seq :element-*)
-                                         (= first-guide-seq :element-best-*))
+                                         (= first-guide-seq :element-best-*)
+                                         (= first-guide-seq :element-extend-*))
                                      (not (empty? (next guide-seq))))
                             (throw
                               (#?(:clj Exception.
@@ -6375,7 +6524,8 @@
                                ; Make sure to consume the guide too
                                (nnext guide-seq)
                              (or (= first-guide-seq :element-*)
-                                 (= first-guide-seq :element-best-*))
+                                 (= first-guide-seq :element-best-*)
+                                 (= first-guide-seq :element-extend-*))
                                ; We just stay "stuck" on last command
                                ; in guide-seq for :element-* and
                                ; :element-best-*
@@ -6390,6 +6540,8 @@
                            options
                            new-out))
                 (or (= first-guide-seq :element-newline-best-group)
+                    (= first-guide-seq :element-newline-extend-group)
+                    (= first-guide-seq :element-wrap-flow-group)
                     (= first-guide-seq :element-pair-group)
                     (= first-guide-seq :element-binding-group))
                   ; Operate on previously grouped elements
@@ -7671,13 +7823,20 @@
   [l-str r-str options zloc]
   (let [l-str-vec [[l-str (zcolor-map options l-str) :left]]
         r-str-vec (rstr-vec options 0 zloc r-str)
+        len (zcount zloc)
+        _ (dbg-s-pr options
+                    :noformat
+                    "fzprint-noformat zloc" (zstring zloc)
+                    "len:" len)
         fzprint*-seq (zmap-all-nl-comment (partial fzprint* options 0) zloc)
         _ (dbg-s-pr options
                     :noformat
                     "fzprint-noformat fzprint*-seq:"
                     fzprint*-seq)
         concat-vec
-          (concat-no-nil l-str-vec (apply concat fzprint*-seq) r-str-vec)
+          (if (zero? len)
+            (concat-no-nil l-str-vec r-str-vec)
+            (concat-no-nil l-str-vec (apply concat fzprint*-seq) r-str-vec))
         _ (dbg-s-pr options :noformat "fzprint-noformat concat-vec:" concat-vec)
         remove-spaces-vec (remove-spaces-pre-nl concat-vec)
         _ (dbg-s-pr options

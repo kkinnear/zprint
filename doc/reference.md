@@ -3700,7 +3700,7 @@ considered constant as well:
 
 #### :return-altered-zipper _nil_
 
-__EXPERIMENTAL__
+__EXPERIMENTAL & DEPRECATED as of `1.2.5`__
 
 This capability will let you rewrite any list that zprint encounters.  It only
 works when zprint is formatting source code -- where `:parse-string?` is
@@ -3823,6 +3823,80 @@ See the section on :vector for information on these keys.  A simple example:
 Generally, `&` isn't something with special meaning in a list, but there
 may be something else that you wish to not dangle as the last element on
 a line when a list is being wrapped.
+
+##### :option-fn _nil_
+
+You can configure an `:option-fn` which will run whenever a list is
+encountered, and can return a new options map or nil.  The option-fn is
+an actual Clojure function which is given access to the list.  Typically
+you would not configure a `:list {:option-fn ...}` for all lists, but would
+instead include in an options map associated with the `:fn-map`.  If you look
+at the `:style-map` you will see many of the styles are implemented using
+`:option-fn`s and the `:fn-map` only configures most of those styles to be
+in play when certain functions are being formatted.
+
+The calling sequence for an `:options-fn` is: 
+
+```
+(fn [options element-count non-whitespace-non-comment-element-seq] ... )
+```
+where the third argument is a Clojure sequence of the essential elements
+of the list -- that is, the ones that are not comments or whitespace.  This
+allows the Clojure code of the `:option-fn` to easily make decisions about
+how to format this list.
+
+The value of the `:option-fn` is a map containing *only* changes to the
+current options map.  Do *NOT* make changes to the input options map 
+and return that as the result of the `:option-fn` call!
+
+Note that to aid debugging, all `:option-fn`s should have two arities:
+
+```
+(fn
+  ([] "option-fn-name")
+  ([options n exprs]
+    (...)))
+```
+
+The name as a string should be returned from the zero arity call, allowing
+zprint to recover the function name when outputing debugging messages.
+
+
+In addition to the normal arguments, there are some additional things passed
+in options map:  
+
+  - `:zloc` The current structure or zipper
+  - `:l-str` A string which is the current left enclosing parenthesis (usually)
+  - `:r-str` A string which is the current right enclosing parenthesis (usually)
+  - `:ztype` Either `:sexpr` for structure or `:zipper` for source.
+  - `:caller` The caller, to allow examining the options maps for configuration
+
+
+
+In addiiton to the above elements being added to the options map prior to 
+calling the `:option-fn`, the following elements are recovered from the
+returned options map and used if they are non-nil:
+
+  - `:new-zloc` A structure or zipper which should have been modified.
+  - `:new-l-str` A new string for the left enclosing parenthesis
+  - `:new-r-str` A new string for the right enclosing parenthesis
+
+`new-zloc`, `new-l-str`, and `new-r-str` output from an `:option-fn` 
+is __EXPERIMENTAL__
+
+Very few `:option-fn`s actually return a `:new-zloc`, `:new-l-str`, or 
+`:new-r-str`, but the capability exists.  It is relatively easy to write
+Clojure code to modify a structure, but that is only useful at the REPL.
+In order to modify Clojure source code, you need to operate on the zippers
+produced by the `rewrite-clj V1` Clojure parser library.  Looking at the
+contents of 
+zippers is not that hard, but making substantial modifications and dealing
+with the existance of things like comments is challenging.  It can be done,
+but debugging it can take a long time.
+
+Writing an `:option-fn` to return an options map with formatting information
+is a perfectly reasonable thing to do.  You will want to avoid writing an
+`:option-fn` to actually modify the data being formatted if at all possible.
 
 _____
 ## :map
@@ -6035,6 +6109,64 @@ The function signature for the `option-fn` is:
 This differs from `option-fn-first` in that `option-fn` gives you access
 to all of the elements of the vector in order to make the decision of
 how to format it, at a very slight performance impact.
+
+The calling sequence for a `:option-fn` is:
+
+```
+(fn [options element-count non-whitespace-non-comment-element-seq] ... )
+```
+
+where the third argument is a Clojure sequence of the essential elements
+of the list -- that is, the ones that are not comments or whitespace.  This
+allows the Clojure code of the `:option-fn` to easily make decisions about
+how to format this list.
+
+The value of the `:option-fn` is a map containing *only* changes to the
+current options map.  Do *NOT* make changes to the input options map 
+and return that as the result of the `:option-fn` call!
+
+Note that to aid debugging, all `:option-fn`s should have two arities:
+
+```
+(fn
+  ([] "option-fn-name")
+  ([options n exprs]
+    (...)))
+```
+
+The name as a string should be returned from the zero arity call, allowing
+zprint to recover the function name when outputing debugging messages.
+
+In addition to the normal arguments, there are some additional things passed
+in options map:  
+
+  - `:zloc` The current structure or zipper
+  - `:l-str` A string which is the current left enclosing parenthesis (usually)
+  - `:r-str` A string which is the current right enclosing parenthesis (usually)
+  - `:ztype` Either `:sexpr` for structure or `:zipper` for source.
+  - `:caller` The caller, to allow examining the options maps for configuration
+
+In addiiton to the above elements being added to the options map prior to 
+calling the `:option-fn`, the following elements are recovered from the
+returned options map and used if they are non-nil:
+
+  - `:new-zloc` A structure or zipper which should have been modified.
+  - `:new-l-str` A new string for the left enclosing parenthesis
+  - `:new-r-str` A new string for the right enclosing parenthesis
+
+Very few `:option-fn`s actually return a `:new-zloc`, `:new-l-str`, or 
+`:new-r-str`, but the capability exists.  It is relatively easy to write
+Clojure code to modify a structure, but that is only useful at the REPL.
+In order to modify Clojure source code, you need to operate on the zippers
+produced by the `rewrite-clj V1` Clojure parser library.  Looking at the
+contents of 
+zippers is not that hard, but making substantial modifications and dealing
+with the existance of things like comments is challenging.  It can be done,
+but debugging it can take a long time.
+
+Writing an `:option-fn` to return an options map with formatting information
+is a perfectly reasonable thing to do.  You will want to avoid writing an
+`:option-fn` to actually modify the data being formatted if at all possible.
 
 See `:fn-format` for one example of how to use `:option-fn`.  `:option-fn`
 is also used in the implemenation of the `:hiccup` style.

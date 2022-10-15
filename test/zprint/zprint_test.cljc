@@ -7439,6 +7439,130 @@ ser/collect-vars-acc %1 %2) )))"
                                            (cond (re-find #"^when" fn-str)
                                                    {:fn-style "when"}
                                                  :else nil))))}}]}}))
+;;
+;; Issue #268 -- when doing anon fns, turn (fn* ...) into #( ... ).
+;;
+
+(def i268a `#(list % :a))
+(def i268b '#(+ %1 %2))
+(def i268c '(map #(* 2 %) [1 2 3]))
+(def i268d '#(println %1 %2 %&))
+(def i268e
+  '{:style-map {:m2 {:fn-map {"app"
+                                [:force-nl-body
+                                 {:list {:constant-pair-min 1,
+                                         :constant-pair-fn #(or (keyword? %)
+                                                                (string? %)
+                                                                (number? %)
+                                                                (= true %)
+                                                                (= false %)
+                                                                (vector? %))},
+                                  :pair {:justify? true},
+                                  :next-inner {:list {:constant-pair-min 4,
+                                                      :constant-pair-fn nil},
+                                               :pair {:justify? false}}}]}}}})
+
+(def i268f
+  '(is (= {1 :a, 2 :b} (reduce-kgv #(assoc %1 %3 %2) {} (seq {:a 1, :b 2})))))
+(def i268g
+  '([f g h & fs]
+    (let [fs (list* f g h fs)]
+      (fn ([] (reduce1 #(conj %1 (%2)) [] fs))
+          ([x] (reduce1 #(conj %1 (%2 x)) [] fs))
+          ([x y] (reduce1 #(conj %1 (%2 x y)) [] fs))
+          ([x y z] (reduce1 #(conj %1 (%2 x y z)) [] fs))
+          ([x y z & args] (reduce1 #(conj %1 (apply %2 x y z args)) [] fs))))))
+
+
+
+(def i268i
+'#(this % is a test this is only a test))
+
+(def i268j
+'#(or % is a test this is only a test))
+
+
+#?(:clj (expect "#(clojure.core/list % :a)"
+                (zprint-str i268a {:style :anon-fn}))
+   :cljs (expect "#(cljs.core/list % :a)" (zprint-str i268a {:style :anon-fn})))
+					
+
+(expect
+"#(+ %1 %2)"
+(zprint-str i268b {:style :anon-fn}))
+
+(expect
+"(map #(* 2 %) [1 2 3])"
+(zprint-str i268c {:style :anon-fn}))
+
+(expect
+"#(println %1 %2 %&)"
+(zprint-str i268d {:style :anon-fn}))
+
+(expect
+"{:style-map\n   {:m2\n      {:fn-map {\"app\" [:force-nl-body\n                       {:list {:constant-pair-fn #(or (keyword? %)\n                                                      (string? %)\n                                                      (number? %)\n                                                      (= true %)\n                                                      (= false %)\n                                                      (vector? %)),\n                               :constant-pair-min 1},\n                        :next-inner\n                          {:list {:constant-pair-fn nil, :constant-pair-min 4},\n                           :pair {:justify? false}},\n                        :pair {:justify? true}}]}}}}"
+(zprint-str i268e {:style :anon-fn}))
+
+(expect
+"(is (= {1 :a, 2 :b} (reduce-kgv #(assoc %1 %3 %2) {} (seq {:a 1, :b 2}))))"
+(zprint-str i268f {:style :anon-fn}))
+
+(expect
+"([f g h & fs]\n (let [fs (list* f g h fs)]\n   (fn\n     ([] (reduce1 #(conj %1 (%2)) [] fs))\n     ([x] (reduce1 #(conj %1 (%2 x)) [] fs))\n     ([x y] (reduce1 #(conj %1 (%2 x y)) [] fs))\n     ([x y z] (reduce1 #(conj %1 (%2 x y z)) [] fs))\n     ([x y z & args] (reduce1 #(conj %1 (apply %2 x y z args)) [] fs)))))"
+(zprint-str i268g {:style :anon-fn}))
+
+
+(expect
+"#(this %\n       is\n       a\n       test\n       this\n       is\n       only\n       a\n       test)"
+(zprint-str i268i {:style :anon-fn :width 30}))
+
+(expect
+"#(or %\n     is\n     a\n     test\n     this\n     is\n     only\n     a\n     test)"
+(zprint-str i268j {:style :anon-fn :width 30}))
+
+(expect
+"#(or % is a test this is only a test)"
+(zprint-str "#(or % is a test this is only a test)" {:parse-string? true}))
+
+(expect
+"#(or % is a test this is only a test)"
+(zprint-str "#(or % is a test this is only a test)" {:parse-string? true :style :anon-fn}))
+
+(defn rev-vec
+  "Test out structure modifications for vectors."
+  ([] "rev-vec")
+  ([options n sexpr]
+   (when (= (:ztype options) :sexpr) {:new-zloc (reverse (:zloc options))})))
+
+(expect "[:a :b :c]" (zprint-str [:a :b :c]))
+
+(expect "[:c :b :a]"
+        (zprint-str [:a :b :c]
+                    {:vector {:option-fn zprint.zprint-test/rev-vec}}))
+
+(expect "[:a :b :c]"
+        (zprint-str "[:a :b :c]"
+                    {:parse-string? true,
+                     :vector {:option-fn zprint.zprint-test/rev-vec}}))
+
+(defn remove-vec
+  "Test out zipper (source) modifications for vectors."
+  ([] "remove-vec")
+  ([options n sexpr]
+   (when (= (:ztype options) :zipper)
+     (let [zloc (:zloc options)
+           zloc (z/down zloc)
+           #_(println "remove-vec" (z/string zloc))
+           new-zloc (z/right zloc)
+           new-zloc (z/remove new-zloc)
+           new-zloc (z/up new-zloc)]
+       {:new-zloc new-zloc}))))
+
+
+(expect "[:a :c]"
+        (zprint-str "[:a :b :c]"
+                    {:parse-string? true,
+                     :vector {:option-fn zprint.zprint-test/remove-vec}}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -4,6 +4,7 @@
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
   (:require #?@(:clj [[zprint.macros :refer
                        [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+	    [zprint.rewrite :refer [sort-dependencies]]
             [zprint.util :refer [column-alignment cumulative-alignment]]))
 
 ;;
@@ -84,4 +85,50 @@
                       :arg1-body
                       :arg2),
           :next-inner-restore [[:list :hang-expand]]})))))
+
+
+;;
+;; When given (fn* ...), turn it back into #(...%...).
+;;
+
+(defn fn*->%
+  "Given a structure starting with fn*, turn it back into a #(...) anon fn."
+  ([] "fn*->%")
+  ([options n exprs]
+   #_(println zloc)
+   (when (= (:ztype options) :sexpr)
+     ; We know we've got a struct
+     (let [caller (:caller options)
+           zloc (:zloc options)
+           l-str (:l-str options)
+           arg-vec (second zloc)
+           arg-count (count arg-vec)
+           [arg-vec final-value]
+             (if (and (>= arg-count 2) (= (nth arg-vec (- arg-count 2)) '&))
+               [(conj (into [] (take (- arg-count 2) arg-vec))
+                      (nth arg-vec (dec arg-count))) "&"]
+               [arg-vec nil])
+           arg-count (count arg-vec)
+           replace-map
+             (zipmap arg-vec
+                     (mapv (comp symbol (partial str "%"))
+                       (if (= arg-count 1)
+                         [""]
+                         (if final-value
+                           (conj (mapv inc (range (dec arg-count))) final-value)
+                           (mapv inc (range arg-count))))))
+           new-zloc (clojure.walk/prewalk-replace replace-map (nth zloc 2))]
+       {:list {:option-fn nil},
+        :new-zloc new-zloc,
+        :new-l-str (str "#" l-str)}))))
+
+(defn sort-deps
+  "option-fn interface to sort-dependencies"
+  ([] "sort-deps")
+  ([options n exprs]
+   (when (= (:ztype options) :zipper)
+     (let [caller (:caller options)
+           zloc (:zloc options)
+           new-zloc (sort-dependencies caller options zloc)]
+       {:new-zloc new-zloc, :list {:option-fn nil}}))))
 

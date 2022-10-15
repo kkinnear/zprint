@@ -261,15 +261,16 @@
 (s/def ::ignore-if-parse-fails (s/nilable (s/coll-of ::ignore-args :kind set?)))
 (s/def ::key-no-sort (s/nilable (s/coll-of ::ignore-args :kind set?)))
 (s/def ::replacement-string (s/nilable string?))
-(s/def ::return-altered-zipper vector?)
+(s/def ::return-altered-zipper (s/nilable vector?))
+(s/def ::new-zloc zany?)
+(s/def ::new-l-str string?)
+(s/def ::new-r-str string?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
 (s/def ::fn-style (s/nilable (s/or :fn-type ::fn-type
                                    :string string?)))
-
-
 (s/def ::fn-str (s/nilable string?))
 (s/def ::real-le? ::boolean)
 (s/def ::real-le-length number?)
@@ -388,6 +389,7 @@
 (s/def ::no-justify (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::no-wrap-after (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
+(s/def ::option-fn-map map?)
 (s/def ::old? ::boolean)
 (s/def ::guide ::guide-seq)
 (s/def ::guide-debug ::guide-debug-seq)
@@ -484,7 +486,8 @@
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
-             ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map]))
+             ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map
+	     ::new-zloc ::new-l-str ::new-r-str ::option-fn-map]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

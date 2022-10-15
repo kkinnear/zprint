@@ -16,7 +16,7 @@
     [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
                              odrguide guideguide rodguide areguide
 			     defprotocolguide-s]]
-    [zprint.optionfn :refer [rodfn meta-base-fn]]
+    [zprint.optionfn :refer [rodfn meta-base-fn fn*->% sort-deps]]
     #?@(:bb []
         ; To completely remove sci, comment out the following line.
         :clj [[sci.core :as sci]]
@@ -375,6 +375,7 @@
    "deftest" :arg1-body,
    "deftype" :arg2-extend-body,
    "defui" :arg1-extend,
+   "dissoc" [:arg1 {:list {:constant-pair? false} :next-inner-restore [[:list :constant-pair?]]}]
    "do" :none-body,
    "doseq" :binding,
    "dotimes" :binding,
@@ -620,6 +621,8 @@
    :meta {:split? false},
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
+   ; This is here to allow various option-fns to communicate as necessary
+   :option-fn-map {}
    :output
      {:format :string,
       :focus {:zloc? false, :surround nil},
@@ -703,6 +706,8 @@
                  :pair-fn {:hang? true},
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
+      :anon-fn {:doc "Put anon fn (fn* ...) back to #(... % ...)"
+		:fn-map {"fn*" [:none {:list {:option-fn fn*->%}}]}}
       :areguide {:doc "Allow modification of areguide in :fn-map",
                  :list {:option-fn (partial areguide {:justify? true})}},
       :areguide-nj
@@ -976,8 +981,7 @@
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
       :sort-dependencies {:doc "sort dependencies in lein defproject files",
-                          :list {:return-altered-zipper [1 'defproject
-                                                         sort-dependencies]}}},
+                          :list {:option-fn sort-deps}}},
    :tab {:expand? true, :size 8},
    :test-for-eol-blanks? false,
    :trim-comments? nil,

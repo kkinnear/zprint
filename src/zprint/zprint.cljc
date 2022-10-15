@@ -172,36 +172,56 @@
          e
          nil)))
 
+;!zprint {:format :next :vector {:wrap? false}}
 (defn call-option-fn
-  "Call an option-fn and return a (possibly) validated map of 
-  the merged options. Returns [merged-options-map new-options]"
-  [caller options option-fn zloc]
+  "Call an option-fn and return a validated map of the merged options. 
+  Returns [merged-options-map new-options new-zloc new-l-str new-r-str]"
+  [caller options option-fn zloc l-str r-str]
   #_(prn "call-option-fn caller:" caller)
   (let [sexpr-seq (get-sexpr options zloc)
-        ; Add the current zloc to the options for the option-fn
+        ; Add the current zloc and l-str, r-str to the options
+        ; for the option-fn
         options (assoc options
                   :zloc zloc
-                  :caller caller)]
-    (internal-config-and-validate
-      options
-      (try
-        (dbg-pr options "call-option-fn sexpr-seq:" sexpr-seq)
-        (let [result (option-fn options (count sexpr-seq) sexpr-seq)]
-          (dbg-pr options "call-option-fn result:" result)
-          result)
-        (catch #?(:clj Exception
-                  :cljs :default)
-          e
-          (do (dbg-s options :guide-exception "Failure in option-fn:" (throw e))
-              (throw (#?(:clj Exception.
-                         :cljs js/Error.)
-                      (str " When " caller
-                           " called an option-fn" (option-fn-name option-fn)
-                           " it failed because: " e))))))
-      (str caller
-           " :option-fn" (option-fn-name option-fn)
-           " called with an sexpr of length " (count sexpr-seq))
-      :validate)))
+                  :l-str l-str
+                  :r-str r-str
+                  :caller caller)
+        [merged-options new-options]
+          (internal-config-and-validate
+            options
+            (try (dbg-pr options "call-option-fn sexpr-seq:" sexpr-seq)
+                 (let [result (option-fn options (count sexpr-seq) sexpr-seq)]
+                   (dbg-pr options "call-option-fn result:" result)
+                   result)
+                 (catch #?(:clj Exception
+                           :cljs :default)
+                   e
+                   (do (dbg-s options
+                              :guide-exception
+                              "Failure in option-fn:"
+                              (throw e))
+                       (throw
+                         (#?(:clj Exception.
+                             :cljs js/Error.)
+                          (str " When " caller
+                               " called an option-fn" (option-fn-name option-fn)
+                               " it failed because: " e))))))
+            (str caller
+                 " :option-fn" (option-fn-name option-fn)
+                 " called with an sexpr of length " (count sexpr-seq))
+            :validate)]
+    [(dissoc merged-options
+         :caller
+         :zloc 
+	 :new-zloc
+         :l-str 
+	 :new-l-str
+         :r-str 
+	 :new-r-str) 
+       new-options 
+       (or (:new-zloc new-options) zloc)
+       (or (:new-l-str new-options) l-str)
+       (or (:new-r-str new-options) r-str)]))
 
 (defn call-option-fn-first
   "Call an option-fn-first with just the first thing in the zloc, and
@@ -3808,7 +3828,7 @@
              (let [caller-map (future-caller options)]
                (or (:flow? caller-map) (:force-nl? caller-map)))))))
 
-(defn modify-zloc
+(defn modify-zloc-legacy
   "If the (caller options) has a value for :return-altered-zipper, then
   examine the value.  It should be [<depth> <symbol> <fn>]. 
   If the <depth> is nil, any depth will do. If the
@@ -3819,7 +3839,7 @@
   (let [[depth trigger-symbol modify-fn :as return-altered-zipper-value]
           (:return-altered-zipper (caller options))]
     (dbg options
-         "modify-zloc caller:" caller
+         "modify-zloc-legacy caller:" caller
          "ztype" (:ztype options)
          "return-altered-zipper-value:" return-altered-zipper-value)
     (if (or (not= (:ztype options) :zipper) (nil? return-altered-zipper-value))
@@ -3829,10 +3849,12 @@
                               (and (zsymbol? (zfirst zloc))
                                    (= trigger-symbol (zsexpr (zfirst zloc)))))
                           modify-fn)]
-        (dbg options "modify-zloc: zloc" (zstring zloc) "call-fn?" call-fn?)
+        (dbg options
+             "modify-zloc:-legacy zloc" (zstring zloc)
+             "call-fn?" call-fn?)
         (if call-fn?
           (let [return (modify-fn caller options zloc)]
-            (dbg options "modify-zloc return:" (zstring return))
+            (dbg options "modify-zloc-legacy return:" (zstring return))
             return)
           zloc)))))
 
@@ -3986,7 +4008,14 @@
     ; We don't need to call get-respect-indent here, because all of the
     ; callers of fzprint-list* define respect-nl?, respect-bl? and indent-only?
     (let [max-length (get-max-length options)
-          zloc (modify-zloc caller options zloc)
+	  ; Legacy modify-zloc for compatibility, now deprecated.  
+	  ; It was only experimental in the first place, so we can actually
+	  ; delete it at some point.
+	  ; This capability is now handled by extending the option-fn 
+	  ; mechanism to support rewriting a zipper or a structure, 
+	  ; in part to support specifying it in the :fn-map for only 
+	  ; certain functions.
+          zloc (modify-zloc-legacy caller options zloc)
           ; zcount does (zmap identity zloc) which counts comments and the
           ; newline after it, but no other newlines
           len (zcount zloc)
@@ -4115,13 +4144,25 @@
                                  :zloc zloc,
                                  :fn-style fn-style,
                                  :zfirst-info (or fn-str fn-type)}))
-          [options new-options] (if option-fn
-                                  (call-option-fn caller options option-fn zloc)
-                                  [options nil])
+          [options new-options zloc l-str r-str] (if option-fn
+                                  (call-option-fn caller options option-fn zloc l-str r-str)
+                                  [options nil zloc l-str r-str])
+	  ; Note that the existence of new-options is a signal to several
+	  ; downstream things that something was returned from the option-fn.
+	  ; Also, not that fn-str is now possibly not valid anymore if someone
+	  ; returned a new-zloc in new-options!
           _ (when option-fn
               (dbg-pr options
                       "fzprint-list* option-fn new options"
                       new-options))
+	  ; Recalculate in case we changed it in the option fn
+	  #_(println "new-options:" new-options)
+	  #_(println "l-str-len early:" l-str-len)
+          l-str-len (count l-str)
+	  #_(println "l-str-len late:" l-str-len)
+	  ; zcount is not free, so only do it if the zloc changed
+	  len (if (:new-zloc new-options) (zcount zloc) len)
+	  
           #_(println "\noption-fn:" option-fn
                      "\nfn-str:" fn-str
                      "\nfn-format options:" (:fn-format (:vector options))
@@ -4141,10 +4182,6 @@
 						  user-fn-map 
 						  option-fn)
 	  
-          ; If we calculated a new fn-style in the option-fn,
-          ; this will pick it up, else we will use the one that we figured
-          ; out above.
-          #_#_fn-style (or (:fn-style new-options) fn-style)
           guide (or (:guide options) (guide-debug caller options))
           ; Remove :guide and any forced :fn-style from options so they only
           ; happen once!
@@ -4267,8 +4304,10 @@
           ; Note that much is driven from arg-1-indent, since if this is nil
           ; the assumption is that the first argument is a collection, and that
           ; the indent should be l-str-len.  See local-indent below.
+	  ; Don't use fn-str here, as it might be old data if there was an
+	  ; option-fn that returned a new zloc yielding a new arg-1-zloc!
           arg-1-indent (if-not arg-1-coll?
-                         (+ ind (inc l-str-len) (count fn-str)))
+                         (+ ind (inc l-str-len) (count (zstring arg-1-zloc))))
           ; If we don't have an arg-1-indent, and we noticed that the inputs
           ; justify using an alternative, then use the alternative.
           arg-1-indent (or arg-1-indent (when arg-1-indent-alt? (+ indent ind)))
@@ -6620,11 +6659,6 @@
       (fzprint-binding-vec options ind zloc)
       (let [[respect-nl? respect-bl? indent-only?]
               (get-respect-indent options caller :vector)
-            l-str-len (count l-str)
-            l-str-vec [[l-str (zcolor-map options l-str) :left]]
-            r-str-vec
-              (rstr-vec options (+ ind (max 0 (dec l-str-len))) zloc r-str)
-            len (zcount zloc)
             #_#_options
               (assoc options
                 :call-stack (conj
@@ -6641,9 +6675,22 @@
                 (dbg-pr options
                         "fzprint-vec* option-fn-first new options"
                         new-options))
-            [options new-options]
+	    ; Fix this to handle new returns.
+
+          [options new-options zloc l-str r-str] (if option-fn
+                (call-option-fn caller options option-fn zloc l-str r-str)
+		[options nil zloc l-str r-str])
+
+            ; Do this after call-option-fn in case anything changed.
+
+            l-str-len (count l-str)
+            l-str-vec [[l-str (zcolor-map options l-str) :left]]
+            r-str-vec
+              (rstr-vec options (+ ind (max 0 (dec l-str-len))) zloc r-str)
+            len (zcount zloc)
+
+           #_#_ [options new-options]
               (if option-fn
-                (call-option-fn caller options option-fn zloc)
                 [options nil])
             _ (when option-fn
                 (dbg-pr options

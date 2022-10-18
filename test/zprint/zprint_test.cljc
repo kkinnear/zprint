@@ -7564,6 +7564,32 @@ ser/collect-vars-acc %1 %2) )))"
                     {:parse-string? true,
                      :vector {:option-fn zprint.zprint-test/remove-vec}}))
 
+;;
+;; Issue #269 -- if you have a comment in a map, some of the advanced options
+;; don't work.
+;;
+
+(expect
+";;!zprint {:map {:sort? true :key-value-options {:tasks {:map {:sort? true :justify? true}}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc  \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix   {:doc  \"Fix code formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+(zprint-file-str
+";;!zprint {:map {:sort? true :key-value-options {:tasks {:map {:sort? true :justify? true}}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+"x"
+{}))
+
+(expect
+";;!zprint {:map {:sort? true :key-color {:tasks :blue} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix {:doc \"Fix code formatting errors\",\n                  :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+(zprint-file-str
+";;!zprint {:map {:sort? true :key-color {:tasks :blue} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+"x"
+{}))
+
+(expect
+";;!zprint {:map {:sort? true :key-value-color {:tasks {:keyword :blue}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix {:doc \"Fix code formatting errors\",\n                  :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+(zprint-file-str
+";;!zprint {:map {:sort? true :key-value-color {:tasks {:keyword :blue}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+"x"
+{}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

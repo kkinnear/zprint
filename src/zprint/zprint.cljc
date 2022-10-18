@@ -1078,6 +1078,8 @@
         ; key-value-color is only for maps, so they can't both show up
         ; at once.
         value-color-map (and key-value-color
+			     (> (count pair) 1)
+			     (zsexpr? lloc)
                              (key-value-color (get-sexpr options lloc)))
         local-roptions (if value-color-map
                          (merge-deep local-roptions
@@ -1090,6 +1092,8 @@
         ; any of the keys in the map, then merge the resulting options map
         ; into the current options for the value.
         value-options-map (and key-value-options
+			       (> (count pair) 1)
+			       (zsexpr? lloc)
                                (key-value-options (get-sexpr options lloc)))
         local-roptions (if value-options-map
                          (merge-deep local-roptions value-options-map)
@@ -1113,7 +1117,9 @@
         ; Doesn't work if we have a modifier, but at this point, key-color
         ; is only for maps and modifiers are only for extend.
         local-color
-          (if key-color (key-color (get-sexpr options lloc)) local-color)
+          (if (and key-color (> (count pair) 1) (zsexpr? lloc)) 
+	    (key-color (get-sexpr options lloc)) 
+	    local-color)
         #_local-color
         #_(cond (and map-depth (= caller :map) (= map-depth 2)) :green
                 (and map-depth (= caller :map) (= map-depth 1)) :blue
@@ -3985,6 +3991,14 @@
     ; Didn't get new-options at all
     [options fn-style]))
 
+(defn fn-style+option-fn
+  "Take the current fn-style and lots of other important things, and 
+  handle lookups in the fn-type-map, as well as calling option-fn(s)
+  as necessary.  Returns [options fn-style zloc l-str r-str changed-zloc?]"
+  [caller options fn-style zloc l-str r-str]
+  (let [fn-map (:fn-map options)
+        use-fn-map (:user-fn-map)]))
+
 (declare fzprint-noformat)
 
 (defn fzprint-list*
@@ -4092,6 +4106,7 @@
           ; vector that might be present in the initial fn-style.
           vector-fn-style? (vector? fn-style)
           ; After this, it isn't a vector any more...
+	  ; ------- new routine
           [options fn-style] (handle-fn-style options fn-style)
           #_(println "fzprint-list: count options" (count options))
           #_#_options

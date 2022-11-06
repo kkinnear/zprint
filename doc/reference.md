@@ -2014,19 +2014,20 @@ doing it where it will improve readability.
 There are two styles that will turn on justification wherever possible:
 ```
 {:style :justified}
-{:style :justified-20}
+{:style :justified-original}
 ```
 
-The difference is that ```{:style :justified}``` has the `:max-variance`
-set to `1000` so that the results don't change from the defaults.
+The difference is that ```{:style :justified}``` leaves the `:max-variance`
+set to `20` so that the results are what is to be believed the most pleasing.
+This is the default.
 
-The style ```{:style :justified-20}``` is the same as ```{:style :justified}```
-except that the `:max-variance` is set to `20` to allow a more readable
-version of justified output when the left-hand sides (e.g., keys, `let`
-locals) vary a lot in length.
+The style ```{:style :justified-original}``` is the same as ```{:style
+:justified}``` except that the `:max-variance` is set to `1000` to
+output the original defaults for justification.
 
-I don't personally find the justified approach my favorite in code,
-though there are some functions where it looks good.
+I don't personally find the justified approach my favorite for all code,
+though with the `:max-variance` approach there are many more places 
+where it looks very good.
 
 Try:
 
@@ -3032,9 +3033,11 @@ There are three possible ways that inline comments can be aligned:
 
   * `:aligned` -- the default.  Any comments that are aligned on input and are
     separated by less than 5 lines on output will be aligned in the output.
+    All inline comments will shift left to be one space from the widest code.
 
   * `:consecutive` -- Any inline comments which appear on consecutive lines
-    in the output (not the input) will be aligned.
+    in the output (not the input) will be aligned.  All inline comments
+    will shift left to be one space from the widest code.
 
 #### :count? _false_
 

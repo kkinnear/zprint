@@ -455,13 +455,13 @@
              :flow-all-if-any? false,
              :force-nl? false,
              :hang-diff 1,
-             :hang-expand 2.0,
+             :hang-expand 15.0
              :hang-accept nil,
              :ha-depth-factor 0,
              :ha-width-factor 0,
              :hang? true,
              :indent 2,
-             :justify-hang {:hang-expand 5},
+             :justify-hang {:hang-expand 15.0},
              :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
              :justify {:max-variance 20,
                        :no-justify #{"_"},
@@ -545,7 +545,7 @@
           :force-nl? false,
           :hang-avoid 0.5,
           :hang-diff 1,
-          :hang-expand 2.0,
+          :hang-expand 15.0
           :hang-accept nil,
           :ha-depth-factor 0,
           :ha-width-factor 0,
@@ -638,13 +638,13 @@
           :flow-all-if-any? false,
           :force-nl? nil,
           :hang-diff 1,
-          :hang-expand 2.0,
+          :hang-expand 15.0
           :hang-accept nil,
           :ha-depth-factor 0,
           :ha-width-factor 0,
           :hang? true,
           :indent 2,
-          :justify-hang {:hang-expand 5},
+          :justify-hang {:hang-expand 15.0},
           :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
           :justify {:max-variance 20,
                     :ignore-for-variance #{":else"},
@@ -653,7 +653,7 @@
           :justify? false,
           :nl-separator? false,
           :nl-separator-all? false},
-   :pair-fn {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
+   :pair-fn {:hang-diff 1, :hang-expand 15.0, :hang-size 100, :hang? true},
    :parse {:interpose nil, :left-space :drop, :ignore-if-parse-fails #{"..."}},
    :parse-string-all? false,
    :parse-string? false,
@@ -921,6 +921,15 @@
                                            {:style [:jimportguide :ij-var]}]}},
       :ns-justify {:style [:require-justify :require-macros-justify
                            :import-justify]},
+
+      :original-hang
+	  {:doc "Original tuning prior stability fixes for multiple formats"
+	   :binding {:hang-expand 2.0, :justify-hang {:hang-expand 5.0}},
+	   :list {:hang-expand 2.0},
+	   :pair {:hang-expand 2.0, :justify-hang {:hang-expand 5.0}},
+	   :pair-fn {:hang-expand 2.0, :hang-size 10},
+	   :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true},
+	   :vector-fn {:hang-expand 2.0}}
       :require-pair
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none
@@ -991,14 +1000,14 @@
             :hang-type-flow 1.5,
             ; when (> hang-count :hang-flow-limit),
             ;  hang if (<= (dec hang-count) flow-count)
-            :hang-flow-limit 10,
+            :hang-flow-limit  12,
             ; this is added to the count of hanging lines before the comparison
             ; when doing the one with :hang-flow or :hang-type-flow
             ; Note that :map has its own :hang-adjust which overides this
             ; general
             ; one.
             :general-hang-adjust -1,
-            :hang-if-equal-flow? true},
+            :hang-if-equal-flow? false},
    :uneval {:color-map {:brace :yellow,
                         :bracket :yellow,
                         :char :magenta,
@@ -1045,7 +1054,7 @@
                :constant-pair? true,
                :hang-avoid 0.5,
                :hang-diff 1,
-               :hang-expand 2.0,
+               :hang-expand 15.0 
                :hang-accept nil,
                :ha-depth-factor 0,
                :ha-width-factor 0,

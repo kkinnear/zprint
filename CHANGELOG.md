@@ -5,9 +5,39 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * In order to prevent an argument list from having something hanging
+  out on the right end (e.g., a "&"), you can now use 
+  `:vector {:no-wrap-after #{"&"}}`.  You can have any strings in the set
+  of elements in `:no-wrap-after`.  Issue #252.
+
 ### Changed
 
+  * Multiple aligned inline comments would shift left to be one space beyond
+  the widest line of code when using `:comment {:inline-align-style :aligned}`
+  or `:comment {:inline-align-style :consecutive}`.  Prior to this release,
+  single line inline comments would not shift left.  Now all inline comments
+  will shift left to be one space beyond the widest line of code, unless
+  `:comment {:inline-align-style :none}` is used.  Issue #271.
+
 ### Fixed
+
+  * Some files change the second time they are formatted, particularly when
+  using `:style :respect-nl`.  Generally they don't change when formatted a
+  second time now, both with the default options and with `:style :respect-nl`.
+  The most common reason for a file changing in a subsequent format now is
+  that a comment exceeded the `:width` on the first format, and the comment
+  was wrapped -- adding another line.  Sometimes this additional line can
+  trigger one of the discontinuities in the formatting heuristics which can
+  change the formatting in a way that is visible.  Issue #271.
+
+  * Empty vectors removed when using `:format :off`.  Fixed. Issue #263.
+
+  * `->>` incorrectly formatted when using `:style :community`.  Fixed.
+  Issue #262.
+
+  * Fixes for Issue #254, #255, #256 and #257 as part of ongoing work
+  on large new style.
+
 
 ## 1.2.4 - 2022-08-02
 

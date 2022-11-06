@@ -175,7 +175,8 @@
 ;!zprint {:format :next :vector {:wrap? false}}
 (defn call-option-fn
   "Call an option-fn and return a validated map of the merged options. 
-  Returns [merged-options-map new-options new-zloc new-l-str new-r-str]"
+  Returns [merged-options-map new-options zloc l-str r-str changed?] where
+  changed? refers only to changes in any of zloc, l-str, or r-str."
   [caller options option-fn zloc l-str r-str]
   #_(prn "call-option-fn caller:" caller)
   (let [sexpr-seq (get-sexpr options zloc)
@@ -209,19 +210,22 @@
             (str caller
                  " :option-fn" (option-fn-name option-fn)
                  " called with an sexpr of length " (count sexpr-seq))
-            :validate)]
+            :validate)
+        new-zloc (:new-zloc merged-options)
+        new-l-str (:new-l-str merged-options)
+        new-r-str (:new-r-str merged-options)]
+    (dbg-pr options
+            "call-option-fn: caller:" caller "
+	    option-fn '" (option-fn-name option-fn)
+	    "' returned new options:" new-options)
     [(dissoc merged-options
-         :caller
-         :zloc 
-	 :new-zloc
-         :l-str 
-	 :new-l-str
-         :r-str 
-	 :new-r-str) 
-       new-options 
-       (or (:new-zloc new-options) zloc)
-       (or (:new-l-str new-options) l-str)
-       (or (:new-r-str new-options) r-str)]))
+             :caller
+             :zloc :new-zloc
+             :l-str :new-l-str
+             :r-str :new-r-str) #_new-options (or new-zloc zloc)
+     (or new-l-str l-str) (or new-r-str r-str)
+     ; Don't return more than we need to here, we might log it!
+     (when (or new-zloc new-l-str new-r-str) true)]))
 
 (defn call-option-fn-first
   "Call an option-fn-first with just the first thing in the zloc, and
@@ -1025,8 +1029,9 @@
   (if dbg-cnt? (println "two-up: caller:" caller "hang?" hang? "dbg?" dbg?))
   (dbg-s options
          :justify
-         "fzprint-two-up:" (zstring lloc)
-         "justify-width:" justify-width)
+         "fzprint-two-up:" (pr-str (zstring lloc))
+         "justify-width:" justify-width
+	 "(count pair):" (count pair))
   (if (or dbg? dbg-local?)
     (println
       (or dbg-indent "")
@@ -1182,7 +1187,14 @@
                        (when (not one-line?) (fzfit loptions arg-1-lines)))
         ; sometimes arg-1-max-width is nil because fzprint* returned nil,
         ; but we need to have something for later code to use as a number
-        arg-1-width (- (or arg-1-max-width 0) ind)]
+        arg-1-width (- (or arg-1-max-width 0) ind)
+	justifying? justify-width
+	justify-width (when justify-width
+			(if (or (> arg-1-width justify-width)
+				(when no-justify
+				  (no-justify (ffirst arg-1))))
+			  nil
+			  justify-width))]
     ; If we don't *have* an arg-1, no point in continuing...
     ;  If arg-1 doesn't fit, maybe that's just how it is!
     ;  If we are in-hang, then we can bail, but otherwise, not.
@@ -1206,13 +1218,7 @@
           ;
           ; But now, we don't do hang if arg-1-fit-oneline? is false, since
           ; we won't use it.
-          (let [justify-width (when justify-width
-                                (if (or (> arg-1-width justify-width)
-                                        (when no-justify
-                                          (no-justify (ffirst arg-1))))
-                                  nil
-                                  justify-width))
-                hanging-width (if justify-width justify-width arg-1-width)
+          (let [hanging-width (if justify-width justify-width arg-1-width)
                 ; These next two -n things are to keep the cljs compiler
                 ; happy, since it complains that - need numbers and these
                 ; might not be numbers if they are used below, despite the
@@ -1357,6 +1363,7 @@
                        :justify
                        "fzprint-two-up:" (zstring lloc)
                        "justify-width:" justify-width
+		       "justifying?" justifying?
                        "fit?" fit?)
                 (if fit?
                   [:hang
@@ -1367,7 +1374,7 @@
                   (when (or hanging-lines flow-lines)
                     (if (good-enough?
                           caller
-                          (if justify-width roptions non-justify-roptions)
+			  (if justify-width roptions non-justify-roptions)
                           :none-two-up
                           hang-count
                           (- hanging-indent flow-indent)
@@ -1382,15 +1389,19 @@
                       (do
                         #_(prn " good-enough:" false
                                "justify-width:" justify-width)
-                        ; If we are justifying and good enough liked the flow
-                        ; better than the hang, then let's not do justifying._
-                        (if justify-width
+			; If we are justifying and this one was supposed to
+			; justify and good enough liked the flow better 
+			; than the hang, then let's cancel justifying for 
+			; everyone.
+                        (if (and justifying? justify-width)
                           (do (dbg-s options
                                      :justify
                                      "fzprint-two-up:"
                                      (zstring lloc)
                                      "justify-width:"
                                      justify-width
+				     "justifying?"
+				     justifying?
                                      "cancelled justification, returning nil!")
                               nil)
                           [:flow
@@ -1398,19 +1409,53 @@
                                           (prepend-nl options
                                                       (+ indent ind)
                                                       flow))]))))))))
-        :else [:flow ; The following always flows things of 3 or more
-               ; (absent modifers).  If the lloc is a single char,
-               ; then that can look kind of poor.  But that case
-               ; is rare enough that it probably isn't worth dealing
-               ; with.  Possibly a hang-remaining call might fix it.
-               (concat-no-nil
-                 arg-1
-                 (fzprint-flow-seq caller
-                                   options
-                                   (+ indent ind)
-                                   (if modifier? (nnext pair) (next pair))
-                                   :force-nl
-                                   :newline-first))]))))
+        :else 
+	 (do
+	    (dbg-s options
+		   :justify
+		   "fzprint-two-up:" (zstring lloc)
+		   "justify-width:" justify-width
+		   "justifying?" justifying?
+		   "(count pair)" (count pair))
+	  (if (and justify-width (> (count pair) 2))
+		 ; Fail justification if we are justifying and 
+		 ; there are more then two things in the pair.  
+		 ; Issue #271.
+		 ; This is an issue when we have :respect-nl, and 
+		 ; so we put a newline in the first time we format, 
+		 ; and then the second time we format we might well 
+		 ; have 3 things, and so we don't even think about 
+		 ; justifying it, and the other things justify, so 
+		 ; then the output changes to be justified for some
+		 ; pairs and not others.
+		 (do
+		 (dbg-s options :justify 
+		   "fzprint-two-up:" (zstring lloc) 
+		   "justify-width:" justify-width
+		   "Fail justification because there are more than 2 things:" 
+		   (count pair))
+		 nil)
+		 [:flow 
+		 ; The following always flows things of 3 or more
+		 ; (absent modifers).  If the lloc is a single char,
+		 ; then that can look kind of poor.  But that case
+		 ; is rare enough that it probably isn't worth dealing
+		 ; with.  Possibly a hang-remaining call might fix it.
+		 (concat-no-nil
+		   arg-1
+		   (fzprint-flow-seq caller
+				     ; Issue #271 -- respect-nl 
+				     ; causing files to change 
+				     ; after one format.  Kicks 
+				     ; them into 
+				     ; (= (count pair) 3), and 
+				     ; then rightcnt was +1.  
+				     ; Was options, not roptions.
+				     roptions
+				     (+ indent ind)
+				     (if modifier? (nnext pair) (next pair))
+				     :force-nl
+				     :newline-first))]))))))
 
 ;;
 ;; # Two-up printing
@@ -2404,6 +2449,7 @@
             _ (log-lines options "fzprint-hang-one: flow:" findent flow)
             fd-lines (style-lines options findent flow)
             _ (dbg options "fzprint-hang-one: fd-lines:" fd-lines)
+	    #_(println "fzprint-hang-one: fd-lines:" fd-lines)
             _ (dbg options
                    "fzprint-hang-one: ending: hang-count:" hang-count
                    "hanging:" (pr-str hanging)
@@ -2413,11 +2459,13 @@
                           hr-lines
                           (good-enough? caller
                                         options
+					#_(assoc options :dbg? true)
                                         :none-hang-one
                                         hang-count
                                         (- hindent findent)
                                         hr-lines
                                         fd-lines))]
+	#_(println "fzprint-hang-one: hr-good?" hr-good?)
         (if hr-good? hanging flow)))))
 
 ;;
@@ -3928,8 +3976,11 @@
 
 (defn handle-fn-style
   "Takes current options map and a fn-style, which might be a single
-  fn-type, and might be a vector with one or two options maps, and handles
-  the lookups. Returns [new-options fn-type]"
+  fn-type, and might be a vector with one or two options maps, and
+  handles the lookups. Returns [new-options fn-type] Note: We allow
+  strings in the :fn-map only as bare strings, not in the fn-style
+  position within the vector.  You can say 'do it like this', but
+  not 'do it like this, with a few little changes'"
   ([options fn-style fn-type-set]
    (if fn-style
      ; We got something, let's see what we got
@@ -3952,52 +4003,98 @@
                                                     ; validate?
                                                     nil)) latest-fn-type]
          [new-options latest-fn-type]))
+     ; No fn-style, return what we were called with.
      [options fn-style]))
   ([options fn-style] (handle-fn-style options fn-style #{})))
 
 (defn handle-new-fn-style
-  "If we have new-options, we might also have a new fn-style.  It might
-  be a traditional keyword, in which case we just return it as the new
-  fn-style.  But it might be a string, in which case we need to look it
-  up in the :fn-map, and deal with handling the results (or failure) of
-  that lookup.  In any case, return [options fn-style]"
-  [caller options fn-style new-options fn-map user-fn-map option-fn]
-  (if new-options
-    (let [new-fn-style (:fn-style new-options)]
-      (if new-fn-style
-        (if (string? new-fn-style)
-          (let [found-fn-style (or (lookup-fn-str fn-map new-fn-style)
-                                   (lookup-fn-str user-fn-map new-fn-style))]
-            (if found-fn-style
-              ; Found something, use that.
-              (handle-fn-style options found-fn-style)
-              ; Didn't find it.
-              (throw (#?(:clj Exception.
-                         :cljs js/Error.)
-                      (str " When "
-                           caller
-                           " called an option-fn "
-                           (option-fn-name option-fn)
-                           " it returned a fn-style which"
-                           " was a string '"
-                           new-fn-style
-                           "' which was not found in the :fn-map!")))))
-          ; It wasn't a string, but it might be a full-on
-          ; complex vector style
-          (handle-fn-style options new-fn-style))
-        ; Didn't get a new fn-style in new-options,
-        ; use the ones we already have
-        [options fn-style]))
-    ; Didn't get new-options at all
-    [options fn-style]))
+  "If the :fn-style that is in the options differs from the fn-style
+  we were called with (which is the one we already had), then we
+  will deal with it.  It might be a traditional keyword, in which
+  case we just return it as the new fn-style.  But it might be a
+  string, in which case we need to look it up in the :fn-map, and
+  deal with handling the results (or failure) of that lookup.  In
+  any case, return [options fn-style]"
+  [caller options fn-style fn-map user-fn-map option-fn]
+  (let [new-fn-style (let [new-fn-style (:fn-style options)]
+                       (when (not= new-fn-style fn-style) new-fn-style))]
+    (if new-fn-style
+      (if (string? new-fn-style)
+        (let [found-fn-style (or (lookup-fn-str fn-map new-fn-style)
+                                 (lookup-fn-str user-fn-map new-fn-style))]
+          (if found-fn-style
+            ; Found something, use that.
+            (handle-fn-style options found-fn-style)
+            ; Didn't find it.
+            (throw (#?(:clj Exception.
+                       :cljs js/Error.)
+                    (str " When "
+                         caller
+                         " called an option-fn "
+                         (option-fn-name option-fn)
+                         " it returned a fn-style which"
+                         " was a string '"
+                         new-fn-style
+                         "' which was not found in the :fn-map!")))))
+        ; It wasn't a string, but it might be a full-on
+        ; complex vector style
+        (handle-fn-style options new-fn-style))
+      ; Didn't get a new fn-style in new-options,
+      ; use the ones we already have
+      [options fn-style])))
 
 (defn fn-style+option-fn
-  "Take the current fn-style and lots of other important things, and 
-  handle lookups in the fn-type-map, as well as calling option-fn(s)
-  as necessary.  Returns [options fn-style zloc l-str r-str changed-zloc?]"
-  [caller options fn-style zloc l-str r-str]
-  (let [fn-map (:fn-map options)
-        use-fn-map (:user-fn-map)]))
+  "Take the current fn-style and lots of other important things,
+  and handle lookups in the fn-type-map, as well as calling
+  option-fn(s) as necessary.  
+  Returns [options fn-style zloc l-str r-str changed?], where changed?
+  refers only to the zloc, l-str, or r-str."
+  ([caller options fn-style zloc l-str r-str option-fn-set]
+   (let [fn-map (:fn-map options)
+         user-fn-map (:user-fn-map options)
+         ; no validation because we assume these were validated in :fn-map
+         [options fn-style] (handle-fn-style options fn-style)
+         ; Now fn-style isn't a vector even if it was before
+         option-fn (:option-fn (options caller))
+         ; check the option-fn for having been called before
+         _ (when (option-fn-set option-fn)
+             (throw (#?(:clj Exception.
+                        :cljs js/Error.)
+                     (str "Circular :option-fn lookup! option-fn: '"
+                          option-fn
+                          "' has already been called and is being called again!"
+                          " option-fns in this call chain: "
+                          option-fn-set))))
+         ; If we have an option-fn, call it.
+         ; new-options are the pre config-and-validated options and are not
+         ; worth much, since they have raw styles in them
+         [options zloc l-str r-str changed?]
+           (if option-fn
+             (call-option-fn caller options option-fn zloc l-str r-str)
+             [options zloc l-str r-str nil])
+         ; If we got a new fn-style in new-options, handle it
+         [options fn-style] (handle-new-fn-style caller
+                                                 options
+                                                 fn-style
+                                                 fn-map
+                                                 user-fn-map
+                                                 option-fn)
+         ; Did we get a new option-fn?  If yes, do this again
+         [options zloc l-str r-str new-changed?]
+           (if (not= option-fn (:option-fn (caller options)))
+             (fn-style+option-fn caller
+                                 options
+                                 fn-style
+                                 zloc
+                                 l-str
+                                 r-str
+                                 (conj option-fn-set option-fn))
+             ; Didn't get a new option-fn, just return what we have
+             [options zloc l-str r-str nil])
+         changed? (or changed? new-changed?)]
+     [options fn-style zloc l-str r-str changed?]))
+  ([caller options fn-style zloc l-str r-str]
+   (fn-style+option-fn caller options fn-style zloc l-str r-str #{})))
 
 (declare fzprint-noformat)
 
@@ -4159,24 +4256,25 @@
                                  :zloc zloc,
                                  :fn-style fn-style,
                                  :zfirst-info (or fn-str fn-type)}))
-          [options new-options zloc l-str r-str] (if option-fn
+          [options #_new-options zloc l-str r-str changed?] (if option-fn
                                   (call-option-fn caller options option-fn zloc l-str r-str)
-                                  [options nil zloc l-str r-str])
+                                  [options #_nil zloc l-str r-str])
+	  new-options nil
 	  ; Note that the existence of new-options is a signal to several
 	  ; downstream things that something was returned from the option-fn.
 	  ; Also, not that fn-str is now possibly not valid anymore if someone
 	  ; returned a new-zloc in new-options!
-          _ (when option-fn
+          #_(when option-fn
               (dbg-pr options
                       "fzprint-list* option-fn new options"
                       new-options))
 	  ; Recalculate in case we changed it in the option fn
 	  #_(println "new-options:" new-options)
 	  #_(println "l-str-len early:" l-str-len)
-          l-str-len (count l-str)
+          l-str-len (if changed? (count l-str) l-str-len)
 	  #_(println "l-str-len late:" l-str-len)
 	  ; zcount is not free, so only do it if the zloc changed
-	  len (if (:new-zloc new-options) (zcount zloc) len)
+	  len (if changed? #_(:new-zloc new-options) (zcount zloc) len)
 	  
           #_(println "\noption-fn:" option-fn
                      "\nfn-str:" fn-str
@@ -4192,7 +4290,6 @@
 	  [options fn-style] (handle-new-fn-style caller
 	                                          options 
 						  fn-style 
-						  new-options 
 						  fn-map 
 						  user-fn-map 
 						  option-fn)
@@ -4207,8 +4304,11 @@
           ; new stuff.  This will probably change only zloc-seq because
           ; of :respect-nl? or :indent-only?  But :meta {:split? true} could
           ; change it as well.
+	  ; TODO: Figure out where :indent-only? and :respect-nl? are handled
+	  ; and :meta {:split? true} also, and see if we are handling them
+	  ; correctly here.
           [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
-            (if (or vector-fn-style? #_(vector? fn-style) new-options)
+            (if (or changed? vector-fn-style? #_(vector? fn-style) #_new-options)
               (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
               first-data)
           ; Get rid of the any vector surrounding the fn-style.
@@ -5148,6 +5248,16 @@
                      comment-and-newline-count)
                    (inc comment-and-newline-count))))))))
 
+(defn inline-comment->comment
+  "If the first thing in a guided output-seq is an inline comment, turn
+  it into a regular comment.  Output a possibly modified output-seq."
+  [output-seq]
+  (if (= (nth (first output-seq) 2) :comment-inline)
+    (let [[s c] (first output-seq)
+          new-first [s c :comment]]
+      (if (> (count output-seq) 1) [new-first (next output-seq)] [new-first]))
+    output-seq))
+
 (defn guided-output
   "Return information to be added to the output vector along
   with other information [param-map previous-data out].  Will do an
@@ -5707,8 +5817,11 @@
                        (dbg-s options
                               :guide
                               "guided-output: previous-newline? etc.")
+		       ; If output-seq starts with an inline-comment, make
+		       ; it a regular comment, since it isn't inline with
+		       ; anything amymore.
                        (concat-no-nil [[(blanks next-ind) :none :whitespace 16]]
-                                      output-seq))
+				      (inline-comment->comment output-seq)))
                      ; Do we already have a newline at the beginning of a bunch
                      ; of output, or is this the very first thing?
                      (if (or indent? (zero? element-index))
@@ -6692,9 +6805,9 @@
                         new-options))
 	    ; Fix this to handle new returns.
 
-          [options new-options zloc l-str r-str] (if option-fn
+          [options #_new-options zloc l-str r-str] (if option-fn
                 (call-option-fn caller options option-fn zloc l-str r-str)
-		[options nil zloc l-str r-str])
+		[options #_nil zloc l-str r-str])
 
             ; Do this after call-option-fn in case anything changed.
 
@@ -6707,7 +6820,7 @@
            #_#_ [options new-options]
               (if option-fn
                 [options nil])
-            _ (when option-fn
+            #_(when option-fn
                 (dbg-pr options
                         "fzprint-vec* option-fn new options"
                         new-options))
@@ -7229,7 +7342,11 @@
       caller,
     :as options} ind zloc ns]
   (if (= (:format options) :off)
-    (fzprint-noformat l-str r-str options zloc)
+    (fzprint-noformat
+	    ; i276
+            #_(if ns (str "#" ns l-str) l-str)
+	    l-str 
+	    r-str options zloc)
     (let [[respect-nl? respect-bl? indent-only?]
             (get-respect-indent options caller :map)]
       (dbg-pr options "fzprint-map* caller:" caller)
@@ -7267,6 +7384,11 @@
                                     (cond respect-nl? (zseqnws-w-nl zloc)
                                           respect-bl? (zseqnws-w-bl zloc)
                                           :else (zseqnws zloc)))
+	      _ (dbg-s options 
+	             :justify 
+		     "fzprint-map* pair-seq:" 
+		     (mapv #(vector (count %) (mapv (comp pr-str zstring) %)) 
+		        pair-seq))
               #_(dbg-pr "fzprint-map* pair-seq:"
                         (map (comp zstring first) pair-seq))
               ; don't sort if we are doing respect-nl?
@@ -7340,16 +7462,17 @@
                       (interpose-either-nl-hf
                         ; comma? true
                         [["," (zcolor-map options :comma) :whitespace 21]
-                         [(str "\n" (blanks (inc ind))) :none :indent 32]]
+			 ; i274
+                         [(str "\n" (blanks #_(+ indent ind) (inc ind))) :none :indent 32]]
                         [["," (zcolor-map options :comma) :whitespace 22]
                          ; Fix issue #59 -- don't
                          ; put blanks to indent before the next \n
                          ["\n" :none :indent 33]
-                         [(str "\n" (blanks (inc ind))) :none :indent 34]]
+                         [(str "\n" (blanks #_(+ indent ind) (inc ind))) :none :indent 34]]
                         ; comma? nil
-                        [[(str "\n" (blanks (inc ind))) :none :indent 35]]
+                        [[(str "\n" (blanks #_(+ indent ind) (inc ind))) :none :indent 35]]
                         [["\n" :none :indent 36]
-                         [(str "\n" (blanks (inc ind))) :none :indent 37]]
+                         [(str "\n" (blanks #_(+ indent ind) (inc ind))) :none :indent 37]]
                         (:map options) ;nl-separator?
                         comma?
                         pair-print)

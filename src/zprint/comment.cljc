@@ -1,8 +1,8 @@
 (ns ^:no-doc zprint.comment
   #?@(:cljs [[:require-macros
-              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print zfuture]]]])
+              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print dbg-s zfuture]]]])
   (:require #?@(:clj [[zprint.macros :refer
-                       [dbg-pr dbg dbg-form dbg-print zfuture]]])
+                       [dbg-pr dbg dbg-form dbg-print dbg-s zfuture]]])
             [clojure.string :as s]
             [zprint.zfns :refer [zstring ztag]]
             [rewrite-clj.zip :as z :refer [left* up* tag length]]
@@ -384,7 +384,7 @@
          distance 0
          out []]
     (if-not cvec
-      (let [out (if (> (count current-seq) 1) (conj out current-seq) out)]
+      (let [out (if (> (count current-seq) 0) (conj out current-seq) out)]
         #_(def fcico out)
         out)
       (let [[s c e spaces start-column :as element] (first cvec)]
@@ -421,7 +421,7 @@
                      0
                      ; if we have more than one current inline comments,
                      ; add them to the out vector
-                     (if (> (count current-seq) 1) (conj out current-seq) out)))
+                     (if (> (count current-seq) 0) (conj out current-seq) out)))
           (or (= e :indent) (= e :newline))
             (if (>= distance max-aligned-inline-comment-distance)
               ; We have gone too far
@@ -434,7 +434,7 @@
                      0
                      ; distance
                      0
-                     (if (> (count current-seq) 1) (conj out current-seq) out))
+                     (if (> (count current-seq) 0) (conj out current-seq) out))
               ; We have not gone too far
               (recur (next cvec)
                      (inc index)
@@ -497,7 +497,7 @@
                      ; just have a comment.  But if we have more
                      ; than one comment vector in current-seq,
                      ; make sure we keep track of that
-                     (if (> (count current-seq) 1) (conj out current-seq) out)
+                     (if (> (count current-seq) 0) (conj out current-seq) out)
                      ; if we didn't have last-indent, then we
                      ; just had a comment, so keep collecting
                      ; them
@@ -523,8 +523,11 @@
   [indent-index inline-comment-index] 
   and replace it with [inline-comment-index start-column spaces-before]."
   [style-vec [indent-index inline-comment-index :as comment-vec]]
+  #_(prn "comment-vec-column:" style-vec comment-vec)
   (let [start-column (comment-column comment-vec style-vec)
-        spaces-before (loc-vec 0 (nth style-vec (dec inline-comment-index)))]
+        spaces-before (if (= (count style-vec) 1)
+			(nth (first style-vec) 3)
+	                (loc-vec 0 (nth style-vec (dec inline-comment-index))))]
     [inline-comment-index start-column spaces-before]))
 
 (defn comment-vec-seq-column
@@ -561,6 +564,8 @@
   at a new column."
   [new-start-column style-vec
    [inline-comment-index start-column spaces-before :as comment-vec]]
+  (if (zero? inline-comment-index)
+     style-vec
   (let [delta-spaces (- new-start-column start-column)
         new-spaces (+ spaces-before delta-spaces)
         previous-element-index (dec inline-comment-index)
@@ -578,7 +583,7 @@
                          (str "change-start-column: comment preceded by neither"
                               " an :indent nor :whitespace!"
                               e))))]
-    (assoc style-vec previous-element-index new-previous-element)))
+    (assoc style-vec previous-element-index new-previous-element))))
 
 (defn align-comment-vec
   "Given one set of inline comments: 
@@ -600,6 +605,8 @@
                                                    style-vec)
                               (= style :consecutive)
                                 (find-consecutive-inline-comments style-vec))
+	    _ (dbg-s options :align 
+	           "fzprint-align-inline-comments: comment-vec:" comment-vec)
             comment-vec-column (comment-vec-all-column style-vec comment-vec)]
         (reduce align-comment-vec style-vec comment-vec-column)))))
 

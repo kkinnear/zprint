@@ -9,6 +9,19 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
+ * Made considerable improvements in multi-format "stability".  Thus, if
+ you format the same file multiple times, it is considerably less likely 
+ to change the second time.  The biggest issues were when using `:repect-nl`,
+ though some affected every formatting approach.  The downside, such as it is,
+ is that the tuning for "hangs" had to change a bit -- so now more things
+ qualify to hang as opposed to flow.  The change isn't dramatic, but if you
+ prefer the previous behavior you can get it with: `:style :original-hang`.
+ * Inline comments (i.e., end of line comments) when aligned in a group would
+ flow left to end up one space beyond the widest code.  Single inline comments
+ would not, yielding odd inconsistencies.  Now single line inline comments
+ also flow left to end up one space beyond the code.  You can turn all of
+ the alignment support for inline comments off by using
+ `:comment {:inline-align-style :none}` if you don't like this approach.
  * You can alias function formatting in the `:fn-map`.  If the value in
  the `:fn-map` is a string, then the formatting for that function is used.
  This makes having one function format like another much easier to configure.

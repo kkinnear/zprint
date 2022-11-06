@@ -2317,7 +2317,8 @@
     (list a :b :c \"d\")))")
 
   (expect
-    "(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap about\n                 ; here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)  ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap about\n                 ; here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now) ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+
     (zprint-str zprint.zprint-test/zctest9str
                 70
                 {:parse-string? true, :comment {:inline? true}}))
@@ -3587,26 +3588,31 @@ ser/collect-vars-acc %1 %2) )))"
   ;; # Tests for comments mixed in with the early part of lists
   ;;
 
-  (expect "(;stuff\n let;bother\n  [a :x\n   b :y];foo\n  ;bar\n  ;baz\n  5)"
+  (expect 
+"(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
                       {:parse-string? true}))
 
-  (expect "(;stuff\n let;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
+  (expect 
+"(;stuff\n let ;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
           (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y](nil? nil) 5)"
                       {:parse-string? true}))
 
 
-  (expect "(;stuff\n let;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
+  (expect 
+ "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)" 
           (zprint-str
             "( ;stuff\n\nlet;bother\n[a :x b :y] ;foo\n;bar\n\n;baz\n5)"
             {:parse-string? true}))
 
-  (expect "(;stuff\n let;bother\n  [a :x\n   b :y];foo\n  ;bar\n  ;baz\n  5)"
+  (expect 
+"(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str
             "( ;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
             {:parse-string? true}))
 
-  (expect "(;stuff\n let ;bother\n  [a :x\n   b :y]  ;foo\n  ;bar\n  ;baz\n  5)"
+  (expect 
+"(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str
             "( ;stuff\n\nlet ;bother\n[a :x b :y]  ;foo\n;bar\n\n;baz\n5)"
             {:parse-string? true}))
@@ -3630,26 +3636,27 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-    "(;stuff\n\n let;bother\n  [a :x\n   b :y];foo\n  ;bar\n\n  ;baz\n  5)"
+"(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
     (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
                 {:parse-string? true, :list {:respect-nl? true}}))
 
-  (expect "(;stuff\n\n let;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
+  (expect 
+"(;stuff\n\n let ;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
           (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y](nil? nil) 5)"
                       {:parse-string? true, :list {:respect-nl? true}}))
 
   (expect
-    "(;stuff\n\n let;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
+"(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
     (zprint-str "( ;stuff\n\nlet;bother\n[a :x b :y] ;foo\n;bar\n\n;baz\n5)"
                 {:parse-string? true, :list {:respect-nl? true}}))
 
   (expect
-    "(;stuff\n\n let;bother\n  [a :x\n   b :y];foo\n  ;bar\n\n  ;baz\n  5)"
+"(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
     (zprint-str "( ;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
                 {:parse-string? true, :list {:respect-nl? true}}))
 
   (expect
-    "(;stuff\n\n let ;bother\n  [a :x\n   b :y]  ;foo\n  ;bar\n\n  ;baz\n  5)"
+"(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
     (zprint-str "( ;stuff\n\nlet ;bother\n[a :x b :y]  ;foo\n;bar\n\n;baz\n5)"
                 {:parse-string? true, :list {:respect-nl? true}}))
 
@@ -4282,7 +4289,8 @@ ser/collect-vars-acc %1 %2) )))"
   ;; in fzprint-list* to be the length of the "good stuff".
   ;;
 
-  (expect "(;precomment\n one;postcomment\n)"
+  (expect 
+"(;precomment\n one ;postcomment\n)"
           (zprint-str "(;precomment\n one;postcomment\n)"
                       {:parse-string? true}))
 
@@ -5333,7 +5341,7 @@ ser/collect-vars-acc %1 %2) )))"
     (zprint-str zprint.zprint-test/test-fast-hangstr {:parse-string? true}))
 
   (expect
-    "(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element (cond\n                          (and (or (= e :indent) (= e :newline))\n                               (= ne :comment-inline))\n                            (if-not (or (= le :comment) (= le :comment-inline))\n                              ; Regular line to get the inline comment\n                              [(blanks nn) c :whitespace 25]\n                              ; Last element was a comment...\n                              ; Can't put a comment on a comment, but\n                              ; we want to indent it like the last\n                              ; comment.\n                              ; How much space before the last comment?\n                              (do #_(prn \"inline:\" (space-before-comment out))\n                                  [(str \"\\n\" (blanks out)) c :indent 41]\n                                  #_element))\n                          :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+"(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element (cond (and (or (= e :indent) (= e :newline))\n                                   (= ne :comment-inline))\n                                (if-not (or (= le :comment)\n                                            (= le :comment-inline))\n                                  ; Regular line to get the inline comment\n                                  [(blanks nn) c :whitespace 25]\n                                  ; Last element was a comment...\n                                  ; Can't put a comment on a comment, but\n                                  ; we want to indent it like the last\n                                  ; comment.\n                                  ; How much space before the last comment?\n                                  (do #_(prn \"inline:\"\n                                             (space-before-comment out))\n                                      [(str \"\\n\" (blanks out)) c :indent 41]\n                                      #_element))\n                              :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
     (zprint-str zprint.zprint-test/test-fast-hangstr
                 {:parse-string? true, :style :fast-hang}))
 
@@ -5672,7 +5680,7 @@ ser/collect-vars-acc %1 %2) )))"
        :width 74}))
 
   (expect
-    "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test))) a\n    b c))"
+"(stuff (caller aaaa\n         (this is a\n           (test this is (only a test))) a b\n         c))"
     (zprint-str
       "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
       {:parse-string? true,
@@ -5681,7 +5689,7 @@ ser/collect-vars-acc %1 %2) )))"
        :width 46}))
 
   (expect
-    "(stuff\n  (caller aaaa\n    (this is a (test this is (only a test)))\n    a b c))"
+"(stuff (caller aaaa\n         (this is a\n           (test this is (only a test))) a b\n         c))"
     (zprint-str
       "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
       {:parse-string? true,
@@ -5698,19 +5706,19 @@ ser/collect-vars-acc %1 %2) )))"
     "(cond\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   3)")
 
   (expect
-    "(cond\n  (odd? a) 1\n  :let [a (quot a 2)]\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n  :when (seq x)\n  :do (println x)\n  (odd? (+ x y)) 2\n  3)"
+"(cond (odd? a) 1\n      :let [a (quot a 2)]\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y)) 2\n      3)"
     (zprint-str bc1
                 {:parse-string? true,
                  :pair {:flow? false, :nl-separator-all? false}}))
 
   (expect
-    "(cond\n  (odd? a)\n    1\n  :let [a (quot a 2)]\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n  :when (seq x)\n  :do (println x)\n  (odd? (+ x y))\n    2\n  3)"
+"(cond (odd? a)\n        1\n      :let [a (quot a 2)]\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y))\n        2\n      3)"
     (zprint-str bc1
                 {:parse-string? true,
                  :pair {:flow? true, :nl-separator-all? false}}))
 
   (expect
-    "(cond\n  (odd? a)\n    1\n\n  :let [a (quot a 2)]\n\n  :when-let [x (fn-which-may-return-falsey a)\n             y (fn-which-may-return-falsey (* 2 a))]\n\n  :when-some [b (fn-which-may-return-nil x)\n              c (fn-which-may-return-nil y)]\n\n  :when (seq x)\n\n  :do (println x)\n\n  (odd? (+ x y))\n    2\n\n  3)"
+"(cond (odd? a)\n        1\n\n      :let [a (quot a 2)]\n\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n\n      :when (seq x)\n\n      :do (println x)\n\n      (odd? (+ x y))\n        2\n\n      3)"
     (zprint-str bc1
                 {:parse-string? true,
                  :pair {:flow? true, :nl-separator-all? true}}))
@@ -6044,7 +6052,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-    "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))"
+"(ns zprint.core\n  (:require [zprint.zprint :as :zprint\n                           :refer [fzprint line-count max-width line-widths\n                                   expand-tabs zcolor-map\n                                   determine-ending-split-lines]]\n            [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                                  find-root-and-path-nw]]\n            [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                                   color-comp-vec handle-lines]]))"
     (zprint-str
       "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))\n"
       {:parse-string? true, :style :require-pair}))
@@ -6531,17 +6539,16 @@ ser/collect-vars-acc %1 %2) )))"
                       :element-*]],
        :width 36}))
 
-  (expect
-    "(stuff\n  (caller aaaa    bbbb\n                ccc\n                dddd eeee fffff gggg\n                hhhh iii jjj kkk lll\n                mmm))"
-    (zprint-str
-      "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"
-      {:parse-string? true,
-       :list {:respect-nl? false},
-       :guide-debug [:list 2
-                     [:element :element :spaces 4 :mark 0 :element :newline
-                      :align 0 :spaces -2 :indent-here :element :newline
-                      :element-*]],
-       :width 36}))
+(expect
+  "(stuff (caller aaaa    bbbb\n                     ccc\n                     dddd eeee fffff\n                     gggg hhhh iii\n                     jjj kkk lll\n                     mmm))"
+  (zprint-str
+    "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"
+    {:parse-string? true,
+     :list {:respect-nl? false},
+     :guide-debug [:list 2
+                   [:element :element :spaces 4 :mark 0 :element :newline :align
+                    0 :spaces -2 :indent-here :element :newline :element-*]],
+     :width 36}))
 
   ;;
   ;; # negative space after align
@@ -6696,11 +6703,11 @@ ser/collect-vars-acc %1 %2) )))"
       "(letfn [(first-fn [arg1 arg2]\n                  (-> (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (-> (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
       {:parse-string? true}))
 
-  (expect
-    "(defn print-balance\n  [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn\n      [(transform [acc item]\n         (assoc acc\n           (separate-words (clean-key item)) (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))"
-    (zprint-str
-      "(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                     (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"
-      {:parse-string? true}))
+(expect
+  "(defn print-balance\n  [xml] ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                (separate-words (clean-key item)) (format-decimals\n                                                    (item balance))))]\n      (reduce transform {} (keys balance)))))"
+  (zprint-str
+    "(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                     (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"
+    {:parse-string? true}))
 
   (expect
     "(letfn [(first-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))]\n  (other-stuff))"
@@ -7589,6 +7596,72 @@ ser/collect-vars-acc %1 %2) )))"
 ";;!zprint {:map {:sort? true :key-value-color {:tasks {:keyword :blue}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
 "x"
 {}))
+
+;;
+;; Issue #271 -- when formatted twice with :respect-nl and :justified, it 
+;; changes the first time -- and then changes again with the second format.
+;;
+
+(def i271q
+  ";; shadow-cljs configuration\n{:source-paths :abc\n\n :builds {:mobile\n          {:devtools {:autobuild [shadow/env [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}}\n\t  \n :cache-blockers #{status-im.utils.js-resources}}\n")
+
+
+(expect
+  ";; shadow-cljs configuration\n{:source-paths :abc,\n\n :builds\n   {:mobile\n      {:devtools {:autobuild [shadow/env\n                              [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}},\n\n :cache-blockers #{status-im.utils.js-resources}}\n"
+  (zprint-file-str i271q "x" {:style [:respect-nl :justified]}))
+
+;;
+;; Shouldn't change this time
+;;
+
+(expect
+  ";; shadow-cljs configuration\n{:source-paths :abc,\n\n :builds\n   {:mobile\n      {:devtools {:autobuild [shadow/env\n                              [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}},\n\n :cache-blockers #{status-im.utils.js-resources}}\n"
+  (zprint-file-str
+    ";; shadow-cljs configuration\n{:source-paths :abc,\n\n :builds\n   {:mobile\n      {:devtools {:autobuild [shadow/env\n                              [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}},\n\n :cache-blockers #{status-im.utils.js-resources}}\n"
+    "x"
+    {:style [:respect-nl :justified]}))
+
+;;
+;; More Issue #271 problems -- in fzprint-two-up, rightcnt was wrong for
+;; things with 3 in (count pair), and a newline in there would cause different
+;; output when using :respect-nl.
+;;
+
+(def i271z
+" (:multiaccount {:chain mainnet_rpc\n })\n")
+
+(expect
+  "(:multiaccount {:chain\n                  mainnet_rpc\n               })\n"
+  (zprint-file-str i271z "x" {:style [:respect-nl :justified], :width 30}))
+
+(expect
+  "(:multiaccount {:chain\n                  mainnet_rpc\n               })\n"
+  (zprint-file-str
+    "(:multiaccount {:chain\n                  mainnet_rpc\n               })\n"
+    "x"
+    {:style [:respect-nl :justified], :width 30}))
+
+;;
+;; Issue #271 -- problems with things changing for each format operation.
+;;
+;; This just checks the old tuning: :style :original-hang
+;;
+
+(expect
+"(defn print-balance\n  [xml] ;\n  (let [balance (parse xml)]\n    (letfn\n      [(transform [acc item]\n         (assoc acc\n           (separate-words (clean-key item)) (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))"
+ (zprint-str    "(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                  (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"    {:parse-string? true :style :original-hang}))
+
+;;
+;; :inline-align-style and always moving inline comments to the left
+;;
+
+(expect
+"(this is ; comment\n      a\n      test)"
+ (zprint-str "(this is   ; comment\n a test)" {:parse-string? true, :comment {:inline-align-style :consecutive}}))
+
+(expect
+"(this is   ; comment\n      a\n      test)"
+(zprint-str "(this is   ; comment\n a test)" {:parse-string? true, :comment {:inline-align-style :none}}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -4184,7 +4184,11 @@
           ; This will not interact with the fn-type because if we have a
           ; fn-str then we don't have a fn-type!
           fn-style (if (and (not fn-style) fn-str)
-                     (fn-map (last (clojure.string/split fn-str #"/")))
+	            (let [fn-str (last (clojure.string/split fn-str #"/"))]
+			; Fix for Issue #276 -- didn't used to use 
+			; lookup-fn-str here.
+		        (or (lookup-fn-str fn-map fn-str)
+			    (lookup-fn-str user-fn-map fn-str)))
                      fn-style)
           ; If we have a fn-str and not a fn-style, see if we have a default
           ; for functions which were not set explicitly to :none

@@ -38,6 +38,9 @@ All notable changes to this project will be documented in this file.
   * Fixes for Issue #254, #255, #256 and #257 as part of ongoing work
   on large new style.
 
+  * The new aliasing capability in the `:fn-map` doesn't work for 
+  workspaced functions.  Now it does.  Issue #276.
+
 
 ## 1.2.4 - 2022-08-02
 

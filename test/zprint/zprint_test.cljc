@@ -7663,6 +7663,15 @@ ser/collect-vars-acc %1 %2) )))"
 "(this is   ; comment\n      a\n      test)"
 (zprint-str "(this is   ; comment\n a test)" {:parse-string? true, :comment {:inline-align-style :none}}))
 
+;;
+;; Issue #276 -- namespaced stuff doesn't alias right.  Missing code.
+;;
+
+(def i276 "(cat x y z)\n(my/cat x y z)\n(dog x y z)\n(my/dog x y z)\n")
+(expect
+"(cat x\n     y\n     z)\n(my/cat x\n        y\n        z)\n(dog x\n     y\n     z)\n(my/dog x\n        y\n        z)\n"
+(zprint-file-str i276 "x" {:fn-map {"dog" "cat"}}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

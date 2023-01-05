@@ -180,6 +180,7 @@
 ;; # Leaf map keys
 ;;
 
+(s/def ::alt? ::boolean)
 (s/def ::binding? ::boolean)
 (s/def ::cache-dir (s/nilable string?))
 (s/def ::cache-path (s/nilable string?)); debugging only
@@ -238,11 +239,14 @@
 (s/def ::key-ignore-silent (s/nilable ::key-or-ks-seq))
 (s/def ::key-order (s/nilable ::key-value))
 (s/def ::left-space ::keep-or-drop)
+(s/def ::lhs-narrow (s/nilable number?))
 (s/def ::lines ::line-seq)
 (s/def ::location (s/nilable string?))
 (s/def ::max-variance number?)
 (s/def ::max-gap (s/nilable number?))
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
+(s/def ::multi-lhs-hang? ::boolean)
+(s/def ::multi-lhs-overlap? ::boolean)
 (s/def ::no-validate? ::boolean)
 (s/def ::nl-separator? ::boolean)
 (s/def ::nl-separator-all? ::boolean)
@@ -306,7 +310,9 @@
   (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff
                       ::hang-expand ::hang? ::hang-accept ::ha-depth-factor
                       ::ha-width-factor ::indent ::justify? ::justify
-                      ::justify-hang ::justify-tuning ::nl-separator?
+                      ::justify-hang ::justify-tuning 
+		      ::lhs-narrow ::multi-lhs-hang? ::multi-lhs-overlap?
+		      ::nl-separator?
                       ::nl-separator-all?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::call-stack (s/nilable (s/coll-of ::call-stack-frame :kind list?)))
@@ -375,8 +381,12 @@
              ::hang-expand ::hang? ::indent ::indent-only? ::justify?
              ::justify-hang ::justify ::justify-tuning ::key-color
              ::key-value-color ::key-depth-color ::key-ignore
-             ::key-ignore-silent ::key-order ::lift-ns? ::lift-ns-in-code?
-             ::key-no-sort ::nl-separator? ::nl-separator-all? ::respect-bl?
+             ::key-ignore-silent ::key-order 
+	     ::lhs-narrow
+	     ::lift-ns? ::lift-ns-in-code?
+             ::key-no-sort 
+	     ::multi-lhs-hang? ::multi-lhs-overlap?
+	     ::nl-separator? ::nl-separator-all? ::respect-bl?
              ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?
              ::key-value-options]))
 (s/def ::max-depth number?)
@@ -401,7 +411,9 @@
   (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff
                       ::hang-expand ::hang? ::hang-accept ::ha-depth-factor
                       ::ha-width-factor ::indent ::justify? ::justify
-                      ::justify-hang ::justify-tuning ::nl-separator?
+                      ::justify-hang ::justify-tuning 
+		      ::lhs-narrow ::multi-lhs-hang? ::multi-lhs-overlap?
+		      ::nl-separator?
                       ::nl-separator-all?]))
 (s/def ::paragraph (only-keys :opt-un [:alt/style]))
 (s/def ::pair-fn
@@ -487,7 +499,8 @@
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map
-	     ::new-zloc ::new-l-str ::new-r-str ::option-fn-map]))
+	     ::new-zloc ::new-l-str ::new-r-str ::option-fn-map
+	     ::alt?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

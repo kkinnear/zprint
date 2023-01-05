@@ -448,7 +448,8 @@
 ;;
 
 (def default-zprint-options
-  {:agent {:object? false},
+  {:alt? true
+   :agent {:object? false},
    :array {:hex? false, :indent 1, :object? false, :wrap? true},
    :atom {:object? false},
    :binding {:flow? false,
@@ -468,6 +469,9 @@
                        :ignore-for-variance nil,
                        :max-gap nil},
              :justify? false,
+	     :lhs-narrow 1.0 #_2.0
+	     :multi-lhs-hang? false #_true
+	     :multi-lhs-overlap? true
              :nl-separator? false,
              :nl-separator-all? false},
    :cache {:directory ".zprint", :location "HOME"},
@@ -603,6 +607,9 @@
                    :max-gap nil},
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+	 :lhs-narrow 1.0 #_2.0
+	 :multi-lhs-hang? false #_true
+	 :multi-lhs-overlap? true
          :respect-bl? false,
          :respect-nl? false,
          :unlift-ns? false},
@@ -651,9 +658,12 @@
                     :no-justify nil,
                     :max-gap nil},
           :justify? false,
+	  :lhs-narrow 1.0 #_2.0
+	  :multi-lhs-hang? false #_true
+	  :multi-lhs-overlap? true
           :nl-separator? false,
           :nl-separator-all? false},
-   :pair-fn {:hang-diff 1, :hang-expand 15.0, :hang-size 100, :hang? true},
+   :pair-fn {:hang-diff 1, :hang-expand 15.0, :hang-size 100, :hang? true}
    :parse {:interpose nil, :left-space :drop, :ignore-if-parse-fails #{"..."}},
    :parse-string-all? false,
    :parse-string? false,

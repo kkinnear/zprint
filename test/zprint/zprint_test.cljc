@@ -705,7 +705,7 @@
     "(defn zctest4\n  \"Test comment forcing things\"\n  [x]\n  (cond\n    (and (list :c\n               (identity \"stuff\")\n               \"bother\"))\n      x\n    :else (or :a :b :c)))"
     (zprint-str zprint.zprint-test/zctest4str
                 40
-                {:parse-string? true, :pair-fn {:hang? nil}}))
+                {:parse-string? true, :pair-fn {:hang? nil} :pair {:multi-lhs-hang? false}}))
 
   ; When :respect-nl? was added for lists, this changed because if you
   ; have a newline following the "list", then you don't want to hang the
@@ -720,7 +720,7 @@
     ;       x\n    :else (or :a :b :c)))"
     (zprint-str zprint.zprint-test/zctest3str
                 40
-                {:parse-string? true, :pair-fn {:hang? nil}}))
+                {:parse-string? true, :pair-fn {:hang? nil} :pair {:multi-lhs-hang? false}}))
 
   (expect
     "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let\n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things way\n           ; to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
@@ -7216,7 +7216,8 @@ ser/collect-vars-acc %1 %2) )))"
       {:parse-string? true,
        :dbg? false,
        :pair
-         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 20}},
+         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 20}
+	  :multi-lhs-hang? false},
        :width 30}))
 
 
@@ -7230,7 +7231,8 @@ ser/collect-vars-acc %1 %2) )))"
       {:parse-string? true,
        :dbg? false,
        :pair
-         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 30}},
+         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 30}
+	  :multi-lhs-hang? false},
        :width 80}))
 
   ;;
@@ -7671,6 +7673,111 @@ ser/collect-vars-acc %1 %2) )))"
 (expect
 "(cat x\n     y\n     z)\n(my/cat x\n        y\n        z)\n(dog x\n     y\n     z)\n(my/dog x\n        y\n        z)\n"
 (zprint-file-str i276 "x" {:fn-map {"dog" "cat"}}))
+
+;;
+;; Issue #273 -- lots of changes to justification and pair handling
+;;
+
+;; :multi-lhs-hang?  - hang things after multi-line lhs things.
+;;
+
+;; :binding
+
+ (expect
+"(let [(aaaaaaaaa bbbbbbbbbb\n                 ccccccccc\n                 (ddddddddddd (eeeeeeeeeee (ffffffffffff))))\n        (stuff a b c)\n      (bother x y) (foo bar baz)])"
+ (zprint-str "(let [(aaaaaaaaa bbbbbbbbbb ccccccccc (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c) (bother x y) (foo bar baz)])" {:parse-string? true :binding {:multi-lhs-hang? false}}))
+
+(expect
+"(let [(aaaaaaaaa bbbbbbbbbb\n                 ccccccccc\n                 (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c)\n      (bother x y) (foo bar baz)])"
+(zprint-str "(let [(aaaaaaaaa bbbbbbbbbb ccccccccc (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c) (bother x y) (foo bar baz)])" {:parse-string? true :binding {:multi-lhs-hang? true}}))
+
+;; :pair
+
+  (expect
+    "(cond (simple-check)\n        (short-function-call)\n      (and (much-more-complicated-check)\n           (an-even-longer-check-that-is-too-long))\n        (look-im-on-the-next-line)\n      :else\n        (another-short-call))"
+    (zprint-str
+      i235
+      {:parse-string? true,
+       :dbg? false,
+       :pair
+         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 30}
+	  :multi-lhs-hang? false},
+       :width 80}))
+
+;; :binding
+
+(expect
+"(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function?\n          b)     b\n        :else    c))"
+(zprint-str pair2 {:parse-string? true, :dbg? false, :pair {:flow-all-if-any? true, :justify? true, :justify {:max-variance 20} :multi-lhs-hang? true}, :width 30}))
+
+;; :map
+
+(expect
+"{:aaaa :bbbb,\n {:cccccccc :dddddddddd,\n  {:eeeeeeeeee :fffffffffffffffffffffff,\n   :ggggggggg :hhhhhhhhhhhhhh,\n   :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}"
+(zprint-str "{:aaaa :bbbb {:cccccccc :dddddddddd {:eeeeeeeeee :fffffffffffffffffffffff :ggggggggg :hhhhhhhhhhhhhh :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}" {:parse-string? true :map {:multi-lhs-hang? true}}))
+(expect
+"{:aaaa :bbbb,\n {:cccccccc :dddddddddd,\n  {:eeeeeeeeee :fffffffffffffffffffffff,\n   :ggggggggg :hhhhhhhhhhhhhh,\n   :iiiiiii :jjjjj}\n    :kkkkkkkkkkkkkk}\n   :lllllllll}"
+(zprint-str "{:aaaa :bbbb {:cccccccc :dddddddddd {:eeeeeeeeee :fffffffffffffffffffffff :ggggggggg :hhhhhhhhhhhhhh :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}" {:parse-string? true :map {:multi-lhs-hang? false}}))
+
+;;
+;; Start of tests for more complex justification, etc.
+;;
+
+;; Check to see that it doesn't narrow something that isn't getting justified
+
+
+(def flowtst6
+"
+(cond (nil? a) (list d)
+      (even? b) (list c d a b)
+      (this (is (something that) can) be narrowed) (and the result)
+      (whoknows? c) (this is d)
+      (and (this needs to be pretty long to make it flow miser)
+           (list? [lots of stuff])
+           ((number? width)
+             (nil? stuff)
+             (list?
+               (keyword?
+                 (nil? (keyword?
+                         (stuff bother
+                                (foo bar (this is a test (type bother))))))))))
+        (clojure.pprint/write sexpr
+                              (pretty true)
+                              (right-margin width)
+                              (miser-width miser))
+      (and (number? width) (nil? b))
+        (clojure.pprint/write sexpr pretty true right-margin width)
+      :else (clojure.pprint/write sexpr :pretty true))"
+      )
+
+ (expect
+"(cond (nil? a)        (list d)\n      (even? b)       (list c d a b)\n      (this (is (something that) can)\n            be\n            narrowed) (and the result)\n      (whoknows? c)   (this is d)\n      (and (this needs to be pretty long to make it flow miser)\n           (list? [lots of stuff])\n           ((number? width)\n             (nil? stuff)\n             (list? (keyword? (nil? (keyword? (stuff bother\n                                                     (foo bar\n                                                          (this\n                                                            is\n                                                            a\n                                                            test\n                                                            (type\n                                                              bother))))))))))\n        (clojure.pprint/write sexpr\n                              (pretty true)\n                              (right-margin width)\n                              (miser-width miser))\n      (and (number? width) (nil? b))\n        (clojure.pprint/write sexpr pretty true right-margin width)\n      :else           (clojure.pprint/write sexpr :pretty true))"
+ (zprint-str flowtst6 {:parse-string? true :style :justified :pair {:lhs-narrow 2.0 :multi-lhs-hang? true :justify {:max-variance 20}} #_#_:dbg-s #{:justify-result}}))
+
+ ;;
+ ;; See what happens with a bunch of lhs things that don't fit at all in the
+ ;; narrow width
+ ;;
+
+(def flowtst11
+"
+(cond (nil? a) (list d)
+      (even? b) (list c d a b)
+      this-is-a-very-long-thing-designed-to-not-fit-in (and the result)
+      this-is-another-very-long-thing-designed-to-not-fit (and the result)
+      this-is-a-third-very-long-thing-designed-to-not-fit (and the result)
+      this-is-a-fourth-very-long-thing-designed-to-not-fit (and the result)
+      this-is-a-fifth-very-long-thing-designed-to-not-fit (and the result)
+      (whoknows? c) (this is d)
+      (and (number? width) (nil? b))
+        (clojure.pprint/write sexpr pretty true right-margin width)
+      :else (clojure.pprint/write sexpr :pretty true))
+        ")
+
+(expect
+"(cond (nil? a) (list d)\n      (even? b) (list c d a b)\n      this-is-a-very-long-thing-designed-to-not-fit-in (and the result)\n      this-is-another-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-third-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-fourth-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-fifth-very-long-thing-designed-to-not-fit (and the result)\n      (whoknows? c) (this is d)\n      (and (number? width) (nil? b))\n        (clojure.pprint/write sexpr pretty true right-margin width)\n      :else (clojure.pprint/write sexpr :pretty true))"
+(zprint-str flowtst11 {:parse-string? true :style :justified :pair {:lhs-narrow 2.0 :multi-lhs-hang? true :justify {:max-variance 20}}}))
+
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

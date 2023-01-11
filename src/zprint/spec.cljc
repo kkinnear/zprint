@@ -226,7 +226,7 @@
 (s/def ::justify? ::boolean)
 (s/def ::justify
   (only-keys :opt-un [::max-variance ::ignore-for-variance ::no-justify
-                      ::max-gap]))
+                      ::max-gap ::lhs-narrow ::multi-lhs-overlap?]))
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
 (s/def ::justify-tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
@@ -311,7 +311,7 @@
                       ::hang-expand ::hang? ::hang-accept ::ha-depth-factor
                       ::ha-width-factor ::indent ::justify? ::justify
                       ::justify-hang ::justify-tuning 
-		      ::lhs-narrow ::multi-lhs-hang? ::multi-lhs-overlap?
+		      ::multi-lhs-hang? 
 		      ::nl-separator?
                       ::nl-separator-all?]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
@@ -382,10 +382,9 @@
              ::justify-hang ::justify ::justify-tuning ::key-color
              ::key-value-color ::key-depth-color ::key-ignore
              ::key-ignore-silent ::key-order 
-	     ::lhs-narrow
 	     ::lift-ns? ::lift-ns-in-code?
              ::key-no-sort 
-	     ::multi-lhs-hang? ::multi-lhs-overlap?
+	     ::multi-lhs-hang? 
 	     ::nl-separator? ::nl-separator-all? ::respect-bl?
              ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?
              ::key-value-options]))
@@ -412,7 +411,7 @@
                       ::hang-expand ::hang? ::hang-accept ::ha-depth-factor
                       ::ha-width-factor ::indent ::justify? ::justify
                       ::justify-hang ::justify-tuning 
-		      ::lhs-narrow ::multi-lhs-hang? ::multi-lhs-overlap?
+		      ::multi-lhs-hang? 
 		      ::nl-separator?
                       ::nl-separator-all?]))
 (s/def ::paragraph (only-keys :opt-un [:alt/style]))

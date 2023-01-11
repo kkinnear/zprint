@@ -717,8 +717,8 @@
                                      (or (= tag :whitespace)
                                          (= tag :newline)
                                          (= tag :indent)))
-                                current-string)
-                              (split-lf-2 s)
+                                current-string) 
+			      (split-lf-2 s)
                             :else [s]))
               ; If r non-nil, we had a newline at end of l.
               ; If we had a previous-comment, then we want to
@@ -1103,10 +1103,10 @@
                            (if narrow-width
                              (assoc options :width narrow-width)
                              options))
-	non-justify-non-narrow-loptions (c-r-pair commas?
+	loptions-non-narrow (c-r-pair commas?
                                           rightmost-pair?
                                           nil
-			                  non-justify-options)
+					  options)
         width (:width options)
         roptions (c-r-pair commas? rightmost-pair? :rightmost options)
         ; i273
@@ -1182,8 +1182,29 @@
 	; the narrowing at all (i.e., returns nil), let's re-do it with
 	; the regular width since this must be one that shouln't be 
 	; justified.
+	_ (dbg-s options
+                 #{:justify-width}
+                 "fzprint-two-up: pre-a:" (pr-str (zstring lloc))
+		 "one-line?" one-line?
+		 "ind:" ind
+                 "loptions width:" (:width loptions)
+		 "lines:" (style-lines options ind arg-1))
+
+
 	arg-1 (if (and (nil? arg-1) justify-width narrow-width)
-                 (fzprint* non-justify-non-narrow-loptions ind lloc) arg-1)
+		 (do
+         (dbg-s options
+                 #{:justify-width}
+                 "fzprint-two-up: DID NOT FIT:" (pr-str (zstring lloc))
+		 "one-line?" one-line?
+                 "loptions width:" (:width loptions))
+		 ; These need to be the regular loptions (which include
+		 ; justify-options) but just not be narrow, to match
+		 ; what fzprint-justify-width does when it redoes the
+		 ; fzprint* when it fails for narrowing.
+                 (fzprint* loptions-non-narrow ind lloc) 
+		 )
+		 arg-1)
         no-justify (:no-justify justify)
         ; If we have a newline, make it one shorter since we did a newline
         ; after the previous pair.  Unless this is the first pair, but we
@@ -1273,21 +1294,26 @@
                    narrow-width
                    (not (fzfit-one-line loptions arg-1-lines))
                    (= (nth (first arg-1) 2) :left))
+	    ; Note that we need to use the loptions as they also have
+	    ; the justify-options in them -- which needs to match what
+	    ; we did in fzprint-justify-width.
             (let [arg-1 (fzprint* (assoc loptions :width width) ind lloc)
                   arg-1-lines (style-lines options ind arg-1)
                   arg-1-max-width (peek (nth arg-1-lines 2))
                   arg-1-width (- (or arg-1-max-width 0) ind)]
               (dbg-s options
-                     #{:justify-opt}
+                     #{:justify-opt :justify-width}
                      "fzprint-two-up: redoing lhs arg-1" (pr-str (zstring lloc))
                      "arg-1-lines:" arg-1-lines)
               [nil arg-1 arg-1-lines arg-1-width])
             [narrow-width arg-1 arg-1-lines arg-1-width])]
     (dbg-s options
-           :justify-result
+           #{:justify-result :justify-width}
            "fzprint-two-up a:" (zstring lloc)
            "justify-width:" justify-width
+	   "narrow-width:" narrow-width
            "arg-1-width" arg-1-width
+	   "arg-1-max-width" arg-1-max-width
            "ind" ind
            "arg-1-lines" arg-1-lines
 	   "arg-1-fit?" arg-1-fit?
@@ -1578,7 +1604,7 @@
                           ; We either weren't justifying or this one wasn't
                           ; supposed to justify anyway, so we'll flow.
                           ;
-                          ; But if we did use narrow, and the hang is
+                          ; But if we did use narrow, and the lhs is
                           ; > 1 lines, and it is a collection,
                           ; then let's try the lhs w/out any narrow
                           ; since the narrow can't help us now.
@@ -1603,7 +1629,7 @@
                                           #{:justify-opt}
                                           "fzprint-two-up: redoing lhs arg-1")
                                         (fzprint* 
-						non-justify-non-narrow-loptions
+						loptions-non-narrow
 					          #_(assoc loptions :width width)
                                                   ind
                                                   lloc))
@@ -1687,7 +1713,7 @@
    {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],
     {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color
             key-depth-color key-value-color key-value-options justify
-	    #_lhs-narrow multi-lhs-hang?]}
+	    multi-lhs-hang?]}
       caller,
     :as options} ind commas? justify-width justify-options narrow-width
     rightmost-pair? force-flow? [lloc rloc xloc :as pair]]
@@ -2364,6 +2390,10 @@
                                                 (first %)))
                       ; If the narrow-result didn't work at all, try it w/out
                       ; narrowing, so we at least have something.
+		      ; This needs to use justify-options as much as the one
+		      ; above does, just not being narrow.  The code here
+		      ; has to match the code in fzprint-two-up where it
+		      ; does the lhs again if it fails on narrowing.
                       result
                         (if narrow-result
                           narrow-result
@@ -2432,18 +2462,19 @@
             column1 [(vec (map #(- (peek (nth % 2)) ind) style-seq))]
             ; take max-width of all of the lines
             column2 [(vec (map #(- (second %) ind) style-seq))]
-            #_(println "column1:" column1)
-            #_(println "column2:" column2)
+            #_ (println "column1:" column1)
+            #_ (println "column2:" column2)
+	    #_ (println "style-seq:" style-seq)
             alignment (when (and each-one-line? max-gap-ok?)
                         (column-width-variance
                           max-variance
                           ; i273
-                          (if (:multi-lhs-overlap? (caller options))
+                          (if (:multi-lhs-overlap? justify)
                             [(vec (map #(- (peek (nth % 2)) ind) style-seq))]
                             [(vec (map #(- (second %) ind) style-seq))])
                           0))
             _ (dbg-s options
-                     #{:justify :justify-cancelled}
+                     #{:justify :justify-cancelled :justify-width}
                      "fzprint-justify-width" (pr-str (take 6 (first firsts))
                                                      #_firsts)
                      "max-variance:" max-variance
@@ -2451,7 +2482,7 @@
                      "ignore-for-variance:" ignore-for-variance
                      "no-justify" no-justify
                      "narrow-width" narrow-width
-                     "multi-lhs-overlap?" (:multi-lhs-overlap? (caller options))
+                     "multi-lhs-overlap?" (:multi-lhs-overlap? justify)
                      "each-one-line?" each-one-line?
                      "alignment:" alignment)
             #_(prn "what:"
@@ -2596,7 +2627,7 @@
   "Do one pass mapping fzprint-two-up across a sequence of pairs. The
   options and width are whatever is appropriate for this pass."
   [caller
-   {{:keys [justify? force-nl? lhs-narrow multi-lhs-hang?]} caller,
+   {{:keys [justify? force-nl? multi-lhs-hang?]} caller,
     :keys [width rightcnt one-line? parallel?],
     :as options} ind justify-width justify-options narrow-width commas?
    force-flow? coll]
@@ -2686,74 +2717,77 @@
   return yourself.  It will, however, make an estimate of whether or not
   it will fit and if it clearly doesn't, it will return a nil."
   [caller
-   {{:keys [justify? force-nl? lhs-narrow multi-lhs-hang?]} caller,
+   {{:keys [justify? force-nl? multi-lhs-hang? justify]} caller,
     :keys [width rightcnt one-line? parallel?],
     :as options} ind commas? coll]
-  (let [; i273
-        len (count coll)
-        ; If the caller has flow? true, then justification is meaningless
-        justify? (if (:flow? (caller options)) nil justify?)
-        ; Some callers do not have lhs-narrow defined
-        lhs-narrow (or lhs-narrow 1)
-        ;
-        ; There are two possibilties for justification:
-        ;  o Regular justification, with the lhs as big as it is
-        ;  o Narrowed justification, where the lhs is squeezed by a narrower
-        ;    width.  Only helps if the lhs contains some collections.
-        ;    Also this is only done if the lhs-narrow factor is more than
-        ;    1.01.
-        ;
-        ; Each type of justification requires a different narrow-width.
-        ;
-        ; We will do both and compare them if they work.  They can fail
-        ; to work in two ways:
-        ;
-        ;  1. They can fail in fzprint-justify-width, because a good
-        ;     justify-width can't be found.
-        ;  2. They can fail in fzprint-two-up-pass, because the rhs had
-        ;     to flow, which will fail the justification.
-        ;
-        ; If only one of them works, we will use that.
-        ;
-        ; Do the fzprint-justify-width for any lhs-narrow
-        use-narrow? (and (> (- lhs-narrow 1) 0.01) justify? multi-lhs-hang?)
-        narrow-width (when use-narrow?
-                       (int (+ (/ (- (:width options) ind) lhs-narrow) ind)))
-        justify-narrow-width
-          (when (and justify? narrow-width (not one-line?))
-            (fzprint-justify-width caller
-				   options
-                                   #_(assoc options :width narrow-width)
-                                   ind
-				   narrow-width
-                                   #_true ; narrow?
-                                   coll))
-        ; Do the fzprint-justify-width without lhs-narrow
-        justify-width (when (and justify? (not one-line?))
-                        (fzprint-justify-width caller options ind nil coll))
-        caller-options (options caller)]
-    (dbg-s options
-           :narrow
-           "fzprint-map-two-up:"
-           "caller:"
-           caller
-           (zstring (first (first coll)))
-           "lhs-narrow:" lhs-narrow
-           "justify-narrow-width:" justify-narrow-width
-           "justify-width:" justify-width)
-    (dbg-print options
-               "fzprint-map-two-up: one-line?" (:one-line? options)
-               "justify?:" justify?)
+  (let [len (count coll)]
     ; If it is one-line? and force-nl? and there is more than one thing,
     ; this can't work.
-    ; TODO: Move this up!
     (when (not (and one-line? force-nl? (> len 1)))
-      (let [justify-options
-              (if (or justify-width justify-narrow-width)
-                (-> options
-                    (merge-deep {caller (caller-options :justify-hang)})
-                    (merge-deep {:tuning (caller-options :justify-tuning)}))
-                options)
+      (let [caller-options (options caller)
+            justify-options
+              (-> options
+                  (merge-deep {caller (caller-options :justify-hang)})
+                  (merge-deep {:tuning (caller-options :justify-tuning)}))
+            ; If the caller has flow? true, then justification is meaningless
+            justify? (if (:flow? (caller options)) nil justify?)
+            ; Some callers do not have lhs-narrow defined
+            lhs-narrow (or (:lhs-narrow justify) 1)
+            ;
+            ; There are two possibilties for justification:
+            ;  o Regular justification, with the lhs as big as it is
+            ;  o Narrowed justification, where the lhs is squeezed by a narrower
+            ;    width.  Only helps if the lhs contains some collections.
+            ;    Also this is only done if the lhs-narrow factor is more than
+            ;    1.01.
+            ;
+            ; Each type of justification requires a different narrow-width.
+            ;
+            ; We will do both and compare them if they work.  They can fail
+            ; to work in two ways:
+            ;
+            ;  1. They can fail in fzprint-justify-width, because a good
+            ;     justify-width can't be found.
+            ;  2. They can fail in fzprint-two-up-pass, because the rhs had
+            ;     to flow, which will fail the justification.
+            ;
+            ; If only one of them works, we will use that.
+            ;
+            ; Do the fzprint-justify-width for any lhs-narrow
+            use-narrow? (and (> (- lhs-narrow 1) 0.01) justify? multi-lhs-hang?)
+            narrow-width (when use-narrow?
+                           (int (+ (/ (- (:width options) ind) lhs-narrow)
+                                   ind)))
+            justify-narrow-width
+              (when (and justify? narrow-width (not one-line?))
+                (fzprint-justify-width caller
+                                       justify-options
+                                       #_options
+                                       #_(assoc options :width narrow-width)
+                                       ind
+                                       narrow-width
+                                       #_true ; narrow?
+                                       coll))
+            ; Do the fzprint-justify-width without lhs-narrow
+            justify-width (when (and justify? (not one-line?))
+                            (fzprint-justify-width caller
+                                                   justify-options
+                                                   #_options
+                                                   ind
+                                                   nil
+                                                   coll))
+            _ (dbg-s options
+                     #{:narrow :justify-width}
+                     "fzprint-map-two-up:"
+                     "caller:"
+                     caller
+                     (zstring (first (first coll)))
+                     "lhs-narrow:" lhs-narrow
+                     "justify-narrow-width:" justify-narrow-width
+                     "justify-width:" justify-width)
+            _ (dbg-print options
+                         "fzprint-map-two-up: one-line?" (:one-line? options)
+                         "justify?:" justify?)
             force-flow? nil
             flow-all-if-any? (:flow-all-if-any? (caller justify-options))
             ; If we are justifying, give that a try
@@ -2840,13 +2874,6 @@
                     [false result hang-flow-set]
                     [true nil hang-flow-set]))
                 [false result nil])
-            _ (when force-flow?
-                (let [hang-flow-set (set (mapv first result))]
-                  (when (> (count hang-flow-set) 1)
-                    (dbg-pr options
-                            "fzprint-map-two-up: ****************#############"
-                              " force-flow? didn't yield a single value in"
-                            " hang-flow-set:" hang-flow-set))))
             result (if flow-all-if-any-fail?
                      ; We had a flow but not all flowed, and we had
                      ; flow-all-if-any? true, so try again and force flow
@@ -2863,7 +2890,14 @@
                                           commas?
                                           true    ;force-flow?
                                           coll)
-                     result)]
+                     result)
+            _ (when flow-all-if-any-fail?
+                (let [hang-flow-set (set (mapv first result))]
+                  (when (> (count hang-flow-set) 1)
+                    (dbg-pr options
+                            "fzprint-map-two-up: ****************#############"
+                              " force-flow? didn't yield a single value in"
+                            " hang-flow-set:" hang-flow-set))))]
         (dbg-pr options
                 "fzprint-map-two-up: len:" len
                 "justify-width:" justify-width
@@ -2902,7 +2936,7 @@
   return yourself.  It will, however, make an estimate of whether or not
   it will fit and if it clearly doesn't, it will return a nil."
   [caller
-   {{:keys [justify? force-nl? lhs-narrow multi-lhs-hang?]} caller,
+   {{:keys [justify? force-nl? multi-lhs-hang? justify]} caller,
     :keys [width rightcnt one-line? parallel?],
     :as options} ind commas? coll]
   (let [caller-map (caller options)
@@ -2913,7 +2947,7 @@
 ;	options (if narrow? (assoc options :narrow? true) options)
 ;        narrow? (or (:lhs? options) (:narrow? options))
 	; i273x
-        narrow? #_(> lhs-narrow 1.0) (:lhs? options)
+        narrow? #_(> (:lhs-narrow justify) 1.0) (:lhs? options)
         len (count coll)
 	; i273
 	options-lhs (assoc options :lhs? true)
@@ -2924,7 +2958,7 @@
 		   options
 		   (assoc options :original-width (:width options)))
 	; Some callers do not have lhs-narrow defined
-	lhs-narrow (or lhs-narrow 1)
+	lhs-narrow (or (:lhs-narrow justify) 1)
 	use-narrow? (and (> (- lhs-narrow 1) 0.01) 
 	                 justify?
 			 multi-lhs-hang?)

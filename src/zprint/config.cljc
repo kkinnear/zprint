@@ -467,11 +467,11 @@
              :justify {:max-variance 20,
                        :no-justify #{"_"},
                        :ignore-for-variance nil,
-                       :max-gap nil},
+                       :max-gap nil,
+		       :lhs-narrow 2.0,
+		       :multi-lhs-overlap? true},
              :justify? false,
-	     :lhs-narrow 1.0 #_2.0
-	     :multi-lhs-hang? false #_true
-	     :multi-lhs-overlap? true
+	     :multi-lhs-hang? false
              :nl-separator? false,
              :nl-separator-all? false},
    :cache {:directory ".zprint", :location "HOME"},
@@ -604,12 +604,12 @@
          :justify {:max-variance 20,
                    :ignore-for-variance nil,
                    :no-justify nil,
-                   :max-gap nil},
+                   :max-gap nil
+		   :lhs-narrow 2.0
+		   :multi-lhs-overlap? true},
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
-	 :lhs-narrow 1.0 #_2.0
-	 :multi-lhs-hang? false #_true
-	 :multi-lhs-overlap? true
+	 :multi-lhs-hang? false
          :respect-bl? false,
          :respect-nl? false,
          :unlift-ns? false},
@@ -656,11 +656,11 @@
           :justify {:max-variance 20,
                     :ignore-for-variance #{":else"},
                     :no-justify nil,
-                    :max-gap nil},
+                    :max-gap nil,
+		    :lhs-narrow 2.0,
+		    :multi-lhs-overlap? true},
           :justify? false,
-	  :lhs-narrow 1.0 #_2.0
-	  :multi-lhs-hang? false #_true
-	  :multi-lhs-overlap? true
+	  :multi-lhs-hang? false
           :nl-separator? false,
           :nl-separator-all? false},
    :pair-fn {:hang-diff 1, :hang-expand 15.0, :hang-size 100, :hang? true}

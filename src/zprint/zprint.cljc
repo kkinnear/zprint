@@ -1045,7 +1045,6 @@
     :as options} ind commas? justify-width justify-options narrow-width
    rightmost-pair? force-flow? [lloc rloc xloc :as pair]]
   (if dbg-cnt? (println "two-up: caller:" caller "hang?" hang? "dbg?" dbg?))
-  ; i273
   (dbg-s options
          #{:narrow :justify :justify-result}
          "fzprint-two-up:" (pr-str (zstring lloc))
@@ -1090,7 +1089,6 @@
         options justify-options
         local-options
           (if (not local-hang?) (assoc options :one-line? true) options)
-        ; i273
         _ (dbg-s options
                  :rightmost-pair
                  "fzprint-two-up rightmost-pair:" rightmost-pair?
@@ -1109,7 +1107,6 @@
 					  options)
         width (:width options)
         roptions (c-r-pair commas? rightmost-pair? :rightmost options)
-        ; i273
         ; These are only really important for good-enough
         non-justify-roptions
           (c-r-pair commas? rightmost-pair? :rightmost non-justify-options)
@@ -1171,7 +1168,6 @@
                 :else nil)
         #_(println "fzprint-two-up: :fn" (:fn-type-map options))
         #_(println "fzprint-two-up: :next-inner" (:next-inner options))
-        ; i273
         _ (dbg-s options
                  :justify-result-deep
                  "fzprint-two-up:" (pr-str (zstring lloc))
@@ -1216,7 +1212,6 @@
         ; thing fits on the line.
         [arg-1-line-count arg-1-max-width :as arg-1-lines]
           (style-lines options ind arg-1)
-        ; i273
         ; Get the correct arg-1-max-width in the multi-line case.
         ; Note that this get the width of the last line of a multi-line
         ; arg-1!
@@ -1247,9 +1242,7 @@
         ; If they fit, we need to recalculate the size of arg-1
         [arg-1-line-count arg-1-max-width :as arg-1-lines]
           (if combined-arg-1 (style-lines options ind arg-1) arg-1-lines)
-        ; i273
-        ; get the correct arg-1-max-width in the multi-line case
-        ; even after it might have changes, immediately above
+	; Use the last line, not the widest
         arg-1-max-width (peek (nth arg-1-lines 2))
         _ (dbg options
                "fzprint-two-up after modifier: arg-1-line-count:"
@@ -1259,18 +1252,12 @@
         rloc (if modifier? xloc rloc)
         ;     arg-1-fit-oneline? (and (not force-nl?)
         ;                             (fzfit-one-line loptions arg-1-lines))
-        ; i273
-        ; Consider doing this a different way, instead of being misleading
-        ; about whether the arg-1 fits on one line?
         arg-1-fit-oneline? (and (not flow?)
                                 (if multi-lhs-hang?
                                   ; We don't care if it fits in a
                                   ; single line so we fake it here.
-                                  ; i273
-                                  ; Possibly not the best of ideas.
                                   true
                                   (fzfit-one-line loptions arg-1-lines)))
-        ; i273
         arg-1-fit? (fzfit loptions arg-1-lines)
         ; sometimes arg-1-max-width is nil because fzprint* returned nil,
         ; but we need to have something for later code to use as a number
@@ -1611,7 +1598,6 @@
                           ;
                           ; But, we shouldn't be narrowing if we aren't
                           ; justifying, whether or not we wanted to justify.
-                          ; i273
                           (let [_ (dbg-s options
                                          #{:justify-opt}
                                          "fzprint-two-up: c narrow-width:"
@@ -2369,7 +2355,7 @@
   and triggers a check to see if any of the firsts are collections. 
   If they are not collections, and narrow-width is non-nil, then return 
   nil."
-  [caller {{:keys [justify? justify]} caller, :as options} ind narrow-width
+  [caller {{:keys [justify? justify multi-lhs-hang?]} caller, :as options} ind narrow-width
    coll]
   (let [ignore-for-variance (:ignore-for-variance justify)
         no-justify (:no-justify justify)
@@ -2438,8 +2424,14 @@
             style-seq (mapv (partial style-lines options ind) firsts)
             #_(println "style-seq:" ((:dzprint options) {} style-seq))
             #_(def styleseq style-seq)
-            ; i273
-            each-one-line? true
+
+	    ; If we allow multi-lhs-hang?, then act like each was on one
+	    ; line
+            each-one-line? 
+		 (if multi-lhs-hang?
+		      true
+                      (reduce #(when %1 (= (first %2) 1)) true style-seq))
+
             #_(reduce #(when %1 (= (first %2) 1)) true style-seq)
             #_(def eol each-one-line?)
             ; max-gap is nilable, so make sure it is a number
@@ -2555,7 +2547,6 @@
         #_(def mg [max-gap max-gap-allowed])
         max-gap-ok? (<= max-gap max-gap-allowed)
         max-variance (:max-variance justify)
-	; i273
 	; take width of last line
 	column1 [(vec (map #(- (peek (nth % 2)) ind) style-seq))]
 	; take max-width of all of the lines
@@ -2567,7 +2558,6 @@
                     (column-width-variance max-variance
 
 		     (if (:multi-lhs-overlap? justify)
-		     ; i273
 		     ; Look only at the width of the last line of a 
 		     ; multi-line collections
 		     [(vec (map #(- (peek (nth % 2)) ind) style-seq))]
@@ -2673,12 +2663,10 @@
         end (when end-remaining
               (when-let [end-result (fzprint-two-up
                                       caller
-                                      ; i273
                                       options
                                       ind
                                       commas?
                                       justify-width
-                                      ; i273
                                       justify-options
                                       narrow-width
                                       :rightmost-pair

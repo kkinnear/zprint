@@ -473,7 +473,10 @@
              :justify? false,
 	     :multi-lhs-hang? false
              :nl-separator? false,
-             :nl-separator-all? false},
+             :nl-separator-all? false
+	     :tuning {:hang-flow 1.1,
+		      :hang-flow-limit  12,
+		      :hang-if-equal-flow? false}},
    :cache {:directory ".zprint", :location "HOME"},
    :color? false,
    :color-map {:brace :red,
@@ -521,7 +524,11 @@
             :indent 2,
             :modifiers #{"static"},
 	    :nl-count nil
-            :nl-separator? false},
+            :nl-separator? false
+	    :tuning {:hang-flow 1.1,
+		     :hang-flow-limit  12,
+		     :hang-if-equal-flow? false},
+	    },
    :file? false,
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
                   :arg1-force-nl :arg1-force-nl-body :flow-body
@@ -569,7 +576,11 @@
           :wrap? false,
           :wrap-coll? true,
           :wrap-after-multi? true,
-          :wrap-multi? true},
+          :wrap-multi? true
+	  :tuning {:hang-flow 1.1,
+		   :hang-flow-limit  12,
+		   :hang-if-equal-flow? false},
+	  },
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -612,7 +623,11 @@
 	 :multi-lhs-hang? false
          :respect-bl? false,
          :respect-nl? false,
-         :unlift-ns? false},
+         :unlift-ns? false
+	 :tuning {:hang-flow 1.1,
+	          :hang-flow-limit  12,
+		  :hang-if-equal-flow? false},
+	 },
    :max-depth 1000000,
    :max-depth-string "##",
    :parallel? false,
@@ -662,8 +677,15 @@
           :justify? false,
 	  :multi-lhs-hang? false
           :nl-separator? false,
-          :nl-separator-all? false},
-   :pair-fn {:hang-diff 1, :hang-expand 15.0, :hang-size 100, :hang? true}
+          :nl-separator-all? false
+	  :tuning {:hang-flow 1.1,
+	           :hang-flow-limit  12,
+		   :hang-if-equal-flow? false},
+	  },
+   :pair-fn {:hang-diff 1, :hang-expand 15.0, :hang-size 100, :hang? true
+	     :tuning {:hang-flow 1.1,
+		      :hang-flow-limit  12,
+		      :hang-if-equal-flow? false}}
    :parse {:interpose nil, :left-space :drop, :ignore-if-parse-fails #{"..."}},
    :parse-string-all? false,
    :parse-string? false,
@@ -678,7 +700,11 @@
                  :indent 2,
                  :key-order nil,
                  :sort-in-code? nil,
-                 :sort? nil},
+                 :sort? nil
+		 :tuning {:hang-flow 1.1,
+			  :hang-flow-limit  12,
+			  :hang-if-equal-flow? false}
+		 },
    :record {:hang? true, :record-type? true, :to-string? false},
    ; All of the sets need to be here, so elements can be removed from them
    :remove {:fn-force-nl nil,
@@ -1080,7 +1106,11 @@
                :respect-nl? false,
                :wrap-coll? true,
                :wrap-after-multi? true,
-               :wrap-multi? true},
+               :wrap-multi? true
+	       :tuning {:hang-flow 1.1,
+			:hang-flow-limit  12,
+			:hang-if-equal-flow? false}
+	       },
    :width 80,
    :url {:cache-dir "urlcache", :cache-secs 300},
    :zipper? false,

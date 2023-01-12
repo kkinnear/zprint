@@ -401,16 +401,38 @@
   is typically flow. p-count is the number of elements in the hang."
   [caller
    {:keys [width rightcnt dbg?],
+    {:keys [general-hang-adjust]}
+      :tuning,
+    {:keys [hang-expand hang-diff hang-size hang-adjust],
+     {:keys [hang-flow hang-type-flow hang-flow-limit hang-if-equal-flow?]}
+       :tuning}
+      caller,
+    :as options} fn-style p-count indent-diff
+   [p-lines p-maxwidth p-length-seq p-what] [b-lines b-maxwidth _ b-what]]
+
+  #_[caller
+   {:keys [width rightcnt dbg?],
     {:keys [hang-flow hang-type-flow hang-flow-limit general-hang-adjust
             hang-if-equal-flow?]}
       :tuning,
     {:keys [hang-expand hang-diff hang-size hang-adjust]} caller,
     :as options} fn-style p-count indent-diff
    [p-lines p-maxwidth p-length-seq p-what] [b-lines b-maxwidth _ b-what]]
+
   (let [p-last-maxwidth (last p-length-seq)
         hang-diff (or hang-diff 0)
         hang-expand (or hang-expand 1000.)
         hang-adjust (or hang-adjust general-hang-adjust)
+	; Get solid versions of key local tuning parameters
+	tuning (:tuning options)
+	#_ (when (= caller :pair) 
+	    (println "good-enough:" (:tuning (caller options)))
+	    (println "good-enough caller hang-flow:" caller hang-flow))
+	hang-flow (or hang-flow (:hang-flow tuning))
+	hang-type-flow (or hang-type-flow (:hang-type-flow tuning))
+	hang-flow-limit (or hang-flow-limit (:hang-flow-limit tuning))
+	hang-if-equal-flow? (or hang-if-equal-flow? (:hang-if-equal-flow? 
+	                                             tuning))
         #_(options (if (and p-lines
                             p-count
                             (pos? p-count)
@@ -1392,7 +1414,8 @@
                                     (>= flow-indent hanging-indent))))
                     ; i273
                     ; let's re-adjust the RHS hang-flow and see what it
-                    ; does
+                    ; does  -- let's not, and do this globally in the
+		    ; config
                     #_#_local-roptions
                       (assoc-in local-roptions [:tuning :hang-flow] 1.1)
                     hanging (when (or arg-1-fit-oneline?
@@ -1522,7 +1545,7 @@
                            "coll?" (nth (first arg-1) 2))
                     (if (good-enough?
                           caller
-                          (if justify-width roptions non-justify-roptions)
+                          (if #_justifying? justify-width roptions non-justify-roptions)
                           :none-two-up
                           hang-count
                           (- hanging-indent flow-indent)
@@ -2716,7 +2739,12 @@
             justify-options
               (-> options
                   (merge-deep {caller (caller-options :justify-hang)})
-                  (merge-deep {:tuning (caller-options :justify-tuning)}))
+                  (merge-deep {caller {:tuning 
+		                       (caller-options :justify-tuning)}}
+		  #_{:tuning (caller-options :justify-tuning)}))
+	    #_ (println "caller justify-tuning:" caller (caller-options :justify-tuning))
+	    #_ (println "justify-options hang-flow:" 
+	         (:hang-flow (:tuning (caller justify-options))))
             ; If the caller has flow? true, then justification is meaningless
             justify? (if (:flow? (caller options)) nil justify?)
             ; Some callers do not have lhs-narrow defined

@@ -313,7 +313,8 @@
                       ::justify-hang ::justify-tuning 
 		      ::multi-lhs-hang? 
 		      ::nl-separator?
-                      ::nl-separator-all?]))
+                      ::nl-separator-all?
+		      :alt/tuning]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::call-stack (s/nilable (s/coll-of ::call-stack-frame :kind list?)))
 (s/def ::color-map
@@ -346,7 +347,7 @@
 (s/def ::extend
   (only-keys :opt-un [::flow? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent
-                      ::modifiers ::nl-separator? ::nl-count]))
+                      ::modifiers ::nl-separator? ::nl-count :alt/tuning]))
 (s/def :alt/extend (only-keys :opt-un [::modifiers]))
 (s/def ::file? ::boolean)
 (s/def ::fn-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
@@ -371,7 +372,7 @@
              ::option-fn ::pair-hang? ::return-altered-zipper ::respect-bl?
              ::respect-nl? ::indent-only? ::indent-only-style
              ::replacement-string ::wrap-coll? ::wrap-after-multi? ::wrap-multi?
-             ::force-nl? ::wrap? ::nl-count ::no-wrap-after]))
+             ::force-nl? ::wrap? ::nl-count ::no-wrap-after :alt/tuning]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
@@ -387,7 +388,7 @@
 	     ::multi-lhs-hang? 
 	     ::nl-separator? ::nl-separator-all? ::respect-bl?
              ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?
-             ::key-value-options]))
+             ::key-value-options :alt/tuning]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -413,7 +414,8 @@
                       ::justify-hang ::justify-tuning 
 		      ::multi-lhs-hang? 
 		      ::nl-separator?
-                      ::nl-separator-all?]))
+                      ::nl-separator-all?
+		      :alt/tuning]))
 (s/def ::paragraph (only-keys :opt-un [:alt/style]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
@@ -426,7 +428,8 @@
 (s/def ::promise (only-keys :opt-un [::object?]))
 (s/def ::reader-cond
   (only-keys :opt-un [::comma? ::force-nl? ::hang-diff ::hang-expand ::hang?
-                      ::indent ::key-order ::sort-in-code? ::sort?]))
+                      ::indent ::key-order ::sort-in-code? ::sort?
+		      :alt/tuning]))
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
@@ -461,6 +464,9 @@
 (s/def ::tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
                       ::general-hang-adjust ::hang-if-equal-flow?]))
+(s/def :alt/tuning
+  (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
+                      ::hang-if-equal-flow?]))
 (s/def :alt/uneval (only-keys :opt-un [::color-map]))
 (s/def ::underscore? ::boolean)
 (s/def ::user-fn-map ::fn-map-value)

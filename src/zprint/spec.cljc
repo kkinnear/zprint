@@ -228,9 +228,16 @@
   (only-keys :opt-un [::max-variance ::ignore-for-variance ::no-justify
                       ::max-gap ::lhs-narrow ::multi-lhs-overlap?]))
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
-(s/def ::justify-tuning
+
+#_(s/def ::justify-tuning
   (only-keys :opt-un [::hang-flow ::hang-type-flow ::hang-flow-limit
                       ::general-hang-adjust]))
+
+; You can put any options map you want into justify-tuning.  Typically,
+; you would only do some kind of tuning, but that isn't a limitation
+; on the silly things you might try to do.
+(s/def ::justify-tuning (s/nilable ::options))
+
 (s/def ::key-color (s/nilable (s/map-of zany? ::color)))
 (s/def ::key-value-color (s/nilable (s/map-of zany? ::color-map)))
 (s/def ::key-value-options (s/nilable (s/map-of zany? ::options)))

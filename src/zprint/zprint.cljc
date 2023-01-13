@@ -2736,17 +2736,18 @@
     ; this can't work.
     (when (not (and one-line? force-nl? (> len 1)))
       (let [caller-options (options caller)
-            justify-options
-              (-> options
-                  (merge-deep {caller (caller-options :justify-hang)})
-                  (merge-deep {caller {:tuning 
-		                       (caller-options :justify-tuning)}}
-		  #_{:tuning (caller-options :justify-tuning)}))
-	    #_ (println "caller justify-tuning:" caller (caller-options :justify-tuning))
-	    #_ (println "justify-options hang-flow:" 
-	         (:hang-flow (:tuning (caller justify-options))))
             ; If the caller has flow? true, then justification is meaningless
             justify? (if (:flow? (caller options)) nil justify?)
+	    ; If we are justifying merge in a full options map, 
+	    ; which can contain anything!  Don't validate it since
+	    ; it was already in the options map to start with.
+	    [justify-options _]
+	      (when justify?
+	        (internal-config-and-validate
+		  (merge-deep options {caller (caller-options :justify-hang)})
+		  (caller-options :justify-tuning)
+		  (str "options in :justify-tuning for "
+		       caller)))
             ; Some callers do not have lhs-narrow defined
             lhs-narrow (or (:lhs-narrow justify) 1)
             ;
@@ -2805,7 +2806,7 @@
                          "fzprint-map-two-up: one-line?" (:one-line? options)
                          "justify?:" justify?)
             force-flow? nil
-            flow-all-if-any? (:flow-all-if-any? (caller justify-options))
+            flow-all-if-any? (:flow-all-if-any? caller-options)
             ; If we are justifying, give that a try
             result-narrow (when justify-narrow-width
                             ;

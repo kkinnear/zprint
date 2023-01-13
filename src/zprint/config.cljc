@@ -463,7 +463,8 @@
              :hang? true,
              :indent 2,
              :justify-hang {:hang-expand 15.0},
-             :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+             :justify-tuning {:binding 
+	                       {:tuning {:hang-flow 4, :hang-flow-limit 30}}},
              :justify {:max-variance 20,
                        :no-justify #{"_"},
                        :ignore-for-variance nil,
@@ -619,7 +620,7 @@
 		   :lhs-narrow 2.0
 		   :multi-lhs-overlap? true},
          :justify-hang {:hang-expand 1000.0},
-         :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+         :justify-tuning {:map {:tuning {:hang-flow 4, :hang-flow-limit 30}}},
 	 :multi-lhs-hang? false
          :respect-bl? false,
          :respect-nl? false,
@@ -667,7 +668,7 @@
           :hang? true,
           :indent 2,
           :justify-hang {:hang-expand 15.0},
-          :justify-tuning {:hang-flow 4, :hang-flow-limit 30},
+          :justify-tuning {:pair {:tuning {:hang-flow 4, :hang-flow-limit 30}}},
           :justify {:max-variance 20,
                     :ignore-for-variance #{":else"},
                     :no-justify nil,

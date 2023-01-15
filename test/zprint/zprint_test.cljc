@@ -7782,6 +7782,17 @@ ser/collect-vars-acc %1 %2) )))"
 "(cond (nil? a) (list d)\n      (even? b) (list c d a b)\n      this-is-a-very-long-thing-designed-to-not-fit-in (and the result)\n      this-is-another-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-third-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-fourth-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-fifth-very-long-thing-designed-to-not-fit (and the result)\n      (whoknows? c) (this is d)\n      (and (number? width) (nil? b))\n        (clojure.pprint/write sexpr pretty true right-margin width)\n      :else (clojure.pprint/write sexpr :pretty true))"
 (zprint-str flowtst11 {:parse-string? true :style :justified :pair {:multi-lhs-hang? true :justify {:max-variance 20 :lhs-narrow 2.0}}}))
 
+;;
+;; #282 -- :rod-no-ma-nl test
+;;
+
+(def
+i282
+"(rf/defn set-log-level\n  [{:keys [db]} log-level]\n  (let [log-level (or log-level config/log-level)]\n    {:db             (assoc-in db [:multiaccount :log-level] log-level)\n     :logs/set-level log-level}))\n")
+
+(expect
+"(rf/defn set-log-level [{:keys [db]} log-level]\n  (let [log-level (or log-level config/log-level)]\n    {:db (assoc-in db [:multiaccount :log-level] log-level),\n     :logs/set-level log-level}))"
+(zprint-str i282 {:parse-string? true :style :rod-no-ma-nl}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

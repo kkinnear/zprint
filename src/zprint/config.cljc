@@ -959,14 +959,23 @@
       :ns-justify {:style [:require-justify :require-macros-justify
                            :import-justify]},
 
-      :original-hang
-	  {:doc "Original tuning prior stability fixes for multiple formats"
-	   :binding {:hang-expand 2.0, :justify-hang {:hang-expand 5.0}},
-	   :list {:hang-expand 2.0},
-	   :pair {:hang-expand 2.0, :justify-hang {:hang-expand 5.0}},
-	   :pair-fn {:hang-expand 2.0, :hang-size 10},
+      :original-tuning
+	  {:doc "Original tuning prior to stability fixes for multiple passes"
+	   :binding {:hang-expand 2.0, :justify-hang {:hang-expand 5.0}
+	             :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}},
+           :extend {:tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}}
+	   :list {:hang-expand 2.0
+	          :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}},
+	   :map {:tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}}
+	   :pair {:hang-expand 2.0, :justify-hang {:hang-expand 5.0}
+	          :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}},
+	   :pair-fn {:hang-expand 2.0, :hang-size 10
+	             :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}},
+           :reader-cond {:tuning 
+	                 {:hang-flow-limit 10 :hang-if-equal-flow? true}}
 	   :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true},
-	   :vector-fn {:hang-expand 2.0}}
+	   :vector-fn {:hang-expand 2.0
+	               :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}}}
       :require-pair
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none
@@ -1003,25 +1012,23 @@
                        :set {:respect-nl? false}},
       :rod-base {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}},
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
-            :fn-map {"defn" [:none #_:guided-body
+            :fn-map {"defn" [:none 
                              {:list {:option-fn (partial rodfn
-                                                         #_rodguide
                                                          {:multi-arity-nl?
                                                             true})}}],
-                     "defn-" [:none #_:guided-body
+                     "defn-" [:none
                               {:list {:option-fn (partial rodfn
-                                                          #_rodguide
                                                           {:multi-arity-nl?
                                                              true})}}]}},
       :rod-no-ma-nl
         {:doc
            "Rules of defn, experimental. No newlines between arities.  Very likely to change.",
          :fn-map
-           {"defn" [:guided-body
-                    {:list {:option-fn (partial rodguide
+           {"defn" [:none
+                    {:list {:option-fn (partial rodfn
                                                 {:multi-arity-nl? false})}}],
-            "defn-" [:guided-body
-                     {:list {:option-fn (partial rodguide
+            "defn-" [:none
+                     {:list {:option-fn (partial rodfn
                                                  {:multi-arity-nl? false})}}]}},
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",

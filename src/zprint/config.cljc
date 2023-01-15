@@ -899,6 +899,10 @@
                           "deftest" [:arg1-body {:style :meta-base}]}},
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
+      :multi-lhs-hang {:doc "Allow multi-lhs-hang in all three places."
+                       :pair {:multi-lhs-hang? true}
+		       :binding {:multi-lhs-hang? true}
+		       :map {:multi-lhs-hang? true}}
       :vector-pairs {:doc "Consider vectors 'constants' for constant pairing",
                      :list {:constant-pair-min 1,
                             :constant-pair-fn #(or (keyword? %)

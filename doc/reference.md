@@ -2017,17 +2017,114 @@ There are two styles that will turn on justification wherever possible:
 {:style :justified-original}
 ```
 
-The difference is that ```{:style :justified}``` leaves the `:max-variance`
-set to `20` so that the results are what is to be believed the most pleasing.
-This is the default.
+The difference is that ```{:style :justified}``` leaves the
+`:max-variance` set to `20` so that the results are what is to be
+believed the most pleasing.  This is the default.
 
 The style ```{:style :justified-original}``` is the same as ```{:style
 :justified}``` except that the `:max-variance` is set to `1000` to
 output the original defaults for justification.
 
+By default, if the left hand side of a pair formatts on multiple
+lines, the right-hand-side of that pair will always flow onto a new
+line below (and possibly indented from) the left-hand-side.
+
+However, you can now allow the right-hand-side to format to the
+right of the last line of a multi-left-hand-side element.  Enable
+`:style :multi-lhs-hang` to allow this to happen.  This style sets
+`:multi-lhs-hang? true` in `:binding`, `:map`, and `:pair`.
+
+An example:
+```
+; The default approach
+
+(czprint i273x {:parse-string? true :width 50})
+(cond (and (zero? line-length)
+           (not previous-comment?))
+        out
+      previous-comment? (conj out line-length 0)
+      :else (conj out line-length))
+
+; With :multi-lhs-hang? true enabled for :pair
+
+(czprint i273x {:parse-string? true :width 50 :style :multi-lhs-hang})
+(cond (and (zero? line-length)
+           (not previous-comment?)) out
+      previous-comment? (conj out line-length 0)
+      :else (conj out line-length))
+```
+
+Another example, this one with justification:
+
+```
+; Default approach
+
+(czprint dpg {:parse-string? true :style [:justified] :width 70})
+(defn defprotocolguide
+  "Handle defprotocol with options."
+  ([] "defprotocolguide")
+  ([options len sexpr]
+   (when (= (first sexpr) 'defprotocol)
+     (let [third  (nth sexpr 2 nil)
+           fourth (nth sexpr 3 nil)
+           fifth  (nth sexpr 4 nil)
+           [docstring option option-value]
+             (cond (and (string? third) (keyword? fourth))
+                     [third fourth fifth]
+                   (string? third)  [third nil nil]
+                   (keyword? third) [nil third fourth]
+                   :else            [nil nil nil])
+           guide  (cond-> [:element :element-best :newline]
+                    docstring (conj :element :newline)
+                    option    (conj :element :element :newline)
+                    :else     (conj :element-newline-best-*))]
+       {:guide guide, :next-inner {:list {:option-fn nil}}}))))
+
+; With :multi-lhs-hang? true enabled for :binding, :map, and :pair
+
+(czprint dpg {:parse-string? true :style [:justified :multi-lhs-hang] :width 70})
+(defn defprotocolguide
+  "Handle defprotocol with options."
+  ([] "defprotocolguide")
+  ([options len sexpr]
+   (when (= (first sexpr) 'defprotocol)
+     (let [third  (nth sexpr 2 nil)
+           fourth (nth sexpr 3 nil)
+           fifth  (nth sexpr 4 nil)
+           [docstring option option-value]
+             (cond (and (string? third)
+                        (keyword? fourth)) [third fourth fifth]
+                   (string? third)         [third nil nil]
+                   (keyword? third)        [nil third fourth]
+                   :else                   [nil nil nil])
+           guide  (cond-> [:element :element-best :newline]
+                    docstring (conj :element :newline)
+                    option    (conj :element :element :newline)
+                    :else     (conj :element-newline-best-*))]
+       {:guide guide, :next-inner {:list {:option-fn nil}}}))))
+```
+
+Whenever `:multi-lhs-hang?` is true, when doing justification when
+when the left hand side of a pair is a colllection, zprint attempts
+to format in a space narrower than the rest of the line -- in order
+to give multi-line left-hand-side elements the chance to have their
+right-hand-sides format onto the same line, as well as increasing
+the chances that they will justify at all.  The size of the narrow
+space is the number of characters remaining on the line divided by
+the value of `:lhs-narrow`, configured in `:justify {:lhs-narrow
+2.0}` in `:binding`, `:map`, and `:pair`.  This defaults to 2.0,
+which is means "use half of the remaining space for the left-hand-side".
+You can change this to anything you wish, and disable it altogether
+by configuring it to 1.0.
+
+If you are using justification, you would be well advised to enable
+`:style :multi-lhs-hang` and see how that works for you, as it will
+probably increase the number of things that justify as well as how
+nice they look when justified.
+
 I don't personally find the justified approach my favorite for all code,
 though with the `:max-variance` approach there are many more places 
-where it looks very good.
+where it looks very good.  With `:multi-lhs-hang` there are even more.
 
 Try:
 
@@ -2617,7 +2714,7 @@ You can enable this in any of the three possible places by setting
 Turn on [justification](#a-note-on-justifying-two-up-printing).
 Default is nil (justification off).
 
-#### :justify {:max-variance 1000, :ignore-for-variance #{}, :no-justify #{}}
+#### :justify {:max-variance 1000, :ignore-for-variance #{}, :no-justify #{} :lhs-narrow 2.0}
 
 Parameters to control justification:
 
@@ -2709,6 +2806,46 @@ The `:max-gap` is calculated after the `:no-justify` and
 `:ignore-for-variance` elements are removed.  So if you want them
 included when calculating the `:max-gap`, you need to adjust these
 parameters as well. 
+
+##### :lhs-narrow _2.0_
+
+The denominator of the fraction of the remaining space to use
+when formatting a collection that is the left-hand-side of a pair.
+Only used when `:multi-lhs-hang? true` is configured for this
+set of pairs.
+
+By default, if the left hand side of a pair formatts on multiple
+lines, the right-hand-side of that pair will always flow onto a new
+line below (and possibly indented from) the left-hand-side.
+
+However, you can now allow the right-hand-side to format to the
+right of the last line of a multi-left-hand-side element.  Enable
+`:style :multi-lhs-hang` to allow this to happen.  This style sets
+`:multi-lhs-hang? true` in `:binding`, `:map`, and `:pair`.
+
+Whenever `:multi-lhs-hang?` is true, when doing justification when
+when the left hand side of a pair is a colllection, zprint attempts
+to format in a space narrower than the rest of the line -- in order
+to give multi-line left-hand-side elements the chance to have their
+right-hand-sides format onto the same line, as well as increasing
+the chances that they will justify at all.  The size of the narrow
+space is the number of characters remaining on the line divided by
+the value of `:lhs-narrow`, configured in `:justify {:lhs-narrow
+2.0}` in `:binding`, `:map`, and `:pair`.  This defaults to 2.0,
+which is means "use half of the remaining space for the left-hand-side".
+You can change this to anything you wish, and disable it altogether
+by configuring it to 1.0.
+
+#### :multi-lhs-hang? _false_
+
+By default, if the left hand side of a pair formatts on multiple
+lines, the right-hand-side of that pair will always flow onto a new
+line below (and possibly indented from) the left-hand-side.
+
+However, you can now allow the right-hand-side to format to the
+right of the last line of a multi-left-hand-side element.  Enable
+`:style :multi-lhs-hang` to allow this to happen.  This style sets
+`:multi-lhs-hang? true` in `:binding`, `:map`, and `:pair`.
 
 
 ## Configuring functions to make formatting changes based on content
@@ -2915,7 +3052,8 @@ course, the canonical example.
 ##### :hang-expand _2_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000, :no-justify #{"_"}, :ignore-for-variance nil}
+##### :justify {:max-variance 1000, :no-justify #{"_"}, :ignore-for-variance nil, :lhs-narrow 2.0}
+##### :multi-lhs-hang? _false_
 
 #### :force-nl?  _true_
 
@@ -3911,7 +4049,8 @@ hangs.
 ##### :hang-expand _1000.0_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000, :ignore-for-variance nil, :no-justify nil}
+##### :justify {:max-variance 1000, :ignore-for-variance nil, :no-justify nil, :lhs-narrow 2.0}
+##### :multi-lhs-hang? _false_
 
 #### :flow? _false_
 
@@ -4774,7 +4913,8 @@ which has -pair in its function type (e.g. `:arg1-pair`, `:pair-fn`,
 ##### :hang-expand _2_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000, :ignore-for-variance #{":else"}, :no-justify nil}
+##### :justify {:max-variance 1000, :ignore-for-variance #{":else"}, :no-justify nil, :lhs-narrow 2.0}
+##### :multi-lhs-hang? _false_
 
 #### :force-nl? _false_
 
@@ -5171,6 +5311,14 @@ Some implementations of zprint into runnable programs turn off all hangs
 by default, since performance is rather better with them off.  If you
 are using one of these programs, you can turn all of the hangs back
 on (which is their normal default) by using this style.
+
+#### :anon-fn
+
+When an anonymous fn is compiled, alll `#(...)` forms are turned into
+`(fn* ...)` forms.  If you then format the compiled structure, it looks
+pretty bad.  If, instead, when you format the compiled structure you
+use `:style :anon-fn`, zprint will backtranslate the stucture to 
+reconstitute the `#(...)` forms.
 
 #### :backtranslate
 
@@ -5603,6 +5751,13 @@ to format, try `:style :fast-hang`.  If that doesn't work, you can
 always try `:style :indent-only`, which will certainly take a much shorter
 time.
 
+#### :regex-example
+
+This is an example of how to employ regular expression matching in
+the `:fn-map`.  It operates just like `:rules-example`, but only does
+regular expression matching.  See the explanation of `:rules-example`
+for details.
+
 #### :require-justify
 #### :rj-var
 
@@ -5876,6 +6031,74 @@ Some examples of classic zprint, `:respect-nl`, and `:indent-only`:
 Set `:respect-nl` to false in all of the places where `:respect-nl` set
 it to true.  Useful in `:next-inner` to turn `:respect-nl` off when processing
 the rest of an expression. 
+
+#### :rules-example
+
+A example style, showing how to use the built-in `:option-fn`
+called `rulesfn` to do regular expression (regex) matching
+for the `:fn-map`, as well as other capabilities (for instance,
+formatting differently if a function name is longer than some
+set value).
+
+Here is the example:
+
+```
+  :rules-example
+    {:doc "An example of how to use rulesfn to recognize fns"
+     :fn-map
+       {:default-not-none
+	 [:none
+	   {:list {:option-fn (partial rulesfn
+				       [#(> (count %) 20)
+					{:guide [:element :newline
+						 :element-wrap-flow-*]}
+					#"^are" {:fn-style "are"}
+					#"^when" {:fn-style "when"}])}}]}}
+```
+
+The `:option-fn` `rulesfn` accepts a vector of pairs of elements
+as its first argument, thus the use of `partial` to bind that first
+argument to `rulesfn` prior to configuring it into the option map.
+
+This first argument is a vector of pairs.  There are two kinds of pairs:
+
+If the left-hand-side of a pair is a function, it will call that
+function with the string format of the function name. If the function
+returns non-nil, then the right-hand-side of the pair is returned
+as the option map.
+
+If the left-hand-side of the pair is not a function, it is assumed
+to be a regular expression, and it is matched against the string
+format of the function name.  If it matches, then the right-hand-side
+of the pair is returned as the option map.
+
+The pairs in the vector are processed in order until one of them
+has the right-hand-side returned as an option map or they are all
+completed without "triggering", in which case the `:option-fn` 
+returns nil.  
+
+To explain this example...
+
+It is attached to the `:fn-map` at `:default-not-none`, which is 
+used when a function name is looked up in the function map and it is
+not found.
+
+In the example above, any function name which is over 20 characters
+long is processed differently from other functions, using the
+(as yet undocumented) "guide" capability.
+
+If the function name is less 20 characters or less, then it is
+regular expression matched to see if it starts with "are" -- if it
+does, then it is formatted like the function `are`.  If it doesn't
+start with "are", it is checked to see if it starts with "when".
+If it does, then it will format like `when`.  If none of these
+match, it returns nil -- which does nothing.  The function then
+formats like any other function which is not found in the `:fn-map`.
+
+You can create a style similar to this style, with you own information,
+and then invoke it.  Or you can just set the `:fn-map` value for
+`:default-not-none` with your invocation of `rulesfn` containing
+your own values in the vector which is `rulesfn`s first argument.
 
 #### :sort-dependencies
 

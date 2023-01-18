@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.5 - 2022-08-03
+## 1.2.5 - 2023-01-22
 
 ### Added
 
@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
   was a multi-line collection, the right-hand-side would always flow.  That
   remains the default, but if you enable `:multi-lhs-hang? true` in `:binding`,
   `:pair` or `:map`, the right-hand-side will format on the same line as the
-  last line of the multi-line collection on the left.
+  last line of the multi-line collection on the left.  Issue #273.
 
   * In the event that you are using justification, and you have enabled
   `:multi-lhs-hang? true` in `:binding`, `:pair`, or `:map`, the justification
@@ -23,12 +23,36 @@ All notable changes to this project will be documented in this file.
   2.0, which means that it will by default try to fit the a collection on the
   left-hand-side of a set of pairs into 1/2 of the remaining space on the
   line.  `:lhs-narrow` is only used when justifying and `:multi-lhs-hang?
-  true` is enabled.
+  true` is enabled.  Issue #273.
 
   * In order to prevent an argument list from having something hanging
   out on the right end (e.g., a "&"), you can now use 
   `:vector {:no-wrap-after #{"&"}}`.  You can have any strings in the set
   of elements in `:no-wrap-after`.  Issue #252.
+
+  * A couple of new capabilities.  Several people have wanted regular
+  expression capabilities in the `:fn-map`.  A couple of people have also
+  wanted a way to format functions where the function name was over
+  some length differently than they are usually formatted.  Both capabilities
+  are now available by using a built-in `:option-fn`.  See `:rule-example`
+  `:regex-example` in the `:style-map` for some worked example.  The
+  `:option-fn` `rulesfn` accepts a vector of pairs of elements as its
+  first argument.  If the left-hand-side of a pair is a function, it will
+  call that function with the string format of the function name. If the
+  function returns non-nil, then the right-hand-side of the pair is returned
+  as the option map.  If the left-hand-side of the pair is not a function,
+  it is assume to be a regular expression, and it is matched against the
+  string format of the function name.  If it matches, then the right-hand-side
+  of the pair is returned as the option map.  The pairs in the vector are
+  processed in order until one of them has the right-hand-side returned 
+  as an option map or they are all completed, in which case the `:option-fn` 
+  returns nil.  Issue #261 and some others.
+
+  * When an anonymous fn is compiled, alll `#(...)` forms are turned into
+  `(fn* ...)` forms.  If you then format the compiled structure, it looks
+  pretty bad.  If, instead, when you format the compiled structure you
+  use `:style :anon-fn`, zprint will backtranslate the stucture to 
+  reconstitute the `#(...)` forms.  Issue #268
 
 ### Changed
 
@@ -77,6 +101,20 @@ All notable changes to this project will be documented in this file.
   * The new aliasing capability in the `:fn-map` doesn't work for 
   workspaced functions.  Now it does.  Issue #276.
 
+  * Several bugs with advanced map options with comments in the map.  Now all
+  fixed.  Issue #269
+
+  * Namespaced maps sometimes didn't indent properly.  Issue #274.
+
+  * When using the zprint comment API, `:format :skip` and `:format :off` 
+  would sometimes remove empty lists or vectors.  Issue #275.
+
+  * `:style :rod-no-ma-nl` would sometimes fail.  Issue #283.
+
+  * The version of Babashka in the field when zprint `1.2.4` was released 
+  would not work with that version of zprint.  You needed a pre-relese.
+  Since then Babashka has been upgraded, and now works with zprint. 
+  Issue #253.
 
 ## 1.2.4 - 2022-08-02
 
@@ -301,7 +339,7 @@ All notable changes to this project will be documented in this file.
   * New style: `:quote-wrap`, to be used where you want quoted lists
   to wrap (like vectors) and not trail down the page as lists will do
   by default.  Issue #175.
-  
+
 ### Changed
 
   * Problem with loss of spaces preceding inline comments at the

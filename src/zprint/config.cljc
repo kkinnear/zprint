@@ -997,10 +997,8 @@
 	     [:none 
 	       {:list {:option-fn (partial rulesfn
 		                           [#(> (count %) 20) 
-
                                             {:guide [:element :newline
-                                             :element-wrap-flow-*]}
-
+                                                     :element-wrap-flow-*]}
 					    #"^are" {:fn-style "are"}
 					    #"^when" {:fn-style "when"}])}}]}}
       :require-pair

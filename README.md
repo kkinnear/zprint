@@ -9,51 +9,38 @@ a number of major source code formattng approaches.
 
 ### *Recent Additions!* 
 
- * Made considerable improvements in multi-format "stability".  Thus, if
+ * Made considerable improvements in multi-format-pass "stability".  Thus, if
  you format the same file multiple times, it is considerably less likely 
  to change the second time.  The biggest issues were when using `:repect-nl`,
  though some affected every formatting approach.  The downside, such as it is,
  is that the tuning for "hangs" had to change a bit -- so now more things
  qualify to hang as opposed to flow.  The change isn't dramatic, but if you
- prefer the previous behavior you can get it with: `:style :original-hang`.
+ prefer the previous behavior it is still availalbe with: 
+ `:style :original-tuning`.
  * Inline comments (i.e., end of line comments) when aligned in a group would
  flow left to end up one space beyond the widest code.  Single inline comments
  would not, yielding odd inconsistencies.  Now single line inline comments
  also flow left to end up one space beyond the code.  You can turn all of
  the alignment support for inline comments off by using
  `:comment {:inline-align-style :none}` if you don't like this approach.
+ * Pairs appear in many places -- bindings in `let` and other functions,
+ maps, and functions like `cond`.  Prior to `1.2.5`, if the left hand side
+ of a pair formatted on multiple lines, the right-hand-side of the pair would
+ always flow onto a new line below the left-hand-side.  That remains the
+ default, but you can now allow the right-hand-side to format to the
+ right of the last line of a multi-left-hand-side thing.  Enable
+ `:style :multi-lhs-hang` to allow this to happen.
+ * Justification of pairs has been uplifted to do a better job when you
+ enable `:style :multi-lhs-hang`, and now the tuning for justification is
+ specific to `:binding`, `:map`, and `:pair`, and doesn't affect the formatting
+ of the things in the pair themselves.  If you haven't tried justification
+ for a while, you might give it a try: `:style [:justified :multi-lhs-hang]`.
  * You can alias function formatting in the `:fn-map`.  If the value in
  the `:fn-map` is a string, then the formatting for that function is used.
  This makes having one function format like another much easier to configure.
  * Hiccup or HTML output now available!  Library `-str` fns and prebuilt
  binaries support `{:output {:format :hiccup}}` and `{:output {:format :html}}`.
  EXPERIMENTAL for now --  as always, please let me know of any issues.
- * The library is now thread-safe (only if you format all strings or all
- structures.  You can't intermix them simultaneously.)
- * Tests now also run in babaska (thanks to @borkdude)
- * Tested with Clojure `1.11.1`, Clojurescript `1.11.4`
- * Implemented `{:output {:range? true}}` to ease integration with IDE's.
- * New version of rewrite-clj now used for both .clj and .cljs.  Many thanks to
- @lread for picking up support and extensions for rewrite-clj and merging 
- rewrite-cljs with it to create a unified Clojure parsing library.  This
- will fix a number of bugs that were parser related.
- * You can now format values in maps differently, based on the key with
- which a value is associated.  `{:map {:key-value-options {key-1 options-map-1 
- key-2 options-map-2 ...}}` lets you specify an options map to be used 
- for formatting the value of any specific key in any map.  
- * A number of new styles: `:ns-justify`, which will nicely format `ns` macros.
- `:quote-wrap` which will cause a quoted list to wrap, and not format each item
- running down the page, to mention a few.
- * A more nuanced approach to justification, based on the variance of the lengths of the left-hand elements in a binding vector, map, or cond.  If the variance is too great, up to two pairs are left out of the justification.  If that doesn't bring the variance into line, none of the pairs are justified.  `{:style :justified}` to try it out!
- * The `are` macro is now formatted readably by default.
- * [In-place formatting by file name](./doc/using/files.md), `$ zprint -w file.clj` and `$ zprint -w *.clj`
- * [Check formatting of files without altering them](./doc/using/files.md), using `-c` or `--check`: `$ zprint -c *.clj`.
- * [Functions in options maps now safely supported in all `.zprintrc` files using any distributed binaries, using `sci`.](./doc/options/optionfns.md) 
- * [You can now define a style and use it in the same `.zprintrc`.](./doc/reference.md#style-and-style-map)  You can also define one style in terms of another.
- * Output colorized, formatted source to terminal: `$ zprint '{:color? true}' <file.clj`
- * [Format babashka scripts](./doc/using/babashka.md)
- * [Format ranges of lines in files](./doc/using/range.md)
- * [{`:style :dark-color-map`} when using dark terminals](./doc/reference.md#dark-color-map)
  * [All changes](./CHANGELOG.md)
 
 ## See zprint:

@@ -1061,7 +1061,12 @@
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
       :sort-dependencies {:doc "sort dependencies in lein defproject files",
-                          :list {:option-fn sort-deps}}},
+			  :fn-map {"defproject"
+
+                         [:arg2-pair {:vector {:wrap? false}
+                          :list {:option-fn sort-deps}
+			 }]}}}
+
    :tab {:expand? true, :size 8},
    :test-for-eol-blanks? false,
    :trim-comments? nil,

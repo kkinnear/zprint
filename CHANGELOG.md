@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * Prior to this release, when a pair was formatted, if the left-hand-side
+  was a multi-line collection, the right-hand-side would always flow.  That
+  remains the default, but if you enable `:multi-lhs-hang? true` in `:binding`,
+  `:pair` or `:map`, the right-hand-side will format on the same line as the
+  last line of the multi-line collection on the left.
+
+  * In the event that you are using justification, and you have enabled
+  `:multi-lhs-hang? true` in `:binding`, `:pair`, or `:map`, the justification
+  code will attempt to "squeeze" collections on the left-hand-side when 
+  performing justification.  It will attempt to squeeze them into some
+  fraction of the remaining space on the line, with the fraction configurable
+  as `:justify {:lhs-narrow 2.0}`.  The space into which zprint will try to
+  format the collection on the left-hand-side is controlled by `:lhs-narrow`,
+  which is the denominator of the fraction of the remaining width in which
+  it will try to format the left-hand-side.  The default for `:lhs-narrow` is
+  2.0, which means that it will by default try to fit the a collection on the
+  left-hand-side of a set of pairs into 1/2 of the remaining space on the
+  line.  `:lhs-narrow` is only used when justifying and `:multi-lhs-hang?
+  true` is enabled.
+
   * In order to prevent an argument list from having something hanging
   out on the right end (e.g., a "&"), you can now use 
   `:vector {:no-wrap-after #{"&"}}`.  You can have any strings in the set
@@ -12,23 +32,39 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-  * Multiple aligned inline comments would shift left to be one space beyond
-  the widest line of code when using `:comment {:inline-align-style :aligned}`
-  or `:comment {:inline-align-style :consecutive}`.  Prior to this release,
-  single line inline comments would not shift left.  Now all inline comments
-  will shift left to be one space beyond the widest line of code, unless
-  `:comment {:inline-align-style :none}` is used.  Issue #271.
+  * Multiple aligned inline comments would shift left to be one
+  space beyond the widest line of code when using `:comment
+  {:inline-align-style :aligned}` or `:comment {:inline-align-style
+  :consecutive}`.  Prior to this release, single line inline comments
+  would not shift left.  Now all inline comments will shift left
+  to be one space beyond the widest line of code, unless `:comment
+  {:inline-align-style :none}` is used.  Issue #271.
+
+  * When justifying, different tuning is used for decisions about
+  when to hang or flow the right-hand-side of a pair than is used
+  when not performing justification.  This tuning used to also be
+  used for the formatting of the right-hand-side of the pair, but
+  is now independent of the formatting of the right-hand-side pair
+  itself.  This causes subtle changes (typcially improvements) in
+  the formatting of justified pairs.
 
 ### Fixed
 
-  * Some files change the second time they are formatted, particularly when
-  using `:style :respect-nl`.  Generally they don't change when formatted a
-  second time now, both with the default options and with `:style :respect-nl`.
-  The most common reason for a file changing in a subsequent format now is
-  that a comment exceeded the `:width` on the first format, and the comment
-  was wrapped -- adding another line.  Sometimes this additional line can
-  trigger one of the discontinuities in the formatting heuristics which can
-  change the formatting in a way that is visible.  Issue #271.
+  * Some files changed the second time they were formatted,
+  particularly when using `:style :respect-nl`.  Generally they
+  don't change when formatted a second time now, both with the
+  default options and with `:style :respect-nl`.  The most common
+  reason for a file changing in a subsequent format now is that a
+  comment exceeded the `:width` on the first format, and the comment
+  was wrapped -- adding another line.  Sometimes this additional
+  line can trigger a change in formatting heuristic which can change
+  the formatting in a way that is visible.
+  
+  The changes for this issue cause a number of subtle formatting
+  changes in many places, though nothing particularly unpleasant.
+  If you wish to forego the repeatability changes and replicate the
+  formatting of previous verions as much as possible, you can use
+  `:style :original-tuning`. Issue #271.
 
   * Empty vectors removed when using `:format :off`.  Fixed. Issue #263.
 

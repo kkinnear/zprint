@@ -2638,11 +2638,9 @@ with the same result if the variance is now below the `:max-variance`.
 If it is still above the `:max-variance`, then the group of lines
 are not justified.
 
-The default value for `:max-variance` is very large, so that it doesn't
-have any effect - so as to not change the output in cases where justification
-is already being used.  A more useful value for `:max-variance` would be
-20.  You can get this with `:style :justified-20` or by adding
-`:justify {:max-variance 20}` to :map, :binding, or :pair.  
+The default value for `:max-variance` is now 20. 
+If you want it to try to justify regardless of the variance of the 
+left-hand-sides of the pairs, use `:justify {:max-variance 1000}`.
 
 In some cases, 40 will look good, in some cases even 15 looks better.
 
@@ -5138,7 +5136,17 @@ enclosing the styles in a vector, for example:
 (set-options! {:style [:binding-nl :extend-nl]})
 ```
 When multiple styles are specified, they are applied in the order
-given.
+given.  Generally styles will compose well.  
+
+The only cases where
+styles don't compose well with each other are when two styles
+set an `:option-fn` for a datatype like `:list` or `:vector`
+unconditionally.  Typically, styles that set `:option-fn` do so
+in option maps associated with the `:fn-map`.  These kinds of
+styles will compose well together.  It is when the `:option-fn` for
+`:list` or `:vector` is set unconditionally by the style itself that
+problems with composition occur.  Only a few styles do this: `:hiccup`,
+`:odr` today.
 
 There are three phases of processing an options map:
 

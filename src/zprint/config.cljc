@@ -16,7 +16,8 @@
     [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
                              odrguide guideguide rodguide areguide
 			     defprotocolguide-s]]
-    [zprint.optionfn :refer [rodfn meta-base-fn fn*->% sort-deps]]
+    [zprint.optionfn :refer [rodfn meta-base-fn fn*->% sort-deps regexfn 
+                             rulesfn]]
     #?@(:bb []
         ; To completely remove sci, comment out the following line.
         :clj [[sci.core :as sci]]
@@ -980,6 +981,28 @@
 	   :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true},
 	   :vector-fn {:hang-expand 2.0
 	               :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}}}
+      :regex-example
+        {:doc "An example of how to use regex rules to recognize fns"
+	 :fn-map 
+	   {:default-not-none 
+	     [:none 
+	       {:list {:option-fn (partial regexfn
+		                           [#"^are" {:fn-style "are"}
+					    #"^when" {:fn-style "when"}])}}]}}
+
+      :rules-example
+        {:doc "An example of how to use rulesfn to recognize fns"
+	 :fn-map 
+	   {:default-not-none 
+	     [:none 
+	       {:list {:option-fn (partial rulesfn
+		                           [#(> (count %) 20) 
+
+                                            {:guide [:element :newline
+                                             :element-wrap-flow-*]}
+
+					    #"^are" {:fn-style "are"}
+					    #"^when" {:fn-style "when"}])}}]}}
       :require-pair
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none
@@ -1789,7 +1812,9 @@
                                'rodguide zprint.guide/rodguide,
                                'areguide zprint.guide/areguide,
                                'odrguide zprint.guide/odrguide,
-                               'rodfn zprint.optionfn/rodfn}}})
+                               'rodfn zprint.optionfn/rodfn
+			       'rulesfn zprint.optionfn/rulesfn
+			       'regexfn zprint.optionfn/regexfn}}})
 (def sci-ctx
   #?(:bb nil
      ;:clj nil

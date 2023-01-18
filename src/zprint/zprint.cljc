@@ -187,12 +187,17 @@
                   :l-str l-str
                   :r-str r-str
                   :caller caller)
+	_ (dbg-s options #{:call-option-fn}
+	        "call-option-fn: caller:" caller 
+		"option-fn:" option-fn
+		"sexpr-seq:" sexpr-seq)
         [merged-options new-options]
           (internal-config-and-validate
             options
             (try (dbg-pr options "call-option-fn sexpr-seq:" sexpr-seq)
                  (let [result (option-fn options (count sexpr-seq) sexpr-seq)]
-                   (dbg-pr options "call-option-fn result:" result)
+                   (dbg-s options #{:call-option-fn}
+		      "call-option-fn result:" result)
                    result)
                  (catch #?(:clj Exception
                            :cljs :default)
@@ -4488,6 +4493,10 @@
   Returns [options fn-style zloc l-str r-str changed?], where changed?
   refers only to the zloc, l-str, or r-str."
   ([caller options fn-style zloc l-str r-str option-fn-set]
+   (dbg-s options #{:call-option-fn}
+        "fn-style+option-fn caller:" caller 
+	"fn-style:" fn-style 
+	"option-fn-set:" option-fn-set)
    (let [fn-map (:fn-map options)
          user-fn-map (:user-fn-map options)
          ; no validation because we assume these were validated in :fn-map
@@ -4517,18 +4526,19 @@
                                                  fn-map
                                                  user-fn-map
                                                  option-fn)
-         ; Did we get a new option-fn?  If yes, do this again
-         [options zloc l-str r-str new-changed?]
-           (if (not= option-fn (:option-fn (caller options)))
-             (fn-style+option-fn caller
-                                 options
-                                 fn-style
-                                 zloc
-                                 l-str
-                                 r-str
-                                 (conj option-fn-set option-fn))
-             ; Didn't get a new option-fn, just return what we have
-             [options zloc l-str r-str nil])
+         ; Did we get a new option-fn? that is not nil?  If yes, do this again
+         [options fn-style zloc l-str r-str new-changed?]
+           (let [new-option-fn (:option-fn (caller options))]
+             (if (and new-option-fn (not= option-fn new-option-fn))
+               (fn-style+option-fn caller
+                                   options
+                                   fn-style
+                                   zloc
+                                   l-str
+                                   r-str
+                                   (conj option-fn-set option-fn))
+               ; Didn't get a new option-fn, just return what we have
+               [options fn-style zloc l-str r-str nil]))
          changed? (or changed? new-changed?)]
      [options fn-style zloc l-str r-str changed?]))
   ([caller options fn-style zloc l-str r-str]
@@ -4645,96 +4655,16 @@
           ; vector that might be present in the initial fn-style.
           vector-fn-style? (vector? fn-style)
           ; After this, it isn't a vector any more...
-	  ; ------- new routine
-          [options fn-style] (handle-fn-style options fn-style)
-          #_(println "fzprint-list: count options" (count options))
-          #_#_options
-            ; The config-and-validate allows us to use :style in the options
-            ; map associated with a function. We don't need to validate
-            ; (second fn-style), as that was already done.  But this
-            ; allows us to use :style and other stuff.
-            ;
-            ; There could be two option maps in the fn-style vector:
-            ;   [:fn-style {:option :map}]
-            ;   [:fn-style {:zipper :option-map} {:structure :option-map}]
-            ;
-            ; Note that the :zipper and :structure aren't actually in the option
-            ; maps, these are just to indicate which is which!  If there are
-            ; two, the first is used for :zipper and the second for ;stucture.
-            ;
-            ; If there is only one, it is used for both.  If there are two,
-            ; then we use the appropriate one.
-            (if (vector? fn-style)
-              (first (zprint.config/config-and-validate
-                       "fn-style:"
-                       nil
-                       options
-                       (if (= (count fn-style) 2)
-                         ; only one option map
-                         (second fn-style)
-                         (if (= :zipper (:ztype options))
-                           (second fn-style)
-                           (nth fn-style 2)))
-                       nil ; validate?
-                     ))
-              options)
-          ; Do we have an option-fn to call and maybe get a new options
-          ; map.  We might have developed this from the options map in
-          ; the vector above.  In fact, we hope so, because otherwise we
-          ; are calling an option-fn on every list, which will be a
-          ; terrible performance hit!
-          option-fn (:option-fn (options caller))
-          ; Add a call-stack frame for where we are now.  This is tentative,
-          ; as we may need to update the fn-style later, since it isn't fully
-          ; finalized yet.  But we need to have something for a potential
-          ; option-fn to use.  If we keep this short (i.e., probably 8 or
-          ; less pairs), then it should be an array-map, not a hash-map,
-          ; which should be about as performant as a vector.
-          #_#_options
-            (assoc options
-              :call-stack (conj (:call-stack options)
-                                {:tag (ztag zloc),
-                                 :caller caller,
-                                 :zloc zloc,
-                                 :fn-style fn-style,
-                                 :zfirst-info (or fn-str fn-type)}))
-          [options #_new-options zloc l-str r-str changed?] (if option-fn
-                                  (call-option-fn caller options option-fn zloc l-str r-str)
-                                  [options #_nil zloc l-str r-str])
-	  new-options nil
-	  ; Note that the existence of new-options is a signal to several
-	  ; downstream things that something was returned from the option-fn.
-	  ; Also, not that fn-str is now possibly not valid anymore if someone
-	  ; returned a new-zloc in new-options!
-          #_(when option-fn
-              (dbg-pr options
-                      "fzprint-list* option-fn new options"
-                      new-options))
-	  ; Recalculate in case we changed it in the option fn
-	  #_(println "new-options:" new-options)
-	  #_(println "l-str-len early:" l-str-len)
+	   ; Note that changed? refers only zloc, l-str, or r-str!!
+           [options fn-style zloc l-str r-str changed?]
+	          (fn-style+option-fn caller options fn-style zloc l-str r-str)
+
+          ; recalculate necessary information
+
           l-str-len (if changed? (count l-str) l-str-len)
-	  #_(println "l-str-len late:" l-str-len)
 	  ; zcount is not free, so only do it if the zloc changed
 	  len (if changed? #_(:new-zloc new-options) (zcount zloc) len)
-	  
-          #_(println "\noption-fn:" option-fn
-                     "\nfn-str:" fn-str
-                     "\nfn-format options:" (:fn-format (:vector options))
-                     "\nfn-style options:" (:fn-style options)
-                     "\nfn-style local:" fn-style
-                     "\nguide:" (:guide options)
-                     "\ncall-stack:" (:call-stack options))
 
-	  ; Handle a new fn-style in the options map return from the
-	  ; options-fn, as well as a string value, which means we need to
-	  ; do it "like that" function.
-	  [options fn-style] (handle-new-fn-style caller
-	                                          options 
-						  fn-style 
-						  fn-map 
-						  user-fn-map 
-						  option-fn)
 	  
           guide (or (:guide options) (guide-debug caller options))
           ; Remove :guide and any forced :fn-style from options so they only

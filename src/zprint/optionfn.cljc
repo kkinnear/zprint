@@ -132,3 +132,50 @@
            new-zloc (sort-dependencies caller options zloc)]
        {:new-zloc new-zloc, :list {:option-fn nil}}))))
 
+(defn regexfn
+  "Match functions that are not found in the :fn-map against a
+  series of regular expression rules.  These rules are supplied as
+  a set of pairs in a vector as the first argument.  Each pair
+  should be a regular expression paired with an options map.  If
+  the regex matches, will return the associated options map. 
+  Process the pairs in the order they appear in the vector.  If
+  none of the regex expressions match, return nil."
+  ([rules-vec] "regexfn")
+  ([rules-vec options len sexpr]
+   (let [fn-name (first sexpr)
+         fn-str (str fn-name)
+         rule-pairs (partition 2 2 (repeat nil) rules-vec)
+         result (reduce #(when (re-find (first %2) fn-str)
+                           (reduced (second %2)))
+                  nil
+                  rule-pairs)]
+     result)))
+
+(defn rulesfn
+  "Match functions that are not found in the :fn-map against a
+  series of rules.  These rules are supplied as a set of pairs in
+  a vector as the first argument to rulesfn.  Each pair could be a
+  regular expression paired with an options map or a function paired
+  with an options map.  If the left-hand-side of the pair is a
+  regex, and the regex matches the string representation of the
+  first element in the list, return the associated options map.  If
+  the left-hand-side of the pair is a function, supply the string
+  representation of the first element of the list as the single
+  argument to the function.  If the function returns a non-nil
+  result, return the options map from that pair.  Process the pairs
+  in the order they appear in the vector. If none of the regex
+  expressions match or functions return non-nil, return nil."
+  ([rules-vec] "rulesfn")
+  ([rules-vec options len sexpr]
+   (let [fn-name (first sexpr)
+         fn-str (str fn-name)
+         rule-pairs (partition 2 2 (repeat nil) rules-vec)
+         result (reduce #(let [lhs (first %2)]
+                           (cond (fn? lhs) (when (lhs fn-str)
+                                             (reduced (second %2)))
+                                 :else (when (re-find (first %2) fn-str)
+                                         (reduced (second %2)))))
+                  nil
+                  rule-pairs)]
+     result)))
+

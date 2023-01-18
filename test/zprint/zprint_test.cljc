@@ -17,7 +17,7 @@
     [zprint.comment     :refer [blanks]]
     [zprint.zutil]
     [zprint.config      :refer [merge-deep]]
-    [zprint.optionfn    :refer [rodfn]]
+    [zprint.optionfn    :refer [rodfn regexfn rulesfn]]
     #?@(:clj ([clojure.repl :refer [source-fn]]))
     [zprint.core-test   :refer [trim-gensym-regex x8]]
     [rewrite-clj.parser :as    p
@@ -7915,6 +7915,135 @@ alc
 (expect
 "(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor,\n         border-radius       :borderRadius,\n         border-color        :borderColor,\n         border-width        :borderWidth,\n         type                :type,\n         disabled            :disabled,\n         on-press            :onPress,\n         on-long-press       :onLongPress,\n         on-press-start      :onPressStart,\n         accessibility-label :accessibilityLabel,\n         children            :children,\n         :or                 {border-radius 0,\n                              type          \"primary\"}} (bean/bean props)\n        long-press-ref                                  (react/create-ref)\n        state                                           (animated/use-value (:undetermined\n                                                                              gesture-handler/states))\n        active                                          (animated/eq state\n                                                                     (:began gesture-handler/states))\n        gesture-handler                                 (animated/use-gesture {:state state})\n        animation                                       (react/use-memo\n                                                          (fn []\n                                                            (animated/with-timing-transition\n                                                              active\n                                                              {:duration (animated/cond* active\n                                                                                         time-in\n                                                                                         time-out),\n                                                               :easing   (:ease-in animated/easings)}))\n                                                          [])\n        {:keys [background foreground]}                 (react/use-memo (fn []\n                                                                          (type->animation\n                                                                            {:type      (keyword type),\n                                                                             :animation animation}))\n                                                                        [type])\n        handle-press                                    (fn [] (when on-press (on-press)))\n        long-gesture-handler                            (react/callback\n                                                          (fn [^js evt]\n                                                            (let [gesture-state (-> evt\n                                                                                    .-nativeEvent\n                                                                                    .-state)]\n                                                              (when (and on-press-start\n                                                                         (= gesture-state\n                                                                            (:began\n                                                                              gesture-handler/states)))\n                                                                (on-press-start))\n                                                              (when (and on-long-press\n                                                                         (= gesture-state\n                                                                            (:active\n                                                                              gesture-handler/states)))\n                                                                (on-long-press)\n                                                                (animated/set-value\n                                                                  state\n                                                                  (:undetermined\n                                                                    gesture-handler/states)))))\n                                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
 (zprint-str i273g {:parse-string? true :style [:justified-original :multi-lhs-hang] :width 105 :binding {:justify-tuning {:binding {:tuning {:hang-flow 5}}}}}))
+
+
+;;
+;; Issue #261 and others -- regex recognition for fn-map
+;;
+
+ (def
+ are12a
+"\n(deftest t-parsing-auto-resolve-keywords\n  (are-mine [?s ?sexpr-default ?sexpr-custom]\n       (let [n (p/parse-string ?s)]\n         (is (= :token (node/tag n)))\n         (is (= ?s (node/string n)))\n         (is (= ?sexpr-default (node/sexpr n)))\n         (is (= ?sexpr-custom (node/sexpr n {:auto-resolve #(if (= :current %)\n                                                              'my.current.ns\n                                                              (get {'xyz 'my.aliased.ns} % 'alias-unresolved))}))))\n    \"::key\"        :?_current-ns_?/key    :my.current.ns/key\n    \"::xyz/key\"    :??_xyz_??/key         :my.aliased.ns/key))\n    ")
+
+(expect
+"(deftest t-parsing-auto-resolve-keywords\n  (are-mine [?s ?sexpr-default ?sexpr-custom]\n    (let [n (p/parse-string ?s)]\n      (is (= :token (node/tag n)))\n      (is (= ?s (node/string n)))\n      (is (= ?sexpr-default (node/sexpr n)))\n      (is (= ?sexpr-custom\n             (node/sexpr n\n                         {:auto-resolve #(if (= :current %)\n                                           'my.current.ns\n                                           (get {'xyz 'my.aliased.ns}\n                                                %\n                                                'alias-unresolved))}))))\n    \"::key\"     :?_current-ns_?/key :my.current.ns/key\n    \"::xyz/key\" :??_xyz_??/key      :my.aliased.ns/key))"
+(zprint-str are12a {:parse-string? true :style :regex-example}))
+
+
+(def sooox
+"(defn ooox
+  \"A variety of sorting and ordering options for the output
+  of partition-all-2-nc.  It can sort, which is the default,
+  but if the caller has a key-order vector, it will extract
+  any keys in that vector and place them first (in order) before
+  sorting the other keys.\"
+  [caller
+   {:keys [dbg?],
+    {:keys [zsexpr zdotdotdot compare-ordered-keys compare-keys a b]} :zf,
+    {:keys [sort? key-order key-value]} caller,
+    :as options} out]
+  (cond (or sort? key-order)
+          (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
+                   (zsexpr (first a))
+                   (zsexpr (first b)))
+                out)
+        sort? (sort #(compare-keys (zsexpr (first a)) (zsexpr (first b))) out)
+        :else (throw (Exception. \"Unknown options
+       to order-out\"))))")
+
+(expect
+"(defn ooox\n  \"A variety of sorting and ordering options for the output\n  of partition-all-2-nc.  It can sort, which is the default,\n  but if the caller has a key-order vector, it will extract\n  any keys in that vector and place them first (in order) before\n  sorting the other keys.\"\n  [caller\n   {:keys [dbg?],\n    {:keys [zsexpr zdotdotdot compare-ordered-keys compare-keys a b]}\n      :zf,\n    {:keys [sort? key-order key-value]} caller,\n    :as options} out]\n  (cond (or sort? key-order) (sort #((partial compare-ordered-keys\n                                       (or key-value {})\n                                       (zdotdotdot))\n                                       (zsexpr (first a))\n                                       (zsexpr (first b)))\n                                   out)\n        sort? (sort #(compare-keys (zsexpr (first a))\n                                   (zsexpr (first b)))\n                    out)\n        :else (throw (Exception.\n                       \"Unknown options\n       to order-out\"))))"
+(zprint-str sooox {:parse-string? true :fn-map {:default-not-none [:none {:list {:option-fn (partial regexfn [#"^partial$" {:fn-style :arg1}])}}]} :width 70}))
+
+
+;;
+;; We don't allow {:fn-style [:arg1 {:list ...}]}
+;;
+
+#?(:clj
+     (expect
+       "java.lang.Exception: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a clojure.core/string?"
+       (try (zprint-str
+              sooox
+              {:parse-string? true,
+               :fn-map {:default-not-none
+                          [:none
+                           {:list {:option-fn
+                                     (partial
+                                       regexfn
+                                       [#"^partial$"
+                                        {:fn-style
+                                           [:arg1 {:list {:nl-count 3}}]}])}}]},
+               :width 70})
+            (catch Exception e (str e))))
+   :cljs
+     (expect
+       "Error: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a cljs.core/string?"
+       (try (zprint-str
+              sooox
+              {:parse-string? true,
+               :fn-map {:default-not-none
+                          [:none
+                           {:list {:option-fn
+                                     (partial
+                                       regexfn
+                                       [#"^partial$"
+                                        {:fn-style
+                                           [:arg1 {:list {:nl-count 3}}]}])}}]},
+               :width 70})
+            (catch :default e (str e)))))
+
+
+; Instead of [:fn-type {options-map}], just do 
+; {:fn-type :keyword rest-of-options-map}
+
+(expect
+"(defn ooox\n  \"A variety of sorting and ordering options for the output\n  of partition-all-2-nc.  It can sort, which is the default,\n  but if the caller has a key-order vector, it will extract\n  any keys in that vector and place them first (in order) before\n  sorting the other keys.\"\n  [caller\n   {:keys [dbg?],\n    {:keys [zsexpr zdotdotdot compare-ordered-keys compare-keys a b]}\n      :zf,\n    {:keys [sort? key-order key-value]} caller,\n    :as options} out]\n  (cond (or sort? key-order) (sort #((partial compare-ordered-keys\n                                       (or key-value {})\n\n\n                                       (zdotdotdot))\n                                       (zsexpr (first a))\n                                       (zsexpr (first b)))\n                                   out)\n        sort? (sort #(compare-keys (zsexpr (first a))\n                                   (zsexpr (first b)))\n                    out)\n        :else (throw (Exception.\n                       \"Unknown options\n       to order-out\"))))"
+(zprint-str sooox {:parse-string? true :fn-map {:default-not-none [:none {:list {:option-fn (partial regexfn [#"^partial$" {:fn-style :arg1 :list {:nl-count 3}}])}}]} :width 70}))
+
+;;
+;; Issue #261 -- longer than 20 chars, do something different
+;;
+
+(def
+i261
+"     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n")
+
+
+(expect
+"(let [example (data.example/get-by-org-id-and-items\n                db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
+(zprint-str i261 {:parse-string? true :style :rules-example}))
+
+;;
+;; Test loop detection
+;;
+
+(defn loopfn
+  "Force a loop in option-fns."
+  ([] "loopfn")
+  ([options len sexpr]
+   (let [dnn (:default-not-none (:fn-map options))
+         option-fn (:option-fn (:list (second dnn)))]
+     {:list {:option-fn option-fn}})))
+
+(expect
+  "Circular :option-fn lookup!"
+  (try (zprint-str
+         i261
+         {:parse-string? true,
+          :fn-map {:default-not-none
+                     [:none
+                      {:list {:option-fn
+                                (partial
+                                  rulesfn
+                                  [#(> (count %) 20)
+                                   {:list {:option-fn
+                                             zprint.zprint-test/loopfn}}])}}]}})
+       (catch #?(:clj Exception
+                 :cljs :default)
+         e
+         (re-find #"Circular :option-fn lookup!" (str e)))))
+
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

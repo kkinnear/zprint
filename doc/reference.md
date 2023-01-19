@@ -2025,7 +2025,7 @@ The style ```{:style :justified-original}``` is the same as ```{:style
 :justified}``` except that the `:max-variance` is set to `1000` to
 output the original defaults for justification.
 
-By default, if the left hand side of a pair formatts on multiple
+By default, if the left hand side of a pair formats on multiple
 lines, the right-hand-side of that pair will always flow onto a new
 line below (and possibly indented from) the left-hand-side.
 
@@ -2814,7 +2814,7 @@ when formatting a collection that is the left-hand-side of a pair.
 Only used when `:multi-lhs-hang? true` is configured for this
 set of pairs.
 
-By default, if the left hand side of a pair formatts on multiple
+By default, if the left hand side of a pair formats on multiple
 lines, the right-hand-side of that pair will always flow onto a new
 line below (and possibly indented from) the left-hand-side.
 
@@ -2838,7 +2838,7 @@ by configuring it to 1.0.
 
 #### :multi-lhs-hang? _false_
 
-By default, if the left hand side of a pair formatts on multiple
+By default, if the left hand side of a pair formats on multiple
 lines, the right-hand-side of that pair will always flow onto a new
 line below (and possibly indented from) the left-hand-side.
 
@@ -6063,9 +6063,9 @@ argument to `rulesfn` prior to configuring it into the option map.
 This first argument is a vector of pairs.  There are two kinds of pairs:
 
 If the left-hand-side of a pair is a function, it will call that
-function with the string format of the function name. If the function
-returns non-nil, then the right-hand-side of the pair is returned
-as the option map.
+function with the string format of the function name as its only
+argument. If the function returns non-nil, then the right-hand-side
+of the pair is returned as the option map.
 
 If the left-hand-side of the pair is not a function, it is assumed
 to be a regular expression, and it is matched against the string
@@ -6087,7 +6087,7 @@ In the example above, any function name which is over 20 characters
 long is processed differently from other functions, using the
 (as yet undocumented) "guide" capability.
 
-If the function name is less 20 characters or less, then it is
+If the function name is 20 characters or less, then it is
 regular expression matched to see if it starts with "are" -- if it
 does, then it is formatted like the function `are`.  If it doesn't
 start with "are", it is checked to see if it starts with "when".
@@ -6098,7 +6098,7 @@ formats like any other function which is not found in the `:fn-map`.
 You can create a style similar to this style, with you own information,
 and then invoke it.  Or you can just set the `:fn-map` value for
 `:default-not-none` with your invocation of `rulesfn` containing
-your own values in the vector which is `rulesfn`s first argument.
+your own values in the vector which is `rulesfn`'s first argument.
 
 #### :sort-dependencies
 

@@ -12,14 +12,14 @@ a number of major source code formattng approaches.
  * Made considerable improvements in multi-format-pass "stability".  Thus, if
  you format the same file multiple times, it is considerably less likely 
  to change the second time.  The biggest issues were when using `:repect-nl`,
- though some affected every formatting approach.  The downside, such as it is,
+ though some affected every formatting approach.  The only downside
  is that the tuning for "hangs" had to change a bit -- so now more things
  qualify to hang as opposed to flow.  The change isn't dramatic, but if you
- prefer the previous behavior it is still availalbe with: 
- `:style :original-tuning`.
- * Inline comments (i.e., end of line comments) when aligned in a group would
+ prefer the previous behavior it is still available (without the new
+ stability) by using: `:style :original-tuning`.
+ * Inline comments (i.e., end of line comments) when aligned in a group 
  flow left to end up one space beyond the widest code.  Single inline comments
- would not, yielding odd inconsistencies.  Now single line inline comments
+ did not, yielding odd inconsistencies.  Now single line inline comments
  also flow left to end up one space beyond the code.  You can turn all of
  the alignment support for inline comments off by using
  `:comment {:inline-align-style :none}` if you don't like this approach.
@@ -271,6 +271,6 @@ into zprint.
 
 ## License
 
-Copyright © 2016-2022 Kim Kinnear
+Copyright © 2016-2023 Kim Kinnear
 
 Distributed under the MIT License.  See the file LICENSE for details.

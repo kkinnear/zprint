@@ -81,13 +81,13 @@ All notable changes to this project will be documented in this file.
   reason for a file changing in a subsequent format now is that a
   comment exceeded the `:width` on the first format, and the comment
   was wrapped -- adding another line.  Sometimes this additional
-  line can trigger a change in formatting heuristic which can change
-  the formatting in a way that is visible.  The changes for this
-  issue cause a number of subtle formatting changes in many places,
-  though nothing particularly unpleasant.  If you wish to forego
-  the repeatability changes and replicate the formatting of previous
-  verions as much as possible, you can use `:style :original-tuning`.
-  Issue #271.
+  line can trigger a change in a formatting heuristic which can
+  change the formatting in a way that is visible.  The changes to
+  resolve this issue cause a number of subtle formatting changes
+  in many places, though nothing particularly unpleasant.  If you
+  wish to forego the repeatability changes and replicate the
+  formatting of previous verions as much as possible, you can use
+  `:style :original-tuning`.  Issue #271.
 
   * Empty vectors removed when using `:format :off`.  Issue #263.
 

@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.5 - 2023-01-22
+## 1.2.5 - 2023-01-23
 
 ### Added
 
@@ -35,13 +35,13 @@ All notable changes to this project will be documented in this file.
   wanted a way to format functions where the function name was over
   some length differently than they are usually formatted.  Both capabilities
   are now available by using a built-in `:option-fn`.  See `:rule-example`
-  `:regex-example` in the `:style-map` for some worked example.  The
+  (and `:regex-example`) in the `:style-map` for some worked example.  The
   `:option-fn` `rulesfn` accepts a vector of pairs of elements as its
   first argument.  If the left-hand-side of a pair is a function, it will
   call that function with the string format of the function name. If the
   function returns non-nil, then the right-hand-side of the pair is returned
   as the option map.  If the left-hand-side of the pair is not a function,
-  it is assume to be a regular expression, and it is matched against the
+  it is assumed to be a regular expression, and it is matched against the
   string format of the function name.  If it matches, then the right-hand-side
   of the pair is returned as the option map.  The pairs in the vector are
   processed in order until one of them has the right-hand-side returned 
@@ -56,7 +56,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-  * Multiple aligned inline comments would shift left to be one
+  * Multiple aligned inline comments shift left to be one
   space beyond the widest line of code when using `:comment
   {:inline-align-style :aligned}` or `:comment {:inline-align-style
   :consecutive}`.  Prior to this release, single line inline comments
@@ -82,39 +82,38 @@ All notable changes to this project will be documented in this file.
   comment exceeded the `:width` on the first format, and the comment
   was wrapped -- adding another line.  Sometimes this additional
   line can trigger a change in formatting heuristic which can change
-  the formatting in a way that is visible.
-  
-  The changes for this issue cause a number of subtle formatting
-  changes in many places, though nothing particularly unpleasant.
-  If you wish to forego the repeatability changes and replicate the
-  formatting of previous verions as much as possible, you can use
-  `:style :original-tuning`. Issue #271.
+  the formatting in a way that is visible.  The changes for this
+  issue cause a number of subtle formatting changes in many places,
+  though nothing particularly unpleasant.  If you wish to forego
+  the repeatability changes and replicate the formatting of previous
+  verions as much as possible, you can use `:style :original-tuning`.
+  Issue #271.
 
-  * Empty vectors removed when using `:format :off`.  Fixed. Issue #263.
+  * Empty vectors removed when using `:format :off`.  Issue #263.
 
-  * `->>` incorrectly formatted when using `:style :community`.  Fixed.
+  * `->>` incorrectly formatted when using `:style :community`. 
   Issue #262.
 
   * Fixes for Issue #254, #255, #256 and #257 as part of ongoing work
   on large new style.
 
   * The new aliasing capability in the `:fn-map` doesn't work for 
-  workspaced functions.  Now it does.  Issue #276.
+  workspaced functions. Issue #276.
 
-  * Several bugs with advanced map options with comments in the map.  Now all
-  fixed.  Issue #269
+  * Several bugs with advanced map options with comments in the map. 
+  Issue #269
 
   * Namespaced maps sometimes didn't indent properly.  Issue #274.
 
   * When using the zprint comment API, `:format :skip` and `:format :off` 
   would sometimes remove empty lists or vectors.  Issue #275.
 
-  * `:style :rod-no-ma-nl` would sometimes fail.  Issue #283.
+  * `:style :rod-no-ma-nl` would sometimes fail. Issue #283.
 
-  * The version of Babashka in the field when zprint `1.2.4` was released 
-  would not work with that version of zprint.  You needed a pre-relese.
-  Since then Babashka has been upgraded, and now works with zprint. 
-  Issue #253.
+  * The version of Babashka in the field when zprint `1.2.4` was
+  released would not work with that version of the zprint library.
+  You needed a pre-relese.  Since then Babashka has been upgraded,
+  and now works with zprint.  Issue #253.
 
 ## 1.2.4 - 2022-08-02
 

@@ -15,8 +15,8 @@
     [zprint.util     :refer [dissoc-two]]
     [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
                              odrguide guideguide rodguide areguide
-			     defprotocolguide-s]]
-    [zprint.optionfn :refer [rodfn meta-base-fn fn*->% sort-deps regexfn 
+                             defprotocolguide-s]]
+    [zprint.optionfn :refer [rodfn meta-base-fn fn*->% sort-deps regexfn
                              rulesfn]]
     #?@(:bb []
         ; To completely remove sci, comment out the following line.
@@ -367,7 +367,7 @@
    "defmulti" :arg1-body,
    "defn" :arg1-body,
    "defn-" :arg1-body,
-   "defonce" :arg1-body
+   "defonce" :arg1-body,
    "defproject" [:arg2-pair {:vector {:wrap? false}}],
    "defprotocol" [:guided-body
                   {:style :defprotocolguide,
@@ -376,7 +376,9 @@
    "deftest" :arg1-body,
    "deftype" :arg2-extend-body,
    "defui" :arg1-extend,
-   "dissoc" [:arg1 {:list {:constant-pair? false} :next-inner-restore [[:list :constant-pair?]]}]
+   "dissoc" [:arg1
+             {:list {:constant-pair? false},
+              :next-inner-restore [[:list :constant-pair?]]}],
    "do" :none-body,
    "doseq" :binding,
    "dotimes" :binding,
@@ -390,7 +392,7 @@
    "fn" :fn,
    "fn*" :fn,
    "for" :binding,
-   "go-loop" :binding
+   "go-loop" :binding,
    "if" :arg1-body,
    "if-let" :binding,
    "if-not" :arg1-body,
@@ -400,7 +402,7 @@
    "letfn" [:guided-body
             {:guide [:element :options {:next-inner {:fn-style :fn}}
                      :element-best :options-reset :newline :element-best-*]}],
-   "locking" :arg1-body
+   "locking" :arg1-body,
    "loop" :binding,
    "map" :arg1,
    "mapcat" :arg1,
@@ -422,14 +424,14 @@
    "some->" :force-nl-body,
    "some->>" :force-nl-body,
    "swap!" :arg2,
-   "testing" :arg1-body
+   "testing" :arg1-body,
    "try" :none-body,
    "when" :arg1-body,
    "when-first" :binding,
    "when-let" :binding,
    "when-not" :arg1-body,
    "when-some" :binding,
-   "while" :arg1-body
+   "while" :arg1-body,
    "with-bindings" :arg1-body,
    "with-bindings*" :arg1-body,
    "with-local-vars" :binding,
@@ -449,36 +451,35 @@
 ;;
 
 (def default-zprint-options
-  {:alt? true
+  {:alt? true,
    :agent {:object? false},
    :array {:hex? false, :indent 1, :object? false, :wrap? true},
    :atom {:object? false},
-   :binding {:flow? false,
-             :flow-all-if-any? false,
-             :force-nl? false,
-             :hang-diff 1,
-             :hang-expand 15.0
-             :hang-accept nil,
-             :ha-depth-factor 0,
-             :ha-width-factor 0,
-             :hang? true,
-             :indent 2,
-             :justify-hang {:hang-expand 15.0},
-             :justify-tuning {:binding 
-	                       {:tuning {:hang-flow 4, :hang-flow-limit 30}}},
-             :justify {:max-variance 20,
-                       :no-justify #{"_"},
-                       :ignore-for-variance nil,
-                       :max-gap nil,
-		       :lhs-narrow 2.0,
-		       :multi-lhs-overlap? true},
-             :justify? false,
-	     :multi-lhs-hang? false
-             :nl-separator? false,
-             :nl-separator-all? false
-	     :tuning {:hang-flow 1.1,
-		      :hang-flow-limit  12,
-		      :hang-if-equal-flow? false}},
+   :binding
+     {:flow? false,
+      :flow-all-if-any? false,
+      :force-nl? false,
+      :hang-diff 1,
+      :hang-expand 15.0,
+      :hang-accept nil,
+      :ha-depth-factor 0,
+      :ha-width-factor 0,
+      :hang? true,
+      :indent 2,
+      :justify-hang {:hang-expand 15.0},
+      :justify-tuning {:binding {:tuning {:hang-flow 4, :hang-flow-limit 30}}},
+      :justify {:max-variance 20,
+                :no-justify #{"_"},
+                :ignore-for-variance nil,
+                :max-gap nil,
+                :lhs-narrow 2.0,
+                :multi-lhs-overlap? true},
+      :justify? false,
+      :multi-lhs-hang? false,
+      :nl-separator? false,
+      :nl-separator-all? false,
+      :tuning
+        {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}},
    :cache {:directory ".zprint", :location "HOME"},
    :color? false,
    :color-map {:brace :red,
@@ -525,12 +526,11 @@
             :hang? true,
             :indent 2,
             :modifiers #{"static"},
-	    :nl-count nil
-            :nl-separator? false
-	    :tuning {:hang-flow 1.1,
-		     :hang-flow-limit  12,
-		     :hang-if-equal-flow? false},
-	    },
+            :nl-count nil,
+            :nl-separator? false,
+            :tuning {:hang-flow 1.1,
+                     :hang-flow-limit 12,
+                     :hang-if-equal-flow? false}},
    :file? false,
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
                   :arg1-force-nl :arg1-force-nl-body :flow-body
@@ -558,7 +558,7 @@
           :force-nl? false,
           :hang-avoid 0.5,
           :hang-diff 1,
-          :hang-expand 15.0
+          :hang-expand 15.0,
           :hang-accept nil,
           :ha-depth-factor 0,
           :ha-width-factor 0,
@@ -569,7 +569,7 @@
           :indent-only? false,
           :indent-only-style :input-hang,
           :nl-count nil,
-	  :no-wrap-after nil
+          :no-wrap-after nil,
           :option-fn nil,
           :pair-hang? true,
           :respect-bl? false,
@@ -578,11 +578,9 @@
           :wrap? false,
           :wrap-coll? true,
           :wrap-after-multi? true,
-          :wrap-multi? true
-	  :tuning {:hang-flow 1.1,
-		   :hang-flow-limit  12,
-		   :hang-if-equal-flow? false},
-	  },
+          :wrap-multi? true,
+          :tuning
+            {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}},
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -617,19 +615,17 @@
          :justify {:max-variance 20,
                    :ignore-for-variance nil,
                    :no-justify nil,
-                   :max-gap nil
-		   :lhs-narrow 2.0
-		   :multi-lhs-overlap? true},
+                   :max-gap nil,
+                   :lhs-narrow 2.0,
+                   :multi-lhs-overlap? true},
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:map {:tuning {:hang-flow 4, :hang-flow-limit 30}}},
-	 :multi-lhs-hang? false
+         :multi-lhs-hang? false,
          :respect-bl? false,
          :respect-nl? false,
-         :unlift-ns? false
-	 :tuning {:hang-flow 1.1,
-	          :hang-flow-limit  12,
-		  :hang-if-equal-flow? false},
-	 },
+         :unlift-ns? false,
+         :tuning
+           {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}},
    :max-depth 1000000,
    :max-depth-string "##",
    :parallel? false,
@@ -646,7 +642,7 @@
    :object {:indent 1, :wrap-after-multi? true, :wrap-coll? true},
    :old? true,
    ; This is here to allow various option-fns to communicate as necessary
-   :option-fn-map {}
+   :option-fn-map {},
    :output
      {:format :string,
       :focus {:zloc? false, :surround nil},
@@ -662,7 +658,7 @@
           :flow-all-if-any? false,
           :force-nl? nil,
           :hang-diff 1,
-          :hang-expand 15.0
+          :hang-expand 15.0,
           :hang-accept nil,
           :ha-depth-factor 0,
           :ha-width-factor 0,
@@ -674,20 +670,21 @@
                     :ignore-for-variance #{":else"},
                     :no-justify nil,
                     :max-gap nil,
-		    :lhs-narrow 2.0,
-		    :multi-lhs-overlap? true},
+                    :lhs-narrow 2.0,
+                    :multi-lhs-overlap? true},
           :justify? false,
-	  :multi-lhs-hang? false
+          :multi-lhs-hang? false,
           :nl-separator? false,
-          :nl-separator-all? false
-	  :tuning {:hang-flow 1.1,
-	           :hang-flow-limit  12,
-		   :hang-if-equal-flow? false},
-	  },
-   :pair-fn {:hang-diff 1, :hang-expand 15.0, :hang-size 100, :hang? true
-	     :tuning {:hang-flow 1.1,
-		      :hang-flow-limit  12,
-		      :hang-if-equal-flow? false}}
+          :nl-separator-all? false,
+          :tuning
+            {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}},
+   :pair-fn {:hang-diff 1,
+             :hang-expand 15.0,
+             :hang-size 100,
+             :hang? true,
+             :tuning {:hang-flow 1.1,
+                      :hang-flow-limit 12,
+                      :hang-if-equal-flow? false}},
    :parse {:interpose nil, :left-space :drop, :ignore-if-parse-fails #{"..."}},
    :parse-string-all? false,
    :parse-string? false,
@@ -702,11 +699,10 @@
                  :indent 2,
                  :key-order nil,
                  :sort-in-code? nil,
-                 :sort? nil
-		 :tuning {:hang-flow 1.1,
-			  :hang-flow-limit  12,
-			  :hang-if-equal-flow? false}
-		 },
+                 :sort? nil,
+                 :tuning {:hang-flow 1.1,
+                          :hang-flow-limit 12,
+                          :hang-if-equal-flow? false}},
    :record {:hang? true, :record-type? true, :to-string? false},
    ; All of the sets need to be here, so elements can be removed from them
    :remove {:fn-force-nl nil,
@@ -717,14 +713,14 @@
             :binding {:justify {:no-justify nil, :ignore-for-variance nil}},
             :map {:key-no-sort nil,
                   :justify {:no-justify nil, :ignore-for-variance nil}},
-            :parse {:ignore-if-parse-fails nil}
-	    :vector {:no-wrap-after nil}},
+            :parse {:ignore-if-parse-fails nil},
+            :vector {:no-wrap-after nil}},
    :return-cvec? false,
    :script {:more-options nil},
    :search-config? false,
    :set {:indent 2,
          :indent-only? false,
-	 :no-wrap-after nil
+         :no-wrap-after nil,
          :respect-bl? false,
          :respect-nl? false,
          :sort? true,
@@ -744,8 +740,8 @@
                  :pair-fn {:hang? true},
                  :reader-cond {:hang? true},
                  :record {:hang? true}},
-      :anon-fn {:doc "Put anon fn (fn* ...) back to #(... % ...)"
-		:fn-map {"fn*" [:none {:list {:option-fn fn*->%}}]}}
+      :anon-fn {:doc "Put anon fn (fn* ...) back to #(... % ...)",
+                :fn-map {"fn*" [:none {:list {:option-fn fn*->%}}]}},
       :areguide {:doc "Allow modification of areguide in :fn-map",
                  :list {:option-fn (partial areguide {:justify? true})}},
       :areguide-nj
@@ -900,10 +896,10 @@
                           "deftest" [:arg1-body {:style :meta-base}]}},
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
-      :multi-lhs-hang {:doc "Allow multi-lhs-hang in all three places."
-                       :pair {:multi-lhs-hang? true}
-		       :binding {:multi-lhs-hang? true}
-		       :map {:multi-lhs-hang? true}}
+      :multi-lhs-hang {:doc "Allow multi-lhs-hang in all three places.",
+                       :pair {:multi-lhs-hang? true},
+                       :binding {:multi-lhs-hang? true},
+                       :map {:multi-lhs-hang? true}},
       :vector-pairs {:doc "Consider vectors 'constants' for constant pairing",
                      :list {:constant-pair-min 1,
                             :constant-pair-fn #(or (keyword? %)
@@ -963,44 +959,45 @@
                                            {:style [:jimportguide :ij-var]}]}},
       :ns-justify {:style [:require-justify :require-macros-justify
                            :import-justify]},
-
       :original-tuning
-	  {:doc "Original tuning prior to stability fixes for multiple passes"
-	   :binding {:hang-expand 2.0, :justify-hang {:hang-expand 5.0}
-	             :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}},
-           :extend {:tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}}
-	   :list {:hang-expand 2.0
-	          :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}},
-	   :map {:tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}}
-	   :pair {:hang-expand 2.0, :justify-hang {:hang-expand 5.0}
-	          :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}},
-	   :pair-fn {:hang-expand 2.0, :hang-size 10
-	             :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}},
-           :reader-cond {:tuning 
-	                 {:hang-flow-limit 10 :hang-if-equal-flow? true}}
-	   :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true},
-	   :vector-fn {:hang-expand 2.0
-	               :tuning {:hang-flow-limit 10 :hang-if-equal-flow? true}}}
+        {:doc "Original tuning prior to stability fixes for multiple passes",
+         :binding {:hang-expand 2.0,
+                   :justify-hang {:hang-expand 5.0},
+                   :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true}},
+         :extend {:tuning {:hang-flow-limit 10, :hang-if-equal-flow? true}},
+         :list {:hang-expand 2.0,
+                :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true}},
+         :map {:tuning {:hang-flow-limit 10, :hang-if-equal-flow? true}},
+         :pair {:hang-expand 2.0,
+                :justify-hang {:hang-expand 5.0},
+                :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true}},
+         :pair-fn {:hang-expand 2.0,
+                   :hang-size 10,
+                   :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true}},
+         :reader-cond {:tuning {:hang-flow-limit 10,
+                                :hang-if-equal-flow? true}},
+         :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true},
+         :vector-fn {:hang-expand 2.0,
+                     :tuning {:hang-flow-limit 10, :hang-if-equal-flow? true}}},
       :regex-example
-        {:doc "An example of how to use regex rules to recognize fns"
-	 :fn-map 
-	   {:default-not-none 
-	     [:none 
-	       {:list {:option-fn (partial regexfn
-		                           [#"^are" {:fn-style "are"}
-					    #"^when" {:fn-style "when"}])}}]}}
-
+        {:doc "An example of how to use regex rules to recognize fns",
+         :fn-map {:default-not-none
+                    [:none
+                     {:list {:option-fn (partial regexfn
+                                                 [#"^are" {:fn-style "are"}
+                                                  #"^when"
+                                                  {:fn-style "when"}])}}]}},
       :rules-example
-        {:doc "An example of how to use rulesfn to recognize fns"
-	 :fn-map 
-	   {:default-not-none 
-	     [:none 
-	       {:list {:option-fn (partial rulesfn
-		                           [#(> (count %) 20) 
-                                            {:guide [:element :newline
-                                                     :element-wrap-flow-*]}
-					    #"^are" {:fn-style "are"}
-					    #"^when" {:fn-style "when"}])}}]}}
+        {:doc "An example of how to use rulesfn to recognize fns",
+         :fn-map {:default-not-none
+                    [:none
+                     {:list {:option-fn (partial
+                                          rulesfn
+                                          [#(> (count %) 20)
+                                           {:guide [:element :newline
+                                                    :element-wrap-flow-*]}
+                                           #"^are" {:fn-style "are"} #"^when"
+                                           {:fn-style "when"}])}}]}},
       :require-pair
         {:doc "Clarify namespaces in :require",
          :fn-map {":require" [:none
@@ -1037,34 +1034,31 @@
                        :set {:respect-nl? false}},
       :rod-base {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}},
       :rod {:doc "Rules of defn, experimental.  Very likely to change.",
-            :fn-map {"defn" [:none 
-                             {:list {:option-fn (partial rodfn
-                                                         {:multi-arity-nl?
-                                                            true})}}],
-                     "defn-" [:none
-                              {:list {:option-fn (partial rodfn
-                                                          {:multi-arity-nl?
-                                                             true})}}]}},
+            :fn-map
+              {"defn" [:none
+                       {:list {:option-fn (partial rodfn
+                                                   {:multi-arity-nl? true})}}],
+               "defn-" [:none
+                        {:list {:option-fn
+                                  (partial rodfn {:multi-arity-nl? true})}}]}},
       :rod-no-ma-nl
         {:doc
            "Rules of defn, experimental. No newlines between arities.  Very likely to change.",
-         :fn-map
-           {"defn" [:none
-                    {:list {:option-fn (partial rodfn
-                                                {:multi-arity-nl? false})}}],
-            "defn-" [:none
-                     {:list {:option-fn (partial rodfn
-                                                 {:multi-arity-nl? false})}}]}},
+         :fn-map {"defn" [:none
+                          {:list {:option-fn
+                                    (partial rodfn {:multi-arity-nl? false})}}],
+                  "defn-" [:none
+                           {:list {:option-fn (partial rodfn
+                                                       {:multi-arity-nl?
+                                                          false})}}]}},
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
       :sort-dependencies {:doc "sort dependencies in lein defproject files",
-			  :fn-map {"defproject"
-
-                         [:arg2-pair {:vector {:wrap? false}
-                          :list {:option-fn sort-deps}
-			 }]}}}
-
+                          :fn-map {"defproject" [:arg2-pair
+                                                 {:vector {:wrap? false},
+                                                  :list {:option-fn
+                                                           sort-deps}}]}}},
    :tab {:expand? true, :size 8},
    :test-for-eol-blanks? false,
    :trim-comments? nil,
@@ -1074,7 +1068,7 @@
             :hang-type-flow 1.5,
             ; when (> hang-count :hang-flow-limit),
             ;  hang if (<= (dec hang-count) flow-count)
-            :hang-flow-limit  12,
+            :hang-flow-limit 12,
             ; this is added to the count of hanging lines before the comparison
             ; when doing the one with :hang-flow or :hang-type-flow
             ; Note that :map has its own :hang-adjust which overides this
@@ -1113,7 +1107,7 @@
             :fn-format nil,
             :force-nl? false,
             :hang? nil,
-	    :no-wrap-after nil
+            :no-wrap-after nil,
             :respect-bl? false,
             :respect-nl? false,
             :wrap-after-multi? true,
@@ -1128,7 +1122,7 @@
                :constant-pair? true,
                :hang-avoid 0.5,
                :hang-diff 1,
-               :hang-expand 15.0 
+               :hang-expand 15.0,
                :hang-accept nil,
                :ha-depth-factor 0,
                :ha-width-factor 0,
@@ -1138,17 +1132,16 @@
                :indent-arg nil,
                :indent-only? false,
                :indent-only-style :input-hang,
-	       :no-wrap-after nil
+               :no-wrap-after nil,
                :pair-hang? true,
                :respect-bl? false,
                :respect-nl? false,
                :wrap-coll? true,
                :wrap-after-multi? true,
-               :wrap-multi? true
-	       :tuning {:hang-flow 1.1,
-			:hang-flow-limit  12,
-			:hang-if-equal-flow? false}
-	       },
+               :wrap-multi? true,
+               :tuning {:hang-flow 1.1,
+                        :hang-flow-limit 12,
+                        :hang-if-equal-flow? false}},
    :width 80,
    :url {:cache-dir "urlcache", :cache-secs 300},
    :zipper? false,
@@ -1622,10 +1615,10 @@
              ; If we are exiting, unlock regardless of whether we were
              ; requested to do so.
              (unlock-options)
-             (throw
-               (#?(:clj Exception.
-                   :cljs js/Error.)
-                (str "When configuring these errors were found: " error-vec))))
+             (throw (#?(:clj Exception.
+                        :cljs js/Error.)
+                     (str "When configuring these errors were found: "
+                          error-vec))))
            ; Unlock options unless requested not to
            (when-not no-unlock? (unlock-options))
            error-vec))))
@@ -1647,10 +1640,10 @@
      (when error-vec
        ; Unlock before we exit with throw
        (unlock-options)
-       (throw
-         (#?(:clj Exception.
-             :cljs js/Error.)
-          (str "set-options! for " doc-str " found these errors: " error-vec))))
+       (throw (#?(:clj Exception.
+                  :cljs js/Error.)
+               (str "set-options! for " doc-str
+                    " found these errors: " error-vec))))
      (internal-set-options! doc-str
                             (get-explained-all-options)
                             (get-options)
@@ -1815,9 +1808,9 @@
                                'rodguide zprint.guide/rodguide,
                                'areguide zprint.guide/areguide,
                                'odrguide zprint.guide/odrguide,
-                               'rodfn zprint.optionfn/rodfn
-			       'rulesfn zprint.optionfn/rulesfn
-			       'regexfn zprint.optionfn/regexfn}}})
+                               'rodfn zprint.optionfn/rodfn,
+                               'rulesfn zprint.optionfn/rulesfn,
+                               'regexfn zprint.optionfn/regexfn}}})
 (def sci-ctx
   #?(:bb nil
      ;:clj nil
@@ -2029,43 +2022,42 @@
   exist).  Return the modified options map with :next-inner populated
   appropriately."
   [existing-map new-updated-map restore-vector]
-  (cond
-    (keyword? (first restore-vector))
-      ; Handle basic key sequences, and ensure their current value
-      ; shows up in :next-inner
-      (let [ks-value (get-in existing-map restore-vector :unset)]
-        (if (= ks-value :unset)
-          (if (= (first restore-vector) :fn-map)
-            ; We are operating on the :fn-map, where if something isn't
-            ; set, when restoring things, it should be :none
-            (update-next-inner new-updated-map restore-vector :none)
-            new-updated-map)
-          (update-next-inner new-updated-map restore-vector ks-value)
-          #_(assoc-in options
-              (concat [:next-inner] restore-vector)
-              ks-value)))
-    (sequential? (first restore-vector))
-      ; Handle sets, and ensure that the set element given in
-      ; (second restore-vector) is replicated (or not) in the set
-      ; in :next-inner
-      (let [ks (first restore-vector)
-            set-element (second restore-vector)
-            the-set (get-in existing-map ks :unset)]
-        (if (or (= the-set :unset) (not (set? the-set)))
-          ; We don't have a set, one way or another
-          new-updated-map
-          (let [element-exists? (the-set set-element)]
-            (if element-exists?
-              (update-next-inner new-updated-map ks #{set-element})
-              #_(assoc-in options (concat [:next-inner] ks) #{set-element})
-              (update-next-inner new-updated-map
-                                 (concat [:remove] ks)
-                                 #{set-element})
+  (cond (keyword? (first restore-vector))
+          ; Handle basic key sequences, and ensure their current value
+          ; shows up in :next-inner
+          (let [ks-value (get-in existing-map restore-vector :unset)]
+            (if (= ks-value :unset)
+              (if (= (first restore-vector) :fn-map)
+                ; We are operating on the :fn-map, where if something isn't
+                ; set, when restoring things, it should be :none
+                (update-next-inner new-updated-map restore-vector :none)
+                new-updated-map)
+              (update-next-inner new-updated-map restore-vector ks-value)
               #_(assoc-in options
-                  (concat [:next-inner :remove] ks)
-                  #{set-element})))))
-    ; We don't have another other possibilities
-    :else new-updated-map))
+                  (concat [:next-inner] restore-vector)
+                  ks-value)))
+        (sequential? (first restore-vector))
+          ; Handle sets, and ensure that the set element given in
+          ; (second restore-vector) is replicated (or not) in the set
+          ; in :next-inner
+          (let [ks (first restore-vector)
+                set-element (second restore-vector)
+                the-set (get-in existing-map ks :unset)]
+            (if (or (= the-set :unset) (not (set? the-set)))
+              ; We don't have a set, one way or another
+              new-updated-map
+              (let [element-exists? (the-set set-element)]
+                (if element-exists?
+                  (update-next-inner new-updated-map ks #{set-element})
+                  #_(assoc-in options (concat [:next-inner] ks) #{set-element})
+                  (update-next-inner new-updated-map
+                                     (concat [:remove] ks)
+                                     #{set-element})
+                  #_(assoc-in options
+                      (concat [:next-inner :remove] ks)
+                      #{set-element})))))
+        ; We don't have another other possibilities
+        :else new-updated-map))
 
 (defn process-restore
   "Given a map with a top-level :next-inner-restore key, the value of this key
@@ -2085,26 +2077,26 @@
          "process-restore: next-inner:" (:next-inner new-updated-map)
          "next-inner-restore:" (:next-inner-restore new-updated-map))
   (let [restore-vec (:next-inner-restore new-updated-map)
-        new-updated-map
-          (let [next-inner (:next-inner new-updated-map :unset)]
-            ; Deal with existing :next-inner (or not)
-            (cond
-              ; Nothing there now, so that will be handled later
-              (= next-inner :unset) new-updated-map
-              ; We already have one, so create a vector
-              ; and add it to the vector.
-              (map? next-inner) (assoc new-updated-map
-                                  :next-inner [{} next-inner])
-              ; We already have a vector, so create an
-              ; empty map for our new next-inner information
-              (vector? next-inner) (assoc new-updated-map
-                                     :next-inner (concat [{}] next-inner))
-              ; This should be unreachable, one hopes
-              :else new-updated-map))
+        new-updated-map (let [next-inner (:next-inner new-updated-map :unset)]
+                          ; Deal with existing :next-inner (or not)
+                          (cond
+                            ; Nothing there now, so that will be handled later
+                            (= next-inner :unset) new-updated-map
+                            ; We already have one, so create a vector
+                            ; and add it to the vector.
+                            (map? next-inner) (assoc new-updated-map
+                                                :next-inner [{} next-inner])
+                            ; We already have a vector, so create an
+                            ; empty map for our new next-inner information
+                            (vector? next-inner) (assoc new-updated-map
+                                                   :next-inner
+                                                     (concat [{}] next-inner))
+                            ; This should be unreachable, one hopes
+                            :else new-updated-map))
         result (dissoc (reduce (partial restore-vector existing-map)
                          new-updated-map
                          restore-vec)
-                       :next-inner-restore)]
+                 :next-inner-restore)]
     (dbg-s new-updated-map
            :next-inner-restore
            "process-restore: (:next-inner result)"
@@ -2144,7 +2136,7 @@
           new-doc-map (diff-deep-ks doc-string
                                     new-doc-map
                                     (key-seq (dissoc new-map
-                                                     :next-inner-restore))
+                                               :next-inner-restore))
                                     new-updated-map)]
       [(add-calculated-options new-updated-map) new-doc-map style-errors])
     ; if we didn't get a map, just return something with no changes
@@ -2303,16 +2295,16 @@
   (let [s-onesemi (clojure.string/replace s #"^;+" ";")
         comment-split (clojure.string/split s-onesemi #"^;!zprint ")]
     (when-let [possible-options (second comment-split)]
-      (try
-        [(sci-load-string possible-options) nil]
-        (catch #?(:clj Exception
-                  :cljs :default)
-          e
-          ; If it doesn't work, an error-str!
-          [nil
-           (str "Unable to create zprint options-map from: '" possible-options
-                "' found in !zprint directive number: " zprint-num
-                " because: " e)])))))
+      (try [(sci-load-string possible-options) nil]
+           (catch #?(:clj Exception
+                     :cljs :default)
+             e
+             ; If it doesn't work, an error-str!
+             [nil
+              (str "Unable to create zprint options-map from: '"
+                     possible-options
+                   "' found in !zprint directive number: " zprint-num
+                   " because: " e)])))))
 
 ;;
 ;; # Help

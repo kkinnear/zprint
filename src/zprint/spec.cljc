@@ -275,8 +275,9 @@
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
-(s/def ::fn-style (s/nilable (s/or :fn-type ::fn-type
-                                   :string string?)))
+(s/def ::fn-style
+  (s/nilable (s/or :fn-type ::fn-type
+                   :string string?)))
 (s/def ::fn-str (s/nilable string?))
 (s/def ::real-le? ::boolean)
 (s/def ::real-le-length number?)
@@ -312,11 +313,8 @@
   (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff
                       ::hang-expand ::hang? ::hang-accept ::ha-depth-factor
                       ::ha-width-factor ::indent ::justify? ::justify
-                      ::justify-hang ::justify-tuning 
-		      ::multi-lhs-hang? 
-		      ::nl-separator?
-                      ::nl-separator-all?
-		      :alt/tuning]))
+                      ::justify-hang ::justify-tuning ::multi-lhs-hang?
+                      ::nl-separator? ::nl-separator-all? :alt/tuning]))
 (s/def ::cache (only-keys :opt-un [::directory ::location]))
 (s/def ::call-stack (s/nilable (s/coll-of ::call-stack-frame :kind list?)))
 (s/def ::color-map
@@ -367,30 +365,27 @@
 (s/def ::input (only-keys :opt-un [::range]))
 ; When you modify list, you are also modifying vector-fn (see below)
 (s/def ::list
-  (only-keys
-    :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair? ::hang-diff
-             ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent
-             ::hang-accept ::ha-depth-factor ::ha-width-factor ::indent-arg
-             ::option-fn ::pair-hang? ::return-altered-zipper ::respect-bl?
-             ::respect-nl? ::indent-only? ::indent-only-style
-             ::replacement-string ::wrap-coll? ::wrap-after-multi? ::wrap-multi?
-             ::force-nl? ::wrap? ::nl-count ::no-wrap-after :alt/tuning]))
+  (only-keys :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair?
+                      ::hang-diff ::hang-avoid ::hang-expand ::hang-size ::hang?
+                      ::indent ::hang-accept ::ha-depth-factor ::ha-width-factor
+                      ::indent-arg ::option-fn ::pair-hang?
+                      ::return-altered-zipper ::respect-bl? ::respect-nl?
+                      ::indent-only? ::indent-only-style ::replacement-string
+                      ::wrap-coll? ::wrap-after-multi? ::wrap-multi? ::force-nl?
+                      ::wrap? ::nl-count ::no-wrap-after :alt/tuning]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
-  (only-keys
-    :opt-un [::comma? ::flow? ::flow-all-if-any? ::force-nl? ::hang-adjust
-             ::hang-diff ::hang-accept ::ha-depth-factor ::ha-width-factor
-             ::hang-expand ::hang? ::indent ::indent-only? ::justify?
-             ::justify-hang ::justify ::justify-tuning ::key-color
-             ::key-value-color ::key-depth-color ::key-ignore
-             ::key-ignore-silent ::key-order 
-	     ::lift-ns? ::lift-ns-in-code?
-             ::key-no-sort 
-	     ::multi-lhs-hang? 
-	     ::nl-separator? ::nl-separator-all? ::respect-bl?
-             ::respect-nl? ::sort-in-code? ::sort? ::unlift-ns?
-             ::key-value-options :alt/tuning]))
+  (only-keys :opt-un [::comma? ::flow? ::flow-all-if-any? ::force-nl?
+                      ::hang-adjust ::hang-diff ::hang-accept ::ha-depth-factor
+                      ::ha-width-factor ::hang-expand ::hang? ::indent
+                      ::indent-only? ::justify? ::justify-hang ::justify
+                      ::justify-tuning ::key-color ::key-value-color
+                      ::key-depth-color ::key-ignore ::key-ignore-silent
+                      ::key-order ::lift-ns? ::lift-ns-in-code? ::key-no-sort
+                      ::multi-lhs-hang? ::nl-separator? ::nl-separator-all?
+                      ::respect-bl? ::respect-nl? ::sort-in-code? ::sort?
+                      ::unlift-ns? ::key-value-options :alt/tuning]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -413,11 +408,8 @@
   (only-keys :opt-un [::flow? ::flow-all-if-any? ::force-nl? ::hang-diff
                       ::hang-expand ::hang? ::hang-accept ::ha-depth-factor
                       ::ha-width-factor ::indent ::justify? ::justify
-                      ::justify-hang ::justify-tuning 
-		      ::multi-lhs-hang? 
-		      ::nl-separator?
-                      ::nl-separator-all?
-		      :alt/tuning]))
+                      ::justify-hang ::justify-tuning ::multi-lhs-hang?
+                      ::nl-separator? ::nl-separator-all? :alt/tuning]))
 (s/def ::paragraph (only-keys :opt-un [:alt/style]))
 (s/def ::pair-fn
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
@@ -431,7 +423,7 @@
 (s/def ::reader-cond
   (only-keys :opt-un [::comma? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::indent ::key-order ::sort-in-code? ::sort?
-		      :alt/tuning]))
+                      :alt/tuning]))
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
@@ -476,8 +468,7 @@
   (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?
                       ::option-fn-first ::option-fn ::fn-format
                       ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap?
-                      ::indent-only? ::hang? ::force-nl?
-		      ::no-wrap-after]))
+                      ::indent-only? ::hang? ::force-nl? ::no-wrap-after]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))
@@ -505,9 +496,8 @@
              :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
-             ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map
-	     ::new-zloc ::new-l-str ::new-r-str ::option-fn-map
-	     ::alt?]))
+             ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
+             ::new-l-str ::new-r-str ::option-fn-map ::alt?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 
@@ -659,33 +649,33 @@
   (let [coerce-to-false (when (map? options) (:coerce-to-false options))]
     (if-not coerce-to-false
       options
-      (try
-        (dissoc (prewalk #(if (and (map-entry? %)
-                                   (keyword? (first %))
-                                   (= (s/get-spec (keyword "zprint.spec"
-                                                             (name (first %))))
-                                      :zprint.spec/boolean))
-                            ; This is a keyword whose spec is
-                            ; boolean.  If it is boolean, we're good.
-                            ; If it isn't, then figure out if it is the
-                            ; same as coerce-to-false, in which case it
-                            ; will be false, otherwise change it to true.
-                            (if (zboolean? (second %))
-                              ; Don't change anything
-                              (first {(first %) (second %)})
-                              ; Is it equal to coerce-to-false?
-                              (if (= (second %) coerce-to-false)
-                                ; Make it false
-                                (first {(first %) false})
-                                ; Make it true
-                                (first {(first %) true})))
-                            %)
-                         options)
-                :coerce-to-false)
-        (catch #?(:clj Exception
-                  :cljs :default)
-          e
-          options)))))
+      (try (dissoc (prewalk #(if (and (map-entry? %)
+                                      (keyword? (first %))
+                                      (= (s/get-spec (keyword "zprint.spec"
+                                                                (name (first
+                                                                        %))))
+                                         :zprint.spec/boolean))
+                               ; This is a keyword whose spec is
+                               ; boolean.  If it is boolean, we're good.
+                               ; If it isn't, then figure out if it is the
+                               ; same as coerce-to-false, in which case it
+                               ; will be false, otherwise change it to true.
+                               (if (zboolean? (second %))
+                                 ; Don't change anything
+                                 (first {(first %) (second %)})
+                                 ; Is it equal to coerce-to-false?
+                                 (if (= (second %) coerce-to-false)
+                                   ; Make it false
+                                   (first {(first %) false})
+                                   ; Make it true
+                                   (first {(first %) true})))
+                               %)
+                            options)
+             :coerce-to-false)
+           (catch #?(:clj Exception
+                     :cljs :default)
+             e
+             options)))))
 
 (defn validate-basic
   "Using spec defined above, validate the given options map.  Return

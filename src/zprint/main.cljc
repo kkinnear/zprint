@@ -130,14 +130,14 @@
               (if (= exit-status 1)
                 ; We are done, move on
                 running-status
-                (try
-                  [0 0 in-str (zprint-file-str in-str filename) nil]
-                  (catch Exception e
-                    [1
-                     0
-                     nil
-                     nil
-                     (str "Failed to format file: " filename " because " e)]))))
+                (try [0 0 in-str (zprint-file-str in-str filename) nil]
+                     (catch Exception e
+                       [1
+                        0
+                        nil
+                        nil
+                        (str "Failed to format file: " filename
+                             " because " e)]))))
             ;
             ; See comment in -main about graalVM issues with this code
             ;
@@ -155,21 +155,21 @@
                           (write-to-stderr (str "Formatting required in file "
                                                 filename)))
                         [0 1 nil nil nil])
-                    (try
-                      (let [^java.io.Writer w (clojure.java.io/writer filename)]
-                        (.write w (str format-str))
-                        (.flush w)
-                        (.close w)
-                        (when formatted?
-                          (write-to-stderr (str "Formatted file " filename)))
-                        [0 1 nil nil nil])
-                      (catch Exception e
-                        [1
-                         1
-                         nil
-                         nil
-                         (str "Failed to write output file: " filename
-                              " because " e)])))
+                    (try (let [^java.io.Writer w (clojure.java.io/writer
+                                                   filename)]
+                           (.write w (str format-str))
+                           (.flush w)
+                           (.close w)
+                           (when formatted?
+                             (write-to-stderr (str "Formatted file " filename)))
+                           [0 1 nil nil nil])
+                         (catch Exception e
+                           [1
+                            1
+                            nil
+                            nil
+                            (str "Failed to write output file: " filename
+                                 " because " e)])))
                   ; No, we didn't actually change anything, just move on
                   [0 0 nil nil nil])))
             ; Write whatever is supposed to go to stderr, if anything
@@ -234,22 +234,21 @@
          url-arg
          (if error-string
            error-string
-           (cond
-             (and (or version? help? default? standard?) (> arg-count 1))
-               (str "Switch '"
-                    (first arg-seq)
-                    "' cannot appear with any other switches or arguments.")
-             (and check-or-write? (or version? help? explain? explain-all?))
-               (str "Switch '" (first arg-seq)
-                    "' cannot appear with any variant of "
-                      (if check? "--check" "--write"))
-             (and url? url-only?)
-               "Switches url and url-only cannot appear together"
-             (and (or url? url-only?) (nil? url-arg))
-               (str "Switch "
-                    (if url? "-u or --url" "--url-only")
-                    " requires an argument")
-             :else nil))]
+           (cond (and (or version? help? default? standard?) (> arg-count 1))
+                   (str "Switch '"
+                        (first arg-seq)
+                        "' cannot appear with any other switches or arguments.")
+                 (and check-or-write? (or version? help? explain? explain-all?))
+                   (str "Switch '" (first arg-seq)
+                        "' cannot appear with any variant of "
+                          (if check? "--check" "--write"))
+                 (and url? url-only?)
+                   "Switches url and url-only cannot appear together"
+                 (and (or url? url-only?) (nil? url-arg))
+                   (str "Switch "
+                        (if url? "-u or --url" "--url-only")
+                        " requires an argument")
+                 :else nil))]
         (let [next-arg (clojure.string/trim (first args))
               valid-switch? (#{"--version" "-v" "--help" "-h" "--explain" "-e"
                                "--explain-all" "--default" "-d" "--standard"

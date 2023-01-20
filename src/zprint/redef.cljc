@@ -87,14 +87,14 @@
                    (bind-vars binding-map)
                    (reset! ztype [the-type 1]))
                ; Somebody else is using them, we cannot use them
-               (throw
-                 (Exception. (str "Attempted to run zprint with type: "
-                                  the-type
-                                  " when "
-                                  the-count
-                                  " invocations were already running with type "
-                                  current-type
-                                  " ! ")))))))
+               (throw (Exception.
+                        (str "Attempted to run zprint with type: "
+                             the-type
+                             " when "
+                             the-count
+                             " invocations were already running with type "
+                             current-type
+                             " ! ")))))))
        ;
        ; There is a doall below because we must ensure that all of the
        ; calls to any of the redefed vars take place before we reduce the
@@ -104,19 +104,22 @@
        ; sequence expecting the previous fn mappings to be in place.
        ;
        (try (doall (body-fn))
-            (finally
-              (zlocking
-                ztype-lock
-                (let [[current-type the-count] @ztype]
-                  #_(swap! ztype-history conj
-                      [:out the-type current-type the-count])
-                  (if (= current-type the-type)
-                    ; Note that we never put the original values back, as they
-                    ; might be fine for the next call, saving us the trouble
-                    ; of setting them again.  We do, of course, decrement the
-                    ; count.
-                    (reset! ztype [current-type (dec the-count)])
-                    (throw (Exception.
-                             (str "Internal Error: when attempting to reduce"
-                                  " count of invocations using: " the-type
-                                  ", the type was: " current-type))))))))))
+            (finally (zlocking
+                       ztype-lock
+                       (let [[current-type the-count] @ztype]
+                         #_(swap! ztype-history conj
+                             [:out the-type current-type the-count])
+                         (if (= current-type the-type)
+                           ; Note that we never put the original values back, as
+                           ; they
+                           ; might be fine for the next call, saving us the
+                           ; trouble
+                           ; of setting them again.  We do, of course, decrement
+                           ; the
+                           ; count.
+                           (reset! ztype [current-type (dec the-count)])
+                           (throw
+                             (Exception.
+                               (str "Internal Error: when attempting to reduce"
+                                    " count of invocations using: " the-type
+                                    ", the type was: " current-type))))))))))

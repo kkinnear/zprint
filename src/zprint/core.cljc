@@ -226,35 +226,35 @@
                          (reify
                            Runnable
                              (run [this]
-                               (try
-                                 (io/make-parents cache)
-                                 (let [cc (.getHeaderField remote-conn
-                                                           "Cache-Control")
-                                       [_ max-age]
-                                         (if cc
-                                           (re-matches
-                                             #"(?i).*?max-age\s*=\s*(\d+)"
-                                             cc))
-                                       cache-expiry
-                                         (if max-age
-                                           (+ (System/currentTimeMillis)
-                                              (* 1000 (Long/parseLong max-age)))
-                                           (let [expires (.getExpiration
-                                                           remote-conn)]
-                                             (if (and expires
-                                                      (not (zero? expires)))
-                                               expires
-                                               (+ (System/currentTimeMillis)
-                                                  (* 1000 cache-secs)))))]
-                                   (spit cache
-                                         (pr-str {:expires cache-expiry,
-                                                  :options remote-opts})))
-                                 (catch Exception e
-                                   (.println System/err
-                                             (format
-                                               "WARN: cache failed for %s: %s"
-                                               url
-                                               (.getMessage e))))))))
+                               (try (io/make-parents cache)
+                                    (let [cc (.getHeaderField remote-conn
+                                                              "Cache-Control")
+                                          [_ max-age]
+                                            (if cc
+                                              (re-matches
+                                                #"(?i).*?max-age\s*=\s*(\d+)"
+                                                cc))
+                                          cache-expiry
+                                            (if max-age
+                                              (+ (System/currentTimeMillis)
+                                                 (* 1000
+                                                    (Long/parseLong max-age)))
+                                              (let [expires (.getExpiration
+                                                              remote-conn)]
+                                                (if (and expires
+                                                         (not (zero? expires)))
+                                                  expires
+                                                  (+ (System/currentTimeMillis)
+                                                     (* 1000 cache-secs)))))]
+                                      (spit cache
+                                            (pr-str {:expires cache-expiry,
+                                                     :options remote-opts})))
+                                    (catch Exception e
+                                      (.println
+                                        System/err
+                                        (format "WARN: cache failed for %s: %s"
+                                                url
+                                                (.getMessage e))))))))
                        (get)))
                  ;3> no cache, blank remote
                  (throw (Exception. "ERROR: retrieving config from %s" url))))
@@ -407,24 +407,24 @@
           ;          (:interpose (:parse options)))))
           ;
           ;[[["nil" (zcolor-map options :nil) :element]] options]
-          :else
-            (let [options (assoc options
-                            :ztype z-type
-                            :dzprint dzprint)
-                  fzprint-fn (partial fzprint
-                                      options
-                                      (if (and (:file? options)
-                                               (= (:left-space (:parse options))
-                                                  :keep))
-                                        (or (:indent options) 0)
-                                        0)
-                                      input)]
-              #_(def coreopt options)
-              [(if (= z-type :zipper)
-                 (zprint.zutil/zredef-call fzprint-fn)
-                 (zprint.sutil/sredef-call fzprint-fn))
-               options
-               line-ending]))))
+          :else (let [options (assoc options
+                                :ztype z-type
+                                :dzprint dzprint)
+                      fzprint-fn (partial fzprint
+                                          options
+                                          (if (and (:file? options)
+                                                   (= (:left-space (:parse
+                                                                     options))
+                                                      :keep))
+                                            (or (:indent options) 0)
+                                            0)
+                                          input)]
+                  #_(def coreopt options)
+                  [(if (= z-type :zipper)
+                     (zprint.zutil/zredef-call fzprint-fn)
+                     (zprint.sutil/sredef-call fzprint-fn))
+                   options
+                   line-ending]))))
 
 #?(:clj (declare get-docstring-spec))
 
@@ -536,18 +536,19 @@
                                                        :key-value-color
                                                          {:doc {:string
                                                                   :green}}}})))
-      :explain-justified
-        (fzprint-style
-          (get-explained-options)
-          ; If we are doing :key-order, we need add-calculated-options
-          (add-calculated-options
-            (merge-deep (get-default-options)
-                        actual-options
-                        {:map {:key-order [:doc],
-                               :key-color {:doc :blue},
-                               :key-value-color {:doc {:string :green}},
-                               :justify? true,
-                               :justify {:max-variance 20}}})))
+      :explain-justified (fzprint-style
+                           (get-explained-options)
+                           ; If we are doing :key-order, we need
+                           ; add-calculated-options
+                           (add-calculated-options
+                             (merge-deep (get-default-options)
+                                         actual-options
+                                         {:map {:key-order [:doc],
+                                                :key-color {:doc :blue},
+                                                :key-value-color
+                                                  {:doc {:string :green}},
+                                                :justify? true,
+                                                :justify {:max-variance 20}}})))
       :support (fzprint-style (get-explained-all-options)
                               (merge-deep (get-default-options) actual-options))
       :help (println help-str)
@@ -769,19 +770,18 @@
               ; already.
               #_(def pmr-result result)
               str-w-line-endings
-                (cond
-                  html? (->> result
+                (cond html? (->> result
+                                 (filter vector?)
+                                 (reduce into)
+                                 (wrap-w-p actual-options)
+                                 (hiccup->html))
+                      (= :hiccup-multiple (:format (:output actual-options)))
+                        (->> result
                              (filter vector?)
                              (reduce into)
-                             (wrap-w-p actual-options)
-                             (hiccup->html))
-                  (= :hiccup-multiple (:format (:output actual-options)))
-                    (->> result
-                         (filter vector?)
-                         (reduce into)
-                         (wrap-w-p actual-options))
-                  (or (nil? line-ending) (= line-ending "\n")) result
-                  :else (clojure.string/replace result "\n" line-ending))]
+                             (wrap-w-p actual-options))
+                      (or (nil? line-ending) (= line-ending "\n")) result
+                      :else (clojure.string/replace result "\n" line-ending))]
           (dbg rest-options "zprint-str-internal ^^^ pmf ^^^ pmf ^^^ pmf ^^^")
           str-w-line-endings)
         (throw (#?(:clj Exception.
@@ -877,7 +877,7 @@
         (if eol-str
           eol-str
           (if (:return-cvec? options)
-            (remove-newline-indent-locs cvec)  ; i132
+            (remove-newline-indent-locs cvec) ; i132
             result))))))
 
 (defn ^:no-doc get-fn-source
@@ -1353,21 +1353,21 @@
         ; merging into the next-options, like we do in the cond below
         #_(println "new-options width:" (:width new-options)
                    "new-options format:" (:format new-options))
-        [error-vec full-options]
-          (if (and new-options (not local?))
-            (let [[updated-map _ error-str] (config-and-validate
-                                              (str ";!zprint number "
-                                                     ; No inc, as it came in
-                                                     ; with next-options
-                                                     (inc zprint-num)
-                                                   " in " zprint-specifier)
-                                              nil
-                                              full-options
-                                              new-options)]
-              (if error-str
-                [(conj error-vec error-str) full-options]
-                [error-vec updated-map]))
-            [error-vec full-options])]
+        [error-vec full-options] (if (and new-options (not local?))
+                                   (let [[updated-map _ error-str]
+                                           (config-and-validate
+                                             (str ";!zprint number "
+                                                    ; No inc, as it came in
+                                                    ; with next-options
+                                                    (inc zprint-num)
+                                                  " in " zprint-specifier)
+                                             nil
+                                             full-options
+                                             new-options)]
+                                     (if error-str
+                                       [(conj error-vec error-str) full-options]
+                                       [error-vec updated-map]))
+                                   [error-vec full-options])]
     ; If we are not continuing after errors, deal with any we have
     #_(prn "error-vec:" error-vec)
     (when (and (not (empty? error-vec)) (not continue-after-!zprint-error?))

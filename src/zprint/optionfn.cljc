@@ -4,7 +4,7 @@
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
   (:require #?@(:clj [[zprint.macros :refer
                        [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-	    [zprint.rewrite :refer [sort-dependencies]]
+            [zprint.rewrite :refer [sort-dependencies]]
             [zprint.util :refer [column-alignment cumulative-alignment]]))
 
 ;;
@@ -109,14 +109,14 @@
                       (nth arg-vec (dec arg-count))) "&"]
                [arg-vec nil])
            arg-count (count arg-vec)
-           replace-map
-             (zipmap arg-vec
-                     (mapv (comp symbol (partial str "%"))
-                       (if (= arg-count 1)
-                         [""]
-                         (if final-value
-                           (conj (mapv inc (range (dec arg-count))) final-value)
-                           (mapv inc (range arg-count))))))
+           replace-map (zipmap arg-vec
+                               (mapv (comp symbol (partial str "%"))
+                                 (if (= arg-count 1)
+                                   [""]
+                                   (if final-value
+                                     (conj (mapv inc (range (dec arg-count)))
+                                           final-value)
+                                     (mapv inc (range arg-count))))))
            new-zloc (clojure.walk/prewalk-replace replace-map (nth zloc 2))]
        {:list {:option-fn nil},
         :new-zloc new-zloc,

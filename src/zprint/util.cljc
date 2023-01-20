@@ -140,42 +140,42 @@
           beginning-variance (variance column)
           row-count (count-non-nil column)]
       #_(println "beginning-variance:" beginning-variance)
-      (cond
-        (nil? beginning-variance) [nil columns]
-        (> max-variance beginning-variance) [(first (find-max column)) columns]
-        ; Unless we have at least 3 rows, we aren't removing anything to
-        ; try and get the variance to work!
-        (> row-count 2)
-          (let [[first-indicies first-column-wo-max] (remove-max-not-half
-                                                       column)
-                #_(println "column:" column)
-                #_(println "first-column-wo-max:" first-column-wo-max)
-                first-variance (variance first-column-wo-max)]
-            (cond (nil? first-variance) [nil columns]
-                  (> max-variance first-variance)
-                    [(first (find-max first-column-wo-max))
-                     (remove-indicies-from-columns (inc index)
-                                                   first-indicies
-                                                   columns)]
-                  :else
-                    (let [[second-indicies second-column-wo-max]
-                            (remove-max-not-half first-column-wo-max)
-                          second-variance (variance second-column-wo-max)]
-                      (cond (nil? second-variance) [nil columns]
-                            ; Have we removed half of the rows
-                            ; between the first and second rounds?
-                            (>= (+ (count first-indicies)
-                                   (count second-indicies))
-                                (/ row-count 2))
-                              [nil columns]
-                            (> max-variance second-variance)
-                              [(first (find-max second-column-wo-max))
-                               (remove-indicies-from-columns
-                                 (inc index)
-                                 (into first-indicies second-indicies)
-                                 columns)]
-                            :else [nil columns]))))
-        :else [nil columns]))))
+      (cond (nil? beginning-variance) [nil columns]
+            (> max-variance beginning-variance) [(first (find-max column))
+                                                 columns]
+            ; Unless we have at least 3 rows, we aren't removing anything to
+            ; try and get the variance to work!
+            (> row-count 2)
+              (let [[first-indicies first-column-wo-max] (remove-max-not-half
+                                                           column)
+                    #_(println "column:" column)
+                    #_(println "first-column-wo-max:" first-column-wo-max)
+                    first-variance (variance first-column-wo-max)]
+                (cond (nil? first-variance) [nil columns]
+                      (> max-variance first-variance)
+                        [(first (find-max first-column-wo-max))
+                         (remove-indicies-from-columns (inc index)
+                                                       first-indicies
+                                                       columns)]
+                      :else (let [[second-indicies second-column-wo-max]
+                                    (remove-max-not-half first-column-wo-max)
+                                  second-variance (variance
+                                                    second-column-wo-max)]
+                              (cond (nil? second-variance) [nil columns]
+                                    ; Have we removed half of the rows
+                                    ; between the first and second rounds?
+                                    (>= (+ (count first-indicies)
+                                           (count second-indicies))
+                                        (/ row-count 2))
+                                      [nil columns]
+                                    (> max-variance second-variance)
+                                      [(first (find-max second-column-wo-max))
+                                       (remove-indicies-from-columns
+                                         (inc index)
+                                         (into first-indicies second-indicies)
+                                         columns)]
+                                    :else [nil columns]))))
+            :else [nil columns]))))
 
 (defn size-and-extend
   "Given a seq and a length, return a vector which contains the
@@ -262,19 +262,20 @@
    (let [columns (create-columns seq-of-seqs number-of-columns no-string-adj?)
          #_(println "column count:" (count columns))
          max-width-vec
-           (second
-             (reduce
-               (fn [[columns max-width-vec] index]
-                 (let [[max-width new-columns]
-                         (column-width-variance max-variance columns index)]
-                   #_(println "max-width:" max-width)
-                   (if max-width
-                     [new-columns (conj max-width-vec max-width)]
-                     ; If we fail, then fail completely, don't return a
-                     ; short max-width-vec!  Issue #212.
-                     (reduced [columns nil]))))
-               [columns []]
-               (range (count columns))))]
+           (second (reduce (fn [[columns max-width-vec] index]
+                             (let [[max-width new-columns]
+                                     (column-width-variance max-variance
+                                                            columns
+                                                            index)]
+                               #_(println "max-width:" max-width)
+                               (if max-width
+                                 [new-columns (conj max-width-vec max-width)]
+                                 ; If we fail, then fail completely, don't
+                                 ; return a
+                                 ; short max-width-vec!  Issue #212.
+                                 (reduced [columns nil]))))
+                     [columns []]
+                     (range (count columns))))]
      max-width-vec))
   ([max-variance seq-of-seqs]
    (column-alignment max-variance seq-of-seqs nil nil))
@@ -285,10 +286,10 @@
   "Given a vector of max-widths from column-alignment, produce a vector
   of the cumulative alignment positions for the second through nth columns."
   [max-width-vec]
-  (second
-    (reduce (fn [[current-width cumulative-widths] column-max-width]
-              (let [this-alignment (+ current-width (inc column-max-width))]
-                [this-alignment (conj cumulative-widths this-alignment)]))
-      [0 []]
-      max-width-vec)))
+  (second (reduce (fn [[current-width cumulative-widths] column-max-width]
+                    (let [this-alignment (+ current-width
+                                            (inc column-max-width))]
+                      [this-alignment (conj cumulative-widths this-alignment)]))
+            [0 []]
+            max-width-vec)))
 

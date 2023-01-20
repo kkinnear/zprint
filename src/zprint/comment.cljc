@@ -1,6 +1,7 @@
 (ns ^:no-doc zprint.comment
   #?@(:cljs [[:require-macros
-              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print dbg-s zfuture]]]])
+              [zprint.macros :refer
+               [dbg dbg-pr dbg-form dbg-print dbg-s zfuture]]]])
   (:require #?@(:clj [[zprint.macros :refer
                        [dbg-pr dbg dbg-form dbg-print dbg-s zfuture]]])
             [clojure.string :as s]
@@ -133,51 +134,50 @@
   (loop [nloc (left* zloc)
          spaces 0
          passed-nl? false]
-    (let
-      #?(:clj [tnloc (ztag nloc)]
-         :cljs [[tnloc spaces]
-                (let [tnloc (ztag nloc)]
-                  (if (= tnloc :whitespace)
-                    ; might be whitespace with an embedded comma in cljs
-                    (let [nstr (zstring nloc)
-                          trim-nstr (clojure.string/trimr nstr)]
-                      (if (pos? (count trim-nstr))
-                        ; it had something besides spaces in it
-                        ; we will assume a comma
-                        ;  correct things
-                        [:comma (+ spaces (- (count nstr) (count trim-nstr)))]
-                        ; it was all whitespace -- don't correct
-                        [:whitespace spaces]))
-                    [tnloc spaces]))])
-      #_(prn "inlinecomment? tnloc:" tnloc
-             "spaces:" spaces
-             "nloc:" (zstring nloc))
-      (cond
-        (nil? tnloc) nil  ; the start of the zloc
-        (= tnloc :newline) (recur (left* nloc) spaces true)
-        (or (= tnloc :comment) (= tnloc :comment-inline))
-          ; Two comments in a row don't have a newline showing between
-          ; them, it is captured by the first comment.  Sigh.
-          ; Except now it isn't, as we split the newlines out.
-          (do #_(prn "inlinecomment? found previous comment!")
-              ; is it an inline comment?
-              (when (inlinecomment? nloc)
-                ; figure the total alignment from the newline
-                (let [nloc-length-before (length-before nloc)
-                      zloc-length-before (length-before zloc)]
-                  #_(prn "inlinecomment?:"
-                         "nloc-length-before:" nloc-length-before
-                         "zloc-length-before:" zloc-length-before
-                         "spaces:" spaces)
-                  (if (= nloc-length-before zloc-length-before)
-                    ; we have a lineup
-                    [spaces zloc-length-before]
-                    nil))))
-        (not= tnloc :whitespace)
-          (if passed-nl? nil [spaces (length-before zloc)])
-        :else (recur (left* nloc)
-                     ^long (+ ^long (length nloc) spaces)
-                     passed-nl?)))))
+    (let #?(:clj [tnloc (ztag nloc)]
+            :cljs [[tnloc spaces]
+                   (let [tnloc (ztag nloc)]
+                     (if (= tnloc :whitespace)
+                       ; might be whitespace with an embedded comma in cljs
+                       (let [nstr (zstring nloc)
+                             trim-nstr (clojure.string/trimr nstr)]
+                         (if (pos? (count trim-nstr))
+                           ; it had something besides spaces in it
+                           ; we will assume a comma
+                           ;  correct things
+                           [:comma
+                            (+ spaces (- (count nstr) (count trim-nstr)))]
+                           ; it was all whitespace -- don't correct
+                           [:whitespace spaces]))
+                       [tnloc spaces]))])
+         #_(prn "inlinecomment? tnloc:" tnloc
+                "spaces:" spaces
+                "nloc:" (zstring nloc))
+         (cond (nil? tnloc) nil ; the start of the zloc
+               (= tnloc :newline) (recur (left* nloc) spaces true)
+               (or (= tnloc :comment) (= tnloc :comment-inline))
+                 ; Two comments in a row don't have a newline showing between
+                 ; them, it is captured by the first comment.  Sigh.
+                 ; Except now it isn't, as we split the newlines out.
+                 (do #_(prn "inlinecomment? found previous comment!")
+                     ; is it an inline comment?
+                     (when (inlinecomment? nloc)
+                       ; figure the total alignment from the newline
+                       (let [nloc-length-before (length-before nloc)
+                             zloc-length-before (length-before zloc)]
+                         #_(prn "inlinecomment?:"
+                                "nloc-length-before:" nloc-length-before
+                                "zloc-length-before:" zloc-length-before
+                                "spaces:" spaces)
+                         (if (= nloc-length-before zloc-length-before)
+                           ; we have a lineup
+                           [spaces zloc-length-before]
+                           nil))))
+               (not= tnloc :whitespace)
+                 (if passed-nl? nil [spaces (length-before zloc)])
+               :else (recur (left* nloc)
+                            ^long (+ ^long (length nloc) spaces)
+                            passed-nl?)))))
 
 (defn last-space
   "Take a string and an index, and look for the last space prior to the
@@ -526,8 +526,8 @@
   #_(prn "comment-vec-column:" style-vec comment-vec)
   (let [start-column (comment-column comment-vec style-vec)
         spaces-before (if (= (count style-vec) 1)
-			(nth (first style-vec) 3)
-	                (loc-vec 0 (nth style-vec (dec inline-comment-index))))]
+                        (nth (first style-vec) 3)
+                        (loc-vec 0 (nth style-vec (dec inline-comment-index))))]
     [inline-comment-index start-column spaces-before]))
 
 (defn comment-vec-seq-column
@@ -565,25 +565,26 @@
   [new-start-column style-vec
    [inline-comment-index start-column spaces-before :as comment-vec]]
   (if (zero? inline-comment-index)
-     style-vec
-  (let [delta-spaces (- new-start-column start-column)
-        new-spaces (+ spaces-before delta-spaces)
-        previous-element-index (dec inline-comment-index)
-        #_(prn "change-start-column:"
-               "spaces-before:" spaces-before
-               "delta-spaces:" delta-spaces
-               "new-spaces:" new-spaces)
-        [s c e :as previous-element] (nth style-vec previous-element-index)
-        new-previous-element
-          (cond (= e :indent) [(str "\n" (blanks new-spaces)) c e]
-                (= e :whitespace) [(str (blanks new-spaces)) c e 26]
-                :else (throw
-                        (#?(:clj Exception.
-                            :cljs js/Error.)
-                         (str "change-start-column: comment preceded by neither"
-                              " an :indent nor :whitespace!"
-                              e))))]
-    (assoc style-vec previous-element-index new-previous-element))))
+    style-vec
+    (let [delta-spaces (- new-start-column start-column)
+          new-spaces (+ spaces-before delta-spaces)
+          previous-element-index (dec inline-comment-index)
+          #_(prn "change-start-column:"
+                 "spaces-before:" spaces-before
+                 "delta-spaces:" delta-spaces
+                 "new-spaces:" new-spaces)
+          [s c e :as previous-element] (nth style-vec previous-element-index)
+          new-previous-element
+            (cond (= e :indent) [(str "\n" (blanks new-spaces)) c e]
+                  (= e :whitespace) [(str (blanks new-spaces)) c e 26]
+                  :else (throw
+                          (#?(:clj Exception.
+                              :cljs js/Error.)
+                           (str
+                             "change-start-column: comment preceded by neither"
+                             " an :indent nor :whitespace!"
+                             e))))]
+      (assoc style-vec previous-element-index new-previous-element))))
 
 (defn align-comment-vec
   "Given one set of inline comments: 
@@ -605,8 +606,10 @@
                                                    style-vec)
                               (= style :consecutive)
                                 (find-consecutive-inline-comments style-vec))
-	    _ (dbg-s options :align 
-	           "fzprint-align-inline-comments: comment-vec:" comment-vec)
+            _ (dbg-s options
+                     :align
+                     "fzprint-align-inline-comments: comment-vec:"
+                     comment-vec)
             comment-vec-column (comment-vec-all-column style-vec comment-vec)]
         (reduce align-comment-vec style-vec comment-vec-column)))))
 

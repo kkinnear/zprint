@@ -115,18 +115,18 @@
   "A very specialized hiccup to html converter.  Only converts hiccup
   that is produced by this routine!"
   [coll]
-  (cond (vector? coll)
-          (let [first-sym (symbol (first coll))
-                map-second? (map? (second coll))
-                rest-coll (if map-second? (nnext coll) (next coll))]
-            (str "<"
-                 first-sym
-                 (if map-second? (hiccup->html (second coll)) "")
-                 ">"
-                 (apply str (mapv hiccup->html rest-coll))
-                 "</"
-                 first-sym
-                 ">"))
+  (cond (vector? coll) (let [first-sym (symbol (first coll))
+                             map-second? (map? (second coll))
+                             rest-coll
+                               (if map-second? (nnext coll) (next coll))]
+                         (str "<"
+                              first-sym
+                              (if map-second? (hiccup->html (second coll)) "")
+                              ">"
+                              (apply str (mapv hiccup->html rest-coll))
+                              "</"
+                              first-sym
+                              ">"))
         (map? coll) (let [pair (first (seq coll))]
                       (str " " (symbol (first pair)) "=\"" (second pair) "\""))
         :else coll))

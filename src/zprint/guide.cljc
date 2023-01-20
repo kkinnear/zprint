@@ -473,8 +473,9 @@
                     "keyword-1-lists:" keyword-1-lists
                     "keyword-2:" keyword-2
                     "keyword-2-lists:" keyword-2-lists)
-           guide (cond->
-                   (-> [:element :indent 2 :options
+           guide
+             (cond-> (->
+                       [:element :indent 2 :options
                         {:guide vector-guide,
                          :vector {:wrap-multi? true, :hang? true}} :group-begin]
                        (into (repeat (count vectors) :element))
@@ -482,17 +483,16 @@
                              :element-newline-best-group :options-reset
                              :options {:vector {:wrap-multi? true, :hang? true}}
                              :indent 1))
-                   keyword-1 (conj :newline :element)
-                   (not (empty? keyword-1-lists))
-                     (-> (conj :indent 2 :group-begin)
-                         (into (repeat (count keyword-1-lists) :element))
-                         (conj :group-end :element-newline-best-group
-                               :indent 1))
-                   keyword-2 (conj :newline :element)
-                   (not (empty? keyword-2-lists))
-                     (-> (conj :indent 2 :group-begin)
-                         (into (repeat (count keyword-2-lists) :element))
-                         (conj :group-end :element-newline-best-group)))]
+               keyword-1 (conj :newline :element)
+               (not (empty? keyword-1-lists))
+                 (-> (conj :indent 2 :group-begin)
+                     (into (repeat (count keyword-1-lists) :element))
+                     (conj :group-end :element-newline-best-group :indent 1))
+               keyword-2 (conj :newline :element)
+               (not (empty? keyword-2-lists))
+                 (-> (conj :indent 2 :group-begin)
+                     (into (repeat (count keyword-2-lists) :element))
+                     (conj :group-end :element-newline-best-group)))]
        (dbg-s options :guide "odrguide:" guide)
        {:guide guide}))))
 

@@ -58,29 +58,31 @@
                  "tries:" tries
                  "row:" row
                  "row-or-direction" row-or-direction)
-      (cond (map? row-or-direction) current-index   ; in this row
+      (cond (map? row-or-direction) current-index ; in this row
             (nil? row-or-direction)
               (if (pos? current-index) :beyond-end :before-beginning)
-            :else
-              (if (>= tries max-tries)
-                ; tell caller where to look next
-                (if (pos? row-or-direction) :after :before)
-                (let [next-index (+ current-index row-or-direction)
-                      next-row (get row-vec next-index)
-                      row-or-direction (in-row? linenumber next-row)]
-                  (cond (map? row-or-direction) next-index ; we are in the row,
-                                                           ; return its index
-                        (nil? row-or-direction)
-                          (if (pos? next-index) :beyond-end :before-beginning)
-                        :else (if (between-rows? linenumber row next-row)
-                                ; We are between rows, return later one
-                                (if (row-before? row next-row)
-                                  next-index
-                                  current-index)
-                                ; Keep looking
-                                (recur (+ current-index row-or-direction)
-                                       current-index
-                                       (inc tries))))))))))
+            :else (if (>= tries max-tries)
+                    ; tell caller where to look next
+                    (if (pos? row-or-direction) :after :before)
+                    (let [next-index (+ current-index row-or-direction)
+                          next-row (get row-vec next-index)
+                          row-or-direction (in-row? linenumber next-row)]
+                      (cond (map? row-or-direction) next-index ; we are in the
+                                                               ; row,
+                                                               ; return its
+                                                               ; index
+                            (nil? row-or-direction) (if (pos? next-index)
+                                                      :beyond-end
+                                                      :before-beginning)
+                            :else (if (between-rows? linenumber row next-row)
+                                    ; We are between rows, return later one
+                                    (if (row-before? row next-row)
+                                      next-index
+                                      current-index)
+                                    ; Keep looking
+                                    (recur (+ current-index row-or-direction)
+                                           current-index
+                                           (inc tries))))))))))
 
 (defn find-row
   "Given a vector of rows, find the row that contains a line number,
@@ -115,23 +117,25 @@
            ; If it is :before, we ran off the beginning, :after the end
            ; nil means that we didn't find it, but can keep looking
            #_(println "maybe-index:" maybe-index)
-           (cond
-             (number? maybe-index) maybe-index  ; we found something to return
-             ; is it in this row?
-             (or (= maybe-index :before-beginning) (= maybe-index :beyond-end))
-               maybe-index
-             :else ; Has to be :before or :after
-               (do
-                 #_(println "find-row: maybe-index:" maybe-index
-                            "row-vec-index:" row-vec-index
-                            "previous-index:" previous-index
-                            "abs:" (local-abs (- row-vec-index previous-index)))
-                 (recur ((if (= maybe-index :before) - +)
-                          row-vec-index
-                          (int (/ (local-abs (- row-vec-index previous-index))
-                                  2)))
-                        row-vec-index
-                        (inc tries)))))))))
+           (cond (number? maybe-index) maybe-index ; we found something to
+                                                   ; return
+                 ; is it in this row?
+                 (or (= maybe-index :before-beginning)
+                     (= maybe-index :beyond-end))
+                   maybe-index
+                 :else ; Has to be :before or :after
+                   (do #_(println "find-row: maybe-index:" maybe-index
+                                  "row-vec-index:" row-vec-index
+                                  "previous-index:" previous-index
+                                  "abs:" (local-abs (- row-vec-index
+                                                       previous-index)))
+                       (recur ((if (= maybe-index :before) - +)
+                                row-vec-index
+                                (int (/ (local-abs (- row-vec-index
+                                                      previous-index))
+                                        2)))
+                              row-vec-index
+                              (inc tries)))))))))
   ([row-vec n dbg?] (find-row row-vec n dbg? 4)))
 
 (defn next-non-blank-line
@@ -233,36 +237,38 @@
                      (if (number? end-row-idx)
                        (str "row:" (nth row-vec end-row-idx))
                        "")))
-        actual-end (cond
-                     (or (= end-row-idx :fail) (= end-row-idx :beyond-end))
-                       ; We are beyond the end or it didn't parse, say the
-                       ; end is beyond the last line, unless the start was
-                       ; also beyond the last line, in which case we will
-                       ; do nothing.
-                       (if (= start-row-idx :beyond-end) -1 line-count)
-                     (= end-row-idx :before-beginning)
-                       ; Someone is confused here too, say the end is the
-                       ; start.
-                       :do-nothing
-                     :else (let [end-row (get row-vec end-row-idx)]
-                             ; end-row-idx is either the row in which end falls
-                             ; or the next row if it was between rows
-                             ; Note: :row is the start line of a row-map
-                             ;
-                             ; Does end fall between two top-level expressions?
-                             (if (< (inc end) (:row end-row))
-                               ; Yes -- are start and end in same gap
-                               ; between expressions?
-                               (if (= end-row-idx start-row-idx)
-                                 ; Yes, do nothing
-                                 :do-nothing
-                                 ; No, work backward to the first non-blank
-                                 ; line prior to the end
-                                 (previous-non-blank-line lines end))
-                               ; No, end falls inside of an expression, so use
-                               ; the end of that expression.  Make it zero
-                               ; based.
-                               (dec (:end-row end-row)))))
+        actual-end (cond (or (= end-row-idx :fail) (= end-row-idx :beyond-end))
+                           ; We are beyond the end or it didn't parse, say the
+                           ; end is beyond the last line, unless the start was
+                           ; also beyond the last line, in which case we will
+                           ; do nothing.
+                           (if (= start-row-idx :beyond-end) -1 line-count)
+                         (= end-row-idx :before-beginning)
+                           ; Someone is confused here too, say the end is the
+                           ; start.
+                           :do-nothing
+                         :else (let [end-row (get row-vec end-row-idx)]
+                                 ; end-row-idx is either the row in which end
+                                 ; falls
+                                 ; or the next row if it was between rows
+                                 ; Note: :row is the start line of a row-map
+                                 ;
+                                 ; Does end fall between two top-level
+                                 ; expressions?
+                                 (if (< (inc end) (:row end-row))
+                                   ; Yes -- are start and end in same gap
+                                   ; between expressions?
+                                   (if (= end-row-idx start-row-idx)
+                                     ; Yes, do nothing
+                                     :do-nothing
+                                     ; No, work backward to the first non-blank
+                                     ; line prior to the end
+                                     (previous-non-blank-line lines end))
+                                   ; No, end falls inside of an expression, so
+                                   ; use
+                                   ; the end of that expression.  Make it zero
+                                   ; based.
+                                   (dec (:end-row end-row)))))
         actual-start (if (= actual-end :do-nothing) -1 actual-start)
         actual-end (if (= actual-end :do-nothing) -1 actual-end)]
     [actual-start actual-end]))

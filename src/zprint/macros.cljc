@@ -16,20 +16,20 @@
   sel can be either a single keyword or a set of keywords."
   [options sel & rest]
   (if (keyword? sel)
-  `(when (or (~sel (:dbg-s ~options)) (:dbg? ~options))
-     (println (:dbg-indent ~options) (pr-str ~@rest)))
-  `(when (or (some ~sel (:dbg-s ~options)) (:dbg? ~options))
-     (println (:dbg-indent ~options) (pr-str ~@rest)))))
+    `(when (or (~sel (:dbg-s ~options)) (:dbg? ~options))
+       (println (:dbg-indent ~options) (pr-str ~@rest)))
+    `(when (or (some ~sel (:dbg-s ~options)) (:dbg? ~options))
+       (println (:dbg-indent ~options) (pr-str ~@rest)))))
 
 (defmacro dbg-s
   "Output debugging print with println if this one is selected.
   sel can be either a single keyword or a set of keywords."
   [options sel & rest]
   (if (keyword? sel)
-  `(when (or (~sel (:dbg-s ~options)) (:dbg? ~options))
-     (println (:dbg-indent ~options) ~@rest))
-  `(when (or (some ~sel (:dbg-s ~options)) (:dbg? ~options))
-     (println (:dbg-indent ~options) ~@rest))))
+    `(when (or (~sel (:dbg-s ~options)) (:dbg? ~options))
+       (println (:dbg-indent ~options) ~@rest))
+    `(when (or (some ~sel (:dbg-s ~options)) (:dbg? ~options))
+       (println (:dbg-indent ~options) ~@rest))))
 
 (defmacro dbg-form
   "Output debugging print with println, and always return value."

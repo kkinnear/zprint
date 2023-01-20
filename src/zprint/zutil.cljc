@@ -719,15 +719,15 @@
                  out []]
             (let [[k & rest-of-pair :as pair] (first pair-seq)
                   #_(println "lift k:" k "rest-of-x-pair:" rest-of-pair)
-                  current-ns
-                    (when (and ; This is at least a pair
-                            rest-of-pair
-                            ; It does not include an implicit ns
-                            (not (clojure.string/starts-with? (z/string k)
-                                                              "::"))
-                            (or (zkeyword? k) (zsymbol? k)))
-                      ; Is there an actual namespace on the key?
-                      (namespace (zloc-to-keyword k)))]
+                  current-ns (when (and ; This is at least a pair
+                                     rest-of-pair
+                                     ; It does not include an implicit ns
+                                     (not (clojure.string/starts-with? (z/string
+                                                                         k)
+                                                                       "::"))
+                                     (or (zkeyword? k) (zsymbol? k)))
+                               ; Is there an actual namespace on the key?
+                               (namespace (zloc-to-keyword k)))]
               (if-not k
                 (when ns [(str ":" ns) out])
                 (if current-ns
@@ -772,11 +772,11 @@
                   (not (zkeyword? k)) [ns pair-seq]
                   ; Skip single things
                   (= (count pair) 1) (recur (next pair-seq) (conj out pair))
-                  :else
-                    (recur (next pair-seq)
-                           (conj out
-                                 ; put ns with k
-                                 (cons (of-node*
+                  :else (recur (next pair-seq)
+                               (conj out
+                                     ; put ns with k
+                                     (cons
+                                       (of-node*
                                          (n/token-node
                                            (symbol
                                              ; If k is a zkeyword? then it

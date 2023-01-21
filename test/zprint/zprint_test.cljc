@@ -8054,6 +8054,42 @@ i261
 "(defproject zprint \"0.4.14\"\n  :description \"Pretty print zippers and s-expressions\"\n  :url \"https://github.com/kkinnear/zprint\"\n  :license {:name \"MIT License\",\n            :url \"https://opensource.org/licenses/MIT\",\n            :key \"mit\",\n            :year 2015}\n  :plugins\n    [[lein-expectations \"0.0.8\"] [lein-codox \"0.10.3\"] [lein-zprint \"0.3.12\"]]\n  :profiles {:dev {:dependencies [[better-cond \"1.0.1\"]\n                                  [clojure-future-spec \"1.9.0-alpha17\"]\n                                  [com.taoensso/tufte \"1.1.1\"]\n                                  ;[rum \"0.10.8\"];\n                                  [expectations \"2.2.0-rc1\"]\n                                  #_[org.clojure/clojurescript \"1.9.946\"]\n                                  [org.clojure/core.match \"0.3.0-alpha5\"]\n                                  [zpst \"0.1.6\"]]},\n             :uberjar {:aot [zprint.core zprint.main],\n                       ; For 1.9.0-alpha17, use this for the :aot value\n                       ;:aot [zprint.core zprint.main clojure.core.specs.alpha],\n                       :main zprint.main,\n                       :dependencies [[clojure-future-spec \"1.9.0-alpha17\"]],\n                       :omit-source true,\n                       :uberjar-name \"zprint-filter-%s\"}}\n  ; Clojure 1.8 you can exclude all sources in the uberjar\n  :uberjar-exclusions [#\"\\.(clj|java|txt)\"]\n  ; Clojure 1.9 requires the .clj files in the uberjar\n  ; :uberjar-exclusions [#\"\\.(clj\\.|java|cljs|txt)\"]\n  :jar-exclusions [#\"\\.(clj$|clj\\.|java|txt)\"]\n  :zprint {:old? false}\n  :jvm-opts ^:replace\n            [\"-server\"\n             \"-Xms2048m\"\n             \"-Xmx2048m\"\n             \"-Xss500m\"\n             \"-XX:-OmitStackTraceInFastThrow\"]\n  :scm {:name \"git\", :url \"https://github.com/kkinnear/zprint\"}\n  :codox {:namespaces [zprint.core],\n          :doc-files\n            [\"README.md\" \"doc/bang.md\" \"doc/graalvm.md\" \"doc/filter.md\"],\n          :metadata {:doc/format :markdown}}\n  :dependencies\n    [#_[cprop \"0.1.6\"]\n     #_[org.clojure/clojure \"1.10.0-beta3\"]\n     [org.clojure/clojure \"1.8.0\"]\n     #_[org.clojure/clojure \"1.9.0\"]\n     [rewrite-clj \"0.6.1\" :exclusions [[com.cemerick/austin]]]\n     [rewrite-cljs \"0.4.4\" :exclusions [[org.clojure/clojurescript]]]\n     #_[table \"0.4.0\" :exclusions [[org.clojure/clojure]]]])"
 (zprint-str prj2 {:parse-string? true :style :sort-dependencies}))
 
+;;
+;; Put blank lines in vectors Issue #283
+;;
+
+(def
+i283i
+"{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n  {:foo/bar :programs\n   :foo/bar [{:foo/bar :foo/baz\n              :name \"bardel\"\n              :activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]}\n             {:foo/bar :foo/baz\n              :name \"irresonant\"\n              :activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]}]}]}\n")
+
+(expect
+"{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n\n  {:foo/bar :programs\n   :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]\n              :foo/bar :foo/baz\n              :name \"bardel\"}\n\n             {:activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]\n              :foo/bar :foo/baz\n              :name \"irresonant\"}]}]}"
+(zprint-str i283i {:parse-string? true :vector {:option-fn (fn ([] "vector-lines") ([options len sexpr] (when (not (empty? sexpr)) {:guide (into [] (->> (repeat (count sexpr) :element) (interpose [:newline :newline]) flatten))})))} :style :community :map {:comma? false :force-nl? true} :width 120 :output {:real-le? true}}))
+
+;;
+;; Issue #274 -- fix indentation in namespaced maps
+;;
+
+(def
+i274
+"#:foo{:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n :bbbbbbbbbbbbbbbbbbbbbbbb {:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n                                 :bbbbbbbbbbbbbbbbbbbbbbbb 2,\n                                 :cccccccccccccccccccccccc 3},\n :cccccccccccccccccccccccc 3}\n")
+
+(expect
+"#:foo{:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n      :bbbbbbbbbbbbbbbbbbbbbbbb {:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n                                 :bbbbbbbbbbbbbbbbbbbbbbbb 2,\n                                 :cccccccccccccccccccccccc 3},\n      :cccccccccccccccccccccccc 3}"
+(zprint-str i274 {:parse-string? true}))
+
+;;
+;; Issue #275 -- namespaced functions are lost when doing noformat
+;;               that is, ;!zprint {:format :off} or {:format :skip}
+;;
+
+(def
+i275
+";!zprint {:format :off}\n#::foo{:bar :baz}\n")
+
+(expect
+";!zprint {:format :off}\n#::foo{:bar :baz}\n"
+(zprint-file-str i275 "x" {}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

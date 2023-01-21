@@ -1132,6 +1132,7 @@
                :indent-arg nil,
                :indent-only? false,
                :indent-only-style :input-hang,
+	       :nl-count nil
                :no-wrap-after nil,
                :pair-hang? true,
                :respect-bl? false,

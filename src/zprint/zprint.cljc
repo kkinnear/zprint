@@ -1648,8 +1648,6 @@
                                           #{:justify-opt}
                                           "fzprint-two-up: redoing lhs arg-1")
                                         (fzprint* loptions-non-narrow
-                                                  #_(assoc loptions
-                                                      :width width)
                                                   ind
                                                   lloc))
                                     arg-1)
@@ -2010,17 +2008,13 @@
               (when (and justify? narrow-width (not one-line?))
                 (fzprint-justify-width caller
                                        justify-options
-                                       #_options
-                                       #_(assoc options :width narrow-width)
                                        ind
                                        narrow-width
-                                       #_true ; narrow?
                                        coll))
             ; Do the fzprint-justify-width without lhs-narrow
             justify-width (when (and justify? (not one-line?))
                             (fzprint-justify-width caller
                                                    justify-options
-                                                   #_options
                                                    ind
                                                    nil
                                                    coll))
@@ -2918,7 +2912,6 @@
                           hr-lines
                           (good-enough? caller
                                         options
-                                        #_(assoc options :dbg? true)
                                         :none-hang-one
                                         hang-count
                                         (- hindent findent)
@@ -3405,8 +3398,7 @@
                       (if (and (not pair-seq) (> (first flow-lines) 1))
                         [(dec (first flow-lines)) (second flow-lines)
                          (nth flow-lines 2)]
-                        flow-lines)
-                      #_flow-lines))
+                        flow-lines)))
                ; If hanging starts with a newline, don't put a blank at the
                ; end of the previous line.
                (if (first-nl? hanging)
@@ -3816,7 +3808,6 @@
     (let [zloc-seq (nthnext zloc-seq (inc next-count))]
       #_(prn "get-zloc-seq-right: next-count:" next-count
              "zloc-seq:" (map zstring zloc-seq))
-      #_(dbg-pr options "get-zloc-seq-right:" (map zstring zloc-seq))
       zloc-seq)))
 
 
@@ -4680,7 +4671,7 @@
           ; recalculate necessary information
           l-str-len (if changed? (count l-str) l-str-len)
           ; zcount is not free, so only do it if the zloc changed
-          len (if changed? #_(:new-zloc new-options) (zcount zloc) len)
+          len (if changed? (zcount zloc) len)
           guide (or (:guide options) (guide-debug caller options))
           ; Remove :guide and any forced :fn-style from options so they only
           ; happen once!
@@ -4696,7 +4687,7 @@
           ; correctly here.
           [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as first-data]
             (if
-              (or changed? vector-fn-style? #_(vector? fn-style) #_new-options)
+              (or changed? vector-fn-style?)
               (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
               first-data)
           ; Get rid of the any vector surrounding the fn-style.
@@ -4932,17 +4923,6 @@
         (dbg options "fzprint-list*: fn-style:" fn-style) nil
         (and (= len 0) (= pre-arg-1-style-vec :noseq)) (concat-no-nil l-str-vec
                                                                       r-str-vec)
-        #_#_indent-only?
-          (concat-no-nil l-str-vec
-                         (fzprint-indent caller
-                                         l-str
-                                         r-str
-                                         options
-                                         ind
-                                         zloc
-                                         fn-style
-                                         arg-1-indent)
-                         r-str-vec)
         (= len 1)
           ; While len is one, don't assume that there is actually only one
           ; thing to print and use fzprint*.  len only counts the non-comment
@@ -4985,11 +4965,6 @@
                                         (+ indent ind)
                                         (get-zloc-seq-right second-data)
                                         :binding)
-                #_(fzprint-flow-seq options
-                                    (+ indent ind)
-                                    (get-zloc-seq-right second-data)
-                                    :force-nl
-                                    :newline-first)
                 r-str-vec)))
         (= fn-style :pair-fn)
           (let [zloc-seq-right-first (get-zloc-seq-right first-data)
@@ -5373,15 +5348,13 @@
                   (let [zloc-seq-right-first (get-zloc-seq-right first-data)]
                     (if zloc-seq-right-first
                       ; We have something else to format after arg-1-zloc
-                      (if #_(and arg-1-indent (not= fn-style :flow))
-                        arg-1-indent
+                      (if arg-1-indent
                         ; Use fzprint-hang-remaining for :flow as well, with
                         ; hindent = findent to force flow, so that constant
                         ; pairing is done for :flow functions.
                         (let [result (fzprint-hang-remaining
                                        caller
                                        (noarg1 options fn-style)
-                                       #_arg-1-indent
                                        (if (= fn-style :flow)
                                          ; If the fn-type is :flow, make the
                                          ; hindent = findent so that it will
@@ -5390,7 +5363,7 @@
                                          arg-1-indent)
                                        ; Removed indent-adj because it caused
                                        ; several problems, issue #163
-                                       (+ indent ind #_indent-adj)
+                                       (+ indent ind)
                                        ; Can't do this, because
                                        ; hang-remaining
                                        ; doesn't take a seq
@@ -5709,7 +5682,7 @@
           align-ind (when align-ind (if spaces (+ align-ind spaces) align-ind))
           ; Find out how big the incoming pairs (or guided-newline) is
           incoming-lines
-            (style-lines options (or #_pair-ind (+ indent ind)) incoming-seq)
+            (style-lines options (or (+ indent ind)) incoming-seq)
           ; This is only true for this line, not next line.
           align-spaces (when align-ind (max 0 (- align-ind cur-ind)))
           ; There are two key values for the this-line and next-line calls
@@ -5784,7 +5757,6 @@
                                      this-ind
                                      early-next-ind
                                      hang-remaining-seq
-                                     #_group-seq
                                      nil ;fn-type
                                    )
                 do-wrap-flow? (fzprint-one-line options this-ind wrap-flow-seq)
@@ -5907,7 +5879,6 @@
                                                next-ind
                                                next-ind
                                                hang-remaining-seq
-                                               #_group-seq
                                                nil ;fn-type
                                              )
                           do-wrap-flow? (fzprint-hang-remaining
@@ -5918,7 +5889,6 @@
                                           next-ind
                                           next-ind
                                           wrap-flow-seq
-                                          #_group-seq
                                           nil ;fn-type
                                         )
                           do-extend? (prepend-nl options
@@ -6047,7 +6017,7 @@
               ; there.
               newline? (if (zero? element-index) one-line-ind (+ indent ind))
               :else last-width)
-          param-map (dissoc param-map :excess-guided-newline-count #_:align-key)
+          param-map (dissoc param-map :excess-guided-newline-count)
           param-map (assoc param-map
                       :cur-ind new-ind
                       :all-fit? (and fit? all-fit?))]
@@ -6058,19 +6028,14 @@
       (dbg-s options
              :guide
              "guided-output: ------ incoming out:"
-             #_out
              (color-str ((:dzprint options)
                           {}
                           (into []
-                                #_out
                                 (let [out-len (count out)
                                       out-drop (int (* 0.8 out-len))
                                       out-drop (if (< (- out-len out-drop) 10)
                                                  (- out-len 10)
                                                  out-drop)]
-                                  #_(concat
-                                      [(str "dropped " out-drop " elements")]
-                                      (drop out-drop out))
                                   (condense-depth 1 out))))
                         :blue))
       (dbg-s-pr options :guide "guided-output; ------ next-guide:" next-guide)
@@ -7190,7 +7155,7 @@
                         "fzprint-vec* option-fn-first new options"
                         new-options))
             ; Fix this to handle new returns.
-            [options #_new-options zloc l-str r-str]
+            [options zloc l-str r-str]
               (if option-fn
                 (call-option-fn caller options option-fn zloc l-str r-str)
                 [options #_nil zloc l-str r-str])
@@ -7200,7 +7165,6 @@
             r-str-vec
               (rstr-vec options (+ ind (max 0 (dec l-str-len))) zloc r-str)
             len (zcount zloc)
-            #_#_[options new-options] (if option-fn [options nil])
             #_(when option-fn
                 (dbg-pr options
                         "fzprint-vec* option-fn new options"
@@ -7724,9 +7688,8 @@
     :as options} ind zloc ns]
   (if (= (:format options) :off)
     (fzprint-noformat
-      ; i276
-      #_(if ns (str "#" ns l-str) l-str)
-      l-str
+      ; Fix Issue #275
+      (if ns (str "#" ns l-str) l-str)
       r-str
       options
       zloc)
@@ -7844,23 +7807,24 @@
                                                        pair-seq)]
                     (concat-no-nil
                       l-str-vec
+		      ; Use (+ indent ind) to make sure the indent is
+		      ; correct.  Issue #274.
                       (interpose-either-nl-hf
                         ; comma? true
                         [["," (zcolor-map options :comma) :whitespace 21]
-                         ; i274
-                         [(str "\n" (blanks #_(+ indent ind) (inc ind))) :none
+                         [(str "\n" (blanks (+ indent ind))) :none
                           :indent 32]]
                         [["," (zcolor-map options :comma) :whitespace 22]
                          ; Fix issue #59 -- don't
                          ; put blanks to indent before the next \n
                          ["\n" :none :indent 33]
-                         [(str "\n" (blanks #_(+ indent ind) (inc ind))) :none
+                         [(str "\n" (blanks (+ indent ind))) :none
                           :indent 34]]
                         ; comma? nil
-                        [[(str "\n" (blanks #_(+ indent ind) (inc ind))) :none
+                        [[(str "\n" (blanks (+ indent ind))) :none
                           :indent 35]]
                         [["\n" :none :indent 36]
-                         [(str "\n" (blanks #_(+ indent ind) (inc ind))) :none
+                         [(str "\n" (blanks (+ indent ind))) :none
                           :indent 37]]
                         (:map options) ;nl-separator?
                         comma?
@@ -7883,7 +7847,6 @@
     (if ns
       (fzprint-map* :map
                     "{"
-                    #_(str "#" ns "{")
                     "}"
                     (rightmost options)
                     ind

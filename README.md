@@ -9,7 +9,7 @@ a number of major source code formattng approaches.
 
 ### Overview
 
-_zprint_ does far more than just properly indent code.  It will turn this:
+**zprint** does far more than just properly indent code.  **Before**:
 
 ```
 (defn change-start-column [new-start-column style-vec [inline-comment-index
@@ -23,7 +23,7 @@ _zprint_ does far more than just properly indent code.  It will turn this:
   new-previous-element))))
 ```
 
-into this:
+**After**:
 
 ```
 (defn change-start-column

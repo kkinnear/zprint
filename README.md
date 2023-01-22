@@ -7,6 +7,41 @@ a number of major source code formattng approaches.
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
+### *Overview*
+
+zprint can turn this:
+
+```
+(defn change-start-column [new-start-column style-vec [inline-comment-index
+  start-column spaces-before :as comment-vec]] (if (zero? inline-comment-index)
+  style-vec (let [delta-spaces (- new-start-column start-column) new-spaces
+  (+ spaces-before delta-spaces) previous-element-index (dec
+  inline-comment-index) [s c e :as previous-element] (nth style-vec
+  previous-element-index) new-previous-element (cond (= e :indent) [(str "\n"
+  (blanks new-spaces)) c e] (= e :whitespace) [(str (blanks new-spaces))
+  c e 26] :else nil)] (assoc style-vec previous-element-index
+  new-previous-element))))
+```
+
+into this:
+
+```
+(defn change-start-column
+  [new-start-column style-vec
+   [inline-comment-index start-column spaces-before :as comment-vec]]
+  (if (zero? inline-comment-index)
+    style-vec
+    (let [delta-spaces (- new-start-column start-column)
+          new-spaces (+ spaces-before delta-spaces)
+          previous-element-index (dec inline-comment-index)
+          [s c e :as previous-element] (nth style-vec previous-element-index)
+          new-previous-element
+            (cond (= e :indent) [(str "\n" (blanks new-spaces)) c e]
+                  (= e :whitespace) [(str (blanks new-spaces)) c e 26]
+                  :else nil)]
+      (assoc style-vec previous-element-index new-previous-element))))
+```
+
 ### *Recent Additions!* 
 
  * Made considerable improvements in multi-format-pass "stability".  Thus, if

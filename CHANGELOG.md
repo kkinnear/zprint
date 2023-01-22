@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
   wanted a way to format functions where the function name was over
   some length differently than they are usually formatted.  Both capabilities
   are now available by using a built-in `:option-fn`.  See `:rule-example`
-  (and `:regex-example`) in the `:style-map` for some worked example.  The
+  (and `:regex-example`) in the `:style-map` for some worked examples.  The
   `:option-fn` `rulesfn` accepts a vector of pairs of elements as its
   first argument.  If the left-hand-side of a pair is a function, it will
   call that function with the string format of the function name. If the
@@ -83,7 +83,7 @@ All notable changes to this project will be documented in this file.
   was wrapped -- adding another line.  Sometimes this additional
   line can trigger a change in a formatting heuristic which can
   change the formatting in a way that is visible.  The changes to
-  resolve this issue cause a number of subtle formatting changes
+  resolve this issue caused a number of subtle formatting changes
   in many places, though nothing particularly unpleasant.  If you
   wish to forego the repeatability changes and replicate the
   formatting of previous verions as much as possible, you can use

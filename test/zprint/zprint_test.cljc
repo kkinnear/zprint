@@ -8091,6 +8091,20 @@ i275
 ";!zprint {:format :off}\n#::foo{:bar :baz}\n"
 (zprint-file-str i275 "x" {}))
 
+;;
+;; Issue #273 -- ensure that we will still justify stuff even when
+;; there is a comment in a set of pairs.
+;;
+
+ (def
+ i273clve
+"(defn cleave-end\n  \"Take a seq, and if it is contains a single symbol, simply return\n  it in another seq.  If it contains something else, remove any non\n  collections off of the end and return them in their own double seqs,\n  as well as return the remainder (the beginning) as a double seq.\"\n  [coll]\n  (if (or (zsymbol? (first coll)) (zreader-cond-w-symbol? (first coll)))\n    ;(symbol? (first coll))\n    (list coll)\n    (let [rev-seq (reverse coll)\n          [split-non-coll _]\n            ;(split-with (comp not zcoll?) rev-seq)\n            (split-with #(not (or (zcoll? %) (zreader-cond-w-coll? %))) rev-seq)\n          #_(def sncce split-non-coll)\n          split-non-coll (map list (reverse split-non-coll))\n          remainder (take (- (count coll) (count split-non-coll)) coll)]\n      (if (empty? remainder)\n        split-non-coll\n        (concat (list remainder) split-non-coll)))))\n")
+
+(expect
+"(defn cleave-end\n  \"Take a seq, and if it is contains a single symbol, simply return\n  it in another seq.  If it contains something else, remove any non\n  collections off of the end and return them in their own double seqs,\n  as well as return the remainder (the beginning) as a double seq.\"\n  [coll]\n  (if (or (zsymbol? (first coll)) (zreader-cond-w-symbol? (first coll)))\n    ;(symbol? (first coll))\n    (list coll)\n    (let [rev-seq            (reverse coll)\n          [split-non-coll _]\n            ;(split-with (comp not zcoll?) rev-seq)\n            (split-with #(not (or (zcoll? %) (zreader-cond-w-coll? %))) rev-seq)\n          #_(def sncce split-non-coll)\n          split-non-coll     (map list (reverse split-non-coll))\n          remainder          (take (- (count coll) (count split-non-coll))\n                                   coll)]\n      (if (empty? remainder)\n        split-non-coll\n        (concat (list remainder) split-non-coll)))))"
+
+(zprint-str i273clve {:parse-string? true :style :justified}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

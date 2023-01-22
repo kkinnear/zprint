@@ -104,22 +104,20 @@
        ; sequence expecting the previous fn mappings to be in place.
        ;
        (try (doall (body-fn))
-            (finally (zlocking
-                       ztype-lock
-                       (let [[current-type the-count] @ztype]
-                         #_(swap! ztype-history conj
-                             [:out the-type current-type the-count])
-                         (if (= current-type the-type)
-                           ; Note that we never put the original values back, as
-                           ; they
-                           ; might be fine for the next call, saving us the
-                           ; trouble
-                           ; of setting them again.  We do, of course, decrement
-                           ; the
-                           ; count.
-                           (reset! ztype [current-type (dec the-count)])
-                           (throw
-                             (Exception.
-                               (str "Internal Error: when attempting to reduce"
-                                    " count of invocations using: " the-type
-                                    ", the type was: " current-type))))))))))
+            (finally
+              (zlocking ztype-lock
+                        (let [[current-type the-count] @ztype]
+                          #_(swap! ztype-history conj
+                              [:out the-type current-type the-count])
+                          (if (= current-type the-type)
+                            ; Note that we never put the original values
+                            ; back, as they might be fine for the next
+                            ; call, saving us the trouble of setting
+                            ; them again.  We do, of course,  decrement
+                            ; the  count.
+                            (reset! ztype [current-type (dec the-count)])
+                            (throw
+                              (Exception.
+                                (str "Internal Error: when attempting to reduce"
+                                     " count of invocations using: " the-type
+                                     ", the type was: " current-type))))))))))

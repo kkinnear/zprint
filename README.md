@@ -9,7 +9,7 @@ a number of major source code formattng approaches.
 
 ### *Overview*
 
-zprint can turn this:
+*zprint* does far more than just indent you code.  It will turn this:
 
 ```
 (defn change-start-column [new-start-column style-vec [inline-comment-index

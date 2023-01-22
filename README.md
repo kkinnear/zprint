@@ -7,9 +7,9 @@ a number of major source code formattng approaches.
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
-### *Overview*
+### Overview
 
-*zprint* does far more than just indent you code.  It will turn this:
+_zprint_ does far more than just properly indent code.  It will turn this:
 
 ```
 (defn change-start-column [new-start-column style-vec [inline-comment-index

@@ -32,7 +32,9 @@ jobs:
   build-native:
     needs: build-jar
 
-    runs-on: ubuntu-latest
+    # ubuntu-latest uses a GLIBC not available on older Linux systems
+    # making distribution of the build artifact not possible
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Download artifacts

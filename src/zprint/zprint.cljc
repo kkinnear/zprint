@@ -3324,12 +3324,12 @@
                                              hindent
                                              pair-seq))))]
                   [hang-result (style-lines options hindent hang-result)]))
-             ; We used to calculate hang-count by doing the hang an 
-	     ; then  counting the output.  But ultimately this is 
-	     ; simple a series of map calls to the elements of 
-	     ; seq-right, so we go right to the source for this
-             ; number now.  That let's us move the interpose calls 
-	     ; above this point.
+             ; We used to calculate hang-count by doing the hang an
+             ; then  counting the output.  But ultimately this is
+             ; simple a series of map calls to the elements of
+             ; seq-right, so we go right to the source for this
+             ; number now.  That let's us move the interpose calls
+             ; above this point.
              [hanging [hanging-line-count :as hanging-lines]] (zat options
                                                                    hanging)
              hang-count (count seq-right)
@@ -3809,8 +3809,8 @@
                                         (= first-type :comment-inline))))
                            (ensure-start-w-nl ind coll-out)
                            coll-out)
-                ; Eensure that we end with a newline if we are 
-		; the first thing
+                ; Ensure that we end with a newline if we are
+                ; the first thing
                 coll-out (if (not= starting-count 0)
                            coll-out
                            (ensure-end-w-nl ind coll-out))
@@ -5221,10 +5221,10 @@
                           caller
                           loptions
                           ; Apparently hang-remaining gives
-                          ; you a space after the current 
-			  ; thing, so we need to account 
-			  ; for it now, since max-width is 
-			  ; the end of the current thing
+                          ; you a space after the current
+                          ; thing, so we need to account
+                          ; for it now, since max-width is
+                          ; the end of the current thing
                           (inc max-width)
                           (dec (+ indent indent ind))
                           (get-zloc-seq-right
@@ -5295,12 +5295,12 @@
         (= fn-style :arg1-extend)
           (let [zloc-seq-right-second (get-zloc-seq-right second-data)]
             (cond (zvector? arg-2-zloc)
-                    ; This will put the second argument 
-		    ; (a vector) on a different line than 
-		    ; the function name.  No known uses 
-		    ; for this code as of 7/20/19.  It 
-		    ; does work with :respect-nl and has 
-		    ; tests.
+                    ; This will put the second argument
+                    ; (a vector) on a different line than
+                    ; the function name.  No known uses
+                    ; for this code as of 7/20/19.  It
+                    ; does work with :respect-nl and has
+                    ; tests.
                     (concat-no-nil
                       l-str-vec
                       pre-arg-1-style-vec
@@ -5569,29 +5569,28 @@
                            (concat-no-nil [[" " :none :whitespace 15]] this-seq)
                            this-seq)
                          (if newline?
-                           [[(str
-                               "\n"
-                               ; Fix sets and vectors to have 
-			       ; terminal right thing after a 
-			       ; comment or newline be indented 
-			       ; like other elements are.  Used 
-			       ; to just be (blanks (dec new-ind))
-                               ; now the if checks to see if we 
-			       ; are at the end, and does new-ind, 
-			       ; which is like the other stuff.
-                               ; But wrong for the future of where 
-			       ; we are going, as it happens.
-                               (blanks
-                                 ; Figure out what the next thing is
-                                 (let [this-seq-next (first (next cur-seq))
-                                       newline-next?
-                                         (when this-seq-next
-                                           (= (nth (first this-seq-next) 2)
-                                              :newline))]
-                                   ; If the next thing is a newline,
-                                   ; don't put any blanks on this line
-                                   (if newline-next? 0 (dec new-ind))))) :none
-                             :indent 21]]
+                           [[(str "\n"
+                                  ; Fix sets and vectors to have
+                                  ; terminal right thing after a
+                                  ; comment or newline be indented
+                                  ; like other elements are.  Used
+                                  ; to just be (blanks (dec new-ind))
+                                  ; now the if checks to see if we
+                                  ; are at the end, and does new-ind,
+                                  ; which is like the other stuff.
+                                  ; But wrong for the future of where
+                                  ; we are going, as it happens.
+                                  (blanks
+                                    ; Figure out what the next thing is
+                                    (let [this-seq-next (first (next cur-seq))
+                                          newline-next?
+                                            (when this-seq-next
+                                              (= (nth (first this-seq-next) 2)
+                                                 :newline))]
+                                      ; If the next thing is a newline,
+                                      ; don't put any blanks on this line
+                                      (if newline-next? 0 (dec new-ind)))))
+                             :none :indent 21]]
                            ; Unclear if a prepend-nl would be useful here...
                            (if previous-newline?
                              (concat-no-nil [[" " :none :whitespace 16]]
@@ -6214,9 +6213,9 @@
                            (prepend-nl
                              options
                              ; This code is related to the code under
-                             ; fit? above, but without 
-			     ; previous-newline?, as that is assumed 
-			     ; since we are calling prepend-nl.
+                             ; fit? above, but without
+                             ; previous-newline?, as that is assumed
+                             ; since we are calling prepend-nl.
                              ;
                              ; Note that this is largely for ensuring
                              ; that non-inline comments end up indented
@@ -7270,17 +7269,17 @@
                                [[["" :none :whitespace 17]]]
                                (fzprint-seq options new-ind zloc-seq))
                   _ (dbg-pr options "fzprint-vec*: coll-print:" coll-print)
-                  ; If we got any nils from fzprint-seq 
-		  ; and we were in :one-line mode then 
-		  ; give up -- it didn't fit on one line.
+                  ; If we got any nils from fzprint-seq
+                  ; and we were in :one-line mode then
+                  ; give up -- it didn't fit on one line.
                   coll-print (if-not (contains-nil? coll-print) coll-print)
                   one-line (when coll-print
                              ; should not be necessary with contains-nil? above
                              (apply concat-no-nil
                                (interpose [[" " :none :whitespace 18]]
-                                 ; This causes single line things to 
-				 ; also respect-nl when it is enabled.  
-				 ; Could be separately controlled
+                                 ; This causes single line things to
+                                 ; also respect-nl when it is enabled.
+                                 ; Could be separately controlled
                                  ; instead of with :respect-nl? if desired.
                                  (if (or respect-nl? :respect-bl? indent-only?)
                                    coll-print
@@ -8146,16 +8145,16 @@
                                      :first-indent-only?)
                      (fzprint-flow-seq
                        :meta
-                       ; No rightmost, because this isn't 
-		       ; a collection.  This is essentially 
-		       ; two separate things.
+                       ; No rightmost, because this isn't
+                       ; a collection.  This is essentially
+                       ; two separate things.
                        options
                        ; no indent for second line, as the
-                       ; leading ^ is not a normal 
-		       ; collection beginning. 
-		       ; Generate a separate indent for the
-                       ; first thing, and use ind for the 
-		       ; remaining.
+                       ; leading ^ is not a normal
+                       ; collection beginning.
+                       ; Generate a separate indent for the
+                       ; first thing, and use ind for the
+                       ; remaining.
                        (apply vector
                          (+ (count l-str) ind)
                          (repeat (dec (count zloc-seq)) ind))
@@ -8244,9 +8243,9 @@
                        r-str-vec-io))
       (concat-no-nil
         l-str-vec
-        ; Because there is a token here in the zipper, 
-	; we need something to make the focus 
-	; positioning come out right.
+        ; Because there is a token here in the zipper,
+        ; we need something to make the focus
+        ; positioning come out right.
         [["" :none :element]]
         (if reader-cond?
           ; yes rightmost, this is a collection
@@ -8254,14 +8253,14 @@
                         "("
                         ")"
                         (rightmost options)
-                        ; Here is where we might adjust the 
-			; indent, but if we do it here 
-			; (since this looks like a list),
-			; we also have to deal with it when 
-			; the map code is doing the next 
-			; thing (like :cljs after  :clj). 
-			; If you just (dec indent) here 
-			; you break 14 tests.
+                        ; Here is where we might adjust the
+                        ; indent, but if we do it here
+                        ; (since this looks like a list),
+                        ; we also have to deal with it when
+                        ; the map code is doing the next
+                        ; thing (like :cljs after  :clj).
+                        ; If you just (dec indent) here
+                        ; you break 14 tests.
                         (+ indent ind)
                         floc
                         nil)

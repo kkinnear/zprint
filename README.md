@@ -11,7 +11,7 @@ a number of major source code formatting approaches.
 
 **zprint** does far more than just properly indent code.  **Before**:
 
-```
+```clojure
 (defn change-start-column [new-start-column style-vec [inline-comment-index
   start-column spaces-before :as comment-vec]] (if (zero? inline-comment-index)
   style-vec (let [delta-spaces (- new-start-column start-column) new-spaces
@@ -25,7 +25,7 @@ a number of major source code formatting approaches.
 
 **After**:
 
-```
+```clojure
 (defn change-start-column
   [new-start-column style-vec
    [inline-comment-index start-column spaces-before :as comment-vec]]
@@ -188,7 +188,7 @@ The last zprint release built with Clojure 1.8 was [zprint "0.4.15"].
 In addition to the zprint dependency, you also need to
 include the following library when using Clojure 1.8:
 
-```
+```clojure
 [clojure-future-spec "1.9.0-alpha17"]
 ```
 

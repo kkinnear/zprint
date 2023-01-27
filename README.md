@@ -3,7 +3,7 @@
 __zprint__ is a library and command line tool providing a variety
 of pretty printing capabilities for both Clojure code and Clojure/EDN
 structures.  It can meet almost anyone's needs.  As such, it supports
-a number of major source code formattng approaches.
+a number of major source code formatting approaches.
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 

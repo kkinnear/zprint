@@ -95,7 +95,7 @@
     :gt2-force-nl :gt3-force-nl :flow :flow-body :force-nl-body :force-nl
     :pair-fn :arg1-mixin :arg2-mixin :indent :replace-w-string :guided
     :arg1-force-nl-body :arg2-extend-body :wrap :guided-body :arg2-force-nl-body
-    :arg2-force-nl :arg1-extend-body})
+    :arg2-force-nl :arg1-extend-body :list})
 (s/def ::fn-type-w-map
   (s/or :general-options (s/tuple ::fn-type ::options)
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
@@ -372,7 +372,8 @@
                       ::return-altered-zipper ::respect-bl? ::respect-nl?
                       ::indent-only? ::indent-only-style ::replacement-string
                       ::wrap-coll? ::wrap-after-multi? ::wrap-multi? ::force-nl?
-                      ::wrap? ::nl-count ::no-wrap-after :alt/tuning]))
+                      ::wrap? ::nl-count ::no-wrap-after :alt/tuning
+		      ::nl-separator?]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map

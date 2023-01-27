@@ -4344,6 +4344,21 @@
    :arg2-extend-body :extend,
    :pair-fn :pair})
 
+(defn find-nl-count
+  "Look at a style-vec, and if it is more than one line, return n, otherwise
+  return 1."
+  [options ind n out style-vec]
+  (let [lines (style-lines options ind style-vec)
+        fit? (fzfit-one-line options lines)]
+    (conj out (if fit? 1 n))))
+
+(defn create-nl-count-vec
+  "Given a zloc-seq, create an nl-count vector which has the right
+  number (i.e., nl-count) of newlines between everything that is already
+  multi-line, and 1 otherwise.  Return the vector."
+  [options ind nl-count coll-print]
+  (reduce (partial find-nl-count options ind nl-count) [] coll-print))
+
 (defn get-respect-indent
   "Given an options map, get the respect-nl?, respect-bl? and indent-only?
   options from the caller's options, and if the caller doesn't define these,
@@ -4811,7 +4826,7 @@
           ; but until there are more than three (well four) exceptions, seems
           ; like too much mechanism.
           fn-style (if (#{:hang :flow :flow-body :binding :replace-w-string
-                          :guided}
+                          :guided :list}
                         fn-style)
                      fn-style
                      (if (< len 3) nil fn-style))
@@ -5362,6 +5377,59 @@
                                             new-ind
                                             coll-print))
                              r-str-vec)))
+        ; This is where we want to interpret a list as just a list, and not
+        ; something with a function as the first element.  It works not only
+        ; for lists, but for vectors as well with :fn-format.
+        (or (= fn-style :list) (:list? (caller options)))
+          (let [new-ind (+ indent ind)
+                coll-print (fzprint-seq options new-ind zloc-seq)
+                _ (dbg-pr options
+                          "fzprint-list*: :list coll-print:"
+                          coll-print)]
+            (if (contains-nil? coll-print)
+              nil
+              (if (:nl-separator? (caller options))
+                ; If we are doing nl-separator, we are going to look
+                ; at each of the elements in coll-print, and if it is
+                ; multi-line, we will put :nl-count newlines after it
+                ; otherwise we will do 1 newline.
+                ; If nl-separator? is true (this arm of the if)
+                ; and nl-count is a vector, then we will
+                ; assume 2 for the nl-count.
+                (let [nl-count (or (:nl-count (caller options)) 2)
+                      nl-count (if (vector? nl-count) 2 nl-count)
+                      nl-count-vector (create-nl-count-vec options
+                                                           new-ind
+                                                           nl-count
+                                                           coll-print)
+                      _ (dbg-s options
+                               #{:list}
+                               "count coll-print:" (count coll-print)
+                               "nl-count-vector:" nl-count-vector
+                               "caller:" caller
+                               "(:nl-count caller):" (:nl-count (caller
+                                                                  options)))]
+                  (concat-no-nil l-str-vec
+                                 (apply concat-no-nil
+                                   (precede-w-nl options
+                                                 new-ind
+                                                 coll-print
+                                                 :no-nl-first
+                                                 nl-count-vector
+                                                 #_(:nl-count (caller
+                                                                options))))
+                                 r-str-vec))
+                ; nl-separator? false -- nl-count is the number of newlines
+                ; between every element in the list.  Defaults to 1 in
+                ; precede-w-nl.
+                (concat-no-nil l-str-vec
+                               (apply concat-no-nil
+                                 (precede-w-nl options
+                                               new-ind
+                                               coll-print
+                                               :no-nl-first
+                                               (:nl-count (caller options))))
+                               r-str-vec))))
         ; Unspecified seq, might be a fn, might not.
         ; If (first zloc) is a seq, we won't have an
         ; arg-1-indent.  In that case, just flow it

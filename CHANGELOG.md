@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * Added function type `:list`, for when you want a list interpreted
+  as just a list of data, without assuming that the first element of
+  the list is a function of some type.   In addition, `:nl-separator?`
+  has been also added to `:list` in the option map.  It only has 
+  meaning when using the `:list` function type.  In that case, if it is
+  true, every list element that requires more than one line will have
+  an additional newline after it, resulting in a blank line.  In this
+  case (where `:nl-separator? true`), `:nl-count` will be used as the
+  number of newlines to use after some element that takes more than
+  one line.  The default is 2, but you can set it to be anything you
+  wish.  In this situation, a vector value for `:nl-count` is not allowed,
+  and if a vector is configured, the value 2 is used instead.
+  Issue #283.
+
 ### Changed
   
 ### Fixed
@@ -334,7 +348,7 @@ All notable changes to this project will be documented in this file.
   like this, and Issue #184 pushed me into actually implementing it.
 
   * `{:list {:wrap? true}}` will cause a list to wrap just like vectors
-  do by default.  You can this this for a function using the `:wrap` 
+  do by default.  You could get this for a function using the `:wrap` 
   function type, but now you can get it for lists in general as well.
 
   * New styles: `:require-macros-justify` and `:import-justify`, as well as

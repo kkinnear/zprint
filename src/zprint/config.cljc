@@ -1,4 +1,3 @@
-;!zprint {:style :require-justify}
 (ns ^:no-doc zprint.config
   #?(:clj [:refer-clojure :exclude [read-string]])
   #?@(:cljs [[:require-macros
@@ -440,7 +439,7 @@
    "with-out-str" :none-body,
    "with-redefs" :binding,
    "with-redefs-fn" :arg1-body,
-   :quote [:none
+   :quote [:list
            {:list {:hang? false, :indent 1},
             ; This probably isn't going to make any difference, as
             ; quote? sticks around for a good long time.
@@ -569,6 +568,7 @@
           :indent-only? false,
           :indent-only-style :input-hang,
           :nl-count nil,
+	  :nl-separator? false
           :no-wrap-after nil,
           :option-fn nil,
           :pair-hang? true,

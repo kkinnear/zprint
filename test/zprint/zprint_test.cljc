@@ -8105,6 +8105,68 @@ i275
 
 (zprint-str i273clve {:parse-string? true :style :justified}))
 
+;;
+;; Issue #283 -- blank lines only after elements in a vector that take more
+;; than one line.
+;;
+
+ (def
+ i283j
+"{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n  {:foo/bar :programs\n   :foo/bar [{:foo/bar :foo/baz\n              :name \"bardel\"\n              :activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]}\n             {:foo/bar :foo/baz\n              :name \"irresonant\"\n              :activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]}]}]}\n")
+(expect
+
+"{:foo/bar\n   [{:foo/bar :activities,\n     :foo/bar []}\n\n    {:foo/bar :programs,\n     :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.objectivism,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.nonperforming}\n                             {:foo/bar :foo/bar.splenodynia,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.Cashmere}\n                             {:foo/bar :foo/bar.undelectably,\n                              :start-offset-days 5}\n\n                             {:foo/bar :foo/bar.theosopheme,\n                              :start-offset-days 20}],\n                :foo/bar :foo/baz,\n                :name \"bardel\"}\n\n               {:activities [{:foo/bar :foo/bar.phytogenetical,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.oriental,\n                              :start-offset-days 5}],\n                :foo/bar :foo/baz,\n                :name \"irresonant\"}]}]}"
+
+(zprint-str i283j {:parse-string? true :vector {:fn-format :list} :vector-fn {:nl-count 2 :indent 1 :hang? false :nl-separator? true} :map {:force-nl? true}}))
+
+
+
+ (def
+ i283m
+"{:foo/bar\n   [{:foo/bar :activities, :foo/bar []}\n    {:foo/bar :programs,\n     :foo/bar\n       [{:activities [{:foo/bar :foo/bar.cosmic, :start-offset-days 0}\n                      {:foo/bar :foo/bar.objectivism, :start-offset-days 0}\n                      {:foo/bar :foo/bar.nonperforming}\n                      {:foo/bar :foo/bar.splenodynia, :start-offset-days 0}\n                      {:foo/bar :foo/bar.Cashmere}\n                      {:foo/bar :foo/bar.undelectably, :start-offset-days 5}\n                      {:foo/bar :foo/bar.theosopheme, :start-offset-days 20}],\n         :foo/bar :foo/baz,\n         :name \"bardel\"}\n        {:activities [{:foo/bar :foo/bar.phytogenetical, :start-offset-days 0}\n                      {:foo/bar :foo/bar.oriental, :start-offset-days 5}],\n         :foo/bar :foo/baz,\n         :name \"irresonant\"}]} {:foo/bar :stuff} {:bother [], :foo/bar :stuff}]}\n")
+
+
+(expect
+"{:foo/bar\n   [{:foo/bar :activities,\n     :foo/bar []}\n\n    {:foo/bar :programs,\n     :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.objectivism,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.nonperforming}\n                             {:foo/bar :foo/bar.splenodynia,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.Cashmere}\n                             {:foo/bar :foo/bar.undelectably,\n                              :start-offset-days 5}\n\n                             {:foo/bar :foo/bar.theosopheme,\n                              :start-offset-days 20}],\n                :foo/bar :foo/baz,\n                :name \"bardel\"}\n\n               {:activities [{:foo/bar :foo/bar.phytogenetical,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.oriental,\n                              :start-offset-days 5}],\n                :foo/bar :foo/baz,\n                :name \"irresonant\"}]}\n\n    {:foo/bar :stuff}\n    {:bother [],\n     :foo/bar :stuff}]}"
+(zprint-str i283m {:parse-string? true :vector {:fn-format :list} :vector-fn {:nl-count 2 :indent 1 :hang? false :nl-separator? true} :map {:force-nl? true}}))
+
+
+
+(def
+i283l
+"[{:a :b}\n {:c :d :e :f}\n {:t [{:u :v}\n      {:w :x}\n      {:y :z :aa :bb}\n      {:cc :dd}\n      {:ee :ff :gg :hh}]}\n {:h :i}\n {:j :k :l :m}\n {:n :o :p :q}\n {:r :s}\n ]\n")
+
+(expect
+"[{:a :b}\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
+
+(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:nl-count 2 :indent 1 :hang? false :nl-separator? true} :map {:force-nl? true}}))
+
+
+(def
+ i283k
+"[{:a :b}\n {:c :d :e :f}\n {:h :i}\n {:j :k :l :m}\n {:n :o :p :q}\n {:r :s}\n ]\n")
+
+(expect
+"[{:a :b}\n {:c :d,\n  :e :f}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
+(zprint-str i283k {:parse-string? true :vector {:fn-format :list} :vector-fn {:nl-count 2 :indent 1 :hang? false :nl-separator? true} :map {:force-nl? true}}))
+
+(expect
+"[{:a :b}\n\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n\n      {:w :x}\n\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
+
+(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? false :nl-count 2} :map {:force-nl? true}}))
+
+(expect
+"[{:a :b}\n {:c :d,\n  :e :f}\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n {:h :i}\n {:j :k,\n  :l :m}\n {:n :o,\n  :p :q}\n {:r :s}]"
+(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? false} :map {:force-nl? true}}))
+
+(expect
+"[{:a :b}\n\n\n {:c :d,\n  :e :f}\n\n\n\n {:t [{:u :v}\n\n\n      {:w :x}\n\n\n\n      {:aa :bb,\n       :y :z}\n\n\n\n\n      {:cc :dd}\n\n\n\n\n      {:ee :ff,\n       :gg :hh}]}\n\n\n\n\n {:h :i}\n\n\n\n\n {:j :k,\n  :l :m}\n\n\n\n\n {:n :o,\n  :p :q}\n\n\n\n\n {:r :s}]"
+(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? false :nl-count [3 4 5]} :map {:force-nl? true}}))
+
+(expect
+"[{:a :b}\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
+(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? true :nl-count [3 4 5]} :map {:force-nl? true}}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

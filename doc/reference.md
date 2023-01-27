@@ -1283,6 +1283,121 @@ When using this function type, you may find it useful to use
 don't want to ever be the last element on a line.  See `:list :no-wrap-after`
 for more details.
 
+#### :list
+
+Output this expression as a list, without inferring that a function
+is present as the first element.  While you might use this directly
+in the `:fn-map` and associate it with a first list element that is
+known to not be a function, there are other options.  You might use
+it as the default in the function map, or you might use it as the
+output of an `:option-fn`.  In particular, you might use it as the
+output of the `:option-fn` `rulesfn`.  See the style `:rules-example`
+in this document for details of how to do this.
+
+Some examples:
+
+This is what lists look like normally, if the first thing (the likely
+function) isn't recognized in the `:fn-map`:
+
+```
+(czprint i283n {:parse-string? true})
+(this is
+      a
+      test
+      (this is
+            only
+            a
+            test
+            with
+            a
+            list
+            that
+            is
+            very
+            long
+            and
+            will
+            not
+            actually
+            fit
+            on
+            one
+            line))
+```
+
+This is what you get if the first thing isn't assumed to be a function
+by using tghe `:list` function type.  Note that the indent was changed
+to 1 in this case because otherwise all of the elements after the first
+are indented to spaces, which doesn't look all that great:
+
+```
+(czprint i283n
+         {:parse-string? true, :fn-map {"this" [:list {:list {:indent 1}}]}})
+(this
+ is
+ a
+ test
+ (this
+  is
+  only
+  a
+  test
+  with
+  a
+  list
+  that
+  is
+  very
+  long
+  and
+  will
+  not
+  actually
+  fit
+  on
+  one
+  line))
+```
+
+If you were to make this the default (which probably isn't a good
+idea in general), this is how you would do it:
+
+```
+(czprint i283n
+         {:parse-string? true, :fn-map {:default [:list {:list {:indent 1}}]}})
+(this
+ is
+ a
+ test
+ (this
+  is
+  only
+  a
+  test
+  with
+  a
+  list
+  that
+  is
+  very
+  long
+  and
+  will
+  not
+  actually
+  fit
+  on
+  one
+  line))
+```
+
+It isn't a good idea to do this all the time because most lists are, 
+indeed, Clojure code and have functions as their first elements.  This
+is what you might do in a special case in a ;!zprint directive or
+as the return from an `:option-fn`.
+
+  
+
 #### :gt2-force-nl and :gt3-force-nl
 
 These two function styles exist to be assigned to functions that should
@@ -3931,6 +4046,19 @@ This capability is something that is building block to get particular
 formatting in some special cases where a `fn-type` is in use`.
 It isn't meant to be a generally useful capabiity to, say, 
 format all lists with extra lines between them.
+
+
+#### :nl-separator? _false_
+
+This only has meaning when using the `:list` function type.  In
+that case, if it is true, every list element that requires more
+than one line will have an additional newline after it, resulting
+in a blank line.  In this case (where `:nl-separator? true`),
+`:nl-count` (if set) will be used as the number of newlines to use
+after some element that takes more than one line.  If `:nl-count`
+is unset, the default is 2, but you can set it to be anything you
+wish.  In this situation, a vector value for `:nl-count` is not
+allowed, and if a vector is configured, the value 2 is used instead.
 
 `:list` supports some of the same keys as does vector:
 

@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.2 - 2023-01-25
+## 1.2.6 - 2023-01-25
 
 ### Added
 
@@ -17,6 +17,16 @@ All notable changes to this project will be documented in this file.
   one line.  The default is 2, but you can set it to be anything you
   wish.  In this situation, a vector value for `:nl-count` is not allowed,
   and if a vector is configured, the value 2 is used instead.
+  Issue #283.
+
+  * If you were using zprint as a library, and you kept the configuration
+  you wanted to use with zprint in a file of your own, there was no safe
+  way to give that configuration to zprint if it contained function 
+  definitions -- which it might need to for `:option-fn` values.  Now
+  you can pass a string value of an options map to `set-options!`,
+  and it will read and 'compile' that options map (including any functions)
+  using the Small Clojure Interpreter (sci) built into zprint, the same
+  way that zprint handles reading external configuration files.
   Issue #283.
 
 ### Changed

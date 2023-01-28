@@ -44,6 +44,14 @@ a number of major source code formatting approaches.
 
 ### *Recent Additions!* 
 
+  * If you were using zprint as a library, and you kept the configuration
+  you wanted to use with zprint in a file of your own, there was no safe
+  way to give that configuration to zprint if it contained function 
+  definitions -- which it might need to for `:option-fn` values.  Now
+  you can pass a string value of an options map to `set-options!`,
+  and it will read and 'compile' that options map (including any functions)
+  using the Small Clojure Interpreter (sci) built into zprint, the same
+  way that zprint handles reading external configuration files.
  * Made considerable improvements in multi-format-pass "stability".  Thus, if
  you format the same file multiple times, it is considerably less likely 
  to change the second time.  The biggest issues were when using `:repect-nl`,

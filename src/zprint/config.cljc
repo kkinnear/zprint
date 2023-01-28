@@ -1658,6 +1658,23 @@
   ([new-options doc-str]
    (config-set-options! new-options doc-str (select-op-options new-options))))
 
+(declare get-config-from-string)
+
+(defn ensure-options-are-map
+  "Take a potential options map, and if it is already a map, return it
+  unchanged.  If it is a string, use sci-load-string to turn it into a
+  map.  If this has a problem, throw an error."
+  [new-options doc-str]
+  (if (string? new-options)
+    (let [[options-map err-str] (get-config-from-string new-options)]
+      (if err-str
+        (throw (#?(:clj Exception.
+                   :cljs js/Error.)
+                (str "set-options! for " doc-str
+                     " found these errors: " err-str)))
+        options-map))
+    new-options))
+
 ;;
 ;; # Options Validation Functions
 ;;
@@ -1911,7 +1928,7 @@
               dirs-to-root))
      :cljs nil))
 
-(defn get-config-from-map
+(defn get-config-from-string
   "Read in an options map from a string."
   [map-string]
   (when map-string
@@ -1920,8 +1937,8 @@
                    :cljs :default)
            e
            [nil
-            (str "Unable to read configuration from map" map-string
-                 " because " e)]))))
+            (str "Unable to read configuration from string '" map-string
+                 "' because " e)]))))
 
 (defn strtf->boolean
   "If it is a string, and it is true or false (any case), turn it

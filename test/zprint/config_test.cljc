@@ -912,6 +912,48 @@
       (get-options)))
 
 
+   ;
+   ; Test set-options! from string, Issue #283
+   ;
+
+(def i283p
+"{:vector {:option-fn (fn\n                       ([] \"vector-lines\")\n                       ([options len sexpr]\n                        {:guide (into []\n                                      (->> (repeat (count sexpr) :element)\n                                           (interpose [:newline :newline])\n                                           flatten))}))}}\n")
+
+  ; We expect this to have worked if there is a legit function in the 
+  ; :vector {:option-fn ...}
+
+  (expect (more-of options
+            true (fn? (:option-fn (:vector options))))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)
+                        zprint.config/write-options? (atom nil)]
+            (set-options! i283p)
+            (get-options)))
+
+
+
+ (def
+ i283q
+"{:vector {:option-fn (fnx\n                       ([] \"vector-lines\")\n                       ([options len sexpr]\n                        {:guide (into []\n                                      (->> (repeat (count sexpr) :element)\n                                           (interpose [:newline :newline])\n                                           flatten))}))}}\n")
+
+  (expect #?(:clj Exception
+             :cljs js/Error)
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)
+                        zprint.config/write-options? (atom nil)]
+	    ; This should cause an Exception, because (fnx ...) isn't
+	    ; correct in the string.
+            (set-options! i283q)
+            (get-options)))
+
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

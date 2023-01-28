@@ -395,6 +395,10 @@ number of ways that zprint can be configured, `(zprint nil :explain)`
 can be very useful to sort out how a particular configuration element
 was configured with its current value.
 
+You can also use `(zprint nil :explain-set)` or `(czprint nil :explain-set)`
+to see just the things that have non-default values, as the entire
+`:explain` output can be a bit much.
+
 The options map has a few top level configuration options, but
 much of the configuration is grouped into sub-maps.  The top level
 of the options map looks like this:
@@ -529,7 +533,7 @@ and converted again.
 
 ### set-options!
 
-You call set-options! with an EDN map of the specific key-value pairs
+You call `set-options!` with an EDN map of the specific key-value pairs
 that you want changed from the current values.  This is useful both
 when using zprint at the REPL, as well as when you are using to output
 information from a program that wants to configure zprint
@@ -540,6 +544,15 @@ in some particular way.  For example:
 
 (zp/set-options! {:map {:indent 0}})
 ```
+
+You can also call `set-options!` with a string value of a options map,
+and zprint will convert that string into an options map using the
+Small Clojure Interpreter (sci) linked into zprint.  In this way,
+you can safely import configurations from external files and be sure
+that they won't define any functions that might do dangerous things
+to your system or environment.  Only `set-options!` provides
+this string capability -- you cannot do this on individual function
+calls to zprint to actually format something.
 
 ### Options map on an individual call
 
@@ -563,15 +576,18 @@ You simply specify the options map on the call itself:
 
 There are several keys whose values must be functions, in order to
 allow complex analysis of the structure or code to be formatted.
-Function definitions for these keys may only be specified in the
-`$HOME/.zprintrc` or `$HOME/.zprint.edn` files, in calls to
-`set-options!`, or in options maps in individual calls.  
-Function defintions are explicitly disallowed in
-other `.zprintrc` and `.zprint.edn` files for security reasons,
-since code must be executed in order to define functions.
 
 When configuring function in files, use the `(fn [x y] ...)` form of 
 definition as opposed to the `#(...)` reader-macro form.
+
+You can also call `set-options!` with a string value of a options map,
+and zprint will convert that string into an options map using the
+Small Clojure Interpreter (sci) linked into zprint.  In this way,
+you can safely import configurations from external files and be sure
+that they won't define any functions that might do dangerous things
+to your system or environment.  Only `set-options!` provides
+this string capability -- you cannot do this on individual function
+calls to zprint to actually format something.
 
 ### Option Validation
 

@@ -25,7 +25,7 @@
                                 no-color-map merge-deep sci-load-string
                                 config-and-validate get-options-from-comment
                                 protected-configure-all! configure-if-needed!
-                                get-configured-options]]
+                                get-configured-options ensure-options-are-map]]
     [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?
                                 find-root-and-path-nw]]
     [zprint.sutil]
@@ -134,9 +134,16 @@
   options.  Operational options are those such as cwd-zprintrc? and
   search-config?."
   ([new-options doc-str op-options]
-   (do (config-set-options! new-options doc-str op-options) nil))
-  ([new-options doc-str] (do (config-set-options! new-options doc-str) nil))
-  ([new-options] (do (config-set-options! new-options) nil)))
+   (do (config-set-options! (ensure-options-are-map new-options doc-str)
+                            doc-str
+                            op-options)
+       nil))
+  ([new-options doc-str]
+   (do (config-set-options! (ensure-options-are-map new-options doc-str)
+                            doc-str)
+       nil))
+  ([new-options]
+   (do (config-set-options! (ensure-options-are-map new-options "")) nil)))
 
 ; Default [:cache :location]
 (def ^:dynamic ^:no-doc *default-cache-loc* ".")

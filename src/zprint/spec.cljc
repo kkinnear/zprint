@@ -182,6 +182,7 @@
 
 (s/def ::alt? ::boolean)
 (s/def ::binding? ::boolean)
+(s/def ::border number?)
 (s/def ::cache-dir (s/nilable string?))
 (s/def ::cache-path (s/nilable string?)); debugging only
 (s/def ::cache-secs ::nilable-number)
@@ -196,6 +197,8 @@
 (s/def ::dbg-s-set (s/nilable (s/coll-of keyword? :kind set?)))
 (s/def ::elide (s/nilable string?))
 (s/def ::end (s/nilable number?))
+(s/def ::end+start-cg (s/nilable (s/coll-of zany? :kind vector?)))
+(s/def ::end+skip-cg (s/nilable (s/coll-of zany? :kind vector?)))
 (s/def ::expand? ::boolean)
 (s/def ::flow? ::boolean)
 (s/def ::flow-all-if-any? ::boolean)
@@ -272,6 +275,8 @@
 (s/def ::new-l-str string?)
 (s/def ::new-r-str string?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
+(s/def ::smart-wrap
+  (only-keys :opt-un [::border #_::top-level? ::end+start-cg ::end+skip-cg]))
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
@@ -293,9 +298,12 @@
 (s/def ::unlift-ns? ::boolean)
 (s/def ::lift-ns-in-code? ::boolean)
 (s/def ::to-string? ::boolean)
+#_(s/def ::top-level? ::boolean)
+(s/def ::? ::boolean)
 (s/def ::use-previous-!zprint? ::boolean)
 (s/def ::value zany?)
 (s/def ::wrap? ::boolean)
+(s/def ::smart-wrap? ::boolean)
 (s/def ::wrap-after-multi? ::boolean)
 (s/def ::wrap-coll? ::boolean)
 (s/def ::wrap-multi? ::boolean)
@@ -324,7 +332,8 @@
                       ::syntax-quote ::syntax-quote-paren ::true ::uneval
                       ::unquote ::unquote-splicing ::user-fn]))
 (s/def :alt/comment
-  (only-keys :opt-un [::count? ::wrap? ::inline? ::inline-align-style]))
+  (only-keys :opt-un [::count? ::wrap? ::inline? ::inline-align-style
+                      ::smart-wrap? ::smart-wrap ::border]))
 (s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
 (s/def ::cwd-zprintrc? ::boolean)

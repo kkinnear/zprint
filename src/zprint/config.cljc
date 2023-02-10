@@ -505,7 +505,17 @@
                :uneval :magenta,
                :user-fn :black},
    :comment
-     {:count? false, :wrap? true, :inline? true, :inline-align-style :aligned},
+     {:count? false, :wrap? true, :inline? true, :inline-align-style :aligned
+      :border 5
+      :smart-wrap? false :smart-wrap {:border 5 #_#_:top-level? false
+      :end+start-cg  [#"^(;+)(\s*[b-zA-HJ-Z]\s+)" 
+                      #"^(;+)(\s*\w\.\s+)" 
+		      #"^(;+)(\s*[0-9]{1,2}\.?\s+)"
+		      #_#"^(;+)(\s*)([A-Z]*\s*[A-Z]*)*\:\s+"
+		      #_#"^(;+)(\s*)(?:[A-Z]+\s*[A-Z]+)*\:\s+"
+		      #"^(;+)(\s*)[A-Z][A-Z]"
+		      ]
+      :end+skip-cg [#"^;+\s*$"]}},
    :configured? false,
    :cwd-zprintrc? false,
    :dbg-ge nil,

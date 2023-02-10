@@ -14,7 +14,8 @@
     [zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map
                                 color-comp-vec handle-lines create-hvec-or-str]]
     [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments
-                                fzprint-align-inline-comments blanks]]
+                                fzprint-align-inline-comments blanks
+				fzprint-smart-wrap]]
     [zprint.config      :as    config
                         :refer [add-calculated-options config-set-options!
                                 get-options config-configure-all! reset-options!
@@ -840,11 +841,15 @@
                 inline-style-vec
                 focus-vec
                 accept-vec)
-            #_(def ssvx str-style-vec)
+            _ (def ssvx str-style-vec)
+	    smart-style-vec (if (:smart-wrap? (:comment options))
+	                        (fzprint-smart-wrap options str-style-vec)
+				str-style-vec)
+            _ (def smsv smart-style-vec)
             wrapped-style-vec (if (and (:wrap? (:comment options))
                                        (not format-off?))
-                                (fzprint-wrap-comments options str-style-vec)
-                                str-style-vec)
+                                (fzprint-wrap-comments options smart-style-vec)
+                                smart-style-vec)
             #_(def ssvy wrapped-style-vec)
             ; wrapped-style-vec is still a full style vec,
             ; with individual elements in it
@@ -1542,7 +1547,7 @@
             (partial process-form rest-options zprint-fn zprint-specifier)
             [full-options {} "" 0 0 true []]
             (zmap-all identity forms))
-        #_(def sozf seq-of-zprint-fn)
+        _ (def sozf seq-of-zprint-fn)
         seq-of-strings (mapv #(nth % 2) seq-of-zprint-fn)
         ; We were acccumulating the errors into the vector
         #_(println "last seq-of-zprint-fn:" (last seq-of-zprint-fn))

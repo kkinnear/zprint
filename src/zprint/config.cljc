@@ -515,7 +515,9 @@
 		      #_#"^(;+)(\s*)(?:[A-Z]+\s*[A-Z]+)*\:\s+"
 		      #"^(;+)(\s*)[A-Z][A-Z]"
 		      ]
-      :end+skip-cg [#"^;+\s*$"]}},
+      :end+skip-cg [#"^;+\s*$"]
+      :max-variance 30
+      :last-max 5}},
    :configured? false,
    :cwd-zprintrc? false,
    :dbg-ge nil,

@@ -792,6 +792,31 @@
   were warrented.  If new-ls is empty (but not nil), then it means that
   all of the text from the ls moved to the us.  Figures out the necessary
   separator(s), based in part of the existing punctuation."
+  [us-text ls-text available-space]
+  (let [; First, figure the separator(s), since we can't tell what will
+        ; fit without knowing what separators to use, if any.
+        [separator new-ls-text] (figure-separator us-text ls-text)
+        available-space (- available-space (count separator))
+        ; If new-ls is nil, no changes were made.  If new-ls is empty
+        ; but non-nil, then it is all in new-end-us, to be moved up
+        ; to the us in its entirety.
+        [new-end-us new-ls] (split-str-at-space-left new-ls-text
+                                                     available-space)]
+    (if new-ls
+      ; We have two pieces, so new-end-us goes up, and new-ls
+      ; stays here.
+      [(str us-text separator new-end-us) new-ls]
+      ; We didn't make any changes, leave things as they are.
+      [us-text nil])))
+
+(defn move-ls-to-us-alt
+  "Look at just the text (not semis or initial spaces) of the us and ls
+  and the available space, and determine if there is any reason to move
+  some or all of the ls onto the us.  If there is, do it, and return new
+  strings.  Returns [new-us new-ls].  If new-ls is nil, then no changes
+  were warrented.  If new-ls is empty (but not nil), then it means that
+  all of the text from the ls moved to the us.  Figures out the necessary
+  separator(s), based in part of the existing punctuation."
   [us-text ls-text available-space max-variance]
   (let [; First, figure the separator(s), since we can't tell what will
         ; fit without knowing what separators to use, if any.
@@ -816,13 +841,13 @@
   "Take the index into the style-vec for two comments, and balance the
   words in them. Returns a new style-vec in [new-style-vec changed?]."
   [start-col-vec style-vec semi-count space-count usable-space upper-idx
-   lower-idx comment-group max-variance]
+   lower-idx comment-group]
   (let [[us ucolor uwhat :as upper-element] (nth style-vec upper-idx)
         [ls lcolor lwhat :as lower-element] (nth style-vec lower-idx)
         ; All of the space measurement up to this point includes the
         ; semis and spaces on the front of every line.
         upper-space (count us)
-        lower-space (count ls)]
+        lower-space (count ls) ]
     #_(prn "balance-two-comments: usable-space:" usable-space
            "upper-idx:" upper-idx
            "lower-idx:" lower-idx
@@ -881,7 +906,7 @@
               ; However, new-ls might still be empty, indicating that
               ; everything moved to the new-us.!
               [new-us new-ls]
-                (move-ls-to-us us-text ls-text available-space max-variance)]
+                (move-ls-to-us us-text ls-text available-space)]
           #_(prn "balance-two-comments: new-us:" new-us "new-ls" new-ls)
           ; If new-ls is non-nil, it might still be empty!
           (if new-ls
@@ -995,43 +1020,77 @@
   others, and also move words down when a line is too long.  Returns
   style-vec."
   [{:keys [width],
-    {{:keys [border #_top-level?]} :smart-wrap} :comment,
+    {{:keys [border max-variance last-max #_top-level?]} :smart-wrap} :comment,
     :as options} start-col-vec style-vec semi-count space-count comment-group]
   (let [comment-lines
           (style-lines-in-comment-group start-col-vec style-vec comment-group)
         ; They all have the same start-col, by definition
         start-col (nth start-col-vec (first comment-group))
         max-width (second comment-lines)
+        length-vec (nth comment-lines 2)
+	length-len (count length-vec)
+        butlast-length-vec (butlast length-vec) 
+        last-len (peek length-vec)
+        max-not-last (if (> length-len 1)
+	                (apply max butlast-length-vec)
+			(first length-vec))
+        include-last? (and (> length-len 1) (>= last-len max-not-last))
+        cg-variance
+          (or (variance (if include-last? length-vec (butlast length-vec))) 
+	      0)
+        last-force? (and (> length-len 1)
+	                 (> last-len max-not-last)
+                         (> (- last-len max-not-last) last-max))
         #_#_actual-space (- max-width start-col)
         #_#_border (int (min border (/ actual-space 6)))
         #_#_width (- width border)
         ; Adjust border for how much space we really have
         ; but don't use too much!
         width (adjust-border start-col max-width border width)
-        usable-space (- width start-col)]
-    ; Loop through lines in comment group, taking them two at a time
-    (loop [cg comment-group
-           style-vec style-vec
-           already-changed? nil]
-      (if (<= (count cg) 1)
-        style-vec
-        (let [[new-style-vec changed?] (balance-two-comments
-                                         start-col-vec
-                                         style-vec
-                                         semi-count
-                                         space-count
-                                         usable-space
-                                         (first cg)
-                                         (second cg)
-                                         cg
-                                         (if already-changed? 0 20))]
-          ; Did we delete the second one?
-          (if (= (nth (nth new-style-vec (second cg)) 2) :deleted)
-            ; rewrite the comment group to drop it out
-            (recur (concat (list (first cg)) (nnext cg))
-                   new-style-vec
-                   (or already-changed? changed?))
-            (recur (next cg) new-style-vec (or already-changed? changed?))))))))
+        usable-space (- width start-col)
+        line-count (count comment-group)]
+    (dbg-s options
+           #{:smart-wrap :flow-comments}
+           "flow-comments-in-group: max-variance:" max-variance
+           "cg-variance:" cg-variance
+           "include-last?" include-last?
+           "last-len:" last-len
+           "max-not-last:" max-not-last
+           "(- last-len max-not-last):" (- last-len max-not-last)
+           "max-width:" max-width
+           "usable-space:" usable-space)
+    (if (and (< cg-variance max-variance)
+             (>= max-width (int (/ usable-space 2)))
+             (< max-width usable-space)
+             (>= line-count 3)
+             (not last-force?))
+      ; Don't do anything to this comment-group
+      style-vec
+      ; Loop through lines in comment group, taking them two at a time
+      (loop [cg comment-group
+             style-vec style-vec
+             already-changed? nil]
+        (if (<= (count cg) 1)
+          style-vec
+          (let [[new-style-vec changed?] (balance-two-comments
+                                           start-col-vec
+                                           style-vec
+                                           semi-count
+                                           space-count
+                                           usable-space
+                                           (first cg)
+                                           (second cg)
+                                           cg
+                                           (if already-changed? 0 20))]
+            ; Did we delete the second one?
+            (if (= (nth (nth new-style-vec (second cg)) 2) :deleted)
+              ; rewrite the comment group to drop it out
+              (recur (concat (list (first cg)) (nnext cg))
+                     new-style-vec
+                     (or already-changed? changed?))
+              (recur (next cg)
+                     new-style-vec
+                     (or already-changed? changed?)))))))))
 
 (defn fzprint-smart-wrap
   "Do smart wrap over the entire style-vec.  Returns a possibly new
@@ -1069,7 +1128,7 @@
             space-count (nth comment-group 2)
             cg (subvec comment-group 3)]
         (dbg-s options
-               #{:smart-wrap}
+               #{:smart-wrap :comment-group}
                "fzprint-smart-wrap comment-group:" cg
                "depth:" new-depth
                "next-idx:" next-idx

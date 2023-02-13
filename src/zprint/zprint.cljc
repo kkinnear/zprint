@@ -1045,6 +1045,9 @@
                          (* (/ ind width) ha-width-factor))
           result (<= (/ (dec hanging-line-count) hang-count) hang-accept)]
       #_(prn "use-hang? result:" result)
+    #_(prn "use-hang? caller:" caller "(/ ind width):" (double (/ ind width))
+          "hang-count:" hang-count "hanging-line-count:" hanging-line-count
+	  "depth:" depth "hang-accept:" hang-accept "result:" result)
       result)))
 
 ;;

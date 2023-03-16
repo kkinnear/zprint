@@ -49,6 +49,21 @@
 (defn adjust-border
   "Possibly reduce the border because we don't have a lot of space left.
   Returns a new width."
+  [start-col border width]
+  (let [actual-space (- width start-col)
+        ; Adjust border for how much space we really have
+        ; but don't use too much!
+        border (int (min border (/ actual-space 6)))
+        new-width (- width border)]
+    #_(println "adjust-border: start-col:" start-col
+               "border:" border
+               "width:" width
+               "output width:" new-width)
+    new-width))
+
+(defn adjust-border-alt
+  "Possibly reduce the border because we don't have a lot of space left.
+  Returns a new width."
   [start-col max-width border width]
   (let [actual-space (- max-width start-col)
         ; Adjust border for how much space we really have
@@ -241,7 +256,13 @@
   [width border [s color stype :as element] start]
   (if-not (or (= stype :comment) (= stype :comment-inline))
     element
-    (let [width (adjust-border start width border width)
+    (let [width-configured width
+          width (adjust-border start #_width border width)
+	  #_(println "\nborder (configured):" border 
+		     "border (adjusted):" (- width-configured width)
+	             "width (adjusted):" width)
+	  ; This is really available-width, not the actual width of the
+	  ; comment.
           comment-width (- width start)
           semi-str (re-find #";*" s)
           rest-str (subs s (count semi-str))
@@ -318,13 +339,21 @@
 (defn fzprint-wrap-comments
   "Take the final output style-vec, and wrap any comments which run over
   the width. Looking for "
-  [{:keys [width], {:keys [border]} :comment, :as options} style-vec]
+  [{:keys [width], {:keys [border smart-wrap?]} :comment, :as options} style-vec]
   #_(def wcsv style-vec)
   (let [start-col (style-loc-vec (or (:indent options) 0) style-vec)
+	; If we are doing smart-wrap?, then use the border for smart-wrap.
+	; The smart-wrap border is used for the interior lines, and some
+	; very strange things can happen if a different border is used for
+	; the final line.  So we force all of the lines to use the same
+	; border.
+        border (if smart-wrap?
+	          (:border (:smart-wrap (:comment options)))
+		  border)
         _ (dbg-s options
                  #{:comment-wrap}
                  "fzprint-wrap-comments: indent:" (:indent options)
-                 "border:" border
+                 "border (configured):" border
                  "count style-vec:" (count style-vec)
                  "count start-col:" (count start-col)
                  "start-col:" start-col)
@@ -577,7 +606,7 @@
           :else
             (if (zero? number-semis)
               ; we are not yet in a group -- just looking for a comment
-              (if (and (= what :comment) #_(or top-level? (> depth 0)))
+              (if (or (= what :comment) (= what :comment-inline))
                 ; any comment starts a group
                 (let [[s skip?]
                         (match-and-modify-comment end+start-cg end+skip-cg s)
@@ -622,7 +651,7 @@
                            0 (inc idx)
                            1 number-semis
                            2 current-spacing)])
-                    (= what :comment)
+                    (or (= what :comment) (= what :comment-inline))
                       ; Need to see if we should remain in the group
                       (let [fit-return (fit-in-comment-group? s
                                                               (nth start-col-vec
@@ -661,7 +690,12 @@
                                  "Internal error in get-next-comment-group: '"
                                  fit-return
                                  "'.")))))
+
+
                     ; Not a newline or a comment, ends comment group
+		    ; This will also cause any inline comment without
+		    ; just whitespace on the left to terminate a comment
+		    ; group.
                     :else [depth
                            (assoc out
                              0 (inc idx)
@@ -695,11 +729,31 @@
   [s idx]
   (clojure.string/last-index-of s " " idx))
 
+(defn first-space-right
+  "Find the first space to the left of idx in the string s. Returns a number
+  or nil if no space."
+  [s idx]
+  (clojure.string/index-of s " " idx))
+
 (defn split-str-at-space-left
-  "Split the string at the first space to the left of idx, if any is found.
-  Return [start-str end-str].  If no space is found, end-str is nil.
-  If idx is beyond the end of s, then puts all of s into start-str, and
-  makes end-str be an empty string, not nil.
+  "Split the string at the first space to the left of idx, if any
+  is found.  Returns [start-str end-str].  If no space is found,
+  end-str is nil.  If idx is beyond the end of s, then puts all of
+  s into start-str, and makes end-str be an empty string, not nil.
+  Note -- leaves the first left space out of the resulting strings."
+  [s idx]
+  (if (> idx (count s))
+    [s ""]
+    (let [space-left (first-space-left s idx)]
+      (if space-left
+        [(subs s 0 space-left) (subs s (inc space-left))]
+        [s nil]))))
+
+(defn split-str-at-space-left-alt
+  "Split the string at the first space to the left of idx, if any
+  is found.  Returns [start-str end-str].  If no space is found,
+  end-str is nil.  If idx is beyond the end of s, then puts all of
+  s into start-str, and makes end-str be an empty string, not nil.
   Note -- leaves the first left space out of the resulting strings."
   [s idx]
   (if (>= idx (count s))
@@ -708,6 +762,25 @@
       (if space-left
         [(subs s 0 space-left) (subs s (inc space-left))]
         [s nil]))))
+
+(defn split-str-at-space
+  "Split the string at the first space to the left of idx, if any
+  is found.  Returns [start-str end-str].  If no space is found,
+  instead of using the first space to the left of idx, the first
+  space to the right of idx is used.  If no space at all can be
+  found, end-str is nil.  If idx is beyond the end of s, then puts
+  all of s into start-str, and makes end-str be an empty string,
+  not nil.  Note -- leaves the space where the string is split out
+  of the resulting strings."
+  [s idx]
+  (let [[start-str end-str :as return-vec] (split-str-at-space-left s idx)]
+    (if (nil? end-str)
+      ; didn't find a space to the left, what about the right?
+      (let [space-right (first-space-right s idx)]
+        (if space-right
+          [(subs s 0 space-right) (subs s (inc space-right))]
+          [s nil]))
+      return-vec)))
 
 (defn insert-str-into-style-vec
   "Insert string s into the style-vec at index style-idx."
@@ -719,19 +792,22 @@
   "Make a style-vec element an empty string and remove :newline or :indent
    immediately before it."
   [style-vec style-idx]
-  (let [[rs color right-what :as right-element] (nth style-vec style-idx)
-        [ls color left-what :as left-element] (nth style-vec (dec style-idx))]
-    #_(prn "delete-style-vec-element: " left-element right-element)
-    (if (and (= right-what :comment)
-             (or (= left-what :indent) (= left-what :newline)))
-      (assoc style-vec
-        style-idx ["" :none :deleted]
-        (dec style-idx) ["" :none :deleted])
-      #_style-vec
-      (throw (#?(:clj Exception.
-                 :cljs js/Error.)
-              (str "can't delete style vec element idx: " style-idx
-                   " element: " right-element))))))
+  (if (zero? style-idx)
+    ; can't mess with something before the zeroth element
+    style-vec
+    (let [[rs color right-what :as right-element] (nth style-vec style-idx)
+          [ls color left-what :as left-element] (nth style-vec (dec style-idx))]
+      #_(prn "delete-style-vec-element: " left-element right-element)
+      (if (and (or (= right-what :comment) (= right-what :comment-inline))
+               (or (= left-what :indent) (= left-what :newline)))
+        (assoc style-vec
+          style-idx ["" :none :deleted]
+          (dec style-idx) ["" :none :deleted])
+        #_style-vec
+        (throw (#?(:clj Exception.
+                   :cljs js/Error.)
+                (str "can't delete style vec element idx: " style-idx
+                     " element: " right-element)))))))
 	           
 (defn ends-w-punctuation?
   "Take a string, an return true if it ends with some kind of
@@ -742,27 +818,35 @@
     true
     (or (clojure.string/ends-with? s ".")
         (clojure.string/ends-with? s "!")
-        (clojure.string/ends-with? s "?"))))
+        (clojure.string/ends-with? s "?")
+        (clojure.string/ends-with? s ":"))))
 
 (defn figure-separator
   "Takes two string fragments to glue together.  We assume a space
   between them (unless the left is empty), but figure out if we
   need to have a period and possibly capitalize the beginning of
-  the second one.  Returns [separator new-right]"
+  the second one. Just use a space if either left or right contains
+  parentheses, so we don't add periods and caps inside of commented
+  out code. Returns [separator new-right]"
   [left right]
-  (let [terminated? (ends-w-punctuation? left)
-        capitalized? (capital? right)
-        right-more-than-one? (> (count (re-find #"^\w*" right)) 1)
-	; If there is nothing on the left, we don't need a space.  We
-	; also don't know if it was the end of a sentence, and have
-	; no particularly convenient way to find out.
-	left-empty? (empty? left)]
-    #_(prn "figure-separator: left:" left "right:" right)
-    (cond left-empty? ["" right]
-          (and terminated? capitalized?) [" " right]
-          terminated? [" " (capitalize-first right)]
-          (and capitalized? right-more-than-one?) [". " right]
-          :else [" " right])))
+  (if (or (clojure.string/includes? left "(")
+          (clojure.string/includes? left ")")
+          (clojure.string/includes? right "(")
+          (clojure.string/includes? right ")"))
+    [" " right]
+    (let [terminated? (ends-w-punctuation? left)
+          capitalized? (capital? right)
+          right-more-than-one? (> (count (re-find #"^\w*" right)) 1)
+          ; If there is nothing on the left, we don't need a space.  We
+          ; also don't know if it was the end of a sentence, and have
+          ; no particularly convenient way to find out.
+          left-empty? (empty? left)]
+      #_(prn "figure-separator: left:" left "right:" right)
+      (cond left-empty? ["" right]
+            (and terminated? capitalized?) [" " right]
+            terminated? [" " (capitalize-first right)]
+            (and capitalized? right-more-than-one?) [". " right]
+            :else [" " right]))))
 
 (defn figure-separator-alt
   "Takes two string fragments to glue together.  We assume a space
@@ -836,10 +920,139 @@
       [(str us-text separator new-end-us) new-ls]
       ; We didn't make any changes, leave things as they are.
       [us-text nil])))
+      
+(defn text-to-comment
+  "Prepend the correct number of semicolons and spaces to a comment
+  string."
+  ([semi-count space-count s us]
+   (if us
+     ; If we have an us, then don't the returned string with space-count
+     ; spaces, but rather get those characters out of the us instead.
+     (let [space-count-from-us (subs us semi-count (+ semi-count space-count))]
+       (str (apply str (repeat semi-count ";")) space-count-from-us s))
+     (str (apply str (repeat semi-count ";")) (blanks space-count) s)))
+  ([semi-count space-count s] (text-to-comment semi-count space-count s nil)))
+
+(defn text-to-comment-alt
+  "Prepend the correct number of semicolons and spaces to a comment
+  string."
+  [semi-count space-count s]
+  (str (apply str (repeat semi-count ";")) (blanks space-count) s))
 
 (defn balance-two-comments
-  "Take the index into the style-vec for two comments, and balance the
-  words in them. Returns a new style-vec in [new-style-vec changed?]."
+  "Take the index into the style-vec for two comments, and balance
+  the words in them. Note that usable-space is start-col based.
+  Returns a new style-vec in [new-style-vec changed?]."
+  [start-col-vec style-vec semi-count space-count usable-space upper-idx
+   lower-idx comment-group]
+  (let [[us ucolor uwhat :as upper-element] (nth style-vec upper-idx)
+        [ls lcolor lwhat :as lower-element] (nth style-vec lower-idx)
+        ; All of the space measurement up to this point includes the
+        ; semis and spaces on the front of every line.  Including
+	; usable-space
+        #_#_upper-space (count us)
+        #_#_lower-space (count ls)
+        front-matter (+ semi-count space-count)
+        ; Get upper and lower strings w/out semis or spaces
+        us-text (subs us front-matter)
+        ls-text (subs ls front-matter)
+        upper-space (count us-text)
+        lower-space (count ls-text)
+	; Since we are doing -text operations, adjust usable space
+	; to reflect that.
+	usable-space (- usable-space front-matter)]
+    #_(println "balance-two-comments: usable-space:" usable-space
+             "upper-idx:" upper-idx
+             "lower-idx:" lower-idx
+             "\nus:" (pr-str us)
+             "\nls:" (pr-str ls))
+    (cond
+      (> upper-space usable-space)
+        ; Move from upper to lower if we can.
+        ; It might be that there is one thing on the upper that simply
+        ; doesn't fit.
+        (let [[new-us new-start-ls] (split-str-at-space us-text usable-space)]
+          #_(println "...upper->lower"
+	           "\n   us:" (pr-str us-text)
+		   "\n   " (count us-text)
+                   "\n   ls:" (pr-str ls-text)
+		   "\n   " (count ls-text)
+                   "\n   new-us:" (pr-str new-us)
+		   "\n   " (count new-us)
+                   "\n   new-start-ls:" (pr-str new-start-ls)
+		   "\n   " (count new-start-ls))
+          (if (not (empty? new-start-ls))
+            (let [full-us (text-to-comment semi-count space-count new-us us)]
+              (let [[separator new-ls-text] (figure-separator new-start-ls
+                                                              ls-text)
+                    full-ls (text-to-comment
+                              semi-count
+                              space-count
+                              (str new-start-ls separator new-ls-text))]
+                #_(println ".2.new-ls:" (pr-str full-ls))
+                [(-> style-vec
+                     (insert-str-into-style-vec full-us upper-idx)
+                     (insert-str-into-style-vec full-ls lower-idx)) true]))
+            [style-vec nil]))
+      (and (do #_(println "...(< upper-space usable-space)" (< upper-space
+                                                             usable-space)
+			"\n   upper-space:" upper-space
+                        "\n   lower-space:" lower-space
+                        "\n   ls:" (pr-str ls))
+               (< upper-space usable-space))
+           ; If the lower is shorter than the upper, and the lower
+           ; is the last line in the comment-group,
+           ; and the lower won't entirely fit onto the upper (and
+           ; thus allow us to remove a comment line), then don't
+           ; bother changing these lines
+           (do #_(println
+                 "...(< lower-space upper-space)" (< lower-space upper-space)
+                 "(- usable-space upper-space)" (- usable-space upper-space)
+                 "(+ semi-count space-count)" (+ semi-count space-count)
+                 "(- lower-space (+ semi-count space-count))"
+                   (- lower-space (+ semi-count space-count)))
+               true)
+           (not (and (< lower-space upper-space)
+                     (= (count comment-group) 2)
+                     (neg? (- (- usable-space upper-space)
+                              ; Include space between them
+                              (inc (- lower-space
+                                      (+ semi-count space-count))))))))
+        ; Move from lower to upper if possible
+        ; We need something from the lower string that is less than
+        ; the available space between the end of the upper string and
+        ; the end of the usable space.
+        ; Note that move-ls-to-us handles variable sized separators.
+        (let [available-space (- usable-space upper-space)
+              ; If new-ls is non-nil, that means that things changed.
+              ; However, new-ls might still be empty, indicating that
+              ; everything moved to the new-us!
+              [new-us new-ls] (move-ls-to-us us-text ls-text available-space)]
+         #_(println "...move from lower to upper"
+	           "\n available-space (- usable-space upper-space):" available-space
+	           "\n   new-us:" (pr-str new-us)
+		   "\n   " (count new-us)
+                   "\n   new-ls:" (pr-str new-ls)
+		   "\n   " (count new-ls))
+          ; If new-ls is non-nil, it might still be empty!
+          (if new-ls
+            (let [full-us (text-to-comment semi-count space-count new-us us)]
+              (if (empty? new-ls)
+                [(-> style-vec
+                     (insert-str-into-style-vec full-us upper-idx)
+                     (delete-style-vec-element lower-idx)) true]
+                (let [full-ls (text-to-comment semi-count space-count new-ls)]
+                  [(-> style-vec
+                       (insert-str-into-style-vec full-us upper-idx)
+                       (insert-str-into-style-vec full-ls lower-idx)) true])))
+            ; We didn't make any changes, leave things as they are.
+            (do #_(println "...no changes:") [style-vec nil])))
+      :else [style-vec nil])))
+
+(defn balance-two-comments-alt2
+  "Take the index into the style-vec for two comments, and balance
+  the words in them. Note that usable-space is start-col based.
+  Returns a new style-vec in [new-style-vec changed?]."
   [start-col-vec style-vec semi-count space-count usable-space upper-idx
    lower-idx comment-group]
   (let [[us ucolor uwhat :as upper-element] (nth style-vec upper-idx)
@@ -847,16 +1060,28 @@
         ; All of the space measurement up to this point includes the
         ; semis and spaces on the front of every line.
         upper-space (count us)
-        lower-space (count ls) ]
-    #_(prn "balance-two-comments: usable-space:" usable-space
+        lower-space (count ls) 
+	front-matter (+ semi-count space-count)
+	; Get upper and lower strings w/out semis or spaces
+	us-text (subs us front-matter)
+	ls-text (subs ls front-matter)
+	]
+    (prn "balance-two-comments: usable-space:" usable-space
            "upper-idx:" upper-idx
            "lower-idx:" lower-idx
            "us:" us
            "ls:" ls)
     (cond
       (> upper-space usable-space)
-        ; move from upper to lower
+        ; Move from upper to lower if we can.
+	; It might be that there is one thing on the upper that simply
+	; doesn't fit.
+
+	;; TODO: start using us-text and fix split-str... to detect
+	; the first element on the line and instead do the rest
+	; of the line.
         (let [[new-us new-start-ls] (split-str-at-space-left us usable-space)]
+	  (prn "upper->lower us:" us "ls:" ls "new-us:" new-us "new-start-ls:" new-start-ls)
           (if new-start-ls
             (let [end-ls (subs ls (+ semi-count space-count))
                   new-ls (str (apply str (repeat semi-count ";"))
@@ -864,12 +1089,13 @@
                               new-start-ls
                               " "
                               end-ls)]
+	      (prn "new-ls:" new-ls)
               [(-> style-vec
                    (insert-str-into-style-vec new-us upper-idx)
                    (insert-str-into-style-vec new-ls lower-idx)) true])
             [style-vec nil]))
       (and
-        (do #_(prn "(< upper-space usable-space)" (< upper-space usable-space)
+        (do (prn "(< upper-space usable-space)" (< upper-space usable-space)
                    "lower-space:" lower-space
                    "ls:" ls)
             (< upper-space usable-space))
@@ -878,7 +1104,7 @@
         ; and the lower won't entirely fit onto the upper (and
         ; thus allow us to remove a comment line), then don't
         ; bother changing these lines
-        (do #_(println "(< lower-space upper-space)" (< lower-space upper-space)
+        (do (println "(< lower-space upper-space)" (< lower-space upper-space)
                        "(- usable-space upper-space)" (- usable-space
                                                          upper-space)
                        "(+ semi-count space-count)" (+ semi-count space-count)
@@ -898,16 +1124,12 @@
         ; separators are required between the existing us and the
         ; new-end-us.  If any, as the existing us might be empty!
         (let [available-space (- usable-space upper-space)
-              front-matter (+ semi-count space-count)
-              ; Get lower and upper string w/out semis or spaced
-              ls-text (subs ls front-matter)
-              us-text (subs us front-matter)
               ; If new-ls is non-nil, that means that things changed.
               ; However, new-ls might still be empty, indicating that
-              ; everything moved to the new-us.!
+              ; everything moved to the new-us!
               [new-us new-ls]
                 (move-ls-to-us us-text ls-text available-space)]
-          #_(prn "balance-two-comments: new-us:" new-us "new-ls" new-ls)
+          (prn "balance-two-comments: new-us:" new-us "new-ls" new-ls)
           ; If new-ls is non-nil, it might still be empty!
           (if new-ls
             (let [full-us (str (apply str (repeat semi-count ";"))
@@ -926,6 +1148,7 @@
             ; We didn't make any changes, leave things as they are.
             [style-vec nil]))
       :else [style-vec nil])))
+
 
 (defn balance-two-comments-alt
   "Take the index into the style-vec for two comments, and balance the
@@ -1020,7 +1243,7 @@
   others, and also move words down when a line is too long.  Returns
   style-vec."
   [{:keys [width],
-    {{:keys [border max-variance last-max #_top-level?]} :smart-wrap} :comment,
+    {{:keys [border max-variance last-max space-factor #_top-level?]} :smart-wrap} :comment,
     :as options} start-col-vec style-vec semi-count space-count comment-group]
   (let [comment-lines
           (style-lines-in-comment-group start-col-vec style-vec comment-group)
@@ -1034,10 +1257,21 @@
         max-not-last (if (> length-len 1)
 	                (apply max butlast-length-vec)
 			(first length-vec))
-        include-last? (and (> length-len 1) (>= last-len max-not-last))
+	; Include last line in the group in variance for the whole group
+	; if the last line is at least as long as the longest prior to
+	; the last, and we have more than one line, or if we have only
+	; two lines/.
+        include-last?  (or (and (> length-len 1) (>= last-len max-not-last))
+	                   (= length-len 2))
+	#_(and (> length-len 1) (>= last-len max-not-last))
         cg-variance
           (or (variance (if include-last? length-vec (butlast length-vec))) 
 	      0)
+	; This calculation is all width based, not start-col based.
+	; 
+	; Ignore max-variance test if we have more than one line,
+	; and the last line is longer than any previous line by at
+	; least last-max.
         last-force? (and (> length-len 1)
 	                 (> last-len max-not-last)
                          (> (- last-len max-not-last) last-max))
@@ -1046,9 +1280,11 @@
         #_#_width (- width border)
         ; Adjust border for how much space we really have
         ; but don't use too much!
-        width (adjust-border start-col max-width border width)
+        width (adjust-border start-col #_max-width border width)
         usable-space (- width start-col)
-        line-count (count comment-group)]
+	max-space (- max-width start-col)
+        line-count (count comment-group)
+	space-factor (if (< space-factor 1) 1 space-factor)]
     (dbg-s options
            #{:smart-wrap :flow-comments}
            "flow-comments-in-group: max-variance:" max-variance
@@ -1058,11 +1294,12 @@
            "max-not-last:" max-not-last
            "(- last-len max-not-last):" (- last-len max-not-last)
            "max-width:" max-width
+	   "max-space:" max-space
            "usable-space:" usable-space)
     (if (and (< cg-variance max-variance)
-             (>= max-width (int (/ usable-space 2)))
-             (< max-width usable-space)
-             (>= line-count 3)
+             (>= max-space (int (/ usable-space space-factor)))
+             (<= max-space usable-space)
+             (>= line-count 2)
              (not last-force?))
       ; Don't do anything to this comment-group
       style-vec
@@ -1080,8 +1317,7 @@
                                            usable-space
                                            (first cg)
                                            (second cg)
-                                           cg
-                                           (if already-changed? 0 20))]
+                                           cg)]
             ; Did we delete the second one?
             (if (= (nth (nth new-style-vec (second cg)) 2) :deleted)
               ; rewrite the comment group to drop it out

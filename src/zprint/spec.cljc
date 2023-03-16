@@ -244,6 +244,7 @@
 (s/def ::key-ignore-silent (s/nilable ::key-or-ks-seq))
 (s/def ::key-order (s/nilable ::key-value))
 (s/def ::last-max number?)
+(s/def ::space-factor number?)
 (s/def ::left-space ::keep-or-drop)
 (s/def ::lhs-narrow (s/nilable number?))
 (s/def ::lines ::line-seq)
@@ -278,7 +279,7 @@
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::smart-wrap
   (only-keys :opt-un [::border #_::top-level? ::end+start-cg ::end+skip-cg
-                      ::max-variance ::last-max]))
+                      ::max-variance ::last-max ::space-factor]))
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))

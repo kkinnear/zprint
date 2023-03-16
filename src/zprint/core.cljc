@@ -842,9 +842,10 @@
                 focus-vec
                 accept-vec)
             _ (def ssvx str-style-vec)
-	    smart-style-vec (if (:smart-wrap? (:comment options))
-	                        (fzprint-smart-wrap options str-style-vec)
-				str-style-vec)
+	    smart-style-vec (if (and (:smart-wrap? (:comment options))
+	                             (:wrap? (:comment options)))
+			       (fzprint-smart-wrap options str-style-vec)
+			       str-style-vec)
             _ (def smsv smart-style-vec)
             wrapped-style-vec (if (and (:wrap? (:comment options))
                                        (not format-off?))

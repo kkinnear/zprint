@@ -504,20 +504,40 @@
                :true :black,
                :uneval :magenta,
                :user-fn :black},
-   :comment
-     {:count? false, :wrap? true, :inline? true, :inline-align-style :aligned
-      :border 5
-      :smart-wrap? false :smart-wrap {:border 5 #_#_:top-level? false
-      :end+start-cg  [#"^(;+)(\s*[b-zA-HJ-Z]\s+)" 
-                      #"^(;+)(\s*\w\.\s+)" 
-		      #"^(;+)(\s*[0-9]{1,2}\.?\s+)"
-		      #_#"^(;+)(\s*)([A-Z]*\s*[A-Z]*)*\:\s+"
-		      #_#"^(;+)(\s*)(?:[A-Z]+\s*[A-Z]+)*\:\s+"
-		      #"^(;+)(\s*)[A-Z][A-Z]"
-		      ]
-      :end+skip-cg [#"^;+\s*$"]
-      :max-variance 30
-      :last-max 5}},
+   :comment {:count? false,
+             :wrap? true,
+             :inline? true,
+             :inline-align-style :aligned,
+             :border 0,
+             :smart-wrap? true,
+             :smart-wrap {:border 5,
+                          #_#_:top-level? false,
+                          :end+start-cg [; Line starts with single letter, but
+                                         ; not a or I
+                                         #"^(;+)(\s*[b-zA-HJ-Z]\s+)"
+                                         ; Line starts with a * or -
+                                         #"^(;+)(\s*(?:\*|\-)\s+)"
+                                         ; Line starts with single letter
+                                         ; followed by .
+                                         #"^(;+)(\s*\w\.\s+)"
+                                         ; Line starts with one or two digit
+                                         ; number
+                                         ; followed by period.
+                                         #"^(;+)(\s*[0-9]{1,2}\.?\s+)"
+                                         ; Line starts with two upper case chars
+                                         #"^(;+)(\s*)[A-Z][A-Z]"],
+                          :end+skip-cg [; Blank line
+                                        #"^;+\s*$"
+                                        ; Line where left paren is first and
+                                        ; right paren last
+                                        ; character in line.
+                                        #"^;+\s*\(.*\)$"
+                                        ; Line containing only capitalized word
+                                        ; followed by colon
+                                        #"^;+\s*[A-Z]\w+\:$"],
+                          :max-variance 30,
+			  :space-factor 3,
+                          :last-max 5}},
    :configured? false,
    :cwd-zprintrc? false,
    :dbg-ge nil,
@@ -580,7 +600,7 @@
           :indent-only? false,
           :indent-only-style :input-hang,
           :nl-count nil,
-	  :nl-separator? false
+          :nl-separator? false,
           :no-wrap-after nil,
           :option-fn nil,
           :pair-hang? true,

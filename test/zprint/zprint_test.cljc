@@ -667,7 +667,7 @@
     "(defn testfn8\n  \"Test two comment lines after a cond test.\"\n  [x]\n  (cond\n    ; one\n    ; two\n    :stuff\n      ; middle\n      ; second middle\n      :bother\n    ; three\n    ; four\n    :else nil))"
     (zprint-str
       x8
-      {:parse-string? true, :pair-fn {:hang? nil}, :comment {:inline? false}}))
+      {:parse-string? true, :pair-fn {:hang? nil}, :comment {:inline? false :smart-wrap {:space-factor 100 :last-max 80}}}))
 
   (def zctest3str
     "(defn zctest3
@@ -723,7 +723,10 @@
                 {:parse-string? true, :pair-fn {:hang? nil} :pair {:multi-lhs-hang? false}}))
 
   (expect
-    "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let\n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things way\n           ; to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
+
+"(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let\n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things\n           ; way to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to\n          ; be\n          :c)))"
+
+    #_"(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let\n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things way\n           ; to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
     (zprint-str zprint.zprint-test/zctest5str
                 70
                 {:parse-string? true, :comment {:count? true, :wrap? true}}))
@@ -732,7 +735,7 @@
     "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a very long comment that should force\n                   ; things way to the left\n                   (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
     (zprint-str zprint.zprint-test/zctest5str
                 70
-                {:parse-string? true, :comment {:count? nil, :wrap? true}}))
+                {:parse-string? true, :comment {:count? nil, :wrap? true :smart-wrap? false}}))
 
   (expect
     "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a very long comment that should force things way to the left\n                   (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
@@ -2317,14 +2320,20 @@
     (list a :b :c \"d\")))")
 
   (expect
-"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap about\n                 ; here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now) ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap\n                 ; about here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now) ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+
+
+#_"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap about\n                 ; here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now) ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
 
     (zprint-str zprint.zprint-test/zctest9str
                 70
                 {:parse-string? true, :comment {:inline? true}}))
 
   (expect
-    "(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil\n        ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2\n        ; a really long inline comment that should wrap about here\n        stuff 3\n        ; a non-inline comment\n        now\n          ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)\n          ;test this\n          :let [stuff (and bother foo bar)\n                ;test that\n                bother (or other output foo)]\n          ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+
+"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil\n        ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2\n        ; a really long inline comment that should wrap about\n        ; here\n        stuff 3\n        ; a non-inline comment\n        now\n          ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)\n          ;test this\n          :let [stuff (and bother foo bar)\n                ;test that\n                bother (or other output foo)]\n          ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
+
+    #_"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil\n        ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2\n        ; a really long inline comment that should wrap about here\n        stuff 3\n        ; a non-inline comment\n        now\n          ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)\n          ;test this\n          :let [stuff (and bother foo bar)\n                ;test that\n                bother (or other output foo)]\n          ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
     (zprint-str zprint.zprint-test/zctest9str
                 70
                 {:parse-string? true, :comment {:inline? false}}))
@@ -3591,7 +3600,7 @@ ser/collect-vars-acc %1 %2) )))"
   (expect 
 "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
-                      {:parse-string? true}))
+                      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect 
 "(;stuff\n let ;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
@@ -3603,19 +3612,19 @@ ser/collect-vars-acc %1 %2) )))"
  "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)" 
           (zprint-str
             "( ;stuff\n\nlet;bother\n[a :x b :y] ;foo\n;bar\n\n;baz\n5)"
-            {:parse-string? true}))
+            {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect 
 "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str
             "( ;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
-            {:parse-string? true}))
+            {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect 
 "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str
             "( ;stuff\n\nlet ;bother\n[a :x b :y]  ;foo\n;bar\n\n;baz\n5)"
-            {:parse-string? true}))
+            {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;stuff\n let ;bother\n  [a :x\n   b :y]\n  (list a b)\n  (map a b)\n  5)"
@@ -4400,7 +4409,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      a\n      test)"
     (zprint-str
       "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n      a\n   test)"
-      {:parse-string? true}))
+      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n      a\n      test)"
@@ -4412,7 +4421,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(;comment 1\n ;comment 2\n ;comment 3\n a this\n   is\n   a\n   test)"
     (zprint-str
       "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n a\n this is\n      a\n   test)"
-      {:parse-string? true}))
+      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;comment 1\n ;comment 2\n ;comment 3\n\n a\n  this is\n  a\n  test)"
@@ -4424,7 +4433,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      a\n      test)"
     (zprint-str
       "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n\n      a\n   test)"
-      {:parse-string? true}))
+      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n\n      a\n      test)"
@@ -4436,7 +4445,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      ; comment 4\n      a\n      test)"
     (zprint-str
       "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n ; comment 4\n      a\n   test)"
-      {:parse-string? true}))
+      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n      ; comment 4\n      a\n      test)"
@@ -4584,7 +4593,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(def x\n  zprint.zfns/zstart\n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test)\n          (this is the result and it is too long) ; inline comment\n        (this is a second test)\n          (and this is another test that is way too very long)        ; inline\n                                                                      ; comment\n                                                                      ; 2\n        :else (stuff bother)) ; inline comment 3\n  smiddle           ; Not an isolated inline comment\n  zprint.zfns/zend  ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
     (zprint-str
       "(def x\n  zprint.zfns/zstart \n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test) (this is the result and it is too long) ; inline comment\n  (this is a second test) (and this is another test that is way too very long)        ; inline comment 2\n  :else (stuff bother)) ; inline comment 3\n  smiddle           ; Not an isolated inline comment\n  zprint.zfns/zend  ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
-      {:parse-string? true, :comment {:inline-align-style :none}}))
+      {:parse-string? true, :comment {:inline-align-style :none :smart-wrap {:last-max 80 :border 0}}}))
 
   ;;
   ;; :inline-align-style :aligned
@@ -4594,7 +4603,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(def x\n  zprint.zfns/zstart\n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test)\n          (this is the result and it is too long)              ; inline comment\n        (this is a second test)\n          (and this is another test that is way too very long) ; inline comment\n                                                               ; 2\n        :else (stuff bother)) ; inline comment 3\n  smiddle          ; Not an isolated inline comment\n  zprint.zfns/zend ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
     (zprint-str
       "(def x\n  zprint.zfns/zstart \n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test) (this is the result and it is too long) ; inline comment\n  (this is a second test) (and this is another test that is way too very long)        ; inline comment 2\n  :else (stuff bother)) ; inline comment 3\n  smiddle           ; Not an isolated inline comment\n  zprint.zfns/zend  ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
-      {:parse-string? true, :comment {:inline-align-style :aligned}}))
+      {:parse-string? true, :comment {:inline-align-style :aligned :smart-wrap {:last-max 80 :border 0}}}))
 
   ;;
   ;; :inline-align-style :consecutive
@@ -4604,7 +4613,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(def x\n  zprint.zfns/zstart\n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test)\n          (this is the result and it is too long) ; inline comment\n        (this is a second test)\n          (and this is another test that is way too very long) ; inline comment\n                                                               ; 2\n        :else (stuff bother))                                  ; inline comment\n                                                               ; 3\n  smiddle                                                      ; Not an isolated\n                                                               ; inline comment\n  zprint.zfns/zend                                             ; contiguous\n                                                               ; inline comments\n  sdlfksdj                                                     ; inline comment\n  fdslfk                                                       ; inline comment\n                                                               ; aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false)   ; this only works because lists, anon-fn's, etc. are\n                       ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
     (zprint-str
       "(def x\n  zprint.zfns/zstart \n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test) (this is the result and it is too long) ; inline comment\n  (this is a second test) (and this is another test that is way too very long)        ; inline comment 2\n  :else (stuff bother)) ; inline comment 3\n  smiddle           ; Not an isolated inline comment\n  zprint.zfns/zend  ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
-      {:parse-string? true, :comment {:inline-align-style :consecutive}}))
+      {:parse-string? true, :comment {:inline-align-style :consecutive :smart-wrap {:last-max 80 :border 0}}}))
 
 
   ;;
@@ -4929,6 +4938,7 @@ ser/collect-vars-acc %1 %2) )))"
   (expect "';a\n ;b\n a ;c\n"
           (zprint-str "(;a\n quote ;b\n a ;c\n)"
                       {:parse-string? true,
+		       :comment {:smart-wrap? false}
                        :fn-map {"quote" [:replace-w-string
                                          {:list {:replacement-string "'"}}]}}))
 
@@ -5011,7 +5021,7 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect "(;a\n list :b\n      :c ;def\n         ;aligned-inline\n      d)"
           (zprint-str "(;a\nlist\n:b\n:c ;def\n   ;aligned-inline\nd)"
-                      {:parse-string? true}))
+                      {:parse-string? true :comment {:smart-wrap {:last-max 80 :max-variance 500 :space-factor 100}}}))
 
   ;;
   ;; # Issue 136 -- constant pairing count is off with newlines
@@ -5019,7 +5029,7 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect "(;a\n list\n  :c\n\n  d)"
           (zprint-str "(;a\nlist\n:c\n\n d)"
-                      {:parse-string? true, :style :respect-nl}))
+                      {:parse-string? true, :style :respect-nl :comment {:smart-wrap {:last-max 80 :max-variance 500 :space-factor 100}}}))
 
   (expect "(;a\n list :c\n\n      d)"
           (zprint-str "(;a\nlist\n:c\n\n d)"
@@ -5065,7 +5075,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect "(;abc\n ;def\n)"
-          (zprint-str "(;abc\n\n;def\n)" {:parse-string? true}))
+          (zprint-str "(;abc\n\n;def\n)" {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect "(;abc\n\n ;def\n)"
           (zprint-str "(;abc\n\n;def\n)"
@@ -5199,7 +5209,7 @@ ser/collect-vars-acc %1 %2) )))"
     (zprint-file-str
       "\n\n(ns foo)\n;abc\n\n;!zprint {:format :next :width 10}\n\n\n\n;  def ghi jkl mno pqr\n(defn baz [])\n\n\n"
       "junk"
-      {:parse {:interpose "\n\n"}, :width 10}))
+      {:parse {:interpose "\n\n"}, :width 10 :comment {:smart-wrap {:border 0}}}))
 
   ;;
   ;; # Issue 145 -- reader-conditionals don't work right with indent-only
@@ -5293,7 +5303,7 @@ ser/collect-vars-acc %1 %2) )))"
     (zprint-file-str
       "\n\n(ns foo)\n;abc\n;!zprint {:format :next :width 20}\n       ;def ghi jkl mno pqr\n   (defn baz [])\n\n\n"
       "junk"
-      {:parse {:interpose nil, :left-space :keep}, :width 30}))
+      {:parse {:interpose nil, :left-space :keep}, :width 30 :comment {:smart-wrap {:border 0}}}))
 
   (expect
     "\n    (defn\n      thisis\n      [a]\n      test)\n    ;def\n    ;ghi\n    ;jkl\n    ;mno\n    ;pqr\n"
@@ -5338,12 +5348,12 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element\n              (cond (and (or (= e :indent) (= e :newline))\n                         (= ne :comment-inline))\n                      (if-not (or (= le :comment) (= le :comment-inline))\n                        ; Regular line to get the inline comment\n                        [(blanks nn) c :whitespace 25]\n                        ; Last element was a comment...\n                        ; Can't put a comment on a comment, but\n                        ; we want to indent it like the last\n                        ; comment.\n                        ; How much space before the last comment?\n                        (do #_(prn \"inline:\" (space-before-comment out))\n                            [(str \"\\n\" (blanks out)) c :indent 41]\n                            #_element))\n                    :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
-    (zprint-str zprint.zprint-test/test-fast-hangstr {:parse-string? true}))
+    (zprint-str zprint.zprint-test/test-fast-hangstr {:parse-string? true :comment {:smart-wrap? false}}))
 
   (expect
 "(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element (cond (and (or (= e :indent) (= e :newline))\n                                   (= ne :comment-inline))\n                                (if-not (or (= le :comment)\n                                            (= le :comment-inline))\n                                  ; Regular line to get the inline comment\n                                  [(blanks nn) c :whitespace 25]\n                                  ; Last element was a comment...\n                                  ; Can't put a comment on a comment, but\n                                  ; we want to indent it like the last\n                                  ; comment.\n                                  ; How much space before the last comment?\n                                  (do #_(prn \"inline:\"\n                                             (space-before-comment out))\n                                      [(str \"\\n\" (blanks out)) c :indent 41]\n                                      #_element))\n                              :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
     (zprint-str zprint.zprint-test/test-fast-hangstr
-                {:parse-string? true, :style :fast-hang}))
+                {:parse-string? true, :style :fast-hang :comment {:smart-wrap? false}}))
 
   ;;
   ;; # Issue #150 -- structures that start with nil don't print at all!
@@ -5455,6 +5465,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
     (zprint-str mapp6
                 {:parse-string? true,
+		 :comment {:smart-wrap {:border 0}}
                  :fn-map {"app" [:none
                                  {:list {:constant-pair-min 1,
                                          :constant-pair-fn #(or (vector? %)
@@ -5465,7 +5476,7 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route]\n                   handler\n                   ; How do comment work?\n                   [route]\n                   (handler this\n                            is\n                            \"a\" test\n                            \"this\" is\n                            \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route]\n                    handler\n                    [route] ; What about comments here?\n                    handler))"
-    (zprint-str mapp6 {:parse-string? true, :width 55}))
+    (zprint-str mapp6 {:parse-string? true, :width 55 :comment {:smart-wrap {:border 0}}}))
 
   ;; Let's see if the :style works
 
@@ -5871,7 +5882,7 @@ ser/collect-vars-acc %1 %2) )))"
   (expect "(def ^{:meta :x}\n     ; one\n     ; two\n     ; three\n     :body)"
           (zprint-str
             "(def\n  ^{:meta :x}\n  ; one\n  ; two\n  ; three\n  :body)\n"
-            {:parse-string? true}))
+            {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
 
   ;;
   ;; :pair {:justify {:ignore-for-variance ...}}
@@ -6194,6 +6205,7 @@ ser/collect-vars-acc %1 %2) )))"
     (zprint-str
       mapp6
       {:parse-string? true,
+       :comment {:smart-wrap {:border 0}}
        :fn-map {"app" [:none
                        {:list {:constant-pair-min 1,
                                :constant-pair-fn #(or (vector? %)
@@ -8052,7 +8064,7 @@ i261
 
 (expect
 "(defproject zprint \"0.4.14\"\n  :description \"Pretty print zippers and s-expressions\"\n  :url \"https://github.com/kkinnear/zprint\"\n  :license {:name \"MIT License\",\n            :url \"https://opensource.org/licenses/MIT\",\n            :key \"mit\",\n            :year 2015}\n  :plugins\n    [[lein-expectations \"0.0.8\"] [lein-codox \"0.10.3\"] [lein-zprint \"0.3.12\"]]\n  :profiles {:dev {:dependencies [[better-cond \"1.0.1\"]\n                                  [clojure-future-spec \"1.9.0-alpha17\"]\n                                  [com.taoensso/tufte \"1.1.1\"]\n                                  ;[rum \"0.10.8\"];\n                                  [expectations \"2.2.0-rc1\"]\n                                  #_[org.clojure/clojurescript \"1.9.946\"]\n                                  [org.clojure/core.match \"0.3.0-alpha5\"]\n                                  [zpst \"0.1.6\"]]},\n             :uberjar {:aot [zprint.core zprint.main],\n                       ; For 1.9.0-alpha17, use this for the :aot value\n                       ;:aot [zprint.core zprint.main clojure.core.specs.alpha],\n                       :main zprint.main,\n                       :dependencies [[clojure-future-spec \"1.9.0-alpha17\"]],\n                       :omit-source true,\n                       :uberjar-name \"zprint-filter-%s\"}}\n  ; Clojure 1.8 you can exclude all sources in the uberjar\n  :uberjar-exclusions [#\"\\.(clj|java|txt)\"]\n  ; Clojure 1.9 requires the .clj files in the uberjar\n  ; :uberjar-exclusions [#\"\\.(clj\\.|java|cljs|txt)\"]\n  :jar-exclusions [#\"\\.(clj$|clj\\.|java|txt)\"]\n  :zprint {:old? false}\n  :jvm-opts ^:replace\n            [\"-server\"\n             \"-Xms2048m\"\n             \"-Xmx2048m\"\n             \"-Xss500m\"\n             \"-XX:-OmitStackTraceInFastThrow\"]\n  :scm {:name \"git\", :url \"https://github.com/kkinnear/zprint\"}\n  :codox {:namespaces [zprint.core],\n          :doc-files\n            [\"README.md\" \"doc/bang.md\" \"doc/graalvm.md\" \"doc/filter.md\"],\n          :metadata {:doc/format :markdown}}\n  :dependencies\n    [#_[cprop \"0.1.6\"]\n     #_[org.clojure/clojure \"1.10.0-beta3\"]\n     [org.clojure/clojure \"1.8.0\"]\n     #_[org.clojure/clojure \"1.9.0\"]\n     [rewrite-clj \"0.6.1\" :exclusions [[com.cemerick/austin]]]\n     [rewrite-cljs \"0.4.4\" :exclusions [[org.clojure/clojurescript]]]\n     #_[table \"0.4.0\" :exclusions [[org.clojure/clojure]]]])"
-(zprint-str prj2 {:parse-string? true :style :sort-dependencies}))
+(zprint-str prj2 {:parse-string? true :style :sort-dependencies :comment {:smart-wrap {:border 0}}}))
 
 ;;
 ;; Put blank lines in vectors Issue #283

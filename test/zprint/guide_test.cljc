@@ -1916,11 +1916,16 @@
 
 
   (expect
-"(defn rod7\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n  ; This is a comment\n  ; actually, a two line one\n  ([a b c] ; this is an embedded comment\n   (rod7 a b c nil))\n  ([a b]\n   (rod7 a b nil nil)))"
+"(defn rod7\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n  ; This is a comment actually, a two line one\n  ([a b c] ; this is an embedded comment\n   (rod7 a b c nil))\n  ([a b]\n   (rod7 a b nil nil)))"
+
+#_"(defn rod7\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n  ; This is a comment\n  ; actually, a two line one\n  ([a b c] ; this is an embedded comment\n   (rod7 a b c nil))\n  ([a b]\n   (rod7 a b nil nil)))"
     (zprint-str rod7 {:parse-string? true, :style :rod-no-ma-nl}))
 
   (expect
-    "(defn rod7\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ; This is a comment\n  ; actually, a two line one\n  ([a b c]  ; this is an embedded comment\n   (rod7 a b c nil))\n\n  ([a b]\n   (rod7 a b nil nil)))"
+
+"(defn rod7\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ; This is a comment actually, a two line one\n  ([a b c]  ; this is an embedded comment\n   (rod7 a b c nil))\n\n  ([a b]\n   (rod7 a b nil nil)))"
+
+    #_"(defn rod7\n  \"Thus illustrating the rules of defn.\"\n  ([a b c d]\n   (cond (nil? a) (list d)\n         (nil? b) (list c d a b)\n         :else (list a b c d)))\n\n  ; This is a comment\n  ; actually, a two line one\n  ([a b c]  ; this is an embedded comment\n   (rod7 a b c nil))\n\n  ([a b]\n   (rod7 a b nil nil)))"
     (zprint-str rod7 {:parse-string? true, :style :rod :comment {:inline-align-style :none}}))
 
 

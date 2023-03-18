@@ -342,7 +342,13 @@
 (s/def ::cwd-zprintrc? ::boolean)
 (s/def ::doc string?)
 (s/def ::search-config? ::boolean)
-(s/def ::dbg? ::boolean)
+
+(s/def ::dbg?
+  (s/or :boolean ::boolean
+        :set set?
+        :keyword keyword?))
+
+#_(s/def ::dbg? ::boolean)
 (s/def ::dbg-s ::dbg-s-set)
 (s/def ::force-eol-blanks? ::boolean)
 (s/def ::test-for-eol-blanks? ::boolean)

@@ -16,9 +16,13 @@
   sel can be either a single keyword or a set of keywords."
   [options sel & rest]
   (if (keyword? sel)
-    `(when (or (~sel (:dbg-s ~options)) (:dbg? ~options))
+    `(when (or (~sel (:dbg-s ~options))
+               (~sel (:dbg? ~options))
+               (= (:dbg? ~options) :all))
        (println (:dbg-indent ~options) (pr-str ~@rest)))
-    `(when (or (some ~sel (:dbg-s ~options)) (:dbg? ~options))
+    `(when (or (some ~sel (:dbg-s ~options))
+               (when (set? (:dbg? ~options)) (some ~sel (:dbg? ~options)))
+               (= (:dbg? ~options) :all))
        (println (:dbg-indent ~options) (pr-str ~@rest)))))
 
 (defmacro dbg-s
@@ -26,9 +30,13 @@
   sel can be either a single keyword or a set of keywords."
   [options sel & rest]
   (if (keyword? sel)
-    `(when (or (~sel (:dbg-s ~options)) (:dbg? ~options))
+    `(when (or (~sel (:dbg-s ~options)) 
+	       (~sel (:dbg? ~options))
+               (= (:dbg? ~options) :all))
        (println (:dbg-indent ~options) ~@rest))
-    `(when (or (some ~sel (:dbg-s ~options)) (:dbg? ~options))
+    `(when (or (some ~sel (:dbg-s ~options)) 
+               (when (set? (:dbg? ~options)) (some ~sel (:dbg? ~options)))
+               (= (:dbg? ~options) :all))
        (println (:dbg-indent ~options) ~@rest))))
 
 (defmacro dbg-form

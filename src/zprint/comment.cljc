@@ -1210,11 +1210,11 @@
 
 (defn find-consecutive-inline-comments
   "Given a style-vec, find consecutive inline comments and output
-  the as a sequence of vectors of comments.  Each comment itself
+  them as a sequence of vectors of comments.  Each comment itself
   is a vector: [indent-index inline-comment-index], yielding a
   [[[indent-index inline-comment-index] [indent-index inline-comment-index]
   ...] ...]"
-  [style-vec]
+  [options style-vec]
   #_(def fcic style-vec)
   (loop [cvec style-vec
          index 0
@@ -1222,13 +1222,31 @@
          current-seq []
          out []]
     (if-not cvec
-      (do #_(def fcico out) out)
+      (do #_(def fcico out)
+          (if last-indent
+            ; if we have a last-indent, then we didn't
+            ; just have a comment.  But if we have more
+            ; than one comment vector in current-seq,
+            ; make sure we keep track of that
+            (if (> (count current-seq) 0) (conj out current-seq) out)
+            ; if we didn't have last-indent, then we
+            ; just had a comment, so keep collecting
+            ; them
+            out)
+          #_out)
       (let [[s c e :as element] (first cvec)]
+        (dbg-s options
+               #{:consecutive}
+               "find-consecutive-inline-comments element:" (pr-str element)
+               "\n index:" index
+               "\n last-indent:" last-indent
+               "\n current-seq:" current-seq
+               "\n out:" out)
         (cond
           (= e :comment-inline)
             (recur (next cvec)
-                   (inc index)
-                   nil
+                   (inc index) ; index
+                   nil         ; next last-indent
                    (if last-indent
                      (conj current-seq [last-indent index])
                      (throw (#?(:clj Exception.
@@ -1237,8 +1255,8 @@
                    out)
           (or (= e :indent) (= e :newline))
             (recur (next cvec)
-                   (inc index)
-                   index
+                   (inc index) ; index
+                   index       ; next last-indent
                    (if last-indent
                      ; if we have a last-indent, then we didn't
                      ; just have a comment
@@ -1351,18 +1369,25 @@
     (reduce (partial change-start-column minimum-col) style-vec comment-vec)))
 
 (defn fzprint-align-inline-comments
-  "Given the current style-vec, align all consecutive inline comments."
+  "Given the current style-vec, align all inline comments."
   [options style-vec]
-  (dbg-pr options "fzprint-align-inline-comments: style-vec:" style-vec)
+  (dbg-s options
+         #{:align-inline}
+         "fzprint-align-inline-comments: style-vec:"
+         ((:dzprint options) {:vector {:wrap? false, :indent 1}} 
+        (map-indexed (fn [a b] (vector a b)) style-vec)
+	 #_style-vec
+	 ))
   (let [style (:inline-align-style (:comment options))]
     (if (= style :none)
       style-vec
       (let [comment-vec (cond (= style :aligned) (find-aligned-inline-comments
                                                    style-vec)
                               (= style :consecutive)
-                                (find-consecutive-inline-comments style-vec))
+                                (find-consecutive-inline-comments options 
+				                                  style-vec))
             _ (dbg-s options
-                     :align
+                     #{:align-inline}
                      "fzprint-align-inline-comments: comment-vec:"
                      comment-vec)
             comment-vec-column (comment-vec-all-column style-vec comment-vec)]

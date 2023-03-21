@@ -3279,8 +3279,121 @@ indpendent capabilities.
 #### :wrap? _true_
 
 Wrap a comment if it doesn't fit within the width.  Works hard to preserve
-the initial part of the line and word wraps the end.  Does not pull
-subsequent lines up on to a wrapped line.
+the initial part of the line and word wraps any of the comment that extends
+beyond the `:width` minus the `:border` onto a new line immediately below.
+Does not, by itself, bring subsequent lines up on to a previous line.
+
+However, when combined with `:smart-wrap?`, it will do a dramatically 
+better job of wrapping.
+
+#### :smart-wrap? _true_
+
+The basic `:wrap?` capability has been around for years in zprint, and
+while it managed to make things fit within the `:width`, the results could
+be pretty bad.  For instance, when code moved to the right, you could get
+something like this:
+
+```clojure
+(defn fzprint-map-two-up
+  [caller options ind commas? coll]
+  (let [len (count coll)]
+    (when (not (and one-line? force-nl? (> len 1)))
+      (let [caller-options (options caller)]
+        (concat-no-nil l-str-vec
+                       (prepend-nl options
+                                   (+ indent ind)
+                                   ; I think that fzprint-extend will sort out
+                                   ; which
+                                   ; is and isn't the rightmost because of
+                                   ; two-up
+                                   (fzprint-extend options
+                                                   zloc-seq-right-first))
+                       r-str-vec)))))
+```
+
+Once this happened, it would be like this forever unless you fixed it up
+by hand.
+
+However, with `:smart-wrap? true` (which is now the default), things like
+this are cleaned up.  When zprint encounters comments like those above,
+they will now be formatted like this.  To be clear, it will repair the 
+problem above!
+
+```clojure
+(defn fzprint-map-two-up
+  [caller options ind commas? coll]
+  (let [len (count coll)]
+    (when (not (and one-line? force-nl? (> len 1)))
+      (let [caller-options (options caller)]
+        (concat-no-nil l-str-vec
+                       (prepend-nl options
+                                   (+ indent ind)
+                                   ; I think that fzprint-extend will sort
+                                   ; out which is and isn't the rightmost
+                                   ; because of two-up
+                                   (fzprint-extend options
+                                                   zloc-seq-right-first))
+                       r-str-vec)))))
+```
+
+This feature is called `:smart-wrap?` because it will handle many special
+cases beyond just doing word wrap.  It will recognize and not mess up
+the use of "o", "*", "-" as bullets, as well as numbered lists.  Overall
+it will recover most of the problems that the simple version of `:wrap?` 
+put into the code in the past, as well as not creating new problems for
+the future.
+
+When word wrapping, it will detect punctuation and capitalization,
+and try to cleanly join lines that move around by adding those where
+it seems appropriate.  While you don't need to capitalize and
+punctuate your comments, doing so will give zprint useful information
+it can use when it needs to move words from one line to another.
+
+`:smart-wrap?` is also configurable, so that you can configure it to
+minimize the wrapping that it will do when processing a file.  There
+is a style called `:minimal-smart-wrap` which will configure it to make
+minimal changes but will also still fix up problems like those above.
+
+#### :smart-wrap
+
+A set of configuration parameters for the smart wrap capability.
+
+##### :border _5_
+
+Smart wrap has a border just for comments.  Comments that reach beyond the
+border will be wrapped.
+
+This will also be used as the `:border` for `:comment` when `:smart-wrap?` is 
+true.
+
+##### :last-max 5
+
+If the last line of a group of comments is more than 5 characters longer
+than the longest previous line in the group, then smart wrap the group.
+
+##### :max-variance 30
+
+If the variance of the lines in a group of comments is more than 30, then
+smart wrap the group.  The last line is generally not included in the
+variance, though under some conditions it will be included.
+
+##### :space-factor 3
+
+If the longest line in a group of comments is less than the number of
+characters from the leftmost character in the comment to the width, divided
+by the `:space-factor`, then smart wrap the group of comments.
+
+##### :end+start-cg
+##### :end+skip-cg
+
+Two vectors of regular expressions which are used to notice things like
+bullets and numbered lists in comments.  The details are ... pretty detailed.
+If you want to configure these, please submit an issue.
+
+#### :border? _0_
+
+This is the border for the basic `:wrap?` capability.  It is zero by default,
+but will take on the value from `:smart-wrap` when `:smart-wrap?` is true.
 
 #### :inline? _true_
 

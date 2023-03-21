@@ -511,7 +511,6 @@
              :border 0,
              :smart-wrap? true,
              :smart-wrap {:border 5,
-                          #_#_:top-level? false,
                           :end+start-cg [; Line starts with single letter, but
                                          ; not a or I
                                          #"^(;+)(\s*[b-zA-HJ-Z]\s+)"
@@ -926,6 +925,11 @@
       :meta-alt {:doc "Alternative for metadata. Experimental.",
                  :fn-map {"def" [:arg2 {:style :meta-base}],
                           "deftest" [:arg1-body {:style :meta-base}]}},
+      :minimal-smart-wrap {:doc "Do the minimal smart-wrap"
+                           :comment {:smart-wrap {:last-max 80
+			                          :border 0
+						  :max-variance 200
+						  :space-factor 100}}}
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
       :multi-lhs-hang {:doc "Allow multi-lhs-hang in all three places.",

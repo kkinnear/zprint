@@ -95,6 +95,12 @@
 (def zc41
 "(defn inline-test\n  [a b c]\n  (let [us test]\n    (some inline           ; comments\n          comments         ; some that are aligned\n\t  to\n\t  see                       ; a single line\n\t  if \n\t  aligned       ; and some\n\t  and           ; that are \n\t  consecutive                        ; not aligned\n\t  work))        ; at all\n\t  )\n")
 
+
+(def zc44
+"(defn fzprint-map-two-up\n  [caller options ind commas? coll]\n  (let [len (count coll)]\n    (when (not (and one-line? force-nl? (> len 1)))\n      (let [caller-options (options caller)]\n            (concat-no-nil l-str-vec\n                           (prepend-nl-and-move-it-right options\n                                       (+ indent ind)\n                                       ; I think that fzprint-extend will sort out \n\t\t\t\t       ; which is and isn't the rightmost because of two-up and even more stuff so that it can't fit at all\n                                       (fzprint-extend options))\n                           r-str-vec)))))\n")
+
+
+
 ;;
 ;; Basic smart wrap test
 ;;
@@ -314,6 +320,14 @@
 (expect
 "(defn inline-test\n  [a b c]\n  (let [us test]\n    (some inline   ; comments\n          comments ; some that are aligned\n          to\n          see ; a single line\n          if\n          aligned     ; and some\n          and         ; that are\n          consecutive ; not aligned\n          work))      ; at all\n)"
 (zprint-str zc41 {:parse-string? true :comment {:inline-align-style :consecutive :smart-wrap? false}}))
+
+;;
+;; what happens if the last line is really big?
+;;
+
+(expect
+"(defn fzprint-map-two-up\n  [caller options ind commas? coll]\n  (let [len (count coll)]\n    (when (not (and one-line? force-nl? (> len 1)))\n      (let [caller-options (options caller)]\n        (concat-no-nil l-str-vec\n                       (prepend-nl-and-move-it-right options\n                                                     (+ indent ind)\n                                                     ; I think that\n                                                     ; fzprint-extend will\n                                                     ; sort out which is and\n                                                     ; isn't the rightmost\n                                                     ; because of two-up and\n                                                     ; even more stuff so\n                                                     ; that it can't fit at\n                                                     ; all\n                                                     (fzprint-extend options))\n                       r-str-vec)))))"
+(zprint-str zc44 {:parse-string? true}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

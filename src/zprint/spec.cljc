@@ -205,6 +205,7 @@
 (s/def ::focus (only-keys :opt-un [::zloc? ::path ::surround]))
 (s/def ::force-validate? ::boolean)
 (s/def ::force-nl? ::boolean)
+(s/def ::one-line-ok? ::boolean)
 (s/def ::general-hang-adjust number?)
 (s/def ::hang? ::boolean)
 (s/def ::hang-diff number?)
@@ -516,7 +517,7 @@
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
-             ::new-l-str ::new-r-str ::option-fn-map ::alt?]))
+             ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

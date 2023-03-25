@@ -26,6 +26,7 @@
   ([options len sexpr] (rodfn {} options len sexpr))
   ([rod-options options len sexpr]
    (let [multi-arity-nl? (get rod-options :multi-arity-nl? true)
+	 one-line-ok? (:one-line-ok? rod-options)
          fn-name? (symbol? (second sexpr))
          docstring? (string? (nth sexpr (if fn-name? 2 1)))
          multi-arity? (not (vector? (nth sexpr
@@ -38,6 +39,9 @@
          option-map {:list {:nl-count nl-count},
                      :next-inner {:list {:option-fn nil}},
                      :next-inner-restore [[:list :nl-count]]}
+	 option-map (if one-line-ok?
+	                (assoc option-map :one-line-ok? true)
+			option-map)
          option-map (cond (and fn-name? docstring?)
                             (assoc option-map :fn-style :arg1-force-nl-body)
                           (and fn-name? (not multi-arity?))

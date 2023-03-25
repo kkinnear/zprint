@@ -62,7 +62,7 @@
   [:cache :cwd-zprintrc? :parallel? :search-config? :url])
 
 (def explain-hide-keys
-  [:configured? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
+  [:configured? :one-line-ok? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
    :dbg-ge :file? :spaces? :process-bang-zprint? :trim-comments? :zipper?
    :indent :remove :return-cvec? :test-for-eol-blanks? :!zprint-elide-skip-next?
    :fn-str [:object :wrap-after-multi? :wrap-coll?]

@@ -4818,6 +4818,13 @@
                                                :binding-vector))
                          one-line-ok?)
           one-line-ok? (if (:force-nl? (options caller)) nil one-line-ok?)
+
+	  ; If we have one-line-ok? on in the options map, then override all
+	  ; of the other calculations we have made.
+	  one-line-ok? (if (:one-line-ok? options) true one-line-ok?)
+	  ; We will get rid of :one-line-ok? in the options map below, after
+	  ; we actually try to format something to see if it fits on one line.
+
           ; remove -body from fn-style if it was there
           fn-style (or (body-map fn-style) fn-style)
           ; Fix up :fn for multi-arity functions
@@ -4933,7 +4940,11 @@
           one-line (if (and (zero? len) (= pre-arg-1-style-vec :noseq))
                      :empty
                      (when one-line-ok?
-                       (fzprint-one-line options one-line-ind zloc-seq)))]
+                       (fzprint-one-line options one-line-ind zloc-seq)))
+	  ; :one-line-ok? is only good for one try for the whole expression.
+	  ; After that, it needs to go away whether or not we fit it onto
+	  ; one line.
+	  options (dissoc options :one-line-ok?)]
       (cond
         (= one-line :empty) (concat-no-nil l-str-vec r-str-vec)
         indent-only? (concat-no-nil l-str-vec

@@ -28,6 +28,30 @@ All notable changes to this project will be documented in this file.
   using the Small Clojure Interpreter (sci) built into zprint, the same
   way that zprint handles reading external configuration files.
   Issue #283.
+  
+  * Configurable Styles: As the number of styles that call `:option-fn`
+  to return guides or just to do complex things has grown, many of
+  these styles have also begun to accept a configuration map as
+  their first argument.  This has worked well, but has in turn
+  required a new style in the `:style-map` for every unique combination
+  of values in the configuration map for the option-fn (or has
+  required moderately complex configuration in the `:fn-map` or
+  elsewhere).   The processing for styles has been enhanced to
+  create a `:style-fn`, which is a key which appears in a style in
+  the `:style-map`.  It is called with sufficient information to
+  allow it to return a style (possibly containing a configuration
+  map for an option-fn).  A `:style-map` style containing `:style-fn`
+  can be used just like any style, but it can also be used by giving
+  a map to `:style`, where that map contains a `:style-call` key
+  whose value is the style in the `:style-map`. The map with a
+  `:style-call` key can also contain configuration information for
+  the resulting option-fn.  Thus, you can invoke a style and pass
+  it configuration information when you invoke it, without requiring
+  you to define yet another new style which encapsulates your
+  particular configuration.  See the style `:rod-config` in the
+  `:style-map` for an example of how this might work, and the
+  documentation for style `:rod` in the reference manual for
+  additional details. This was added in part because of Issue #282.
 
 ### Changed
   

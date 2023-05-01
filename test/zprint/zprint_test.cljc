@@ -5227,7 +5227,7 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect "#stuff/bother\n (list :this\n       \"is\"\n       a\n       :test)"
           (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
-                      {:parse-string? true, :style :respect-nl}))
+                      {:parse-string? true, :style :respect-nl :tagged-literal {:hang? false}}))
 
   (expect
     "#?(:clj (defn zpmap ([f] (if x y z)))\n   :cljs (defn zpmap ([f] (if x y z))))"
@@ -8175,6 +8175,20 @@ i283l
 (expect
 "[{:a :b}\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
 (zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? true :nl-count [3 4 5]} :map {:force-nl? true}}))
+
+;;
+;; Issue #294 -- :hiccup style getting triggered by destructuring map in
+;; argument vector.
+;;
+
+(def
+i294b
+"(defn my-fn \n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} a longer argument vector]\n   (do-stuff a b c)))\n")
+
+
+(expect
+"(defn my-fn\n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} a longer argument vector] (do-stuff a b c)))"
+(zprint-str i294b {:parse-string? true :style :hiccup}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

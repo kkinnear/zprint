@@ -238,7 +238,6 @@
        :new-l-str
        :r-str
        :new-r-str)
-     #_new-options
      (or new-zloc zloc)
      (or new-l-str l-str)
      (or new-r-str r-str)
@@ -432,9 +431,6 @@
         hang-adjust (or hang-adjust general-hang-adjust)
         ; Get solid versions of key local tuning parameters
         tuning (:tuning options)
-        #_(when (= caller :pair)
-            (println "good-enough:" (:tuning (caller options)))
-            (println "good-enough caller hang-flow:" caller hang-flow))
         hang-flow (or hang-flow (:hang-flow tuning))
         hang-type-flow (or hang-type-flow (:hang-type-flow tuning))
         hang-flow-limit (or hang-flow-limit (:hang-flow-limit tuning))
@@ -2853,6 +2849,7 @@
    (dbg-pr options
            "fzprint-flow-seq: count zloc-seq:" (count zloc-seq)
            "nl-first?" nl-first?
+	   "force-nl?" force-nl?
            "zloc-seq:" (map zstring zloc-seq))
    (let [coll-print (fzprint-seq options ind zloc-seq)
          ; If we are force-nl?, then don't bother trying one-line
@@ -4501,7 +4498,7 @@
              (if new-fn-type
                (lookup-fn-type-map options new-fn-type fn-type-set)
                [options new-fn-type])]
-       #_(println "handle-fn-style: :fn-style:" fn-style
+       (dbg-s options #{:handle-fn-style} "handle-fn-style: :fn-style:" fn-style
                   "new-fn-type" new-fn-type
                   "latest-fn-type" latest-fn-type
                   "count new-options:" (count new-options)
@@ -4529,11 +4526,18 @@
   any case, return [options fn-style]"
   [caller options fn-style fn-map user-fn-map option-fn]
   (let [new-fn-style (let [new-fn-style (:fn-style options)]
-                       (when (not= new-fn-style fn-style) new-fn-style))]
+                       (when (not= new-fn-style fn-style) new-fn-style))
+	; We have looked at this, now forget about it.
+        options (dissoc options :fn-style)]
     (if new-fn-style
       (if (string? new-fn-style)
         (let [found-fn-style (or (lookup-fn-str fn-map new-fn-style)
                                  (lookup-fn-str user-fn-map new-fn-style))]
+	  (dbg-s options #{:handle-new-fn-style}
+	       "handle-new-fn-style: string new-fn-style:"
+	       new-fn-style
+	       "found-fn-style:"
+	       found-fn-style)
           (if found-fn-style
             ; Found something, use that.
             (handle-fn-style options found-fn-style)
@@ -5429,9 +5433,7 @@
                                                  new-ind
                                                  coll-print
                                                  :no-nl-first
-                                                 nl-count-vector
-                                                 #_(:nl-count (caller
-                                                                options))))
+                                                 nl-count-vector))
                                  r-str-vec))
                 ; nl-separator? false -- nl-count is the number of newlines
                 ; between every element in the list.  Defaults to 1 in
@@ -6048,10 +6050,6 @@
                    "beyond-cur-ind:" beyond-cur-ind
                    "cur-ind:" cur-ind
                    "element-index:" element-index)
-          #_(dbg-s options
-                   :guide
-                   "guided-output: next?" (not (empty? next-result))
-                   "this?" (not (empty? this-result)))
           output-seq (or next-result output-seq)
           ; This says that we don't fit if we used the result from the
           ; next line fzprint*
@@ -6314,8 +6312,7 @@
                            :bright-blue)
                 ((:dzprint options)
                   {:color? true}
-                  guided-output-out
-                  #_(into [] (condense-depth 1 guided-output-out))))
+                  guided-output-out))
          ; If we have a nil guided-output-out, we don't add it on, we
          ; return a nil which will stop everything!
          (when guided-output-out (concat out guided-output-out)))])))
@@ -7273,7 +7270,7 @@
             [options zloc l-str r-str]
               (if option-fn
                 (call-option-fn caller options option-fn zloc l-str r-str)
-                [options #_nil zloc l-str r-str])
+                [options zloc l-str r-str])
             ; Do this after call-option-fn in case anything changed.
             l-str-len (count l-str)
             l-str-vec [[l-str (zcolor-map options l-str) :left]]
@@ -8288,7 +8285,8 @@
     (dbg-pr options
             "fzprint-reader-macro: zloc:" (zstring zloc)
             "floc:" (zstring floc)
-            "l-str:" l-str)
+            "l-str:" l-str
+	    "reader-cond?" reader-cond?)
     ; This isn't really all that correct, but does yield the right output.
     ; Question about whether or not it does the right stuff for focus.
     ; Maybe there is some way to call fzprint-indent with just the
@@ -8347,14 +8345,16 @@
                         floc
                         nil)
           ; not reader-cond?
-          (fzprint-flow-seq :reader-cond
+
+          (fzprint-pairs 
                             options
                             (+ indent ind)
                             (let [zloc-seq
                                     (cond respect-nl? (zmap-w-nl identity zloc)
                                           respect-bl? (zmap-w-bl identity zloc)
                                           :else (zmap identity zloc))]
-                              (if namespaced? (next zloc-seq) zloc-seq))))
+                              (if namespaced? (next zloc-seq) zloc-seq))
+			      :tagged-literal))
         r-str-vec))))
 
 (defn fzprint-newline

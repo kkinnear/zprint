@@ -7,6 +7,12 @@
   [m [k1 k2]]
   (assoc m k1 (dissoc (get m k1) k2)))
 
+(defn dbg-s-merge
+  "Given two option maps, merge the sets (if any) of the :dbg-s
+  keys in each map into the first map."
+  [map1 map2]
+  (assoc map1 :dbg-s (into (:dbg-s map1) (:dbg-s map2))))
+
 (defn local-abs
   "Return the absolute value of a number."
   [n]

@@ -954,6 +954,139 @@
 
 
 
+;;
+;; # Configurable Styles
+;;
+
+;; The style-call doesn't have a valid target.
+(def
+i294
+"(defn my-fn \n  ([a] (my-fn a {}))\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))\n" )
+
+
+(expect "it referenced the style: :rodf which was not found!"
+        (try (zprint-str i294 {:parse-string? true, :style {:style-call :rodf}})
+             (catch #?(:clj Exception
+                       :cljs :default)
+               e
+               (re-find #"it referenced the style: :rodf which was not found!"
+                        (str e)))))
+
+;; The style-fn returns an options map with {:style {:style-call ...}}
+
+ (expect
+"(defn my-fn\n  ([a]\n   (my-fn a {}))\n\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))"
+ (zprint-str i294 {:parse-string? true :style {:style-call :rodt} :style-map {:rodt {:style-fn (fn [_ _ _ _] {:style {:style-call :rod}})}}}))
+
+;; The style-fn returns a style-call.  This is an invalid options-map, and
+;; do it throws an exception.
+
+(expect
+  "In a zprint call, In the key-sequence [:style-call] the key :style-call was not recognized as valid!"
+  (try
+    (zprint-str i294
+                {:parse-string? true,
+                 :style {:style-call :rodt},
+                 :style-map {:rodt {:style-fn (fn [_ _ _ _]
+                                                {:style-call :rod})}}})
+    (catch #?(:clj Exception
+              :cljs :default)
+      e
+      (re-find
+        #"In a zprint call, In the key-sequence .:style.call. the key :style.call was not recognized as valid!"
+        (str e)))))
+
+;; The style is a map w/out :style-call in it
+
+(expect "This style: '{:stuff :bother}' contains neither!"
+        (try (zprint-str i294 {:parse-string? true, :style {:stuff :bother}})
+             (catch #?(:clj Exception
+                       :cljs :default)
+               e
+               (re-find #"This style: ..:stuff :bother.. contains neither!"
+                        (str e)))))
+
+;; Same thing when it is in a vector
+
+(expect "This style: '{:stuff :bother}' contains neither!"
+        (try (zprint-str i294 {:parse-string? true, :style [{:stuff :bother}]})
+             (catch #?(:clj Exception
+                       :cljs :default)
+               e
+               (re-find #"This style: ..:stuff :bother.. contains neither!"
+                        (str e)))))
+
+
+;; Valid :style-calls
+
+(expect
+"(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
+(zprint-str i294 {:parse-string? true :style {:style-call :rod-config :one-line-ok? true}}))
+
+(expect
+"(defn my-fn\n  ([a]\n   (my-fn a {}))\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))"
+(zprint-str i294 {:parse-string? true :style {:style-call :rod-config :one-line-ok? false}}))
+
+;; Style not found
+
+(expect "it referenced the style: :rod-configxxx which was not found!"
+        (try (zprint-str i294
+                         {:parse-string? true,
+                          :style {:style-call :rod-configxxx,
+                                  :one-line-ok? true}})
+             (catch #?(:clj Exception
+                       :cljs :default)
+               e
+               (re-find
+                 #"it referenced the style: :rod-configxxx which was not found!"
+                 (str e)))))
+
+
+
+;; Bad style map value
+
+(expect "the style :rodt failed to validate"
+        (try (zprint-str i294
+                         {:parse-string? true,
+                          :style {:style-call :rodt},
+                          :style-map {:rodt {:list {:indentx 5}}}})
+             (catch #?(:clj Exception
+                       :cljs :default)
+               e
+               (re-find #"the style :rodt failed to validate" (str e)))))
+
+;; Circular style error
+
+(expect "Circular style error!"
+        (try (zprint-str i294
+                         {:parse-string? true,
+                          :style {:style-call :rodt},
+                          :style-map {:rodt {:style-call :rodu},
+                                      :rodu {:style-call :rodt}}})
+             (catch #?(:clj Exception
+                       :cljs :default)
+               e
+               (re-find #"Circular style error!" (str e)))))
+
+;; Validate entire default options map
+
+(expect nil
+  (set-options! (get-options)))
+
+;; Show that it is ok for a style-fn to return nil
+
+(expect
+"(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
+(zprint-str i294 {:parse-string? true :style :rodt :style-map {:rodt {:style-fn (fn ([] "test-style-fn") ([_ _ _ style-call]  nil))}}}))
+
+;; Show that it is ok for a style-fn to return {}
+
+(expect
+"(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
+(zprint-str i294 {:parse-string? true :style :rodt :style-map {:rodt {:style-fn (fn ([] "test-style-fn") ([_ _ _ style-call]  {}))}}}))
+
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

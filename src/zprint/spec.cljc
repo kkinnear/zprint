@@ -117,10 +117,17 @@
 (s/def ::format-value #{:on :off :next :skip})
 (s/def :alt/format-value #{:string :hiccup :html})
 (s/def ::nilable-number (s/nilable number?))
-(s/def ::vec-or-list-of-keyword (s/coll-of keyword? :kind sequential?))
+
+(s/def ::individual-style
+  (s/or :style-name keyword?
+        :configured-style map?))
+
+(s/def ::vec-or-list-of-keyword-or-map
+  (s/coll-of ::individual-style :kind vector?))
+
 (s/def ::style-value
-  (s/or :multiple-styles ::vec-or-list-of-keyword
-        :single-style (s/nilable keyword?)))
+  (s/or :single-style ::individual-style
+        :multiple-styles ::vec-or-list-of-keyword-or-map))
 ; Also used for :map {:no-sort ::ignore-args}
 (s/def ::ignore-args
   (s/or :string string?
@@ -258,7 +265,7 @@
 (s/def ::no-validate? ::boolean)
 (s/def ::nl-separator? ::boolean)
 (s/def ::nl-separator-all? ::boolean)
-(s/def ::nl-count ::number-or-vector-of-numbers)
+(s/def ::nl-count (s/nilable ::number-or-vector-of-numbers))
 (s/def ::object? ::boolean)
 (s/def ::pair-hang? ::boolean)
 (s/def ::parallel?
@@ -279,7 +286,7 @@
 (s/def ::new-r-str string?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::smart-wrap
-  (only-keys :opt-un [::border #_::top-level? ::end+start-cg ::end+skip-cg
+  (only-keys :opt-un [::border ::end+start-cg ::end+skip-cg
                       ::max-variance ::last-max ::space-factor]))
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
@@ -302,7 +309,6 @@
 (s/def ::unlift-ns? ::boolean)
 (s/def ::lift-ns-in-code? ::boolean)
 (s/def ::to-string? ::boolean)
-#_(s/def ::top-level? ::boolean)
 (s/def ::? ::boolean)
 (s/def ::use-previous-!zprint? ::boolean)
 (s/def ::value zany?)
@@ -349,7 +355,6 @@
         :set set?
         :keyword keyword?))
 
-#_(s/def ::dbg? ::boolean)
 (s/def ::dbg-s ::dbg-s-set)
 (s/def ::force-eol-blanks? ::boolean)
 (s/def ::test-for-eol-blanks? ::boolean)
@@ -432,7 +437,7 @@
                       ::nl-separator? ::nl-separator-all? :alt/tuning]))
 (s/def ::paragraph (only-keys :opt-un [:alt/style]))
 (s/def ::pair-fn
-  (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?]))
+  (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang? :alt/tuning]))
 (s/def ::parse
   (only-keys :opt-un [::interpose ::left-space ::ignore-if-parse-fails]))
 (s/def ::parse-string-all? ::boolean)
@@ -444,6 +449,8 @@
   (only-keys :opt-un [::comma? ::force-nl? ::hang-diff ::hang-expand ::hang?
                       ::indent ::key-order ::sort-in-code? ::sort?
                       :alt/tuning]))
+(s/def ::tagged-literal
+  (only-keys :opt-un [::hang-diff ::hang-expand ::hang? ::indent :alt/tuning]))
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
@@ -470,9 +477,9 @@
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::split? ::boolean)
-(s/def ::style ::style-value)
-(s/def ::styles-applied (s/nilable ::vec-or-list-of-keyword))
-(s/def ::style-map (s/nilable (s/map-of keyword? ::options)))
+(s/def ::style (s/nilable ::style-value))
+(s/def ::styles-applied (s/nilable ::vec-or-list-of-keyword-or-map))
+(s/def ::style-map (s/nilable (s/map-of keyword? map?)))
 (s/def ::tab (only-keys :opt-un [::expand? ::size]))
 (s/def ::trim-comments? ::boolean)
 (s/def ::tuning
@@ -517,7 +524,8 @@
              ::url ::zipper? ::guide ::guide-debug ::no-validate?
              ::force-validate? ::doc ::next-inner-restore ::fn-style
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
-             ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?]))
+             ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
+	     ::tagged-literal]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

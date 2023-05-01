@@ -3,7 +3,7 @@
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
             [zprint.spec :refer [explain-more coerce-to-boolean]]
-            [zprint.core :refer [set-options!]]
+            [zprint.core :refer [set-options! zprint-str]]
             [#?(:clj clojure.spec.alpha
                 :cljs cljs.spec.alpha) :as s]))
 
@@ -459,12 +459,30 @@
                                   {:fn-map {"stuff" [:arg1 {:width :x}]}})))
 
   ; It also validates the style maps
+  ; except, as of 1.2.6, now it doesn't.  Since the advent of configurable
+  ; styles, spec doesn't automatically validate things in the style map.
+  ; Style maps without a :style-fn are indeed validated, but only after
+  ; the ones with a :style-fn are removed from the list -- and not by
+  ; the validation in s/explain-data.
 
-  (expect
+  #_(expect
     "The value of the key-sequence [:style-map :new-style :parse-string?] -> :a was not a boolean"
     (explain-more (s/explain-data :zprint.spec/options
                                   {:style-map {:new-style {:parse-string?
                                                              :a}}})))
+
+  ; This next test is equivalent to the one immediately above, but it tests
+  ; the style-map validation using the full validation machinery.
+
+(expect "In the :style-map, the style :new-style failed to validate because, The value of the key-sequence [:parse-string?] -> :a was not a boolean"
+        (try (zprint-str :a
+                         {:style-map {:new-style {:parse-string? :a}}})
+             (catch #?(:clj Exception
+                       :cljs :default)
+               e
+               (re-find #"In the.*was not a boolean" (str e)))))
+
+
 
   ; It also validates the new options map for :script
 

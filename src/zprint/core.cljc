@@ -495,7 +495,7 @@
   [full-options rest-options]
   #_(println "\n\ndetermine-options:" rest-options
              "\n\n" (zprint.config/get-stack-trace))
-  (let [[actual-options _ errors] (config-and-validate "determine-options"
+  (let [[actual-options _ errors] (config-and-validate "a zprint call"
                                                        nil
                                                        full-options
                                                        rest-options)
@@ -528,8 +528,8 @@
                               (add-calculated-options
                                 (merge-deep (get-default-options)
                                             actual-options
-                                            {:map {:key-order [:doc],
-                                                   :key-color {:doc :blue},
+                                            {:map {:key-order [:doc :style-fn :style-call],
+                                                   :key-color {:doc :blue :style-call :blue :style-fn :blue},
                                                    :key-value-color
                                                      {:doc {:string
                                                               :green}}}})))

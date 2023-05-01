@@ -11,7 +11,7 @@
     [clojure.data    :as d]
     [zprint.spec     :refer [validate-basic coerce-to-boolean]]
     [zprint.rewrite  :refer [sort-dependencies]]
-    [zprint.util     :refer [dissoc-two]]
+    [zprint.util     :refer [dissoc-two dbg-s-merge]]
     [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
                              odrguide guideguide rodguide areguide
                              defprotocolguide-s]]
@@ -48,6 +48,8 @@
 
 (def zprintrc ".zprintrc")
 (def zprintedn ".zprint.edn")
+
+(declare merge-deep)
 
 ;;
 ;; # Internal Storage
@@ -535,7 +537,7 @@
                                         ; followed by colon
                                         #"^;+\s*[A-Z]\w+\:$"],
                           :max-variance 30,
-			  :space-factor 3,
+                          :space-factor 3,
                           :last-max 5}},
    :configured? false,
    :cwd-zprintrc? false,
@@ -773,11 +775,23 @@
                  :record {:hang? true}},
       :anon-fn {:doc "Put anon fn (fn* ...) back to #(... % ...)",
                 :fn-map {"fn*" [:none {:list {:option-fn fn*->%}}]}},
-      :areguide {:doc "Allow modification of areguide in :fn-map",
+      :areguide
+        {:doc "Configurable version of arguide."
+         :justify? true
+         :style-fn (fn 
+		     ([] "argguide-style-fn")
+	             ([existing-options new-options style-fn-map style-call]
+			 {:list {:option-fn (partial
+					      areguide
+					      (merge-deep
+						style-fn-map
+						style-call)
+						)}}))}
+      :areguidex {:doc "Allow modification of areguide in :fn-map",
                  :list {:option-fn (partial areguide {:justify? true})}},
       :areguide-nj
         {:doc "Do nice are formatting, but don't justify, use only in :fn-map",
-         :list {:option-fn (partial areguide {:justify? false})}},
+	 :style-call :areguide :justify? false}
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros",
          :fn-map
@@ -880,7 +894,11 @@
                        (let [hiccup? (and (>= n 2)
                                           (or (keyword? (first exprs))
                                               (symbol? (first exprs)))
-                                          (map? (second exprs)))]
+                                          (map? (second exprs))
+                                          ; Disambiguate destructuring maps
+                                          (not (some #{:keys :syms :strs :as
+                                                       :or}
+                                                     (keys (second exprs)))))]
                          (cond (and hiccup? (not (:fn-format (:vector opts))))
                                  {:vector {:fn-format :arg1-force-nl}}
                                (and (not hiccup?) (:fn-format (:vector opts)))
@@ -918,18 +936,18 @@
       :map-nl {:doc "Add newline after every value that flows",
                :map {:indent 0, :nl-separator? true}},
       :map-nl-all {:doc "Add newline between all map pairs",
-                   :map {::indent 0, :nl-separator-all? true}},
+                   :map {:indent 0, :nl-separator-all? true}},
       :meta-base {:doc "Alternative format for metadata. Experimental.",
                   :list {:option-fn meta-base-fn},
                   :next-inner-restore [[:list :option-fn]]},
       :meta-alt {:doc "Alternative for metadata. Experimental.",
                  :fn-map {"def" [:arg2 {:style :meta-base}],
                           "deftest" [:arg1-body {:style :meta-base}]}},
-      :minimal-smart-wrap {:doc "Do the minimal smart-wrap"
-                           :comment {:smart-wrap {:last-max 80
-			                          :border 0
-						  :max-variance 200
-						  :space-factor 100}}}
+      :minimal-smart-wrap {:doc "Do the minimal smart-wrap",
+                           :comment {:smart-wrap {:last-max 80,
+                                                  :border 0,
+                                                  :max-variance 200,
+                                                  :space-factor 100}}},
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
       :multi-lhs-hang {:doc "Allow multi-lhs-hang in all three places.",
@@ -1068,25 +1086,28 @@
                        :map {:respect-nl? false},
                        :vector {:respect-nl? false},
                        :set {:respect-nl? false}},
-      :rod-base {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}},
-      :rod {:doc "Rules of defn, experimental.  Very likely to change.",
-            :fn-map
-              {"defn" [:none
-                       {:list {:option-fn (partial rodfn
-                                                   {:multi-arity-nl? true})}}],
-               "defn-" [:none
-                        {:list {:option-fn
-                                  (partial rodfn {:multi-arity-nl? true})}}]}},
-      :rod-no-ma-nl
-        {:doc
-           "Rules of defn, experimental. No newlines between arities.  Very likely to change.",
-         :fn-map {"defn" [:none
-                          {:list {:option-fn
-                                    (partial rodfn {:multi-arity-nl? false})}}],
-                  "defn-" [:none
-                           {:list {:option-fn (partial rodfn
-                                                       {:multi-arity-nl?
-                                                          false})}}]}},
+      :rod {:doc "Rules of defn, with newlines between arities.",
+            :multi-arity-nl? true,
+            :one-line-ok? false,
+            :style-call :rod-config},
+      :rod-no-ma-nl {:doc "Rules of defn, no newlines between arities.",
+                     :multi-arity-nl? false,
+                     :one-line-ok? false,
+                     :style-call :rod-config},
+      :rod-config
+        {:doc "Configurable :rod {:multi-arity-nl? ... :one-line-ok? ..,}",
+         :one-line-ok? false,
+         :multi-arity-nl? false,
+         :style-fn (fn 
+		     ([] "rod-config-style-fn")
+	             ([existing-options new-options style-fn-map style-call]
+		       {:fn-map {"defn" [:none
+					 {:list {:option-fn (partial
+							      rodfn
+							      (merge-deep
+								style-fn-map
+								style-call))}}],
+				 "defn-" "defn"}}))},
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
@@ -1096,6 +1117,13 @@
                                                   :list {:option-fn
                                                            sort-deps}}]}}},
    :tab {:expand? true, :size 8},
+   :tagged-literal {:hang-diff 1,
+                    :hang-expand 1000.0,
+                    :hang? true,
+                    :indent 0,
+                    :tuning {:hang-flow 1.1,
+                             :hang-flow-limit 12,
+                             :hang-if-equal-flow? false}},
    :test-for-eol-blanks? false,
    :trim-comments? nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
@@ -1341,6 +1369,23 @@
     #(update-in %1 %2 (partial value-set-by doc-string) (get-in existing %2))
     doc-map
     changed-key-seq))
+
+(defn trim-ks
+  "If this is a :style-map ks, then look into the existing map and if that
+  style is not there, trim the ks to be just the :style-map style-name."
+  [existing-map ks]
+  (if (= (first ks) :style-map)
+    (if ((second ks) (:style-map existing-map)) ks (take 2 ks))
+    ks))
+
+(defn trim-style-map-ks
+  "The ks for a style map indicates the most detailed part of the style-map
+  entry, but in reality the entire entry should probably be considered
+  :set-by.  So, based on the existing map, trim the key sequences for
+  the :style-map to have just the style name."
+  [existing-map ks]
+  (map (partial trim-ks existing-map) ks))
+  
 
 (defn diff-map "Diff two maps." [before after] (second (d/diff before after)))
 
@@ -1741,43 +1786,231 @@
 (declare apply-style)
 (declare internal-config)
 
+(defn style-fn-name
+  "Given an style-fn, call it with no arguments to see if it returns its
+  name.  To be used only in exceptions or other times when performance is
+  not important."
+  [style-fn]
+  (try (let [style-fn-name (style-fn)]
+         (when (string? style-fn-name) (str " named '" style-fn-name "'")))
+       (catch #?(:clj Exception
+                 :cljs :default)
+         e
+         nil)))
+
+(defn call-style-fn
+  "Take a map, which is a style-config that includes a :style-fn value,
+  and call the style-fn with the [existing-map new-map style-config].
+  The style-fn must return a valid options map, which will be validated
+  before returning.  Returns [option-map error-str]."
+  [doc-string new-map existing-map style-fn-map style-call]
+  (let [style-fn (:style-fn style-fn-map)]
+    (dbg-s (dbg-s-merge new-map existing-map)
+           #{:call-style-fn}
+           "call-style-fn: style-fn:" style-fn
+           "doc-string:" doc-string
+           "style-map:" style-fn-map
+           "style-config:" style-call)
+    (if (keyword? style-fn)
+      [nil
+       (str "The value of :style-fn cannot be a keyword!"
+            " The style-fn-map is: "
+            style-fn-map)]
+      (let [[style-map error-str]
+              (try
+                (let [result
+                        (style-fn existing-map new-map style-fn-map style-call)]
+                  (dbg-s (dbg-s-merge new-map existing-map)
+                         #{:call-style-fn}
+                         "call-style-fn result:"
+                         result)
+                  [result nil])
+                (catch #?(:clj Exception
+                          :cljs :default)
+                  e
+                  (do (dbg-s (dbg-s-merge new-map existing-map)
+                             #{:style-fn-exception}
+                             "The style-fn " (style-fn-name style-fn)
+                             " specified by: " doc-string
+                             "failed:" (throw e))
+                      [nil
+                       (str " When " doc-string
+                            " specified a style-fn" (style-fn-name style-fn)
+                            " it failed because: " e)])))
+            ; We should have a style-map now
+            ; Let's validate it
+            error-str
+              (if error-str error-str (validate-options style-map doc-string))]
+        (if error-str
+          [nil
+           (str " When " doc-string
+                " specified a style-fn" (style-fn-name style-fn)
+                " the resulting style-map it returned: " style-map
+                " failed to validate as an option-map because: " error-str)]
+          [style-map nil])))))
+
+(defn get-style-map
+  "Look in two maps for a style definition."
+  [new-map existing-map style-name]
+  (or (get-in new-map [:style-map style-name])
+      (get-in existing-map [:style-map style-name])))
+
+(defn style-call->style-fn-map
+  "Given a style-call, get the style-fn-map. Which may be a single step,
+  but the style-call might also call another style-call, which means we
+  have to merge all of the style-calls together.  Returns [merged-style-calls
+  style-fn-map error-str]"
+  ([doc-string new-map existing-map style-call call-set]
+   (dbg-s (dbg-s-merge new-map existing-map)
+          #{:style-call}
+          "style-call->style-fn-map: " style-call
+          "call-set:" call-set)
+   (let [style-name (:style-call style-call)]
+     ; Have we already been here?
+     (if (style-name call-set)
+       ; Yes
+       [nil nil
+        (str "Circular style error!"
+             " When processing style-call: '" style-call
+             "' the style " style-name
+             " has already been encountered.  The styles involved are: "
+               call-set)]
+       (let [style-map (get-style-map new-map existing-map style-name)]
+         (dbg-s (dbg-s-merge new-map existing-map)
+                #{:style-call}
+                "style-call->style-fn-map: style-map:" style-map
+                "style-call:" style-call)
+         (if-not style-map
+           [nil nil
+            (str "When processing style-call: '"
+                 style-call
+                 "' it referenced the style: "
+                 style-name
+                 " which was not found!")]
+           (if (:style-fn style-map)
+             [style-call style-map nil]
+             (if (:style-call style-map)
+               (style-call->style-fn-map
+                 doc-string
+                 new-map
+                 existing-map
+                 ; Gather all of the style config info.
+                 (merge-deep style-map (dissoc style-call :style-call))
+                 (conj call-set style-name))
+               ; Must have either a style-call or a style-fn-map as the
+               ; result of a style-call
+               [nil nil
+                (str "When processing style-call: '" (:style new-map)
+                     "' the style-call '" style-call
+                     "' was encountered which referenced the style: " style-name
+                     " which resulted in a map that contained"
+                       " neither :style-call or :style-fn:."
+                     " The map for " style-name
+                     " is: " style-map
+                     " Styles involved in this processing are: "
+                       call-set)])))))))
+  ([doc-string new-map existing-map style-call]
+   (style-call->style-fn-map doc-string new-map existing-map style-call #{})))
+
+
 (defn apply-one-style
   "Take a [doc-string new-map styles-applied [existing-map doc-map
   error-str] style-name] and produce a new [existing-map doc-map
   error-str] from the style defined in the new-map if it exists,
-  or the existing-map if it doesn't."
+  or the existing-map if it doesn't.  Does not throw exceptions."
   [doc-string new-map [existing-map doc-map error-str] style-name]
   (if (or (= style-name :not-specified) (nil? style-name))
     [existing-map doc-map nil]
-    (let [style-map (if (= style-name :default)
-                      (get-default-options)
-                      (or (get-in new-map [:style-map style-name])
-                          (get-in existing-map [:style-map style-name])))
-          ; Remove the :doc key from the style, or it will end up in
-          ; the top level options map.
-          style-map (dissoc style-map :doc)
-          ; Note that styles-applied is initialized in config-and-validate
-          ; to be [].
-          existing-map (assoc existing-map
-                         :styles-applied (conj (:styles-applied existing-map)
-                                               style-name))]
-      (if style-map
-        (let [[updated-map new-doc-map error-vec]
-                (internal-config
-                  (str doc-string " specified :style " style-name)
-                  doc-map
-                  existing-map
-                  style-map)
-              new-doc-map (when new-doc-map
-                            (assoc new-doc-map
-                              :styles-applied (:styles-applied updated-map)))]
-          [updated-map new-doc-map
-           (when (or error-str error-vec)
-             (str error-str (when error-str ",") error-vec))])
-        [existing-map doc-map
-         (str error-str
-              (when error-str ",")
-              (str "Style '" style-name "' not found!"))]))))
+    ; A single :style specification (i.e., the value of :style or
+    ; one of the elements of vector which is the value of :style)
+    ; must either be a keyword or a map which contains :style-call.
+    (if (not (or (keyword? style-name)
+                 (and (map? style-name) (:style-call style-name))))
+      [existing-map doc-map
+       (str "A single style specification must either be a keyword"
+            " referencing a style in the :style-map, or a map"
+            " which contains a :style-call key.  This style: '"
+            style-name
+            "' contains neither!")]
+      (let [[style-name style-call style-map error-str]
+              (let [result style-name
+                    [style-name result error-str]
+                      (if (keyword? result)
+                        (let [style-map
+                                (get-style-map new-map existing-map result)]
+                          (if style-map
+                            [style-name style-map nil]
+                            [style-name nil
+                             (str "Style '" result "' not found!")]))
+                        [nil result nil])
+                    _ (dbg-s (dbg-s-merge new-map existing-map)
+                             #{:apply-style}
+                             "apply-one-style: style-name:" style-name
+                             "result:" result)
+                    [style-name style-call result error-str]
+                      (if (and (not error-str)
+                               (map? result)
+                               (:style-call result))
+                        (let [[style-call style-fn-map error-str]
+                                (style-call->style-fn-map
+                                  doc-string
+                                  new-map
+                                  existing-map
+                                  result
+                                  (if style-name #{style-name} #{}))]
+                          [(:style-call result) style-call style-fn-map
+                           error-str])
+                        [style-name nil result error-str])
+                    _ (dbg-s (dbg-s-merge new-map existing-map)
+                             #{:apply-style}
+                             "apply-one-style: style-name:" style-name
+                             "style-call:" style-call
+                             "result:" result
+                             "error-str:" error-str)
+                    [result error-str] (if error-str
+                                         [result error-str]
+                                         (if (and (map? result)
+                                                  (:style-fn result))
+                                           (call-style-fn doc-string
+                                                          new-map
+                                                          existing-map
+                                                          result
+                                                          style-call)
+                                           [result error-str]))]
+                [style-name style-call result error-str])
+             _ (dbg-s (dbg-s-merge new-map existing-map)
+                     #{:apply-style}
+                     "apply-one-style: style-name:" style-name
+                     "style-call:" style-call
+                     "style-map:" style-map
+                     "error-str:" error-str)
+            ; Remove the :doc key from the style,  or it will end up in
+            ; the top level options map.
+            style-map (dissoc style-map :doc)
+            ; Note that styles-applied is initialized in config-and-validate
+            ; to be [].
+            existing-map (assoc existing-map
+                           :styles-applied (conj (:styles-applied existing-map)
+                                                 style-name))]
+        (if error-str
+          [existing-map doc-map error-str]
+          (if style-map
+            (let [[updated-map new-doc-map error-vec]
+                    (internal-config
+                      (str doc-string " specified :style " style-name)
+                      doc-map
+                      existing-map
+                      style-map)
+                  new-doc-map (when new-doc-map
+                                (assoc new-doc-map
+                                  :styles-applied (:styles-applied
+                                                    updated-map)))]
+              [updated-map new-doc-map
+               (when (or error-str error-vec)
+                 (str error-str (when error-str ",") error-vec))])
+	    ; It all worked, but the :style-fn returned nil, which is fine.
+            [existing-map doc-map nil]))))))
+
 
 (defn apply-style
   "Given an existing-map and a new-map, if the new-map specifies a
@@ -1785,14 +2018,16 @@
   and then in the existing-map for the style.  Otherwise do nothing. 
   Use config-and-validate to actually apply the style, which in turn
   means that we need to pass down styles-applied through that routine.
-  Return [updated-map new-doc-map error-string]"
+  Returns [updated-map new-doc-map error-string].  Does not throw exceptions."
   [doc-string doc-map existing-map new-map]
   (let [style-name (get new-map :style :not-specified)]
     (if (or (= style-name :not-specified) (nil? style-name))
       [existing-map doc-map nil]
+      (do
+      (dbg-s (dbg-s-merge new-map existing-map)
+           #{:apply-style} "apply-style: style:" style-name)
       (if (some #(= % style-name)
-                (:styles-applied existing-map)
-                #_styles-applied)
+                (:styles-applied existing-map))
         ; We have already done this style
         [existing-map doc-map
          (str "Circular style error: style '"
@@ -1801,7 +2036,7 @@
               "  Styles already applied: "
               (:styles-applied existing-map))]
         (let [[updated-map new-doc-map error-string]
-                (if (not (coll? style-name))
+                (if (not (vector? style-name))
                   (apply-one-style doc-string
                                    new-map
                                    [existing-map doc-map nil]
@@ -1830,7 +2065,7 @@
              (if error-string
                (str error-string "," another-style-error)
                another-style-error)]
-            [updated-map new-doc-map error-string]))))))
+            [updated-map new-doc-map error-string])))))))
 
 ;;
 ;; # File Access
@@ -1864,7 +2099,8 @@
                                'odrguide zprint.guide/odrguide,
                                'rodfn zprint.optionfn/rodfn,
                                'rulesfn zprint.optionfn/rulesfn,
-                               'regexfn zprint.optionfn/regexfn}}})
+                               'regexfn zprint.optionfn/regexfn
+			       'merge-deep zprint.config/merge-deep}}})
 (def sci-ctx
   #?(:bb nil
      ;:clj nil
@@ -2162,10 +2398,15 @@
   called when styles are being processed.  Returns [updated-map
   new-doc-map error-str]"
   [doc-string doc-map existing-map new-map]
+  (dbg-s existing-map #{:internal-config} "internal-config new-map:" new-map)
   (if (not (empty? new-map))
     (let [; remove set elements, and then remove the :remove key too
           [existing-map new-map new-doc-map]
             (perform-remove doc-string doc-map existing-map new-map)
+	  ; Preserve the existing-map so we can use it to see what styles
+	  ; were there originally when adjusting the key sequence for the
+	  ; doc-map.
+	  previous-map existing-map
           ; Before we do styles, if any, we need to make sure that the
           ; style map has all of the data, including the new style-map
           ; entries.
@@ -2189,12 +2430,46 @@
                             new-updated-map)
           new-doc-map (diff-deep-ks doc-string
                                     new-doc-map
+				    (trim-style-map-ks
+				       previous-map
                                     (key-seq (dissoc new-map
-                                               :next-inner-restore))
+                                               :next-inner-restore)))
                                     new-updated-map)]
       [(add-calculated-options new-updated-map) new-doc-map style-errors])
     ; if we didn't get a map, just return something with no changes
     [existing-map doc-map nil]))
+
+(defn validate-style
+  "Take a [style-name style-map] map-entry pair and validate the
+  style-map.  Return a string if it fails to validate, and nil if
+  it validates correctly.  Note that different (and minimal) validation 
+  requirements are used for maps containing :style-fn and :style-call."
+  [doc-string [style-name style-map]]
+  (let [error (cond (:style-fn style-map)
+                      (let [style-fn (:style-fn style-map)]
+                        (when-not (and (fn? style-fn) (not (keyword? style-fn)))
+                          (str "In the :style-map, the style "
+                               style-name
+                               " failed to validate because the value"
+                               " of the key :style-fn is " (pr-str style-fn)
+                               " which " (if (keyword? style-fn)
+                                           "is not allowed to be a keyword!"
+                                           "is not a function!"))))
+                    (:style-call style-map)
+                      (let [style-call (:style-call style-map)]
+                        (when-not (keyword? style-call)
+                          (str "In the :style-map, the style "
+                               style-name
+                               " failed to validate because the value"
+                               " of the key :style-call is "
+                               (pr-str style-call)
+                               " which is not a keyword!")))
+                    :else (validate-options style-map
+                                            (str "the :style-map, the style "
+                                                 style-name
+                                                 " failed to validate because")
+                                            #_doc-string))]
+    error))
 
 (defn config-and-validate
   "Validate a new map and merge it correctly into the existing
@@ -2207,6 +2482,10 @@
   larger context to make the response to the user more useful.
   Depends on existing-map to be the full, current options map!"
   ([doc-string doc-map existing-map new-map validate?]
+   (dbg-s (dbg-s-merge new-map existing-map)
+          #{:config-and-validate}
+          "config-and-validate: new-map:" new-map
+          "validate?" validate?)
    #?(:clj (do #_(println "\n\nconfig-and-validate: "
                           doc-string
                           new-map
@@ -2221,14 +2500,26 @@
                 :cljs nil)
            new-map (coerce-to-boolean new-map)
            errors (when validate? (validate-options new-map doc-string))
+           ; Validate the maps in the :style-map, with a bit more
+           ; finesse than we can get from raw spec processing.
+           errors (if (and validate? (not errors))
+                    (do (dbg-s (dbg-s-merge new-map existing-map)
+                               #{:config-and-validate}
+                               "config-and-validate: maps to validate:"
+                               (:style-map new-map))
+                        (some #(validate-style doc-string %)
+                              (:style-map new-map)))
+                    errors)
            ; The meat of this routine is internal-config
            [updated-map new-doc-map internal-errors]
-             (internal-config doc-string
-                              doc-map
-                              ; Remove previous :styles-applied, if any
-                              ; and start fresh.
-                              (assoc existing-map :styles-applied [])
-                              new-map)]
+             (if errors
+               [existing-map doc-map nil]
+               (internal-config doc-string
+                                doc-map
+                                ; Remove previous :styles-applied, if any
+                                ; and start fresh.
+                                (assoc existing-map :styles-applied [])
+                                new-map))]
        [updated-map new-doc-map
         (if internal-errors (str errors " " internal-errors) errors)])
      ; if we didn't get a map, just return something with no changes

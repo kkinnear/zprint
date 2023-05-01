@@ -66,7 +66,7 @@
   [zloc]
   (= (tag zloc) :quote))
 
-(defn zreader-macro? "Is this a @..." [zloc] (= (tag zloc) :reader-macro))
+(defn zreader-macro? "Is this a #..." [zloc] (= (tag zloc) :reader-macro))
 
 (defn ztag "Return the tag for this zloc" [zloc] (tag zloc))
 

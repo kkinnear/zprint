@@ -4456,7 +4456,10 @@ be sorted.
 #### :key-order _nil_
 
 Accepts a vector which contains keys which should sort before all
-other keys.  Typically these keys would be keywords, strings, or
+other keys.  This __only__ has an effect if sorting of keys is 
+specified (see `:sort?` and `:sort-in-code?`) and is actually happening.
+
+Typically these keys would be keywords, strings, or
 integers.  The value of this capability is to bring one or more
 key-value pairs to the top of a map when it is output, in order to
 aid in visually distinguishing one map from the other.  This can
@@ -5577,6 +5580,132 @@ pretty bad.  If, instead, when you format the compiled structure you
 use `:style :anon-fn`, zprint will backtranslate the stucture to 
 reconstitute the `#(...)` forms.
 
+#### :areguide
+
+A style that will format `are` functions nicely.  By default it justifies
+the list of cases, but can be configured (with a `:style-call`) to not justify
+the list.  By default, the `are` function uses the style `:areguide` which
+includes justification.  If you wish it to not justify, add this to
+the option map:
+
+```
+{:fn-map {"are" [:none {:style-call :areguide :justify? false}]}}
+```
+
+Alternatively, you can use `{:style :areguide-nl}` in the `:fn-map` in place
+of `{:style :areguide}`.
+
+Some examples (drawn from `rewrite-clj`, with thanks!):
+
+```
+; This is not the default, but rather what happens to a complex "are" 
+; function without using :areguide:
+
+(czprint are11 {:parse-string? true :fn-map {"are" :none}})
+
+(deftest t-parsing-reader-macros
+  (are [?s ?t ?children]
+       (let [n (p/parse-string ?s)]
+         (is (= ?t (node/tag n)))
+         (is (= ?s (node/string n)))
+         (is (= ?children (map node/tag (node/children n)))))
+       "#'a"
+       :var
+       [:token]
+       "#=(+ 1 2)"
+       :eval
+       [:list]
+       "#macro 1"
+       :reader-macro
+       [:token :whitespace :token]
+       "#macro (* 2 3)"
+       :reader-macro
+       [:token :whitespace :list]
+       "#?(:clj bar)"
+       :reader-macro
+       [:token :list]
+       "#? (:clj bar)"
+       :reader-macro
+       [:token :whitespace :list]
+       "#?@ (:clj bar)"
+       :reader-macro
+       [:token :whitespace :list]
+       "#?foo baz"
+       :reader-macro
+       [:token :whitespace :token]
+       "#_abc"
+       :uneval
+       [:token]
+       "#_(+ 1 2)"
+       :uneval
+       [:list]))
+
+; This is the default behavior, using :areguide
+
+(czprint are11 {:parse-string? true})
+
+(deftest t-parsing-reader-macros
+  (are [?s ?t ?children] (let [n (p/parse-string ?s)]
+                           (is (= ?t (node/tag n)))
+                           (is (= ?s (node/string n)))
+                           (is (= ?children (map node/tag (node/children n)))))
+    "#'a"            :var          [:token]
+    "#=(+ 1 2)"      :eval         [:list]
+    "#macro 1"       :reader-macro [:token :whitespace :token]
+    "#macro (* 2 3)" :reader-macro [:token :whitespace :list]
+    "#?(:clj bar)"   :reader-macro [:token :list]
+    "#? (:clj bar)"  :reader-macro [:token :whitespace :list]
+    "#?@ (:clj bar)" :reader-macro [:token :whitespace :list]
+    "#?foo baz"      :reader-macro [:token :whitespace :token]
+    "#_abc"          :uneval       [:token]
+    "#_(+ 1 2)"      :uneval       [:list]))
+
+; This is what you get using :areguide without justification:
+
+(czprint are11
+         {:parse-string? true,
+          :fn-map {"are" [:none
+                          {:style {:style-call :areguide, :justify? false}}]}})
+
+(deftest t-parsing-reader-macros
+  (are [?s ?t ?children] (let [n (p/parse-string ?s)]
+                           (is (= ?t (node/tag n)))
+                           (is (= ?s (node/string n)))
+                           (is (= ?children (map node/tag (node/children n)))))
+    "#'a" :var [:token]
+    "#=(+ 1 2)" :eval [:list]
+    "#macro 1" :reader-macro [:token :whitespace :token]
+    "#macro (* 2 3)" :reader-macro [:token :whitespace :list]
+    "#?(:clj bar)" :reader-macro [:token :list]
+    "#? (:clj bar)" :reader-macro [:token :whitespace :list]
+    "#?@ (:clj bar)" :reader-macro [:token :whitespace :list]
+    "#?foo baz" :reader-macro [:token :whitespace :token]
+    "#_abc" :uneval [:token]
+    "#_(+ 1 2)" :uneval [:list]))
+
+; This is also using :areguide without justification, but using a different
+; style instead of a :style-call
+
+(czprint are11
+         {:parse-string? true, :fn-map {"are" [:none {:style :areguide-nj}]}})
+
+(deftest t-parsing-reader-macros
+  (are [?s ?t ?children] (let [n (p/parse-string ?s)]
+                           (is (= ?t (node/tag n)))
+                           (is (= ?s (node/string n)))
+                           (is (= ?children (map node/tag (node/children n)))))
+    "#'a" :var [:token]
+    "#=(+ 1 2)" :eval [:list]
+    "#macro 1" :reader-macro [:token :whitespace :token]
+    "#macro (* 2 3)" :reader-macro [:token :whitespace :list]
+    "#?(:clj bar)" :reader-macro [:token :list]
+    "#? (:clj bar)" :reader-macro [:token :whitespace :list]
+    "#?@ (:clj bar)" :reader-macro [:token :whitespace :list]
+    "#?foo baz" :reader-macro [:token :whitespace :token]
+    "#_abc" :uneval [:token]
+    "#_(+ 1 2)" :uneval [:list]))
+```
+
 #### :backtranslate
 
 The built in pretty printer for Clojure, `clojure.pprint`, will
@@ -5647,9 +5776,6 @@ between each group.  For example
 
 ```
 #### :how-to-ns
-
-__Experimental:__ Still working out some of the details, so the
-specifics may change.
 
 This will format `ns` declarations regarding newlines and indentation
 as in Stewart Sierra's "How to ns".  Specifically, it will indent
@@ -5945,6 +6071,29 @@ This operates similarly for bindings (i.e., `let`, etc.) using
 `:style :binding-nl-all` and for pairs (i.e., things in `cond`, 
 as well as constant pairs) when using `:style :pair-nl-all`.
 
+#### :meta-alt
+
+An alternative way to format metadata in `def` and `deftest`.  Tends
+to hang just the metadata, instead of hanging the metadata along with
+the symbol.
+
+For example:
+
+```
+(czprint i224a {:parse-string? true})
+
+(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}
+         websocket-diagnostic-report-measurements-updated-event
+  (let [foo (bar "1")] foo))
+
+
+(czprint i224a {:parse-string? true, :style :meta-alt})
+
+(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}
+  websocket-diagnostic-report-measurements-updated-event
+  (let [foo (bar "1")] foo))
+```
+
 #### :moustache
 
 This style is designed to format moustache, self described as
@@ -5959,6 +6108,38 @@ expressions down inside the `app` function.
 
 This style also gives one example of how to use the `:constant-pair-fn`
 to solve real problems.
+
+#### :multi-lhs-hang
+
+This style sets `:multi-lhs-hang` in all of the places where it is supported:
+`:pair`, `:binding`, and `:map`.  `:multi-lhs-hang` affects formatting of
+the right-hand-side of pairs -- in particular, if the left-hand-side of 
+a pair takes more than one line to format, should the right-hand-side of
+the pair be formatting on end of the last line of the left-hand-side of
+the pair (i.e., hang).  For example, look at where `(stuff a b c)` ends
+up in the following examples:
+
+```
+(czprint
+  "(let [(aaaaaaaaa bbbbbbbbbb ccccccccc (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c) (bother x y) (foo bar baz)])"
+  {:parse-string? true, :binding {:multi-lhs-hang? false}})
+
+(let [(aaaaaaaaa bbbbbbbbbb
+                 ccccccccc
+                 (ddddddddddd (eeeeeeeeeee (ffffffffffff))))
+        (stuff a b c)
+      (bother x y) (foo bar baz)])
+
+
+(czprint
+  "(let [(aaaaaaaaa bbbbbbbbbb ccccccccc (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c) (bother x y) (foo bar baz)])"
+  {:parse-string? true, :binding {:multi-lhs-hang? true}})
+
+(let [(aaaaaaaaa bbbbbbbbbb
+                 ccccccccc
+                 (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c)
+      (bother x y) (foo bar baz)])
+```
 
 #### :no-hang, :all-hang
 
@@ -6007,6 +6188,84 @@ If you have some code or structures that take too long
 to format, try `:style :fast-hang`.  If that doesn't work, you can
 always try `:style :indent-only`, which will certainly take a much shorter
 time.
+
+#### :ns-justify
+
+This will make `ns` statements look more readable.
+
+For example:
+
+```
+(czprint nsj1 {:parse-string? true})
+
+(ns ^:no-doc zprint.config
+  #?(:clj [:refer-clojure :exclude [read-string]])
+  #?@(:cljs [[:require-macros
+              [zprint.macros :refer
+               [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
+  (:require #?@(:clj [[zprint.macros :refer
+                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+            clojure.string
+            [clojure.set :refer [difference]]
+            [clojure.data :as d]
+            [zprint.spec :refer [validate-basic coerce-to-boolean]]
+            [zprint.rewrite :refer [sort-dependencies]]
+            [zprint.util :refer [dissoc-two]]
+            [zprint.guide :refer
+             [jrequireguide defprotocolguide signatureguide1 odrguide guideguide
+              rodguide areguide defprotocolguide-s]]
+            [zprint.optionfn :refer
+             [rodfn meta-base-fn fn*->% sort-deps regexfn rulesfn]]
+            #?(:clj [clojure.edn :refer [read-string]]
+               :cljs [cljs.reader :refer [read-string]]))
+  #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
+
+(czprint nsj1 {:parse-string? true :style :ns-justify})
+
+(ns ^:no-doc zprint.config
+  #?(:clj [:refer-clojure :exclude [read-string]])
+  #?@(:cljs [[:require-macros
+              [zprint.macros :refer
+               [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
+  (:require
+    #?@(:clj [[zprint.macros :refer
+               [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+    clojure.string
+    [clojure.set     :refer [difference]]
+    [clojure.data    :as d]
+    [zprint.spec     :refer [validate-basic coerce-to-boolean]]
+    [zprint.rewrite  :refer [sort-dependencies]]
+    [zprint.util     :refer [dissoc-two]]
+    [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
+                             odrguide guideguide rodguide areguide
+                             defprotocolguide-s]]
+    [zprint.optionfn :refer [rodfn meta-base-fn fn*->% sort-deps regexfn
+                             rulesfn]]
+    #?(:clj [clojure.edn :refer [read-string]]
+       :cljs [cljs.reader :refer [read-string]]))
+  #?@(:clj [(:import
+              (java.io InputStreamReader FileReader BufferedReader))]))
+```
+
+This is not the default for zprint, but only because it came about
+much later than was possible to make it the default, as a request
+from a user.  Implemention of the various pieces of `:ns-justify`
+required one major architectural change and a number of other
+changes, but the results, especially for complex `ns` statements,
+are quite nice.
+
+#### :original-tuning
+
+The `:tuning` was changed as part of the modifications to zprint
+to stop changing the formatting of source when run successively on
+a source file.  The style `:original-tuning` replaces the original
+tuning, and also will cause zprint to sometimes change the format
+of an already formatted source file.
+
+#### :quote-wrap
+
+This will wrap quoted lists to the right margin, similar to how vectors
+are formatted by default.
 
 #### :regex-example
 
@@ -6289,6 +6548,47 @@ Set `:respect-nl` to false in all of the places where `:respect-nl` set
 it to true.  Useful in `:next-inner` to turn `:respect-nl` off when processing
 the rest of an expression. 
 
+#### :rod, :rod-no-ma-nl
+
+An alternative way to format `defn` and `defn-` functions.  The
+basic `:rod` style will place a blank line between arities of a multi-arity
+function.  `:rod-no-ma-nl` is identical to `:rod`, but it will not
+put in extra blank lines.
+
+You can configure `:rod` to also continue to place any function
+definitions that fit on one line on one line (which it does not do by
+default) by invoking it like this:
+
+`{:style {:style-call rod-config :one-line-ok? true}}`
+
+An example of what `:style :rod` does:
+
+```
+(czprint rod5 {:parse-string? true})
+
+(defn rod5
+  ([a b c d]
+   (cond (nil? a) (list d)
+         (nil? b) (list c d a b)
+         :else (list a b c d)))
+  ([a b c] (rod5 a b c nil))
+  ([a b] (rod5 a b nil nil)))
+
+
+(czprint rod5 {:parse-string? true :style :rod})
+(defn rod5
+  ([a b c d]
+   (cond (nil? a) (list d)
+         (nil? b) (list c d a b)
+         :else (list a b c d)))
+
+  ([a b c]
+   (rod5 a b c nil))
+
+  ([a b]
+   (rod5 a b nil nil)))
+```
+
 #### :rules-example
 
 A example style, showing how to use the built-in `:option-fn`
@@ -6394,6 +6694,115 @@ You can define a style and apply it in the same `.zprintrc` file
 or `set-options!` call, as the `:style-map` changes are processed
 before the `:style` changes.  Both are processed before the remaining
 changes in the options map.
+
+### Configuring Styles
+
+It has long been possible to create a style in the :style-map
+containing an option-fn which takes a map of configuration values.
+However, it has previously been necessary to create a separate style
+for each combination of configuration values which were to be passed
+to the option-fn.  This was fine for a while, but with the advent of
+more complex option-fns supporting multiple configuration parameters,
+the explosion of styles was prohibitive.
+  
+Now it is possible to actually pass configuration information to a
+style when that style is used.  It is also possible to create a style
+in the :style-map which has configuration information for another
+style in the `:style-map`.
+  
+Central to all of this is the creation of a style definition which
+is not an option map to be applied, but rather a function to be
+called -- a map containing a "style-fn".  When a style is defined
+(i.e., configured to be in the `:style-map`) using a map containing
+`:style-fn` key, the value of that key is a function to be called
+when this style is used (applied).  In addition, the map in which
+the key `:style-fn` appears is not validated as an option map.
+Rather, the map surrounding the `:style-fn` key is expected to
+contain the default values of the configuration keys for that
+`:style-fn`.  Thus, any map in the `:style-map` which contains
+the key `:style-fn` is not validated as an option map, and can contain
+arbitrary map values.
+  
+The style containing `:style-fn` is used when it is specified, either
+by its keyword name, or by a new type of style specifier -- a map
+containing the key `:style-call`.  When using a map containing 
+`:style-call` key, the value of `:style-call` must be
+a keyword that appears in the `:style-map`.
+  
+When the `:style-fn` is called to generate the option map to be applied
+as the result of the style, it is passed both the map in which
+:style-fn appears (typically containing the default values of the
+configuration parameters for the `:style-fn`) and the map (or maps)
+which contained the :style-call itself.  The keys in the `:style-call`
+map are typically also configuration parameters for the `:style-fn`.
+It has access to all of this information, allowing it to make any
+configuration decisions that are desired.
+
+The result of a `:style-fn` call must be an option map and is validated
+on return from the `:style-fn` for correctness.  Thus, a `:style-fn`
+cannot return a `:style-call`, as the map which surrounds a `:style-call`
+is not an option map.  A `:style-fn` can, however, return an option
+map containing a `:style` application, where the value of the `:style`
+key is itself a map containing `:style-call`.
+
+Below is an example of a style definition containing a `:style-fn`.
+
+When the style is specified, the function which is the value of `:style-fn`
+is called with the 4 arguments shown:
+
+  * `existing-options` is the current value of the option map  
+ 
+  * `new-options` is the options map which contains the `:style` invocation which ultimately caused this style to be used
+
+  * `style-fn-map` is the map you see here -- the map that contains the key
+`:style-fn`  
+
+  * `style-call` is the map which contained the original `:style-call`, if any
+  
+The `style-call` may be nil if this style was invoked without using a `:style-call`.
+
+A style-fn must return either an options map which can be validated
+as correct or nil, indicating that nothing will be happen as the
+result of this style being applied.  
+
+Here is an example of a style defined using a `:style-fn`:
+
+
+```
+{:rod-config {:doc "Configurable :rod {:multi-arity-nl? ... :one-line-ok? ..,}",
+              :multi-arity-nl? false,
+              :one-line-ok? false,
+              :style-fn
+                (fn
+                  ([] "rod-config-style-fn")
+                  ([existing-options new-options style-fn-map style-call]
+                   {:fn-map {"defn" [:none
+                                     {:list {:option-fn (partial
+                                                          rodfn
+                                                          (merge-deep
+                                                            style-fn-map
+                                                            style-call))}}],
+                             "defn-" "defn"}}))}}
+```
+
+Typically, the map which contains the `:style-fn` key also contains the
+default values for the configuration for the option-fn which will be called.
+The map which contains the `:style-call` key (if any), will have configuration
+values which will override those in the map in the `:style-map`, and you
+can see where the style-call values are merged into (and in some sense "on top
+of") the values in the style-fn-map.  This isn't required, though it is a
+reasonable way to handle default and more specifically configured values.
+
+Note that the only styles that involve a `:style-fn` may be invoked with
+a map containing the key `:style-call`.  You cannot invoke any arbitrary
+style with a map containing `:style-call` -- only those which ultimately
+end up resolving to a map containing a `:style-fn` call.
+  
+Considerable flexibility is now available when applying styles.  In
+addition to simple configuration parameters for an option-fn (see above),
+a `:style-fn` can also look at the current option map
+and use whatever information is available there to return a different
+option map to be used.
 
 ______
 ## :tab

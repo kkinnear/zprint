@@ -6819,6 +6819,23 @@ Expand tabs.
 
 An integer for the tab size for tab expansion.
 
+
+
+______
+## :tagged-literal
+
+The handling of tagged literals (for example, `#js`) is now controlled
+by the configuration element: `:tagged-literal`.  By default zprint
+will try to put the next thing after the tagged literal on the same
+line as the tagged literal.  You can configure zprint to
+consider the tagged literal and the element following it as unrelated
+by configuring: `{:tagged-literal {:hang? false}}`.
+
+##### :indent _0_
+##### :hang? _true_
+##### :hang-expand _1000.0_
+##### :hang-diff _1_
+
 _____
 ## :vector
 

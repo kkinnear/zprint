@@ -36,11 +36,11 @@ All notable changes to this project will be documented in this file.
   required a new style in the `:style-map` for every unique combination
   of values in the configuration map for the option-fn (or has
   required moderately complex configuration in the `:fn-map` or
-  elsewhere).   The processing for styles has been enhanced to
+  elsewhere). The processing for styles has been enhanced to
   create a `:style-fn`, which is a key which appears in a style in
   the `:style-map`.  It is called with sufficient information to
   allow it to return a style (possibly containing a configuration
-  map for an option-fn).  A `:style-map` style containing `:style-fn`
+  map for an option-fn). A `:style-map` style containing `:style-fn`
   can be used just like any style, but it can also be used by giving
   a map to `:style`, where that map contains a `:style-call` key
   whose value is the style in the `:style-map`. The map with a
@@ -54,6 +54,14 @@ All notable changes to this project will be documented in this file.
   additional details. This was added in part because of Issue #282.
 
 ### Changed
+
+  * The handling of tagged literals (for example, `#js`) has been enhanced.
+  By default, zprint will try to put the next thing on the same line as the
+  tagged literal. There is now a configuration element in the option map: 
+  `:tagged-literal` which you can use to configure zprint to operate the
+  way that it used to by default -- `{:tagged-literal {:hang? false}}`.
+  Issue #292.
+
   
 ### Fixed
 

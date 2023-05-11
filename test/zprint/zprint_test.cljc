@@ -8190,6 +8190,47 @@ i294b
 "(defn my-fn\n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} a longer argument vector] (do-stuff a b c)))"
 (zprint-str i294b {:parse-string? true :style :hiccup}))
 
+;;
+;; Key sorting to last in addition to first  -- Issue #281
+;;
+
+ (def x {:a :bbbbbbbbbbbbbb :c :ddddddddddddddddd :e :ffffffffffff :g :hhhhhhhhhhhhhhh :i :jjjjjjjjjjjjjjjj :k :llllllllllll :m :nnnnnnnnnnnn})
+
+(expect
+"{:g :hhhhhhhhhhhhhhh,\n :a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :e :ffffffffffff,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
+(zprint-str x {:map {:key-order [:g]}}))
+
+(expect
+"{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
+(zprint-str x {:map {:key-order [:g :e]}}))
+
+(expect
+"{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff}"
+(zprint-str x {:map {:key-order [:| :g :e]}}))
+
+(expect
+"{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :e :ffffffffffff,\n :g :hhhhhhhhhhhhhhh}"
+(zprint-str x {:map {:key-order [:| :e :g]}}))
+
+(expect
+"{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :a :bbbbbbbbbbbbbb,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :c :ddddddddddddddddd}"
+(zprint-str x {:map {:key-order [:g :e :| :c]}}))
+
+(expect
+"{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :c :ddddddddddddddddd,\n :a :bbbbbbbbbbbbbb}"
+(zprint-str x {:map {:key-order [:g :e :| :c :a]}}))
+
+(expect
+"{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :c :ddddddddddddddddd,\n :a :bbbbbbbbbbbbbb,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
+(zprint-str x {:map {:key-order [:g :e  :c :a]}}))
+
+(expect
+"{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :e :ffffffffffff,\n :g :hhhhhhhhhhhhhhh,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
+(zprint-str x {:map {:key-order [:|]}}))
+
+
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

@@ -2993,7 +2993,6 @@ There are several places in the options map where user defined
 functions can be used to alter the formatting based on the content
 of the element to be formatted:
 
-```
 {:list {:constant-pair-fn (fn [element] ...)}}
 {:vector-fn {:constant-pair-fn (fn [elementx] ...)}}
 {:vector {:options-fn-first (fn [options first-element] ...)}}
@@ -4464,16 +4463,25 @@ be sorted.
 #### :key-order _nil_
 
 Accepts a vector which contains keys which should sort before all
-other keys.  This __only__ has an effect if sorting of keys is 
+other keys and after all other keys.  
+This __only__ has an effect if sorting of keys is 
 specified (see `:sort?` and `:sort-in-code?`) and is actually happening.
 
 Typically these keys would be keywords, strings, or
 integers.  The value of this capability is to bring one or more
 key-value pairs to the top of a map when it is output, in order to
-aid in visually distinguishing one map from the other.  This can
+aid in visually distinguishing one map from the other. Alternatively,
+you can use this capability to move some keys to the bottom of a map
+when it is output.  Either can
 be a significant help in debugging, when looking a lot of maps at
 the repl.  Note that `:key-order` only affects the key order when
 keys are sorted.
+
+The vector given to `:key-order` contains keys that will sort to
+the top of a map by default.  There is a distinghished  separator 
+keyword `:|` such that keys specified after that keyword will sort to
+the bottom of a map.  If you actually have a keyword `:|`, you cannot
+affect where it will sort by using the `:key-order` capability.
 
 Here is a vector of maps formatted with just sorting.
 
@@ -4577,6 +4585,61 @@ yields:
            :string "datacenter"},
   :reference 14873,
   :time 1425704003}]
+```
+
+If you want to have some keys sort to the bottom of a map, you can
+use the special keyword `:|` like this:
+
+With this options map:
+
+```
+{:map {:key-order [:type :direction :| :detail]}}
+```
+
+You get this output:
+
+```
+[{:type "get",
+  :direction :received,
+  :code "58601",
+  :connection "2795",
+  :reference 14873,
+  :time 1425704001,
+  :detail {:alternate "64:c1:2f:34",
+           :ident "64:c1:2f:34",
+           :interface "3.13.168.35",
+           :string "datacenter"}}
+ {:type "post",
+  :direction :transmitted,
+  :code "0xe4e9",
+  :connection "X13404",
+  :reference 14133,
+  :time 1425704001,
+  :detail
+    {:code "0xe4e9", :ident "64:c1:2f:34", :ip4 "3.13.168.151", :time "30m"}}
+ {:type "post",
+  :direction :transmitted,
+  :code "58601",
+  :connection "X13404",
+  :reference 14227,
+  :time 1425704001}
+ {:type "error",
+  :direction :received,
+  :code "0x1344a676",
+  :connection "2796",
+  :reference 14133,
+  :time 1425704003,
+  :detail {:code "0x1344a676", :ident "50:56:a5:1d:61", :ip4 "3.13.171.81"}}
+ {:type "error",
+  :direction :transmitted,
+  :code "323266166",
+  :connection "2796",
+  :reference 14873,
+  :time 1425704003,
+  :detail {:alternate "01:50:56:a5:1d:61",
+           :ident "50:56:a5:1d:61",
+           :interface "3.13.168.35",
+           :string "datacenter"}}]
 ```
 
 When working with hundreds of maps, even the tiny improvement

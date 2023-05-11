@@ -1766,7 +1766,6 @@
 ;; # Two-up printing
 ;;
 
-
 (defn fzprint-justify-width
   "Figure the width for a justification of a set of pairs in coll.  
   Also, decide if it makes any sense to justify the pairs at all.
@@ -1898,125 +1897,6 @@
             justify-width (when each-one-line? (first alignment))]
         justify-width))))))
 
-
-(defn fzprint-justify-width-alt
-  "Figure the width for a justification of a set of pairs in coll.  
-  Also, decide if it makes any sense to justify the pairs at all.
-  narrow? says that this call has a narrower width than necessary,
-  and triggers a check to see if any of the firsts are collections. 
-  If they are not collections, and narrow-width is non-nil, then return 
-  nil."
-  [caller {{:keys [justify? justify multi-lhs-hang?]} caller, :as options} ind
-   narrow-width coll]
-  (let [ignore-for-variance (:ignore-for-variance justify)
-        no-justify (:no-justify justify)
-        ; Get rid of all of the things with only one element in them
-        coll-2-or-more (remove nil? (map #(when (> (count %) 1) %) coll))
-        firsts (map #(let [narrow-result (when narrow-width
-                                           (fzprint* (not-rightmost
-                                                       (assoc options
-                                                         :width narrow-width))
-                                                     ind
-                                                     (first %)))
-                           ; If the narrow-result didn't work at all, try it
-                           ; w/out
-                           ; narrowing, so we at least have something.
-                           ; This needs to use justify-options as much as the
-                           ; one
-                           ; above does, just not being narrow.  The code here
-                           ; has to match the code in fzprint-two-up where it
-                           ; does the lhs again if it fails on narrowing.
-                           result (if narrow-result
-                                    narrow-result
-                                    ; Try again w/out narrowing
-                                    (fzprint* (not-rightmost options)
-                                              ind
-                                              (first %)))]
-                       result)
-                 coll-2-or-more)
-        #_(println "count coll-2-or-more" (count coll-2-or-more)
-                   "firsts\n" ((:dzprint options) {} firsts))
-        #_(def justall
-            (mapv #(fzprint* (not-rightmost options) ind (first %)) coll))
-        #_(def just firsts)
-        ; If we aren't supposed to justify something at all, remove it
-        ; from the variance calculation here.
-        firsts (if no-justify (remove #(no-justify (ffirst %)) firsts) firsts)]
-    ; If we are narrowing, are any of the first we have encountered
-    ; collections?  If not, then we have no reason to narrow, so return
-    ; nil.  Also, if we had any lhs that didn't actually fit at all, return
-    ; nil as well.
-    (when (and (not (contains-nil? firsts))
-               (or (not narrow-width)
-                   (some true? (mapv #(= (nth (first %) 2) :left) firsts))))
-      ; Is there anything that we should ignore for the variance calculation
-      ; but still justify?  This is largely for :else, which, when it
-      ; appears, it typically the last thing in a cond.  It seems fruitless
-      ; to not justify a cond because a short :else drives the variance
-      ; too high, since it is rarely hard to line up the :else with
-      ; its value, no matter how far apart they are.
-      (let [firsts (if ignore-for-variance
-                     (remove #(ignore-for-variance (ffirst %)) firsts)
-                     firsts)
-            style-seq (mapv (partial style-lines options ind) firsts)
-            #_(println "style-seq:" ((:dzprint options) {} style-seq))
-            #_(def styleseq style-seq)
-            ; If we allow multi-lhs-hang?, then act like each was on one
-            ; line
-            each-one-line?
-              (if multi-lhs-hang?
-                true
-                (reduce #(when %1 (= (first %2) 1)) true style-seq))
-            #_(def eol each-one-line?)
-            ; max-gap is nilable, so make sure it is a number
-            max-gap-configured (:max-gap justify)
-            max-gap-allowed (or max-gap-configured 1000)
-            max-gap (if max-gap-configured
-                      (let [widths (mapv second style-seq)]
-                        (if (not (empty? widths))
-                          (let [max-width (apply max widths)
-                                min-width (apply min widths)]
-                            ; Add one for the space
-                            (inc (- max-width min-width)))
-                          0))
-                      0)
-            #_(def mg [max-gap max-gap-allowed])
-            max-gap-ok? (<= max-gap max-gap-allowed)
-            max-variance (:max-variance justify)
-            ; i273
-            ; take width of last line
-            #_(println [(vec (map #(- (peek (nth % 2)) ind) style-seq))])
-            ; take max-width of all of the lines
-            #_(println [(vec (map #(- (second %) ind) style-seq))])
-            #_(println "style-seq:" style-seq)
-            alignment (when (and each-one-line? max-gap-ok?)
-                        (column-width-variance
-                          max-variance
-                          ; i273
-                          (if (:multi-lhs-overlap? justify)
-                            [(vec (map #(- (peek (nth % 2)) ind) style-seq))]
-                            [(vec (map #(- (second %) ind) style-seq))])
-                          0))
-            _ (dbg-s options
-                     #{:justify :justify-cancelled :justify-width}
-                     "fzprint-justify-width" (pr-str (take 6 (first firsts))
-                                                     #_firsts)
-                     "max-variance:" max-variance
-                     "ind:" ind
-                     "ignore-for-variance:" ignore-for-variance
-                     "no-justify" no-justify
-                     "narrow-width" narrow-width
-                     "multi-lhs-overlap?" (:multi-lhs-overlap? justify)
-                     "each-one-line?" each-one-line?
-                     "alignment:" alignment)
-            #_(prn "what:"
-                   (ffirst firsts)
-                   (first (last firsts))
-                   "alignment:" alignment
-                   "ind:" ind)
-            justify-width (when each-one-line? (first alignment))]
-        justify-width))))
-
 (defn fit-within?
   "Take a size and a collection of vectors with two or more elements
   per vector.  The elements are zlocs, the vectors are not.  Return
@@ -2125,7 +2005,7 @@
   but it can't accurately tell exactly what will fit on one line, since
   it doesn't know the separators and such.  So, :one-line? true is a
   performance optimization, so it doesn't do a whole huge map just to
-  find out that it could not possibly have fit on one line.  So, this
+  find out that it could not possibly have fit on one line.  This
   returns a sequence of style-vecs, where the indentation for the
   stuff inside of the pairs is already there, but the separators of
   the style-vecs (including indentation and commas) is done by the
@@ -2363,11 +2243,12 @@
         :else (compare (str x) (str y))))
 
 (defn compare-ordered-keys
-  "Do a key comparison that places ordered keys first."
-  [key-value zdotdotdot x y]
+  "Do a key comparison that places ordered keys first or last, based on
+  where they fall with respect to the value of a divider -- :|."
+  [key-value divider-value zdotdotdot x y]
   (cond (and (key-value x) (key-value y)) (compare (key-value x) (key-value y))
-        (key-value x) -1
-        (key-value y) +1
+        (key-value x) (if (< (key-value x) divider-value) -1 +1)
+        (key-value y) (if (< (key-value y) divider-value) +1 -1)
         (= zdotdotdot x) +1
         (= zdotdotdot y) -1
         :else (compare-keys x y)))
@@ -2377,7 +2258,10 @@
   partition-all-2-nc.  It can sort, which is the default, but if
   the caller has a key-order vector, it will extract any keys in
   that vector and place them first (in order) before sorting the
-  other keys.  If sorting is not called for, does nothing."
+  other keys.  If sorting is not called for, does nothing.
+  Note that key-value is a map of the keys in key-order associated
+  with ranges values based on their indicies in key-order.  The
+  key-value map is created in add-calculated-options in config.cljc."
   [caller
    {{:keys [sort? sort-in-code? key-order key-value]} caller,
     :keys [in-code?],
@@ -2389,12 +2273,15 @@
           "sort-in-code?" sort-in-code?
           "in-code?" in-code?
           "key-value:" key-value)
-  (if (and sort? (if in-code? sort-in-code? true))
-    (sort #((partial compare-ordered-keys (or key-value {}) (zdotdotdot))
-              (get-sexpr options (access %1))
-              (get-sexpr options (access %2)))
-          out)
-    out))
+  (let [key-value (or key-value {})
+        divider-value (or (key-value :|) (inc (count out)))]
+    (if (and sort? (if in-code? sort-in-code? true))
+      (sort
+        #((partial compare-ordered-keys key-value divider-value (zdotdotdot))
+            (get-sexpr options (access %1))
+            (get-sexpr options (access %2)))
+        out)
+      out)))
 
 (defn pair-element?
   "This checks to see if an element should be considered part of a

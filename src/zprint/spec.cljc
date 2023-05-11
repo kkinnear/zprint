@@ -237,7 +237,7 @@
 (s/def ::justify? ::boolean)
 (s/def ::justify
   (only-keys :opt-un [::max-variance ::ignore-for-variance ::no-justify
-                      ::max-gap ::lhs-narrow ::multi-lhs-overlap?]))
+                      ::max-gap ::lhs-narrow ::multi-lhs-overlap? ::max-depth]))
 (s/def ::justify-hang (only-keys :opt-un [::hang? ::hang-expand ::hang-diff]))
 ; You can put any options map you want into justify-tuning.  Typically,
 ; you would only do some kind of tuning, but that isn't a limitation
@@ -259,6 +259,7 @@
 (s/def ::location (s/nilable string?))
 (s/def ::max-variance number?)
 (s/def ::max-gap (s/nilable number?))
+#_(s/def ::memoize? (s/nilable ::boolean))
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::multi-lhs-hang? ::boolean)
 (s/def ::multi-lhs-overlap? ::boolean)
@@ -525,7 +526,7 @@
              ::force-validate? ::doc ::next-inner-restore ::fn-style
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
              ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
-	     ::tagged-literal]))
+	     ::tagged-literal #_::memoize?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

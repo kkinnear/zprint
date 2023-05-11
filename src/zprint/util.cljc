@@ -1,5 +1,6 @@
 (ns ^:no-doc zprint.util
-  (:require [clojure.string :as s]))
+  (:require [clojure.string :as s]
+  #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 (defn dissoc-two
   "Do a simple dissoc-in for two levels.  Does not remove the
@@ -7,11 +8,21 @@
   [m [k1 k2]]
   (assoc m k1 (dissoc (get m k1) k2)))
 
-(defn dbg-s-merge
-  "Given two option maps, merge the sets (if any) of the :dbg-s
-  keys in each map into the first map."
+(defn
+  dbg-s-merge
+  "Given two option maps, merge any debugging info from the second
+  map into the first map."
   [map1 map2]
-  (assoc map1 :dbg-s (into (:dbg-s map1) (:dbg-s map2))))
+  (let [map1 (if (:dbg-s map2)
+               (assoc map1 :dbg-s (into (:dbg-s map1) (:dbg-s map2)))
+               map1)
+        map1 (if (:dbg? map2)
+               (assoc map1
+                 :dbg? (if (or (= (:dbg? map1) :all) (= (:dbg? map2) :all))
+                         :all
+                         true))
+               map1)]
+    map1))
 
 (defn local-abs
   "Return the absolute value of a number."

@@ -401,7 +401,11 @@
                 :else [nil options nil])
         z-type (if input :zipper :sexpr)
         dzprint (if (= z-type :zipper) dzprint-zipper dzprint-sexpr)
-        input (or input coll)]
+        input (or input coll)
+	; memoize
+	#_#_options (if (:memoize? options) 
+	           (assoc options :memoize-atom (atom {}))
+		   options)]
     (cond (nil? input)
             [[["nil" (zcolor-map options :nil) :element]] options line-ending]
           (:drop? options) [[["" :none]] options line-ending]

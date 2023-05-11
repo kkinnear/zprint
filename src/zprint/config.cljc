@@ -474,7 +474,8 @@
                 :ignore-for-variance nil,
                 :max-gap nil,
                 :lhs-narrow 2.0,
-                :multi-lhs-overlap? true},
+                :multi-lhs-overlap? true
+		:max-depth 100},
       :justify? false,
       :multi-lhs-hang? false,
       :nl-separator? false,
@@ -650,7 +651,8 @@
                    :no-justify nil,
                    :max-gap nil,
                    :lhs-narrow 2.0,
-                   :multi-lhs-overlap? true},
+                   :multi-lhs-overlap? true
+		   :max-depth 100},
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:map {:tuning {:hang-flow 4, :hang-flow-limit 30}}},
          :multi-lhs-hang? false,
@@ -704,7 +706,8 @@
                     :no-justify nil,
                     :max-gap nil,
                     :lhs-narrow 2.0,
-                    :multi-lhs-overlap? true},
+                    :multi-lhs-overlap? true
+		    :max-depth 100},
           :justify? false,
           :multi-lhs-hang? false,
           :nl-separator? false,
@@ -1805,7 +1808,7 @@
   before returning.  Returns [option-map error-str]."
   [doc-string new-map existing-map style-fn-map style-call]
   (let [style-fn (:style-fn style-fn-map)]
-    (dbg-s (dbg-s-merge new-map existing-map)
+    (dbg-s new-map
            #{:call-style-fn}
            "call-style-fn: style-fn:" style-fn
            "doc-string:" doc-string
@@ -1820,7 +1823,7 @@
               (try
                 (let [result
                         (style-fn existing-map new-map style-fn-map style-call)]
-                  (dbg-s (dbg-s-merge new-map existing-map)
+                  (dbg-s new-map
                          #{:call-style-fn}
                          "call-style-fn result:"
                          result)
@@ -1828,7 +1831,7 @@
                 (catch #?(:clj Exception
                           :cljs :default)
                   e
-                  (do (dbg-s (dbg-s-merge new-map existing-map)
+                  (do (dbg-s new-map
                              #{:style-fn-exception}
                              "The style-fn " (style-fn-name style-fn)
                              " specified by: " doc-string
@@ -1861,7 +1864,7 @@
   have to merge all of the style-calls together.  Returns [merged-style-calls
   style-fn-map error-str]"
   ([doc-string new-map existing-map style-call call-set]
-   (dbg-s (dbg-s-merge new-map existing-map)
+   (dbg-s new-map 
           #{:style-call}
           "style-call->style-fn-map: " style-call
           "call-set:" call-set)
@@ -1876,7 +1879,7 @@
              " has already been encountered.  The styles involved are: "
                call-set)]
        (let [style-map (get-style-map new-map existing-map style-name)]
-         (dbg-s (dbg-s-merge new-map existing-map)
+         (dbg-s new-map
                 #{:style-call}
                 "style-call->style-fn-map: style-map:" style-map
                 "style-call:" style-call)
@@ -1943,7 +1946,7 @@
                             [style-name nil
                              (str "Style '" result "' not found!")]))
                         [nil result nil])
-                    _ (dbg-s (dbg-s-merge new-map existing-map)
+                    _ (dbg-s new-map
                              #{:apply-style}
                              "apply-one-style: style-name:" style-name
                              "result:" result)
@@ -1961,7 +1964,7 @@
                           [(:style-call result) style-call style-fn-map
                            error-str])
                         [style-name nil result error-str])
-                    _ (dbg-s (dbg-s-merge new-map existing-map)
+                    _ (dbg-s new-map
                              #{:apply-style}
                              "apply-one-style: style-name:" style-name
                              "style-call:" style-call
@@ -1978,7 +1981,7 @@
                                                           style-call)
                                            [result error-str]))]
                 [style-name style-call result error-str])
-             _ (dbg-s (dbg-s-merge new-map existing-map)
+             _ (dbg-s new-map
                      #{:apply-style}
                      "apply-one-style: style-name:" style-name
                      "style-call:" style-call
@@ -2024,7 +2027,7 @@
     (if (or (= style-name :not-specified) (nil? style-name))
       [existing-map doc-map nil]
       (do
-      (dbg-s (dbg-s-merge new-map existing-map)
+      (dbg-s new-map
            #{:apply-style} "apply-style: style:" style-name)
       (if (some #(= % style-name)
                 (:styles-applied existing-map))
@@ -2482,7 +2485,12 @@
   larger context to make the response to the user more useful.
   Depends on existing-map to be the full, current options map!"
   ([doc-string doc-map existing-map new-map validate?]
-   (dbg-s (dbg-s-merge new-map existing-map)
+   ; We have a problem with debugging, as the debugging information
+   ; might be in new-map or existing-map.  We will merge the debugging
+   ; information into new-map, and then just look there throughout the
+   ; config-and-validate processing.
+   (let [new-map (dbg-s-merge new-map existing-map)]
+   (dbg-s new-map
           #{:config-and-validate}
           "config-and-validate: new-map:" new-map
           "validate?" validate?)
@@ -2503,7 +2511,7 @@
            ; Validate the maps in the :style-map, with a bit more
            ; finesse than we can get from raw spec processing.
            errors (if (and validate? (not errors))
-                    (do (dbg-s (dbg-s-merge new-map existing-map)
+                    (do (dbg-s new-map
                                #{:config-and-validate}
                                "config-and-validate: maps to validate:"
                                (:style-map new-map))
@@ -2523,7 +2531,7 @@
        [updated-map new-doc-map
         (if internal-errors (str errors " " internal-errors) errors)])
      ; if we didn't get a map, just return something with no changes
-     [existing-map doc-map nil]))
+     [existing-map doc-map nil])))
   ([doc-string doc-map existing-map new-map]
    (config-and-validate doc-string doc-map existing-map new-map :validate)))
 

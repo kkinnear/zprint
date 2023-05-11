@@ -1766,7 +1766,140 @@
 ;; # Two-up printing
 ;;
 
+
 (defn fzprint-justify-width
+  "Figure the width for a justification of a set of pairs in coll.  
+  Also, decide if it makes any sense to justify the pairs at all.
+  narrow? says that this call has a narrower width than necessary,
+  and triggers a check to see if any of the firsts are collections. 
+  If they are not collections, and narrow-width is non-nil, then return 
+  nil."
+  [caller {{:keys [justify? justify multi-lhs-hang?]} caller, :as options} ind
+   narrow-width coll]
+  (let [coll-2-or-more (remove nil? (map #(when (> (count %) 1) %) coll))]
+    (dbg-s options #{:justify-width :justify-empty} 
+    "fzprint-justify-width: count coll-2-or-more" (map count coll-2-or-more)
+    
+		    (map  #(map zstring %) coll-2-or-more))
+
+    ; If we don't have more than 1 element in set of pairs, we have can't
+    ; justify them
+    (if (or (<= (count coll-2-or-more) 1)
+	    ; If we are below a certain depth, don't even try.
+            (> (:depth options) (or (:max-depth justify) 1000))
+        )
+      nil
+  (let [ignore-for-variance (:ignore-for-variance justify)
+        no-justify (:no-justify justify)
+        ; Get rid of all of the things with only one element in them
+        #_#_coll-2-or-more (remove nil? (map #(when (> (count %) 1) %) coll))
+        firsts (map #(let [narrow-result (when narrow-width
+                                           (fzprint* (not-rightmost
+                                                       (assoc options
+                                                         :width narrow-width))
+                                                     ind
+                                                     (first %)))
+                           ; If the narrow-result didn't work at all, try it
+                           ; w/out
+                           ; narrowing, so we at least have something.
+                           ; This needs to use justify-options as much as the
+                           ; one
+                           ; above does, just not being narrow.  The code here
+                           ; has to match the code in fzprint-two-up where it
+                           ; does the lhs again if it fails on narrowing.
+                           result (if narrow-result
+                                    narrow-result
+                                    ; Try again w/out narrowing
+                                    (fzprint* (not-rightmost options)
+                                              ind
+                                              (first %)))]
+                       result)
+                 coll-2-or-more)
+        #_(println "count coll-2-or-more" (count coll-2-or-more)
+                   "firsts\n" ((:dzprint options) {} firsts))
+        #_(def justall
+            (mapv #(fzprint* (not-rightmost options) ind (first %)) coll))
+        #_(def just firsts)
+        ; If we aren't supposed to justify something at all, remove it
+        ; from the variance calculation here.
+        firsts (if no-justify (remove #(no-justify (ffirst %)) firsts) firsts)]
+    ; If we are narrowing, are any of the first we have encountered
+    ; collections?  If not, then we have no reason to narrow, so return
+    ; nil.  Also, if we had any lhs that didn't actually fit at all, return
+    ; nil as well.
+    (when (and (not (contains-nil? firsts))
+               (or (not narrow-width)
+                   (some true? (mapv #(= (nth (first %) 2) :left) firsts))))
+      ; Is there anything that we should ignore for the variance calculation
+      ; but still justify?  This is largely for :else, which, when it
+      ; appears, it typically the last thing in a cond.  It seems fruitless
+      ; to not justify a cond because a short :else drives the variance
+      ; too high, since it is rarely hard to line up the :else with
+      ; its value, no matter how far apart they are.
+      (let [firsts (if ignore-for-variance
+                     (remove #(ignore-for-variance (ffirst %)) firsts)
+                     firsts)
+            style-seq (mapv (partial style-lines options ind) firsts)
+            #_(println "style-seq:" ((:dzprint options) {} style-seq))
+            #_(def styleseq style-seq)
+            ; If we allow multi-lhs-hang?, then act like each was on one
+            ; line
+            each-one-line?
+              (if multi-lhs-hang?
+                true
+                (reduce #(when %1 (= (first %2) 1)) true style-seq))
+            #_(def eol each-one-line?)
+            ; max-gap is nilable, so make sure it is a number
+            max-gap-configured (:max-gap justify)
+            max-gap-allowed (or max-gap-configured 1000)
+            max-gap (if max-gap-configured
+                      (let [widths (mapv second style-seq)]
+                        (if (not (empty? widths))
+                          (let [max-width (apply max widths)
+                                min-width (apply min widths)]
+                            ; Add one for the space
+                            (inc (- max-width min-width)))
+                          0))
+                      0)
+            #_(def mg [max-gap max-gap-allowed])
+            max-gap-ok? (<= max-gap max-gap-allowed)
+            max-variance (:max-variance justify)
+            ; i273
+            ; take width of last line
+            #_(println [(vec (map #(- (peek (nth % 2)) ind) style-seq))])
+            ; take max-width of all of the lines
+            #_(println [(vec (map #(- (second %) ind) style-seq))])
+            #_(println "style-seq:" style-seq)
+            alignment (when (and each-one-line? max-gap-ok?)
+                        (column-width-variance
+                          max-variance
+                          ; i273
+                          (if (:multi-lhs-overlap? justify)
+                            [(vec (map #(- (peek (nth % 2)) ind) style-seq))]
+                            [(vec (map #(- (second %) ind) style-seq))])
+                          0))
+            _ (dbg-s options
+                     #{:justify :justify-cancelled :justify-width}
+                     "fzprint-justify-width" (pr-str (take 6 (first firsts))
+                                                     #_firsts)
+                     "max-variance:" max-variance
+                     "ind:" ind
+                     "ignore-for-variance:" ignore-for-variance
+                     "no-justify" no-justify
+                     "narrow-width" narrow-width
+                     "multi-lhs-overlap?" (:multi-lhs-overlap? justify)
+                     "each-one-line?" each-one-line?
+                     "alignment:" alignment)
+            #_(prn "what:"
+                   (ffirst firsts)
+                   (first (last firsts))
+                   "alignment:" alignment
+                   "ind:" ind)
+            justify-width (when each-one-line? (first alignment))]
+        justify-width))))))
+
+
+(defn fzprint-justify-width-alt
   "Figure the width for a justification of a set of pairs in coll.  
   Also, decide if it makes any sense to justify the pairs at all.
   narrow? says that this call has a narrower width than necessary,
@@ -1921,7 +2054,8 @@
     :as options} ind justify-width justify-options narrow-width commas?
    force-flow? coll]
   (let [len (count coll)
-        beginning-coll (butlast coll)
+	#_#_coll (into [] coll)
+        beginning-coll (pop coll) #_(butlast coll)
         ; If beginning-coll is () because there is only a single pair
         ; in coll, then this all works -- but only because
         ; () is truthy, and zpmap returns () which is also truthy.
@@ -1947,7 +2081,7 @@
                                     force-flow?)
                            beginning-coll))
         beginning (if (contains-nil? beginning) nil beginning)
-        end-coll [(last coll)]
+        end-coll [ (peek coll) #_(last coll)]
         ; If this is one-line? is there any point to even looking
         ; at the end?
         end-remaining
@@ -2006,7 +2140,9 @@
    {{:keys [justify? force-nl? multi-lhs-hang? justify]} caller,
     :keys [width rightcnt one-line? parallel?],
     :as options} ind commas? coll]
-  (let [len (count coll)]
+  ; Make coll a vector, since fzprint-two-up-pass requires that
+  (let [coll (into [] coll)
+        len (count coll)]
     ; If it is one-line? and force-nl? and there is more than one thing,
     ; this can't work.
     (when (not (and one-line? force-nl? (> len 1)))
@@ -2018,10 +2154,24 @@
             ; it was already in the options map to start with.
             [justify-options _]
               (when justify?
+	      
+	       ; This might help performance, since at present there
+	       ; isn't anything commplex oin the :justify-tuning.  And
+	       ; we don't expect there to be anytime soon.  It didn't
+	       ; really make much difference, interestingly enough.
+	       #_[(merge-deep 
+                  (merge-deep options {caller (caller-options :justify-hang)})
+                  (caller-options :justify-tuning))
+		  nil]
+		
                 (internal-config-and-validate
                   (merge-deep options {caller (caller-options :justify-hang)})
                   (caller-options :justify-tuning)
-                  (str "options in :justify-tuning for " caller)))
+                  (str "options in :justify-tuning for " caller)
+		  nil ; validate?
+		  )
+		  
+		  )
             ; Some callers do not have lhs-narrow defined
             lhs-narrow (or (:lhs-narrow justify) 1)
             ;
@@ -8492,6 +8642,20 @@
 ;; Looked into alternative ways to dispatch this, but at the end of
 ;; the day, this looked like the best.
 ;;
+
+; memoize
+#_(declare fzprint*-actual)
+; memoize
+#_(defn fzprint*
+  [& args]
+  (let [memoize-atom (:memoize-atom (first args))]
+    (if memoize-atom
+      (if-let [e (find @memoize-atom args)]
+        (val e)
+        (let [ret (apply fzprint*-actual args)]
+          (swap! memoize-atom assoc args ret)
+          ret))
+      (apply fzprint*-actual args))))
 
 (defn fzprint*
   "The pretty print part of fzprint."

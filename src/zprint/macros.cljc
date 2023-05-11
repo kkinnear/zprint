@@ -1,6 +1,30 @@
 (ns ^:no-doc zprint.macros
   (:require [clojure.string :as s]))
 
+;; 
+;; Debugging
+;;
+;; There are two option map triggers for debugging:
+;;
+;; :dbg?
+;;
+;;   true           gets you all of the debugging that isn't governed by
+;;                  a keyword
+;;
+;;   :all           gets you all debugging, including all keyword debugging
+;;
+;; :dbg-s  
+;;
+;;   keyword       gets you debugging for just that single keyword
+;;
+;;   #{ keywords } gets you debugging for just those keywords
+;;
+;; Note that you can use both of these at the same time to get some
+;; keyword debugging but less than everything.
+;;
+;; See dbg-s-merge in util.cljc for how these things are handled during
+;; configuration.
+
 (defmacro dbg-pr
   "Output debugging print with pr."
   [options & rest]
@@ -17,11 +41,9 @@
   [options sel & rest]
   (if (keyword? sel)
     `(when (or (~sel (:dbg-s ~options))
-               (~sel (:dbg? ~options))
                (= (:dbg? ~options) :all))
        (println (:dbg-indent ~options) (pr-str ~@rest)))
     `(when (or (some ~sel (:dbg-s ~options))
-               (when (set? (:dbg? ~options)) (some ~sel (:dbg? ~options)))
                (= (:dbg? ~options) :all))
        (println (:dbg-indent ~options) (pr-str ~@rest)))))
 
@@ -31,11 +53,9 @@
   [options sel & rest]
   (if (keyword? sel)
     `(when (or (~sel (:dbg-s ~options)) 
-	       (~sel (:dbg? ~options))
                (= (:dbg? ~options) :all))
        (println (:dbg-indent ~options) ~@rest))
     `(when (or (some ~sel (:dbg-s ~options)) 
-               (when (set? (:dbg? ~options)) (some ~sel (:dbg? ~options)))
                (= (:dbg? ~options) :all))
        (println (:dbg-indent ~options) ~@rest))))
 

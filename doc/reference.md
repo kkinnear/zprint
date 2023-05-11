@@ -2845,7 +2845,7 @@ You can enable this in any of the three possible places by setting
 Turn on [justification](#a-note-on-justifying-two-up-printing).
 Default is nil (justification off).
 
-#### :justify {:max-variance 1000, :ignore-for-variance #{}, :no-justify #{} :lhs-narrow 2.0}
+#### :justify {:max-variance 1000, :ignore-for-variance #{}, :no-justify #{} :lhs-narrow 2.0 :max-depth 100}
 
 Parameters to control justification:
 
@@ -2978,6 +2978,14 @@ right of the last line of a multi-left-hand-side element.  Enable
 `:style :multi-lhs-hang` to allow this to happen.  This style sets
 `:multi-lhs-hang? true` in `:binding`, `:map`, and `:pair`.
 
+#### :max-depth _100_
+
+Justification will only be performed down to the max-depth.  At any depth
+below that, justification will not be attempted.  The point of this is
+because justification is moderately time consuming, and when it is performed
+in a deeply nested expression the time it takes can be noticeable.  If
+you find justification is taking too much time, try setting `:max-depth` to
+4 or 5.  It might help a lot.
 
 ## Configuring functions to make formatting changes based on content
 
@@ -3183,7 +3191,7 @@ course, the canonical example.
 ##### :hang-expand _2_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000, :no-justify #{"_"}, :ignore-for-variance nil, :lhs-narrow 2.0}
+##### :justify {:max-variance 1000, :no-justify #{"_"}, :ignore-for-variance nil, :lhs-narrow 2.0 :max-depth 100}
 ##### :multi-lhs-hang? _false_
 
 #### :force-nl?  _true_
@@ -4306,7 +4314,7 @@ hangs.
 ##### :hang-expand _1000.0_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000, :ignore-for-variance nil, :no-justify nil, :lhs-narrow 2.0}
+##### :justify {:max-variance 1000, :ignore-for-variance nil, :no-justify nil, :lhs-narrow 2.0 :max-depth 100}
 ##### :multi-lhs-hang? _false_
 
 #### :flow? _false_
@@ -5173,7 +5181,7 @@ which has -pair in its function type (e.g. `:arg1-pair`, `:pair-fn`,
 ##### :hang-expand _2_
 ##### :hang-diff _1_
 ##### :justify? _false_
-##### :justify {:max-variance 1000, :ignore-for-variance #{":else"}, :no-justify nil, :lhs-narrow 2.0}
+##### :justify {:max-variance 1000, :ignore-for-variance #{":else"}, :no-justify nil, :lhs-narrow 2.0 :max-depth 100}
 ##### :multi-lhs-hang? _false_
 
 #### :force-nl? _false_

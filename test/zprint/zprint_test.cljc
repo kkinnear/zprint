@@ -8190,6 +8190,17 @@ i294b
 "(defn my-fn\n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} a longer argument vector] (do-stuff a b c)))"
 (zprint-str i294b {:parse-string? true :style :hiccup}))
 
+(def i294e
+
+"(defn my-fn
+  ([a] (my-fn a {}))
+  ([a {:keys [b c]} c d e f g]
+   (do-stuff a b c)))")
+
+(expect
+"(defn my-fn\n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} c d e f g]\n   (do-stuff a b c)))"
+(zprint-str i294e {:parse-string? true :width 40 :style :hiccup}))
+
 ;;
 ;; Key sorting to last in addition to first  -- Issue #281
 ;;

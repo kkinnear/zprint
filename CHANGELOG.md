@@ -65,6 +65,10 @@ All notable changes to this project will be documented in this file.
   
 ### Fixed
 
+  * The style `:hiccup` was sometimes recognizing destructuring in argument
+  vectors as a hiccup vector.  Now it doesn't do that as much, though it is
+  still possible.  Issue #294.
+
 
 ## 1.2.5 - 2023-01-24
 

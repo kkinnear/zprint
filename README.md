@@ -44,6 +44,42 @@ a number of major source code formatting approaches.
 
 ### *Recent Additions!* 
 
+
+  * Comment wrapping has been considerably altered.  When working
+  on the stability fixes for `1.2.5`, the largest remaining problem
+  was comment wrapping causing changes to the formatting in subsequent
+  runs.  In addition, the comment wrapping has been very simplistic
+  since its inception, leaving wrapped comments looking pretty bad.
+  There is a new capability called `{:comment {:smart-wrap? true}}`
+  which will now word wrap comments cleanly.  It will also repair
+  most of the problems that the simplistic wrapping produced in the
+  past.  It is now the default, in no small part to repair the
+  problems of the past.  If you are working to minimize changes
+  when running zprint, I would recommend running it once over your
+  code before you disable it, as will clean up most of the problems
+  that were added by zprint in the past.  You can disable it with
+  `{:comment {:smart-wrap? false}}`.  You can also configure it to
+  minimize the amount of word wrapping it does, while still allowing
+  it to do much better than the previous default by using `{:style
+  :minimal-smart-wrap}`.  You need to have `{:comment {:smart-wrap?
+  true}}` to use `:minimal-smart-wrap`.  See the reference manual for
+  more details on how to configure smart wrap.
+  * You can now specify some keys to come last in a map as well as
+  some keys to appear first in a sorted map.  The `{:map {:key-order [...]}}`
+  configuration places all of the keys prior to the distinguished key
+  `:|` at the front of the map, and all of the keys after the `:|` key
+  at the end of the map.  
+  * Configurable Styles: As the number of styles that call `:option-fn`
+  to return guides or just to do complex things has grown, many of
+  these styles have also begun to accept a configuration map as
+  their first argument.  This has worked well, but has in turn
+  required a new style in the `:style-map` for every unique combination
+  of values in the configuration map for the option-fn (or has
+  required moderately complex configuration in the `:fn-map` or
+  elsewhere). The processing for styles has been enhanced to
+  allow configuration of styles when they are used, instead of
+  pre-configuring them as additional styles.  See the CHANGELOG
+  for some details, and the reference manual for many more.
   * If you were using zprint as a library, and you kept the configuration
   you wanted to use with zprint in a file of your own, there was no safe
   way to give that configuration to zprint if it contained function 
@@ -52,39 +88,21 @@ a number of major source code formatting approaches.
   and it will read and 'compile' that options map (including any functions)
   using the Small Clojure Interpreter (sci) built into zprint, the same
   way that zprint handles reading external configuration files.
- * Made considerable improvements in multi-format-pass "stability".  Thus, if
- you format the same file multiple times, it is considerably less likely 
- to change the second time.  The biggest issues were when using `:repect-nl`,
- though some affected every formatting approach.  The only downside
- is that the tuning for "hangs" had to change a bit -- so now more things
- qualify to hang as opposed to flow.  The change isn't dramatic, but if you
- prefer the previous behavior it is still available (without the new
- stability) by using: `:style :original-tuning`.
- * Inline comments (i.e., end of line comments) when aligned in a group 
- flow left to end up one space beyond the widest code.  Single inline comments
- did not, yielding odd inconsistencies.  Now single line inline comments
- also flow left to end up one space beyond the code.  You can turn all of
- the alignment support for inline comments off by using
- `:comment {:inline-align-style :none}` if you don't like this approach.
- * Pairs appear in many places -- bindings in `let` and other functions,
- maps, and functions like `cond`.  Prior to `1.2.5`, if the left hand side
- of a pair formatted on multiple lines, the right-hand-side of the pair would
- always flow onto a new line below the left-hand-side.  That remains the
- default, but you can now allow the right-hand-side to format to the
- right of the last line of a multi-left-hand-side thing.  Enable
- `:style :multi-lhs-hang` to allow this to happen.
- * Justification of pairs has been uplifted to do a better job when you
- enable `:style :multi-lhs-hang`, and now the tuning for justification is
- specific to `:binding`, `:map`, and `:pair`, and doesn't affect the formatting
- of the things in the pair themselves.  If you haven't tried justification
- for a while, you might give it a try: `:style [:justified :multi-lhs-hang]`.
- * You can alias function formatting in the `:fn-map`.  If the value in
- the `:fn-map` is a string, then the formatting for that function is used.
- This makes having one function format like another much easier to configure.
- * Hiccup or HTML output now available!  Library `-str` fns and prebuilt
- binaries support `{:output {:format :hiccup}}` and `{:output {:format :html}}`.
- EXPERIMENTAL for now --  as always, please let me know of any issues.
- * [All changes](./CHANGELOG.md)
+  * Made considerable improvements in multi-format-pass "stability".  Thus, if
+  you format the same file multiple times, it is considerably less likely 
+  to change the second time.  The biggest issues were when using `:repect-nl`,
+  though some affected every formatting approach.  The only downside
+  is that the tuning for "hangs" had to change a bit -- so now more things
+  qualify to hang as opposed to flow.  The change isn't dramatic, but if you
+  prefer the previous behavior it is still available (without the new
+  stability) by using: `:style :original-tuning`.
+  * Inline comments (i.e., end of line comments) when aligned in a group 
+  flow left to end up one space beyond the widest code.  Single inline comments
+  did not, yielding odd inconsistencies.  Now single line inline comments
+  also flow left to end up one space beyond the code.  You can turn all of
+  the alignment support for inline comments off by using
+  `:comment {:inline-align-style :none}` if you don't like this approach.
+  * [All changes](./CHANGELOG.md)
 
 ## See zprint:
 

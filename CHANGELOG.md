@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * You can now specify some keys to come last in a map as well as
+  some keys to appear first in a sorted map.  The `{:map {:key-order [...]}}`
+  configuration places all of the keys prior to the distinguished key
+  `:|` at the front of the map, and all of the keys after the `:|` key
+  at the end of the map.  If you have a key `:|`, you cannot specify
+  its order in the `:key-order` vector.  If this is a problem for you,
+  submit an issue and I'll make it configurable.  Issue #281.
+
   * Added function type `:list`, for when you want a list interpreted
   as just a list of data, without assuming that the first element of
   the list is a function of some type.   In addition, `:nl-separator?`
@@ -62,6 +70,25 @@ All notable changes to this project will be documented in this file.
   way that it used to by default -- `{:tagged-literal {:hang? false}}`.
   Issue #292.
 
+  * Comment handling has been considerably altered.  When working
+  on the stability fixes for `1.2.5`, the largest remaining problem
+  was comment wrapping causing changes to the formatting in subsequent
+  runs.  In addition, the comment wrapping has been very simplistic
+  since its inception, leaving wrapped comments looking pretty bad.
+  There is a new capability called `{:comment {:smart-wrap? true}}`
+  which will now word wrap comments cleanly.  It will also repair
+  most of the problems that the simplistic wrapping produced in the
+  past.  It is now the default, in no small part to repair the
+  problems of the past.  If you are working to minimize changes
+  when running zprint, I would recommend running it once over your
+  code before you disable it, as will clean up most of the problems
+  that were added by zprint in the past.  You can disable it with
+  `{:comment {:smart-wrap? false}}`.  You can also configure it to
+  minimize the amount of word wrapping it does, while still allowing
+  it to do much better than the previous default by using `{:style
+  :minimal-smart-wrap}`.  You need to have `{:comment {:smart-wrap?
+  true}}` to use `:minimal-smart-wrap`.  See the reference manual for
+  details on how to configure smart wrap.  Issue #271.
   
 ### Fixed
 
@@ -69,6 +96,15 @@ All notable changes to this project will be documented in this file.
   vectors as a hiccup vector.  Now it doesn't do that as much, though it is
   still possible.  Issue #294.
 
+  * Found and fixed several areas of justification that were slower
+  than they needed to be.  Also added a new configuration element,
+  `:max-depth` to every `:justify` map `{... :justify {:max-depth
+  n}}}`.  Justification will only be performed until the `:max-depth`
+  is reached, and then it will not be attempted.  This is only
+  necessary when justification is desired and there are very deeply
+  nested expressions where there are justifiable elements (e.g.,
+  maps) deeply nested in expressions that don't fit well within the
+  width.  Issue #290.
 
 ## 1.2.5 - 2023-01-24
 

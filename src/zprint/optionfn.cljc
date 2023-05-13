@@ -26,31 +26,31 @@
   ([options len sexpr] (rodfn {} options len sexpr))
   ([rod-options options len sexpr]
    (let [multi-arity-nl? (get rod-options :multi-arity-nl? true)
-	 one-line-ok? (:one-line-ok? rod-options)
-         fn-name? (symbol? (second sexpr))
-         docstring? (string? (nth sexpr (if fn-name? 2 1)))
+         one-line-ok? (:one-line-ok? rod-options)
+         fn-name (if (symbol? (second sexpr)) 1 0)
+         fn-name? (= fn-name 1)
+         docstring (if (string? (nth sexpr (inc fn-name))) 1 0)
+         docstring? (= docstring 1)
+         attr-map (if (map? (nth sexpr (inc (+ fn-name docstring)))) 1 0)
+         attr-map? (= attr-map 1)
          multi-arity? (not (vector? (nth sexpr
-                                         (cond (and fn-name? docstring?) 3
-                                               (or fn-name? docstring?) 2
-                                               :else 1))))
+                                         (inc (+ fn-name docstring attr-map)))))
          nl-count (cond (and multi-arity? multi-arity-nl? docstring?) [1 2]
                         (and multi-arity? multi-arity-nl?) [2]
                         :else [1])
          option-map {:list {:nl-count nl-count},
                      :next-inner {:list {:option-fn nil}},
                      :next-inner-restore [[:list :nl-count]]}
-	 option-map (if one-line-ok?
-	                (assoc option-map :one-line-ok? true)
-			option-map)
-         option-map (cond (and fn-name? docstring?)
-                            (assoc option-map :fn-style :arg1-force-nl-body)
-                          (and fn-name? (not multi-arity?))
-                            (assoc option-map :fn-style :arg2-force-nl-body)
-                          fn-name? (assoc option-map
-                                     :fn-style :arg1-force-nl-body)
-                          (not multi-arity?) (assoc option-map
-                                               :fn-style :arg1-force-nl-body)
-                          :else (assoc option-map :fn-style :flow-body))]
+         option-map
+           (if one-line-ok? (assoc option-map :one-line-ok? true) option-map)
+         option-map
+           (cond (and fn-name?
+                      (and (not multi-arity?) (not attr-map?) (not docstring?)))
+                   (assoc option-map :fn-style :arg2-force-nl-body)
+                 fn-name? (assoc option-map :fn-style :arg1-force-nl-body)
+                 (not multi-arity?) (assoc option-map
+                                      :fn-style :arg1-force-nl-body)
+                 :else (assoc option-map :fn-style :flow-body))]
      (if multi-arity?
        (assoc option-map
          :next-inner {:list {:option-fn nil},

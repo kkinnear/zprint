@@ -8,16 +8,16 @@
 ;;
 ;; :dbg?
 ;;
-;;   true           gets you all of the debugging that isn't governed by
-;;                  a keyword
-;;
-;;   :all           gets you all debugging, including all keyword debugging
+;;   true          gets you all of the debugging that isn't governed by
+;;                 a keyword
 ;;
 ;; :dbg-s  
 ;;
-;;   keyword       gets you debugging for just that single keyword
-;;
 ;;   #{ keywords } gets you debugging for just those keywords
+;;
+;;   #{:all}       gets you all of the dbg-s or dbg-s-pr debugging
+;;
+;; In order to get all debugging, use {:dbg? true :dbg-s #{:all}}
 ;;
 ;; Note that you can use both of these at the same time to get some
 ;; keyword debugging but less than everything.
@@ -35,29 +35,23 @@
   [options & rest]
   `(when (:dbg? ~options) (println (:dbg-indent ~options) ~@rest)))
 
-(defmacro dbg-s-pr
-  "Output debugging print with println if this one is selected.
-  sel can be either a single keyword or a set of keywords."
-  [options sel & rest]
-  (if (keyword? sel)
-    `(when (or (~sel (:dbg-s ~options))
-               (= (:dbg? ~options) :all))
-       (println (:dbg-indent ~options) (pr-str ~@rest)))
-    `(when (or (some ~sel (:dbg-s ~options))
-               (= (:dbg? ~options) :all))
-       (println (:dbg-indent ~options) (pr-str ~@rest)))))
-
 (defmacro dbg-s
   "Output debugging print with println if this one is selected.
-  sel can be either a single keyword or a set of keywords."
+  sel can be either a single keyword or a set of keywords. :all
+  is added to the set."
   [options sel & rest]
-  (if (keyword? sel)
-    `(when (or (~sel (:dbg-s ~options)) 
-               (= (:dbg? ~options) :all))
-       (println (:dbg-indent ~options) ~@rest))
-    `(when (or (some ~sel (:dbg-s ~options)) 
-               (= (:dbg? ~options) :all))
+  (let [sel (if (keyword? sel) (conj #{:all} sel) (conj sel :all))]
+    `(when (some ~sel (:dbg-s ~options))
        (println (:dbg-indent ~options) ~@rest))))
+
+(defmacro dbg-s-pr
+  "Output debugging print with println if this one is selected.
+  sel can be either a single keyword or a set of keywords. :all
+  is added to the set."
+  [options sel & rest]
+  (let [sel (if (keyword? sel) (conj #{:all} sel) (conj sel :all))]
+    `(when (some ~sel (:dbg-s ~options))
+       (println (:dbg-indent ~options) (pr-str ~@rest)))))
 
 (defmacro dbg-form
   "Output debugging print with println, and always return value."

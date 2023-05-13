@@ -1925,6 +1925,15 @@
 
     (zprint-str rod7 {:parse-string? true, :style :rod :comment {:inline-align-style :none}}))
 
+  ;; Problem with attr-map and rod
+
+(def prepost2
+"(defn selected-protocol-for-indications\n  { :pre [(map? m) (empty? m)] :post [(not-empty %)] }\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :pre preceding :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))\n")
+
+(expect
+"(defn selected-protocol-for-indications\n  {:pre [(map? m) (empty? m)], :post [(not-empty %)]}\n  [{:keys [spec]} procedure-id indications]\n  (->> {:procedure-id procedure-id, :pre preceding, :indications indications}\n       (sql/op spec queries :selected-protocol-for-indications)\n       (map :protocol-id)))"
+(zprint-str prepost2 {:parse-string? true :style :rod}))
+
 
 
   ;;

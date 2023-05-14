@@ -252,7 +252,9 @@
   is the things to recognize, and can be :require, :require-macros, or 
   :import. :require and :require-macros are handled the same, and :import
   is handled differently since it has the values all in the same expression.
-  Handles sequences with lists or vectors."
+  Handles sequences with lists or vectors. Note that it justifies the :as
+  and :refer as pairs, so a simple :as doesn't justify with anything, and
+  so looks out of place with the other vector's :refers."
   ([] "jrequireguide")
   ; If you call a guide with partial because it has its a required first
   ; argument, ; the "no-argument" arity must include the first argument!

@@ -1042,7 +1042,7 @@
   [{:keys [width],
     {:keys [smart-wrap?], {:keys [border]} :smart-wrap} :comment,
     :as options} style-vec]
-  (def fsw-in style-vec)
+  #_(def fsw-in style-vec)
   (dbg-s options
          #{:smart-wrap}
          "fzprint-smart-wrap smart-wrap?"

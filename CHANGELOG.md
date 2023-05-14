@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.6 - 2023-01-25
+## 1.2.6 - 2023-05-20
 
 ### Added
 
@@ -89,6 +89,9 @@ All notable changes to this project will be documented in this file.
   :minimal-smart-wrap}`.  You need to have `{:comment {:smart-wrap?
   true}}` to use `:minimal-smart-wrap`.  See the reference manual for
   details on how to configure smart wrap.  Issue #271.
+
+  * Upgraded to `[org.babashka/sci "0.7.39"]` and 
+  `[rewrite-clj/rewrite-clj "1.1.47"]`.
   
 ### Fixed
 

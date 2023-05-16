@@ -921,6 +921,8 @@
 
   ; We expect this to have worked if there is a legit function in the 
   ; :vector {:option-fn ...}
+  #?(:bb nil
+     :clj 
 
   (expect (more-of options
             true (fn? (:option-fn (:vector options))))
@@ -932,6 +934,19 @@
                         zprint.config/write-options? (atom nil)]
             (set-options! i283p)
             (get-options)))
+
+      :cljs
+  (expect (more-of options
+            true (fn? (:option-fn (:vector options))))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)
+                        zprint.config/write-options? (atom nil)]
+            (set-options! i283p)
+            (get-options))))
+
 
 
 

@@ -545,7 +545,7 @@ in some particular way.  For example:
 (zp/set-options! {:map {:indent 0}})
 ```
 
-You can also call `set-options!` with a string value of a options map,
+You can also call `set-options!` with a string value of an options map,
 and zprint will convert that string into an options map using the
 Small Clojure Interpreter (sci) linked into zprint.  In this way,
 you can safely import configurations from external files and be sure
@@ -6784,7 +6784,7 @@ style in the `:style-map`.
 Central to all of this is the creation of a style definition which
 is not an option map to be applied, but rather a function to be
 called -- a map containing a "style-fn".  When a style is defined
-(i.e., configured to be in the `:style-map`) using a map containing
+(i.e., configured to be in the `:style-map`) using a map containing a
 `:style-fn` key, the value of that key is a function to be called
 when this style is used (applied).  In addition, the map in which
 the key `:style-fn` appears is not validated as an option map.
@@ -6858,11 +6858,18 @@ Here is an example of a style defined using a `:style-fn`:
 
 Typically, the map which contains the `:style-fn` key also contains the
 default values for the configuration for the option-fn which will be called.
-The map which contains the `:style-call` key (if any), will have configuration
-values which will override those in the map in the `:style-map`, and you
-can see where the style-call values are merged into (and in some sense "on top
-of") the values in the style-fn-map.  This isn't required, though it is a
-reasonable way to handle default and more specifically configured values.
+In the example above, these would be `:multi-arity-nl? false` and
+`:one-line-ok? false`.
+
+The map which contains the `:style-call` key (if any), will have
+configuration values which will override those in the map in the
+`:style-map`, and you can see where the style-call values are merged
+into (and in some sense "on top of") the values in the style-fn-map
+in the example above using `merge-deep`. This isn't required, though
+it is a good way to handle default and more specifically configured
+values.  The function `merge-deep` is available to all `option-fn`
+definitions, including those read in from zprint configuration files
+(and therefore processed by `sci`).
 
 Note that the only styles that involve a `:style-fn` may be invoked with
 a map containing the key `:style-call`.  You cannot invoke any arbitrary

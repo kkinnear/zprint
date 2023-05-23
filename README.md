@@ -62,8 +62,13 @@ a number of major source code formatting approaches.
   minimize the amount of word wrapping it does, while still allowing
   it to do much better than the previous default by using `{:style
   :minimal-smart-wrap}`.  You need to have `{:comment {:smart-wrap?
-  true}}` to use `:minimal-smart-wrap`.  See the reference manual for
-  more details on how to configure smart wrap.
+  true}}` to use `:minimal-smart-wrap`.  Smart wrap works hard to
+  not wrap things like numbered or bulleted lists.  If you have a
+  case where it wraps something that it shouldn't, please submit an
+  issue. It is likely that it can be fixed with a configuration
+  change. See the reference manual for more details on how to
+  configure smart wrap.
+
   * You can now specify some keys to come last in a map as well as
   some keys to appear first in a sorted map.  The `{:map {:key-order [...]}}`
   configuration places all of the keys prior to the distinguished key

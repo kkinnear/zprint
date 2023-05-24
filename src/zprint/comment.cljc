@@ -180,8 +180,8 @@
                (= tnloc :newline) (recur (left* nloc) spaces true)
                (or (= tnloc :comment) (= tnloc :comment-inline))
                  ; Two comments in a row don't have a newline showing
-                 ; between them, it is captured by the first comment.
-                 ; Sigh. Except now it isn't, as we split the newlines out.
+                 ; between them, it is captured by the first comment. Sigh.
+                 ; Except now it isn't, as we split the newlines out.
                  (do #_(prn "inlinecomment? found previous comment!")
                      ; is it an inline comment?
                      (when (inlinecomment? nloc)
@@ -591,17 +591,7 @@
                 ; and not yet in a group -- move on
                 (recur (inc idx) depth 0 0 0 0 out))
               ; we are already in a group, see if we should remain in it
-              (cond 
-	            #_#_(= what :whitespace)
-		      (recur (inc idx)
-			     depth
-			     start-col
-			     number-semis
-			     current-spacing
-			     0
-			     out)
-
-	            (or (= what :newline) (= what :indent))
+              (cond (or (= what :newline) (= what :indent))
                       (if (zero? nl-indent-count)
                         ; This is our first newline or indent, we are still
                         ; in the group.
@@ -1053,22 +1043,17 @@
   #_(def fsw-in style-vec)
   (let [start-col (style-loc-vec (or (:indent options) 0) style-vec)
         style-vec (into [] style-vec)]
-
-
-  ; This can cause bad interactions with :dbg stuff, since it calls zprint!
-  (dbg-s options
-         #{:smart-wrap :comment-group}
-         "fzprint-smart-wrap smart-wrap?"
-         smart-wrap?
-         "border:"
-         border
-         ((:dzprint options) {} (map #(vector %1 %2 %3) (range) start-col style-vec))
-	 
-	 )
-
-
-
-
+    ; This can cause bad interactions with :dbg stuff, since it calls
+    ; zprint!
+    (dbg-s options
+           #{:smart-wrap :comment-group}
+           "fzprint-smart-wrap smart-wrap?"
+           smart-wrap?
+           "border:"
+           border
+           ((:dzprint options)
+             {}
+             (map #(vector %1 %2 %3) (range) start-col style-vec)))
     (loop [idx 0
            depth 0
            style-vec style-vec]

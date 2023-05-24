@@ -515,8 +515,7 @@
              :smart-wrap? true,
              :smart-wrap {:border 5,
                           :end+start-cg [; Line starts with single letter,
-                                         ; but
-                                         ; not a or I
+                                         ; but not a or I
                                          #"^(;+)(\s*[b-zA-HJ-Z]\s+)"
                                          ; Line starts with a * or -
                                          #"^(;+)(\s*(?:\*|\-)\s+)"
@@ -524,9 +523,8 @@
                                          ; followed by .
                                          #"^(;+)(\s*\w\.\s+)"
                                          ; Line starts with one or two
-                                         ; digit
-                                         ; number
-                                         ; followed by period.
+                                         ; digit number followed by
+                                         ; period.
                                          #"^(;+)(\s*[0-9]{1,2}\.?\s+)"
                                          ; Line starts with two upper case
                                          ; chars
@@ -534,13 +532,11 @@
                           :end+skip-cg [; Blank line
                                         #"^;+\s*$"
                                         ; Line where left paren is first
-                                        ; and
-                                        ; right paren last
+                                        ; and right paren last
                                         ; character in line.
                                         #"^;+\s*\(.*\)$"
                                         ; Line containing only capitalized
-                                        ; word
-                                        ; followed by colon
+                                        ; word followed by colon
                                         #"^;+\s*[A-Z]\w+\:$"],
                           :max-variance 30,
                           :space-factor 3,

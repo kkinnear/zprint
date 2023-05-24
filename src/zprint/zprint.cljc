@@ -1688,11 +1688,10 @@
                          "Justifiction more than 2 things")
                   (if (some zcomment? pair)
                     [:flow
-                     ; The following always flows things of 3 or more
-                     ; if they have a comment in them.  It doesn't
-                     ; cancel justification since this
-                     ; (probably?) can't be added by running zprint
-                     ; multiple times.
+                     ; The following always flows things of 3 or more if
+                     ; they have a comment in them.  It doesn't cancel
+                     ; justification since this (probably?) can't be added
+                     ; by running zprint multiple times.
                      (concat-no-nil arg-1
                                     (fzprint-flow-seq
                                       caller
@@ -4668,8 +4667,7 @@
   [caller l-str r-str
    ; The options map can get re-written down a bit below, so don't get
    ; anything with destructuring that might change with a rewritten
-   ; options
-   ; map!
+   ; options map!
    {:keys [fn-map user-fn-map one-line? fn-style no-arg1? fn-force-nl quote?],
     :as options} ind zloc]
   (dbg-s options
@@ -7921,8 +7919,7 @@
                             "comma?" comma?
                             "rightcnt:" (:rightcnt options))
                   ; A possible one line representation of this map, but
-                  ; this is
-                  ; optimistic and needs to be validated.
+                  ; this is optimistic and needs to be validated.
                   pair-print-one-line
                     (fzprint-map-two-up
                       caller
@@ -7970,8 +7967,8 @@
                         [["," (zcolor-map options :comma) :whitespace 21]
                          [(str "\n" (blanks (+ indent ind))) :none :indent 32]]
                         [["," (zcolor-map options :comma) :whitespace 22]
-                         ; Fix issue #59 -- don't
-                         ; put blanks to indent before the next \n
+                         ; Fix issue #59 -- don't put blanks to indent
+                         ; before the next \n
                          ["\n" :none :indent 33]
                          [(str "\n" (blanks (+ indent ind))) :none :indent 34]]
                         ; comma? nil

@@ -83,7 +83,8 @@
 (s/def ::boolean (s/nilable zboolean?))
 ;(s/def ::boolean booleanable?)
 
-; Note that actual fn-types can be [:arg1 {:style :respect-nl}] in addition
+; Note that actual fn-types can be [:arg1 {:style :respect-nl}] in
+; addition
 ; to simple keywords.  It used to be that these things were ripped apart
 ; during option map validation and done separately. Now we get spec to do
 ; them for us!
@@ -101,7 +102,8 @@
         :string-w-structure-options (s/tuple ::fn-type ::options ::options)))
 ; This dance with making the :fn-alias really "deep" is because of the
 ; heuristics in explain-more, which tends to use the "simplest" problem
-; that is found.  And the string tended to be the simplest problem, so that
+; that is found.  And the string tended to be the simplest problem, so
+; that
 ; more important things were obscured.
 (s/def ::fn-deep-alias string?)
 (s/def ::fn-alias
@@ -287,8 +289,8 @@
 (s/def ::new-r-str string?)
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::smart-wrap
-  (only-keys :opt-un [::border ::end+start-cg ::end+skip-cg
-                      ::max-variance ::last-max ::space-factor]))
+  (only-keys :opt-un [::border ::end+start-cg ::end+skip-cg ::max-variance
+                      ::last-max ::space-factor]))
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))
@@ -398,7 +400,7 @@
                       ::indent-only? ::indent-only-style ::replacement-string
                       ::wrap-coll? ::wrap-after-multi? ::wrap-multi? ::force-nl?
                       ::wrap? ::nl-count ::no-wrap-after :alt/tuning
-		      ::nl-separator?]))
+                      ::nl-separator?]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
@@ -438,7 +440,8 @@
                       ::nl-separator? ::nl-separator-all? :alt/tuning]))
 (s/def ::paragraph (only-keys :opt-un [:alt/style]))
 (s/def ::pair-fn
-  (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang? :alt/tuning]))
+  (only-keys :opt-un [::hang-diff ::hang-expand ::hang-size ::hang?
+                      :alt/tuning]))
 (s/def ::parse
   (only-keys :opt-un [::interpose ::left-space ::ignore-if-parse-fails]))
 (s/def ::parse-string-all? ::boolean)
@@ -526,7 +529,7 @@
              ::force-validate? ::doc ::next-inner-restore ::fn-style
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
              ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
-	     ::tagged-literal #_::memoize?]))
+             ::tagged-literal #_::memoize?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 
@@ -684,11 +687,11 @@
                                                                 (name (first
                                                                         %))))
                                          :zprint.spec/boolean))
-                               ; This is a keyword whose spec is
-                               ; boolean.  If it is boolean, we're good.
-                               ; If it isn't, then figure out if it is the
-                               ; same as coerce-to-false, in which case it
-                               ; will be false, otherwise change it to true.
+                               ; This is a keyword whose spec is boolean.
+                               ; If it is boolean, we're good. If it isn't,
+                               ; then figure out if it is the same as
+                               ; coerce-to-false, in which case it will be
+                               ; false, otherwise change it to true.
                                (if (zboolean? (second %))
                                  ; Don't change anything
                                  (first {(first %) (second %)})

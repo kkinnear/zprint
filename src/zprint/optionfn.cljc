@@ -8,8 +8,10 @@
             [zprint.util :refer [column-alignment cumulative-alignment]]))
 
 ;;
-;; Contains functions which can be called with {:option-fn <fn>} to produce
-;; a new options map.  Option-fns which produce a "guide" are in guide.cljc.
+;; Contains functions which can be called with {:option-fn <fn>} to
+;; produce
+;; a new options map.  Option-fns which produce a "guide" are in
+;; guide.cljc.
 ;; The optionfns here are called the same way, but just produce a basic
 ;; option map.
 ;;
@@ -18,8 +20,8 @@
   "Given a structure which starts with defn or fn format it using the
   'rules of defn'."
   ([] "rodfn")
-  ; If you call an option-fn with partial because it has its own options map,
-  ; the "no-argument" arity must include the options map!
+  ; If you call an option-fn with partial because it has its own options
+  ; map, the "no-argument" arity must include the options map!
   ([rod-options] "rodfn")
   ; Since we have released this before, we will also allow it to be called
   ; without rod-options (since this is a drop-in replacement for rodguide).

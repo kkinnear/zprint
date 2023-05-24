@@ -7,7 +7,8 @@
             [zprint.util :refer [column-alignment cumulative-alignment]]))
 
 ;;
-;; Contains functions which can be called with {:option-fn <fn>} to produce
+;; Contains functions which can be called with {:option-fn <fn>} to
+;; produce
 ;; a "guide", which is, roughtly, a sequence comprised of keywords
 ;; which describe how to format an expression.  A guide must be created
 ;; explicitly for the expression to be formatted.
@@ -21,14 +22,16 @@
 ;;
 ;; by this guide:
 ;;
-;; [:element :element :element :newline :element :element :element :newline
+;; [:element :element :element :newline :element :element :element
+;; :newline
 ;;  :element]
 ;;          
 ;; There are a lot more keywords and other things which can be in a guide
 ;; than demonstrated above.
 
 ;;
-;; # Guide for "rules of defn", an alternative way to format defn expressions.
+;; # Guide for "rules of defn", an alternative way to format defn
+;; expressions.
 ;;
 
 (defn rodguide
@@ -178,12 +181,13 @@
                    zloc-seq-nc
                      ((:zmap-no-comment zfn-map) identity (:zloc options))
                    args (drop 3 zloc-seq-nc)
-                   ; Get the lengths of the actual zloc values, not the sexpr
+                   ; Get the lengths of the actual zloc values, not the
+                   ; sexpr
                    arg-strs (mapv (:zstring zfn-map) args)
                    #_(prn "early arg-strs:" arg-strs)
-                   ; This makes strings too long, but it was
-                   ; presumably added for some reason?  Issue #212
-                   ; arg-strs (mapv add-double-quotes (drop 3 sexpr) arg-strs)
+                   ; This makes strings too long, but it was presumably
+                   ; added for some reason?  Issue #212 arg-strs (mapv
+                   ; add-double-quotes (drop 3 sexpr) arg-strs)
                    #_(prn "later arg-strs:" arg-strs)
                    seq-of-seqs (partition arg-vec-len arg-vec-len [] arg-strs)
                    max-width-vec (column-alignment max-variance
@@ -242,8 +246,10 @@
 ;;
 
 ;
-; A much simpler version of the require guide.  This version doesn't require
-; use of the call-stack, and has only one option-fn instead of two.  It also
+; A much simpler version of the require guide.  This version doesn't
+; require
+; use of the call-stack, and has only one option-fn instead of two.  It
+; also
 ; uses the new variance-based justification capabilities.
 ;
 
@@ -282,8 +288,9 @@
                                  element-guide])
                               ; We can't justify things, fall back to this.
                               [:element element-guide])]
-           ; Do this for all of the first level vectors and lists  below the
-           ; :require, but no other vectors or lists more deeply nested.
+           ; Do this for all of the first level vectors and lists  below
+           ; the :require, but no other vectors or lists more deeply
+           ; nested.
            {:next-inner {:vector {:option-fn (fn [_ _ _] {:guide vector-guide}),
                                   :wrap-multi? true,
                                   :hang? true},
@@ -618,8 +625,7 @@
 ;;
 
 (def semantic3
-  ; version 0.1.6
-  ; Requires zprint 1.2.5
+  ; version 0.1.6. Requires zprint 1.2.5
   {:style-map
      {:s1.0 {:doc "Set up community indentation",
              :binding {:indent 0},

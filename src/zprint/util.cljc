@@ -1,6 +1,6 @@
 (ns ^:no-doc zprint.util
   (:require [clojure.string :as s]
-  #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
+            #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 (defn dissoc-two
   "Do a simple dissoc-in for two levels.  Does not remove the
@@ -8,8 +8,7 @@
   [m [k1 k2]]
   (assoc m k1 (dissoc (get m k1) k2)))
 
-(defn
-  dbg-s-merge
+(defn dbg-s-merge
   "Given two option maps, merge any debugging info from the second
   map into the first map."
   [map1 map2]
@@ -160,8 +159,8 @@
       (cond (nil? beginning-variance) [nil columns]
             (> max-variance beginning-variance) [(first (find-max column))
                                                  columns]
-            ; Unless we have at least 3 rows, we aren't removing anything to
-            ; try and get the variance to work!
+            ; Unless we have at least 3 rows, we aren't removing anything
+            ; to try and get the variance to work!
             (> row-count 2)
               (let [[first-indicies first-column-wo-max] (remove-max-not-half
                                                            column)
@@ -288,8 +287,8 @@
                                (if max-width
                                  [new-columns (conj max-width-vec max-width)]
                                  ; If we fail, then fail completely, don't
-                                 ; return a
-                                 ; short max-width-vec!  Issue #212.
+                                 ; return a short max-width-vec!  Issue
+                                 ; #212.
                                  (reduced [columns nil]))))
                      [columns []]
                      (range (count columns))))]

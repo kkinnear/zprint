@@ -660,8 +660,13 @@
   ;; # Comments handling
   ;;
 
-  (expect "[;a\n ;\n ;b\n ;c\n this is a test]"
+  (expect "[;a\n ;\n ;b c\n this is a test]"
+  ; Put b and c on the same line because of smart wrap
+  #_"[;a\n ;\n ;b\n ;c\n this is a test]"
           (zprint-str "[;a\n;\n;b\n;c\nthis is a test]" {:parse-string? true}))
+
+  (expect "[;a\n ;\n ;b\n ;c\n this is a test]"
+          (zprint-str "[;a\n;\n;b\n;c\nthis is a test]" {:parse-string? true :comment {:smart-wrap? false}}))
 
   (expect
     "(defn testfn8\n  \"Test two comment lines after a cond test.\"\n  [x]\n  (cond\n    ; one\n    ; two\n    :stuff\n      ; middle\n      ; second middle\n      :bother\n    ; three\n    ; four\n    :else nil))"

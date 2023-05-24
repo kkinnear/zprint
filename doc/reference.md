@@ -3361,6 +3361,10 @@ minimize the wrapping that it will do when processing a file.  There
 is a style called `:minimal-smart-wrap` which will configure it to make
 minimal changes but will also still fix up problems like those above.
 
+Note that all comment wrapping (including smart-wrap) is performed after
+all of the formatting of any code.  Comment wrapping is thus independent of
+indent-only, respect-nl, and respect-bl processing.
+
 #### :smart-wrap
 
 A set of configuration parameters for the smart wrap capability.

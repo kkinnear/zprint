@@ -3,26 +3,25 @@
   #?@(:cljs [[:require-macros
               [zprint.macros :refer
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
-  (:require
-    #?@(:clj [[zprint.macros :refer
-               [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-    clojure.string
-    [clojure.set     :refer [difference]]
-    [clojure.data    :as d]
-    [zprint.spec     :refer [validate-basic coerce-to-boolean]]
-    [zprint.rewrite  :refer [sort-dependencies]]
-    [zprint.util     :refer [dissoc-two dbg-s-merge]]
-    [zprint.guide    :refer [jrequireguide defprotocolguide signatureguide1
-                             odrguide guideguide rodguide areguide
-                             defprotocolguide-s]]
-    [zprint.optionfn :refer [rodfn meta-base-fn fn*->% sort-deps regexfn
-                             rulesfn]]
-    #?@(:bb []
-        ; To completely remove sci, comment out the following line.
-        :clj [[sci.core :as sci]]
-        :cljs [[sci.core :as sci]])
-    #?(:clj [clojure.edn :refer [read-string]]
-       :cljs [cljs.reader :refer [read-string]]))
+  (:require #?@(:clj [[zprint.macros :refer
+                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+            clojure.string
+            [clojure.set :refer [difference]]
+            [clojure.data :as d]
+            [zprint.spec :refer [validate-basic coerce-to-boolean]]
+            [zprint.rewrite :refer [sort-dependencies]]
+            [zprint.util :refer [dissoc-two dbg-s-merge]]
+            [zprint.guide :refer
+             [jrequireguide defprotocolguide signatureguide1 odrguide guideguide
+              rodguide areguide defprotocolguide-s]]
+            [zprint.optionfn :refer
+             [rodfn meta-base-fn fn*->% sort-deps regexfn rulesfn]]
+            #?@(:bb []
+                ; To completely remove sci, comment out the following line.
+                :clj [[sci.core :as sci]]
+                :cljs [[sci.core :as sci]])
+            #?(:clj [clojure.edn :refer [read-string]]
+               :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
 
 ;;
@@ -64,10 +63,10 @@
   [:cache :cwd-zprintrc? :parallel? :search-config? :url])
 
 (def explain-hide-keys
-  [:configured? :one-line-ok? :dbg-print? :dbg? :dbg-s :force-eol-blanks? :do-in-hang? :drop?
-   :dbg-ge :file? :spaces? :process-bang-zprint? :trim-comments? :zipper?
-   :indent :remove :return-cvec? :test-for-eol-blanks? :!zprint-elide-skip-next?
-   :fn-str [:object :wrap-after-multi? :wrap-coll?]
+  [:configured? :one-line-ok? :dbg-print? :dbg? :dbg-s :force-eol-blanks?
+   :do-in-hang? :drop? :dbg-ge :file? :spaces? :process-bang-zprint?
+   :trim-comments? :zipper? :indent :remove :return-cvec? :test-for-eol-blanks?
+   :!zprint-elide-skip-next? :fn-str [:object :wrap-after-multi? :wrap-coll?]
    [:reader-cond :comma? :key-value] [:output :elide :lines]
    [:pair :justify-hang :justify-tuning]
    [:binding :justify-hang :justify-tuning] [:spec :value]
@@ -258,7 +257,8 @@
 ;; :arg2-body.
 ;;
 ;; Print the first argument on the same line as the function name, and
-;; if it fits then print the second argument on the same line as the function
+;; if it fits then print the second argument on the same line as the
+;; function
 ;; name if it fits.
 ;;
 ;; (as-> initial-value tag
@@ -474,8 +474,8 @@
                 :ignore-for-variance nil,
                 :max-gap nil,
                 :lhs-narrow 2.0,
-                :multi-lhs-overlap? true
-		:max-depth 100},
+                :multi-lhs-overlap? true,
+                :max-depth 100},
       :justify? false,
       :multi-lhs-hang? false,
       :nl-separator? false,
@@ -514,7 +514,8 @@
              :border 0,
              :smart-wrap? true,
              :smart-wrap {:border 5,
-                          :end+start-cg [; Line starts with single letter, but
+                          :end+start-cg [; Line starts with single letter,
+                                         ; but
                                          ; not a or I
                                          #"^(;+)(\s*[b-zA-HJ-Z]\s+)"
                                          ; Line starts with a * or -
@@ -522,19 +523,23 @@
                                          ; Line starts with single letter
                                          ; followed by .
                                          #"^(;+)(\s*\w\.\s+)"
-                                         ; Line starts with one or two digit
+                                         ; Line starts with one or two
+                                         ; digit
                                          ; number
                                          ; followed by period.
                                          #"^(;+)(\s*[0-9]{1,2}\.?\s+)"
-                                         ; Line starts with two upper case chars
+                                         ; Line starts with two upper case
+                                         ; chars
                                          #"^(;+)(\s*)[A-Z][A-Z]"],
                           :end+skip-cg [; Blank line
                                         #"^;+\s*$"
-                                        ; Line where left paren is first and
+                                        ; Line where left paren is first
+                                        ; and
                                         ; right paren last
                                         ; character in line.
                                         #"^;+\s*\(.*\)$"
-                                        ; Line containing only capitalized word
+                                        ; Line containing only capitalized
+                                        ; word
                                         ; followed by colon
                                         #"^;+\s*[A-Z]\w+\:$"],
                           :max-variance 30,
@@ -622,9 +627,9 @@
          :hang? true,
          :hang-expand 1000.0,
          :hang-diff 1,
-         ; See zprint_test.clj, def r, (czprint r 28) to see why this
-         ; was created and set to 0.  That certainly looks better, but
-         ; wider stuff seems better with -1, so for now, we will go with that.
+         ; See zprint_test.clj, def r, (czprint r 28) to see why this was
+         ; created and set to 0.  That certainly looks better, but wider
+         ; stuff seems better with -1, so for now, we will go with that.
          :hang-adjust -1,
          :hang-accept nil,
          :ha-depth-factor 0,
@@ -651,8 +656,8 @@
                    :no-justify nil,
                    :max-gap nil,
                    :lhs-narrow 2.0,
-                   :multi-lhs-overlap? true
-		   :max-depth 100},
+                   :multi-lhs-overlap? true,
+                   :max-depth 100},
          :justify-hang {:hang-expand 1000.0},
          :justify-tuning {:map {:tuning {:hang-flow 4, :hang-flow-limit 30}}},
          :multi-lhs-hang? false,
@@ -706,8 +711,8 @@
                     :no-justify nil,
                     :max-gap nil,
                     :lhs-narrow 2.0,
-                    :multi-lhs-overlap? true
-		    :max-depth 100},
+                    :multi-lhs-overlap? true,
+                    :max-depth 100},
           :justify? false,
           :multi-lhs-hang? false,
           :nl-separator? false,
@@ -778,23 +783,21 @@
                  :record {:hang? true}},
       :anon-fn {:doc "Put anon fn (fn* ...) back to #(... % ...)",
                 :fn-map {"fn*" [:none {:list {:option-fn fn*->%}}]}},
-      :areguide
-        {:doc "Configurable version of arguide."
-         :justify? true
-         :style-fn (fn 
-		     ([] "argguide-style-fn")
-	             ([existing-options new-options style-fn-map style-call]
-			 {:list {:option-fn (partial
-					      areguide
-					      (merge-deep
-						style-fn-map
-						style-call)
-						)}}))}
+      :areguide {:doc "Configurable version of arguide.",
+                 :justify? true,
+                 :style-fn
+                   (fn
+                     ([] "argguide-style-fn")
+                     ([existing-options new-options style-fn-map style-call]
+                      {:list {:option-fn (partial areguide
+                                                  (merge-deep style-fn-map
+                                                              style-call))}}))},
       :areguidex {:doc "Allow modification of areguide in :fn-map",
-                 :list {:option-fn (partial areguide {:justify? true})}},
+                  :list {:option-fn (partial areguide {:justify? true})}},
       :areguide-nj
         {:doc "Do nice are formatting, but don't justify, use only in :fn-map",
-	 :style-call :areguide :justify? false}
+         :style-call :areguide,
+         :justify? false},
       :backtranslate
         {:doc "Turn quote, deref, var, unquote into reader macros",
          :fn-map
@@ -915,8 +918,8 @@
                     :map {:indent-only? true},
                     :set {:indent-only? true},
                     ; Should we also set :vector-fn to :indent-only?  That
-                    ; is only used by :fn-format, so it might confuse people
-                    ; if we did that.
+                    ; is only used by :fn-format, so it might confuse
+                    ; people if we did that.
                     :vector {:indent-only? true}},
       :justified {:doc "Justify everything possible",
                   :binding {:justify? true},
@@ -1101,16 +1104,16 @@
         {:doc "Configurable :rod {:multi-arity-nl? ... :one-line-ok? ..,}",
          :one-line-ok? false,
          :multi-arity-nl? false,
-         :style-fn (fn 
-		     ([] "rod-config-style-fn")
-	             ([existing-options new-options style-fn-map style-call]
-		       {:fn-map {"defn" [:none
-					 {:list {:option-fn (partial
-							      rodfn
-							      (merge-deep
-								style-fn-map
-								style-call))}}],
-				 "defn-" "defn"}}))},
+         :style-fn (fn
+                     ([] "rod-config-style-fn")
+                     ([existing-options new-options style-fn-map style-call]
+                      {:fn-map {"defn" [:none
+                                        {:list {:option-fn (partial
+                                                             rodfn
+                                                             (merge-deep
+                                                               style-fn-map
+                                                               style-call))}}],
+                                "defn-" "defn"}}))},
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
@@ -1131,16 +1134,16 @@
    :trim-comments? nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)
             :hang-flow 1.1,
-            ; if the :fn-style is hang, then this become the :hang-flow above
+            ; if the :fn-style is hang, then this become the :hang-flow
+            ; above
             :hang-type-flow 1.5,
             ; when (> hang-count :hang-flow-limit),
             ;  hang if (<= (dec hang-count) flow-count)
             :hang-flow-limit 12,
-            ; this is added to the count of hanging lines before the comparison
-            ; when doing the one with :hang-flow or :hang-type-flow
-            ; Note that :map has its own :hang-adjust which overides this
-            ; general
-            ; one.
+            ; this is added to the count of hanging lines before the
+            ; comparison when doing the one with :hang-flow or
+            ; :hang-type-flow. Note that :map has its own :hang-adjust
+            ; which overides this general one.
             :general-hang-adjust -1,
             :hang-if-equal-flow? false},
    :uneval {:color-map {:brace :yellow,
@@ -1388,7 +1391,7 @@
   the :style-map to have just the style name."
   [existing-map ks]
   (map (partial trim-ks existing-map) ks))
-  
+
 
 (defn diff-map "Diff two maps." [before after] (second (d/diff before after)))
 
@@ -1840,8 +1843,7 @@
                        (str " When " doc-string
                             " specified a style-fn" (style-fn-name style-fn)
                             " it failed because: " e)])))
-            ; We should have a style-map now
-            ; Let's validate it
+            ; We should have a style-map now. Let's validate it
             error-str
               (if error-str error-str (validate-options style-map doc-string))]
         (if error-str
@@ -1864,7 +1866,7 @@
   have to merge all of the style-calls together.  Returns [merged-style-calls
   style-fn-map error-str]"
   ([doc-string new-map existing-map style-call call-set]
-   (dbg-s new-map 
+   (dbg-s new-map
           #{:style-call}
           "style-call->style-fn-map: " style-call
           "call-set:" call-set)
@@ -1981,7 +1983,7 @@
                                                           style-call)
                                            [result error-str]))]
                 [style-name style-call result error-str])
-             _ (dbg-s new-map
+            _ (dbg-s new-map
                      #{:apply-style}
                      "apply-one-style: style-name:" style-name
                      "style-call:" style-call
@@ -1990,8 +1992,8 @@
             ; Remove the :doc key from the style,  or it will end up in
             ; the top level options map.
             style-map (dissoc style-map :doc)
-            ; Note that styles-applied is initialized in config-and-validate
-            ; to be [].
+            ; Note that styles-applied is initialized in
+            ; config-and-validate to be [].
             existing-map (assoc existing-map
                            :styles-applied (conj (:styles-applied existing-map)
                                                  style-name))]
@@ -2011,7 +2013,7 @@
               [updated-map new-doc-map
                (when (or error-str error-vec)
                  (str error-str (when error-str ",") error-vec))])
-	    ; It all worked, but the :style-fn returned nil, which is fine.
+            ; It all worked, but the :style-fn returned nil, which is fine.
             [existing-map doc-map nil]))))))
 
 
@@ -2027,48 +2029,46 @@
     (if (or (= style-name :not-specified) (nil? style-name))
       [existing-map doc-map nil]
       (do
-      (dbg-s new-map
-           #{:apply-style} "apply-style: style:" style-name)
-      (if (some #(= % style-name)
-                (:styles-applied existing-map))
-        ; We have already done this style
-        [existing-map doc-map
-         (str "Circular style error: style '"
-              style-name
-              "' has already been applied in this call."
-              "  Styles already applied: "
-              (:styles-applied existing-map))]
-        (let [[updated-map new-doc-map error-string]
-                (if (not (vector? style-name))
-                  (apply-one-style doc-string
-                                   new-map
-                                   [existing-map doc-map nil]
-                                   style-name)
-                  (reduce (partial apply-one-style doc-string new-map)
-                    [existing-map doc-map nil]
-                    style-name))
-              another-style-name (get updated-map :style :not-specified)
-              another-style? (not (or (= another-style-name :not-specified)
-                                      (nil? another-style-name)))
-              another-style-error
-                (when another-style?
-                  (str "Internal Error: While processing style: '"
-                       style-name
-                       "' found that"
-                       " this style: '"
-                       another-style-name
-                       "' showed up in :style,"
-                       " Styles already applied: " (:styles-already-applied
-                                                     existing-map)
-                       " Please submit an issue on GitHub regarding"
-                         " this problem!"))]
-          (if another-style?
-            ; We found another style in the :style of the updated map!
-            [updated-map new-doc-map
-             (if error-string
-               (str error-string "," another-style-error)
-               another-style-error)]
-            [updated-map new-doc-map error-string])))))))
+        (dbg-s new-map #{:apply-style} "apply-style: style:" style-name)
+        (if (some #(= % style-name) (:styles-applied existing-map))
+          ; We have already done this style
+          [existing-map doc-map
+           (str "Circular style error: style '"
+                style-name
+                "' has already been applied in this call."
+                "  Styles already applied: "
+                (:styles-applied existing-map))]
+          (let [[updated-map new-doc-map error-string]
+                  (if (not (vector? style-name))
+                    (apply-one-style doc-string
+                                     new-map
+                                     [existing-map doc-map nil]
+                                     style-name)
+                    (reduce (partial apply-one-style doc-string new-map)
+                      [existing-map doc-map nil]
+                      style-name))
+                another-style-name (get updated-map :style :not-specified)
+                another-style? (not (or (= another-style-name :not-specified)
+                                        (nil? another-style-name)))
+                another-style-error
+                  (when another-style?
+                    (str "Internal Error: While processing style: '"
+                         style-name
+                         "' found that"
+                         " this style: '"
+                         another-style-name
+                         "' showed up in :style,"
+                         " Styles already applied: " (:styles-already-applied
+                                                       existing-map)
+                         " Please submit an issue on GitHub regarding"
+                           " this problem!"))]
+            (if another-style?
+              ; We found another style in the :style of the updated map!
+              [updated-map new-doc-map
+               (if error-string
+                 (str error-string "," another-style-error)
+                 another-style-error)]
+              [updated-map new-doc-map error-string])))))))
 
 ;;
 ;; # File Access
@@ -2102,8 +2102,8 @@
                                'odrguide zprint.guide/odrguide,
                                'rodfn zprint.optionfn/rodfn,
                                'rulesfn zprint.optionfn/rulesfn,
-                               'regexfn zprint.optionfn/regexfn
-			       'merge-deep zprint.config/merge-deep}}})
+                               'regexfn zprint.optionfn/regexfn,
+                               'merge-deep zprint.config/merge-deep}}})
 (def sci-ctx
   #?(:bb nil
      ;:clj nil
@@ -2120,9 +2120,8 @@
   stack."
   [s]
   #?(:bb (read-string s)
-     ; :clj (read-string s)
-     ; To completely remove sci, include the previous line and comment out
-     ; the following line.
+     ; :clj (read-string s) To completely remove sci, include the previous
+     ; line and comment out the following line.
      :clj (sci/eval-string* sci-ctx s)
      :cljs (sci/eval-string* sci-ctx s)))
 
@@ -2373,14 +2372,15 @@
         new-updated-map (let [next-inner (:next-inner new-updated-map :unset)]
                           ; Deal with existing :next-inner (or not)
                           (cond
-                            ; Nothing there now, so that will be handled later
+                            ; Nothing there now, so that will be handled
+                            ; later
                             (= next-inner :unset) new-updated-map
                             ; We already have one, so create a vector
                             ; and add it to the vector.
                             (map? next-inner) (assoc new-updated-map
                                                 :next-inner [{} next-inner])
-                            ; We already have a vector, so create an
-                            ; empty map for our new next-inner information
+                            ; We already have a vector, so create an empty
+                            ; map for our new next-inner information
                             (vector? next-inner) (assoc new-updated-map
                                                    :next-inner
                                                      (concat [{}] next-inner))
@@ -2406,10 +2406,10 @@
     (let [; remove set elements, and then remove the :remove key too
           [existing-map new-map new-doc-map]
             (perform-remove doc-string doc-map existing-map new-map)
-	  ; Preserve the existing-map so we can use it to see what styles
-	  ; were there originally when adjusting the key sequence for the
-	  ; doc-map.
-	  previous-map existing-map
+          ; Preserve the existing-map so we can use it to see what styles
+          ; were there originally when adjusting the key sequence for the
+          ; doc-map.
+          previous-map existing-map
           ; Before we do styles, if any, we need to make sure that the
           ; style map has all of the data, including the new style-map
           ; entries.
@@ -2433,10 +2433,10 @@
                             new-updated-map)
           new-doc-map (diff-deep-ks doc-string
                                     new-doc-map
-				    (trim-style-map-ks
-				       previous-map
-                                    (key-seq (dissoc new-map
-                                               :next-inner-restore)))
+                                    (trim-style-map-ks
+                                      previous-map
+                                      (key-seq (dissoc new-map
+                                                 :next-inner-restore)))
                                     new-updated-map)]
       [(add-calculated-options new-updated-map) new-doc-map style-errors])
     ; if we didn't get a map, just return something with no changes
@@ -2490,48 +2490,48 @@
    ; information into new-map, and then just look there throughout the
    ; config-and-validate processing.
    (let [new-map (dbg-s-merge new-map existing-map)]
-   (dbg-s new-map
-          #{:config-and-validate}
-          "config-and-validate: new-map:" new-map
-          "validate?" validate?)
-   #?(:clj (do #_(println "\n\nconfig-and-validate: "
-                          doc-string
-                          new-map
-                          "\n\n"
-                          (get-stack-trace))))
-   (if (not (empty? new-map))
-     (let [_ #?(:clj (do #_(println "\n\nconfig-and-validate: "
-                                    doc-string
-                                    new-map
-                                    "\n\n"
-                                    #_(get-stack-trace)))
-                :cljs nil)
-           new-map (coerce-to-boolean new-map)
-           errors (when validate? (validate-options new-map doc-string))
-           ; Validate the maps in the :style-map, with a bit more
-           ; finesse than we can get from raw spec processing.
-           errors (if (and validate? (not errors))
-                    (do (dbg-s new-map
-                               #{:config-and-validate}
-                               "config-and-validate: maps to validate:"
-                               (:style-map new-map))
-                        (some #(validate-style doc-string %)
-                              (:style-map new-map)))
-                    errors)
-           ; The meat of this routine is internal-config
-           [updated-map new-doc-map internal-errors]
-             (if errors
-               [existing-map doc-map nil]
-               (internal-config doc-string
-                                doc-map
-                                ; Remove previous :styles-applied, if any
-                                ; and start fresh.
-                                (assoc existing-map :styles-applied [])
-                                new-map))]
-       [updated-map new-doc-map
-        (if internal-errors (str errors " " internal-errors) errors)])
-     ; if we didn't get a map, just return something with no changes
-     [existing-map doc-map nil])))
+     (dbg-s new-map
+            #{:config-and-validate}
+            "config-and-validate: new-map:" new-map
+            "validate?" validate?)
+     #?(:clj (do #_(println "\n\nconfig-and-validate: "
+                            doc-string
+                            new-map
+                            "\n\n"
+                            (get-stack-trace))))
+     (if (not (empty? new-map))
+       (let [_ #?(:clj (do #_(println "\n\nconfig-and-validate: "
+                                      doc-string
+                                      new-map
+                                      "\n\n"
+                                      #_(get-stack-trace)))
+                  :cljs nil)
+             new-map (coerce-to-boolean new-map)
+             errors (when validate? (validate-options new-map doc-string))
+             ; Validate the maps in the :style-map, with a bit more
+             ; finesse than we can get from raw spec processing.
+             errors (if (and validate? (not errors))
+                      (do (dbg-s new-map
+                                 #{:config-and-validate}
+                                 "config-and-validate: maps to validate:"
+                                 (:style-map new-map))
+                          (some #(validate-style doc-string %)
+                                (:style-map new-map)))
+                      errors)
+             ; The meat of this routine is internal-config
+             [updated-map new-doc-map internal-errors]
+               (if errors
+                 [existing-map doc-map nil]
+                 (internal-config doc-string
+                                  doc-map
+                                  ; Remove previous :styles-applied, if any
+                                  ; and start fresh.
+                                  (assoc existing-map :styles-applied [])
+                                  new-map))]
+         [updated-map new-doc-map
+          (if internal-errors (str errors " " internal-errors) errors)])
+       ; if we didn't get a map, just return something with no changes
+       [existing-map doc-map nil])))
   ([doc-string doc-map existing-map new-map]
    (config-and-validate doc-string doc-map existing-map new-map :validate)))
 

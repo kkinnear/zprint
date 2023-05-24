@@ -11,7 +11,7 @@
 ;;   true          gets you all of the debugging that isn't governed by
 ;;                 a keyword
 ;;
-;; :dbg-s  
+;; :dbg-s
 ;;
 ;;   #{ keywords } gets you debugging for just those keywords
 ;;

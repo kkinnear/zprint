@@ -15,7 +15,7 @@
                                 color-comp-vec handle-lines create-hvec-or-str]]
     [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments
                                 fzprint-align-inline-comments blanks
-				fzprint-smart-wrap]]
+                                fzprint-smart-wrap]]
     [zprint.config      :as    config
                         :refer [add-calculated-options config-set-options!
                                 get-options config-configure-all! reset-options!
@@ -327,9 +327,9 @@
           ; the rewrite-clj parse would "convert" them all to \n for us,
           ; which is really what we need anyway.
           ;
-          ; On the ohter hand, breaking it into lines to do the tab expansion
-          ; is considerably faster than just doing it on the whole file when
-          ; a tab is found.
+          ; On the ohter hand, breaking it into lines to do the tab
+          ; expansion is considerably faster than just doing it on the
+          ; whole file when a tab is found.
           x (clojure.string/join "\n" lines)
           n (p/parse-string (clojure.string/trim x))]
       (when n [(of-node* n) line-ending]))
@@ -402,10 +402,11 @@
         z-type (if input :zipper :sexpr)
         dzprint (if (= z-type :zipper) dzprint-zipper dzprint-sexpr)
         input (or input coll)
-	; memoize
-	#_#_options (if (:memoize? options) 
-	           (assoc options :memoize-atom (atom {}))
-		   options)]
+        ; memoize
+        #_#_options
+          (if (:memoize? options)
+            (assoc options :memoize-atom (atom {}))
+            options)]
     (cond (nil? input)
             [[["nil" (zcolor-map options :nil) :element]] options line-ending]
           (:drop? options) [[["" :none]] options line-ending]
@@ -477,8 +478,8 @@
             new-options (merge-deep internal-options rest-options width-map)
             auto-width
               (when (and (not width)
-                         ; check both new-options and already
-                         ; configured ones
+                         ; check both new-options and already configured
+                         ; ones
                          (:auto-width? new-options (:auto-width? full-options)))
                 (let [terminal-width-fn
                         #?(:bb nil
@@ -499,10 +500,8 @@
   [full-options rest-options]
   #_(println "\n\ndetermine-options:" rest-options
              "\n\n" (zprint.config/get-stack-trace))
-  (let [[actual-options _ errors] (config-and-validate "a zprint call"
-                                                       nil
-                                                       full-options
-                                                       rest-options)
+  (let [[actual-options _ errors]
+          (config-and-validate "a zprint call" nil full-options rest-options)
         errors (when errors (str "Option errors in this call: " errors))]
     (if (not (empty? errors))
       (throw (#?(:clj Exception.
@@ -526,17 +525,18 @@
   [coll special-option actual-options]
   (if special-option
     (case special-option
-      :explain (fzprint-style (get-explained-options)
-                              ; If we are doing :key-order, we need
-                              ; add-calculated-options
-                              (add-calculated-options
-                                (merge-deep (get-default-options)
-                                            actual-options
-                                            {:map {:key-order [:doc :style-fn :style-call],
-                                                   :key-color {:doc :blue :style-call :blue :style-fn :blue},
-                                                   :key-value-color
-                                                     {:doc {:string
-                                                              :green}}}})))
+      :explain (fzprint-style
+                 (get-explained-options)
+                 ; If we are doing :key-order, we need
+                 ; add-calculated-options
+                 (add-calculated-options
+                   (merge-deep
+                     (get-default-options)
+                     actual-options
+                     {:map {:key-order [:doc :style-fn :style-call],
+                            :key-color
+                              {:doc :blue, :style-call :blue, :style-fn :blue},
+                            :key-value-color {:doc {:string :green}}}})))
       :explain-set (fzprint-style (get-explained-set-options)
                                   ; If we are doing :key-order, we need
                                   ; add-calculated-options
@@ -761,10 +761,10 @@
                       (map (partial expand-tabs (:size (:tab actual-options)))
                         lines)
                       lines)
-              ; Glue lines back together with \n line ending, to work around
-              ; rewrite-clj bug with \r\n endings on comments.  Otherwise,
-              ; the rewrite-clj parse would "convert" them all to \n for us,
-              ; which is really what we need anyway.
+              ; Glue lines back together with \n line ending, to work
+              ; around rewrite-clj bug with \r\n endings on comments.
+              ; Otherwise, the rewrite-clj parse would "convert" them all
+              ; to \n for us, which is really what we need anyway.
               ;
               ; On the ohter hand, breaking it into lines to do the tab
               ; expansion is considerably faster than just doing it on
@@ -846,10 +846,10 @@
                 focus-vec
                 accept-vec)
             #_(def ssvx str-style-vec)
-	    smart-style-vec (if (and (:smart-wrap? (:comment options))
-	                             (:wrap? (:comment options)))
-			       (fzprint-smart-wrap options str-style-vec)
-			       str-style-vec)
+            smart-style-vec (if (and (:smart-wrap? (:comment options))
+                                     (:wrap? (:comment options)))
+                              (fzprint-smart-wrap options str-style-vec)
+                              str-style-vec)
             #_(def smsv smart-style-vec)
             wrapped-style-vec (if (and (:wrap? (:comment options))
                                        (not format-off?))
@@ -1209,8 +1209,9 @@
         internal-options (if (empty? next-options)
                            rest-options
                            (merge-deep rest-options next-options))
-        ; Merge internal-options into the options map, using config-and-validate
-        ; so that we get styles and all of that done correctly
+        ; Merge internal-options into the options map, using
+        ; config-and-validate so that we get styles and all of that done
+        ; correctly
         #_(println " process-form: zprint-num" zprint-num)
         [decision-options error-vec internal-options next-options]
           (if next-options
@@ -1231,8 +1232,8 @@
                 [updated-map error-vec internal-options next-options]))
             [full-options error-vec])
         ; This will catch errors from the config-and-validate as well as
-        ; any errors from the get-options-from-comment, if we aren't ignoring
-        ; the errors.
+        ; any errors from the get-options-from-comment, if we aren't
+        ; ignoring the errors.
         _ (when (and (not (empty? error-vec))
                      (not continue-after-!zprint-error?))
             (throw (#?(:clj Exception.
@@ -1248,8 +1249,8 @@
                         ; we are getting rid of all whitespace between expr
                         0
                         (spaces? (string form))))
-        ; Causes fzprint-style to drop whatever it is printing
-        ; The (not (not )) construct ensures that drop? is a boolean, not
+        ; Causes fzprint-style to drop whatever it is printing The (not
+        ; (not )) construct ensures that drop? is a boolean, not
         ; some random nil/non-nil thing.
         drop? (not (not (and space-count
                              (not (= :skip (:format next-options)))
@@ -1280,8 +1281,8 @@
             ; Should we zprint this form?
             (if (or (= :off (:format decision-options))
                     (and (not (or comment? whitespace-form?))
-                         ; used to be next-options but if not a comment then
-                         ; they are in internal-options
+                         ; used to be next-options but if not a comment
+                         ; then they are in internal-options
                          (= :skip (:format internal-options))))
               (do #_(println "********* format internal" (:format
                                                            internal-options)
@@ -1365,9 +1366,9 @@
           (if (and local? (:!zprint-elide-skip-next? full-options))
             [nil nil true]
             [new-options local? inc-zprint-num?])
-        ; Handle new-options, which are the options from a !zprint options map
-        ; Deal with catching errors on the set-options! and validate when
-        ; merging into the next-options, like we do in the cond below
+        ; Handle new-options, which are the options from a !zprint options
+        ; map. Deal with catching errors on the set-options! and validate
+        ; when merging into the next-options, like we do in the cond below
         #_(println "new-options width:" (:width new-options)
                    "new-options format:" (:format new-options))
         [error-vec full-options] (if (and new-options (not local?))
@@ -1505,11 +1506,13 @@
 ;;
 ;; ;!zprint {:format :on}  Format successive forms with zprint (default)
 ;;
-;; ;!zprint {:format :skip} Do not format the next non-comment/non-whitespace
+;; ;!zprint {:format :skip} Do not format the next
+;; non-comment/non-whitespace
 ;;                          element with zprint.
 ;;
 ;; ;!zprint {:format :next <other-options>} Format the next non-comment
-;;                                          non-whitespace element with the
+;;                                          non-whitespace element with
+;;                                          the
 ;;                                          specified <other-options>
 ;;
 
@@ -1618,9 +1621,9 @@
            ; the rewrite-clj parse would "convert" them all to \n for us,
            ; which is really what we need anyway.
            ;
-           ; On the ohter hand, breaking it into lines to do the tab expansion
-           ; is considerably faster than just doing it on the whole file when
-           ; a tab is found.
+           ; On the ohter hand, breaking it into lines to do the tab
+           ; expansion is considerably faster than just doing it on the
+           ; whole file when a tab is found.
            filestring (clojure.string/join "\n" lines)
            range-start (:start (:range (:input full-options)))
            ; If shebang correct for one less line
@@ -1674,8 +1677,8 @@
                                (wrap-comment-api before-lines))
            #_(prn "comment-api-lines:" comment-api-lines)
            range-lines (if (and range-lines comment-api-lines)
-                         ; (count  comment-api-lines) is the count to remove
-                         ; later
+                         ; (count  comment-api-lines) is the count to
+                         ; remove later
                          (into [] (concat comment-api-lines range-lines))
                          range-lines)
            filestring
@@ -1780,7 +1783,8 @@
            ; Fix for :hiccup if we do it.
            #_(println "actual-start:" actual-start)
            ; Remember that normally, the output from a range operation
-           ; includes all of the lines, just the range lines were formatted.
+           ; includes all of the lines, just the range lines were
+           ; formatted.
            #_(def ostpr out-str)
            #_(def shb shebang)
            #_(def ast actual-start)

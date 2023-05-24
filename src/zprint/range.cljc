@@ -183,8 +183,8 @@
         ; If end is before start, make them the same
         end (if (< end start) start end)
         ; Get a vector of maps describing all top level expressions using
-        ; one based line numbers.  For example:
-        ; [{:col 1, :end-col 21, :end-row 7, :row 2}
+        ; one based line numbers.  For example: [{:col 1, :end-col 21,
+        ; :end-row 7, :row 2}
         ;  {:col 1, :end-col 6, :end-row 20, :row 11}
         ;  {:col 1, :end-col 70, :end-row 26, :row 22}
         ;  {:col 1, :end-col 48, :end-row 29, :row 27}]
@@ -215,13 +215,13 @@
                 (= start-row-idx :before-beginning) -1
                 (= start-row-idx 0) 0
                 (= start-row-idx :beyond-end) -1
-                ; normal case -- the line beyond the previous form
-                ; where (dec start-row-idx) is presumably the previous form
+                ; normal case -- the line beyond the previous form where
+                ; (dec start-row-idx) is presumably the previous form
                 :else (:end-row (get row-vec (dec start-row-idx))))
-        ; Now, move actual-start to the first non-blank line after or equal to
-        ; actual-start.  But not if it is zero or negative, since we don't
-        ; want to mess with the range if it encompasses the beginning of
-        ; the file.
+        ; Now, move actual-start to the first non-blank line after or equal
+        ; to actual-start.  But not if it is zero or negative, since we
+        ; don't want to mess with the range if it encompasses the beginning
+        ; of the file.
         ;
         ; The point of this is to make sure that we catch any comments that
         ; might contain zprint directives in them, so ultimately we are
@@ -238,20 +238,20 @@
                        (str "row:" (nth row-vec end-row-idx))
                        "")))
         actual-end (cond (or (= end-row-idx :fail) (= end-row-idx :beyond-end))
-                           ; We are beyond the end or it didn't parse, say the
-                           ; end is beyond the last line, unless the start was
-                           ; also beyond the last line, in which case we will
-                           ; do nothing.
+                           ; We are beyond the end or it didn't parse, say
+                           ; the end is beyond the last line, unless the
+                           ; start was also beyond the last line, in which
+                           ; case we will do nothing.
                            (if (= start-row-idx :beyond-end) -1 line-count)
                          (= end-row-idx :before-beginning)
-                           ; Someone is confused here too, say the end is the
-                           ; start.
+                           ; Someone is confused here too, say the end is
+                           ; the start.
                            :do-nothing
                          :else (let [end-row (get row-vec end-row-idx)]
-                                 ; end-row-idx is either the row in which end
-                                 ; falls
-                                 ; or the next row if it was between rows
-                                 ; Note: :row is the start line of a row-map
+                                 ; end-row-idx is either the row in which
+                                 ; end falls or the next row if it was
+                                 ; between rows. Note: :row is the start
+                                 ; line of a row-map
                                  ;
                                  ; Does end fall between two top-level
                                  ; expressions?
@@ -261,13 +261,12 @@
                                    (if (= end-row-idx start-row-idx)
                                      ; Yes, do nothing
                                      :do-nothing
-                                     ; No, work backward to the first non-blank
-                                     ; line prior to the end
+                                     ; No, work backward to the first
+                                     ; non-blank line prior to the end
                                      (previous-non-blank-line lines end))
-                                   ; No, end falls inside of an expression, so
-                                   ; use
-                                   ; the end of that expression.  Make it zero
-                                   ; based.
+                                   ; No, end falls inside of an expression,
+                                   ; so use the end of that expression.
+                                   ; Make it zero based.
                                    (dec (:end-row end-row)))))
         actual-start (if (= actual-end :do-nothing) -1 actual-start)
         actual-end (if (= actual-end :do-nothing) -1 actual-end)]

@@ -6,7 +6,7 @@
                        [dbg-pr dbg dbg-form dbg-print dbg-s dbg-s-pr zfuture]]])
             [clojure.string :as s]
             [zprint.zfns :refer [zstring ztag]]
-	    [zprint.util :refer [variance]]
+            [zprint.util :refer [variance]]
             [rewrite-clj.zip :as z :refer [left* up* tag length]]
             #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
@@ -179,9 +179,9 @@
          (cond (nil? tnloc) nil ; the start of the zloc
                (= tnloc :newline) (recur (left* nloc) spaces true)
                (or (= tnloc :comment) (= tnloc :comment-inline))
-                 ; Two comments in a row don't have a newline showing between
-                 ; them, it is captured by the first comment.  Sigh.
-                 ; Except now it isn't, as we split the newlines out.
+                 ; Two comments in a row don't have a newline showing
+                 ; between them, it is captured by the first comment.
+                 ; Sigh. Except now it isn't, as we split the newlines out.
                  (do #_(prn "inlinecomment? found previous comment!")
                      ; is it an inline comment?
                      (when (inlinecomment? nloc)
@@ -242,11 +242,11 @@
     element
     (let [width-configured width
           width (adjust-border start border width)
-	  #_(println "\nborder (configured):" border 
-		     "border (adjusted):" (- width-configured width)
-	             "width (adjusted):" width)
-	  ; This is really available-width, not the actual width of the
-	  ; comment.
+          #_(println "\nborder (configured):" border
+                     "border (adjusted):" (- width-configured width)
+                     "width (adjusted):" width)
+          ; This is really available-width, not the actual width of the
+          ; comment.
           comment-width (- width start)
           semi-str (re-find #";*" s)
           rest-str (subs s (count semi-str))
@@ -323,17 +323,17 @@
 (defn fzprint-wrap-comments
   "Take the final output style-vec, and wrap any comments which run over
   the width. Looking for "
-  [{:keys [width], {:keys [border smart-wrap?]} :comment, :as options} style-vec]
+  [{:keys [width], {:keys [border smart-wrap?]} :comment, :as options}
+   style-vec]
   #_(def wcsv style-vec)
   (let [start-col (style-loc-vec (or (:indent options) 0) style-vec)
-	; If we are doing smart-wrap?, then use the border for smart-wrap.
-	; The smart-wrap border is used for the interior lines, and some
-	; very strange things can happen if a different border is used for
-	; the final line.  So we force all of the lines to use the same
-	; border.
-        border (if smart-wrap?
-	          (:border (:smart-wrap (:comment options)))
-		  border)
+        ; If we are doing smart-wrap?, then use the border for smart-wrap.
+        ; The smart-wrap border is used for the interior lines, and some
+        ; very strange things can happen if a different border is used for
+        ; the final line.  So we force all of the lines to use the same
+        ; border.
+        border
+          (if smart-wrap? (:border (:smart-wrap (:comment options))) border)
         _ (dbg-s options
                  #{:comment-wrap}
                  "fzprint-wrap-comments: indent:" (:indent options)
@@ -342,18 +342,21 @@
                  "count start-col:" (count start-col)
                  "start-col:" start-col)
         #_(def stc start-col)
-        _ (dbg-s options
-                 #{:comment-wrap}
-                 "fzprint-wrap-comments: style-vec:"
-                 ((:dzprint options) {:list {:wrap? true, :indent 1}} style-vec))
-        _ (dbg-s options #{:wrap} "fzprint-wrap-comments: start-col:" start-col)
-        wrap-style-vec (mapv (partial wrap-comment width border) style-vec start-col)
-        #_(def wsv wrap-style-vec)
         _ (dbg-s
             options
             #{:comment-wrap}
-            "fzprint-wrap-comments: wrapped:"
-            ((:dzprint options) {:list {:wrap? true, :indent 1}} wrap-style-vec))
+            "fzprint-wrap-comments: style-vec:"
+            ((:dzprint options) {:list {:wrap? true, :indent 1}} style-vec))
+        _ (dbg-s options #{:wrap} "fzprint-wrap-comments: start-col:" start-col)
+        wrap-style-vec
+          (mapv (partial wrap-comment width border) style-vec start-col)
+        #_(def wsv wrap-style-vec)
+        _ (dbg-s options
+                 #{:comment-wrap}
+                 "fzprint-wrap-comments: wrapped:"
+                 ((:dzprint options)
+                   {:list {:wrap? true, :indent 1}}
+                   wrap-style-vec))
         out-style-vec (lift-style-vec wrap-style-vec)]
     out-style-vec))
 
@@ -411,7 +414,7 @@
                                (str "Invalid regular expression: '"
                                       (pr-str (first regex-seq))
                                     "' in " regex-source
-				      " produced " (str e))))))]
+                                    " produced " (str e))))))]
       #_(println "match-regex-seq:" match "s:" (pr-str s))
       (if match
         (if (or (vector? match) (not groups?))
@@ -419,8 +422,9 @@
           (throw (#?(:clj Exception.
                      :cljs js/Error.)
                   (str "match-and-modify: regex from "
-		       regex-source " doesn't return groups. Regex: '"
-		       (pr-str (first regex-seq))
+                       regex-source
+                       " doesn't return groups. Regex: '"
+                       (pr-str (first regex-seq))
                        "'."))))
         (match-regex-seq (next regex-seq) regex-source groups? s)))))
 
@@ -587,7 +591,17 @@
                 ; and not yet in a group -- move on
                 (recur (inc idx) depth 0 0 0 0 out))
               ; we are already in a group, see if we should remain in it
-              (cond (or (= what :newline) (= what :indent))
+              (cond 
+	            #_#_(= what :whitespace)
+		      (recur (inc idx)
+			     depth
+			     start-col
+			     number-semis
+			     current-spacing
+			     0
+			     out)
+
+	            (or (= what :newline) (= what :indent))
                       (if (zero? nl-indent-count)
                         ; This is our first newline or indent, we are still
                         ; in the group.
@@ -598,9 +612,8 @@
                                current-spacing
                                1
                                out)
-                        ; Too many newlines, we're done.
-                        ; Start next comment group search with next
-                        ; index.
+                        ; Too many newlines, we're done. Start next comment
+                        ; group search with next index.
                         [depth
                          (assoc out
                            0 (inc idx)
@@ -654,7 +667,7 @@
                              0 (inc idx)
                              1 number-semis
                              2 current-spacing)])))))))
-	   
+
 (defn style-lines-in-comment-group
   "Do style-lines (rather differently) for a set of comments in a 
   comment-group.  Return [<line-count> <max-width> [line-lengths]]."
@@ -666,7 +679,7 @@
         ; Add the starting column to the actual length.  Assumes
         ; they all have the same starting column!
         lengths (mapv (partial + (nth start-col-vec (first comment-group)))
-                 lengths)
+                  lengths)
         max-length (apply max lengths)]
     [(count comment-group) max-length lengths]))
 
@@ -740,7 +753,7 @@
                    :cljs js/Error.)
                 (str "can't delete style vec element idx: " style-idx
                      " element: " right-element)))))))
-	           
+
 (defn ends-w-punctuation?
   "Take a string, an return true if it ends with some kind of
   punctuation.  Returns nil if it does not, which signals that
@@ -799,8 +812,7 @@
         [new-end-us new-ls] (split-str-at-space-left new-ls-text
                                                      available-space)]
     (if new-ls
-      ; We have two pieces, so new-end-us goes up, and new-ls
-      ; stays here.
+      ; We have two pieces, so new-end-us goes up, and new-ls stays here.
       [(str us-text separator new-end-us) new-ls]
       ; We didn't make any changes, leave things as they are.
       [us-text nil])))
@@ -810,9 +822,9 @@
   string."
   ([semi-count space-count s us]
    (if us
-     ; If we have an us, then don't load the returned string with space-count
-     ; spaces, but rather get those characters out of the us instead.
-     ; This handles exdented things linke o and *.
+     ; If we have an us, then don't load the returned string with
+     ; space-count spaces, but rather get those characters out of the us
+     ; instead. This handles exdented things linke o and *.
      (let [space-count-from-us (subs us semi-count (+ semi-count space-count))]
        (str (apply str (repeat semi-count ";")) space-count-from-us s))
      (str (apply str (repeat semi-count ";")) (blanks space-count) s)))
@@ -847,9 +859,8 @@
            "\nls:" (pr-str ls))
     (cond
       (> upper-space usable-space)
-        ; Move from upper to lower if we can.
-        ; It might be that there is one thing on the upper that simply
-        ; doesn't fit.
+        ; Move from upper to lower if we can. It might be that there is one
+        ; thing on the upper that simply doesn't fit.
         (let [[new-us new-start-ls] (split-str-at-space us-text usable-space)]
           (dbg-s options
                  #{:balance-comments}
@@ -887,11 +898,10 @@
                    "\n   lower-space:" lower-space
                    "\n   ls:" (pr-str ls))
             (< upper-space usable-space))
-        ; If the lower is shorter than the upper, and the lower
-        ; is the last line in the comment-group,
-        ; and the lower won't entirely fit onto the upper (and
-        ; thus allow us to remove a comment line), then don't
-        ; bother changing these lines
+        ; If the lower is shorter than the upper, and the lower is the last
+        ; line in the comment-group, and the lower won't entirely fit onto
+        ; the upper (and thus allow us to remove a comment line), then
+        ; don't bother changing these lines
         (do (dbg-s options
                    #{:balance-comments}
                    "...(< lower-space upper-space)" (< lower-space upper-space)
@@ -905,11 +915,10 @@
                   (neg? (- (- usable-space upper-space)
                            ; Include space between them
                            (inc (- lower-space (+ semi-count space-count))))))))
-        ; Move from lower to upper if possible
-        ; We need something from the lower string that is less than
-        ; the available space between the end of the upper string and
-        ; the end of the usable space.
-        ; Note that move-ls-to-us handles variable sized separators.
+        ; Move from lower to upper if possible. We need something from the
+        ; lower string that is less than the available space between the
+        ; end of the upper string and the end of the usable space. Note
+        ; that move-ls-to-us handles variable sized separators.
         (let [available-space (- usable-space upper-space)
               ; If new-ls is non-nil, that means that things changed.
               ; However, new-ls might still be empty, indicating that
@@ -954,36 +963,35 @@
         start-col (nth start-col-vec (first comment-group))
         max-width (second comment-lines)
         length-vec (nth comment-lines 2)
-	length-len (count length-vec)
-        butlast-length-vec (butlast length-vec) 
+        length-len (count length-vec)
+        butlast-length-vec (butlast length-vec)
         last-len (peek length-vec)
         max-not-last (if (> length-len 1)
-	                (apply max butlast-length-vec)
-			(first length-vec))
-	; Include last line in the group in variance for the whole group
-	; if the last line is at least as long as the longest prior to
-	; the last, and we have more than one line, or if we have only
-	; two lines/.
-        include-last?  (or (and (> length-len 1) (>= last-len max-not-last))
-	                   (= length-len 2))
+                       (apply max butlast-length-vec)
+                       (first length-vec))
+        ; Include last line in the group in variance for the whole group
+        ; if the last line is at least as long as the longest prior to
+        ; the last, and we have more than one line, or if we have only
+        ; two lines/.
+        include-last? (or (and (> length-len 1) (>= last-len max-not-last))
+                          (= length-len 2))
         cg-variance
-          (or (variance (if include-last? length-vec (butlast length-vec))) 
-	      0)
-	; This calculation is all width based, not start-col based.
-	; 
-	; Ignore max-variance test if we have more than one line,
-	; and the last line is longer than any previous line by at
-	; least last-max.
+          (or (variance (if include-last? length-vec (butlast length-vec))) 0)
+        ; This calculation is all width based, not start-col based.
+        ;
+        ; Ignore max-variance test if we have more than one line,
+        ; and the last line is longer than any previous line by at
+        ; least last-max.
         last-force? (and (> length-len 1)
-	                 (> last-len max-not-last)
+                         (> last-len max-not-last)
                          (> (- last-len max-not-last) last-max))
         ; Adjust border for how much space we really have
         ; but don't use too much!
         width (adjust-border start-col border width)
         usable-space (- width start-col)
-	max-space (- max-width start-col)
+        max-space (- max-width start-col)
         line-count (count comment-group)
-	space-factor (if (< space-factor 1) 1 space-factor)]
+        space-factor (if (< space-factor 1) 1 space-factor)]
     (dbg-s options
            #{:smart-wrap :flow-comments}
            "flow-comments-in-group: max-variance:" max-variance
@@ -993,7 +1001,7 @@
            "max-not-last:" max-not-last
            "(- last-len max-not-last):" (- last-len max-not-last)
            "max-width:" max-width
-	   "max-space:" max-space
+           "max-space:" max-space
            "usable-space:" usable-space)
     (if (and (< cg-variance max-variance)
              (>= max-space (int (/ usable-space space-factor)))
@@ -1009,7 +1017,7 @@
         (if (<= (count cg) 1)
           style-vec
           (let [[new-style-vec changed?] (balance-two-comments
-					   options
+                                           options
                                            start-col-vec
                                            style-vec
                                            semi-count
@@ -1043,15 +1051,24 @@
     {:keys [smart-wrap?], {:keys [border]} :smart-wrap} :comment,
     :as options} style-vec]
   #_(def fsw-in style-vec)
+  (let [start-col (style-loc-vec (or (:indent options) 0) style-vec)
+        style-vec (into [] style-vec)]
+
+
+  ; This can cause bad interactions with :dbg stuff, since it calls zprint!
   (dbg-s options
-         #{:smart-wrap}
+         #{:smart-wrap :comment-group}
          "fzprint-smart-wrap smart-wrap?"
          smart-wrap?
          "border:"
          border
-         ((:dzprint options) {:list {:wrap? true, :indent 1}} style-vec))
-  (let [start-col (style-loc-vec (or (:indent options) 0) style-vec)
-        style-vec (into [] style-vec)]
+         ((:dzprint options) {} (map #(vector %1 %2 %3) (range) start-col style-vec))
+	 
+	 )
+
+
+
+
     (loop [idx 0
            depth 0
            style-vec style-vec]
@@ -1103,11 +1120,10 @@
                       (if-not (or (= le :comment) (= le :comment-inline))
                         ; Regular line to get the inline comment
                         [(blanks nn) c :whitespace 25]
-                        ; Last element was a comment...
-                        ; Can't put a comment on a comment, but
-                        ; we want to indent it like the last
-                        ; comment.
-                        ; How much space before the last comment?
+                        ; Last element was a comment... Can't put a comment
+                        ; on a comment, but we want to indent it like the
+                        ; last comment. How much space before the last
+                        ; comment?
                         (do #_(prn "inline:" (space-before-comment out))
                             [(str "\n" (blanks (space-before-comment out))) c
                              :indent 41]))
@@ -1374,18 +1390,17 @@
   (dbg-s options
          #{:align-inline}
          "fzprint-align-inline-comments: style-vec:"
-         ((:dzprint options) {:vector {:wrap? false, :indent 1}} 
-        (map-indexed (fn [a b] (vector a b)) style-vec)
-	 #_style-vec
-	 ))
+         ((:dzprint options)
+           {:vector {:wrap? false, :indent 1}}
+           (map-indexed (fn [a b] (vector a b)) style-vec)
+           #_style-vec))
   (let [style (:inline-align-style (:comment options))]
     (if (= style :none)
       style-vec
-      (let [comment-vec (cond (= style :aligned) (find-aligned-inline-comments
-                                                   style-vec)
-                              (= style :consecutive)
-                                (find-consecutive-inline-comments options 
-				                                  style-vec))
+      (let [comment-vec
+              (cond (= style :aligned) (find-aligned-inline-comments style-vec)
+                    (= style :consecutive)
+                      (find-consecutive-inline-comments options style-vec))
             _ (dbg-s options
                      #{:align-inline}
                      "fzprint-align-inline-comments: comment-vec:"

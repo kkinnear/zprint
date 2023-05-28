@@ -1,11 +1,11 @@
-(defproject zprint "1.2.6"
+(defproject zprint "1.2.7"
   :description "Pretty print Clojure source and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License",
             :url "https://opensource.org/licenses/MIT",
             :key "mit",
             :year 2015}
-  :plugins [[lein-doo "0.1.10"] [lein-codox "0.10.3"] [lein-zprint "1.2.4.1"]]
+  :plugins [[lein-doo "0.1.10"] [lein-codox "0.10.3"] [lein-zprint "1.2.6"]]
   :profiles {:repl {:dependencies [#_[com.taoensso/tufte "1.1.1"]
                                    [com.taoensso/tufte "2.4.5"]
                                    [better-cond "1.0.1"]

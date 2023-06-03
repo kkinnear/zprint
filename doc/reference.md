@@ -2993,6 +2993,7 @@ There are several places in the options map where user defined
 functions can be used to alter the formatting based on the content
 of the element to be formatted:
 
+```
 {:list {:constant-pair-fn (fn [element] ...)}}
 {:vector-fn {:constant-pair-fn (fn [elementx] ...)}}
 {:vector {:options-fn-first (fn [options first-element] ...)}}

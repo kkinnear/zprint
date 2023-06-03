@@ -208,6 +208,7 @@
 (s/def ::end (s/nilable number?))
 (s/def ::end+start-cg (s/nilable (s/coll-of zany? :kind vector?)))
 (s/def ::end+skip-cg (s/nilable (s/coll-of zany? :kind vector?)))
+(s/def ::end-cg (s/nilable (s/coll-of zany? :kind vector?)))
 (s/def ::expand? ::boolean)
 (s/def ::flow? ::boolean)
 (s/def ::flow-all-if-any? ::boolean)
@@ -290,7 +291,7 @@
 (s/def ::surround (s/nilable (s/coll-of number? :kind sequential?)))
 (s/def ::smart-wrap
   (only-keys :opt-un [::border ::end+start-cg ::end+skip-cg ::max-variance
-                      ::last-max ::space-factor]))
+                      ::last-max ::space-factor ::end-cg]))
 (s/def ::option-fn-first (s/nilable fn?))
 (s/def ::option-fn (s/nilable fn?))
 (s/def ::fn-format (s/nilable ::fn-type))

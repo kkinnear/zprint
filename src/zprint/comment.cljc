@@ -327,6 +327,8 @@
    style-vec]
   #_(def wcsv style-vec)
   (let [start-col (style-loc-vec (or (:indent options) 0) style-vec)
+	; We need this for top level comments.
+	top-level-border border
         ; If we are doing smart-wrap?, then use the border for smart-wrap.
         ; The smart-wrap border is used for the interior lines, and some
         ; very strange things can happen if a different border is used for
@@ -348,8 +350,16 @@
             "fzprint-wrap-comments: style-vec:"
             ((:dzprint options) {:list {:wrap? true, :indent 1}} style-vec))
         _ (dbg-s options #{:wrap} "fzprint-wrap-comments: start-col:" start-col)
+	; We need to special case top level comments here, and they aren't
+	; trivial to detect.  Basically, if we have one element in the 
+	; style-vec and it is a comment, we will consider it a top level
+	; comment.  Then we will use top-level-border.
         wrap-style-vec
-          (mapv (partial wrap-comment width border) style-vec start-col)
+	  (if (and (= (count style-vec) 1) 
+	           (= (nth (first style-vec) 2) :comment))
+            (mapv (partial wrap-comment width top-level-border) style-vec start-col)
+	           
+            (mapv (partial wrap-comment width border) style-vec start-col))
         #_(def wsv wrap-style-vec)
         _ (dbg-s options
                  #{:comment-wrap}
@@ -454,9 +464,10 @@
   "Figure out if this comments fits in the current comment group.
   Start simple, enhance later. Returns :fit, :skip, :next to represent
   what to do when dealing with this line.  :fit means it goes in the
-  current comment group, :skip means that it doesn't go into any
+  current comment group, :end means that it fits in this comment group
+  but ends this groupi, :skip means that it doesn't go into any
   comment group, and :next means that it goes in the next comment group."
-  [s this-start-col end+start-cg end+skip-cg start-col number-semis
+  [s this-start-col end+start-cg end+skip-cg end-cg start-col number-semis
    current-spacing]
   #_(println "fit-in-comment-group? s:" s)
   (let [[semi-count space-count] (get-semis-and-spaces s)
@@ -468,7 +479,9 @@
       (and (= this-start-col start-col)
            (= semi-count number-semis)
            (= space-count current-spacing))
-        :fit
+	(if (match-regex-seq end-cg :end-cg nil s) 
+	  :end
+          :fit)
       :else :next)))
 
 (defn get-next-comment-group
@@ -500,7 +513,7 @@
   
   Also tracks the depth."
   [{{:keys [smart-wrap?],
-     {:keys [end+start-cg end+skip-cg top-level?]} :smart-wrap}
+     {:keys [end+start-cg end+skip-cg end-cg top-level?]} :smart-wrap}
       :comment,
     :as options} depth index start-col-vec style-vec]
   (dbg-s options
@@ -616,9 +629,14 @@
                                                                    idx)
                                                               end+start-cg
                                                               end+skip-cg
+							      end-cg
                                                               start-col
                                                               number-semis
                                                               current-spacing)]
+			(dbg-s options #{:fit-in-comment-group}
+			    "get-next-comment-group: fit-in-comment-group:" 
+			    (pr-str s)
+			    fit-return)
                         (cond
                           (= fit-return :fit)
                             ; yes, this fits in the current group,
@@ -640,6 +658,16 @@
                                                   0 idx
                                                   1 number-semis
                                                   2 current-spacing)]
+
+                          (= fit-return :end) [depth
+						; This one is in the cg
+                                                (assoc (conj out idx)
+						  ; The next one starts the
+						  ; next group
+                                                  0 (inc idx)
+                                                  1 number-semis
+                                                  2 current-spacing)]
+                           
                           :else
                             (throw
                               (#?(:clj Exception.
@@ -1028,15 +1056,22 @@
 
 (defn fzprint-smart-wrap
   "Do smart wrap over the entire style-vec.  Returns a possibly new
-  style-vec.  Note that top-level isn't really a thing, since every
-  actual top-level element comes in one at a time, so they will all
-  have their own comment group, and never get smart wrapped because
-  of that.  We have been keeping track of the depth, and we continue
+  style-vec.  
+  
+  Note that top-level isn't really a thing, since every actual
+  top-level element comes in one at a time, so they will all have
+  their own comment group, and never get smart wrapped because of
+  that.  We have been keeping track of the depth, and we continue
   to do so since there might be some reason we cared in the future,
   but it really makes no actual difference to the output at this
   point.  That is to say, from this routine, you can't do top-level
   smart wrapping, period.  Because you never see two top-level
-  comments at the same time."
+  comments at the same time.
+  
+  Note also that this routine doesn't complete the wrapping, as it
+  never creates new lines, just wraps within the lines that we have.
+  It may leave the last line with a lot of stuff on it, and let
+  fzprint-wrap-comments turn that last line into multiple lines."
   [{:keys [width],
     {:keys [smart-wrap?], {:keys [border]} :smart-wrap} :comment,
     :as options} style-vec]

@@ -1,16 +1,24 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.7 - 2023-05-28
-
-### Added
-
+## 1.2.7 - 2023-06-06
 
 ### Changed
 
+  * Enhanced `:style :minimal-smart-wrap` to never flow words back up onto
+  a line terminated by several lowercase letters and a period.
+
+  * Enhanced `{:comment {:smart-wrap? true}}` (the default) to not touch
+  any lines starting with `(`, `{`, `[`, or ending with `)`, `}`, `]`.
+  This will mess less with code that has been commented out.  Try to
+  avoid actually commenting out code, use `#_` instead in front of the
+  expression to ignore. Much cleaner in several dimensions.
   
 ### Fixed
 
+  * Top level comments (those not contained in an expression) were wrapped
+  using the `{:comment {:smart-wrap {:border n}}}` instead of the 
+  `{:comment {:border n}}` border.
 
 ## 1.2.6 - 2023-05-27
 

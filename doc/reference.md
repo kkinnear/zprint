@@ -3360,6 +3360,9 @@ it can use when it needs to move words from one line to another.
 minimize the wrapping that it will do when processing a file.  There
 is a style called `:minimal-smart-wrap` which will configure it to make
 minimal changes but will also still fix up problems like those above.
+Minimal smart wrap will flow words from one line to the next less
+frequently, and will never flow words back up onto a line ending into
+several lowercase letters and terminated by a period.
 
 Note that all comment wrapping (including smart-wrap) is performed after
 all of the formatting of any code.  Comment wrapping is thus independent of

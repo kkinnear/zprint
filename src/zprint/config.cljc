@@ -514,14 +514,14 @@
              :border 0,
              :smart-wrap? true,
              :smart-wrap {:border 5,
-			  ; These regexes will end one comment group and
-			  ; start another comment group.
-			  ;
-			  ; These regexes need two groups at the begining,
-			  ; one to capture the semi's and one to capture
-			  ; whatever should be considered the spaces.
-			  ; These handle things like numbered and
-			  ; bulleted lists.
+                          ; These regexes will end one comment group and
+                          ; start another comment group.
+                          ;
+                          ; These regexes need two groups at the begining,
+                          ; one to capture the semi's and one to capture
+                          ; whatever should be considered the spaces.
+                          ; These handle things like numbered and
+                          ; bulleted lists.
                           :end+start-cg [; Line starts with single letter,
                                          ; but not a or I
                                          #"^(;+)(\s*[b-zA-HJ-Z]\s+)"
@@ -537,32 +537,32 @@
                                          ; Line starts with two upper case
                                          ; chars
                                          #"^(;+)(\s*)[A-Z][A-Z]"],
-			   ; These regexes will end the previous comment
-			   ; group and cause this line to be skipped and
-			   ; not included in the next comment group.
-			   ;
-			   ; These regexes should not have groups.
+                          ; These regexes will end the previous comment
+                          ; group and cause this line to be skipped and
+                          ; not included in the next comment group.
+                          ;
+                          ; These regexes should not have groups.
                           :end+skip-cg [; Blank line
                                         #"^;+\s*$"
                                         ; Line where left paren is first
                                         ; and right paren last
                                         ; character in line.
-					;
-					; Unneeded given the one below that
-					; does a superset of this.
+                                        ;
+                                        ; Unneeded given the one below that
+                                        ; does a superset of this.
                                         #_#"^;+\s*\(.*\)$"
                                         ; Line containing only capitalized
                                         ; word followed by colon
                                         #"^;+\s*[A-Z]\w+\:$"
-					; Line starting with any of ([{ or
-					; ending with any of }])
-					#"^;+\s*(\{|\(|\[|.*\)$|.*\}$|.*\]$)"]
-			   ; These regexes match lines which end a comment group
-			   ; but also remain in the comment group they are
-			   ; ending.
-			   ;
-			   ; These regexes should not have groups.
-			   :end-cg []
+                                        ; Line starting with any of ([{ or
+                                        ; ending with any of }])
+                                        #"^;+\s*(\{|\(|\[|.*\)$|.*\}$|.*\]$)"],
+                          ; These regexes match lines which end a comment
+                          ; group but also remain in the comment group they
+                          ; are ending.
+                          ;
+                          ; These regexes should not have groups.
+                          :end-cg [],
                           :max-variance 30,
                           :space-factor 3,
                           :last-max 5}},
@@ -974,16 +974,13 @@
                            :comment {:smart-wrap {:last-max 80,
                                                   :border 0,
                                                   :max-variance 200,
-                                                  :space-factor 100
-						  
-						  
-			   :end-cg [; If it ends with two lowercase alpha
-			            ; and a period, it ends a cg.
-                                    #"[a-z][a-z]\.$"]
-						  
-						  
-						  
-						  }}},
+                                                  :space-factor 100,
+                                                  :end-cg [; If it ends with
+                                                           ; two lowercase
+                                                           ; alpha and a
+                                                           ; period, it ends
+                                                           ; a cg.
+                                                           #"[a-z][a-z]\.$"]}}},
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
       :multi-lhs-hang {:doc "Allow multi-lhs-hang in all three places.",

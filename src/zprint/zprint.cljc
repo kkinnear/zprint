@@ -4793,8 +4793,8 @@
             (if (or changed? vector-fn-style?)
               (fzprint-up-to-first-zloc caller options (+ ind l-str-len) zloc)
               first-data)
-          ; Get rid of the any vector surrounding the fn-style.
-          ; Don't do this too soon, as multiple things are driven off of
+          ; Get rid of the any vector surrounding the fn-style. Don't do
+          ; this too soon, as multiple things are driven off of
           ; (vector? fn-style), above
           fn-style (if (vector? fn-style) (first fn-style) fn-style)
           ; Finish finding all of the interesting stuff in the first two

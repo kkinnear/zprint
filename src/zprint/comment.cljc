@@ -327,8 +327,8 @@
    style-vec]
   #_(def wcsv style-vec)
   (let [start-col (style-loc-vec (or (:indent options) 0) style-vec)
-	; We need this for top level comments.
-	top-level-border border
+        ; We need this for top level comments.
+        top-level-border border
         ; If we are doing smart-wrap?, then use the border for smart-wrap.
         ; The smart-wrap border is used for the interior lines, and some
         ; very strange things can happen if a different border is used for
@@ -350,15 +350,16 @@
             "fzprint-wrap-comments: style-vec:"
             ((:dzprint options) {:list {:wrap? true, :indent 1}} style-vec))
         _ (dbg-s options #{:wrap} "fzprint-wrap-comments: start-col:" start-col)
-	; We need to special case top level comments here, and they aren't
-	; trivial to detect.  Basically, if we have one element in the 
-	; style-vec and it is a comment, we will consider it a top level
-	; comment.  Then we will use top-level-border.
+        ; We need to special case top level comments here, and they aren't
+        ; trivial to detect.  Basically, if we have one element in the
+        ; style-vec and it is a comment, we will consider it a top level
+        ; comment.  Then we will use top-level-border.
         wrap-style-vec
-	  (if (and (= (count style-vec) 1) 
-	           (= (nth (first style-vec) 2) :comment))
-            (mapv (partial wrap-comment width top-level-border) style-vec start-col)
-	           
+          (if (and (= (count style-vec) 1)
+                   (= (nth (first style-vec) 2) :comment))
+            (mapv (partial wrap-comment width top-level-border)
+              style-vec
+              start-col)
             (mapv (partial wrap-comment width border) style-vec start-col))
         #_(def wsv wrap-style-vec)
         _ (dbg-s options
@@ -479,9 +480,7 @@
       (and (= this-start-col start-col)
            (= semi-count number-semis)
            (= space-count current-spacing))
-	(if (match-regex-seq end-cg :end-cg nil s) 
-	  :end
-          :fit)
+        (if (match-regex-seq end-cg :end-cg nil s) :end :fit)
       :else :next)))
 
 (defn get-next-comment-group
@@ -629,14 +628,15 @@
                                                                    idx)
                                                               end+start-cg
                                                               end+skip-cg
-							      end-cg
+                                                              end-cg
                                                               start-col
                                                               number-semis
                                                               current-spacing)]
-			(dbg-s options #{:fit-in-comment-group}
-			    "get-next-comment-group: fit-in-comment-group:" 
-			    (pr-str s)
-			    fit-return)
+                        (dbg-s options
+                               #{:fit-in-comment-group}
+                               "get-next-comment-group: fit-in-comment-group:"
+                               (pr-str s)
+                               fit-return)
                         (cond
                           (= fit-return :fit)
                             ; yes, this fits in the current group,
@@ -658,16 +658,14 @@
                                                   0 idx
                                                   1 number-semis
                                                   2 current-spacing)]
-
                           (= fit-return :end) [depth
-						; This one is in the cg
-                                                (assoc (conj out idx)
-						  ; The next one starts the
-						  ; next group
-                                                  0 (inc idx)
-                                                  1 number-semis
-                                                  2 current-spacing)]
-                           
+                                               ; This one is in the cg
+                                               (assoc (conj out idx)
+                                                 ; The next one starts the
+                                                 ; next group
+                                                 0 (inc idx)
+                                                 1 number-semis
+                                                 2 current-spacing)]
                           :else
                             (throw
                               (#?(:clj Exception.

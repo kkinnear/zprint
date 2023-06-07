@@ -16,7 +16,7 @@ you have will use the new version without requiring a change.  We
 will assume that you have renamed it `zprint`.
 
 ```
-mv zprintm-1.2.7 zprint
+mv zprintm-1.2.8 zprint
 ```
 
 Note that you might *not* want to name it `zprint`, since there is also

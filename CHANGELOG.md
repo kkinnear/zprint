@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 1.2.8 - 2023-06-08
+
+### Added
+
+### Changed
+  
+### Fixed
+
 ## 1.2.7 - 2023-06-08
 
 ### Changed

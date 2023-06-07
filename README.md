@@ -45,6 +45,8 @@ a number of major source code formatting approaches.
 ### *Recent Additions!* 
 
 
+  * Important updates and fixes for all comment wrapping. Recommend that 
+  you use `1.2.7` instead of `1.2.6`.
   * Comment wrapping has been considerably altered.  When working
   on the stability fixes for `1.2.5`, the largest remaining problem
   was comment wrapping causing changes to the formatting in subsequent

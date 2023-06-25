@@ -618,7 +618,7 @@ The following categores of information are configurable:
 * function classification for pretty printing
 * specific option values for maps, lists, vectors, pairs, bindings, arrays, etc.
 
-### Generalized capabilites
+### Generalized Capabilites
 
 #### :width
 
@@ -1976,6 +1976,30 @@ will yield a value for `:fn-gt3-force-nl` of `#{:gt3-force-nl :arg1-pair-body}`.
 
 If both additions and removals are specified in the same options map, the
 removals are performed first and the additions second.
+
+### Replacing the entire `:fn-map`
+
+Sometimes you might wish to remove all of the formatting specified by the 
+default `:fn-map`, and replace it with only a few elements of your own
+choosing.  Doing this by setting every existing function's formatting to
+`:none` would work, but is not a good option.  You can remove the entire
+`:fn-map` in a simple way, but you __must__ ensure that you replace it
+with a new `:fn-map` which is, at least, an null map, or zprint will not
+operate correctly.  You can use `:remove-final-keys [[:fn-map]]` to
+remove the function map.  
+
+`:remove-final-keys` takes a vector of key sequences.  It will remove the
+final key in each key-sequence from the options map, prior to any other
+operations specified in the options map.  Thus, you could use this as
+an options map:
+
+```
+{:remove-final-keys [[:fn-map]]
+ :fn-map {"let" :binding}}
+```
+
+This would leave only `let` to be actually formatted like a binding function.
+
 
 ### Altering the processing of function types
 

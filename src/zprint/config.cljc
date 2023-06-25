@@ -62,6 +62,17 @@
 (def operational-options
   [:cache :cwd-zprintrc? :parallel? :search-config? :url])
 
+;;
+;; Keys to remove from the options map before displaying it to a user
+;;
+;; Individual keys are simply removed.  A sequence has a key as its
+;; first element, which is the key of an internal map.  Subsequent keys
+;; in the sequence are keys in that internal map to remove.  If one of
+;; the subsequent elements in the map is itself a sequence, then the same
+;; approach is used: the first key is the internal map, and subsequent
+;; keys are removed from that map.
+;;
+
 (def explain-hide-keys
   [:configured? :one-line-ok? :dbg-print? :dbg? :dbg-s :force-eol-blanks?
    :do-in-hang? :drop? :dbg-ge :file? :spaces? :process-bang-zprint?
@@ -1316,7 +1327,11 @@
 
 (defn remove-key
   "Remove a single key from a map or remove a series of
-  keys from an internal map."
+  keys from an internal map. If the argument is a key, remove it
+  from the map.  If the argument is a sequence, the first key in
+  the sequence is the internal map, and the subsequent things in the
+  map are the keys in the internal map to remove.  Presumably this
+  will work recursively as well."
   [m k]
   (if (coll? k)
     (let [map-key (first k)
@@ -1325,7 +1340,11 @@
     (dissoc m k)))
 
 (defn remove-keys
-  "Remove keys from a map at multiple levels."
+  "Remove keys from a map at multiple levels. Expects a sequence of
+  individual keys to remove from the map, or a sequence where the first
+  key in the sequence is the internal map, and subsequent keys are
+  keys to remove from that map.  The subsequent keys may also be sequences
+  as just described as well."
   [m ks]
   (reduce #(remove-key %1 %2) m ks))
 
@@ -1369,6 +1388,24 @@
         new-options-out (dissoc new-options :remove)]
     [options-out new-options-out
      (diff-deep-ks doc-string doc-map remove-ks-seq options-out)]))
+
+(defn remove-final-key
+  "Remove the final key in a key sequence from a map.  If the final key
+  is the only key in a map, will leave an empty map."
+  [m k]
+  #_(println "remove-final-key m:" m "k:" k)
+  (if (= (count k) 1)
+    (dissoc m (first k))
+    (let [map-key (first k)
+          path-to-key-to-remove (next k)]
+      (assoc m map-key (remove-final-key (m map-key) path-to-key-to-remove)))))
+
+(defn remove-final-keys
+  "Take a map and a vector of key-sequences, and remove all of
+  the final keys in the key-sequences. Will leave empty maps if the final
+  key is the only key in a map."
+  [m ks-vec]
+  (reduce #(remove-final-key %1 %2) m ks-vec))
 
 ;;
 ;; The best way is to just label all of the nodes.
@@ -2433,6 +2470,13 @@
     (let [; remove set elements, and then remove the :remove key too
           [existing-map new-map new-doc-map]
             (perform-remove doc-string doc-map existing-map new-map)
+	  ; Remove sections of the options map.  Then remove the
+	  ; :remove-final-keys element itself.
+	  final-keys (:remove-final-keys new-map)
+	  existing-map (if final-keys
+	            (-> (remove-final-keys existing-map final-keys) 
+		      (dissoc :remove-final-keys))
+		    existing-map)
           ; Preserve the existing-map so we can use it to see what styles
           ; were there originally when adjusting the key sequence for the
           ; doc-map.

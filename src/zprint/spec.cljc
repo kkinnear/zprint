@@ -182,6 +182,8 @@
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))
 (s/def ::vector-of-keywords (s/coll-of keyword? :kind sequential?))
+(s/def ::vector-of-vector-of-keywords 
+  (s/coll-of ::vector-of-keywords :kind vector?))
 (s/def ::indent-only-style-value #{:input-hang :none})
 (s/def ::inline-align-style-value #{:consecutive :aligned :none})
 
@@ -461,6 +463,8 @@
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
                       :alt/extend ::binding ::pair ::map ::parse ::vector]))
 
+(s/def ::remove-final-keys (s/nilable ::vector-of-vector-of-keywords))
+
 (s/def ::next-inner (s/nilable ::options))
 
 (s/def ::set-elements
@@ -530,7 +534,7 @@
              ::force-validate? ::doc ::next-inner-restore ::fn-style
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
              ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
-             ::tagged-literal #_::memoize?]))
+             ::tagged-literal #_::memoize? ::remove-final-keys]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

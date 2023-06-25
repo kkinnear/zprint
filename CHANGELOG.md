@@ -1,9 +1,20 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.8 - 2023-06-08
+## 1.2.8 - 2023-06-26
 
 ### Added
+
+  * New capability -- remove an entire part of the options map with
+  `:remove-final-keys [[ ... ] [ ... ]]`.  Used in resolving Issue
+  #301, where someone wanted `:indent-only` kind of behavior, only
+  with justification as well for just a few functions.  To do this,
+  you need to disable essentially the entire `:fn-map`, and then put
+  in place only a very small one.  Thus `:remove-final-keys [[:fn-map]]` 
+  will remove the default `:fn-map`.  Then you __must__ put a new
+  `:fn-map` in place iin the same options map, or zprint will not
+  function.  This is a rarely needed capability, but a hard one to
+  live without if you really need it!
 
 ### Changed
   

@@ -13,6 +13,8 @@
 /tmp
 zprintl-*
 zprintm-*
+zprintma-*
+zprintmi-*
 /graalvml
 /.zprint
 /.clj-kondo
@@ -41,3 +43,7 @@ lbin/
 .planck_cache/
 .lsp/
 zprintl.txt
+/obsidian
+/META-INF
+.rebel_readline_history
+bbfiles/tree.clj

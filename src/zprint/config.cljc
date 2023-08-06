@@ -16,7 +16,7 @@
               rodguide areguide defprotocolguide-s]]
             [zprint.optionfn :refer
              [rodfn meta-base-fn fn*->% sort-deps regexfn rulesfn]]
-            #?@(:bb []
+            #?@(:bb [[sci.core :as sci]]
                 ; To completely remove sci, comment out the following line.
                 :clj [[sci.core :as sci]]
                 :cljs [[sci.core :as sci]])
@@ -214,7 +214,7 @@
 ;;
 ;; Print the first argument on the same line as
 ;; the function, if possible.  Later arguments go
-;; indented and :arg1 and :arg-1-pair top level fns
+;; indented and :arg1 and :arg1-pair top level fns
 ;; are become :none and :pair, respectively.
 ;;
 ;; Currently -> is :none-body, however, and there
@@ -2169,12 +2169,13 @@
                                'regexfn zprint.optionfn/regexfn,
                                'merge-deep zprint.config/merge-deep}}})
 (def sci-ctx
-  #?(:bb nil
-     ;:clj nil
-     ; To completely remove sci, include the previous line and comment
-     ; out the following line.
-     :clj (sci/init opts)
-     :cljs (sci/init opts)))
+  (sci/init opts))
+;  #?(:bb (sci/init opts)
+;     ;:clj nil
+;     ; To completely remove sci, include the previous line and comment
+;     ; out the following line.
+;     :clj (sci/init opts)
+;     :cljs (sci/init opts)))
 
 (defn sci-load-string
   "Read an options map from a string using sci/eval-string to read
@@ -2183,11 +2184,14 @@
   from eval-string are not caught and propagate back up the call
   stack."
   [s]
-  #?(:bb (read-string s)
-     ; :clj (read-string s) To completely remove sci, include the previous
-     ; line and comment out the following line.
-     :clj (sci/eval-string* sci-ctx s)
-     :cljs (sci/eval-string* sci-ctx s)))
+  (sci/eval-string* sci-ctx s))
+
+;  #?(:bb #_(load-string s)
+;          (sci/eval-string* sci-ctx s)
+;     ; :clj (read-string s) To completely remove sci, include the previous
+;     ; line and comment out the following line.
+;     :clj (sci/eval-string* sci-ctx s)
+;     :cljs (sci/eval-string* sci-ctx s)))
 
 ;; Remove two files from this, make it one file at a time.`
 ;; Do the whole file here.
@@ -2643,6 +2647,9 @@
         [opts-rcfile errors-rcfile rc-filename :as home-config]
           (when (and home file-separator)
             (get-config-from-path [zprintrc zprintedn] file-separator [home]))
+	_ (dbg-s (merge op-options opts-rcfile) 
+	         #{:zprintrc} 
+		 "~/.zprintrc:" home-config)
         [updated-map new-doc-map rc-errors]
           (config-and-validate (str "Home directory file: " rc-filename)
                                default-doc-map
@@ -2659,9 +2666,18 @@
                          (:search-config? op-options))
                      file-separator)
             (scan-up-dir-tree [zprintrc zprintedn] file-separator))
-        [search-rcfile search-errors-rcfile search-filename]
+	_ (dbg-s (merge op-options opts-rcfile search-rcfile) 
+	         #{:zprintrc} 
+		 "search-config? first .zprintrc:" search-config)
+	; If the scan up the directory tree ended up finding a different
+	; configuration from the one in the home directory, then use it.
+	; Otherwise ignore what we found, since it is a duplicate.
+        [search-rcfile search-errors-rcfile search-filename :as search-config]
           (when (not= home-config search-config)
             [search-rcfile search-errors-rcfile search-filename])
+	_ (dbg-s (merge op-options opts-rcfile search-rcfile) 
+	         #{:zprintrc} 
+		 "search-config? second .zprintrc:" search-config)
         [search-map search-doc-map search-rc-errors]
           (config-and-validate (str ":search-config? file: " search-filename)
                                new-doc-map
@@ -2679,6 +2695,9 @@
                          (:cwd-zprintrc? op-options))
                      file-separator)
             (get-config-from-path [zprintrc zprintedn] file-separator ["."]))
+	_ (dbg-s (merge op-options opts-rcfile search-rcfile cwd-rcfile)
+	         #{:zprintrc} 
+		 "cwd-zprintrc? .zprintrc:" cwd-rcfile)
         [updated-map new-doc-map cwd-rc-errors]
           (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
                                search-doc-map

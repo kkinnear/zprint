@@ -1,37 +1,23 @@
-{:aliases
-   {:cljs-runner {:extra-deps {com.github.seancorfield/expectations
-                                 {:mvn/version "2.0.143"},
-                               olical/cljs-test-runner {:mvn/version "3.7.0"},
-                               pjstadig/humane-test-output {:mvn/version
-                                                              "0.10.0"}},
-                  :extra-paths ["src" "test" "cljs-test-runner-out/gen"],
-                  :main-opts ["-m" "cljs-test-runner.main" "--doo-opts"
-                              "dooopts.edn" "-x" "planck"]},
-    :cljtest {:extra-deps {com.github.seancorfield/expectations {:mvn/version
-                                                                   "2.0.143"}},
-              :extra-paths ["test"]},
-    :humane {:extra-deps {pjstadig/humane-test-output {:mvn/version "0.10.0"}}},
-    ;:runner {:extra-deps {com.cognitect/test-runner
-    ;                        {:git/url
-    ;                           "https://github.com/cognitect-labs/test-runner",
-    ;                         :sha "b6b3193fcc42659d7e46ecd1884a228993441182"}},
-    ;         :main-opts ["-m" "cognitect.test-runner" "-d" "test"]},
-    :test {:exec-fn cognitect.test-runner.api/test,
-           :extra-deps {com.github.seancorfield/expectations {:mvn/version
-                                                                "2.0.143"},
-                        io.github.cognitect-labs/test-runner
-                          {:sha "dfb30dd", #_"a85b3b0", :git/tag "v0.5.1"},
-                        pjstadig/humane-test-output {:mvn/version "0.10.0"}},
-           :extra-paths ["test"],
-           :main-opts ["-m" "cognitect.test-runner"]},
-    :zprint {:main-opts ["-m" "zprint.main"]}},
+{:aliases {:cljs-runner
+             {:extra-deps {com.github.seancorfield/expectations {:mvn/version
+                                                                   "2.0.143"},
+                           olical/cljs-test-runner {:mvn/version "3.7.0"},
+                           pjstadig/humane-test-output {:mvn/version "0.10.0"}},
+              :extra-paths ["src" "test" "cljs-test-runner-out/gen"],
+              :main-opts ["-m" "cljs-test-runner.main" "--doo-opts"
+                          "dooopts.edn" "-x" "planck"]},
+           :cljtest {:exec-fn cognitect.test-runner.api/test,
+                     :extra-deps {com.github.seancorfield/expectations
+                                    {:mvn/version "2.0.143"},
+                                  io.github.cognitect-labs/test-runner
+                                    {:git/tag "v0.5.1", :sha "dfb30dd"},
+                                  pjstadig/humane-test-output {:mvn/version
+                                                                 "0.10.0"}},
+                     :extra-paths ["test"],
+                     :main-opts ["-m" "cognitect.test-runner"]},
+           :zprint {:main-opts ["-m" "zprint.main"]}},
  :deps {#_#_org.clojure/clojure {:mvn/version "1.9.0"},
-        #_#_org.clojure/clojurescript {:mvn/version "1.9.946"},
         #_#_org.clojure/clojure {:mvn/version "1.10.3"},
-        org.babashka/sci {:mvn/version "0.3.4"},
-        ;; To use zprint with babashka, include the following dependency:
-        ;;    org.babashka/spec.alpha {:git/url
-        ;;    "https://github.com/babashka/spec.alpha"
-        ;;  :sha "0dec1f88cbde74a0470b454396f09a03adb4ae39"}
-        rewrite-clj/rewrite-clj {:mvn/version "1.1.45"}},
+        org.babashka/sci {:mvn/version "0.7.39"},
+        rewrite-clj/rewrite-clj {:mvn/version "1.1.47"}},
  :paths ["src" "test" "cljs-test-runner-out/gen"]}

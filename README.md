@@ -171,6 +171,9 @@ Some commonly used styles:
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+
+
 ### Clojure 1.9, 1.10, 1.10.3, 1.11.1, 1.12.0-alpha3:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__

@@ -52,7 +52,7 @@ a number of major source code formatting approaches.
   * You can now run zprint as a babashka task.  It starts very quickly and
   runs faster than the uberjar for all but the very largest files.  Plus,
   you don't need to install a new version, just edit `bb.edn`. 
-  See the simple detals [here](./doc/getting/babashka.md))
+  See the simple detals [here](./doc/getting/babashka.md)
   * Important updates and fixes for all comment wrapping. Recommend that 
   you use `1.2.7` instead of `1.2.6`.
   * Comment wrapping has been considerably altered.  When working

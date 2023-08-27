@@ -9,6 +9,7 @@ You can run zprint using babashka.  This has several benefits:
 ## 0. Make sure your babashka is sufficiently current
 
 zprint requires at least babashka `1.3.183` to execute properly.
+See [how to get babashka.](https://github.com/babashka/babashka#quickstart)
 
 ## 1. Make zprint a task for babashka
 

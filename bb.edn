@@ -1,7 +1,7 @@
-{:deps {org.babashka/spec.alpha
+{#_#_:deps {org.babashka/spec.alpha
           {:git/sha "1a841c4cc1d4f6dab7505a98ed2d532dd9d56b78",
            :git/url "https://github.com/babashka/spec.alpha"}},
- :paths ["src"],
+ #_#_:paths ["src"],
  :tasks {test:bb
            {:extra-deps
               {cljc.java-time/cljc.java-time {:mvn/version "0.1.11"},
@@ -11,7 +11,7 @@
                org.clojure/tools.namespace
                  {:git/sha "3625153ee66dfcec2ba600851b5b2cbdab8fae6c",
                   :git/url "https://github.com/babashka/tools.namespace"}},
-            :extra-paths ["test"],
+            :extra-paths ["src" "test"],
             :requires ([cognitect.test-runner :as tr]),
             :task (apply tr/-main
                     "-d"
@@ -34,13 +34,19 @@
                                                      :git/tag "v0.5.0"},
                ;   pjstadig/humane-test-output {:mvn/version "0.11.0"
                ;              :exclusions [org.clojure/tools.namespace]},
-               zprint/zprint {:mvn/version "1.2.8"},
+               ;          zprint/zprint {:mvn/version "1.2.8"},
                lambdaisland/ansi {:mvn/version "0.2.37"},
                org.clojure/tools.namespace
                  {:git/sha "3625153ee66dfcec2ba600851b5b2cbdab8fae6c",
                   :git/url "https://github.com/babashka/tools.namespace"}},
-            :extra-paths ["test-config"],
+            :extra-paths ["src" "test-config"],
             :requires ([cognitect.test-runner :as tr]),
-            :task (tr/-main "-d" "test-config" "-n" "zprint.test-config")}}}
+            :task (tr/-main "-d" "test-config" "-n" "zprint.test-config")},
+         zprint:src {:extra-paths ["src"],
+                    :requires ([zprint.main]),
+                    :task (apply zprint.main/-main *command-line-args*)},
+         zprint:mvn {:extra-deps {zprint/zprint {:mvn/version "1.2.7"}},
+                     :requires ([zprint.main]),
+                     :task (apply zprint.main/-main *command-line-args*)}}}
 
 

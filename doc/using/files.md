@@ -12,7 +12,7 @@ There are several ways to use zprint to format entire source files.
 
 ## 1. High Performance Prebuilt Binaries
   * High performance: startup is fast < 50ms
-  * Available for macOS and Linux
+  * Available for macOS (both Intel and Apple Silicon) and Linux
   * Does not require Java -- available as standalone binaries
   * Accepts source on stdin, produces formatted source on stdout
   * Will also format or check format on named files "in place"
@@ -236,7 +236,7 @@ zprint-1.2.8
 ## 2. Java Uberjar
   * Works anywhere you can install Java
   * Startup in a few seconds
-  * Java appcds will cache startup info, making startup about 1s
+  * Java appcds will cache startup info (for some platforms), making startup about 1s
   * Accept source on stdin, produces formatted source on stdout
   * Reads configuration from `~/.zprintrc`
   * Accept options map on command line
@@ -266,7 +266,21 @@ __Get the__:
   * [uberjar](../getting/uberjar.md) _starts in several seconds_
   * [accelerated uberjar](../getting/appcds.md) _starts in about 1s_
 
-## 3. Clojure CLI
+## 3. Using Babashka
+
+You can use babashka to run zprint!  
+
+  * Works anywhere you can install babashka
+  * No zprint installation required
+  * Startup is very fast (faster than the uberjar)
+  * Processing speed is faster than the uberjar for all but the very largest files
+  * Accepts source on stdin, produces formatted source on stdout
+  * Reads configuration from `~/.zprintrc`
+  * Accepts options map on command line
+
+The simple instructions are [here](../getting/babashka.md).
+
+## 4. Clojure CLI
 
 Add the following to the `:aliases` section of `$HOME/.clojure/deps.edn`
 file or to a project's `deps.edn`.
@@ -298,12 +312,20 @@ the high performance prebuilt binaries -- #1, above) the
 [accelerated uberjar](../getting/appcds.md) will 
 startup much faster and run as fast once it has started.
 
-## 4. Lein zprint
+## 5. Lein zprint
   * Leiningen plugin: `[lein-zprint "1.2.8"]`
   * Accepts configuration from `:zprint` key in project.clj
   * Will (optionally) replace existing source files with reformatted versions
   * Reads configuration from `~/.zprintrc`
   * Accept options map on command line
+
+The only real benefit of lein-zprint over the pre-compiled binaries is that
+you don't have to install new versions of zprint when using it.  You just
+put the version of lein-zprint in the `project.clj` file and leiningen 
+downloads it for you.
+
+That said, using zprint as a task in babashka is equally convienent
+and requies no installation beyond installing babashka. 
 
 For example, you might use it like this:
 
@@ -326,10 +348,18 @@ the `:plugins` key in `project.clj`:
   :repl-options {:init-ns zpuse.core})
 ```
 
-## 5. zprint-clj (node based)
+## 6. zprint-clj (node based)
 
 There is a node based zprint program,
 [zprint-clj](https://github.com/clj-commons/zprint-clj).
+
+The original need for this approach was that the Java based zprint tools did
+not start up quickly enough.  These days that is not the case.  The
+pre-compiled binaries start up very quickly, and using zprint with
+babashka also starts up very quicly.  There is little reason to use
+node based solutions at this time.
+
+Also, the current version of zprint-clj uses a very old version of zprint.
 
 ### Get zprint-clj
 
@@ -373,9 +403,14 @@ than Javascript/Clojurescript based programs, and run considerably faster.
 
 ### Startup speed
 
-Casual testing indicates that, on a mid 2012 MacBook Air, zprint-clj 0.8.0 
-starts up in about 222ms, while zprintm-0.5.4 starts up in about 20ms (after
-you have used it once). 
+Casual testing indicates that, on a mid 2012 MacBook Air, zprint-clj
+0.8.0 starts up in about 222ms, while zprintm-0.5.4 starts up in
+about 20ms (after you have used it once).  
+
+These days, the landscape
+possibilities are more complex, and even if you don't want the
+pre-compiled binaries, using zprint with babashka starts up very
+quickly.
 
 ### Proccessing Speed
 

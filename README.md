@@ -45,6 +45,14 @@ a number of major source code formatting approaches.
 ### *Recent Additions!* 
 
 
+  * A new pre-compiled binary is available for macOS running on Apple 
+  Silicon.  While the macOS Intel binary runs fine on Apple Silicon, the
+  Apple Silicon binary runs considerably (up to 3x) faster!  Download
+  `zprintma-1.2.8` from the release to get the Apple Silicon version.
+  * You can now run zprint as a babashka task.  It starts very quickly and
+  runs faster than the uberjar for all but the very largest files.  Plus,
+  you don't need to install a new version, just edit `bb.edn`. 
+  See the simple detals [here](./doc/getting/babashka.md))
   * Important updates and fixes for all comment wrapping. Recommend that 
   you use `1.2.7` instead of `1.2.6`.
   * Comment wrapping has been considerably altered.  When working
@@ -70,45 +78,11 @@ a number of major source code formatting approaches.
   issue. It is likely that it can be fixed with a configuration
   change. See the reference manual for more details on how to
   configure smart wrap.
-
   * You can now specify some keys to come last in a map as well as
   some keys to appear first in a sorted map.  The `{:map {:key-order [...]}}`
   configuration places all of the keys prior to the distinguished key
   `:|` at the front of the map, and all of the keys after the `:|` key
   at the end of the map.  
-  * Configurable Styles: As the number of styles that call `:option-fn`
-  to return guides or just to do complex things has grown, many of
-  these styles have also begun to accept a configuration map as
-  their first argument.  This has worked well, but has in turn
-  required a new style in the `:style-map` for every unique combination
-  of values in the configuration map for the option-fn (or has
-  required moderately complex configuration in the `:fn-map` or
-  elsewhere). The processing for styles has been enhanced to
-  allow configuration of styles when they are used, instead of
-  pre-configuring them as additional styles.  See the CHANGELOG
-  for some details, and the reference manual for many more.
-  * If you were using zprint as a library, and you kept the configuration
-  you wanted to use with zprint in a file of your own, there was no safe
-  way to give that configuration to zprint if it contained function 
-  definitions -- which it might need to for `:option-fn` values.  Now
-  you can pass a string value of an options map to `set-options!`,
-  and it will read and 'compile' that options map (including any functions)
-  using the Small Clojure Interpreter (sci) built into zprint, the same
-  way that zprint handles reading external configuration files.
-  * Made considerable improvements in multi-format-pass "stability".  Thus, if
-  you format the same file multiple times, it is considerably less likely 
-  to change the second time.  The biggest issues were when using `:repect-nl`,
-  though some affected every formatting approach.  The only downside
-  is that the tuning for "hangs" had to change a bit -- so now more things
-  qualify to hang as opposed to flow.  The change isn't dramatic, but if you
-  prefer the previous behavior it is still available (without the new
-  stability) by using: `:style :original-tuning`.
-  * Inline comments (i.e., end of line comments) when aligned in a group 
-  flow left to end up one space beyond the widest code.  Single inline comments
-  did not, yielding odd inconsistencies.  Now single line inline comments
-  also flow left to end up one space beyond the code.  You can turn all of
-  the alignment support for inline comments off by using
-  `:comment {:inline-align-style :none}` if you don't like this approach.
   * [All changes](./CHANGELOG.md)
 
 ## See zprint:

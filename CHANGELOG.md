@@ -15,9 +15,12 @@ All notable changes to this project will be documented in this file.
   `:fn-map` in place iin the same options map, or zprint will not
   function.  This is a rarely needed capability, but a hard one to
   live without if you really need it!
+  * New pre-compiled binary for macOS running on Apple Silicon. Install
+  `zprintma-1.2.8` from the release to get it.  Runs up to 3x the speed
+  of the Intel binary on Apple Silicon!
 
 ### Changed
-  
+
 ### Fixed
 
 ## 1.2.7 - 2023-06-08

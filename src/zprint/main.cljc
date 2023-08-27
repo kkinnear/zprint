@@ -60,10 +60,11 @@
      "<switches> which control configuration, only one allowed:"
      ""
      " -d  --default      Accept no configuration input."
-     " -u  --url URL      Load options from URL."
+     #?@(:bb [""]
+        :clj [" -u  --url URL      Load options from URL."
      "     --url-only URL Load only options found from URL,"
      "                    ignore all .zprintrc, .zprint.edn files."
-     ""
+     ""])
      "<switches> which process named files:  May follow a configuration switch"
      "                                       or an options map, but not both!"
      ""
@@ -211,27 +212,14 @@
   (let [arg-count (count arg-seq)
         check-or-write? (or check? write?)]
     (loop [args arg-seq
-           [version?
-            help?
-            explain?
-            explain-all?
-            default?
-            standard?
-            url?
+           [version? help? explain? explain-all? default? standard? url?
             url-only?]
              nil
            url-arg nil
            error-string nil]
       (if (or (nil? args) error-string)
-        [[version?
-          help?
-          explain?
-          explain-all?
-          default?
-          standard?
-          url?
-          url-only?]
-         url-arg
+        [[version? help? explain? explain-all? default? standard? url?
+          url-only?] url-arg
          (if error-string
            error-string
            (cond (and (or version? help? default? standard?) (> arg-count 1))
@@ -250,10 +238,14 @@
                         " requires an argument")
                  :else nil))]
         (let [next-arg (clojure.string/trim (first args))
-              valid-switch? (#{"--version" "-v" "--help" "-h" "--explain" "-e"
-                               "--explain-all" "--default" "-d" "--standard"
-                               "-s" "--url" "-u" "--url-only"}
-                             next-arg)
+              valid-switch?
+                ; No --url, -u, --url-only in babashka
+                (#?(:bb #{"--version" "-v" "--help" "-h" "--explain" "-e"
+                          "--explain-all" "--default" "-d" "--standard" "-s"}
+                    :clj #{"--version" "-v" "--help" "-h" "--explain" "-e"
+                           "--explain-all" "--default" "-d" "--standard" "-s"
+                           "--url" "-u" "--url-only"})
+                 next-arg)
               version? (or version? (= next-arg "--version") (= next-arg "-v"))
               help? (or help? (= next-arg "--help") (= next-arg "-h"))
               explain? (or explain? (= next-arg "--explain") (= next-arg "-e"))
@@ -267,13 +259,7 @@
                            :default nil)
               url-arg (when (or url? url-only?) (second args))]
           (recur (if url-arg (nnext args) (next args))
-                 [version?
-                  help?
-                  explain?
-                  explain-all?
-                  default?
-                  standard?
-                  url?
+                 [version? help? explain? explain-all? default? standard? url?
                   url-only?]
                  url-arg
                  (when (not valid-switch?)

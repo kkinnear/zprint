@@ -106,25 +106,31 @@
 (declare process-map)
 
 (defn do-sh
-  "Takes an executable, a vector of string arguments, and an optional
+  "Takes the process-map, a vector of string arguments, and an optional
   string file name to bind to stdin.  Returns the entire result map,
   with :exit, :out and :err keys."
-  ([executable arg-vec input-file]
+  ([pm arg-vec input-file]
    (let [cwd (str (cwd))
          arg-vec (conj arg-vec :dir cwd)
+         pre-arg-vec (:pre-args pm)
+         arg-vec (if pre-arg-vec (apply conj pre-arg-vec arg-vec) arg-vec)
+         _ (when debug?
+             (prn "do-sh: executable:" (:executable pm)
+                  "arg-vec:" arg-vec
+                  "input-file" input-file))
          result-map (if input-file
                       (apply sh
-                        executable
+                        (:executable pm)
                         (conj arg-vec :in (file (str cwd "/" input-file))))
-                      (apply sh executable arg-vec))]
+                      (apply sh (:executable pm) arg-vec))]
      result-map))
-  ([executable arg-str] (do-sh executable arg-str nil)))
+  ([pm arg-str] (do-sh pm arg-str nil)))
 
 (defn do-command
   "Get the executable out of the global process-map, and takes a vector of 
   string arguments, and an optional string file name to bind to stdin.  
   Returns the entire result map, with :exit, :out and :err keys."
-  ([arg-vec input-file] (do-sh (:executable process-map) arg-vec input-file))
+  ([arg-vec input-file] (do-sh process-map arg-vec input-file))
   ([arg-vec] (do-command arg-vec nil)))
 
 ;;
@@ -172,9 +178,9 @@
           (= % "graalvm-mac-a")
           (= % "graalvm-linux")
           (= % "babashka"))
-     "Style must be one of uberjar, graalvm-mac-i, graalvm-mac-a, graalvm-linux, babashka!"]]
+     "Style must be one of uberjar, graalvm-mac-i, graalvm-mac-a, graalvm-linux, babashka"]]
    ["-t" "--tests VECTOR-OF-TESTS" "A vector of test numbers to run"]
-   ["-h" "--help"]])
+   ["-h" "--help"] ["-d" "--debug"]])
 
 (def arg-options (:options (parse-opts *command-line-args* cli-options)))
 
@@ -186,7 +192,7 @@
   [options-summary]
   (->> ["test_config -- tests uberjar and pre-built graalvm binaries." ""
         "Usage: bb testconfig:bb -vths" "" "Options:" options-summary ""
-        "Note: both -v and -t must appear if either do."]
+        "Note: both -v and -s must appear if either do."]
        (clojure.string/join \newline)))
 
 (defn error-msg
@@ -210,8 +216,10 @@
   (let [{:keys [options arguments errors summary], :as arg-map}
           (parse-opts args cli-options)
         [tests error-str] (load-string-protected (:tests options))]
+    (when (:debug options) (def debug? true))
     (when debug?
       (prn "Options:" options
+           "Arguments:" arguments
            "Errors:" errors
            "tests:" tests
            "error-str:" error-str))
@@ -233,15 +241,31 @@
                                            "' is not a vector of numbers!")])})
       (let [style (:style options)
             version (:version options)
-            executable
-              (cond (= style "uberjar") (str "target/zprint-filter-" version)
-                    (= style "graalvm-mac-i") (str "./" "zprintmi-" version)
-                    (= style "graalvm-mac-a") (str "./" "zprintma-" version)
-                    (= style "graalvm-linux") (str "./" "zprintl-" version)
-                    (= style "babashka") (str "babashka?"))]
+            [executable pre-args tests-not-allowed]
+              (cond (= style "uberjar")
+                      [(str "/usr/bin/java")
+                       ["-jar" (str "target/zprint-filter-" version)] nil]
+                    (= style "graalvm-mac-i") [(str "./" "zprintmi-" version)
+                                               nil nil]
+                    (= style "graalvm-mac-a") [(str "./" "zprintma-" version)
+                                               nil nil]
+                    (= style "graalvm-linux") [(str "./" "zprintl-" version) nil
+                                               nil]
+                    (= style "babashka") [(str "./bb-1.3.183-SNAPSHOT")
+                                          ["-Sforce" "zprint:src"] [1]])]
         (if (exists? executable)
           (do (when tests (def tests-enabled tests))
-              (assoc arg-map :executable executable))
+              (when tests-not-allowed
+                (println (str "\nNOTE: Test"
+                              (if (> (count tests-not-allowed) 1) "s " " ")
+                              tests-not-allowed
+                              " not supported when using "
+                              style))
+                (def tests-enabled
+                  (seq (apply disj (set tests-enabled) tests-not-allowed))))
+              (assoc arg-map
+                :executable executable
+                :pre-args pre-args))
           {:exit-message (str "The specified executable: "
                               executable
                               " could not be found!"),
@@ -365,8 +389,10 @@
   ;; NOTE WELL: All of the URL tests are considered a single test from
   ;; the -t standpoint.  They depend on each other, and so you can't run
   ;; one without the others.  So they are all test #1, and may only be
-  ;; selected as a unit.
-  ;; 
+  ;; selected as a unit.   They need to be test #1, because they are also
+  ;; not operational in babashka, so when running in babashka, test #1
+  ;; is always not allowed.
+  ;;
   ;; Because of this, the web server starting and stopping can be done
   ;; as part of test #1.
   ;;
@@ -392,7 +418,10 @@
   #_(prn (do-sh "/bin/bash"
                 ["-c" "cat /Users/kkinnear/.zprint/configurldir/127*"]))
   #_(prn (do-sh "/bin/bash" ["-c" "date +%s"]))
-  #_(prn (do-sh (:executable process-map)
+  #_(prn "..............")
+  #_(prn (:pre-args process-map))
+  #_(prn "..............")
+  #_(prn (do-sh process-map
                 ["--url" "http://127.0.0.1:8081/test_config.edn"]
                 "test_config.map.clj"))
 
@@ -795,14 +824,19 @@
   ;   Of course, it needs to be fixed when we change the help output. That
   ;   said, we are just going to confirm the line count here, in part
   ;   because the version is also output, and trying to do a comparison
-  ;   for all of that is tedious and a bit confusing.
+  ;   for all of that is tedious.
+  ;
+  ; Also, when running in babashka, the --url, -u, and --url-only switches
+  ; are not supported, so that the number of lines is different.
   ;
 
-  (execute-test (expect (more-of result-map
-                          0 (:exit result-map)
-                          70 (line-count (:err result-map))
-                          "" (:out result-map))
-                        (do-command ["-h"])))
+  (execute-test (expect
+                  (more-of result-map
+                    0 (:exit result-map)
+                    (if (= (:style (:options process-map)) "babashka") 67 70)
+                      (line-count (:err result-map))
+                    "" (:out result-map))
+                  (do-command ["-h"])))
 
 
   ;----------------------------------------------------------------

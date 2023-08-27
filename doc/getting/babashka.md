@@ -1,5 +1,7 @@
 # Use babashka to run zprint
 
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+
 You can run zprint using babashka.  This has several benefits:
 
   - You don't have to download and install anything (other than babashka)

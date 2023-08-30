@@ -9,10 +9,10 @@ a number of major source code formatting approaches.
 
 ### Quickstart
 
-  * Latest pre-compiled binaries for macOS and Linus are [here on GitHub](https://github.com/kkinnear/zprint/releases/latest)  
+  * Latest pre-compiled binaries for macOS and Linux are [here on GitHub](https://github.com/kkinnear/zprint/releases/latest)  
   * Library to use in the REPL: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
   * [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
-Run same code as pre-compiled binaries [in babashka](doc/getting/babashka.md)
+Run the same code as pre-compiled binaries [in babashka](doc/getting/babashka.md)
 
 ### Overview
 

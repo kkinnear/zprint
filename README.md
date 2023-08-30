@@ -9,10 +9,10 @@ a number of major source code formatting approaches.
 
 ### Quickstart
 
-[Latest pre-compiled binaries for macOS and Linux on GitHub](https://github.com/kkinnear/zprint/releases/latest)  
-[![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
-[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
-[Run it in babashka](doc/getting/babashka.md)
+  * Latest pre-compiled binaries for macOS and Linus are [here on GitHub](https://github.com/kkinnear/zprint/releases/latest)  
+  * Library to use in the REPL: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
+  * [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+Run same code as pre-compiled binaries [in babashka](doc/getting/babashka.md)
 
 ### Overview
 
@@ -60,8 +60,8 @@ a number of major source code formatting approaches.
   runs faster than the uberjar for all but the very largest files.  Plus,
   you don't need to install a new version, just edit `bb.edn`. 
   See the simple detals [here](./doc/getting/babashka.md)
-  * Important updates and fixes for all comment wrapping. Recommend that 
-  you use `1.2.7` instead of `1.2.6`.
+  * Important updates and fixes for comment wrapping changes first
+  available in `1.2.6`. Avoid `1.2.6`, use `1.2.7` or later. 
   * Comment wrapping has been considerably altered.  When working
   on the stability fixes for `1.2.5`, the largest remaining problem
   was comment wrapping causing changes to the formatting in subsequent

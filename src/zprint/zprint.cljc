@@ -312,11 +312,9 @@
 ;;
 ;; # Use pmap when we have it
 ;;
+;; :parallel?
 
-#?(:bb (defn zpmap
-         ([options f coll] (map f coll))
-         ([options f coll1 coll2] (map f coll1 coll2)))
-   :clj (defn zpmap
+#?(:clj (defn zpmap
           ([options f coll]
            (if (:parallel? options) (pmap f coll) (map f coll)))
           ([options f coll1 coll2]
@@ -334,8 +332,8 @@
   options map has (:parallel? options) as true, then deref
   the value, otherwise just pass it through."
   [options value]
-  #?(:bb value
-     :clj (if (:parallel? options) (deref value) value)
+  ;; :parallel?
+  #?(:clj (if (:parallel? options) (deref value) value)
      :cljs value))
 
 ;;
@@ -3316,8 +3314,8 @@
                                hang-expand)))
              _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
              hanging
-               (#?@(:bb [do]
-                    :clj [zfuture options]
+               ;; :parallel?
+               (#?@(:clj [zfuture options]
                     :cljs [do])
                 (let [hang-result
                         (when hang?
@@ -3375,8 +3373,8 @@
              #_(inc-pass-count)
              flow
                (when flow?
-                 (#?@(:bb [do]
-                      :clj [zfuture options]
+                 ;; :parallel?
+                 (#?@(:clj [zfuture options]
                       :cljs [do])
                   (let [flow-result
                           (if-not pair-seq
@@ -3523,8 +3521,8 @@
                   "fzprint-hang-remaining count pair-seq:"
                   (count pair-seq))
            flow
-             (#?@(:bb [do]
-                  :clj [zfuture options]
+             ;; :parallel?
+             (#?@(:clj [zfuture options]
                   :cljs [do])
               (let [flow-result (if-not pair-seq
                                   ; We don't have any constant pairs
@@ -3620,8 +3618,8 @@
                              hang-expand)))
            _ (dbg options "fzprint-hang-remaining: second hang?" hang?)
            hanging
-             (#?@(:bb [do]
-                  :clj [zfuture options]
+             ;; :parallel?
+             (#?@(:clj [zfuture options]
                   :cljs [do])
               (let [hang-result
                       (when hang?

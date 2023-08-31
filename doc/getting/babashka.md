@@ -5,8 +5,27 @@
 You can run zprint using babashka.  This has several benefits:
 
   - You don't have to download and install anything (other than babashka)
-  - It runs faster (typically much faster) than the uberjar for all but extremly long files (>6K lines), and isn't really slow for even those files.
-  - It behaves just like the uberjar or the pre-compiled binaries
+  - It runs faster (typically much faster) than the uberjar. Even on very long files, it runs about 20% faster than the uberjar.
+  - The user interface is identical to the uberjar or the pre-compiled binaries
+  - Parallel operation is automatically enabled
+
+There are several approaches to using babashka to run zprint:
+
+  * Add zprint as a task in `bb.edn`
+  * Use `bbin` to install install the latest zprint
+
+The differences are minor but worth knowing:
+
+  * When installing zprint as a task in `bb.edn`, you must specify the
+  version of zprint you want.  Upgrading is easy, just specify a newer
+  version.
+
+  * The `bbin` approach will install the latest version of zprint. Latest
+  as of when you executed `bbin`.  The `bbin` approach adds a small increment
+  to the startup time, on the order of perhaps 0.1s.  Not a lot, and you 
+  might not notice it.
+
+# Add zprint as a task to bb.edn
 
 ## 0. Make sure your babashka is sufficiently current
 
@@ -38,4 +57,32 @@ bb zprint --help
 All of the normal switches for the zprint uberjar or zprint pre-compiled
 binaries work except for `--url`, `-u`, and `--url-only`.  Which you probably
 weren't interested in anyway.
+
+# Install zprint using bbin
+
+## 0. Get bbin
+
+You must have [installed bbin](https://github.com/babashka/bbin).
+
+## 1. Install zprint 
+
+You just execute:
+```
+bbin install io.github.kkinnear/zprint
+```
+The default name for what is installed is `zprint`.  Using a different
+name is easy:
+```
+bbin install io.github.kkinnear/zprint --as zprint-myname
+```
+where `zprint-myname` is whatever name you want.
+
+## 2. Try zprint
+
+The normal switches are supported:
+```
+zprint --help
+```
+
+
 

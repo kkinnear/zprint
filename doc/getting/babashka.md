@@ -34,10 +34,9 @@ See [how to get babashka.](https://github.com/babashka/babashka#quickstart)
 
 ## 1. Make zprint a task for babashka
 
-Put this in your `bb.edn` file.  You will want to adjust the
-`:mvn/version` to be whatever version of zprint is current:
-
-[![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
+Add the following map to your `bb.edn` file.  You will want to adjust the
+`:mvn/version` to be whatever version of zprint is current. This is 
+the current version: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)
 
 
 ```

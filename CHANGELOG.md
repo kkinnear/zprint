@@ -26,10 +26,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-  * When using babashka, you can new use functions in the options
-  map in any configuration file. Thanks to changes in babashka that
-  exposed `sci` so that zprint could use the same code in babashka that
-  it uses in `:clj`.
+  * When using babashka, you can now use functions in the options
+  map in any configuration file. This is possible due to changes in 
+  babashka that exposed `sci` so that zprint could use the same code 
+  in babashka that it uses in `:clj`.
 
 ## 1.2.7 - 2023-06-08
 

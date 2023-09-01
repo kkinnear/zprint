@@ -59,6 +59,11 @@ weren't interested in anyway.
 
 # Install zprint using bbin
 
+## -1. Make sure your babashka is sufficiently current
+
+zprint requires at least babashka `1.3.183` to execute properly.
+See [how to get babashka.](https://github.com/babashka/babashka#quickstart)
+
 ## 0. Get bbin
 
 You must have [installed bbin](https://github.com/babashka/bbin).

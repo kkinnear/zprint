@@ -10,9 +10,8 @@ a number of major source code formatting approaches.
 ### Quickstart
 
   * Latest pre-compiled binaries for macOS and Linux are [here on GitHub](https://github.com/kkinnear/zprint/releases/latest)  
-  * Library to use in the REPL: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
-  * [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
-Run the same code as pre-compiled binaries [in babashka](doc/getting/babashka.md)
+  * Run the same code [in babashka](doc/getting/babashka.md) [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+  * Library to use in the REPL or embed in your project: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
 
 ### Overview
 
@@ -56,10 +55,10 @@ Run the same code as pre-compiled binaries [in babashka](doc/getting/babashka.md
   Silicon.  While the macOS Intel binary runs fine on Apple Silicon, the
   Apple Silicon binary runs considerably (up to 3x) faster!  Download
   `zprintma-1.2.8` from the release to get the Apple Silicon version.
-  * You can now run zprint as a babashka task.  It starts very quickly and
-  runs faster than the uberjar for all but the very largest files.  Plus,
-  you don't need to install a new version, just edit `bb.edn`. 
-  See the simple detals [here](./doc/getting/babashka.md)
+  * You can now run zprint as a babashka task or use `bbin`.  
+  It starts very quickly and runs faster than the uberjar on even very 
+  large files.  If using a task,  you don't need to install a new version, 
+  just edit `bb.edn`.  See the simple detals [here](./doc/getting/babashka.md)
   * Important updates and fixes for comment wrapping changes first
   available in `1.2.6`. Avoid `1.2.6`, use `1.2.7` or later. 
   * Comment wrapping has been considerably altered.  When working
@@ -287,6 +286,7 @@ A number of folks have contributed to zprint, not all of whom
 show up on GitHub because I have integrated the code or suggestions manually.
 __Thanks for all of the great contributions!__
 
+  * Exposing `sci.core` in babashka: @borkdude
   * Tests running in babashka: @borkdude
   * Additional colors and color-map entries: @RingMan
   * Updated `rewrite-cljs` dependency to `0.4.5` @rundis/

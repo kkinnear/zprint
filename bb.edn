@@ -1,10 +1,4 @@
-{#_#_:deps
-   {org.babashka/spec.alpha
-      {:git/sha "1a841c4cc1d4f6dab7505a98ed2d532dd9d56b78",
-       :git/url "https://github.com/babashka/spec.alpha"}},
- #_#_:paths ["src"],
- #_#_:deps {zprint/zprint {:mvn/version "1.2.7"}},
- :bbin/bin {zprint {:main-opts ["-m" "zprint.main"]}},
+{:bbin/bin {zprint {:main-opts ["-m" "zprint.main"]}},
  :tasks {test:bb
            {:extra-deps
               {cljc.java-time/cljc.java-time {:mvn/version "0.1.11"},

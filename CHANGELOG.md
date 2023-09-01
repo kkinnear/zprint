@@ -18,10 +18,18 @@ All notable changes to this project will be documented in this file.
   * New pre-compiled binary for macOS running on Apple Silicon. Install
   `zprintma-1.2.8` from the release to get it.  Runs up to 3x the speed
   of the Intel binary on Apple Silicon!
+  * Added support for using babashka `bbin` to easily install zprint.
 
 ### Changed
 
+  * Modified the library to run in parallel when using babashka.  
+
 ### Fixed
+
+  * When using babashka, you can new use functions in the options
+  map in any configuration file. Thanks to changes in babashka that
+  exposed `sci` so that zprint could use the same code in babashka that
+  it uses in `:clj`.
 
 ## 1.2.7 - 2023-06-08
 

@@ -4,7 +4,7 @@
     [clojure.java.shell        :refer [sh]]
     [babashka.fs               :refer [copy cwd file move delete-if-exists
                                        delete-tree exists? expand-home
-                                       set-posix-file-permissions]]
+                                       set-posix-file-permissions which]]
     [babashka.process          :refer [process destroy-tree]]
     [clojure.tools.cli         :refer [parse-opts]]
     [clojure.string]
@@ -171,14 +171,15 @@
   ;; An option with a required argument
   [["-v" "--version VERSION" "zprint version number"]
    ["-s" "--style STYLE"
-    "Style of run: uberjar, graalvm-mac-i, graalvm-mac-a, graalvm-linux, babashka"
+    "Style of run: uberjar, graalvm-mac-i, graalvm-mac-a, graalvm-linux, babashka, bbin"
     :validate
     [#(or (= % "uberjar")
           (= % "graalvm-mac-i")
           (= % "graalvm-mac-a")
           (= % "graalvm-linux")
-          (= % "babashka"))
-     "Style must be one of uberjar, graalvm-mac-i, graalvm-mac-a, graalvm-linux, babashka"]]
+          (= % "babashka")
+          (= % "bbin"))
+     "Style must be one of uberjar, graalvm-mac-i, graalvm-mac-a, graalvm-linux, babashka, bbin"]]
    ["-t" "--tests VECTOR-OF-TESTS" "A vector of test numbers to run"]
    ["-h" "--help"] ["-d" "--debug"]])
 
@@ -251,9 +252,10 @@
                                                nil nil]
                     (= style "graalvm-linux") [(str "./" "zprintl-" version) nil
                                                nil]
-                    (= style "babashka") [(str "./bb-1.3.183-SNAPSHOT")
-                                          ["-Sforce" "zprint:src"] [1]])]
-        (if (exists? executable)
+                    (= style "babashka") [(str "bb")
+                                          ["-Sforce" "zprint:src"] [1]]
+                    (= style "bbin") [(str "zprint-bbin") nil [1]])]
+        (if (or (exists? executable) (which executable))
           (do (when tests (def tests-enabled tests))
               (when tests-not-allowed
                 (println (str "\nNOTE: Test"
@@ -390,7 +392,7 @@
   ;; the -t standpoint.  They depend on each other, and so you can't run
   ;; one without the others.  So they are all test #1, and may only be
   ;; selected as a unit.   They need to be test #1, because they are also
-  ;; not operational in babashka, so when running in babashka, test #1
+  ;; not operational in babashka, so when running in babashka or bbin, test #1
   ;; is always not allowed.
   ;;
   ;; Because of this, the web server starting and stopping can be done
@@ -833,7 +835,9 @@
   (execute-test (expect
                   (more-of result-map
                     0 (:exit result-map)
-                    (if (= (:style (:options process-map)) "babashka") 67 70)
+                    (if (or (= (:style (:options process-map)) "babashka") 
+                            (= (:style (:options process-map)) "bbin")) 
+		    67 70)
                       (line-count (:err result-map))
                     "" (:out result-map))
                   (do-command ["-h"])))
@@ -1344,7 +1348,7 @@
 
   ;----------------------------------------------------------------
   (display-test
-    "-w test with two files, the first which fails to format: bad !zprint map")
+    "-w test with two files, first fails to format: bad !zprint map")
 
   ;
   ; -w with two files, the first of which fails to format
@@ -1404,7 +1408,7 @@
 
   ;----------------------------------------------------------------
   (display-test
-    "-w test with two files, the first which fails to format: bad !zprint key")
+    "-w test with two files, first fails to format: bad !zprint key")
 
   ;
   ; -w with two files, the first of which fails to format with bad key in

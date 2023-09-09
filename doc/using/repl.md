@@ -120,9 +120,7 @@ modifying the existing `bb.edn` file by doing this:
 ```
 % bb -Sforce -Sdeps '{:deps {zprint/zprint {:mvn/version "1.2.7"}}}'
 ```
-using the current version of zprint, of course:
-
-[![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)
+using the current version of zprint, of course: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)
 
 Alternatively, you can add zprint to the `deps` in `bb.edn` using the
 `{zprint/zprint {:mvn/version "1.2.7"}}` approach.

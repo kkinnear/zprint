@@ -2,7 +2,7 @@
 
 [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
 
-You can run zprint using babashka.  This has several benefits:
+You can format files with  zprint using babashka.  This has several benefits:
 
   - You don't have to download and install anything (other than babashka)
   - It runs faster (typically much faster) than the uberjar. Even on very long files, it runs about 20% faster than the uberjar.

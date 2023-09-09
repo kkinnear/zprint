@@ -5,6 +5,8 @@ zprint was designed to be very helpful at the REPL.  What do you have to do?
 [2. Require zprint when you run the REPL](#2-require-zprint-when-you-run-the-repl)   
 [3. Use zprint](#3-use-zprint)  
 
+or, perhaps you want to [use zprint in a babashka REPL](#babashka).
+
 
 ## 1. Get zprint into the dependencies
 First, you have to make sure zprint shows up in your dependencies.
@@ -105,6 +107,37 @@ You need to get it availble to you when you run the REPL.
 ```clojure
 zpuse.core=> (require '[zprint.core :as zp])
 ```
+
+## Babashka
+
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+
+zprint will work well in a babashka REPL. At least Babashka v1.3.183 is
+required. You need to get it into
+the `deps` for that babashka invocation.  You can add zprint without
+modifying the existing `bb.edn` file by doing this:
+
+```
+% bb -Sforce -Sdeps '{:deps {zprint/zprint {:mvn/version "1.2.7"}}}'
+```
+using the current version of zprint, of course:
+
+[![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)
+
+Alternatively, you can add zprint to the `deps` in `bb.edn` using the
+`{zprint/zprint {:mvn/version "1.2.7"}}` approach.
+
+Then, in the repl, you need to require it:
+
+```
+√ projects/zprint % bb -Sforce -Sdeps '{:deps {zprint/zprint {:mvn/version "1.2.7"}}}'
+Babashka v1.3.184 REPL.
+Use :repl/quit or :repl/exit to quit the REPL.
+Clojure rocks, Bash reaches.
+
+user=> (require '[zprint.core :as zp])
+```
+
 ## 3. Use zprint
 ### Format a structure
 ```clojure

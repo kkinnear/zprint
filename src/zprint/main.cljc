@@ -204,6 +204,7 @@
 
 (defn pair-sum "Sum two vector pairs." [[a b] [c d]] [(+ a c) (+ b d)])
 
+#?(:clj
 (defn parse-switches
   "Look for all switches, other than the ones that process named files.
   Return [[version? help? explain? explain-all? default? standard? url? url-only?]
@@ -263,7 +264,7 @@
                   url-only?]
                  url-arg
                  (when (not valid-switch?)
-                   (str "Unknown switch '" next-arg "'"))))))))
+                   (str "Unknown switch '" next-arg "'")))))))))
 
 (defn bool-to-switch
   "Turn the booleans into switches."

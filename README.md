@@ -11,7 +11,7 @@ a number of major source code formatting approaches.
 
   * Latest pre-compiled binaries for macOS and Linux are [here on GitHub](https://github.com/kkinnear/zprint/releases/latest)  
   * Run the same code [in babashka](doc/getting/babashka.md) [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
-  * Library to use in the REPL or embed in your project: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
+  * Library to use [in the REPL](doc/using/repl.md) or embed in your project: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
 
 ### Overview
 

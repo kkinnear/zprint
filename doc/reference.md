@@ -7632,5 +7632,16 @@ You can run most of the Clojure tests in babashka:
 bb test:bb
 ```
 
+### System Tests
+
+There is a system test that tests the various pre-compiled binaries and
+how they use configuration files.
+
+```
+bb testconfig:bb -v 1.2.8 -s ubarjar
+```
+
+Give it a `-s x`, and it will tell you the options.
+
   
 

@@ -23,6 +23,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
   * Modified the library to run in parallel when using babashka.  
+  * Replaced the old test_config bash file with a new babashka
+  capability to do the same thing, only better. 
+  `bb testconfig:bb -v 1.2.8 -s uberjar` will run it.
 
 ### Fixed
 

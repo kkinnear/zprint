@@ -773,8 +773,8 @@
     (expect
       (more-of result-map
         1 (:exit result-map)
-        "Unable to read configuration from file /Users/kkinnear/.zprintrc because clojure.lang.ExceptionInfo: EOF while reading"
-          (re-find #".*EOF while reading" (:err result-map)))
+        "EOF while reading"
+          (re-find #"EOF while reading" (:err result-map)))
       (do-command [] "test_config.string.clj")))
 
   ;----------------------------------------------------------------
@@ -789,13 +789,15 @@
   (spit (str (expand-home "~/.zprintrc"))
         "{:widthxxx 40 :url {:cache-dir \"configurldir\" :cache-secs 9}}")
 
-  (execute-test
-    (expect
-      (more-of result-map
-        1 (:exit result-map)
-        "In Home directory file: /Users/kkinnear/.zprintrc, In the key-sequence [:widthxxx] the key :widthxxx was not recognized as valid!\n"
-          (:err result-map))
-      (do-command [] "test_config.string.clj")))
+(execute-test
+  (expect
+    (more-of result-map
+      1 (:exit result-map)
+      "In the key-sequence [:widthxxx] the key :widthxxx was not recognized as valid!"
+        (re-find
+          #"In the key-sequence \[:widthxxx\] the key :widthxxx was not recognized as valid!"
+          (:err result-map)))
+    (do-command [] "test_config.string.clj")))
 
   ;
   ; Put back a reasonable ~/.zprintrc
@@ -1338,8 +1340,9 @@
       (more-of result-map
         1 (:exit result-map)
         "" (:out result-map)
-        "Failed to open file test_config.map2.clj because: java.io.FileNotFoundException: test_config.map2.clj (Permission denied)\n"
-          (:err result-map)
+        "Failed to open file test_config.map2.clj"
+	  (re-find #"Failed to open file test_config.map2.clj"
+          (:err result-map))
         (zprint-file-str test_config.map1.clj "-w" {})
           (slurp "test_config.map1.clj"))
       (do-command ["-w" "test_config.map1.clj" "test_config.map2.clj"])))

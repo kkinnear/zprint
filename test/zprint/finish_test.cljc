@@ -18,8 +18,7 @@
   ;;
   ;; # str-style-vec Tests
   ;;
-  ;; cvec-to-style-vec
-  ;; compress-style
+  ;; cvec-to-style-vec compress-style
   ;;
 
   (def xcv

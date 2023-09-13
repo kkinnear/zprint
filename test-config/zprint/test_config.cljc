@@ -252,8 +252,8 @@
                                                nil nil]
                     (= style "graalvm-linux") [(str "./" "zprintl-" version) nil
                                                nil]
-                    (= style "babashka") [(str "bb")
-                                          ["-Sforce" "zprint:src"] [1]]
+                    (= style "babashka") [(str "bb") ["-Sforce" "zprint:src"]
+                                          [1]]
                     (= style "bbin") [(str "zprint-bbin") nil [1]])]
         (if (or (exists? executable) (which executable))
           (do (when tests (def tests-enabled tests))
@@ -388,11 +388,11 @@
   (display-test "--url")
 
   ;;
-  ;; NOTE WELL: All of the URL tests are considered a single test from
-  ;; the -t standpoint.  They depend on each other, and so you can't run
-  ;; one without the others.  So they are all test #1, and may only be
-  ;; selected as a unit.   They need to be test #1, because they are also
-  ;; not operational in babashka, so when running in babashka or bbin, test #1
+  ;; NOTE WELL: All of the URL tests are considered a single test from the
+  ;; -t standpoint.  They depend on each other, and so you can't run one
+  ;; without the others.  So they are all test #1, and may only be selected
+  ;; as a unit.   They need to be test #1, because they are also not
+  ;; operational in babashka, so when running in babashka or bbin, test #1
   ;; is always not allowed.
   ;;
   ;; Because of this, the web server starting and stopping can be done
@@ -769,13 +769,11 @@
   (spit (str (expand-home "~/.zprintrc"))
         "{:width 40 :url {:cache-dir \"configurldir\" :cache-secs 9}")
 
-  (execute-test
-    (expect
-      (more-of result-map
-        1 (:exit result-map)
-        "EOF while reading"
-          (re-find #"EOF while reading" (:err result-map)))
-      (do-command [] "test_config.string.clj")))
+  (execute-test (expect (more-of result-map
+                          1 (:exit result-map)
+                          "EOF while reading" (re-find #"EOF while reading"
+                                                       (:err result-map)))
+                        (do-command [] "test_config.string.clj")))
 
   ;----------------------------------------------------------------
   (display-test "invalid zprint options map in ~/.zprintrc")
@@ -789,15 +787,15 @@
   (spit (str (expand-home "~/.zprintrc"))
         "{:widthxxx 40 :url {:cache-dir \"configurldir\" :cache-secs 9}}")
 
-(execute-test
-  (expect
-    (more-of result-map
-      1 (:exit result-map)
-      "In the key-sequence [:widthxxx] the key :widthxxx was not recognized as valid!"
-        (re-find
-          #"In the key-sequence \[:widthxxx\] the key :widthxxx was not recognized as valid!"
-          (:err result-map)))
-    (do-command [] "test_config.string.clj")))
+  (execute-test
+    (expect
+      (more-of result-map
+        1 (:exit result-map)
+        "In the key-sequence [:widthxxx] the key :widthxxx was not recognized as valid!"
+          (re-find
+            #"In the key-sequence \[:widthxxx\] the key :widthxxx was not recognized as valid!"
+            (:err result-map)))
+      (do-command [] "test_config.string.clj")))
 
   ;
   ; Put back a reasonable ~/.zprintrc
@@ -834,15 +832,15 @@
   ; are not supported, so that the number of lines is different.
   ;
 
-  (execute-test (expect
-                  (more-of result-map
-                    0 (:exit result-map)
-                    (if (or (= (:style (:options process-map)) "babashka") 
-                            (= (:style (:options process-map)) "bbin")) 
-		    67 70)
-                      (line-count (:err result-map))
-                    "" (:out result-map))
-                  (do-command ["-h"])))
+  (execute-test (expect (more-of result-map
+                          0 (:exit result-map)
+                          (if (or (= (:style (:options process-map)) "babashka")
+                                  (= (:style (:options process-map)) "bbin"))
+                            67
+                            70)
+                            (line-count (:err result-map))
+                          "" (:out result-map))
+                        (do-command ["-h"])))
 
 
   ;----------------------------------------------------------------
@@ -1335,17 +1333,16 @@
 
   (expect nil (configure-all!))
 
-  (execute-test
-    (expect
-      (more-of result-map
-        1 (:exit result-map)
-        "" (:out result-map)
-        "Failed to open file test_config.map2.clj"
-	  (re-find #"Failed to open file test_config.map2.clj"
-          (:err result-map))
-        (zprint-file-str test_config.map1.clj "-w" {})
-          (slurp "test_config.map1.clj"))
-      (do-command ["-w" "test_config.map1.clj" "test_config.map2.clj"])))
+  (execute-test (expect (more-of result-map
+                          1 (:exit result-map)
+                          "" (:out result-map)
+                          "Failed to open file test_config.map2.clj"
+                            (re-find #"Failed to open file test_config.map2.clj"
+                                     (:err result-map))
+                          (zprint-file-str test_config.map1.clj "-w" {})
+                            (slurp "test_config.map1.clj"))
+                        (do-command ["-w" "test_config.map1.clj"
+                                     "test_config.map2.clj"])))
 
   (delete-tree "test_config.map1.clj")
 

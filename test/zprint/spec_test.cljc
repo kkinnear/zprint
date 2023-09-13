@@ -385,16 +385,16 @@
 
   (expect
     "The value of the key-sequence [:map :key-value-color :deeper :keyword] -> :bluex was not a ansi-codes"
-    (explain-more
-      (s/explain-data :zprint.spec/options
-                      {:map {:key-value-color {:deeper {:string :yellow,
-                                                        :keyword :bluex}}}})))
+    (explain-more (s/explain-data :zprint.spec/options
+                                  {:map {:key-value-color
+                                           {:deeper {:string :yellow,
+                                                     :keyword :bluex}}}})))
   (expect
     "In the key-sequence [:map :key-value-color :deeper :keywordx] the key :keywordx was not recognized as valid!"
-    (explain-more
-      (s/explain-data :zprint.spec/options
-                      {:map {:key-value-color {:deeper {:string :yellow,
-                                                        :keywordx :blue}}}})))
+    (explain-more (s/explain-data :zprint.spec/options
+                                  {:map {:key-value-color
+                                           {:deeper {:string :yellow,
+                                                     :keywordx :blue}}}})))
 
 
   (expect nil
@@ -466,21 +466,21 @@
   ; the validation in s/explain-data.
 
   #_(expect
-    "The value of the key-sequence [:style-map :new-style :parse-string?] -> :a was not a boolean"
-    (explain-more (s/explain-data :zprint.spec/options
-                                  {:style-map {:new-style {:parse-string?
-                                                             :a}}})))
+      "The value of the key-sequence [:style-map :new-style :parse-string?] -> :a was not a boolean"
+      (explain-more (s/explain-data :zprint.spec/options
+                                    {:style-map {:new-style {:parse-string?
+                                                               :a}}})))
 
   ; This next test is equivalent to the one immediately above, but it tests
   ; the style-map validation using the full validation machinery.
 
-(expect "In the :style-map, the style :new-style failed to validate because, The value of the key-sequence [:parse-string?] -> :a was not a boolean"
-        (try (zprint-str :a
-                         {:style-map {:new-style {:parse-string? :a}}})
-             (catch #?(:clj Exception
-                       :cljs :default)
-               e
-               (re-find #"In the.*was not a boolean" (str e)))))
+  (expect
+    "In the :style-map, the style :new-style failed to validate because, The value of the key-sequence [:parse-string?] -> :a was not a boolean"
+    (try (zprint-str :a {:style-map {:new-style {:parse-string? :a}}})
+         (catch #?(:clj Exception
+                   :cljs :default)
+           e
+           (re-find #"In the.*was not a boolean" (str e)))))
 
 
 

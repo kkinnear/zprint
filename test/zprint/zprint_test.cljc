@@ -96,17 +96,17 @@
 
   #?(:clj (def y2 (source-fn 'zprint.zprint/partition-all-2-nc)))
   #?(:clj (expect (trim-gensym-regex (read-string y2))
-                  (trim-gensym-regex
-                    (read-string (zprint-str y2
-                                             {:parallel? false,
-                                              :parse-string? true})))))
+                  (trim-gensym-regex (read-string (zprint-str y2
+                                                              {:parallel? false,
+                                                               :parse-string?
+                                                                 true})))))
 
   #?(:clj (def y3 (source-fn 'zprint.zprint/fzprint-list*)))
   #?(:clj (expect (trim-gensym-regex (read-string y3))
-                  (trim-gensym-regex
-                    (read-string (zprint-str y3
-                                             {:parallel? false,
-                                              :parse-string? true})))))
+                  (trim-gensym-regex (read-string (zprint-str y3
+                                                              {:parallel? false,
+                                                               :parse-string?
+                                                                 true})))))
 
 
   ;;
@@ -148,18 +148,18 @@
                                             :parse-string? true}))))
 
   #?(:clj (expect (trim-gensym-regex (read-string y2))
-                  (trim-gensym-regex
-                    (read-string (zprint-str y2
-                                             {:style :justified,
-                                              :parallel? true,
-                                              :parse-string? true})))))
+                  (trim-gensym-regex (read-string (zprint-str
+                                                    y2
+                                                    {:style :justified,
+                                                     :parallel? true,
+                                                     :parse-string? true})))))
 
   #?(:clj (expect (trim-gensym-regex (read-string y3))
-                  (trim-gensym-regex
-                    (read-string (zprint-str y3
-                                             {:style :justified,
-                                              :parallel? true,
-                                              :parse-string? true})))))
+                  (trim-gensym-regex (read-string (zprint-str
+                                                    y3
+                                                    {:style :justified,
+                                                     :parallel? true,
+                                                     :parse-string? true})))))
 
   (expect (trim-gensym-regex (read-string fzprint-list*str))
           (trim-gensym-regex (read-string (zprint-str fzprint-list*str
@@ -299,12 +299,18 @@
        :cccccccccc
        (list
         :ddddddddd
-        :eeeeeeeeee :ffffffffff
-        :gggggggggg :hhhhhhhhhh
-        :iiiiiiiiii :jjjjjjjjjj
-        :kkkkkkkkkk :llllllllll
-        :mmmmmmmmmm :nnnnnnnnnn
-        :oooooooooo :pppppppppp))))
+        :eeeeeeeeee
+        :ffffffffff
+        :gggggggggg
+        :hhhhhhhhhh
+        :iiiiiiiiii
+        :jjjjjjjjjj
+        :kkkkkkkkkk
+        :llllllllll
+        :mmmmmmmmmm
+        :nnnnnnnnnn
+        :oooooooooo
+        :pppppppppp))))
 
   (def d-str (pr-str d))
 
@@ -540,35 +546,35 @@
 
   (expect [3 0] (zprint.zprint/line-lengths {} 3 [["; stuff" :none :comment]]))
 
-  (expect
-    [14 30 20]
-    (zprint.zprint/line-lengths
-      {}
-      12
-      [[":c" :magenta :element] ["\n            " :none :whitespace]
-       ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
-       ["\"stuff\"" :red :element] [")" :green :right]
-       ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
+  (expect [14 30 20]
+          (zprint.zprint/line-lengths
+            {}
+            12
+            [[":c" :magenta :element] ["\n            " :none :whitespace]
+             ["(" :green :left] ["identity" :blue :element]
+             [" " :none :whitespace] ["\"stuff\"" :red :element]
+             [")" :green :right] ["\n            " :none :whitespace]
+             ["\"bother\"" :red :element]]))
 
-  (expect
-    [2 30 20]
-    (zprint.zprint/line-lengths
-      {}
-      0
-      [[":c" :magenta :element] ["\n            " :none :whitespace]
-       ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
-       ["\"stuff\"" :red :element] [")" :green :right]
-       ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
+  (expect [2 30 20]
+          (zprint.zprint/line-lengths
+            {}
+            0
+            [[":c" :magenta :element] ["\n            " :none :whitespace]
+             ["(" :green :left] ["identity" :blue :element]
+             [" " :none :whitespace] ["\"stuff\"" :red :element]
+             [")" :green :right] ["\n            " :none :whitespace]
+             ["\"bother\"" :red :element]]))
 
-  (expect
-    [12 30 20]
-    (zprint.zprint/line-lengths
-      {}
-      12
-      [[";" :green :comment] ["\n            " :none :whitespace]
-       ["(" :green :left] ["identity" :blue :element] [" " :none :whitespace]
-       ["\"stuff\"" :red :element] [")" :green :right]
-       ["\n            " :none :whitespace] ["\"bother\"" :red :element]]))
+  (expect [12 30 20]
+          (zprint.zprint/line-lengths
+            {}
+            12
+            [[";" :green :comment] ["\n            " :none :whitespace]
+             ["(" :green :left] ["identity" :blue :element]
+             [" " :none :whitespace] ["\"stuff\"" :red :element]
+             [")" :green :right] ["\n            " :none :whitespace]
+             ["\"bother\"" :red :element]]))
 
   ; This change came when we started to correctly recognize functions
   ; even though they were preceded by comments and/or newlines.
@@ -661,18 +667,21 @@
   ;;
 
   (expect "[;a\n ;\n ;b c\n this is a test]"
-  ; Put b and c on the same line because of smart wrap
-  #_"[;a\n ;\n ;b\n ;c\n this is a test]"
+          ; Put b and c on the same line because of smart wrap
+          #_"[;a\n ;\n ;b\n ;c\n this is a test]"
           (zprint-str "[;a\n;\n;b\n;c\nthis is a test]" {:parse-string? true}))
 
   (expect "[;a\n ;\n ;b\n ;c\n this is a test]"
-          (zprint-str "[;a\n;\n;b\n;c\nthis is a test]" {:parse-string? true :comment {:smart-wrap? false}}))
+          (zprint-str "[;a\n;\n;b\n;c\nthis is a test]"
+                      {:parse-string? true, :comment {:smart-wrap? false}}))
 
   (expect
     "(defn testfn8\n  \"Test two comment lines after a cond test.\"\n  [x]\n  (cond\n    ; one\n    ; two\n    :stuff\n      ; middle\n      ; second middle\n      :bother\n    ; three\n    ; four\n    :else nil))"
-    (zprint-str
-      x8
-      {:parse-string? true, :pair-fn {:hang? nil}, :comment {:inline? false :smart-wrap {:space-factor 100 :last-max 80}}}))
+    (zprint-str x8
+                {:parse-string? true,
+                 :pair-fn {:hang? nil},
+                 :comment {:inline? false,
+                           :smart-wrap {:space-factor 100, :last-max 80}}}))
 
   (def zctest3str
     "(defn zctest3
@@ -710,7 +719,9 @@
     "(defn zctest4\n  \"Test comment forcing things\"\n  [x]\n  (cond\n    (and (list :c\n               (identity \"stuff\")\n               \"bother\"))\n      x\n    :else (or :a :b :c)))"
     (zprint-str zprint.zprint-test/zctest4str
                 40
-                {:parse-string? true, :pair-fn {:hang? nil} :pair {:multi-lhs-hang? false}}))
+                {:parse-string? true,
+                 :pair-fn {:hang? nil},
+                 :pair {:multi-lhs-hang? false}}))
 
   ; When :respect-nl? was added for lists, this changed because if you
   ; have a newline following the "list", then you don't want to hang the
@@ -725,12 +736,12 @@
     ;       x\n    :else (or :a :b :c)))"
     (zprint-str zprint.zprint-test/zctest3str
                 40
-                {:parse-string? true, :pair-fn {:hang? nil} :pair {:multi-lhs-hang? false}}))
+                {:parse-string? true,
+                 :pair-fn {:hang? nil},
+                 :pair {:multi-lhs-hang? false}}))
 
   (expect
-
-"(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let\n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things\n           ; way to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to\n          ; be\n          :c)))"
-
+    "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let\n    [abade :b\n     ceered\n       (let [b :d]\n         (if (:a x)\n           ; this is a very long comment that should force things\n           ; way to the left\n           (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to\n          ; be\n          :c)))"
     (zprint-str zprint.zprint-test/zctest5str
                 70
                 {:parse-string? true, :comment {:count? true, :wrap? true}}))
@@ -739,7 +750,8 @@
     "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a very long comment that should force\n                   ; things way to the left\n                   (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
     (zprint-str zprint.zprint-test/zctest5str
                 70
-                {:parse-string? true, :comment {:count? nil, :wrap? true :smart-wrap? false}}))
+                {:parse-string? true,
+                 :comment {:count? nil, :wrap? true, :smart-wrap? false}}))
 
   (expect
     "(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let [abade :b\n        ceered (let [b :d]\n                 (if (:a x)\n                   ; this is a very long comment that should force things way to the left\n                   (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
@@ -856,26 +868,26 @@
                       {:parse-string? true,
                        :reader-cond {:force-nl? false, :sort? nil}}))
 
-  (expect
-    "#?(:cljs (list :a :b) :clj (list :c :d))"
-    (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-                {:parse-string? true,
-                 :reader-cond
-                   {:force-nl? false, :sort? nil, :key-order [:clj :cljs]}}))
+  (expect "#?(:cljs (list :a :b) :clj (list :c :d))"
+          (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+                      {:parse-string? true,
+                       :reader-cond {:force-nl? false,
+                                     :sort? nil,
+                                     :key-order [:clj :cljs]}}))
 
-  (expect
-    "#?(:cljs (list :a :b)\n   :clj (list :c :d))"
-    (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-                {:parse-string? true,
-                 :reader-cond
-                   {:force-nl? true, :sort? nil, :key-order [:clj :cljs]}}))
+  (expect "#?(:cljs (list :a :b)\n   :clj (list :c :d))"
+          (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+                      {:parse-string? true,
+                       :reader-cond {:force-nl? true,
+                                     :sort? nil,
+                                     :key-order [:clj :cljs]}}))
 
-  (expect
-    "#?(:clj (list :c :d) :cljs (list :a :b))"
-    (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
-                {:parse-string? true,
-                 :reader-cond
-                   {:force-nl? false, :sort? true, :key-order [:clj :cljs]}}))
+  (expect "#?(:clj (list :c :d) :cljs (list :a :b))"
+          (zprint-str "#?(:cljs (list :a :b) :clj (list :c :d))"
+                      {:parse-string? true,
+                       :reader-cond {:force-nl? false,
+                                     :sort? true,
+                                     :key-order [:clj :cljs]}}))
 
   ;;
   ;; # Rightmost in reader conditionals
@@ -958,30 +970,30 @@
      :clj (expect "#<Agent [:a :b]>"
                   (clojure.string/replace (zprint-str ag) #"\@[0-9a-f]*" "")))
 
-;
-; This test causes cognitect test-runner to hang instead of exiting cleanly.
-; I have been unable to figure out what to do to prevent that, and since this
-; is clearly marginal functionality, I've left it out for now (and probably
-; forever).
-;
-;  #?(:bb nil
-;     :clj (def agf (agent [:c :d])))
-;
-;  #?(:bb nil
-;   :clj (expect
-;          "#<Agent FAILED [:c :d]>"
-;          (let [agf (agent [:c :d])]
-;            (send agf + 5)
-;           ; Wait a bit for the send to get to the agent and for the
-;            ; agent to fail
-;            (Thread/sleep 100)
-;            (let [result
-;                    (clojure.string/replace (zprint-str agf) #"\@[0-9a-f]*" "")]
-;              ; If we don't restart the agent, the tests will hang
-;              ; forever with , even though there is a shutdown-agents call
-;	      (agent-error agf) 
-;              (restart-agent agf [:c :d] :clear-actions true)
-;              result))))
+  ;
+  ; This test causes cognitect test-runner to hang instead of exiting cleanly.
+  ; I have been unable to figure out what to do to prevent that, and since this
+  ; is clearly marginal functionality, I've left it out for now (and probably
+  ; forever).
+  ;
+  ;  #?(:bb nil
+  ;     :clj (def agf (agent [:c :d])))
+  ;
+  ;  #?(:bb nil
+  ;   :clj (expect
+  ;          "#<Agent FAILED [:c :d]>"
+  ;          (let [agf (agent [:c :d])]
+  ;            (send agf + 5)
+  ;           ; Wait a bit for the send to get to the agent and for the
+  ;            ; agent to fail
+  ;            (Thread/sleep 100)
+  ;            (let [result
+  ;                    (clojure.string/replace (zprint-str agf) #"\@[0-9a-f]*" "")]
+  ;              ; If we don't restart the agent, the tests will hang
+  ;              ; forever with , even though there is a shutdown-agents call
+  ;             (agent-error agf)
+  ;              (restart-agent agf [:c :d] :clear-actions true)
+  ;              result))))
 
   ;;
   ;; # Sorting maps in code
@@ -1374,7 +1386,7 @@
                 {:parse-string? true, :binding {:flow? true}}))
 
   #?(:bb nil
-     :clj  ; Keep the deftype on the next line
+     :clj ; Keep the deftype on the next line
        (deftype Typetest [cnt _meta]
          clojure.lang.IHashEq
            (hasheq [this] (list this))
@@ -1613,7 +1625,7 @@
   ;;
 
   #?(:bb nil
-     :clj  ; Keep the deftype on the next line
+     :clj ; Keep the deftype on the next line
        (deftype Typetest1 [cnt _meta]
          clojure.lang.IHashEq
            (hasheq [this]
@@ -1690,7 +1702,7 @@
   ;; # Test a variant form of cond with :nl-separator?
   ;;
 
-  #?(:clj  ; Keep the defn off the same line.
+  #?(:clj ; Keep the defn off the same line.
        (defn zctest8x
          []
          (let [a (list 'with 'arguments)
@@ -2324,18 +2336,13 @@
     (list a :b :c \"d\")))")
 
   (expect
-"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap\n                 ; about here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now) ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
-
-
-
+    "(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2 ; a really long inline comment that should wrap\n                 ; about here\n        stuff 3\n        ; a non-inline comment\n        now ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now) ;test this\n          :let [stuff (and bother foo bar) ;test that\n                bother (or other output foo)] ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
     (zprint-str zprint.zprint-test/zctest9str
                 70
                 {:parse-string? true, :comment {:inline? true}}))
 
   (expect
-
-"(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil\n        ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2\n        ; a really long inline comment that should wrap about\n        ; here\n        stuff 3\n        ; a non-inline comment\n        now\n          ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)\n          ;test this\n          :let [stuff (and bother foo bar)\n                ;test that\n                bother (or other output foo)]\n          ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
-
+    "(defn zctest9\n  \"Test inline comments\"\n  []\n  (let [a (list 'with 'arguments)\n        foo nil\n        ; end of line comment\n        bar true\n        baz \"stuff\"\n        other 1\n        bother 2\n        ; a really long inline comment that should wrap about\n        ; here\n        stuff 3\n        ; a non-inline comment\n        now\n          ;a middle inline comment\n          4\n        ; Not an inline comment\n        output 5\n        b 3\n        c 5\n        this \"is\"]\n    (cond (or foo bar baz) (format output now)\n          ;test this\n          :let [stuff (and bother foo bar)\n                ;test that\n                bother (or other output foo)]\n          ;and maybe the other\n          (and a b c (bother this)) (format other stuff))\n    (list a :b :c \"d\")))"
     (zprint-str zprint.zprint-test/zctest9str
                 70
                 {:parse-string? true, :comment {:inline? false}}))
@@ -2687,21 +2694,21 @@
   #?(:clj
        (expect
          "java.lang.Exception:  When :list called an option-fn named 'test' it failed because:"
-         (try
-           (zprint "(a b c)"
-                   {:parse-string? true,
-                    :list {:option-fn
-                             (fn ([] "test") ([options len sexpr] (+ :a 0)))}})
-           (catch Exception e (clean-exception (str e)))))
+         (try (zprint "(a b c)"
+                      {:parse-string? true,
+                       :list {:option-fn (fn
+                                           ([] "test")
+                                           ([options len sexpr] (+ :a 0)))}})
+              (catch Exception e (clean-exception (str e)))))
      :cljs
        (expect
          "Error:  When :list called an option-fn named 'test' it failed because: Error: 0 is not ISeqable"
-         (try
-           (zprint "(a b c)"
-                   {:parse-string? true,
-                    :list {:option-fn
-                             (fn ([] "test") ([options len sexpr] (seq 0)))}})
-           (catch :default e (str e)))))
+         (try (zprint "(a b c)"
+                      {:parse-string? true,
+                       :list {:option-fn (fn
+                                           ([] "test")
+                                           ([options len sexpr] (seq 0)))}})
+              (catch :default e (str e)))))
 
   #?(:clj
        (expect
@@ -2838,11 +2845,16 @@
     (zprint-str '(abc
                   sdfjsksdfjdskl
                   jkfjdsljdlfjldskfjklsjfjd
-                  :a 'b
-                  :c 'd
-                  :e 'f
-                  :g 'h
-                  :i 'j)
+                  :a
+                  'b
+                  :c
+                  'd
+                  :e
+                  'f
+                  :g
+                  'h
+                  :i
+                  'j)
                 {:max-length 13}))
 
   (expect
@@ -2850,11 +2862,16 @@
     (zprint-str '(abc
                   sdfjsksdfjdskl
                   jkfjdsljdlfjldskfjklsjfjd
-                  :a 'b
-                  :c 'd
-                  :e 'f
-                  :g 'h
-                  :i 'j)
+                  :a
+                  'b
+                  :c
+                  'd
+                  :e
+                  'f
+                  :g
+                  'h
+                  :i
+                  'j)
                 {:max-length 12}))
 
   ;; Map
@@ -3599,34 +3616,30 @@ ser/collect-vars-acc %1 %2) )))"
   ;; # Tests for comments mixed in with the early part of lists
   ;;
 
-  (expect 
-"(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
+  (expect "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
-                      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+                      {:parse-string? true,
+                       :comment {:smart-wrap {:space-factor 100}}}))
 
-  (expect 
-"(;stuff\n let ;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
+  (expect "(;stuff\n let ;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
           (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y](nil? nil) 5)"
                       {:parse-string? true}))
 
 
-  (expect 
- "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)" 
+  (expect "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str
             "( ;stuff\n\nlet;bother\n[a :x b :y] ;foo\n;bar\n\n;baz\n5)"
-            {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+            {:parse-string? true, :comment {:smart-wrap {:space-factor 100}}}))
 
-  (expect 
-"(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
+  (expect "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str
             "( ;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
-            {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+            {:parse-string? true, :comment {:smart-wrap {:space-factor 100}}}))
 
-  (expect 
-"(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
+  (expect "(;stuff\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n  ;baz\n  5)"
           (zprint-str
             "( ;stuff\n\nlet ;bother\n[a :x b :y]  ;foo\n;bar\n\n;baz\n5)"
-            {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+            {:parse-string? true, :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;stuff\n let ;bother\n  [a :x\n   b :y]\n  (list a b)\n  (map a b)\n  5)"
@@ -3647,27 +3660,26 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-"(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
+    "(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
     (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
                 {:parse-string? true, :list {:respect-nl? true}}))
 
-  (expect 
-"(;stuff\n\n let ;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
+  (expect "(;stuff\n\n let ;bother\n  [a :x\n   b :y]\n  (nil? nil)\n  5)"
           (zprint-str "(;stuff\n\nlet;bother\n[a :x b :y](nil? nil) 5)"
                       {:parse-string? true, :list {:respect-nl? true}}))
 
   (expect
-"(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
+    "(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
     (zprint-str "( ;stuff\n\nlet;bother\n[a :x b :y] ;foo\n;bar\n\n;baz\n5)"
                 {:parse-string? true, :list {:respect-nl? true}}))
 
   (expect
-"(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
+    "(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
     (zprint-str "( ;stuff\n\nlet;bother\n[a :x b :y];foo\n;bar\n\n;baz\n5)"
                 {:parse-string? true, :list {:respect-nl? true}}))
 
   (expect
-"(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
+    "(;stuff\n\n let ;bother\n  [a :x\n   b :y] ;foo\n  ;bar\n\n  ;baz\n  5)"
     (zprint-str "( ;stuff\n\nlet ;bother\n[a :x b :y]  ;foo\n;bar\n\n;baz\n5)"
                 {:parse-string? true, :list {:respect-nl? true}}))
 
@@ -4300,8 +4312,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;; in fzprint-list* to be the length of the "good stuff".
   ;;
 
-  (expect 
-"(;precomment\n one ;postcomment\n)"
+  (expect "(;precomment\n one ;postcomment\n)"
           (zprint-str "(;precomment\n one;postcomment\n)"
                       {:parse-string? true}))
 
@@ -4362,16 +4373,16 @@ ser/collect-vars-acc %1 %2) )))"
 
 
   (expect (trim-gensym-regex (read-string zprint.zprint-test/fzprint-list*str))
-          (trim-gensym-regex
-            (read-string (zprint-str zprint.zprint-test/fzprint-list*str
-                                     {:parse-string? true,
-                                      :style :respect-nl}))))
+          (trim-gensym-regex (read-string (zprint-str
+                                            zprint.zprint-test/fzprint-list*str
+                                            {:parse-string? true,
+                                             :style :respect-nl}))))
 
   (expect (trim-gensym-regex (read-string zprint.zprint-test/fzprint-list*str))
-          (trim-gensym-regex
-            (read-string (zprint-str zprint.zprint-test/fzprint-list*str
-                                     {:parse-string? true,
-                                      :style :indent-only}))))
+          (trim-gensym-regex (read-string (zprint-str
+                                            zprint.zprint-test/fzprint-list*str
+                                            {:parse-string? true,
+                                             :style :indent-only}))))
 
   ;;
   ;; # INDENT ONLY TESTS
@@ -4411,7 +4422,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      a\n      test)"
     (zprint-str
       "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n      a\n   test)"
-      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+      {:parse-string? true, :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n      a\n      test)"
@@ -4423,7 +4434,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(;comment 1\n ;comment 2\n ;comment 3\n a this\n   is\n   a\n   test)"
     (zprint-str
       "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n a\n this is\n      a\n   test)"
-      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+      {:parse-string? true, :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;comment 1\n ;comment 2\n ;comment 3\n\n a\n  this is\n  a\n  test)"
@@ -4435,7 +4446,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      a\n      test)"
     (zprint-str
       "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n\n      a\n   test)"
-      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+      {:parse-string? true, :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n\n      a\n      test)"
@@ -4447,7 +4458,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(;comment 1\n ;comment 2\n ;comment 3\n this is\n      ; comment 4\n      a\n      test)"
     (zprint-str
       "\n(;comment 1\n ;comment 2\n ;comment 3 \n\n this is\n ; comment 4\n      a\n   test)"
-      {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+      {:parse-string? true, :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect
     "(;comment 1\n ;comment 2\n ;comment 3\n\n this is\n      ; comment 4\n      a\n      test)"
@@ -4595,7 +4606,9 @@ ser/collect-vars-acc %1 %2) )))"
     "(def x\n  zprint.zfns/zstart\n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test)\n          (this is the result and it is too long) ; inline comment\n        (this is a second test)\n          (and this is another test that is way too very long)        ; inline\n                                                                      ; comment\n                                                                      ; 2\n        :else (stuff bother)) ; inline comment 3\n  smiddle           ; Not an isolated inline comment\n  zprint.zfns/zend  ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
     (zprint-str
       "(def x\n  zprint.zfns/zstart \n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test) (this is the result and it is too long) ; inline comment\n  (this is a second test) (and this is another test that is way too very long)        ; inline comment 2\n  :else (stuff bother)) ; inline comment 3\n  smiddle           ; Not an isolated inline comment\n  zprint.zfns/zend  ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
-      {:parse-string? true, :comment {:inline-align-style :none :smart-wrap {:last-max 80 :border 0}}}))
+      {:parse-string? true,
+       :comment {:inline-align-style :none,
+                 :smart-wrap {:last-max 80, :border 0}}}))
 
   ;;
   ;; :inline-align-style :aligned
@@ -4605,7 +4618,9 @@ ser/collect-vars-acc %1 %2) )))"
     "(def x\n  zprint.zfns/zstart\n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test)\n          (this is the result and it is too long)              ; inline comment\n        (this is a second test)\n          (and this is another test that is way too very long) ; inline comment\n                                                               ; 2\n        :else (stuff bother)) ; inline comment 3\n  smiddle          ; Not an isolated inline comment\n  zprint.zfns/zend ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
     (zprint-str
       "(def x\n  zprint.zfns/zstart \n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test) (this is the result and it is too long) ; inline comment\n  (this is a second test) (and this is another test that is way too very long)        ; inline comment 2\n  :else (stuff bother)) ; inline comment 3\n  smiddle           ; Not an isolated inline comment\n  zprint.zfns/zend  ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
-      {:parse-string? true, :comment {:inline-align-style :aligned :smart-wrap {:last-max 80 :border 0}}}))
+      {:parse-string? true,
+       :comment {:inline-align-style :aligned,
+                 :smart-wrap {:last-max 80, :border 0}}}))
 
   ;;
   ;; :inline-align-style :consecutive
@@ -4615,7 +4630,9 @@ ser/collect-vars-acc %1 %2) )))"
     "(def x\n  zprint.zfns/zstart\n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test)\n          (this is the result and it is too long) ; inline comment\n        (this is a second test)\n          (and this is another test that is way too very long) ; inline comment\n                                                               ; 2\n        :else (stuff bother))                                  ; inline comment\n                                                               ; 3\n  smiddle                                                      ; Not an isolated\n                                                               ; inline comment\n  zprint.zfns/zend                                             ; contiguous\n                                                               ; inline comments\n  sdlfksdj                                                     ; inline comment\n  fdslfk                                                       ; inline comment\n                                                               ; aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false)   ; this only works because lists, anon-fn's, etc. are\n                       ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
     (zprint-str
       "(def x\n  zprint.zfns/zstart \n  sfirst\n  ; not an line comment\n  ; another not inline comment\n  zprint.zfns/zmiddle\n  (cond (this is a test this is onlyh a test) (this is the result and it is too long) ; inline comment\n  (this is a second test) (and this is another test that is way too very long)        ; inline comment 2\n  :else (stuff bother)) ; inline comment 3\n  smiddle           ; Not an isolated inline comment\n  zprint.zfns/zend  ; contiguous inline comments\n  sdlfksdj ; inline comment\n  fdslfk   ; inline comment aligned\n  dflsfjdsjkfdsjl\n  send\n  zprint.zfns/zanonfn? ; This too is a comment\n  (constantly false) ; this only works because lists, anon-fn's, etc. are\n                     ; checked before this is used.\n  zprint.zfns/zfn-obj?\n  fn?)"
-      {:parse-string? true, :comment {:inline-align-style :consecutive :smart-wrap {:last-max 80 :border 0}}}))
+      {:parse-string? true,
+       :comment {:inline-align-style :consecutive,
+                 :smart-wrap {:last-max 80, :border 0}}}))
 
 
   ;;
@@ -4709,24 +4726,24 @@ ser/collect-vars-acc %1 %2) )))"
                  :vector {:option-fn #(if (= (first %3) 'this)
                                         {:vector {:fn-format :force-nl}})}}))
 
-  (expect
-    "[this [is a\n       test this\n       is only]\n  (a test)]"
-    (zprint-str "[this [is a test this is only] (a test)]"
-                {:parse-string? true,
-                 :vector {:option-fn #(if (= (first %3) 'this)
-                                        {:vector {:fn-format :binding}})}}))
+  (expect "[this [is a\n       test this\n       is only]\n  (a test)]"
+          (zprint-str "[this [is a test this is only] (a test)]"
+                      {:parse-string? true,
+                       :vector {:option-fn #(if (= (first %3) 'this)
+                                              {:vector {:fn-format
+                                                          :binding}})}}))
 
   (expect "[:arg1-force-nl :a\n  :b :c\n  :d :e\n  :f :g]"
           (zprint-str [:arg1-force-nl :a :b :c :d :e :f :g]
                       {:parse-string? false,
                        :vector {:option-fn #(do {:vector {:fn-format
                                                             (first %3)}})}}))
-  (expect
-    "[:arg2 a b\n  c\n  d\n  e\n  f\n  g]"
-    (zprint-str "[:arg2 a b c d e f g]"
-                {:parse-string? true,
-                 :vector {:option-fn #(do {:vector {:fn-format (first %3)},
-                                           :fn-force-nl #{(first %3)}})}}))
+  (expect "[:arg2 a b\n  c\n  d\n  e\n  f\n  g]"
+          (zprint-str "[:arg2 a b c d e f g]"
+                      {:parse-string? true,
+                       :vector {:option-fn #(do
+                                              {:vector {:fn-format (first %3)},
+                                               :fn-force-nl #{(first %3)}})}}))
 
   (expect "[:force-nl :a\n           :b :c\n           :d :e\n           :f :g]"
           (zprint-str [:force-nl :a :b :c :d :e :f :g]
@@ -4870,12 +4887,12 @@ ser/collect-vars-acc %1 %2) )))"
           (zprint-str "(quote a)" {:parse-string? true, :style :backtranslate}))
 
   ; Should change, since we explicitly did this for zippers
-  (expect
-    "'a"
-    (zprint-str "(quote a)"
-                {:parse-string? true,
-                 :fn-map {"quote" [:replace-w-string
-                                   {:list {:replacement-string "'"}} {}]}}))
+  (expect "'a"
+          (zprint-str "(quote a)"
+                      {:parse-string? true,
+                       :fn-map {"quote" [:replace-w-string
+                                         {:list {:replacement-string "'"}}
+                                         {}]}}))
 
 
   (expect "#'a" (zprint-str '(var a) {:style :backtranslate}))
@@ -4883,12 +4900,12 @@ ser/collect-vars-acc %1 %2) )))"
   (expect "(var a)"
           (zprint-str "(var a)" {:parse-string? true, :style :backtranslate}))
 
-  (expect
-    "#'a"
-    (zprint-str "(var a)"
-                {:parse-string? true,
-                 :fn-map {"var" [:replace-w-string
-                                 {:list {:replacement-string "#'"}} {}]}}))
+  (expect "#'a"
+          (zprint-str "(var a)"
+                      {:parse-string? true,
+                       :fn-map {"var" [:replace-w-string
+                                       {:list {:replacement-string "#'"}}
+                                       {}]}}))
 
 
   (expect "@a" (zprint-str '(clojure.core/deref a) {:style :backtranslate}))
@@ -4940,7 +4957,7 @@ ser/collect-vars-acc %1 %2) )))"
   (expect "';a\n ;b\n a ;c\n"
           (zprint-str "(;a\n quote ;b\n a ;c\n)"
                       {:parse-string? true,
-		       :comment {:smart-wrap? false}
+                       :comment {:smart-wrap? false},
                        :fn-map {"quote" [:replace-w-string
                                          {:list {:replacement-string "'"}}]}}))
 
@@ -5023,7 +5040,10 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect "(;a\n list :b\n      :c ;def\n         ;aligned-inline\n      d)"
           (zprint-str "(;a\nlist\n:b\n:c ;def\n   ;aligned-inline\nd)"
-                      {:parse-string? true :comment {:smart-wrap {:last-max 80 :max-variance 500 :space-factor 100}}}))
+                      {:parse-string? true,
+                       :comment {:smart-wrap {:last-max 80,
+                                              :max-variance 500,
+                                              :space-factor 100}}}))
 
   ;;
   ;; # Issue 136 -- constant pairing count is off with newlines
@@ -5031,7 +5051,11 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect "(;a\n list\n  :c\n\n  d)"
           (zprint-str "(;a\nlist\n:c\n\n d)"
-                      {:parse-string? true, :style :respect-nl :comment {:smart-wrap {:last-max 80 :max-variance 500 :space-factor 100}}}))
+                      {:parse-string? true,
+                       :style :respect-nl,
+                       :comment {:smart-wrap {:last-max 80,
+                                              :max-variance 500,
+                                              :space-factor 100}}}))
 
   (expect "(;a\n list :c\n\n      d)"
           (zprint-str "(;a\nlist\n:c\n\n d)"
@@ -5077,7 +5101,9 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect "(;abc\n ;def\n)"
-          (zprint-str "(;abc\n\n;def\n)" {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+          (zprint-str "(;abc\n\n;def\n)"
+                      {:parse-string? true,
+                       :comment {:smart-wrap {:space-factor 100}}}))
 
   (expect "(;abc\n\n ;def\n)"
           (zprint-str "(;abc\n\n;def\n)"
@@ -5211,7 +5237,9 @@ ser/collect-vars-acc %1 %2) )))"
     (zprint-file-str
       "\n\n(ns foo)\n;abc\n\n;!zprint {:format :next :width 10}\n\n\n\n;  def ghi jkl mno pqr\n(defn baz [])\n\n\n"
       "junk"
-      {:parse {:interpose "\n\n"}, :width 10 :comment {:smart-wrap {:border 0}}}))
+      {:parse {:interpose "\n\n"},
+       :width 10,
+       :comment {:smart-wrap {:border 0}}}))
 
   ;;
   ;; # Issue 145 -- reader-conditionals don't work right with indent-only
@@ -5232,7 +5260,9 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect "#stuff/bother\n (list :this\n       \"is\"\n       a\n       :test)"
           (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
-                      {:parse-string? true, :style :respect-nl :tagged-literal {:hang? false}}))
+                      {:parse-string? true,
+                       :style :respect-nl,
+                       :tagged-literal {:hang? false}}))
 
   (expect
     "#?(:clj (defn zpmap ([f] (if x y z)))\n   :cljs (defn zpmap ([f] (if x y z))))"
@@ -5305,7 +5335,9 @@ ser/collect-vars-acc %1 %2) )))"
     (zprint-file-str
       "\n\n(ns foo)\n;abc\n;!zprint {:format :next :width 20}\n       ;def ghi jkl mno pqr\n   (defn baz [])\n\n\n"
       "junk"
-      {:parse {:interpose nil, :left-space :keep}, :width 30 :comment {:smart-wrap {:border 0}}}))
+      {:parse {:interpose nil, :left-space :keep},
+       :width 30,
+       :comment {:smart-wrap {:border 0}}}))
 
   (expect
     "\n    (defn\n      thisis\n      [a]\n      test)\n    ;def\n    ;ghi\n    ;jkl\n    ;mno\n    ;pqr\n"
@@ -5350,12 +5382,14 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element\n              (cond (and (or (= e :indent) (= e :newline))\n                         (= ne :comment-inline))\n                      (if-not (or (= le :comment) (= le :comment-inline))\n                        ; Regular line to get the inline comment\n                        [(blanks nn) c :whitespace 25]\n                        ; Last element was a comment...\n                        ; Can't put a comment on a comment, but\n                        ; we want to indent it like the last\n                        ; comment.\n                        ; How much space before the last comment?\n                        (do #_(prn \"inline:\" (space-before-comment out))\n                            [(str \"\\n\" (blanks out)) c :indent 41]\n                            #_element))\n                    :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
-    (zprint-str zprint.zprint-test/test-fast-hangstr {:parse-string? true :comment {:smart-wrap? false}}))
+    (zprint-str zprint.zprint-test/test-fast-hangstr
+                {:parse-string? true, :comment {:smart-wrap? false}}))
 
   (expect
-"(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element (cond (and (or (= e :indent) (= e :newline))\n                                   (= ne :comment-inline))\n                                (if-not (or (= le :comment)\n                                            (= le :comment-inline))\n                                  ; Regular line to get the inline comment\n                                  [(blanks nn) c :whitespace 25]\n                                  ; Last element was a comment...\n                                  ; Can't put a comment on a comment, but\n                                  ; we want to indent it like the last\n                                  ; comment.\n                                  ; How much space before the last comment?\n                                  (do #_(prn \"inline:\"\n                                             (space-before-comment out))\n                                      [(str \"\\n\" (blanks out)) c :indent 41]\n                                      #_element))\n                              :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
-    (zprint-str zprint.zprint-test/test-fast-hangstr
-                {:parse-string? true, :style :fast-hang :comment {:smart-wrap? false}}))
+    "(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec\n      (do #_(def fico out) out)\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out\n            new-element (cond (and (or (= e :indent) (= e :newline))\n                                   (= ne :comment-inline))\n                                (if-not (or (= le :comment)\n                                            (= le :comment-inline))\n                                  ; Regular line to get the inline comment\n                                  [(blanks nn) c :whitespace 25]\n                                  ; Last element was a comment...\n                                  ; Can't put a comment on a comment, but\n                                  ; we want to indent it like the last\n                                  ; comment.\n                                  ; How much space before the last comment?\n                                  (do #_(prn \"inline:\"\n                                             (space-before-comment out))\n                                      [(str \"\\n\" (blanks out)) c :indent 41]\n                                      #_element))\n                              :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+    (zprint-str
+      zprint.zprint-test/test-fast-hangstr
+      {:parse-string? true, :style :fast-hang, :comment {:smart-wrap? false}}))
 
   ;;
   ;; # Issue #150 -- structures that start with nil don't print at all!
@@ -5370,24 +5404,24 @@ ser/collect-vars-acc %1 %2) )))"
 
   (def element-color-tst "[true false #\"regex\" asymbol {:a :b, :c :d}]")
 
-  (expect
-    [["[" :purple :left] ["true" :green :element] [" " :none :whitespace]
-     ["false" :cyan :element] [" " :none :whitespace]
-     ["#\"regex\"" :red :element] [" " :none :whitespace]
-     ["asymbol" :magenta :element] [" " :none :whitespace] ["{" :red :left]
-     [":a" :green :element] [" " :none :whitespace] [":b" :green :element]
-     ["," :cyan :whitespace] [" " :none :whitespace] [":c" :green :element]
-     [" " :none :whitespace] [":d" :green :element] ["}" :red :right]
-     ["]" :purple :right]]
-    (czprint-str element-color-tst
-                 {:parse-string? true,
-                  :color-map {:comma :cyan,
-                              :symbol :magenta,
-                              :true :green,
-                              :false :cyan,
-                              :keyword :green,
-                              :regex :red},
-                  :return-cvec? true}))
+  (expect [["[" :purple :left] ["true" :green :element] [" " :none :whitespace]
+           ["false" :cyan :element] [" " :none :whitespace]
+           ["#\"regex\"" :red :element] [" " :none :whitespace]
+           ["asymbol" :magenta :element] [" " :none :whitespace]
+           ["{" :red :left] [":a" :green :element] [" " :none :whitespace]
+           [":b" :green :element] ["," :cyan :whitespace]
+           [" " :none :whitespace] [":c" :green :element]
+           [" " :none :whitespace] [":d" :green :element] ["}" :red :right]
+           ["]" :purple :right]]
+          (czprint-str element-color-tst
+                       {:parse-string? true,
+                        :color-map {:comma :cyan,
+                                    :symbol :magenta,
+                                    :true :green,
+                                    :false :cyan,
+                                    :keyword :green,
+                                    :regex :red},
+                        :return-cvec? true}))
 
   ;; Note that :char doesn't work in cljs, all chars are really strings
 
@@ -5467,7 +5501,7 @@ ser/collect-vars-acc %1 %2) )))"
     "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
     (zprint-str mapp6
                 {:parse-string? true,
-		 :comment {:smart-wrap {:border 0}}
+                 :comment {:smart-wrap {:border 0}},
                  :fn-map {"app" [:none
                                  {:list {:constant-pair-min 1,
                                          :constant-pair-fn #(or (vector? %)
@@ -5478,7 +5512,9 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route]\n                   handler\n                   ; How do comment work?\n                   [route]\n                   (handler this\n                            is\n                            \"a\" test\n                            \"this\" is\n                            \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route]\n                    handler\n                    [route] ; What about comments here?\n                    handler))"
-    (zprint-str mapp6 {:parse-string? true, :width 55 :comment {:smart-wrap {:border 0}}}))
+    (zprint-str
+      mapp6
+      {:parse-string? true, :width 55, :comment {:smart-wrap {:border 0}}}))
 
   ;; Let's see if the :style works
 
@@ -5693,7 +5729,7 @@ ser/collect-vars-acc %1 %2) )))"
        :width 74}))
 
   (expect
-"(stuff (caller aaaa\n         (this is a\n           (test this is (only a test))) a b\n         c))"
+    "(stuff (caller aaaa\n         (this is a\n           (test this is (only a test))) a b\n         c))"
     (zprint-str
       "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
       {:parse-string? true,
@@ -5702,7 +5738,7 @@ ser/collect-vars-acc %1 %2) )))"
        :width 46}))
 
   (expect
-"(stuff (caller aaaa\n         (this is a\n           (test this is (only a test))) a b\n         c))"
+    "(stuff (caller aaaa\n         (this is a\n           (test this is (only a test))) a b\n         c))"
     (zprint-str
       "(stuff (caller aaaa (this is a (test this is (only a test))) a b c))"
       {:parse-string? true,
@@ -5719,19 +5755,19 @@ ser/collect-vars-acc %1 %2) )))"
     "(cond\n   (odd? a) 1\n   :let [a (quot a 2)]\n   :when-let [x (fn-which-may-return-falsey a),\n              y (fn-which-may-return-falsey (* 2 a))]\n   :when-some [b (fn-which-may-return-nil x),\n               c (fn-which-may-return-nil y)]\n   :when (seq x)\n   :do (println x)\n   (odd? (+ x y)) 2\n   3)")
 
   (expect
-"(cond (odd? a) 1\n      :let [a (quot a 2)]\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y)) 2\n      3)"
+    "(cond (odd? a) 1\n      :let [a (quot a 2)]\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y)) 2\n      3)"
     (zprint-str bc1
                 {:parse-string? true,
                  :pair {:flow? false, :nl-separator-all? false}}))
 
   (expect
-"(cond (odd? a)\n        1\n      :let [a (quot a 2)]\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y))\n        2\n      3)"
+    "(cond (odd? a)\n        1\n      :let [a (quot a 2)]\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y))\n        2\n      3)"
     (zprint-str bc1
                 {:parse-string? true,
                  :pair {:flow? true, :nl-separator-all? false}}))
 
   (expect
-"(cond (odd? a)\n        1\n\n      :let [a (quot a 2)]\n\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n\n      :when (seq x)\n\n      :do (println x)\n\n      (odd? (+ x y))\n        2\n\n      3)"
+    "(cond (odd? a)\n        1\n\n      :let [a (quot a 2)]\n\n      :when-let [x (fn-which-may-return-falsey a)\n                 y (fn-which-may-return-falsey (* 2 a))]\n\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n\n      :when (seq x)\n\n      :do (println x)\n\n      (odd? (+ x y))\n        2\n\n      3)"
     (zprint-str bc1
                 {:parse-string? true,
                  :pair {:flow? true, :nl-separator-all? true}}))
@@ -5884,7 +5920,7 @@ ser/collect-vars-acc %1 %2) )))"
   (expect "(def ^{:meta :x}\n     ; one\n     ; two\n     ; three\n     :body)"
           (zprint-str
             "(def\n  ^{:meta :x}\n  ; one\n  ; two\n  ; three\n  :body)\n"
-            {:parse-string? true :comment {:smart-wrap {:space-factor 100}}}))
+            {:parse-string? true, :comment {:smart-wrap {:space-factor 100}}}))
 
   ;;
   ;; :pair {:justify {:ignore-for-variance ...}}
@@ -5908,9 +5944,7 @@ ser/collect-vars-acc %1 %2) )))"
 
 
   (expect
-
-"(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third                           (nth sexpr 2 nil)\n           fourth                          (nth sexpr 3 nil)\n           fifth                           (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide                           (cond-> [:element :element-best\n                                                    :newline]\n                                             docstring (conj :element :newline)\n                                             option\n                                               (conj :element :element :newline)\n                                             :else (conj\n                                                     :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third                           (nth sexpr 2 nil)\n           fourth                          (nth sexpr 3 nil)\n           fifth                           (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string? third)\n                                                      (keyword? fourth))\n                                                   [third fourth fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword? third) [nil third\n                                                                   fourth]\n                                                 :else [nil nil nil])\n           guide                           (cond-> [:element :element-best\n                                                    :newline]\n                                             docstring (conj :element :newline)\n                                             option\n                                               (conj :element :element :newline)\n                                             :else (conj\n                                                     :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
     (zprint-str dpg
                 {:parse-string? true,
                  :pair {:justify {:max-variance 1000}},
@@ -6067,7 +6101,7 @@ ser/collect-vars-acc %1 %2) )))"
   ;;
 
   (expect
-"(ns zprint.core\n  (:require [zprint.zprint :as :zprint\n                           :refer [fzprint line-count max-width line-widths\n                                   expand-tabs zcolor-map\n                                   determine-ending-split-lines]]\n            [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                                  find-root-and-path-nw]]\n            [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                                   color-comp-vec handle-lines]]))"
+    "(ns zprint.core\n  (:require [zprint.zprint :as :zprint\n                           :refer [fzprint line-count max-width line-widths\n                                   expand-tabs zcolor-map\n                                   determine-ending-split-lines]]\n            [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                                  find-root-and-path-nw]]\n            [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                                   color-comp-vec handle-lines]]))"
     (zprint-str
       "(ns zprint.core\n  (:require\n    [zprint.zprint :as :zprint\n                   :refer [fzprint line-count max-width line-widths expand-tabs\n                           zcolor-map determine-ending-split-lines]]\n    [zprint.zutil :refer [zmap-all zcomment? edn* whitespace? string\n                          find-root-and-path-nw]]\n    [zprint.finish :refer [cvec-to-style-vec compress-style no-style-map\n                           color-comp-vec handle-lines]]))\n"
       {:parse-string? true, :style :require-pair}))
@@ -6204,17 +6238,17 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(m/app :get (m/app middle1\n                   middle2\n                   middle3\n                   [route] handler\n                   ; How do comment work?\n                   [route] (handler this\n                                    is\n                                    \"a\" test\n                                    \"this\" is\n                                    \"only a\" test))\n       :post (m/app middle\n                    of\n                    the\n                    road\n                    [route] handler\n                    [route] ; What about comments here?\n                      handler))"
-    (zprint-str
-      mapp6
-      {:parse-string? true,
-       :comment {:smart-wrap {:border 0}}
-       :fn-map {"app" [:none
-                       {:list {:constant-pair-min 1,
-                               :constant-pair-fn #(or (vector? %)
-                                                      (keyword? %))},
-                        :next-inner-restore [[:list :constant-pair-min]
-                                             [:list :constant-pair-fn]]}]},
-       :width 55}))
+    (zprint-str mapp6
+                {:parse-string? true,
+                 :comment {:smart-wrap {:border 0}},
+                 :fn-map {"app" [:none
+                                 {:list {:constant-pair-min 1,
+                                         :constant-pair-fn #(or (vector? %)
+                                                                (keyword? %))},
+                                  :next-inner-restore
+                                    [[:list :constant-pair-min]
+                                     [:list :constant-pair-fn]]}]},
+                 :width 55}))
 
   ;;
   ;; :next-inner-restore for sets
@@ -6509,35 +6543,35 @@ ser/collect-vars-acc %1 %2) )))"
   ;; # :spaces before and after :align
   ;;
 
-  (expect
-    "(stuff (caller aaaa    bbbb\n                            ccc))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :element :spaces 4 :mark 0 :element
-                                :newline :align 0 :spaces 5 :element]],
-                 :width 36}))
+  (expect "(stuff (caller aaaa    bbbb\n                            ccc))"
+          (zprint-str "(stuff (caller aaaa bbbb ccc))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :guide-debug [:list 2
+                                     [:element :element :spaces 4 :mark 0
+                                      :element :newline :align 0 :spaces 5
+                                      :element]],
+                       :width 36}))
 
-  (expect
-    "(stuff (caller aaaa    bbbb\n         ccc                ddd))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc ddd))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :element :spaces 4 :mark 0 :element
-                                :newline :element :align 0 :spaces 5 :element]],
-                 :width 36}))
+  (expect "(stuff (caller aaaa    bbbb\n         ccc                ddd))"
+          (zprint-str "(stuff (caller aaaa bbbb ccc ddd))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :guide-debug [:list 2
+                                     [:element :element :spaces 4 :mark 0
+                                      :element :newline :element :align 0
+                                      :spaces 5 :element]],
+                       :width 36}))
 
-  (expect
-    "(stuff (caller aaaa    bbbb\n         ccc           ddd))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc ddd))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug [:list 2
-                               [:element :element :spaces 4 :mark 0 :element
-                                :newline :element :spaces 5 :align 0 :element]],
-                 :width 36}))
+  (expect "(stuff (caller aaaa    bbbb\n         ccc           ddd))"
+          (zprint-str "(stuff (caller aaaa bbbb ccc ddd))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :guide-debug [:list 2
+                                     [:element :element :spaces 4 :mark 0
+                                      :element :newline :element :spaces 5
+                                      :align 0 :element]],
+                       :width 36}))
 
   ;;
   ;; # Spaces before and after align, with :indent-here involved
@@ -6555,16 +6589,17 @@ ser/collect-vars-acc %1 %2) )))"
                       :element-*]],
        :width 36}))
 
-(expect
-  "(stuff (caller aaaa    bbbb\n                     ccc\n                     dddd eeee fffff\n                     gggg hhhh iii\n                     jjj kkk lll\n                     mmm))"
-  (zprint-str
-    "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"
-    {:parse-string? true,
-     :list {:respect-nl? false},
-     :guide-debug [:list 2
-                   [:element :element :spaces 4 :mark 0 :element :newline :align
-                    0 :spaces -2 :indent-here :element :newline :element-*]],
-     :width 36}))
+  (expect
+    "(stuff (caller aaaa    bbbb\n                     ccc\n                     dddd eeee fffff\n                     gggg hhhh iii\n                     jjj kkk lll\n                     mmm))"
+    (zprint-str
+      "(stuff (caller aaaa bbbb ccc dddd eeee fffff gggg hhhh iii jjj kkk lll mmm))"
+      {:parse-string? true,
+       :list {:respect-nl? false},
+       :guide-debug [:list 2
+                     [:element :element :spaces 4 :mark 0 :element :newline
+                      :align 0 :spaces -2 :indent-here :element :newline
+                      :element-*]],
+       :width 36}))
 
   ;;
   ;; # negative space after align
@@ -6586,14 +6621,14 @@ ser/collect-vars-acc %1 %2) )))"
   ;; # :spaces are additive in guides
   ;;
 
-  (expect
-    "(stuff (caller aaaa       bbbb ccc dddd))"
-    (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"
-                {:parse-string? true,
-                 :list {:respect-nl? false},
-                 :guide-debug
-                   [:list 2 [:element :element :spaces 4 :spaces 3 :element-*]],
-                 :width 80}))
+  (expect "(stuff (caller aaaa       bbbb ccc dddd))"
+          (zprint-str "(stuff (caller aaaa bbbb ccc dddd))"
+                      {:parse-string? true,
+                       :list {:respect-nl? false},
+                       :guide-debug [:list 2
+                                     [:element :element :spaces 4 :spaces 3
+                                      :element-*]],
+                       :width 80}))
 
   ;;
   ;; # :indent-align
@@ -6719,11 +6754,11 @@ ser/collect-vars-acc %1 %2) )))"
       "(letfn [(first-fn [arg1 arg2]\n                  (-> (doing-stuff)\n                      (and-more-stuff)))\n        (second-fn [arg1 arg2]\n                   (-> (doing-stuff)\n                       (and-more-stuff)))]\n    (other-stuff))\n"
       {:parse-string? true}))
 
-(expect
-  "(defn print-balance\n  [xml] ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                (separate-words (clean-key item)) (format-decimals\n                                                    (item balance))))]\n      (reduce transform {} (keys balance)))))"
-  (zprint-str
-    "(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                     (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"
-    {:parse-string? true}))
+  (expect
+    "(defn print-balance\n  [xml] ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                (separate-words (clean-key item)) (format-decimals\n                                                    (item balance))))]\n      (reduce transform {} (keys balance)))))"
+    (zprint-str
+      "(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                     (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"
+      {:parse-string? true}))
 
   (expect
     "(letfn [(first-fn [arg1 arg2]\n          (-> (doing-stuff)\n              (and-more-stuff)))]\n  (other-stuff))"
@@ -7057,21 +7092,21 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(defn pair1\n  [a b c d]\n  (cond (nil? a)                  a\n        (a-very-long-function? b) b\n        :else                     c))"
-    (zprint-str
-      pair1
-      {:parse-string? true,
-       :pair {:justify? true,
-              :justify
-                {:max-variance 80, :max-gap 21, :ignore-for-variance nil}}}))
+    (zprint-str pair1
+                {:parse-string? true,
+                 :pair {:justify? true,
+                        :justify {:max-variance 80,
+                                  :max-gap 21,
+                                  :ignore-for-variance nil}}}))
 
   (expect
     "(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
-    (zprint-str
-      pair1
-      {:parse-string? true,
-       :pair {:justify? true,
-              :justify
-                {:max-variance 80, :max-gap 20, :ignore-for-variance nil}}}))
+    (zprint-str pair1
+                {:parse-string? true,
+                 :pair {:justify? true,
+                        :justify {:max-variance 80,
+                                  :max-gap 20,
+                                  :ignore-for-variance nil}}}))
 
   ;;
   ;; tests for :flow-all-if-any?
@@ -7217,24 +7252,24 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function? b) b\n        :else c))"
-    (zprint-str
-      pair2
-      {:parse-string? true,
-       :dbg? false,
-       :pair
-         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 20}},
-       :width 40}))
+    (zprint-str pair2
+                {:parse-string? true,
+                 :dbg? false,
+                 :pair {:flow-all-if-any? true,
+                        :justify? true,
+                        :justify {:max-variance 20}},
+                 :width 40}))
 
   (expect
     "(defn pair1\n  [a b c d]\n  (cond (nil? a)\n          a\n        (a-very-long-function?\n          b)\n          b\n        :else\n          c))"
-    (zprint-str
-      pair2
-      {:parse-string? true,
-       :dbg? false,
-       :pair
-         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 20}
-	  :multi-lhs-hang? false},
-       :width 30}))
+    (zprint-str pair2
+                {:parse-string? true,
+                 :dbg? false,
+                 :pair {:flow-all-if-any? true,
+                        :justify? true,
+                        :justify {:max-variance 20},
+                        :multi-lhs-hang? false},
+                 :width 30}))
 
 
   (def i235
@@ -7242,14 +7277,14 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(cond (simple-check)\n        (short-function-call)\n      (and (much-more-complicated-check)\n           (an-even-longer-check-that-is-too-long))\n        (look-im-on-the-next-line)\n      :else\n        (another-short-call))"
-    (zprint-str
-      i235
-      {:parse-string? true,
-       :dbg? false,
-       :pair
-         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 30}
-	  :multi-lhs-hang? false},
-       :width 80}))
+    (zprint-str i235
+                {:parse-string? true,
+                 :dbg? false,
+                 :pair {:flow-all-if-any? true,
+                        :justify? true,
+                        :justify {:max-variance 30},
+                        :multi-lhs-hang? false},
+                 :width 80}))
 
   ;;
   ;; :fn-type-map
@@ -7279,14 +7314,14 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
-    (zprint-str
-      i229u
-      {:parse-string? true,
-       :extend {:nl-count 2, :nl-separator? true, :indent 0},
-       :fn-type-map
-         {:arg2 [:none
-                 {:list {:option-fn (partial rodfn {:multi-arity-nl? true})}}],
-          :fn :arg2}}))
+    (zprint-str i229u
+                {:parse-string? true,
+                 :extend {:nl-count 2, :nl-separator? true, :indent 0},
+                 :fn-type-map
+                   {:arg2 [:none
+                           {:list {:option-fn
+                                     (partial rodfn {:multi-arity-nl? true})}}],
+                    :fn :arg2}}))
 
   ;;
   ;; Can we get rid of it with :next-inner?
@@ -7297,14 +7332,14 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(defrecord ADefrecord [f1 f2 f3]\n  AProtocol\n  (doit\n    ([this that]\n     (run! println [1 2 3])\n     (let [myfn (fn ([x] (println x)) ([x y] (+ x y)))] (more stuff))\n     (println this))\n\n    ([this]\n     (doit [this nil])))\n\n  (dothat [this that])\n\n  (domore [this that])\n\n  AnotherProtocol\n  (xdoit [this])\n\n  (xdothat [this that])\n\n  (xdomore [this that]))"
-    (zprint-str
-      i229ua
-      {:parse-string? true,
-       :extend {:nl-count 2, :nl-separator? true, :indent 0},
-       :fn-type-map {:fn [:none
-                          {:list {:option-fn (partial rodfn
-                                                      {:multi-arity-nl? true})},
-                           :next-inner {:fn-type-map {:fn nil}}}]}}))
+    (zprint-str i229ua
+                {:parse-string? true,
+                 :extend {:nl-count 2, :nl-separator? true, :indent 0},
+                 :fn-type-map
+                   {:fn [:none
+                         {:list {:option-fn (partial rodfn
+                                                     {:multi-arity-nl? true})},
+                          :next-inner {:fn-type-map {:fn nil}}}]}}))
 
   ;;
   ;; Try multiple option maps in :fn-type-map, and see which has precedence
@@ -7318,21 +7353,21 @@ ser/collect-vars-acc %1 %2) )))"
 
   (expect
     "(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38 41 44 47 50 53 56 59 62 65 68\n   71 74 77 80])"
-    (zprint-str
-      wchkds
-      {:parse-string? true,
-       :width 50,
-       :fn-map {"defn" [:arg2 {:width 70}]},
-       :fn-type-map {:arg2 [:hang {:width 30}], :hang [:arg1 {:width 40}]}}))
+    (zprint-str wchkds
+                {:parse-string? true,
+                 :width 50,
+                 :fn-map {"defn" [:arg2 {:width 70}]},
+                 :fn-type-map {:arg2 [:hang {:width 30}],
+                               :hang [:arg1 {:width 40}]}}))
 
   (expect
     "(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29\n   32 35 38 41 44 47 50 53 56\n   59 62 65 68 71 74 77 80])"
-    (zprint-str
-      wchkds
-      {:parse-string? true,
-       :width 50,
-       :fn-map {"defn" [:arg2 {}]},
-       :fn-type-map {:arg2 [:hang {:width 30}], :hang [:arg1 {:width 40}]}}))
+    (zprint-str wchkds
+                {:parse-string? true,
+                 :width 50,
+                 :fn-map {"defn" [:arg2 {}]},
+                 :fn-type-map {:arg2 [:hang {:width 30}],
+                               :hang [:arg1 {:width 40}]}}))
 
   (expect
     "(defn wchkd\n  [x]\n  [:5 :8 11 14 17 20 23 26 29 32 35 38\n   41 44 47 50 53 56 59 62 65 68 71 74\n   77 80])"
@@ -7380,370 +7415,387 @@ ser/collect-vars-acc %1 %2) )))"
       " (def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name \".nrepl-port\")\n"
       {:parse-string? true, :meta {:split? true}}))
 
-;;
-;; Add no-wrap-after to :vector, Issue #252
-;;
+  ;;
+  ;; Add no-wrap-after to :vector, Issue #252
+  ;;
 
-(expect
-  "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams &\n   body]\n  (+ 1 2 3))"
-  (zprint-str
-    "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body]\n  (+ 1 2 3))\n"
-    {:parse-string? true, :width 79}))
-
-
-(expect
-  "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams\n   & body]\n  (+ 1 2 3))"
-  (zprint-str
-    "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body]\n  (+ 1 2 3))\n"
-    {:parse-string? true, :width 79, :vector {:no-wrap-after #{"&"}}}))
-
-;; Does it work for :wrap in lists as well?
-
-(expect
-  "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams &\n  body)"
-  (zprint-str
-    "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams & body)\n"
-    {:parse-string? true, :fn-map {"stuff" :wrap}}))
-
-(expect
-  "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams\n  & body)"
-  (zprint-str
-    "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams & body)\n"
-    {:parse-string? true,
-     :fn-map {"stuff" :wrap},
-     :list {:no-wrap-after #{"&"}}}))
-
-;;
-;; Add :element-wrap-flow-* to guide
-;;
-
-(expect
-  "(let [example (data.example/get-by-org-id-and-items\n                db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
-  (zprint-str
-    "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
-    {:parse-string? true,
-     :fn-map {"get-by-org-id-and-items"
-                [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
-     :width 80}))
+  (expect
+    "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams &\n   body]\n  (+ 1 2 3))"
+    (zprint-str
+      "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body]\n  (+ 1 2 3))\n"
+      {:parse-string? true, :width 79}))
 
 
-(expect
-  "(let [example\n        (data.example/get-by-org-id-and-items\n          db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
-  (zprint-str
-    "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
-    {:parse-string? true,
-     :fn-map {"get-by-org-id-and-items"
-                [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
-     :width 60}))
+  (expect
+    "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams\n   & body]\n  (+ 1 2 3))"
+    (zprint-str
+      "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body]\n  (+ 1 2 3))\n"
+      {:parse-string? true, :width 79, :vector {:no-wrap-after #{"&"}}}))
 
-(expect
-  "(let [example (data.example/get-by-org-id-and-items\n                db-conn\n                true\n                [org-id]\n                {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
-  (zprint-str
-    "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
-    {:parse-string? true,
-     :fn-map {"get-by-org-id-and-items"
-                [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
-     :width 55}))
+  ;; Does it work for :wrap in lists as well?
+
+  (expect
+    "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams &\n  body)"
+    (zprint-str
+      "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams & body)\n"
+      {:parse-string? true, :fn-map {"stuff" :wrap}}))
+
+  (expect
+    "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams\n  & body)"
+    (zprint-str
+      "(stuff example vvvvvveeeeeeeerrrrrrryyyyy looooooooooooonnnnggggg paraaaaaaams & body)\n"
+      {:parse-string? true,
+       :fn-map {"stuff" :wrap},
+       :list {:no-wrap-after #{"&"}}}))
+
+  ;;
+  ;; Add :element-wrap-flow-* to guide
+  ;;
+
+  (expect
+    "(let [example (data.example/get-by-org-id-and-items\n                db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
+    (zprint-str
+      "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
+      {:parse-string? true,
+       :fn-map {"get-by-org-id-and-items"
+                  [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
+       :width 80}))
 
 
-;;
-;; The :fn-type return from an :option-fn can now be a string, and this
-;; will be an alias.
-;;
+  (expect
+    "(let [example\n        (data.example/get-by-org-id-and-items\n          db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
+    (zprint-str
+      "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
+      {:parse-string? true,
+       :fn-map {"get-by-org-id-and-items"
+                  [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
+       :width 60}))
 
-(expect
-  "(defn regexa\n  \"This should format like when.\"\n  [this is a test]\n  (list this is a test)\n  (let [some stuff\n        more stuff\n        lots (when-tst stuff\n               this\n               needs\n               to\n               be\n               longer\n               than\n               one\n               lineeven\n               more\n               things)]\n    (stuff bother)))"
-  (zprint-str
-    "(defn regexa\n  \"This should format like when.\"\n  [this is a test]\n  (list this is a test)\n  (let [some stuff\n        more stuff\n        lots (when-tst stuff this needs to be longer than one lineeven more things)]\n    (stuff bother)))\n"
-    {:parse-string? true,
-     :fn-map {:default-not-none
-                [:none
-                 {:list {:option-fn (fn ([] "rulesfn")
+  (expect
+    "(let [example (data.example/get-by-org-id-and-items\n                db-conn\n                true\n                [org-id]\n                {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
+    (zprint-str
+      "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n"
+      {:parse-string? true,
+       :fn-map {"get-by-org-id-and-items"
+                  [:guided {:guide [:element :newline :element-wrap-flow-*]}]},
+       :width 55}))
+
+
+  ;;
+  ;; The :fn-type return from an :option-fn can now be a string, and this
+  ;; will be an alias.
+  ;;
+
+  (expect
+    "(defn regexa\n  \"This should format like when.\"\n  [this is a test]\n  (list this is a test)\n  (let [some stuff\n        more stuff\n        lots (when-tst stuff\n               this\n               needs\n               to\n               be\n               longer\n               than\n               one\n               lineeven\n               more\n               things)]\n    (stuff bother)))"
+    (zprint-str
+      "(defn regexa\n  \"This should format like when.\"\n  [this is a test]\n  (list this is a test)\n  (let [some stuff\n        more stuff\n        lots (when-tst stuff this needs to be longer than one lineeven more things)]\n    (stuff bother)))\n"
+      {:parse-string? true,
+       :fn-map {:default-not-none
+                  [:none
+                   {:list {:option-fn (fn
+                                        ([] "rulesfn")
                                         ([options len sexpr]
                                          (let [fn-str (str (first sexpr))]
                                            (cond (re-find #"^when" fn-str)
                                                    {:fn-style "when"}
                                                  :else nil))))}}]}}))
-;;
-;; Issue #268 -- when doing anon fns, turn (fn* ...) into #( ... ).
-;;
+  ;;
+  ;; Issue #268 -- when doing anon fns, turn (fn* ...) into #( ... ).
+  ;;
 
-(def i268a `#(list % :a))
-(def i268b '#(+ %1 %2))
-(def i268c '(map #(* 2 %) [1 2 3]))
-(def i268d '#(println %1 %2 %&))
-(def i268e
-  '{:style-map {:m2 {:fn-map {"app"
-                                [:force-nl-body
-                                 {:list {:constant-pair-min 1,
-                                         :constant-pair-fn #(or (keyword? %)
-                                                                (string? %)
-                                                                (number? %)
-                                                                (= true %)
-                                                                (= false %)
-                                                                (vector? %))},
-                                  :pair {:justify? true},
-                                  :next-inner {:list {:constant-pair-min 4,
-                                                      :constant-pair-fn nil},
-                                               :pair {:justify? false}}}]}}}})
+  (def i268a `#(list % :a))
+  (def i268b '#(+ %1 %2))
+  (def i268c '(map #(* 2 %) [1 2 3]))
+  (def i268d '#(println %1 %2 %&))
+  (def i268e
+    '{:style-map
+        {:m2
+           {:fn-map
+              {"app" [:force-nl-body
+                      {:list {:constant-pair-min 1,
+                              :constant-pair-fn #(or
+                                                  (keyword? %)
+                                                  (string? %)
+                                                  (number? %)
+                                                  (= true %)
+                                                  (= false %)
+                                                  (vector? %))},
+                       :pair {:justify? true},
+                       :next-inner {:list {:constant-pair-min 4,
+                                           :constant-pair-fn nil},
+                                    :pair {:justify? false}}}]}}}})
 
-(def i268f
-  '(is (= {1 :a, 2 :b} (reduce-kgv #(assoc %1 %3 %2) {} (seq {:a 1, :b 2})))))
-(def i268g
-  '([f g h & fs]
-    (let [fs (list* f g h fs)]
-      (fn ([] (reduce1 #(conj %1 (%2)) [] fs))
-          ([x] (reduce1 #(conj %1 (%2 x)) [] fs))
-          ([x y] (reduce1 #(conj %1 (%2 x y)) [] fs))
-          ([x y z] (reduce1 #(conj %1 (%2 x y z)) [] fs))
-          ([x y z & args] (reduce1 #(conj %1 (apply %2 x y z args)) [] fs))))))
-
-
-
-(def i268i
-'#(this % is a test this is only a test))
-
-(def i268j
-'#(or % is a test this is only a test))
+  (def i268f
+    '(is (= {1 :a, 2 :b} (reduce-kgv #(assoc %1 %3 %2) {} (seq {:a 1, :b 2})))))
+  (def i268g
+    '([f g h & fs]
+      (let
+       [fs (list* f g h fs)]
+       (fn
+        ([] (reduce1 #(conj %1 (%2)) [] fs))
+        ([x] (reduce1 #(conj %1 (%2 x)) [] fs))
+        ([x y] (reduce1 #(conj %1 (%2 x y)) [] fs))
+        ([x y z] (reduce1 #(conj %1 (%2 x y z)) [] fs))
+        ([x y z & args] (reduce1 #(conj %1 (apply %2 x y z args)) [] fs))))))
 
 
-#?(:clj (expect "#(clojure.core/list % :a)"
-                (zprint-str i268a {:style :anon-fn}))
-   :cljs (expect "#(cljs.core/list % :a)" (zprint-str i268a {:style :anon-fn})))
-					
 
-(expect
-"#(+ %1 %2)"
-(zprint-str i268b {:style :anon-fn}))
+  (def i268i '#(this % is a test this is only a test))
 
-(expect
-"(map #(* 2 %) [1 2 3])"
-(zprint-str i268c {:style :anon-fn}))
-
-(expect
-"#(println %1 %2 %&)"
-(zprint-str i268d {:style :anon-fn}))
-
-(expect
-"{:style-map\n   {:m2\n      {:fn-map {\"app\" [:force-nl-body\n                       {:list {:constant-pair-fn #(or (keyword? %)\n                                                      (string? %)\n                                                      (number? %)\n                                                      (= true %)\n                                                      (= false %)\n                                                      (vector? %)),\n                               :constant-pair-min 1},\n                        :next-inner\n                          {:list {:constant-pair-fn nil, :constant-pair-min 4},\n                           :pair {:justify? false}},\n                        :pair {:justify? true}}]}}}}"
-(zprint-str i268e {:style :anon-fn}))
-
-(expect
-"(is (= {1 :a, 2 :b} (reduce-kgv #(assoc %1 %3 %2) {} (seq {:a 1, :b 2}))))"
-(zprint-str i268f {:style :anon-fn}))
-
-(expect
-"([f g h & fs]\n (let [fs (list* f g h fs)]\n   (fn\n     ([] (reduce1 #(conj %1 (%2)) [] fs))\n     ([x] (reduce1 #(conj %1 (%2 x)) [] fs))\n     ([x y] (reduce1 #(conj %1 (%2 x y)) [] fs))\n     ([x y z] (reduce1 #(conj %1 (%2 x y z)) [] fs))\n     ([x y z & args] (reduce1 #(conj %1 (apply %2 x y z args)) [] fs)))))"
-(zprint-str i268g {:style :anon-fn}))
+  (def i268j '#(or % is a test this is only a test))
 
 
-(expect
-"#(this %\n       is\n       a\n       test\n       this\n       is\n       only\n       a\n       test)"
-(zprint-str i268i {:style :anon-fn :width 30}))
-
-(expect
-"#(or %\n     is\n     a\n     test\n     this\n     is\n     only\n     a\n     test)"
-(zprint-str i268j {:style :anon-fn :width 30}))
-
-(expect
-"#(or % is a test this is only a test)"
-(zprint-str "#(or % is a test this is only a test)" {:parse-string? true}))
-
-(expect
-"#(or % is a test this is only a test)"
-(zprint-str "#(or % is a test this is only a test)" {:parse-string? true :style :anon-fn}))
-
-(defn rev-vec
-  "Test out structure modifications for vectors."
-  ([] "rev-vec")
-  ([options n sexpr]
-   (when (= (:ztype options) :sexpr) {:new-zloc (reverse (:zloc options))})))
-
-(expect "[:a :b :c]" (zprint-str [:a :b :c]))
-
-(expect "[:c :b :a]"
-        (zprint-str [:a :b :c]
-                    {:vector {:option-fn zprint.zprint-test/rev-vec}}))
-
-(expect "[:a :b :c]"
-        (zprint-str "[:a :b :c]"
-                    {:parse-string? true,
-                     :vector {:option-fn zprint.zprint-test/rev-vec}}))
-
-(defn remove-vec
-  "Test out zipper (source) modifications for vectors."
-  ([] "remove-vec")
-  ([options n sexpr]
-   (when (= (:ztype options) :zipper)
-     (let [zloc (:zloc options)
-           zloc (z/down zloc)
-           #_(println "remove-vec" (z/string zloc))
-           new-zloc (z/right zloc)
-           new-zloc (z/remove new-zloc)
-           new-zloc (z/up new-zloc)]
-       {:new-zloc new-zloc}))))
+  #?(:clj (expect "#(clojure.core/list % :a)"
+                  (zprint-str i268a {:style :anon-fn}))
+     :cljs (expect "#(cljs.core/list % :a)"
+                   (zprint-str i268a {:style :anon-fn})))
 
 
-(expect "[:a :c]"
-        (zprint-str "[:a :b :c]"
-                    {:parse-string? true,
-                     :vector {:option-fn zprint.zprint-test/remove-vec}}))
+  (expect "#(+ %1 %2)" (zprint-str i268b {:style :anon-fn}))
 
-;;
-;; Issue #269 -- if you have a comment in a map, some of the advanced options
-;; don't work.
-;;
+  (expect "(map #(* 2 %) [1 2 3])" (zprint-str i268c {:style :anon-fn}))
 
-(expect
-";;!zprint {:map {:sort? true :key-value-options {:tasks {:map {:sort? true :justify? true}}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc  \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix   {:doc  \"Fix code formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
-(zprint-file-str
-";;!zprint {:map {:sort? true :key-value-options {:tasks {:map {:sort? true :justify? true}}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
-"x"
-{}))
+  (expect "#(println %1 %2 %&)" (zprint-str i268d {:style :anon-fn}))
 
-(expect
-";;!zprint {:map {:sort? true :key-color {:tasks :blue} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix {:doc \"Fix code formatting errors\",\n                  :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
-(zprint-file-str
-";;!zprint {:map {:sort? true :key-color {:tasks :blue} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
-"x"
-{}))
+  (expect
+    "{:style-map\n   {:m2\n      {:fn-map {\"app\" [:force-nl-body\n                       {:list {:constant-pair-fn #(or (keyword? %)\n                                                      (string? %)\n                                                      (number? %)\n                                                      (= true %)\n                                                      (= false %)\n                                                      (vector? %)),\n                               :constant-pair-min 1},\n                        :next-inner\n                          {:list {:constant-pair-fn nil, :constant-pair-min 4},\n                           :pair {:justify? false}},\n                        :pair {:justify? true}}]}}}}"
+    (zprint-str i268e {:style :anon-fn}))
 
-(expect
-";;!zprint {:map {:sort? true :key-value-color {:tasks {:keyword :blue}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix {:doc \"Fix code formatting errors\",\n                  :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
-(zprint-file-str
-";;!zprint {:map {:sort? true :key-value-color {:tasks {:keyword :blue}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
-"x"
-{}))
+  (expect
+    "(is (= {1 :a, 2 :b} (reduce-kgv #(assoc %1 %3 %2) {} (seq {:a 1, :b 2}))))"
+    (zprint-str i268f {:style :anon-fn}))
 
-;;
-;; Issue #271 -- when formatted twice with :respect-nl and :justified, it 
-;; changes the first time -- and then changes again with the second format.
-;;
-
-(def i271q
-  ";; shadow-cljs configuration\n{:source-paths :abc\n\n :builds {:mobile\n          {:devtools {:autobuild [shadow/env [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}}\n\t  \n :cache-blockers #{status-im.utils.js-resources}}\n")
+  (expect
+    "([f g h & fs]\n (let [fs (list* f g h fs)]\n   (fn\n     ([] (reduce1 #(conj %1 (%2)) [] fs))\n     ([x] (reduce1 #(conj %1 (%2 x)) [] fs))\n     ([x y] (reduce1 #(conj %1 (%2 x y)) [] fs))\n     ([x y z] (reduce1 #(conj %1 (%2 x y z)) [] fs))\n     ([x y z & args] (reduce1 #(conj %1 (apply %2 x y z args)) [] fs)))))"
+    (zprint-str i268g {:style :anon-fn}))
 
 
-(expect
-  ";; shadow-cljs configuration\n{:source-paths :abc,\n\n :builds\n   {:mobile\n      {:devtools {:autobuild [shadow/env\n                              [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}},\n\n :cache-blockers #{status-im.utils.js-resources}}\n"
-  (zprint-file-str i271q "x" {:style [:respect-nl :justified]}))
+  (expect
+    "#(this %\n       is\n       a\n       test\n       this\n       is\n       only\n       a\n       test)"
+    (zprint-str i268i {:style :anon-fn, :width 30}))
 
-;;
-;; Shouldn't change this time
-;;
+  (expect
+    "#(or %\n     is\n     a\n     test\n     this\n     is\n     only\n     a\n     test)"
+    (zprint-str i268j {:style :anon-fn, :width 30}))
 
-(expect
-  ";; shadow-cljs configuration\n{:source-paths :abc,\n\n :builds\n   {:mobile\n      {:devtools {:autobuild [shadow/env\n                              [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}},\n\n :cache-blockers #{status-im.utils.js-resources}}\n"
-  (zprint-file-str
+  (expect "#(or % is a test this is only a test)"
+          (zprint-str "#(or % is a test this is only a test)"
+                      {:parse-string? true}))
+
+  (expect "#(or % is a test this is only a test)"
+          (zprint-str "#(or % is a test this is only a test)"
+                      {:parse-string? true, :style :anon-fn}))
+
+  (defn rev-vec
+    "Test out structure modifications for vectors."
+    ([] "rev-vec")
+    ([options n sexpr]
+     (when (= (:ztype options) :sexpr) {:new-zloc (reverse (:zloc options))})))
+
+  (expect "[:a :b :c]" (zprint-str [:a :b :c]))
+
+  (expect "[:c :b :a]"
+          (zprint-str [:a :b :c]
+                      {:vector {:option-fn zprint.zprint-test/rev-vec}}))
+
+  (expect "[:a :b :c]"
+          (zprint-str "[:a :b :c]"
+                      {:parse-string? true,
+                       :vector {:option-fn zprint.zprint-test/rev-vec}}))
+
+  (defn remove-vec
+    "Test out zipper (source) modifications for vectors."
+    ([] "remove-vec")
+    ([options n sexpr]
+     (when (= (:ztype options) :zipper)
+       (let [zloc (:zloc options)
+             zloc (z/down zloc)
+             #_(println "remove-vec" (z/string zloc))
+             new-zloc (z/right zloc)
+             new-zloc (z/remove new-zloc)
+             new-zloc (z/up new-zloc)]
+         {:new-zloc new-zloc}))))
+
+
+  (expect "[:a :c]"
+          (zprint-str "[:a :b :c]"
+                      {:parse-string? true,
+                       :vector {:option-fn zprint.zprint-test/remove-vec}}))
+
+  ;;
+  ;; Issue #269 -- if you have a comment in a map, some of the advanced options
+  ;; don't work.
+  ;;
+
+  (expect
+    ";;!zprint {:map {:sort? true :key-value-options {:tasks {:map {:sort? true :justify? true}}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc  \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix   {:doc  \"Fix code formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+    (zprint-file-str
+      ";;!zprint {:map {:sort? true :key-value-options {:tasks {:map {:sort? true :justify? true}}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+      "x"
+      {}))
+
+  (expect
+    ";;!zprint {:map {:sort? true :key-color {:tasks :blue} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix {:doc \"Fix code formatting errors\",\n                  :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+    (zprint-file-str
+      ";;!zprint {:map {:sort? true :key-color {:tasks :blue} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+      "x"
+      {}))
+
+  (expect
+    ";;!zprint {:map {:sort? true :key-value-color {:tasks {:keyword :blue}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\",\n :paths [\"src/bb\"],\n :deps {local/deps {:local/root \".\"}},\n :tasks {;; Check\n         fmt-check {:doc \"Check code for formatting errors\",\n                    :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")},\n         fmt-fix {:doc \"Fix code formatting errors\",\n                  :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}},\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+    (zprint-file-str
+      ";;!zprint {:map {:sort? true :key-value-color {:tasks {:keyword :blue}} :key-order [:min-bb-version :paths :deps :tasks] :respect-bl? false}}\n{:min-bb-version \"0.10.0\"\n :paths [\"src/bb\"]\n :deps {local/deps {:local/root \".\"}}\n :tasks {\n         ;; Check\n         fmt-check\n         {:doc     \"Check code for formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-check\")}\n         fmt-fix\n         {:doc     \"Fix code formatting errors\"\n          :task (shell \"make\" \"-C\" \"..\" \"clj-format-fix\")}\n         }\n :pods {org.babashka/postgresql {:version \"0.1.1\"}}}\n"
+      "x"
+      {}))
+
+  ;;
+  ;; Issue #271 -- when formatted twice with :respect-nl and :justified, it
+  ;; changes the first time -- and then changes again with the second format.
+  ;;
+
+  (def i271q
+    ";; shadow-cljs configuration\n{:source-paths :abc\n\n :builds {:mobile\n          {:devtools {:autobuild [shadow/env [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}}\n\t  \n :cache-blockers #{status-im.utils.js-resources}}\n")
+
+
+  (expect
     ";; shadow-cljs configuration\n{:source-paths :abc,\n\n :builds\n   {:mobile\n      {:devtools {:autobuild [shadow/env\n                              [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}},\n\n :cache-blockers #{status-im.utils.js-resources}}\n"
-    "x"
-    {:style [:respect-nl :justified]}))
+    (zprint-file-str i271q "x" {:style [:respect-nl :justified]}))
 
-;;
-;; More Issue #271 problems -- in fzprint-two-up, rightcnt was wrong for
-;; things with 3 in (count pair), and a newline in there would cause different
-;; output when using :respect-nl.
-;;
+  ;;
+  ;; Shouldn't change this time
+  ;;
 
-(def i271z
-" (:multiaccount {:chain mainnet_rpc\n })\n")
+  (expect
+    ";; shadow-cljs configuration\n{:source-paths :abc,\n\n :builds\n   {:mobile\n      {:devtools {:autobuild [shadow/env\n                              [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}},\n\n :cache-blockers #{status-im.utils.js-resources}}\n"
+    (zprint-file-str
+      ";; shadow-cljs configuration\n{:source-paths :abc,\n\n :builds\n   {:mobile\n      {:devtools {:autobuild [shadow/env\n                              [\"SHADOW_AUTOBUILD_ENABLED\" :default true]]}}},\n\n :cache-blockers #{status-im.utils.js-resources}}\n"
+      "x"
+      {:style [:respect-nl :justified]}))
 
-(expect
-  "(:multiaccount {:chain\n                  mainnet_rpc\n               })\n"
-  (zprint-file-str i271z "x" {:style [:respect-nl :justified], :width 30}))
+  ;;
+  ;; More Issue #271 problems -- in fzprint-two-up, rightcnt was wrong for
+  ;; things with 3 in (count pair), and a newline in there would cause different
+  ;; output when using :respect-nl.
+  ;;
 
-(expect
-  "(:multiaccount {:chain\n                  mainnet_rpc\n               })\n"
-  (zprint-file-str
+  (def i271z " (:multiaccount {:chain mainnet_rpc\n })\n")
+
+  (expect
     "(:multiaccount {:chain\n                  mainnet_rpc\n               })\n"
-    "x"
-    {:style [:respect-nl :justified], :width 30}))
+    (zprint-file-str i271z "x" {:style [:respect-nl :justified], :width 30}))
 
-;;
-;; Issue #271 -- problems with things changing for each format operation.
-;;
-;; This just checks the old tuning: :style :original-tuning
-;;
+  (expect
+    "(:multiaccount {:chain\n                  mainnet_rpc\n               })\n"
+    (zprint-file-str
+      "(:multiaccount {:chain\n                  mainnet_rpc\n               })\n"
+      "x"
+      {:style [:respect-nl :justified], :width 30}))
 
-(expect
-"(defn print-balance\n  [xml] ;\n  (let [balance (parse xml)]\n    (letfn\n      [(transform [acc item]\n         (assoc acc\n           (separate-words (clean-key item)) (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))"
- (zprint-str    "(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                  (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"    {:parse-string? true :style :original-tuning}))
+  ;;
+  ;; Issue #271 -- problems with things changing for each format operation.
+  ;;
+  ;; This just checks the old tuning: :style :original-tuning
+  ;;
 
-;;
-;; :inline-align-style and always moving inline comments to the left
-;;
+  (expect
+    "(defn print-balance\n  [xml] ;\n  (let [balance (parse xml)]\n    (letfn\n      [(transform [acc item]\n         (assoc acc\n           (separate-words (clean-key item)) (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))"
+    (zprint-str
+      "(defn print-balance [xml]                                 ;\n  (let [balance (parse xml)]\n    (letfn [(transform [acc item]\n              (assoc acc\n                  (separate-words (clean-key item))\n                     (format-decimals (item balance))))]\n      (reduce transform {} (keys balance)))))\n"
+      {:parse-string? true, :style :original-tuning}))
 
-(expect
-"(this is ; comment\n      a\n      test)"
- (zprint-str "(this is   ; comment\n a test)" {:parse-string? true, :comment {:inline-align-style :consecutive}}))
+  ;;
+  ;; :inline-align-style and always moving inline comments to the left
+  ;;
 
-(expect
-"(this is   ; comment\n      a\n      test)"
-(zprint-str "(this is   ; comment\n a test)" {:parse-string? true, :comment {:inline-align-style :none}}))
+  (expect "(this is ; comment\n      a\n      test)"
+          (zprint-str "(this is   ; comment\n a test)"
+                      {:parse-string? true,
+                       :comment {:inline-align-style :consecutive}}))
 
-;;
-;; Issue #276 -- namespaced stuff doesn't alias right.  Missing code.
-;;
+  (expect "(this is   ; comment\n      a\n      test)"
+          (zprint-str "(this is   ; comment\n a test)"
+                      {:parse-string? true,
+                       :comment {:inline-align-style :none}}))
 
-(def i276 "(cat x y z)\n(my/cat x y z)\n(dog x y z)\n(my/dog x y z)\n")
-(expect
-"(cat x\n     y\n     z)\n(my/cat x\n        y\n        z)\n(dog x\n     y\n     z)\n(my/dog x\n        y\n        z)\n"
-(zprint-file-str i276 "x" {:fn-map {"dog" "cat"}}))
+  ;;
+  ;; Issue #276 -- namespaced stuff doesn't alias right.  Missing code.
+  ;;
 
-;;
-;; Issue #273 -- lots of changes to justification and pair handling
-;;
+  (def i276 "(cat x y z)\n(my/cat x y z)\n(dog x y z)\n(my/dog x y z)\n")
+  (expect
+    "(cat x\n     y\n     z)\n(my/cat x\n        y\n        z)\n(dog x\n     y\n     z)\n(my/dog x\n        y\n        z)\n"
+    (zprint-file-str i276 "x" {:fn-map {"dog" "cat"}}))
 
-;; :multi-lhs-hang?  - hang things after multi-line lhs things.
-;;
+  ;;
+  ;; Issue #273 -- lots of changes to justification and pair handling
+  ;;
 
-;; :binding
+  ;; :multi-lhs-hang?  - hang things after multi-line lhs things.
+  ;;
 
- (expect
-"(let [(aaaaaaaaa bbbbbbbbbb\n                 ccccccccc\n                 (ddddddddddd (eeeeeeeeeee (ffffffffffff))))\n        (stuff a b c)\n      (bother x y) (foo bar baz)])"
- (zprint-str "(let [(aaaaaaaaa bbbbbbbbbb ccccccccc (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c) (bother x y) (foo bar baz)])" {:parse-string? true :binding {:multi-lhs-hang? false}}))
+  ;; :binding
 
-(expect
-"(let [(aaaaaaaaa bbbbbbbbbb\n                 ccccccccc\n                 (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c)\n      (bother x y) (foo bar baz)])"
-(zprint-str "(let [(aaaaaaaaa bbbbbbbbbb ccccccccc (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c) (bother x y) (foo bar baz)])" {:parse-string? true :binding {:multi-lhs-hang? true}}))
+  (expect
+    "(let [(aaaaaaaaa bbbbbbbbbb\n                 ccccccccc\n                 (ddddddddddd (eeeeeeeeeee (ffffffffffff))))\n        (stuff a b c)\n      (bother x y) (foo bar baz)])"
+    (zprint-str
+      "(let [(aaaaaaaaa bbbbbbbbbb ccccccccc (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c) (bother x y) (foo bar baz)])"
+      {:parse-string? true, :binding {:multi-lhs-hang? false}}))
 
-;; :pair
+  (expect
+    "(let [(aaaaaaaaa bbbbbbbbbb\n                 ccccccccc\n                 (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c)\n      (bother x y) (foo bar baz)])"
+    (zprint-str
+      "(let [(aaaaaaaaa bbbbbbbbbb ccccccccc (ddddddddddd (eeeeeeeeeee (ffffffffffff)))) (stuff a b c) (bother x y) (foo bar baz)])"
+      {:parse-string? true, :binding {:multi-lhs-hang? true}}))
+
+  ;; :pair
 
   (expect
     "(cond (simple-check)\n        (short-function-call)\n      (and (much-more-complicated-check)\n           (an-even-longer-check-that-is-too-long))\n        (look-im-on-the-next-line)\n      :else\n        (another-short-call))"
+    (zprint-str i235
+                {:parse-string? true,
+                 :dbg? false,
+                 :pair {:flow-all-if-any? true,
+                        :justify? true,
+                        :justify {:max-variance 30},
+                        :multi-lhs-hang? false},
+                 :width 80}))
+
+  ;; :binding
+
+  (expect
+    "(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function?\n          b)     b\n        :else    c))"
+    (zprint-str pair2
+                {:parse-string? true,
+                 :dbg? false,
+                 :pair {:flow-all-if-any? true,
+                        :justify? true,
+                        :justify {:max-variance 20, :multi-lhs-overlap? true},
+                        :multi-lhs-hang? true},
+                 :width 30}))
+
+  ;; :map
+
+  (expect
+    "{:aaaa :bbbb,\n {:cccccccc :dddddddddd,\n  {:eeeeeeeeee :fffffffffffffffffffffff,\n   :ggggggggg :hhhhhhhhhhhhhh,\n   :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}"
     (zprint-str
-      i235
-      {:parse-string? true,
-       :dbg? false,
-       :pair
-         {:flow-all-if-any? true, :justify? true, :justify {:max-variance 30}
-	  :multi-lhs-hang? false},
-       :width 80}))
+      "{:aaaa :bbbb {:cccccccc :dddddddddd {:eeeeeeeeee :fffffffffffffffffffffff :ggggggggg :hhhhhhhhhhhhhh :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}"
+      {:parse-string? true, :map {:multi-lhs-hang? true}}))
+  (expect
+    "{:aaaa :bbbb,\n {:cccccccc :dddddddddd,\n  {:eeeeeeeeee :fffffffffffffffffffffff,\n   :ggggggggg :hhhhhhhhhhhhhh,\n   :iiiiiii :jjjjj}\n    :kkkkkkkkkkkkkk}\n   :lllllllll}"
+    (zprint-str
+      "{:aaaa :bbbb {:cccccccc :dddddddddd {:eeeeeeeeee :fffffffffffffffffffffff :ggggggggg :hhhhhhhhhhhhhh :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}"
+      {:parse-string? true, :map {:multi-lhs-hang? false}}))
 
-;; :binding
+  ;;
+  ;; Start of tests for more complex justification, etc.
+  ;;
 
-(expect
-"(defn pair1\n  [a b c d]\n  (cond (nil? a) a\n        (a-very-long-function?\n          b)     b\n        :else    c))"
-(zprint-str pair2 {:parse-string? true, :dbg? false, :pair {:flow-all-if-any? true, :justify? true, :justify {:max-variance 20 :multi-lhs-overlap? true} :multi-lhs-hang? true}, :width 30}))
-
-;; :map
-
-(expect
-"{:aaaa :bbbb,\n {:cccccccc :dddddddddd,\n  {:eeeeeeeeee :fffffffffffffffffffffff,\n   :ggggggggg :hhhhhhhhhhhhhh,\n   :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}"
-(zprint-str "{:aaaa :bbbb {:cccccccc :dddddddddd {:eeeeeeeeee :fffffffffffffffffffffff :ggggggggg :hhhhhhhhhhhhhh :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}" {:parse-string? true :map {:multi-lhs-hang? true}}))
-(expect
-"{:aaaa :bbbb,\n {:cccccccc :dddddddddd,\n  {:eeeeeeeeee :fffffffffffffffffffffff,\n   :ggggggggg :hhhhhhhhhhhhhh,\n   :iiiiiii :jjjjj}\n    :kkkkkkkkkkkkkk}\n   :lllllllll}"
-(zprint-str "{:aaaa :bbbb {:cccccccc :dddddddddd {:eeeeeeeeee :fffffffffffffffffffffff :ggggggggg :hhhhhhhhhhhhhh :iiiiiii :jjjjj} :kkkkkkkkkkkkkk} :lllllllll}" {:parse-string? true :map {:multi-lhs-hang? false}}))
-
-;;
-;; Start of tests for more complex justification, etc.
-;;
-
-;; Check to see that it doesn't narrow something that isn't getting justified
+  ;; Check to see that it doesn't narrow something that isn't getting justified
 
 
-(def flowtst6
-"
+  (def flowtst6
+    "
 (cond (nil? a) (list d)
       (even? b) (list c d a b)
       (this (is (something that) can) be narrowed) (and the result)
@@ -7763,22 +7815,24 @@ ser/collect-vars-acc %1 %2) )))"
                               (miser-width miser))
       (and (number? width) (nil? b))
         (clojure.pprint/write sexpr pretty true right-margin width)
-      :else (clojure.pprint/write sexpr :pretty true))"
-      )
+      :else (clojure.pprint/write sexpr :pretty true))")
 
- (expect
+  (expect
+    "(cond (nil? a)        (list d)\n      (even? b)       (list c d a b)\n      (this (is (something that) can)\n            be\n            narrowed) (and the result)\n      (whoknows? c)   (this is d)\n      (and (this needs to be pretty long to make it flow miser)\n           (list? [lots of stuff])\n           ((number? width)\n             (nil? stuff)\n             (list? (keyword?\n                      (nil? (keyword?\n                              (stuff bother\n                                     (foo bar\n                                          (this is a test (type bother))))))))))\n        (clojure.pprint/write sexpr\n                              (pretty true)\n                              (right-margin width)\n                              (miser-width miser))\n      (and (number? width) (nil? b))\n        (clojure.pprint/write sexpr pretty true right-margin width)\n      :else           (clojure.pprint/write sexpr :pretty true))"
+    (zprint-str flowtst6
+                {:parse-string? true,
+                 :style :justified,
+                 :pair {:multi-lhs-hang? true,
+                        :justify {:max-variance 20, :lhs-narrow 2.0}},
+                 #_#_:dbg-s #{:justify-result}}))
 
-"(cond (nil? a)        (list d)\n      (even? b)       (list c d a b)\n      (this (is (something that) can)\n            be\n            narrowed) (and the result)\n      (whoknows? c)   (this is d)\n      (and (this needs to be pretty long to make it flow miser)\n           (list? [lots of stuff])\n           ((number? width)\n             (nil? stuff)\n             (list? (keyword?\n                      (nil? (keyword?\n                              (stuff bother\n                                     (foo bar\n                                          (this is a test (type bother))))))))))\n        (clojure.pprint/write sexpr\n                              (pretty true)\n                              (right-margin width)\n                              (miser-width miser))\n      (and (number? width) (nil? b))\n        (clojure.pprint/write sexpr pretty true right-margin width)\n      :else           (clojure.pprint/write sexpr :pretty true))"
+  ;;
+  ;; See what happens with a bunch of lhs things that don't fit at all in the
+  ;; narrow width
+  ;;
 
- (zprint-str flowtst6 {:parse-string? true :style :justified :pair {:multi-lhs-hang? true :justify {:max-variance 20 :lhs-narrow 2.0}} #_#_:dbg-s #{:justify-result}}))
-
- ;;
- ;; See what happens with a bunch of lhs things that don't fit at all in the
- ;; narrow width
- ;;
-
-(def flowtst11
-"
+  (def flowtst11
+    "
 (cond (nil? a) (list d)
       (even? b) (list c d a b)
       this-is-a-very-long-thing-designed-to-not-fit-in (and the result)
@@ -7792,160 +7846,258 @@ ser/collect-vars-acc %1 %2) )))"
       :else (clojure.pprint/write sexpr :pretty true))
         ")
 
-(expect
-"(cond (nil? a) (list d)\n      (even? b) (list c d a b)\n      this-is-a-very-long-thing-designed-to-not-fit-in (and the result)\n      this-is-another-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-third-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-fourth-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-fifth-very-long-thing-designed-to-not-fit (and the result)\n      (whoknows? c) (this is d)\n      (and (number? width) (nil? b))\n        (clojure.pprint/write sexpr pretty true right-margin width)\n      :else (clojure.pprint/write sexpr :pretty true))"
-(zprint-str flowtst11 {:parse-string? true :style :justified :pair {:multi-lhs-hang? true :justify {:max-variance 20 :lhs-narrow 2.0}}}))
+  (expect
+    "(cond (nil? a) (list d)\n      (even? b) (list c d a b)\n      this-is-a-very-long-thing-designed-to-not-fit-in (and the result)\n      this-is-another-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-third-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-fourth-very-long-thing-designed-to-not-fit (and the result)\n      this-is-a-fifth-very-long-thing-designed-to-not-fit (and the result)\n      (whoknows? c) (this is d)\n      (and (number? width) (nil? b))\n        (clojure.pprint/write sexpr pretty true right-margin width)\n      :else (clojure.pprint/write sexpr :pretty true))"
+    (zprint-str flowtst11
+                {:parse-string? true,
+                 :style :justified,
+                 :pair {:multi-lhs-hang? true,
+                        :justify {:max-variance 20, :lhs-narrow 2.0}}}))
 
-;;
-;; #282 -- :rod-no-ma-nl test
-;;
+  ;;
+  ;; #282 -- :rod-no-ma-nl test
+  ;;
 
-(def
-i282
-"(rf/defn set-log-level\n  [{:keys [db]} log-level]\n  (let [log-level (or log-level config/log-level)]\n    {:db             (assoc-in db [:multiaccount :log-level] log-level)\n     :logs/set-level log-level}))\n")
+  (def i282
+    "(rf/defn set-log-level\n  [{:keys [db]} log-level]\n  (let [log-level (or log-level config/log-level)]\n    {:db             (assoc-in db [:multiaccount :log-level] log-level)\n     :logs/set-level log-level}))\n")
 
-(expect
-"(rf/defn set-log-level [{:keys [db]} log-level]\n  (let [log-level (or log-level config/log-level)]\n    {:db (assoc-in db [:multiaccount :log-level] log-level),\n     :logs/set-level log-level}))"
-(zprint-str i282 {:parse-string? true :style :rod-no-ma-nl}))
+  (expect
+    "(rf/defn set-log-level [{:keys [db]} log-level]\n  (let [log-level (or log-level config/log-level)]\n    {:db (assoc-in db [:multiaccount :log-level] log-level),\n     :logs/set-level log-level}))"
+    (zprint-str i282 {:parse-string? true, :style :rod-no-ma-nl}))
 
-;;
-;; Issue #273 -- multi-lhs-hang, etc. etc.
-;;
+  ;;
+  ;; Issue #273 -- multi-lhs-hang, etc. etc.
+  ;;
 
-(def
-i273mc
-"(defn pressable-hooks\n  [props]\n  (let [\n        long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n  {background-color    :bgColor\n         border-radius       :borderRadius\n         accessibility-label {:duration (animated/cond* active time-in time-out)\n\t                      :easing (:ease-in animated/easings)}\n         children            :children\n         :or                 {border-radius 0\n                              type          \"primary\"}}\n        (bean/bean props)\n        gesture-handler (animated/use-gesture state state)\n        animation (react/use-memo\n                   (fn []\n                     (animated/with-timing-transition active \n                                                      {:duration (animated/cond* active time-in time-out)\n                                                       :easing   (:ease-in animated/easings)}\n\t\t     )))\n        {:keys [background\n                foreground]}\n        (react/use-memo\n         (fn []\n           (type->animation {:type      (keyword type)\n                             :animation animation}))\n         [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler (react/callback\n                              (fn [^js evt]\n                                (let [gesture-state (-> evt\n                                                        .-nativeEvent\n                                                        .-state)]\n                                  (when (and on-press-start\n                                             (= gesture-state (:began gesture-handler/states)))\n                                    (on-press-start))\n                                  (when (and on-long-press\n                                             (= gesture-state (:active gesture-handler/states)))\n                                    (on-long-press)\n                                    (animated/set-value state (:undetermined gesture-handler/states)))))\n                              [on-long-press on-press-start])]\n    (animated/code!\n     (fn []\n       (when on-press\n         (animated/cond* (animated/eq state (:end gesture-handler/states))\n                         [(animated/set state (:undetermined gesture-handler/states))\n                          (animated/call* [] handle-press)])))\n     [on-press])\n    (reagent/as-element\n     [gesture-handler/long-press-gesture-handler\n      {:enabled                 (boolean (and on-long-press (not disabled)))\n       :on-handler-state-change long-gesture-handler\n       :min-duration-ms         long-press-duration\n       :max-dist                22\n       :ref                     long-press-ref}\n      [animated/view\n       {:accessible          true\n        :accessibility-label accessibility-label}\n       [gesture-handler/tap-gesture-handler\n        (merge gesture-handler\n               {:shouldCancelWhenOutside true\n                :wait-for                long-press-ref\n                :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                       (not disabled)))})\n        [animated/view\n         [animated/view\n          {:style (merge absolute-fill\n                         background\n                         {:background-color background-color\n                          :border-radius    border-radius\n                          :border-color     border-color\n                          :border-width     border-width})}]\n         (into [animated/view {:style foreground}]\n               (react/get-children children))]]]])\n    ))\n"
-)
-
-
-
- (expect
-"(defn pressable-hooks\n  [props]\n  (let [long-press-ref                              (react/create-ref)\n        state                                       (animated/use-value (:undetermined\n                                                                          gesture-handler/states))\n        active                                      (animated/eq state (:began gesture-handler/states))\n        {background-color :bgColor,\n         border-radius :borderRadius,\n         accessibility-label\n           {:duration (animated/cond* active\n                                      time-in\n                                      time-out),\n            :easing   (:ease-in animated/easings)},\n         children      :children,\n         :or           {border-radius 0,\n                        type \"primary\"}}            (bean/bean props)\n        gesture-handler                             (animated/use-gesture state state)\n        animation                                   (react/use-memo\n                                                      (fn []\n                                                        (animated/with-timing-transition\n                                                          active\n                                                          {:duration (animated/cond* active\n                                                                                     time-in\n                                                                                     time-out),\n                                                           :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}             (react/use-memo (fn []\n                                                                      (type->animation\n                                                                        {:type      (keyword type),\n                                                                         :animation animation}))\n                                                                    [type])\n        handle-press                                (fn [] (when on-press (on-press)))\n        long-gesture-handler                        (react/callback\n                                                      (fn [^js evt]\n                                                        (let [gesture-state (-> evt\n                                                                                .-nativeEvent\n                                                                                .-state)]\n                                                          (when (and on-press-start\n                                                                     (= gesture-state\n                                                                        (:began gesture-handler/states)))\n                                                            (on-press-start))\n                                                          (when (and on-long-press\n                                                                     (= gesture-state\n                                                                        (:active\n                                                                          gesture-handler/states)))\n                                                            (on-long-press)\n                                                            (animated/set-value\n                                                              state\n                                                              (:undetermined gesture-handler/states)))))\n                                                      [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled         (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms long-press-duration,\n        :max-dist        22,\n        :ref             long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for long-press-ref,\n                 :enabled  (boolean (and (or on-press on-long-press on-press-start) (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
- (zprint-str i273mc {:parse-string? true :binding {:justify? true :justify {:max-variance 1000 :lhs-narrow 2.0 :multi-lhs-overlap? false} :justify-tuning {:binding {:tuning {:hang-flow 5}}} :multi-lhs-hang? true} :width 105 :map {:justify? true :justify {:max-variance 20 :lhs-narrow 2.0 :multi-lhs-overlap? false}  :multi-lhs-hang? true :flow? false}}))
+  (def i273mc
+    "(defn pressable-hooks\n  [props]\n  (let [\n        long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n  {background-color    :bgColor\n         border-radius       :borderRadius\n         accessibility-label {:duration (animated/cond* active time-in time-out)\n\t                      :easing (:ease-in animated/easings)}\n         children            :children\n         :or                 {border-radius 0\n                              type          \"primary\"}}\n        (bean/bean props)\n        gesture-handler (animated/use-gesture state state)\n        animation (react/use-memo\n                   (fn []\n                     (animated/with-timing-transition active \n                                                      {:duration (animated/cond* active time-in time-out)\n                                                       :easing   (:ease-in animated/easings)}\n\t\t     )))\n        {:keys [background\n                foreground]}\n        (react/use-memo\n         (fn []\n           (type->animation {:type      (keyword type)\n                             :animation animation}))\n         [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler (react/callback\n                              (fn [^js evt]\n                                (let [gesture-state (-> evt\n                                                        .-nativeEvent\n                                                        .-state)]\n                                  (when (and on-press-start\n                                             (= gesture-state (:began gesture-handler/states)))\n                                    (on-press-start))\n                                  (when (and on-long-press\n                                             (= gesture-state (:active gesture-handler/states)))\n                                    (on-long-press)\n                                    (animated/set-value state (:undetermined gesture-handler/states)))))\n                              [on-long-press on-press-start])]\n    (animated/code!\n     (fn []\n       (when on-press\n         (animated/cond* (animated/eq state (:end gesture-handler/states))\n                         [(animated/set state (:undetermined gesture-handler/states))\n                          (animated/call* [] handle-press)])))\n     [on-press])\n    (reagent/as-element\n     [gesture-handler/long-press-gesture-handler\n      {:enabled                 (boolean (and on-long-press (not disabled)))\n       :on-handler-state-change long-gesture-handler\n       :min-duration-ms         long-press-duration\n       :max-dist                22\n       :ref                     long-press-ref}\n      [animated/view\n       {:accessible          true\n        :accessibility-label accessibility-label}\n       [gesture-handler/tap-gesture-handler\n        (merge gesture-handler\n               {:shouldCancelWhenOutside true\n                :wait-for                long-press-ref\n                :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                       (not disabled)))})\n        [animated/view\n         [animated/view\n          {:style (merge absolute-fill\n                         background\n                         {:background-color background-color\n                          :border-radius    border-radius\n                          :border-color     border-color\n                          :border-width     border-width})}]\n         (into [animated/view {:style foreground}]\n               (react/get-children children))]]]])\n    ))\n")
 
 
-(expect
-"(defn pressable-hooks\n  [props]\n  (let [long-press-ref                   (react/create-ref)\n        state                            (animated/use-value (:undetermined gesture-handler/states))\n        active                           (animated/eq state (:began gesture-handler/states))\n        {background-color :bgColor,\n         border-radius :borderRadius,\n         accessibility-label\n           {:duration (animated/cond* active\n                                      time-in\n                                      time-out),\n            :easing   (:ease-in animated/easings)},\n         children      :children,\n         :or           {border-radius 0,\n                        type \"primary\"}} (bean/bean props)\n        gesture-handler                  (animated/use-gesture state state)\n        animation                        (react/use-memo\n                                           (fn []\n                                             (animated/with-timing-transition\n                                               active\n                                               {:duration (animated/cond* active time-in time-out),\n                                                :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}  (react/use-memo (fn []\n                                                           (type->animation {:type      (keyword type),\n                                                                             :animation animation}))\n                                                         [type])\n        handle-press                     (fn [] (when on-press (on-press)))\n        long-gesture-handler             (react/callback\n                                           (fn [^js evt]\n                                             (let [gesture-state (-> evt\n                                                                     .-nativeEvent\n                                                                     .-state)]\n                                               (when (and on-press-start\n                                                          (= gesture-state\n                                                             (:began gesture-handler/states)))\n                                                 (on-press-start))\n                                               (when (and on-long-press\n                                                          (= gesture-state\n                                                             (:active gesture-handler/states)))\n                                                 (on-long-press)\n                                                 (animated/set-value state\n                                                                     (:undetermined\n                                                                       gesture-handler/states)))))\n                                           [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled         (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms long-press-duration,\n        :max-dist        22,\n        :ref             long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for long-press-ref,\n                 :enabled  (boolean (and (or on-press on-long-press on-press-start) (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
 
-(zprint-str i273mc {:parse-string? true :binding {:justify? true :justify {:max-variance 1000 :lhs-narrow 2.0 :multi-lhs-overlap? true} :justify-tuning {:binding {:tuning {:hang-flow 5}}} :multi-lhs-hang? true} :width 105 :map {:justify? true :justify {:max-variance 20 :lhs-narrow 2.0 :multi-lhs-overlap? false}  :multi-lhs-hang? true :flow? false}}))
-
-(expect
-
-"(defn pressable-hooks\n  [props]\n  (let [long-press-ref                                  (react/create-ref)\n        state                                           (animated/use-value (:undetermined\n                                                                              gesture-handler/states))\n        active                                          (animated/eq state\n                                                                     (:began gesture-handler/states))\n        {background-color    :bgColor,\n         border-radius       :borderRadius,\n         accessibility-label {:duration (animated/cond*\n                                          active\n                                          time-in\n                                          time-out),\n                              :easing\n                                (:ease-in\n                                  animated/easings)},\n         children            :children,\n         :or                 {border-radius 0,\n                              type          \"primary\"}} (bean/bean props)\n        gesture-handler                                 (animated/use-gesture state state)\n        animation                                       (react/use-memo\n                                                          (fn []\n                                                            (animated/with-timing-transition\n                                                              active\n                                                              {:duration (animated/cond* active\n                                                                                         time-in\n                                                                                         time-out),\n                                                               :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}                 (react/use-memo (fn []\n                                                                          (type->animation\n                                                                            {:type      (keyword type),\n                                                                             :animation animation}))\n                                                                        [type])\n        handle-press                                    (fn [] (when on-press (on-press)))\n        long-gesture-handler                            (react/callback\n                                                          (fn [^js evt]\n                                                            (let [gesture-state (-> evt\n                                                                                    .-nativeEvent\n                                                                                    .-state)]\n                                                              (when (and on-press-start\n                                                                         (= gesture-state\n                                                                            (:began\n                                                                              gesture-handler/states)))\n                                                                (on-press-start))\n                                                              (when (and on-long-press\n                                                                         (= gesture-state\n                                                                            (:active\n                                                                              gesture-handler/states)))\n                                                                (on-long-press)\n                                                                (animated/set-value\n                                                                  state\n                                                                  (:undetermined\n                                                                    gesture-handler/states)))))\n                                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
-
-
-(zprint-str i273mc {:parse-string? true :binding {:justify? true :justify {:max-variance 1000 :lhs-narrow 2.0 :multi-lhs-overlap? true} :justify-tuning {:binding {:tuning {:hang-flow 5}}} :multi-lhs-hang? true} :width 105 :map {:justify? true :justify {:max-variance 1000 :lhs-narrow 2.0 :multi-lhs-overlap? false}  :multi-lhs-hang? true :flow? false}}))
-
- (expect
-"(defn pressable-hooks\n  [props]\n  (let [long-press-ref                                  (react/create-ref)\n        state                                           (animated/use-value (:undetermined\n                                                                              gesture-handler/states))\n        active                                          (animated/eq state\n                                                                     (:began gesture-handler/states))\n        {background-color    :bgColor,\n         border-radius       :borderRadius,\n         accessibility-label {:duration (animated/cond*\n                                          active\n                                          time-in\n                                          time-out),\n                              :easing\n                                (:ease-in\n                                  animated/easings)},\n         children            :children,\n         :or                 {border-radius 0,\n                              type          \"primary\"}} (bean/bean props)\n        gesture-handler                                 (animated/use-gesture state state)\n        animation                                       (react/use-memo\n                                                          (fn []\n                                                            (animated/with-timing-transition\n                                                              active\n                                                              {:duration (animated/cond* active\n                                                                                         time-in\n                                                                                         time-out),\n                                                               :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}                 (react/use-memo (fn []\n                                                                          (type->animation\n                                                                            {:type      (keyword type),\n                                                                             :animation animation}))\n                                                                        [type])\n        handle-press                                    (fn [] (when on-press (on-press)))\n        long-gesture-handler                            (react/callback\n                                                          (fn [^js evt]\n                                                            (let [gesture-state (-> evt\n                                                                                    .-nativeEvent\n                                                                                    .-state)]\n                                                              (when (and on-press-start\n                                                                         (= gesture-state\n                                                                            (:began\n                                                                              gesture-handler/states)))\n                                                                (on-press-start))\n                                                              (when (and on-long-press\n                                                                         (= gesture-state\n                                                                            (:active\n                                                                              gesture-handler/states)))\n                                                                (on-long-press)\n                                                                (animated/set-value\n                                                                  state\n                                                                  (:undetermined\n                                                                    gesture-handler/states)))))\n                                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
- (zprint-str i273mc {:parse-string? true :binding {:justify? true :justify {:max-variance 1000} :justify-tuning {:binding {:tuning {:hang-flow 5}}} :multi-lhs-hang? true} :width 105 :map {:justify? true :justify {:max-variance 1000}  :multi-lhs-hang? true :flow? false}}))
-
-(expect
-"(defn pressable-hooks\n  [props]\n  (let [long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        {background-color    :bgColor,\n         border-radius       :borderRadius,\n         accessibility-label {:duration (animated/cond* active time-in time-out),\n                              :easing   (:ease-in animated/easings)},\n         children            :children,\n         :or                 {border-radius 0, type \"primary\"}} (bean/bean props)\n        gesture-handler (animated/use-gesture state state)\n        animation (react/use-memo (fn []\n                                    (animated/with-timing-transition\n                                      active\n                                      {:duration (animated/cond* active time-in time-out),\n                                       :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}\n          (react/use-memo (fn [] (type->animation {:type (keyword type), :animation animation})) [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler\n          (react/callback\n            (fn [^js evt]\n              (let [gesture-state (-> evt\n                                      .-nativeEvent\n                                      .-state)]\n                (when (and on-press-start (= gesture-state (:began gesture-handler/states)))\n                  (on-press-start))\n                (when (and on-long-press (= gesture-state (:active gesture-handler/states)))\n                  (on-long-press)\n                  (animated/set-value state (:undetermined gesture-handler/states)))))\n            [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
-(zprint-str i273mc {:parse-string? true :binding {:justify? true :justify {:max-variance 1000} :justify-tuning {:binding {:tuning {:hang-flow 4}}} :multi-lhs-hang? true} :width 105 :map {:justify? true :justify {:max-variance 1000}  :multi-lhs-hang? true :flow? false}}))
-
-
-(expect
-"(defn pressable-hooks\n  [props]\n  (let [long-press-ref                  (react/create-ref)\n        state                           (animated/use-value\n                                          (:undetermined\n                                            gesture-handler/states))\n        active                          (animated/eq state\n                                                     (:began\n                                                       gesture-handler/states))\n        {background-color :bgColor,\n         border-radius :borderRadius,\n         accessibility-label\n           {:duration (animated/cond*\n                        active\n                        time-in\n                        time-out),\n            :easing   (:ease-in\n                        animated/easings)},\n         children :children,\n         :or {border-radius 0,\n              type          \"primary\"}} (bean/bean props)\n        gesture-handler                 (animated/use-gesture state state)\n        animation                       (react/use-memo\n                                          (fn []\n                                            (animated/with-timing-transition\n                                              active\n                                              {:duration (animated/cond*\n                                                           active\n                                                           time-in\n                                                           time-out),\n                                               :easing   (:ease-in\n                                                           animated/easings)})))\n        {:keys [background foreground]} (react/use-memo\n                                          (fn []\n                                            (type->animation\n                                              {:type      (keyword type),\n                                               :animation animation}))\n                                          [type])\n        handle-press                    (fn [] (when on-press (on-press)))\n        long-gesture-handler            (react/callback\n                                          (fn [^js evt]\n                                            (let [gesture-state (->\n                                                                  evt\n                                                                  .-nativeEvent\n                                                                  .-state)]\n                                              (when\n                                                (and\n                                                  on-press-start\n                                                  (= gesture-state\n                                                     (:began\n                                                       gesture-handler/states)))\n                                                (on-press-start))\n                                              (when\n                                                (and\n                                                  on-long-press\n                                                  (= gesture-state\n                                                     (:active\n                                                       gesture-handler/states)))\n                                                (on-long-press)\n                                                (animated/set-value\n                                                  state\n                                                  (:undetermined\n                                                    gesture-handler/states)))))\n                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond*\n                          (animated/eq state (:end gesture-handler/states))\n                          [(animated/set state\n                                         (:undetermined gesture-handler/states))\n                           (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view\n        {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press\n                                                            on-long-press\n                                                            on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}]\n                (react/get-children children))]]]])))"
- (zprint-str i273mc {:parse-string? true :binding {:justify? true :justify {:max-variance 1000 :multi-lhs-overlap? true} :justify-tuning {:binding {:tuning {:hang-flow 4}}} :multi-lhs-hang? true} :width 80 :map {:justify? true :justify {:max-variance 1000}  :multi-lhs-hang? true :flow? false}}))
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [long-press-ref                              (react/create-ref)\n        state                                       (animated/use-value (:undetermined\n                                                                          gesture-handler/states))\n        active                                      (animated/eq state (:began gesture-handler/states))\n        {background-color :bgColor,\n         border-radius :borderRadius,\n         accessibility-label\n           {:duration (animated/cond* active\n                                      time-in\n                                      time-out),\n            :easing   (:ease-in animated/easings)},\n         children      :children,\n         :or           {border-radius 0,\n                        type \"primary\"}}            (bean/bean props)\n        gesture-handler                             (animated/use-gesture state state)\n        animation                                   (react/use-memo\n                                                      (fn []\n                                                        (animated/with-timing-transition\n                                                          active\n                                                          {:duration (animated/cond* active\n                                                                                     time-in\n                                                                                     time-out),\n                                                           :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}             (react/use-memo (fn []\n                                                                      (type->animation\n                                                                        {:type      (keyword type),\n                                                                         :animation animation}))\n                                                                    [type])\n        handle-press                                (fn [] (when on-press (on-press)))\n        long-gesture-handler                        (react/callback\n                                                      (fn [^js evt]\n                                                        (let [gesture-state (-> evt\n                                                                                .-nativeEvent\n                                                                                .-state)]\n                                                          (when (and on-press-start\n                                                                     (= gesture-state\n                                                                        (:began gesture-handler/states)))\n                                                            (on-press-start))\n                                                          (when (and on-long-press\n                                                                     (= gesture-state\n                                                                        (:active\n                                                                          gesture-handler/states)))\n                                                            (on-long-press)\n                                                            (animated/set-value\n                                                              state\n                                                              (:undetermined gesture-handler/states)))))\n                                                      [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled         (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms long-press-duration,\n        :max-dist        22,\n        :ref             long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for long-press-ref,\n                 :enabled  (boolean (and (or on-press on-long-press on-press-start) (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
+    (zprint-str i273mc
+                {:parse-string? true,
+                 :binding {:justify? true,
+                           :justify {:max-variance 1000,
+                                     :lhs-narrow 2.0,
+                                     :multi-lhs-overlap? false},
+                           :justify-tuning {:binding {:tuning {:hang-flow 5}}},
+                           :multi-lhs-hang? true},
+                 :width 105,
+                 :map {:justify? true,
+                       :justify {:max-variance 20,
+                                 :lhs-narrow 2.0,
+                                 :multi-lhs-overlap? false},
+                       :multi-lhs-hang? true,
+                       :flow? false}}))
 
 
-(expect
-"(defn pressable-hooks\n  [props]\n  (let [long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        {background-color    :bgColor,\n         border-radius       :borderRadius,\n         accessibility-label {:duration (animated/cond* active\n                                                        time-in\n                                                        time-out),\n                              :easing   (:ease-in animated/easings)},\n         children            :children,\n         :or                 {border-radius 0, type \"primary\"}} (bean/bean\n                                                                  props)\n        gesture-handler (animated/use-gesture state state)\n        animation (react/use-memo\n                    (fn []\n                      (animated/with-timing-transition\n                        active\n                        {:duration (animated/cond* active time-in time-out),\n                         :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}\n          (react/use-memo (fn []\n                            (type->animation {:type      (keyword type),\n                                              :animation animation}))\n                          [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler\n          (react/callback\n            (fn [^js evt]\n              (let [gesture-state (-> evt\n                                      .-nativeEvent\n                                      .-state)]\n                (when (and on-press-start\n                           (= gesture-state (:began gesture-handler/states)))\n                  (on-press-start))\n                (when (and on-long-press\n                           (= gesture-state (:active gesture-handler/states)))\n                  (on-long-press)\n                  (animated/set-value state\n                                      (:undetermined gesture-handler/states)))))\n            [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond*\n                          (animated/eq state (:end gesture-handler/states))\n                          [(animated/set state\n                                         (:undetermined gesture-handler/states))\n                           (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view\n        {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press\n                                                            on-long-press\n                                                            on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}]\n                (react/get-children children))]]]])))"
-(zprint-str i273mc {:parse-string? true :binding {:justify? true :justify {:max-variance 1000 :multi-lhs-overlap? false} :justify-tuning {:binding {:tuning {:hang-flow 4}}} :multi-lhs-hang? true} :width 80 :map {:justify? true :justify {:max-variance 1000}  :multi-lhs-hang? true :flow? false}}))
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [long-press-ref                   (react/create-ref)\n        state                            (animated/use-value (:undetermined gesture-handler/states))\n        active                           (animated/eq state (:began gesture-handler/states))\n        {background-color :bgColor,\n         border-radius :borderRadius,\n         accessibility-label\n           {:duration (animated/cond* active\n                                      time-in\n                                      time-out),\n            :easing   (:ease-in animated/easings)},\n         children      :children,\n         :or           {border-radius 0,\n                        type \"primary\"}} (bean/bean props)\n        gesture-handler                  (animated/use-gesture state state)\n        animation                        (react/use-memo\n                                           (fn []\n                                             (animated/with-timing-transition\n                                               active\n                                               {:duration (animated/cond* active time-in time-out),\n                                                :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}  (react/use-memo (fn []\n                                                           (type->animation {:type      (keyword type),\n                                                                             :animation animation}))\n                                                         [type])\n        handle-press                     (fn [] (when on-press (on-press)))\n        long-gesture-handler             (react/callback\n                                           (fn [^js evt]\n                                             (let [gesture-state (-> evt\n                                                                     .-nativeEvent\n                                                                     .-state)]\n                                               (when (and on-press-start\n                                                          (= gesture-state\n                                                             (:began gesture-handler/states)))\n                                                 (on-press-start))\n                                               (when (and on-long-press\n                                                          (= gesture-state\n                                                             (:active gesture-handler/states)))\n                                                 (on-long-press)\n                                                 (animated/set-value state\n                                                                     (:undetermined\n                                                                       gesture-handler/states)))))\n                                           [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled         (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms long-press-duration,\n        :max-dist        22,\n        :ref             long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for long-press-ref,\n                 :enabled  (boolean (and (or on-press on-long-press on-press-start) (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
+    (zprint-str i273mc
+                {:parse-string? true,
+                 :binding {:justify? true,
+                           :justify {:max-variance 1000,
+                                     :lhs-narrow 2.0,
+                                     :multi-lhs-overlap? true},
+                           :justify-tuning {:binding {:tuning {:hang-flow 5}}},
+                           :multi-lhs-hang? true},
+                 :width 105,
+                 :map {:justify? true,
+                       :justify {:max-variance 20,
+                                 :lhs-narrow 2.0,
+                                 :multi-lhs-overlap? false},
+                       :multi-lhs-hang? true,
+                       :flow? false}}))
 
-(def
-i273zb
-"(defn fzprint-two-up\n  [caller\n   {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],\n    {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color\n            key-depth-color key-value-color key-value-options justify\n\t    #_lhs-narrow multi-lhs-hang?]}\n      caller,\n    :as options} ind commas? justify-width justify-options narrow-width \n    rightmost-pair? force-flow? [lloc rloc xloc :as pair]]\n  (let [flow? (or flow? force-flow?)\n        lhang? (or one-line? hang?)\n        indent (or indent indent-arg)\n        non-justify-options options\n        options justify-options\n        lcolor\n          (if (and key-color (> (count pair) 1) (zsexpr? lloc)) \n\t    (key-color (get-sexpr options lloc)) \n\t    local-color)\n        lcolor\n        (cond (and map-depth (= caller :map) (= map 2)) :green\n                (and map-depth (= caller :map) (= map-depth 1)) :blue\n                (and map-depth (= caller :map) (= map 3)) :yellow\n                (and map-depth (= caller :map) (= map-depth 4)) :red\n                :else nil)]\n\n\t(stuff bother)))\n"
-)
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [long-press-ref                                  (react/create-ref)\n        state                                           (animated/use-value (:undetermined\n                                                                              gesture-handler/states))\n        active                                          (animated/eq state\n                                                                     (:began gesture-handler/states))\n        {background-color    :bgColor,\n         border-radius       :borderRadius,\n         accessibility-label {:duration (animated/cond*\n                                          active\n                                          time-in\n                                          time-out),\n                              :easing\n                                (:ease-in\n                                  animated/easings)},\n         children            :children,\n         :or                 {border-radius 0,\n                              type          \"primary\"}} (bean/bean props)\n        gesture-handler                                 (animated/use-gesture state state)\n        animation                                       (react/use-memo\n                                                          (fn []\n                                                            (animated/with-timing-transition\n                                                              active\n                                                              {:duration (animated/cond* active\n                                                                                         time-in\n                                                                                         time-out),\n                                                               :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}                 (react/use-memo (fn []\n                                                                          (type->animation\n                                                                            {:type      (keyword type),\n                                                                             :animation animation}))\n                                                                        [type])\n        handle-press                                    (fn [] (when on-press (on-press)))\n        long-gesture-handler                            (react/callback\n                                                          (fn [^js evt]\n                                                            (let [gesture-state (-> evt\n                                                                                    .-nativeEvent\n                                                                                    .-state)]\n                                                              (when (and on-press-start\n                                                                         (= gesture-state\n                                                                            (:began\n                                                                              gesture-handler/states)))\n                                                                (on-press-start))\n                                                              (when (and on-long-press\n                                                                         (= gesture-state\n                                                                            (:active\n                                                                              gesture-handler/states)))\n                                                                (on-long-press)\n                                                                (animated/set-value\n                                                                  state\n                                                                  (:undetermined\n                                                                    gesture-handler/states)))))\n                                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
+    (zprint-str i273mc
+                {:parse-string? true,
+                 :binding {:justify? true,
+                           :justify {:max-variance 1000,
+                                     :lhs-narrow 2.0,
+                                     :multi-lhs-overlap? true},
+                           :justify-tuning {:binding {:tuning {:hang-flow 5}}},
+                           :multi-lhs-hang? true},
+                 :width 105,
+                 :map {:justify? true,
+                       :justify {:max-variance 1000,
+                                 :lhs-narrow 2.0,
+                                 :multi-lhs-overlap? false},
+                       :multi-lhs-hang? true,
+                       :flow? false}}))
 
- (expect
-"(defn fzprint-two-up\n  [caller\n   {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],\n    {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color\n            key-depth-color key-value-color key-value-options justify\n            #_lhs-narrow multi-lhs-hang?]} caller,\n    :as   options} ind commas? justify-width justify-options narrow-width\n   rightmost-pair? force-flow? [lloc rloc xloc :as pair]]\n  (let [flow?   (or flow? force-flow?)\n        lhang?  (or one-line? hang?)\n        indent  (or indent indent-arg)\n        non-justify-options options\n        options justify-options\n        lcolor  (if (and key-color (> (count pair) 1) (zsexpr? lloc))\n                  (key-color (get-sexpr options lloc))\n                  local-color)\n        lcolor  (cond (and map-depth (= caller :map) (= map 2))       :green\n                      (and map-depth (= caller :map) (= map-depth 1)) :blue\n                      (and map-depth (= caller :map) (= map 3))       :yellow\n                      (and map-depth (= caller :map) (= map-depth 4)) :red\n                      :else                                           nil)]\n    (stuff bother)))"
- (zprint-str i273zb {:parse-string? true :style [:justified :multi-lhs-hang]}))
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [long-press-ref                                  (react/create-ref)\n        state                                           (animated/use-value (:undetermined\n                                                                              gesture-handler/states))\n        active                                          (animated/eq state\n                                                                     (:began gesture-handler/states))\n        {background-color    :bgColor,\n         border-radius       :borderRadius,\n         accessibility-label {:duration (animated/cond*\n                                          active\n                                          time-in\n                                          time-out),\n                              :easing\n                                (:ease-in\n                                  animated/easings)},\n         children            :children,\n         :or                 {border-radius 0,\n                              type          \"primary\"}} (bean/bean props)\n        gesture-handler                                 (animated/use-gesture state state)\n        animation                                       (react/use-memo\n                                                          (fn []\n                                                            (animated/with-timing-transition\n                                                              active\n                                                              {:duration (animated/cond* active\n                                                                                         time-in\n                                                                                         time-out),\n                                                               :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}                 (react/use-memo (fn []\n                                                                          (type->animation\n                                                                            {:type      (keyword type),\n                                                                             :animation animation}))\n                                                                        [type])\n        handle-press                                    (fn [] (when on-press (on-press)))\n        long-gesture-handler                            (react/callback\n                                                          (fn [^js evt]\n                                                            (let [gesture-state (-> evt\n                                                                                    .-nativeEvent\n                                                                                    .-state)]\n                                                              (when (and on-press-start\n                                                                         (= gesture-state\n                                                                            (:began\n                                                                              gesture-handler/states)))\n                                                                (on-press-start))\n                                                              (when (and on-long-press\n                                                                         (= gesture-state\n                                                                            (:active\n                                                                              gesture-handler/states)))\n                                                                (on-long-press)\n                                                                (animated/set-value\n                                                                  state\n                                                                  (:undetermined\n                                                                    gesture-handler/states)))))\n                                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
+    (zprint-str i273mc
+                {:parse-string? true,
+                 :binding {:justify? true,
+                           :justify {:max-variance 1000},
+                           :justify-tuning {:binding {:tuning {:hang-flow 5}}},
+                           :multi-lhs-hang? true},
+                 :width 105,
+                 :map {:justify? true,
+                       :justify {:max-variance 1000},
+                       :multi-lhs-hang? true,
+                       :flow? false}}))
 
- (def
- i273x
-"       (cond (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n              :else (conj out line-length))\n\n")
-
- (expect
-"(cond (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      :else                         (conj out line-length))"
- (zprint-str i273x {:parse-string? true :style [:justified-original :multi-lhs-hang] :width 70}))
-
-(expect
-"(cond (and (zero? line-length) (not previous-comment?)) out\n      previous-comment? (conj out line-length 0)\n      :else (conj out line-length))"
-(zprint-str i273x {:parse-string? true :style [:justified-original ] :width 70}))
-
-
-(def
-i273xa
-"       (cond \n       (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n       (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n       (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n       (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n              :else (conj out line-length))\n\n")
-
-
- (expect
-"(cond (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      :else                         (conj out line-length))"
- (zprint-str i273xa {:parse-string? true :style [:justified-original :multi-lhs-hang] :width 70}))
-
-(def
-bnd1
-"(let [[this is a test this is only a test] stuff\n        bother foo\n\tbar baz]\n    (result-that\n    is-pretty-long\n    so-it does not fit))")
-
-(expect
-"(let [[this is a test this is only a test] stuff\n      bother                               foo\n      bar                                  baz]\n  (result-that is-pretty-long so-it does not fit))"
-(zprint-str bnd1 {:parse-string? true  :binding {:justify? true :justify {:max-variance 1000 :lhs-narrow 10} :multi-lhs-hang? true}}))
-
-
-(expect
-"(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third                           (nth sexpr 2 nil)\n           fourth                          (nth sexpr 3 nil)\n           fifth                           (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string?\n                                                        third)\n                                                      (keyword?\n                                                        fourth)) [third fourth\n                                                                  fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword?\n                                                   third)        [nil third\n                                                                  fourth]\n                                                 :else           [nil nil nil])\n           guide                           (cond-> [:element :element-best\n                                                    :newline]\n                                             docstring (conj :element :newline)\n                                             option\n                                               (conj :element :element :newline)\n                                             :else (conj\n                                                     :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
-(zprint-str dpg {:parse-string? true, :pair {:justify {:max-variance 1000 :lhs-narrow 2} :multi-lhs-hang? true}, :binding {:justify {:max-variance 1000 :lhs-narrow 1} :multi-lhs-hang? true}, :style :justified}))
-
-
- (def
- i273m
-"(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor\n         border-radius       :borderRadius\n         border-color        :borderColor\n         border-width        :borderWidth\n         type                :type\n         disabled            :disabled\n         on-press            :onPress\n         on-long-press       :onLongPress\n         on-press-start      :onPressStart\n         accessibility-label :accessibilityLabel\n         children            :children\n         :or                 {border-radius 0\n                              type          \"primary\"}}\n        (bean/bean props)\n        long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        gesture-handler (animated/use-gesture state state)\n        animation (react/use-memo\n                   (fn []\n                     (animated/with-timing-transition active \n                                                      {:duration (animated/cond* active time-in time-out)\n                                                       :easing   (:ease-in animated/easings)}\n\t\t     )))\n        {:keys [background\n                foreground]}\n        (react/use-memo\n         (fn []\n           (type->animation {:type      (keyword type)\n                             :animation animation}))\n         [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler (react/callback\n                              (fn [^js evt]\n                                (let [gesture-state (-> evt\n                                                        .-nativeEvent\n                                                        .-state)]\n                                  (when (and on-press-start\n                                             (= gesture-state (:began gesture-handler/states)))\n                                    (on-press-start))\n                                  (when (and on-long-press\n                                             (= gesture-state (:active gesture-handler/states)))\n                                    (on-long-press)\n                                    (animated/set-value state (:undetermined gesture-handler/states)))))\n                              [on-long-press on-press-start])]\n    (animated/code!\n     (fn []\n       (when on-press\n         (animated/cond* (animated/eq state (:end gesture-handler/states))\n                         [(animated/set state (:undetermined gesture-handler/states))\n                          (animated/call* [] handle-press)])))\n     [on-press])\n    (reagent/as-element\n     [gesture-handler/long-press-gesture-handler\n      {:enabled                 (boolean (and on-long-press (not disabled)))\n       :on-handler-state-change long-gesture-handler\n       :min-duration-ms         long-press-duration\n       :max-dist                22\n       :ref                     long-press-ref}\n      [animated/view\n       {:accessible          true\n        :accessibility-label accessibility-label}\n       [gesture-handler/tap-gesture-handler\n        (merge gesture-handler\n               {:shouldCancelWhenOutside true\n                :wait-for                long-press-ref\n                :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                       (not disabled)))})\n        [animated/view\n         [animated/view\n          {:style (merge absolute-fill\n                         background\n                         {:background-color background-color\n                          :border-radius    border-radius\n                          :border-color     border-color\n                          :border-width     border-width})}]\n         (into [animated/view {:style foreground}]\n               (react/get-children children))]]]])\n    ))\n")
-
-(expect
-"(defn pressable-hooks\n  [props]\n  (let [{background-color :bgColor,\n         border-radius :borderRadius,\n         border-color :borderColor,\n         border-width :borderWidth,\n         type :type,\n         disabled :disabled,\n         on-press :onPress,\n         on-long-press :onLongPress,\n         on-press-start :onPressStart,\n         accessibility-label\n           :accessibilityLabel,\n         children :children,\n         :or {border-radius 0,\n              type          \"primary\"}} (bean/bean props)\n        long-press-ref                  (react/create-ref)\n        state                           (animated/use-value\n                                          (:undetermined\n                                            gesture-handler/states))\n        active                          (animated/eq state\n                                                     (:began\n                                                       gesture-handler/states))\n        gesture-handler                 (animated/use-gesture state state)\n        animation                       (react/use-memo\n                                          (fn []\n                                            (animated/with-timing-transition\n                                              active\n                                              {:duration (animated/cond*\n                                                           active\n                                                           time-in\n                                                           time-out),\n                                               :easing   (:ease-in\n                                                           animated/easings)})))\n        {:keys [background foreground]} (react/use-memo\n                                          (fn []\n                                            (type->animation\n                                              {:type      (keyword type),\n                                               :animation animation}))\n                                          [type])\n        handle-press                    (fn [] (when on-press (on-press)))\n        long-gesture-handler            (react/callback\n                                          (fn [^js evt]\n                                            (let [gesture-state (->\n                                                                  evt\n                                                                  .-nativeEvent\n                                                                  .-state)]\n                                              (when\n                                                (and\n                                                  on-press-start\n                                                  (= gesture-state\n                                                     (:began\n                                                       gesture-handler/states)))\n                                                (on-press-start))\n                                              (when\n                                                (and\n                                                  on-long-press\n                                                  (= gesture-state\n                                                     (:active\n                                                       gesture-handler/states)))\n                                                (on-long-press)\n                                                (animated/set-value\n                                                  state\n                                                  (:undetermined\n                                                    gesture-handler/states)))))\n                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond*\n                          (animated/eq state (:end gesture-handler/states))\n                          [(animated/set state\n                                         (:undetermined gesture-handler/states))\n                           (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view\n        {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press\n                                                            on-long-press\n                                                            on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}]\n                (react/get-children children))]]]])))"
-(zprint-str i273m {:parse-string? true :style [:justified-original :multi-lhs-hang]}))
-
-
- (def
- i273g
-"(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor\n         border-radius       :borderRadius\n         border-color        :borderColor\n         border-width        :borderWidth\n         type                :type\n         disabled            :disabled\n         on-press            :onPress\n         on-long-press       :onLongPress\n         on-press-start      :onPressStart\n         accessibility-label :accessibilityLabel\n         children            :children\n         :or                 {border-radius 0\n                              type          \"primary\"}}\n        (bean/bean props)\n        long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        gesture-handler (animated/use-gesture {:state state})\n        animation (react/use-memo\n                   (fn []\n                     (animated/with-timing-transition active\n                                                      {:duration (animated/cond* active time-in time-out)\n                                                       :easing   (:ease-in animated/easings)}\n\t\t\t\t\t\t       ))\n                   [])\n        {:keys [background\n                foreground]}\n        (react/use-memo\n         (fn []\n           (type->animation {:type      (keyword type)\n                             :animation animation}))\n         [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler (react/callback\n                              (fn [^js evt]\n                                (let [gesture-state (-> evt\n                                                        .-nativeEvent\n                                                        .-state)]\n                                  (when (and on-press-start\n                                             (= gesture-state (:began gesture-handler/states)))\n                                    (on-press-start))\n                                  (when (and on-long-press\n                                             (= gesture-state (:active gesture-handler/states)))\n                                    (on-long-press)\n                                    (animated/set-value state (:undetermined gesture-handler/states)))))\n                              [on-long-press on-press-start])]\n    (animated/code!\n     (fn []\n       (when on-press\n         (animated/cond* (animated/eq state (:end gesture-handler/states))\n                         [(animated/set state (:undetermined gesture-handler/states))\n                          (animated/call* [] handle-press)])))\n     [on-press])\n    (reagent/as-element\n     [gesture-handler/long-press-gesture-handler\n      {:enabled                 (boolean (and on-long-press (not disabled)))\n       :on-handler-state-change long-gesture-handler\n       :min-duration-ms         long-press-duration\n       :max-dist                22\n       :ref                     long-press-ref}\n      [animated/view\n       {:accessible          true\n        :accessibility-label accessibility-label}\n       [gesture-handler/tap-gesture-handler\n        (merge gesture-handler\n               {:shouldCancelWhenOutside true\n                :wait-for                long-press-ref\n                :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                       (not disabled)))})\n        [animated/view\n         [animated/view\n          {:style (merge absolute-fill\n                         background\n                         {:background-color background-color\n                          :border-radius    border-radius\n                          :border-color     border-color\n                          :border-width     border-width})}]\n         (into [animated/view {:style foreground}]\n               (react/get-children children))]]]])\n\t       ))\n")
-(expect
-"(defn pressable-hooks\n  [props]\n  (let [{background-color :bgColor,\n         border-radius :borderRadius,\n         border-color :borderColor,\n         border-width :borderWidth,\n         type :type,\n         disabled :disabled,\n         on-press :onPress,\n         on-long-press :onLongPress,\n         on-press-start :onPressStart,\n         accessibility-label\n           :accessibilityLabel,\n         children :children,\n         :or {border-radius 0,\n              type          \"primary\"}} (bean/bean props)\n        long-press-ref                  (react/create-ref)\n        state                           (animated/use-value\n                                          (:undetermined\n                                            gesture-handler/states))\n        active                          (animated/eq state\n                                                     (:began\n                                                       gesture-handler/states))\n        gesture-handler                 (animated/use-gesture {:state state})\n        animation                       (react/use-memo\n                                          (fn []\n                                            (animated/with-timing-transition\n                                              active\n                                              {:duration (animated/cond*\n                                                           active\n                                                           time-in\n                                                           time-out),\n                                               :easing   (:ease-in\n                                                           animated/easings)}))\n                                          [])\n        {:keys [background foreground]} (react/use-memo\n                                          (fn []\n                                            (type->animation\n                                              {:type      (keyword type),\n                                               :animation animation}))\n                                          [type])\n        handle-press                    (fn [] (when on-press (on-press)))\n        long-gesture-handler            (react/callback\n                                          (fn [^js evt]\n                                            (let [gesture-state (->\n                                                                  evt\n                                                                  .-nativeEvent\n                                                                  .-state)]\n                                              (when\n                                                (and\n                                                  on-press-start\n                                                  (= gesture-state\n                                                     (:began\n                                                       gesture-handler/states)))\n                                                (on-press-start))\n                                              (when\n                                                (and\n                                                  on-long-press\n                                                  (= gesture-state\n                                                     (:active\n                                                       gesture-handler/states)))\n                                                (on-long-press)\n                                                (animated/set-value\n                                                  state\n                                                  (:undetermined\n                                                    gesture-handler/states)))))\n                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond*\n                          (animated/eq state (:end gesture-handler/states))\n                          [(animated/set state\n                                         (:undetermined gesture-handler/states))\n                           (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view\n        {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press\n                                                            on-long-press\n                                                            on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}]\n                (react/get-children children))]]]])))"
-(zprint-str i273g {:parse-string? true :style [:justified-original :multi-lhs-hang]}))
-
-(def
-alc
-"(this is a test)\n(s/def ::cache-path (s/nilable string?))   ; debugging only\n(this is still a test)")
-(expect
-"(this is a test)\n(s/def ::cache-path (s/nilable string?))   ; debugging only\n(this is still a test)"
-(zprint-file-str alc "x" {}))
-
- (def
- i273g
-"(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor\n         border-radius       :borderRadius\n         border-color        :borderColor\n         border-width        :borderWidth\n         type                :type\n         disabled            :disabled\n         on-press            :onPress\n         on-long-press       :onLongPress\n         on-press-start      :onPressStart\n         accessibility-label :accessibilityLabel\n         children            :children\n         :or                 {border-radius 0\n                              type          \"primary\"}}\n        (bean/bean props)\n        long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        gesture-handler (animated/use-gesture {:state state})\n        animation (react/use-memo\n                   (fn []\n                     (animated/with-timing-transition active\n                                                      {:duration (animated/cond* active time-in time-out)\n                                                       :easing   (:ease-in animated/easings)}\n\t\t\t\t\t\t       ))\n                   [])\n        {:keys [background\n                foreground]}\n        (react/use-memo\n         (fn []\n           (type->animation {:type      (keyword type)\n                             :animation animation}))\n         [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler (react/callback\n                              (fn [^js evt]\n                                (let [gesture-state (-> evt\n                                                        .-nativeEvent\n                                                        .-state)]\n                                  (when (and on-press-start\n                                             (= gesture-state (:began gesture-handler/states)))\n                                    (on-press-start))\n                                  (when (and on-long-press\n                                             (= gesture-state (:active gesture-handler/states)))\n                                    (on-long-press)\n                                    (animated/set-value state (:undetermined gesture-handler/states)))))\n                              [on-long-press on-press-start])]\n    (animated/code!\n     (fn []\n       (when on-press\n         (animated/cond* (animated/eq state (:end gesture-handler/states))\n                         [(animated/set state (:undetermined gesture-handler/states))\n                          (animated/call* [] handle-press)])))\n     [on-press])\n    (reagent/as-element\n     [gesture-handler/long-press-gesture-handler\n      {:enabled                 (boolean (and on-long-press (not disabled)))\n       :on-handler-state-change long-gesture-handler\n       :min-duration-ms         long-press-duration\n       :max-dist                22\n       :ref                     long-press-ref}\n      [animated/view\n       {:accessible          true\n        :accessibility-label accessibility-label}\n       [gesture-handler/tap-gesture-handler\n        (merge gesture-handler\n               {:shouldCancelWhenOutside true\n                :wait-for                long-press-ref\n                :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                       (not disabled)))})\n        [animated/view\n         [animated/view\n          {:style (merge absolute-fill\n                         background\n                         {:background-color background-color\n                          :border-radius    border-radius\n                          :border-color     border-color\n                          :border-width     border-width})}]\n         (into [animated/view {:style foreground}]\n               (react/get-children children))]]]])\n\t       ))\n")
-
-(expect
-"(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor,\n         border-radius       :borderRadius,\n         border-color        :borderColor,\n         border-width        :borderWidth,\n         type                :type,\n         disabled            :disabled,\n         on-press            :onPress,\n         on-long-press       :onLongPress,\n         on-press-start      :onPressStart,\n         accessibility-label :accessibilityLabel,\n         children            :children,\n         :or                 {border-radius 0,\n                              type          \"primary\"}} (bean/bean props)\n        long-press-ref                                  (react/create-ref)\n        state                                           (animated/use-value (:undetermined\n                                                                              gesture-handler/states))\n        active                                          (animated/eq state\n                                                                     (:began gesture-handler/states))\n        gesture-handler                                 (animated/use-gesture {:state state})\n        animation                                       (react/use-memo\n                                                          (fn []\n                                                            (animated/with-timing-transition\n                                                              active\n                                                              {:duration (animated/cond* active\n                                                                                         time-in\n                                                                                         time-out),\n                                                               :easing   (:ease-in animated/easings)}))\n                                                          [])\n        {:keys [background foreground]}                 (react/use-memo (fn []\n                                                                          (type->animation\n                                                                            {:type      (keyword type),\n                                                                             :animation animation}))\n                                                                        [type])\n        handle-press                                    (fn [] (when on-press (on-press)))\n        long-gesture-handler                            (react/callback\n                                                          (fn [^js evt]\n                                                            (let [gesture-state (-> evt\n                                                                                    .-nativeEvent\n                                                                                    .-state)]\n                                                              (when (and on-press-start\n                                                                         (= gesture-state\n                                                                            (:began\n                                                                              gesture-handler/states)))\n                                                                (on-press-start))\n                                                              (when (and on-long-press\n                                                                         (= gesture-state\n                                                                            (:active\n                                                                              gesture-handler/states)))\n                                                                (on-long-press)\n                                                                (animated/set-value\n                                                                  state\n                                                                  (:undetermined\n                                                                    gesture-handler/states)))))\n                                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
-(zprint-str i273g {:parse-string? true :style [:justified-original :multi-lhs-hang] :width 105 :binding {:justify-tuning {:binding {:tuning {:hang-flow 5}}}}}))
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        {background-color    :bgColor,\n         border-radius       :borderRadius,\n         accessibility-label {:duration (animated/cond* active time-in time-out),\n                              :easing   (:ease-in animated/easings)},\n         children            :children,\n         :or                 {border-radius 0, type \"primary\"}} (bean/bean props)\n        gesture-handler (animated/use-gesture state state)\n        animation (react/use-memo (fn []\n                                    (animated/with-timing-transition\n                                      active\n                                      {:duration (animated/cond* active time-in time-out),\n                                       :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}\n          (react/use-memo (fn [] (type->animation {:type (keyword type), :animation animation})) [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler\n          (react/callback\n            (fn [^js evt]\n              (let [gesture-state (-> evt\n                                      .-nativeEvent\n                                      .-state)]\n                (when (and on-press-start (= gesture-state (:began gesture-handler/states)))\n                  (on-press-start))\n                (when (and on-long-press (= gesture-state (:active gesture-handler/states)))\n                  (on-long-press)\n                  (animated/set-value state (:undetermined gesture-handler/states)))))\n            [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
+    (zprint-str i273mc
+                {:parse-string? true,
+                 :binding {:justify? true,
+                           :justify {:max-variance 1000},
+                           :justify-tuning {:binding {:tuning {:hang-flow 4}}},
+                           :multi-lhs-hang? true},
+                 :width 105,
+                 :map {:justify? true,
+                       :justify {:max-variance 1000},
+                       :multi-lhs-hang? true,
+                       :flow? false}}))
 
 
-;;
-;; Issue #261 and others -- regex recognition for fn-map
-;;
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [long-press-ref                  (react/create-ref)\n        state                           (animated/use-value\n                                          (:undetermined\n                                            gesture-handler/states))\n        active                          (animated/eq state\n                                                     (:began\n                                                       gesture-handler/states))\n        {background-color :bgColor,\n         border-radius :borderRadius,\n         accessibility-label\n           {:duration (animated/cond*\n                        active\n                        time-in\n                        time-out),\n            :easing   (:ease-in\n                        animated/easings)},\n         children :children,\n         :or {border-radius 0,\n              type          \"primary\"}} (bean/bean props)\n        gesture-handler                 (animated/use-gesture state state)\n        animation                       (react/use-memo\n                                          (fn []\n                                            (animated/with-timing-transition\n                                              active\n                                              {:duration (animated/cond*\n                                                           active\n                                                           time-in\n                                                           time-out),\n                                               :easing   (:ease-in\n                                                           animated/easings)})))\n        {:keys [background foreground]} (react/use-memo\n                                          (fn []\n                                            (type->animation\n                                              {:type      (keyword type),\n                                               :animation animation}))\n                                          [type])\n        handle-press                    (fn [] (when on-press (on-press)))\n        long-gesture-handler            (react/callback\n                                          (fn [^js evt]\n                                            (let [gesture-state (->\n                                                                  evt\n                                                                  .-nativeEvent\n                                                                  .-state)]\n                                              (when\n                                                (and\n                                                  on-press-start\n                                                  (= gesture-state\n                                                     (:began\n                                                       gesture-handler/states)))\n                                                (on-press-start))\n                                              (when\n                                                (and\n                                                  on-long-press\n                                                  (= gesture-state\n                                                     (:active\n                                                       gesture-handler/states)))\n                                                (on-long-press)\n                                                (animated/set-value\n                                                  state\n                                                  (:undetermined\n                                                    gesture-handler/states)))))\n                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond*\n                          (animated/eq state (:end gesture-handler/states))\n                          [(animated/set state\n                                         (:undetermined gesture-handler/states))\n                           (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view\n        {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press\n                                                            on-long-press\n                                                            on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}]\n                (react/get-children children))]]]])))"
+    (zprint-str i273mc
+                {:parse-string? true,
+                 :binding {:justify? true,
+                           :justify {:max-variance 1000,
+                                     :multi-lhs-overlap? true},
+                           :justify-tuning {:binding {:tuning {:hang-flow 4}}},
+                           :multi-lhs-hang? true},
+                 :width 80,
+                 :map {:justify? true,
+                       :justify {:max-variance 1000},
+                       :multi-lhs-hang? true,
+                       :flow? false}}))
 
- (def
- are12a
-"\n(deftest t-parsing-auto-resolve-keywords\n  (are-mine [?s ?sexpr-default ?sexpr-custom]\n       (let [n (p/parse-string ?s)]\n         (is (= :token (node/tag n)))\n         (is (= ?s (node/string n)))\n         (is (= ?sexpr-default (node/sexpr n)))\n         (is (= ?sexpr-custom (node/sexpr n {:auto-resolve #(if (= :current %)\n                                                              'my.current.ns\n                                                              (get {'xyz 'my.aliased.ns} % 'alias-unresolved))}))))\n    \"::key\"        :?_current-ns_?/key    :my.current.ns/key\n    \"::xyz/key\"    :??_xyz_??/key         :my.aliased.ns/key))\n    ")
 
-(expect
-"(deftest t-parsing-auto-resolve-keywords\n  (are-mine [?s ?sexpr-default ?sexpr-custom]\n    (let [n (p/parse-string ?s)]\n      (is (= :token (node/tag n)))\n      (is (= ?s (node/string n)))\n      (is (= ?sexpr-default (node/sexpr n)))\n      (is (= ?sexpr-custom\n             (node/sexpr n\n                         {:auto-resolve #(if (= :current %)\n                                           'my.current.ns\n                                           (get {'xyz 'my.aliased.ns}\n                                                %\n                                                'alias-unresolved))}))))\n    \"::key\"     :?_current-ns_?/key :my.current.ns/key\n    \"::xyz/key\" :??_xyz_??/key      :my.aliased.ns/key))"
-(zprint-str are12a {:parse-string? true :style :regex-example}))
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        {background-color    :bgColor,\n         border-radius       :borderRadius,\n         accessibility-label {:duration (animated/cond* active\n                                                        time-in\n                                                        time-out),\n                              :easing   (:ease-in animated/easings)},\n         children            :children,\n         :or                 {border-radius 0, type \"primary\"}} (bean/bean\n                                                                  props)\n        gesture-handler (animated/use-gesture state state)\n        animation (react/use-memo\n                    (fn []\n                      (animated/with-timing-transition\n                        active\n                        {:duration (animated/cond* active time-in time-out),\n                         :easing   (:ease-in animated/easings)})))\n        {:keys [background foreground]}\n          (react/use-memo (fn []\n                            (type->animation {:type      (keyword type),\n                                              :animation animation}))\n                          [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler\n          (react/callback\n            (fn [^js evt]\n              (let [gesture-state (-> evt\n                                      .-nativeEvent\n                                      .-state)]\n                (when (and on-press-start\n                           (= gesture-state (:began gesture-handler/states)))\n                  (on-press-start))\n                (when (and on-long-press\n                           (= gesture-state (:active gesture-handler/states)))\n                  (on-long-press)\n                  (animated/set-value state\n                                      (:undetermined gesture-handler/states)))))\n            [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond*\n                          (animated/eq state (:end gesture-handler/states))\n                          [(animated/set state\n                                         (:undetermined gesture-handler/states))\n                           (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view\n        {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press\n                                                            on-long-press\n                                                            on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}]\n                (react/get-children children))]]]])))"
+    (zprint-str i273mc
+                {:parse-string? true,
+                 :binding {:justify? true,
+                           :justify {:max-variance 1000,
+                                     :multi-lhs-overlap? false},
+                           :justify-tuning {:binding {:tuning {:hang-flow 4}}},
+                           :multi-lhs-hang? true},
+                 :width 80,
+                 :map {:justify? true,
+                       :justify {:max-variance 1000},
+                       :multi-lhs-hang? true,
+                       :flow? false}}))
+
+  (def i273zb
+    "(defn fzprint-two-up\n  [caller\n   {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],\n    {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color\n            key-depth-color key-value-color key-value-options justify\n\t    #_lhs-narrow multi-lhs-hang?]}\n      caller,\n    :as options} ind commas? justify-width justify-options narrow-width \n    rightmost-pair? force-flow? [lloc rloc xloc :as pair]]\n  (let [flow? (or flow? force-flow?)\n        lhang? (or one-line? hang?)\n        indent (or indent indent-arg)\n        non-justify-options options\n        options justify-options\n        lcolor\n          (if (and key-color (> (count pair) 1) (zsexpr? lloc)) \n\t    (key-color (get-sexpr options lloc)) \n\t    local-color)\n        lcolor\n        (cond (and map-depth (= caller :map) (= map 2)) :green\n                (and map-depth (= caller :map) (= map-depth 1)) :blue\n                (and map-depth (= caller :map) (= map 3)) :yellow\n                (and map-depth (= caller :map) (= map-depth 4)) :red\n                :else nil)]\n\n\t(stuff bother)))\n")
+
+  (expect
+    "(defn fzprint-two-up\n  [caller\n   {:keys [one-line? dbg? dbg-indent in-hang? do-in-hang? map-depth],\n    {:keys [hang? dbg-local? dbg-cnt? indent indent-arg flow? key-color\n            key-depth-color key-value-color key-value-options justify\n            #_lhs-narrow multi-lhs-hang?]} caller,\n    :as   options} ind commas? justify-width justify-options narrow-width\n   rightmost-pair? force-flow? [lloc rloc xloc :as pair]]\n  (let [flow?   (or flow? force-flow?)\n        lhang?  (or one-line? hang?)\n        indent  (or indent indent-arg)\n        non-justify-options options\n        options justify-options\n        lcolor  (if (and key-color (> (count pair) 1) (zsexpr? lloc))\n                  (key-color (get-sexpr options lloc))\n                  local-color)\n        lcolor  (cond (and map-depth (= caller :map) (= map 2))       :green\n                      (and map-depth (= caller :map) (= map-depth 1)) :blue\n                      (and map-depth (= caller :map) (= map 3))       :yellow\n                      (and map-depth (= caller :map) (= map-depth 4)) :red\n                      :else                                           nil)]\n    (stuff bother)))"
+    (zprint-str i273zb
+                {:parse-string? true, :style [:justified :multi-lhs-hang]}))
+
+  (def i273x
+    "       (cond (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n              :else (conj out line-length))\n\n")
+
+  (expect
+    "(cond (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      :else                         (conj out line-length))"
+    (zprint-str i273x
+                {:parse-string? true,
+                 :style [:justified-original :multi-lhs-hang],
+                 :width 70}))
+
+  (expect
+    "(cond (and (zero? line-length) (not previous-comment?)) out\n      previous-comment? (conj out line-length 0)\n      :else (conj out line-length))"
+    (zprint-str i273x
+                {:parse-string? true, :style [:justified-original], :width 70}))
 
 
-(def sooox
-"(defn ooox
+  (def i273xa
+    "       (cond \n       (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n       (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n       (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n       (and (zero? line-length) (not previous-comment?)) out\n              previous-comment? (conj out line-length 0)\n              :else (conj out line-length))\n\n")
+
+
+  (expect
+    "(cond (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      (and (zero? line-length)\n           (not previous-comment?)) out\n      previous-comment?             (conj out line-length 0)\n      :else                         (conj out line-length))"
+    (zprint-str i273xa
+                {:parse-string? true,
+                 :style [:justified-original :multi-lhs-hang],
+                 :width 70}))
+
+  (def bnd1
+    "(let [[this is a test this is only a test] stuff\n        bother foo\n\tbar baz]\n    (result-that\n    is-pretty-long\n    so-it does not fit))")
+
+  (expect
+    "(let [[this is a test this is only a test] stuff\n      bother                               foo\n      bar                                  baz]\n  (result-that is-pretty-long so-it does not fit))"
+    (zprint-str bnd1
+                {:parse-string? true,
+                 :binding {:justify? true,
+                           :justify {:max-variance 1000, :lhs-narrow 10},
+                           :multi-lhs-hang? true}}))
+
+
+  (expect
+    "(defn defprotocolguide\n  \"Handle defprotocol with options.\"\n  ([] \"defprotocolguide\")\n  ([options len sexpr]\n   (when (= (first sexpr) 'defprotocol)\n     (let [third                           (nth sexpr 2 nil)\n           fourth                          (nth sexpr 3 nil)\n           fifth                           (nth sexpr 4 nil)\n           [docstring option option-value] (cond (and (string?\n                                                        third)\n                                                      (keyword?\n                                                        fourth)) [third fourth\n                                                                  fifth]\n                                                 (string? third) [third nil nil]\n                                                 (keyword?\n                                                   third)        [nil third\n                                                                  fourth]\n                                                 :else           [nil nil nil])\n           guide                           (cond-> [:element :element-best\n                                                    :newline]\n                                             docstring (conj :element :newline)\n                                             option\n                                               (conj :element :element :newline)\n                                             :else (conj\n                                                     :element-newline-best-*))]\n       {:guide guide, :next-inner {:list {:option-fn nil}}}))))"
+    (zprint-str dpg
+                {:parse-string? true,
+                 :pair {:justify {:max-variance 1000, :lhs-narrow 2},
+                        :multi-lhs-hang? true},
+                 :binding {:justify {:max-variance 1000, :lhs-narrow 1},
+                           :multi-lhs-hang? true},
+                 :style :justified}))
+
+
+  (def i273m
+    "(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor\n         border-radius       :borderRadius\n         border-color        :borderColor\n         border-width        :borderWidth\n         type                :type\n         disabled            :disabled\n         on-press            :onPress\n         on-long-press       :onLongPress\n         on-press-start      :onPressStart\n         accessibility-label :accessibilityLabel\n         children            :children\n         :or                 {border-radius 0\n                              type          \"primary\"}}\n        (bean/bean props)\n        long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        gesture-handler (animated/use-gesture state state)\n        animation (react/use-memo\n                   (fn []\n                     (animated/with-timing-transition active \n                                                      {:duration (animated/cond* active time-in time-out)\n                                                       :easing   (:ease-in animated/easings)}\n\t\t     )))\n        {:keys [background\n                foreground]}\n        (react/use-memo\n         (fn []\n           (type->animation {:type      (keyword type)\n                             :animation animation}))\n         [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler (react/callback\n                              (fn [^js evt]\n                                (let [gesture-state (-> evt\n                                                        .-nativeEvent\n                                                        .-state)]\n                                  (when (and on-press-start\n                                             (= gesture-state (:began gesture-handler/states)))\n                                    (on-press-start))\n                                  (when (and on-long-press\n                                             (= gesture-state (:active gesture-handler/states)))\n                                    (on-long-press)\n                                    (animated/set-value state (:undetermined gesture-handler/states)))))\n                              [on-long-press on-press-start])]\n    (animated/code!\n     (fn []\n       (when on-press\n         (animated/cond* (animated/eq state (:end gesture-handler/states))\n                         [(animated/set state (:undetermined gesture-handler/states))\n                          (animated/call* [] handle-press)])))\n     [on-press])\n    (reagent/as-element\n     [gesture-handler/long-press-gesture-handler\n      {:enabled                 (boolean (and on-long-press (not disabled)))\n       :on-handler-state-change long-gesture-handler\n       :min-duration-ms         long-press-duration\n       :max-dist                22\n       :ref                     long-press-ref}\n      [animated/view\n       {:accessible          true\n        :accessibility-label accessibility-label}\n       [gesture-handler/tap-gesture-handler\n        (merge gesture-handler\n               {:shouldCancelWhenOutside true\n                :wait-for                long-press-ref\n                :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                       (not disabled)))})\n        [animated/view\n         [animated/view\n          {:style (merge absolute-fill\n                         background\n                         {:background-color background-color\n                          :border-radius    border-radius\n                          :border-color     border-color\n                          :border-width     border-width})}]\n         (into [animated/view {:style foreground}]\n               (react/get-children children))]]]])\n    ))\n")
+
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [{background-color :bgColor,\n         border-radius :borderRadius,\n         border-color :borderColor,\n         border-width :borderWidth,\n         type :type,\n         disabled :disabled,\n         on-press :onPress,\n         on-long-press :onLongPress,\n         on-press-start :onPressStart,\n         accessibility-label\n           :accessibilityLabel,\n         children :children,\n         :or {border-radius 0,\n              type          \"primary\"}} (bean/bean props)\n        long-press-ref                  (react/create-ref)\n        state                           (animated/use-value\n                                          (:undetermined\n                                            gesture-handler/states))\n        active                          (animated/eq state\n                                                     (:began\n                                                       gesture-handler/states))\n        gesture-handler                 (animated/use-gesture state state)\n        animation                       (react/use-memo\n                                          (fn []\n                                            (animated/with-timing-transition\n                                              active\n                                              {:duration (animated/cond*\n                                                           active\n                                                           time-in\n                                                           time-out),\n                                               :easing   (:ease-in\n                                                           animated/easings)})))\n        {:keys [background foreground]} (react/use-memo\n                                          (fn []\n                                            (type->animation\n                                              {:type      (keyword type),\n                                               :animation animation}))\n                                          [type])\n        handle-press                    (fn [] (when on-press (on-press)))\n        long-gesture-handler            (react/callback\n                                          (fn [^js evt]\n                                            (let [gesture-state (->\n                                                                  evt\n                                                                  .-nativeEvent\n                                                                  .-state)]\n                                              (when\n                                                (and\n                                                  on-press-start\n                                                  (= gesture-state\n                                                     (:began\n                                                       gesture-handler/states)))\n                                                (on-press-start))\n                                              (when\n                                                (and\n                                                  on-long-press\n                                                  (= gesture-state\n                                                     (:active\n                                                       gesture-handler/states)))\n                                                (on-long-press)\n                                                (animated/set-value\n                                                  state\n                                                  (:undetermined\n                                                    gesture-handler/states)))))\n                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond*\n                          (animated/eq state (:end gesture-handler/states))\n                          [(animated/set state\n                                         (:undetermined gesture-handler/states))\n                           (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view\n        {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press\n                                                            on-long-press\n                                                            on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}]\n                (react/get-children children))]]]])))"
+    (zprint-str i273m
+                {:parse-string? true,
+                 :style [:justified-original :multi-lhs-hang]}))
+
+
+  (def i273g
+    "(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor\n         border-radius       :borderRadius\n         border-color        :borderColor\n         border-width        :borderWidth\n         type                :type\n         disabled            :disabled\n         on-press            :onPress\n         on-long-press       :onLongPress\n         on-press-start      :onPressStart\n         accessibility-label :accessibilityLabel\n         children            :children\n         :or                 {border-radius 0\n                              type          \"primary\"}}\n        (bean/bean props)\n        long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        gesture-handler (animated/use-gesture {:state state})\n        animation (react/use-memo\n                   (fn []\n                     (animated/with-timing-transition active\n                                                      {:duration (animated/cond* active time-in time-out)\n                                                       :easing   (:ease-in animated/easings)}\n\t\t\t\t\t\t       ))\n                   [])\n        {:keys [background\n                foreground]}\n        (react/use-memo\n         (fn []\n           (type->animation {:type      (keyword type)\n                             :animation animation}))\n         [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler (react/callback\n                              (fn [^js evt]\n                                (let [gesture-state (-> evt\n                                                        .-nativeEvent\n                                                        .-state)]\n                                  (when (and on-press-start\n                                             (= gesture-state (:began gesture-handler/states)))\n                                    (on-press-start))\n                                  (when (and on-long-press\n                                             (= gesture-state (:active gesture-handler/states)))\n                                    (on-long-press)\n                                    (animated/set-value state (:undetermined gesture-handler/states)))))\n                              [on-long-press on-press-start])]\n    (animated/code!\n     (fn []\n       (when on-press\n         (animated/cond* (animated/eq state (:end gesture-handler/states))\n                         [(animated/set state (:undetermined gesture-handler/states))\n                          (animated/call* [] handle-press)])))\n     [on-press])\n    (reagent/as-element\n     [gesture-handler/long-press-gesture-handler\n      {:enabled                 (boolean (and on-long-press (not disabled)))\n       :on-handler-state-change long-gesture-handler\n       :min-duration-ms         long-press-duration\n       :max-dist                22\n       :ref                     long-press-ref}\n      [animated/view\n       {:accessible          true\n        :accessibility-label accessibility-label}\n       [gesture-handler/tap-gesture-handler\n        (merge gesture-handler\n               {:shouldCancelWhenOutside true\n                :wait-for                long-press-ref\n                :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                       (not disabled)))})\n        [animated/view\n         [animated/view\n          {:style (merge absolute-fill\n                         background\n                         {:background-color background-color\n                          :border-radius    border-radius\n                          :border-color     border-color\n                          :border-width     border-width})}]\n         (into [animated/view {:style foreground}]\n               (react/get-children children))]]]])\n\t       ))\n")
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [{background-color :bgColor,\n         border-radius :borderRadius,\n         border-color :borderColor,\n         border-width :borderWidth,\n         type :type,\n         disabled :disabled,\n         on-press :onPress,\n         on-long-press :onLongPress,\n         on-press-start :onPressStart,\n         accessibility-label\n           :accessibilityLabel,\n         children :children,\n         :or {border-radius 0,\n              type          \"primary\"}} (bean/bean props)\n        long-press-ref                  (react/create-ref)\n        state                           (animated/use-value\n                                          (:undetermined\n                                            gesture-handler/states))\n        active                          (animated/eq state\n                                                     (:began\n                                                       gesture-handler/states))\n        gesture-handler                 (animated/use-gesture {:state state})\n        animation                       (react/use-memo\n                                          (fn []\n                                            (animated/with-timing-transition\n                                              active\n                                              {:duration (animated/cond*\n                                                           active\n                                                           time-in\n                                                           time-out),\n                                               :easing   (:ease-in\n                                                           animated/easings)}))\n                                          [])\n        {:keys [background foreground]} (react/use-memo\n                                          (fn []\n                                            (type->animation\n                                              {:type      (keyword type),\n                                               :animation animation}))\n                                          [type])\n        handle-press                    (fn [] (when on-press (on-press)))\n        long-gesture-handler            (react/callback\n                                          (fn [^js evt]\n                                            (let [gesture-state (->\n                                                                  evt\n                                                                  .-nativeEvent\n                                                                  .-state)]\n                                              (when\n                                                (and\n                                                  on-press-start\n                                                  (= gesture-state\n                                                     (:began\n                                                       gesture-handler/states)))\n                                                (on-press-start))\n                                              (when\n                                                (and\n                                                  on-long-press\n                                                  (= gesture-state\n                                                     (:active\n                                                       gesture-handler/states)))\n                                                (on-long-press)\n                                                (animated/set-value\n                                                  state\n                                                  (:undetermined\n                                                    gesture-handler/states)))))\n                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond*\n                          (animated/eq state (:end gesture-handler/states))\n                          [(animated/set state\n                                         (:undetermined gesture-handler/states))\n                           (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view\n        {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press\n                                                            on-long-press\n                                                            on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}]\n                (react/get-children children))]]]])))"
+    (zprint-str i273g
+                {:parse-string? true,
+                 :style [:justified-original :multi-lhs-hang]}))
+
+  (def alc
+    "(this is a test)\n(s/def ::cache-path (s/nilable string?))   ; debugging only\n(this is still a test)")
+  (expect
+    "(this is a test)\n(s/def ::cache-path (s/nilable string?))   ; debugging only\n(this is still a test)"
+    (zprint-file-str alc "x" {}))
+
+  (def i273g
+    "(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor\n         border-radius       :borderRadius\n         border-color        :borderColor\n         border-width        :borderWidth\n         type                :type\n         disabled            :disabled\n         on-press            :onPress\n         on-long-press       :onLongPress\n         on-press-start      :onPressStart\n         accessibility-label :accessibilityLabel\n         children            :children\n         :or                 {border-radius 0\n                              type          \"primary\"}}\n        (bean/bean props)\n        long-press-ref (react/create-ref)\n        state (animated/use-value (:undetermined gesture-handler/states))\n        active (animated/eq state (:began gesture-handler/states))\n        gesture-handler (animated/use-gesture {:state state})\n        animation (react/use-memo\n                   (fn []\n                     (animated/with-timing-transition active\n                                                      {:duration (animated/cond* active time-in time-out)\n                                                       :easing   (:ease-in animated/easings)}\n\t\t\t\t\t\t       ))\n                   [])\n        {:keys [background\n                foreground]}\n        (react/use-memo\n         (fn []\n           (type->animation {:type      (keyword type)\n                             :animation animation}))\n         [type])\n        handle-press (fn [] (when on-press (on-press)))\n        long-gesture-handler (react/callback\n                              (fn [^js evt]\n                                (let [gesture-state (-> evt\n                                                        .-nativeEvent\n                                                        .-state)]\n                                  (when (and on-press-start\n                                             (= gesture-state (:began gesture-handler/states)))\n                                    (on-press-start))\n                                  (when (and on-long-press\n                                             (= gesture-state (:active gesture-handler/states)))\n                                    (on-long-press)\n                                    (animated/set-value state (:undetermined gesture-handler/states)))))\n                              [on-long-press on-press-start])]\n    (animated/code!\n     (fn []\n       (when on-press\n         (animated/cond* (animated/eq state (:end gesture-handler/states))\n                         [(animated/set state (:undetermined gesture-handler/states))\n                          (animated/call* [] handle-press)])))\n     [on-press])\n    (reagent/as-element\n     [gesture-handler/long-press-gesture-handler\n      {:enabled                 (boolean (and on-long-press (not disabled)))\n       :on-handler-state-change long-gesture-handler\n       :min-duration-ms         long-press-duration\n       :max-dist                22\n       :ref                     long-press-ref}\n      [animated/view\n       {:accessible          true\n        :accessibility-label accessibility-label}\n       [gesture-handler/tap-gesture-handler\n        (merge gesture-handler\n               {:shouldCancelWhenOutside true\n                :wait-for                long-press-ref\n                :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                       (not disabled)))})\n        [animated/view\n         [animated/view\n          {:style (merge absolute-fill\n                         background\n                         {:background-color background-color\n                          :border-radius    border-radius\n                          :border-color     border-color\n                          :border-width     border-width})}]\n         (into [animated/view {:style foreground}]\n               (react/get-children children))]]]])\n\t       ))\n")
+
+  (expect
+    "(defn pressable-hooks\n  [props]\n  (let [{background-color    :bgColor,\n         border-radius       :borderRadius,\n         border-color        :borderColor,\n         border-width        :borderWidth,\n         type                :type,\n         disabled            :disabled,\n         on-press            :onPress,\n         on-long-press       :onLongPress,\n         on-press-start      :onPressStart,\n         accessibility-label :accessibilityLabel,\n         children            :children,\n         :or                 {border-radius 0,\n                              type          \"primary\"}} (bean/bean props)\n        long-press-ref                                  (react/create-ref)\n        state                                           (animated/use-value (:undetermined\n                                                                              gesture-handler/states))\n        active                                          (animated/eq state\n                                                                     (:began gesture-handler/states))\n        gesture-handler                                 (animated/use-gesture {:state state})\n        animation                                       (react/use-memo\n                                                          (fn []\n                                                            (animated/with-timing-transition\n                                                              active\n                                                              {:duration (animated/cond* active\n                                                                                         time-in\n                                                                                         time-out),\n                                                               :easing   (:ease-in animated/easings)}))\n                                                          [])\n        {:keys [background foreground]}                 (react/use-memo (fn []\n                                                                          (type->animation\n                                                                            {:type      (keyword type),\n                                                                             :animation animation}))\n                                                                        [type])\n        handle-press                                    (fn [] (when on-press (on-press)))\n        long-gesture-handler                            (react/callback\n                                                          (fn [^js evt]\n                                                            (let [gesture-state (-> evt\n                                                                                    .-nativeEvent\n                                                                                    .-state)]\n                                                              (when (and on-press-start\n                                                                         (= gesture-state\n                                                                            (:began\n                                                                              gesture-handler/states)))\n                                                                (on-press-start))\n                                                              (when (and on-long-press\n                                                                         (= gesture-state\n                                                                            (:active\n                                                                              gesture-handler/states)))\n                                                                (on-long-press)\n                                                                (animated/set-value\n                                                                  state\n                                                                  (:undetermined\n                                                                    gesture-handler/states)))))\n                                                          [on-long-press on-press-start])]\n    (animated/code! (fn []\n                      (when on-press\n                        (animated/cond* (animated/eq state (:end gesture-handler/states))\n                                        [(animated/set state (:undetermined gesture-handler/states))\n                                         (animated/call* [] handle-press)])))\n                    [on-press])\n    (reagent/as-element\n      [gesture-handler/long-press-gesture-handler\n       {:enabled                 (boolean (and on-long-press (not disabled))),\n        :on-handler-state-change long-gesture-handler,\n        :min-duration-ms         long-press-duration,\n        :max-dist                22,\n        :ref                     long-press-ref}\n       [animated/view {:accessible true, :accessibility-label accessibility-label}\n        [gesture-handler/tap-gesture-handler\n         (merge gesture-handler\n                {:shouldCancelWhenOutside true,\n                 :wait-for                long-press-ref,\n                 :enabled                 (boolean (and (or on-press on-long-press on-press-start)\n                                                        (not disabled)))})\n         [animated/view\n          [animated/view\n           {:style (merge absolute-fill\n                          background\n                          {:background-color background-color,\n                           :border-radius    border-radius,\n                           :border-color     border-color,\n                           :border-width     border-width})}]\n          (into [animated/view {:style foreground}] (react/get-children children))]]]])))"
+    (zprint-str i273g
+                {:parse-string? true,
+                 :style [:justified-original :multi-lhs-hang],
+                 :width 105,
+                 :binding {:justify-tuning {:binding {:tuning {:hang-flow
+                                                                 5}}}}}))
+
+
+  ;;
+  ;; Issue #261 and others -- regex recognition for fn-map
+  ;;
+
+  (def are12a
+    "\n(deftest t-parsing-auto-resolve-keywords\n  (are-mine [?s ?sexpr-default ?sexpr-custom]\n       (let [n (p/parse-string ?s)]\n         (is (= :token (node/tag n)))\n         (is (= ?s (node/string n)))\n         (is (= ?sexpr-default (node/sexpr n)))\n         (is (= ?sexpr-custom (node/sexpr n {:auto-resolve #(if (= :current %)\n                                                              'my.current.ns\n                                                              (get {'xyz 'my.aliased.ns} % 'alias-unresolved))}))))\n    \"::key\"        :?_current-ns_?/key    :my.current.ns/key\n    \"::xyz/key\"    :??_xyz_??/key         :my.aliased.ns/key))\n    ")
+
+  (expect
+    "(deftest t-parsing-auto-resolve-keywords\n  (are-mine [?s ?sexpr-default ?sexpr-custom]\n    (let [n (p/parse-string ?s)]\n      (is (= :token (node/tag n)))\n      (is (= ?s (node/string n)))\n      (is (= ?sexpr-default (node/sexpr n)))\n      (is (= ?sexpr-custom\n             (node/sexpr n\n                         {:auto-resolve #(if (= :current %)\n                                           'my.current.ns\n                                           (get {'xyz 'my.aliased.ns}\n                                                %\n                                                'alias-unresolved))}))))\n    \"::key\"     :?_current-ns_?/key :my.current.ns/key\n    \"::xyz/key\" :??_xyz_??/key      :my.aliased.ns/key))"
+    (zprint-str are12a {:parse-string? true, :style :regex-example}))
+
+
+  (def sooox
+    "(defn ooox
   \"A variety of sorting and ordering options for the output
   of partition-all-2-nc.  It can sort, which is the default,
   but if the caller has a key-order vector, it will extract
@@ -7965,300 +8117,378 @@ alc
         :else (throw (Exception. \"Unknown options
        to order-out\"))))")
 
-(expect
-"(defn ooox\n  \"A variety of sorting and ordering options for the output\n  of partition-all-2-nc.  It can sort, which is the default,\n  but if the caller has a key-order vector, it will extract\n  any keys in that vector and place them first (in order) before\n  sorting the other keys.\"\n  [caller\n   {:keys [dbg?],\n    {:keys [zsexpr zdotdotdot compare-ordered-keys compare-keys a b]}\n      :zf,\n    {:keys [sort? key-order key-value]} caller,\n    :as options} out]\n  (cond (or sort? key-order) (sort #((partial compare-ordered-keys\n                                       (or key-value {})\n                                       (zdotdotdot))\n                                       (zsexpr (first a))\n                                       (zsexpr (first b)))\n                                   out)\n        sort? (sort #(compare-keys (zsexpr (first a))\n                                   (zsexpr (first b)))\n                    out)\n        :else (throw (Exception.\n                       \"Unknown options\n       to order-out\"))))"
-(zprint-str sooox {:parse-string? true :fn-map {:default-not-none [:none {:list {:option-fn (partial regexfn [#"^partial$" {:fn-style :arg1}])}}]} :width 70}))
+  (expect
+    "(defn ooox\n  \"A variety of sorting and ordering options for the output\n  of partition-all-2-nc.  It can sort, which is the default,\n  but if the caller has a key-order vector, it will extract\n  any keys in that vector and place them first (in order) before\n  sorting the other keys.\"\n  [caller\n   {:keys [dbg?],\n    {:keys [zsexpr zdotdotdot compare-ordered-keys compare-keys a b]}\n      :zf,\n    {:keys [sort? key-order key-value]} caller,\n    :as options} out]\n  (cond (or sort? key-order) (sort #((partial compare-ordered-keys\n                                       (or key-value {})\n                                       (zdotdotdot))\n                                       (zsexpr (first a))\n                                       (zsexpr (first b)))\n                                   out)\n        sort? (sort #(compare-keys (zsexpr (first a))\n                                   (zsexpr (first b)))\n                    out)\n        :else (throw (Exception.\n                       \"Unknown options\n       to order-out\"))))"
+    (zprint-str sooox
+                {:parse-string? true,
+                 :fn-map {:default-not-none
+                            [:none
+                             {:list {:option-fn (partial regexfn
+                                                         [#"^partial$"
+                                                          {:fn-style
+                                                             :arg1}])}}]},
+                 :width 70}))
 
 
-;;
-;; We don't allow {:fn-style [:arg1 {:list ...}]}
-;;
+  ;;
+  ;; We don't allow {:fn-style [:arg1 {:list ...}]}
+  ;;
 
-#?(:clj
-     (expect
-       "java.lang.Exception: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a clojure.core/string?"
-       (try (zprint-str
-              sooox
-              {:parse-string? true,
-               :fn-map {:default-not-none
-                          [:none
-                           {:list {:option-fn
-                                     (partial
-                                       regexfn
-                                       [#"^partial$"
-                                        {:fn-style
-                                           [:arg1 {:list {:nl-count 3}}]}])}}]},
-               :width 70})
-            (catch Exception e (str e))))
-   :cljs
-     (expect
-       "Error: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a cljs.core/string?"
-       (try (zprint-str
-              sooox
-              {:parse-string? true,
-               :fn-map {:default-not-none
-                          [:none
-                           {:list {:option-fn
-                                     (partial
-                                       regexfn
-                                       [#"^partial$"
-                                        {:fn-style
-                                           [:arg1 {:list {:nl-count 3}}]}])}}]},
-               :width 70})
-            (catch :default e (str e)))))
-
-
-; Instead of [:fn-type {options-map}], just do 
-; {:fn-type :keyword rest-of-options-map}
-
-(expect
-"(defn ooox\n  \"A variety of sorting and ordering options for the output\n  of partition-all-2-nc.  It can sort, which is the default,\n  but if the caller has a key-order vector, it will extract\n  any keys in that vector and place them first (in order) before\n  sorting the other keys.\"\n  [caller\n   {:keys [dbg?],\n    {:keys [zsexpr zdotdotdot compare-ordered-keys compare-keys a b]}\n      :zf,\n    {:keys [sort? key-order key-value]} caller,\n    :as options} out]\n  (cond (or sort? key-order) (sort #((partial compare-ordered-keys\n                                       (or key-value {})\n\n\n                                       (zdotdotdot))\n                                       (zsexpr (first a))\n                                       (zsexpr (first b)))\n                                   out)\n        sort? (sort #(compare-keys (zsexpr (first a))\n                                   (zsexpr (first b)))\n                    out)\n        :else (throw (Exception.\n                       \"Unknown options\n       to order-out\"))))"
-(zprint-str sooox {:parse-string? true :fn-map {:default-not-none [:none {:list {:option-fn (partial regexfn [#"^partial$" {:fn-style :arg1 :list {:nl-count 3}}])}}]} :width 70}))
-
-;;
-;; Issue #261 -- longer than 20 chars, do something different
-;;
-
-(def
-i261
-"     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n")
+  #?(:clj
+       (expect
+         "java.lang.Exception: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a clojure.core/string?"
+         (try (zprint-str sooox
+                          {:parse-string? true,
+                           :fn-map {:default-not-none
+                                      [:none
+                                       {:list {:option-fn
+                                                 (partial
+                                                   regexfn
+                                                   [#"^partial$"
+                                                    {:fn-style
+                                                       [:arg1
+                                                        {:list {:nl-count
+                                                                  3}}]}])}}]},
+                           :width 70})
+              (catch Exception e (str e))))
+     :cljs
+       (expect
+         "Error: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a cljs.core/string?"
+         (try (zprint-str sooox
+                          {:parse-string? true,
+                           :fn-map {:default-not-none
+                                      [:none
+                                       {:list {:option-fn
+                                                 (partial
+                                                   regexfn
+                                                   [#"^partial$"
+                                                    {:fn-style
+                                                       [:arg1
+                                                        {:list {:nl-count
+                                                                  3}}]}])}}]},
+                           :width 70})
+              (catch :default e (str e)))))
 
 
-(expect
-"(let [example (data.example/get-by-org-id-and-items\n                db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
-(zprint-str i261 {:parse-string? true :style :rules-example}))
+  ; Instead of [:fn-type {options-map}], just do
+  ; {:fn-type :keyword rest-of-options-map}
 
-;;
-;; Test loop detection
-;;
+  (expect
+    "(defn ooox\n  \"A variety of sorting and ordering options for the output\n  of partition-all-2-nc.  It can sort, which is the default,\n  but if the caller has a key-order vector, it will extract\n  any keys in that vector and place them first (in order) before\n  sorting the other keys.\"\n  [caller\n   {:keys [dbg?],\n    {:keys [zsexpr zdotdotdot compare-ordered-keys compare-keys a b]}\n      :zf,\n    {:keys [sort? key-order key-value]} caller,\n    :as options} out]\n  (cond (or sort? key-order) (sort #((partial compare-ordered-keys\n                                       (or key-value {})\n\n\n                                       (zdotdotdot))\n                                       (zsexpr (first a))\n                                       (zsexpr (first b)))\n                                   out)\n        sort? (sort #(compare-keys (zsexpr (first a))\n                                   (zsexpr (first b)))\n                    out)\n        :else (throw (Exception.\n                       \"Unknown options\n       to order-out\"))))"
+    (zprint-str sooox
+                {:parse-string? true,
+                 :fn-map {:default-not-none
+                            [:none
+                             {:list {:option-fn (partial regexfn
+                                                         [#"^partial$"
+                                                          {:fn-style :arg1,
+                                                           :list {:nl-count
+                                                                    3}}])}}]},
+                 :width 70}))
 
-(defn loopfn
-  "Force a loop in option-fns."
-  ([] "loopfn")
-  ([options len sexpr]
-   (let [dnn (:default-not-none (:fn-map options))
-         option-fn (:option-fn (:list (second dnn)))]
-     {:list {:option-fn option-fn}})))
+  ;;
+  ;; Issue #261 -- longer than 20 chars, do something different
+  ;;
 
-(expect
-  "Circular :option-fn lookup!"
-  (try (zprint-str
-         i261
-         {:parse-string? true,
-          :fn-map {:default-not-none
-                     [:none
-                      {:list {:option-fn
-                                (partial
-                                  rulesfn
-                                  [#(> (count %) 20)
-                                   {:list {:option-fn
+  (def i261
+    "     (let [example (data.example/get-by-org-id-and-items\n                      db-conn true [org-id] {:very-long-arg-here true})]\n       (some-body expressions)\n       (more-body expressions))\n")
+
+
+  (expect
+    "(let [example (data.example/get-by-org-id-and-items\n                db-conn true [org-id] {:very-long-arg-here true})]\n  (some-body expressions)\n  (more-body expressions))"
+    (zprint-str i261 {:parse-string? true, :style :rules-example}))
+
+  ;;
+  ;; Test loop detection
+  ;;
+
+  (defn loopfn
+    "Force a loop in option-fns."
+    ([] "loopfn")
+    ([options len sexpr]
+     (let [dnn (:default-not-none (:fn-map options))
+           option-fn (:option-fn (:list (second dnn)))]
+       {:list {:option-fn option-fn}})))
+
+  (expect "Circular :option-fn lookup!"
+          (try (zprint-str
+                 i261
+                 {:parse-string? true,
+                  :fn-map {:default-not-none
+                             [:none
+                              {:list
+                                 {:option-fn
+                                    (partial
+                                      rulesfn
+                                      [#(> (count %) 20)
+                                       {:list
+                                          {:option-fn
                                              zprint.zprint-test/loopfn}}])}}]}})
-       (catch #?(:clj Exception
-                 :cljs :default)
-         e
-         (re-find #"Circular :option-fn lookup!" (str e)))))
+               (catch #?(:clj Exception
+                         :cljs :default)
+                 e
+                 (re-find #"Circular :option-fn lookup!" (str e)))))
 
 
- (def
- prj2
-"(defproject zprint \"0.4.14\"\n  :description \"Pretty print zippers and s-expressions\"\n  :url \"https://github.com/kkinnear/zprint\"\n  :license {:name \"MIT License\",\n            :url \"https://opensource.org/licenses/MIT\",\n            :key \"mit\",\n            :year 2015}\n  :plugins\n    [[lein-expectations \"0.0.8\"] [lein-codox \"0.10.3\"] [lein-zprint \"0.3.12\"]]\n  :profiles {:dev {:dependencies [[expectations \"2.2.0-rc1\"]\n                                  [com.taoensso/tufte \"1.1.1\"]\n                                  #_[org.clojure/clojurescript \"1.9.946\"]\n                                  ;[rum \"0.10.8\"];\n                                  [better-cond \"1.0.1\"]\n\t\t\t\t  [zpst \"0.1.6\"]\n                                  [org.clojure/core.match \"0.3.0-alpha5\"]\n                                  [clojure-future-spec \"1.9.0-alpha17\"]]},\n             :uberjar {:aot [zprint.core zprint.main],\n                       ; For 1.9.0-alpha17, use this for the :aot value\n                       ;:aot [zprint.core zprint.main clojure.core.specs.alpha],\n                       :main zprint.main,\n                       :dependencies [[clojure-future-spec \"1.9.0-alpha17\"]],\n                       :omit-source true,\n                       :uberjar-name \"zprint-filter-%s\"}}\n  ; Clojure 1.8 you can exclude all sources in the uberjar\n  :uberjar-exclusions [#\"\\.(clj|java|txt)\"]\n  ; Clojure 1.9 requires the .clj files in the uberjar\n  ; :uberjar-exclusions [#\"\\.(clj\\.|java|cljs|txt)\"]\n  :jar-exclusions [#\"\\.(clj$|clj\\.|java|txt)\"]\n  :zprint {:old? false}\n  :jvm-opts ^:replace\n            [\"-server\" \"-Xms2048m\" \"-Xmx2048m\" \"-Xss500m\"\n             \"-XX:-OmitStackTraceInFastThrow\"]\n  :scm {:name \"git\", :url \"https://github.com/kkinnear/zprint\"}\n  :codox {:namespaces [zprint.core],\n          :doc-files\n            [\"README.md\" \"doc/bang.md\" \"doc/graalvm.md\" \"doc/filter.md\"],\n          :metadata {:doc/format :markdown}}\n  :dependencies\n    [#_[org.clojure/clojure \"1.10.0-beta3\"]\n     #_[org.clojure/clojure \"1.9.0\"]\n     [org.clojure/clojure \"1.8.0\"]\n     [rewrite-cljs \"0.4.4\" :exclusions [[org.clojure/clojurescript]]]\n     [rewrite-clj \"0.6.1\" :exclusions [[com.cemerick/austin]]]\n     #_[table \"0.4.0\" :exclusions [[org.clojure/clojure]]]\n     #_[cprop \"0.1.6\"]])\n")
+  (def prj2
+    "(defproject zprint \"0.4.14\"\n  :description \"Pretty print zippers and s-expressions\"\n  :url \"https://github.com/kkinnear/zprint\"\n  :license {:name \"MIT License\",\n            :url \"https://opensource.org/licenses/MIT\",\n            :key \"mit\",\n            :year 2015}\n  :plugins\n    [[lein-expectations \"0.0.8\"] [lein-codox \"0.10.3\"] [lein-zprint \"0.3.12\"]]\n  :profiles {:dev {:dependencies [[expectations \"2.2.0-rc1\"]\n                                  [com.taoensso/tufte \"1.1.1\"]\n                                  #_[org.clojure/clojurescript \"1.9.946\"]\n                                  ;[rum \"0.10.8\"];\n                                  [better-cond \"1.0.1\"]\n\t\t\t\t  [zpst \"0.1.6\"]\n                                  [org.clojure/core.match \"0.3.0-alpha5\"]\n                                  [clojure-future-spec \"1.9.0-alpha17\"]]},\n             :uberjar {:aot [zprint.core zprint.main],\n                       ; For 1.9.0-alpha17, use this for the :aot value\n                       ;:aot [zprint.core zprint.main clojure.core.specs.alpha],\n                       :main zprint.main,\n                       :dependencies [[clojure-future-spec \"1.9.0-alpha17\"]],\n                       :omit-source true,\n                       :uberjar-name \"zprint-filter-%s\"}}\n  ; Clojure 1.8 you can exclude all sources in the uberjar\n  :uberjar-exclusions [#\"\\.(clj|java|txt)\"]\n  ; Clojure 1.9 requires the .clj files in the uberjar\n  ; :uberjar-exclusions [#\"\\.(clj\\.|java|cljs|txt)\"]\n  :jar-exclusions [#\"\\.(clj$|clj\\.|java|txt)\"]\n  :zprint {:old? false}\n  :jvm-opts ^:replace\n            [\"-server\" \"-Xms2048m\" \"-Xmx2048m\" \"-Xss500m\"\n             \"-XX:-OmitStackTraceInFastThrow\"]\n  :scm {:name \"git\", :url \"https://github.com/kkinnear/zprint\"}\n  :codox {:namespaces [zprint.core],\n          :doc-files\n            [\"README.md\" \"doc/bang.md\" \"doc/graalvm.md\" \"doc/filter.md\"],\n          :metadata {:doc/format :markdown}}\n  :dependencies\n    [#_[org.clojure/clojure \"1.10.0-beta3\"]\n     #_[org.clojure/clojure \"1.9.0\"]\n     [org.clojure/clojure \"1.8.0\"]\n     [rewrite-cljs \"0.4.4\" :exclusions [[org.clojure/clojurescript]]]\n     [rewrite-clj \"0.6.1\" :exclusions [[com.cemerick/austin]]]\n     #_[table \"0.4.0\" :exclusions [[org.clojure/clojure]]]\n     #_[cprop \"0.1.6\"]])\n")
 
 
-(expect
-"(defproject zprint \"0.4.14\"\n  :description \"Pretty print zippers and s-expressions\"\n  :url \"https://github.com/kkinnear/zprint\"\n  :license {:name \"MIT License\",\n            :url \"https://opensource.org/licenses/MIT\",\n            :key \"mit\",\n            :year 2015}\n  :plugins\n    [[lein-expectations \"0.0.8\"] [lein-codox \"0.10.3\"] [lein-zprint \"0.3.12\"]]\n  :profiles {:dev {:dependencies [[better-cond \"1.0.1\"]\n                                  [clojure-future-spec \"1.9.0-alpha17\"]\n                                  [com.taoensso/tufte \"1.1.1\"]\n                                  ;[rum \"0.10.8\"];\n                                  [expectations \"2.2.0-rc1\"]\n                                  #_[org.clojure/clojurescript \"1.9.946\"]\n                                  [org.clojure/core.match \"0.3.0-alpha5\"]\n                                  [zpst \"0.1.6\"]]},\n             :uberjar {:aot [zprint.core zprint.main],\n                       ; For 1.9.0-alpha17, use this for the :aot value\n                       ;:aot [zprint.core zprint.main clojure.core.specs.alpha],\n                       :main zprint.main,\n                       :dependencies [[clojure-future-spec \"1.9.0-alpha17\"]],\n                       :omit-source true,\n                       :uberjar-name \"zprint-filter-%s\"}}\n  ; Clojure 1.8 you can exclude all sources in the uberjar\n  :uberjar-exclusions [#\"\\.(clj|java|txt)\"]\n  ; Clojure 1.9 requires the .clj files in the uberjar\n  ; :uberjar-exclusions [#\"\\.(clj\\.|java|cljs|txt)\"]\n  :jar-exclusions [#\"\\.(clj$|clj\\.|java|txt)\"]\n  :zprint {:old? false}\n  :jvm-opts ^:replace\n            [\"-server\"\n             \"-Xms2048m\"\n             \"-Xmx2048m\"\n             \"-Xss500m\"\n             \"-XX:-OmitStackTraceInFastThrow\"]\n  :scm {:name \"git\", :url \"https://github.com/kkinnear/zprint\"}\n  :codox {:namespaces [zprint.core],\n          :doc-files\n            [\"README.md\" \"doc/bang.md\" \"doc/graalvm.md\" \"doc/filter.md\"],\n          :metadata {:doc/format :markdown}}\n  :dependencies\n    [#_[cprop \"0.1.6\"]\n     #_[org.clojure/clojure \"1.10.0-beta3\"]\n     [org.clojure/clojure \"1.8.0\"]\n     #_[org.clojure/clojure \"1.9.0\"]\n     [rewrite-clj \"0.6.1\" :exclusions [[com.cemerick/austin]]]\n     [rewrite-cljs \"0.4.4\" :exclusions [[org.clojure/clojurescript]]]\n     #_[table \"0.4.0\" :exclusions [[org.clojure/clojure]]]])"
-(zprint-str prj2 {:parse-string? true :style :sort-dependencies :comment {:smart-wrap {:border 0}}}))
+  (expect
+    "(defproject zprint \"0.4.14\"\n  :description \"Pretty print zippers and s-expressions\"\n  :url \"https://github.com/kkinnear/zprint\"\n  :license {:name \"MIT License\",\n            :url \"https://opensource.org/licenses/MIT\",\n            :key \"mit\",\n            :year 2015}\n  :plugins\n    [[lein-expectations \"0.0.8\"] [lein-codox \"0.10.3\"] [lein-zprint \"0.3.12\"]]\n  :profiles {:dev {:dependencies [[better-cond \"1.0.1\"]\n                                  [clojure-future-spec \"1.9.0-alpha17\"]\n                                  [com.taoensso/tufte \"1.1.1\"]\n                                  ;[rum \"0.10.8\"];\n                                  [expectations \"2.2.0-rc1\"]\n                                  #_[org.clojure/clojurescript \"1.9.946\"]\n                                  [org.clojure/core.match \"0.3.0-alpha5\"]\n                                  [zpst \"0.1.6\"]]},\n             :uberjar {:aot [zprint.core zprint.main],\n                       ; For 1.9.0-alpha17, use this for the :aot value\n                       ;:aot [zprint.core zprint.main clojure.core.specs.alpha],\n                       :main zprint.main,\n                       :dependencies [[clojure-future-spec \"1.9.0-alpha17\"]],\n                       :omit-source true,\n                       :uberjar-name \"zprint-filter-%s\"}}\n  ; Clojure 1.8 you can exclude all sources in the uberjar\n  :uberjar-exclusions [#\"\\.(clj|java|txt)\"]\n  ; Clojure 1.9 requires the .clj files in the uberjar\n  ; :uberjar-exclusions [#\"\\.(clj\\.|java|cljs|txt)\"]\n  :jar-exclusions [#\"\\.(clj$|clj\\.|java|txt)\"]\n  :zprint {:old? false}\n  :jvm-opts ^:replace\n            [\"-server\"\n             \"-Xms2048m\"\n             \"-Xmx2048m\"\n             \"-Xss500m\"\n             \"-XX:-OmitStackTraceInFastThrow\"]\n  :scm {:name \"git\", :url \"https://github.com/kkinnear/zprint\"}\n  :codox {:namespaces [zprint.core],\n          :doc-files\n            [\"README.md\" \"doc/bang.md\" \"doc/graalvm.md\" \"doc/filter.md\"],\n          :metadata {:doc/format :markdown}}\n  :dependencies\n    [#_[cprop \"0.1.6\"]\n     #_[org.clojure/clojure \"1.10.0-beta3\"]\n     [org.clojure/clojure \"1.8.0\"]\n     #_[org.clojure/clojure \"1.9.0\"]\n     [rewrite-clj \"0.6.1\" :exclusions [[com.cemerick/austin]]]\n     [rewrite-cljs \"0.4.4\" :exclusions [[org.clojure/clojurescript]]]\n     #_[table \"0.4.0\" :exclusions [[org.clojure/clojure]]]])"
+    (zprint-str prj2
+                {:parse-string? true,
+                 :style :sort-dependencies,
+                 :comment {:smart-wrap {:border 0}}}))
 
-;;
-;; Put blank lines in vectors Issue #283
-;;
+  ;;
+  ;; Put blank lines in vectors Issue #283
+  ;;
 
-(def
-i283i
-"{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n  {:foo/bar :programs\n   :foo/bar [{:foo/bar :foo/baz\n              :name \"bardel\"\n              :activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]}\n             {:foo/bar :foo/baz\n              :name \"irresonant\"\n              :activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]}]}]}\n")
+  (def i283i
+    "{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n  {:foo/bar :programs\n   :foo/bar [{:foo/bar :foo/baz\n              :name \"bardel\"\n              :activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]}\n             {:foo/bar :foo/baz\n              :name \"irresonant\"\n              :activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]}]}]}\n")
 
-(expect
-"{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n\n  {:foo/bar :programs\n   :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]\n              :foo/bar :foo/baz\n              :name \"bardel\"}\n\n             {:activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]\n              :foo/bar :foo/baz\n              :name \"irresonant\"}]}]}"
-(zprint-str i283i {:parse-string? true :vector {:option-fn (fn ([] "vector-lines") ([options len sexpr] (when (not (empty? sexpr)) {:guide (into [] (->> (repeat (count sexpr) :element) (interpose [:newline :newline]) flatten))})))} :style :community :map {:comma? false :force-nl? true} :width 120 :output {:real-le? true}}))
+  (expect
+    "{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n\n  {:foo/bar :programs\n   :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]\n              :foo/bar :foo/baz\n              :name \"bardel\"}\n\n             {:activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]\n              :foo/bar :foo/baz\n              :name \"irresonant\"}]}]}"
+    (zprint-str i283i
+                {:parse-string? true,
+                 :vector {:option-fn
+                            (fn
+                              ([] "vector-lines")
+                              ([options len sexpr]
+                               (when (not (empty? sexpr))
+                                 {:guide (into []
+                                               (->>
+                                                 (repeat (count sexpr) :element)
+                                                 (interpose [:newline :newline])
+                                                 flatten))})))},
+                 :style :community,
+                 :map {:comma? false, :force-nl? true},
+                 :width 120,
+                 :output {:real-le? true}}))
 
-;;
-;; Issue #274 -- fix indentation in namespaced maps
-;;
+  ;;
+  ;; Issue #274 -- fix indentation in namespaced maps
+  ;;
 
-(def
-i274
-"#:foo{:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n :bbbbbbbbbbbbbbbbbbbbbbbb {:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n                                 :bbbbbbbbbbbbbbbbbbbbbbbb 2,\n                                 :cccccccccccccccccccccccc 3},\n :cccccccccccccccccccccccc 3}\n")
+  (def i274
+    "#:foo{:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n :bbbbbbbbbbbbbbbbbbbbbbbb {:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n                                 :bbbbbbbbbbbbbbbbbbbbbbbb 2,\n                                 :cccccccccccccccccccccccc 3},\n :cccccccccccccccccccccccc 3}\n")
 
-(expect
-"#:foo{:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n      :bbbbbbbbbbbbbbbbbbbbbbbb {:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n                                 :bbbbbbbbbbbbbbbbbbbbbbbb 2,\n                                 :cccccccccccccccccccccccc 3},\n      :cccccccccccccccccccccccc 3}"
-(zprint-str i274 {:parse-string? true}))
+  (expect
+    "#:foo{:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n      :bbbbbbbbbbbbbbbbbbbbbbbb {:aaaaaaaaaaaaaaaaaaaaaaaa 1,\n                                 :bbbbbbbbbbbbbbbbbbbbbbbb 2,\n                                 :cccccccccccccccccccccccc 3},\n      :cccccccccccccccccccccccc 3}"
+    (zprint-str i274 {:parse-string? true}))
 
-;;
-;; Issue #275 -- namespaced functions are lost when doing noformat
-;;               that is, ;!zprint {:format :off} or {:format :skip}
-;;
+  ;;
+  ;; Issue #275 -- namespaced functions are lost when doing noformat
+  ;;               that is, ;!zprint {:format :off} or {:format :skip}
+  ;;
 
-(def
-i275
-";!zprint {:format :off}\n#::foo{:bar :baz}\n")
+  (def i275 ";!zprint {:format :off}\n#::foo{:bar :baz}\n")
 
-(expect
-";!zprint {:format :off}\n#::foo{:bar :baz}\n"
-(zprint-file-str i275 "x" {}))
+  (expect ";!zprint {:format :off}\n#::foo{:bar :baz}\n"
+          (zprint-file-str i275 "x" {}))
 
-;;
-;; Issue #273 -- ensure that we will still justify stuff even when
-;; there is a comment in a set of pairs.
-;;
+  ;;
+  ;; Issue #273 -- ensure that we will still justify stuff even when
+  ;; there is a comment in a set of pairs.
+  ;;
 
- (def
- i273clve
-"(defn cleave-end\n  \"Take a seq, and if it is contains a single symbol, simply return\n  it in another seq.  If it contains something else, remove any non\n  collections off of the end and return them in their own double seqs,\n  as well as return the remainder (the beginning) as a double seq.\"\n  [coll]\n  (if (or (zsymbol? (first coll)) (zreader-cond-w-symbol? (first coll)))\n    ;(symbol? (first coll))\n    (list coll)\n    (let [rev-seq (reverse coll)\n          [split-non-coll _]\n            ;(split-with (comp not zcoll?) rev-seq)\n            (split-with #(not (or (zcoll? %) (zreader-cond-w-coll? %))) rev-seq)\n          #_(def sncce split-non-coll)\n          split-non-coll (map list (reverse split-non-coll))\n          remainder (take (- (count coll) (count split-non-coll)) coll)]\n      (if (empty? remainder)\n        split-non-coll\n        (concat (list remainder) split-non-coll)))))\n")
+  (def i273clve
+    "(defn cleave-end\n  \"Take a seq, and if it is contains a single symbol, simply return\n  it in another seq.  If it contains something else, remove any non\n  collections off of the end and return them in their own double seqs,\n  as well as return the remainder (the beginning) as a double seq.\"\n  [coll]\n  (if (or (zsymbol? (first coll)) (zreader-cond-w-symbol? (first coll)))\n    ;(symbol? (first coll))\n    (list coll)\n    (let [rev-seq (reverse coll)\n          [split-non-coll _]\n            ;(split-with (comp not zcoll?) rev-seq)\n            (split-with #(not (or (zcoll? %) (zreader-cond-w-coll? %))) rev-seq)\n          #_(def sncce split-non-coll)\n          split-non-coll (map list (reverse split-non-coll))\n          remainder (take (- (count coll) (count split-non-coll)) coll)]\n      (if (empty? remainder)\n        split-non-coll\n        (concat (list remainder) split-non-coll)))))\n")
 
-(expect
-"(defn cleave-end\n  \"Take a seq, and if it is contains a single symbol, simply return\n  it in another seq.  If it contains something else, remove any non\n  collections off of the end and return them in their own double seqs,\n  as well as return the remainder (the beginning) as a double seq.\"\n  [coll]\n  (if (or (zsymbol? (first coll)) (zreader-cond-w-symbol? (first coll)))\n    ;(symbol? (first coll))\n    (list coll)\n    (let [rev-seq            (reverse coll)\n          [split-non-coll _]\n            ;(split-with (comp not zcoll?) rev-seq)\n            (split-with #(not (or (zcoll? %) (zreader-cond-w-coll? %))) rev-seq)\n          #_(def sncce split-non-coll)\n          split-non-coll     (map list (reverse split-non-coll))\n          remainder          (take (- (count coll) (count split-non-coll))\n                                   coll)]\n      (if (empty? remainder)\n        split-non-coll\n        (concat (list remainder) split-non-coll)))))"
+  (expect
+    "(defn cleave-end\n  \"Take a seq, and if it is contains a single symbol, simply return\n  it in another seq.  If it contains something else, remove any non\n  collections off of the end and return them in their own double seqs,\n  as well as return the remainder (the beginning) as a double seq.\"\n  [coll]\n  (if (or (zsymbol? (first coll)) (zreader-cond-w-symbol? (first coll)))\n    ;(symbol? (first coll))\n    (list coll)\n    (let [rev-seq            (reverse coll)\n          [split-non-coll _]\n            ;(split-with (comp not zcoll?) rev-seq)\n            (split-with #(not (or (zcoll? %) (zreader-cond-w-coll? %))) rev-seq)\n          #_(def sncce split-non-coll)\n          split-non-coll     (map list (reverse split-non-coll))\n          remainder          (take (- (count coll) (count split-non-coll))\n                                   coll)]\n      (if (empty? remainder)\n        split-non-coll\n        (concat (list remainder) split-non-coll)))))"
+    (zprint-str i273clve {:parse-string? true, :style :justified}))
 
-(zprint-str i273clve {:parse-string? true :style :justified}))
+  ;;
+  ;; Issue #283 -- blank lines only after elements in a vector that take more
+  ;; than one line.
+  ;;
 
-;;
-;; Issue #283 -- blank lines only after elements in a vector that take more
-;; than one line.
-;;
-
- (def
- i283j
-"{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n  {:foo/bar :programs\n   :foo/bar [{:foo/bar :foo/baz\n              :name \"bardel\"\n              :activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]}\n             {:foo/bar :foo/baz\n              :name \"irresonant\"\n              :activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]}]}]}\n")
-(expect
-
-"{:foo/bar\n   [{:foo/bar :activities,\n     :foo/bar []}\n\n    {:foo/bar :programs,\n     :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.objectivism,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.nonperforming}\n                             {:foo/bar :foo/bar.splenodynia,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.Cashmere}\n                             {:foo/bar :foo/bar.undelectably,\n                              :start-offset-days 5}\n\n                             {:foo/bar :foo/bar.theosopheme,\n                              :start-offset-days 20}],\n                :foo/bar :foo/baz,\n                :name \"bardel\"}\n\n               {:activities [{:foo/bar :foo/bar.phytogenetical,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.oriental,\n                              :start-offset-days 5}],\n                :foo/bar :foo/baz,\n                :name \"irresonant\"}]}]}"
-
-(zprint-str i283j {:parse-string? true :vector {:fn-format :list} :vector-fn {:nl-count 2 :indent 1 :hang? false :nl-separator? true} :map {:force-nl? true}}))
-
-
-
- (def
- i283m
-"{:foo/bar\n   [{:foo/bar :activities, :foo/bar []}\n    {:foo/bar :programs,\n     :foo/bar\n       [{:activities [{:foo/bar :foo/bar.cosmic, :start-offset-days 0}\n                      {:foo/bar :foo/bar.objectivism, :start-offset-days 0}\n                      {:foo/bar :foo/bar.nonperforming}\n                      {:foo/bar :foo/bar.splenodynia, :start-offset-days 0}\n                      {:foo/bar :foo/bar.Cashmere}\n                      {:foo/bar :foo/bar.undelectably, :start-offset-days 5}\n                      {:foo/bar :foo/bar.theosopheme, :start-offset-days 20}],\n         :foo/bar :foo/baz,\n         :name \"bardel\"}\n        {:activities [{:foo/bar :foo/bar.phytogenetical, :start-offset-days 0}\n                      {:foo/bar :foo/bar.oriental, :start-offset-days 5}],\n         :foo/bar :foo/baz,\n         :name \"irresonant\"}]} {:foo/bar :stuff} {:bother [], :foo/bar :stuff}]}\n")
-
-
-(expect
-"{:foo/bar\n   [{:foo/bar :activities,\n     :foo/bar []}\n\n    {:foo/bar :programs,\n     :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.objectivism,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.nonperforming}\n                             {:foo/bar :foo/bar.splenodynia,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.Cashmere}\n                             {:foo/bar :foo/bar.undelectably,\n                              :start-offset-days 5}\n\n                             {:foo/bar :foo/bar.theosopheme,\n                              :start-offset-days 20}],\n                :foo/bar :foo/baz,\n                :name \"bardel\"}\n\n               {:activities [{:foo/bar :foo/bar.phytogenetical,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.oriental,\n                              :start-offset-days 5}],\n                :foo/bar :foo/baz,\n                :name \"irresonant\"}]}\n\n    {:foo/bar :stuff}\n    {:bother [],\n     :foo/bar :stuff}]}"
-(zprint-str i283m {:parse-string? true :vector {:fn-format :list} :vector-fn {:nl-count 2 :indent 1 :hang? false :nl-separator? true} :map {:force-nl? true}}))
-
-
-
-(def
-i283l
-"[{:a :b}\n {:c :d :e :f}\n {:t [{:u :v}\n      {:w :x}\n      {:y :z :aa :bb}\n      {:cc :dd}\n      {:ee :ff :gg :hh}]}\n {:h :i}\n {:j :k :l :m}\n {:n :o :p :q}\n {:r :s}\n ]\n")
-
-(expect
-"[{:a :b}\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
-
-(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:nl-count 2 :indent 1 :hang? false :nl-separator? true} :map {:force-nl? true}}))
+  (def i283j
+    "{:foo/bar\n [{:foo/bar :activities\n   :foo/bar []}\n  {:foo/bar :programs\n   :foo/bar [{:foo/bar :foo/baz\n              :name \"bardel\"\n              :activities [{:foo/bar :foo/bar.cosmic\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.objectivism\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.nonperforming}\n\n                           {:foo/bar :foo/bar.splenodynia\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.Cashmere}\n\n                           {:foo/bar :foo/bar.undelectably\n                            :start-offset-days 5}\n\n                           {:foo/bar :foo/bar.theosopheme\n                            :start-offset-days 20}]}\n             {:foo/bar :foo/baz\n              :name \"irresonant\"\n              :activities [{:foo/bar :foo/bar.phytogenetical\n                            :start-offset-days 0}\n\n                           {:foo/bar :foo/bar.oriental\n                            :start-offset-days 5}]}]}]}\n")
+  (expect
+    "{:foo/bar\n   [{:foo/bar :activities,\n     :foo/bar []}\n\n    {:foo/bar :programs,\n     :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.objectivism,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.nonperforming}\n                             {:foo/bar :foo/bar.splenodynia,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.Cashmere}\n                             {:foo/bar :foo/bar.undelectably,\n                              :start-offset-days 5}\n\n                             {:foo/bar :foo/bar.theosopheme,\n                              :start-offset-days 20}],\n                :foo/bar :foo/baz,\n                :name \"bardel\"}\n\n               {:activities [{:foo/bar :foo/bar.phytogenetical,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.oriental,\n                              :start-offset-days 5}],\n                :foo/bar :foo/baz,\n                :name \"irresonant\"}]}]}"
+    (zprint-str i283j
+                {:parse-string? true,
+                 :vector {:fn-format :list},
+                 :vector-fn
+                   {:nl-count 2, :indent 1, :hang? false, :nl-separator? true},
+                 :map {:force-nl? true}}))
 
 
-(def
- i283k
-"[{:a :b}\n {:c :d :e :f}\n {:h :i}\n {:j :k :l :m}\n {:n :o :p :q}\n {:r :s}\n ]\n")
 
-(expect
-"[{:a :b}\n {:c :d,\n  :e :f}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
-(zprint-str i283k {:parse-string? true :vector {:fn-format :list} :vector-fn {:nl-count 2 :indent 1 :hang? false :nl-separator? true} :map {:force-nl? true}}))
-
-(expect
-"[{:a :b}\n\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n\n      {:w :x}\n\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
-
-(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? false :nl-count 2} :map {:force-nl? true}}))
-
-(expect
-"[{:a :b}\n {:c :d,\n  :e :f}\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n {:h :i}\n {:j :k,\n  :l :m}\n {:n :o,\n  :p :q}\n {:r :s}]"
-(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? false} :map {:force-nl? true}}))
-
-(expect
-"[{:a :b}\n\n\n {:c :d,\n  :e :f}\n\n\n\n {:t [{:u :v}\n\n\n      {:w :x}\n\n\n\n      {:aa :bb,\n       :y :z}\n\n\n\n\n      {:cc :dd}\n\n\n\n\n      {:ee :ff,\n       :gg :hh}]}\n\n\n\n\n {:h :i}\n\n\n\n\n {:j :k,\n  :l :m}\n\n\n\n\n {:n :o,\n  :p :q}\n\n\n\n\n {:r :s}]"
-(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? false :nl-count [3 4 5]} :map {:force-nl? true}}))
-
-(expect
-"[{:a :b}\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
-(zprint-str i283l {:parse-string? true :vector {:fn-format :list} :vector-fn {:indent 1 :hang? false :nl-separator? true :nl-count [3 4 5]} :map {:force-nl? true}}))
-
-;;
-;; Issue #294 -- :hiccup style getting triggered by destructuring map in
-;; argument vector.
-;;
-
-(def
-i294b
-"(defn my-fn \n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} a longer argument vector]\n   (do-stuff a b c)))\n")
+  (def i283m
+    "{:foo/bar\n   [{:foo/bar :activities, :foo/bar []}\n    {:foo/bar :programs,\n     :foo/bar\n       [{:activities [{:foo/bar :foo/bar.cosmic, :start-offset-days 0}\n                      {:foo/bar :foo/bar.objectivism, :start-offset-days 0}\n                      {:foo/bar :foo/bar.nonperforming}\n                      {:foo/bar :foo/bar.splenodynia, :start-offset-days 0}\n                      {:foo/bar :foo/bar.Cashmere}\n                      {:foo/bar :foo/bar.undelectably, :start-offset-days 5}\n                      {:foo/bar :foo/bar.theosopheme, :start-offset-days 20}],\n         :foo/bar :foo/baz,\n         :name \"bardel\"}\n        {:activities [{:foo/bar :foo/bar.phytogenetical, :start-offset-days 0}\n                      {:foo/bar :foo/bar.oriental, :start-offset-days 5}],\n         :foo/bar :foo/baz,\n         :name \"irresonant\"}]} {:foo/bar :stuff} {:bother [], :foo/bar :stuff}]}\n")
 
 
-(expect
-"(defn my-fn\n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} a longer argument vector] (do-stuff a b c)))"
-(zprint-str i294b {:parse-string? true :style :hiccup}))
+  (expect
+    "{:foo/bar\n   [{:foo/bar :activities,\n     :foo/bar []}\n\n    {:foo/bar :programs,\n     :foo/bar [{:activities [{:foo/bar :foo/bar.cosmic,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.objectivism,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.nonperforming}\n                             {:foo/bar :foo/bar.splenodynia,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.Cashmere}\n                             {:foo/bar :foo/bar.undelectably,\n                              :start-offset-days 5}\n\n                             {:foo/bar :foo/bar.theosopheme,\n                              :start-offset-days 20}],\n                :foo/bar :foo/baz,\n                :name \"bardel\"}\n\n               {:activities [{:foo/bar :foo/bar.phytogenetical,\n                              :start-offset-days 0}\n\n                             {:foo/bar :foo/bar.oriental,\n                              :start-offset-days 5}],\n                :foo/bar :foo/baz,\n                :name \"irresonant\"}]}\n\n    {:foo/bar :stuff}\n    {:bother [],\n     :foo/bar :stuff}]}"
+    (zprint-str i283m
+                {:parse-string? true,
+                 :vector {:fn-format :list},
+                 :vector-fn
+                   {:nl-count 2, :indent 1, :hang? false, :nl-separator? true},
+                 :map {:force-nl? true}}))
 
-(def i294e
 
-"(defn my-fn
+
+  (def i283l
+    "[{:a :b}\n {:c :d :e :f}\n {:t [{:u :v}\n      {:w :x}\n      {:y :z :aa :bb}\n      {:cc :dd}\n      {:ee :ff :gg :hh}]}\n {:h :i}\n {:j :k :l :m}\n {:n :o :p :q}\n {:r :s}\n ]\n")
+
+  (expect
+    "[{:a :b}\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
+    (zprint-str i283l
+                {:parse-string? true,
+                 :vector {:fn-format :list},
+                 :vector-fn
+                   {:nl-count 2, :indent 1, :hang? false, :nl-separator? true},
+                 :map {:force-nl? true}}))
+
+
+  (def i283k
+    "[{:a :b}\n {:c :d :e :f}\n {:h :i}\n {:j :k :l :m}\n {:n :o :p :q}\n {:r :s}\n ]\n")
+
+  (expect
+    "[{:a :b}\n {:c :d,\n  :e :f}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
+    (zprint-str i283k
+                {:parse-string? true,
+                 :vector {:fn-format :list},
+                 :vector-fn
+                   {:nl-count 2, :indent 1, :hang? false, :nl-separator? true},
+                 :map {:force-nl? true}}))
+
+  (expect
+    "[{:a :b}\n\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n\n      {:w :x}\n\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
+    (zprint-str i283l
+                {:parse-string? true,
+                 :vector {:fn-format :list},
+                 :vector-fn
+                   {:indent 1, :hang? false, :nl-separator? false, :nl-count 2},
+                 :map {:force-nl? true}}))
+
+  (expect
+    "[{:a :b}\n {:c :d,\n  :e :f}\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n {:h :i}\n {:j :k,\n  :l :m}\n {:n :o,\n  :p :q}\n {:r :s}]"
+    (zprint-str i283l
+                {:parse-string? true,
+                 :vector {:fn-format :list},
+                 :vector-fn {:indent 1, :hang? false, :nl-separator? false},
+                 :map {:force-nl? true}}))
+
+  (expect
+    "[{:a :b}\n\n\n {:c :d,\n  :e :f}\n\n\n\n {:t [{:u :v}\n\n\n      {:w :x}\n\n\n\n      {:aa :bb,\n       :y :z}\n\n\n\n\n      {:cc :dd}\n\n\n\n\n      {:ee :ff,\n       :gg :hh}]}\n\n\n\n\n {:h :i}\n\n\n\n\n {:j :k,\n  :l :m}\n\n\n\n\n {:n :o,\n  :p :q}\n\n\n\n\n {:r :s}]"
+    (zprint-str
+      i283l
+      {:parse-string? true,
+       :vector {:fn-format :list},
+       :vector-fn
+         {:indent 1, :hang? false, :nl-separator? false, :nl-count [3 4 5]},
+       :map {:force-nl? true}}))
+
+  (expect
+    "[{:a :b}\n {:c :d,\n  :e :f}\n\n {:t [{:u :v}\n      {:w :x}\n      {:aa :bb,\n       :y :z}\n\n      {:cc :dd}\n      {:ee :ff,\n       :gg :hh}]}\n\n {:h :i}\n {:j :k,\n  :l :m}\n\n {:n :o,\n  :p :q}\n\n {:r :s}]"
+    (zprint-str
+      i283l
+      {:parse-string? true,
+       :vector {:fn-format :list},
+       :vector-fn
+         {:indent 1, :hang? false, :nl-separator? true, :nl-count [3 4 5]},
+       :map {:force-nl? true}}))
+
+  ;;
+  ;; Issue #294 -- :hiccup style getting triggered by destructuring map in
+  ;; argument vector.
+  ;;
+
+  (def i294b
+    "(defn my-fn \n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} a longer argument vector]\n   (do-stuff a b c)))\n")
+
+
+  (expect
+    "(defn my-fn\n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} a longer argument vector] (do-stuff a b c)))"
+    (zprint-str i294b {:parse-string? true, :style :hiccup}))
+
+  (def i294e
+    "(defn my-fn
   ([a] (my-fn a {}))
   ([a {:keys [b c]} c d e f g]
    (do-stuff a b c)))")
 
-(expect
-"(defn my-fn\n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} c d e f g]\n   (do-stuff a b c)))"
-(zprint-str i294e {:parse-string? true :width 40 :style :hiccup}))
+  (expect
+    "(defn my-fn\n  ([a] (my-fn a {}))\n  ([a {:keys [b c]} c d e f g]\n   (do-stuff a b c)))"
+    (zprint-str i294e {:parse-string? true, :width 40, :style :hiccup}))
 
-;;
-;; Key sorting to last in addition to first  -- Issue #281
-;;
+  ;;
+  ;; Key sorting to last in addition to first  -- Issue #281
+  ;;
 
- (def x {:a :bbbbbbbbbbbbbb :c :ddddddddddddddddd :e :ffffffffffff :g :hhhhhhhhhhhhhhh :i :jjjjjjjjjjjjjjjj :k :llllllllllll :m :nnnnnnnnnnnn})
+  (def x
+    {:a :bbbbbbbbbbbbbb,
+     :c :ddddddddddddddddd,
+     :e :ffffffffffff,
+     :g :hhhhhhhhhhhhhhh,
+     :i :jjjjjjjjjjjjjjjj,
+     :k :llllllllllll,
+     :m :nnnnnnnnnnnn})
 
-(expect
-"{:g :hhhhhhhhhhhhhhh,\n :a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :e :ffffffffffff,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
-(zprint-str x {:map {:key-order [:g]}}))
+  (expect
+    "{:g :hhhhhhhhhhhhhhh,\n :a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :e :ffffffffffff,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
+    (zprint-str x {:map {:key-order [:g]}}))
 
-(expect
-"{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
-(zprint-str x {:map {:key-order [:g :e]}}))
+  (expect
+    "{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
+    (zprint-str x {:map {:key-order [:g :e]}}))
 
-(expect
-"{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff}"
-(zprint-str x {:map {:key-order [:| :g :e]}}))
+  (expect
+    "{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff}"
+    (zprint-str x {:map {:key-order [:| :g :e]}}))
 
-(expect
-"{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :e :ffffffffffff,\n :g :hhhhhhhhhhhhhhh}"
-(zprint-str x {:map {:key-order [:| :e :g]}}))
+  (expect
+    "{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :e :ffffffffffff,\n :g :hhhhhhhhhhhhhhh}"
+    (zprint-str x {:map {:key-order [:| :e :g]}}))
 
-(expect
-"{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :a :bbbbbbbbbbbbbb,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :c :ddddddddddddddddd}"
-(zprint-str x {:map {:key-order [:g :e :| :c]}}))
+  (expect
+    "{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :a :bbbbbbbbbbbbbb,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :c :ddddddddddddddddd}"
+    (zprint-str x {:map {:key-order [:g :e :| :c]}}))
 
-(expect
-"{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :c :ddddddddddddddddd,\n :a :bbbbbbbbbbbbbb}"
-(zprint-str x {:map {:key-order [:g :e :| :c :a]}}))
+  (expect
+    "{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn,\n :c :ddddddddddddddddd,\n :a :bbbbbbbbbbbbbb}"
+    (zprint-str x {:map {:key-order [:g :e :| :c :a]}}))
 
-(expect
-"{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :c :ddddddddddddddddd,\n :a :bbbbbbbbbbbbbb,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
-(zprint-str x {:map {:key-order [:g :e  :c :a]}}))
+  (expect
+    "{:g :hhhhhhhhhhhhhhh,\n :e :ffffffffffff,\n :c :ddddddddddddddddd,\n :a :bbbbbbbbbbbbbb,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
+    (zprint-str x {:map {:key-order [:g :e :c :a]}}))
 
-(expect
-"{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :e :ffffffffffff,\n :g :hhhhhhhhhhhhhhh,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
-(zprint-str x {:map {:key-order [:|]}}))
+  (expect
+    "{:a :bbbbbbbbbbbbbb,\n :c :ddddddddddddddddd,\n :e :ffffffffffff,\n :g :hhhhhhhhhhhhhhh,\n :i :jjjjjjjjjjjjjjjj,\n :k :llllllllllll,\n :m :nnnnnnnnnnnn}"
+    (zprint-str x {:map {:key-order [:|]}}))
 
 
-;;
-;; Issue #301 -- how to make Tonsky Better Clojure Formatting also do
-;; justification.
-;;
+  ;;
+  ;; Issue #301 -- how to make Tonsky Better Clojure Formatting also do
+  ;; justification.
+  ;;
 
-;; Basically, testing :remove-final-keys here.
+  ;; Basically, testing :remove-final-keys here.
 
-(def i301e
-"(when something\n  body)\n\n(defn f [x]\n  body)\n\n(defn f\n  [x]\n  body)\n\n(defn many-args [a b c\n                 d e f]\n  body)\n\n(defn multi-arity\n  ([x]\n   body)\n  ([x y]\n   body))\n\n(let [x 1\n      y-long 2]\n  body)\n\n[1 2 3\n 4 5 6]\n\n{:key-1 v1\n :key-2-long v2}\n\n#{a b c\n  d e f}\n\n(1 2 3\n 4 5 6 7\n 8 9)\n\n'(1 2 3\n 4 5 6 7\n 8 9)\n\n\n(or (condition-a)\n      (condition-b)\n    (condition-c))\n\n(defn compare-ordered-keys\n  \"Do a key comparison that places ordered keys first or last, based on\n  where they fall with respect to the value of a divider -- :|.\"\n  [key-value divider-value zdotdotdot x y]\n  (cond (and (key-value x) (key-value y)) (compare (key-value x) (key-value y))\n        (key-value x) (if (< (key-value x) divider-value) -1 +1)\n        (key-value y) (if (< (key-value y) divider-value) +1 -1)\n        (= zdotdotdot x) +1\n        (= zdotdotdot y) -1\n        :else (compare-keys x y)))\n\n(let [l-str \"#<\"\n            r-str \">\"\n            indent (count l-str)\n            l-str-vec [[l-str (zcolor-map options l-str) :left]]\n            r-str-vec (rstr-vec options ind zloc r-str)\n            type-str (case zloc-type\n                       :future \"Future@\"\n                       :promise \"Promise@\"\n                       :delay \"Delay@\"\n                       :agent \"Agent@\")] (stuff))\n\n(defn integrate-next-inner\n  \"If the value of :next-inner is a map, then config-and-validate it. If\n  the value of :next-inner is a vector of maps, then config-and-validate\n  each of the maps in turn.\"\n  [options]\n  (dbg-pr options \"integrate-next-inner:\")\n  (let [next-inner (:next-inner options :unset)]\n    (cond (map? next-inner) (first (zprint.config/config-and-validate\n                                     \"next-inner:\"\n                                     nil\n                                     (dissoc options :next-inner)\n                                     next-inner\n                                     nil ; validate?\n                                   ))\n          (vector? next-inner) (reduce #(first\n                                          (zprint.config/config-and-validate\n                                            \"next-inner-vector\"\n                                            nil\n                                            %1\n                                            %2\n                                            nil))\n                                 (dissoc options :next-inner)\n                                 next-inner)\n          (= next-inner :unset) options\n          :else options)))\n\n\n\n\n")
+  (def i301e
+    "(when something\n  body)\n\n(defn f [x]\n  body)\n\n(defn f\n  [x]\n  body)\n\n(defn many-args [a b c\n                 d e f]\n  body)\n\n(defn multi-arity\n  ([x]\n   body)\n  ([x y]\n   body))\n\n(let [x 1\n      y-long 2]\n  body)\n\n[1 2 3\n 4 5 6]\n\n{:key-1 v1\n :key-2-long v2}\n\n#{a b c\n  d e f}\n\n(1 2 3\n 4 5 6 7\n 8 9)\n\n'(1 2 3\n 4 5 6 7\n 8 9)\n\n\n(or (condition-a)\n      (condition-b)\n    (condition-c))\n\n(defn compare-ordered-keys\n  \"Do a key comparison that places ordered keys first or last, based on\n  where they fall with respect to the value of a divider -- :|.\"\n  [key-value divider-value zdotdotdot x y]\n  (cond (and (key-value x) (key-value y)) (compare (key-value x) (key-value y))\n        (key-value x) (if (< (key-value x) divider-value) -1 +1)\n        (key-value y) (if (< (key-value y) divider-value) +1 -1)\n        (= zdotdotdot x) +1\n        (= zdotdotdot y) -1\n        :else (compare-keys x y)))\n\n(let [l-str \"#<\"\n            r-str \">\"\n            indent (count l-str)\n            l-str-vec [[l-str (zcolor-map options l-str) :left]]\n            r-str-vec (rstr-vec options ind zloc r-str)\n            type-str (case zloc-type\n                       :future \"Future@\"\n                       :promise \"Promise@\"\n                       :delay \"Delay@\"\n                       :agent \"Agent@\")] (stuff))\n\n(defn integrate-next-inner\n  \"If the value of :next-inner is a map, then config-and-validate it. If\n  the value of :next-inner is a vector of maps, then config-and-validate\n  each of the maps in turn.\"\n  [options]\n  (dbg-pr options \"integrate-next-inner:\")\n  (let [next-inner (:next-inner options :unset)]\n    (cond (map? next-inner) (first (zprint.config/config-and-validate\n                                     \"next-inner:\"\n                                     nil\n                                     (dissoc options :next-inner)\n                                     next-inner\n                                     nil ; validate?\n                                   ))\n          (vector? next-inner) (reduce #(first\n                                          (zprint.config/config-and-validate\n                                            \"next-inner-vector\"\n                                            nil\n                                            %1\n                                            %2\n                                            nil))\n                                 (dissoc options :next-inner)\n                                 next-inner)\n          (= next-inner :unset) options\n          :else options)))\n\n\n\n\n")
 
- (expect
-"(when something\n  body)\n\n(defn f [x]\n  body)\n\n(defn f\n  [x]\n  body)\n\n(defn many-args\n  [a b c\n   d e f]\n  body)\n\n(defn multi-arity\n  ([x]\n   body)\n  ([x y]\n   body))\n\n(let [x      1\n      y-long 2]\n  body)\n\n[1 2 3\n 4 5 6]\n\n{:key-1      v1,\n :key-2-long v2}\n\n#{a b c\n  d e f}\n\n(1 2 3\n 4 5 6 7\n 8 9)\n\n'(1 2 3\n  4 5 6 7\n  8 9)\n\n\n(or (condition-a)\n  (condition-b)\n  (condition-c))\n\n(defn compare-ordered-keys\n  \"Do a key comparison that places ordered keys first or last, based on\n  where they fall with respect to the value of a divider -- :|.\"\n  [key-value divider-value zdotdotdot x y]\n  (cond (and (key-value x) (key-value y)) (compare (key-value x) (key-value y))\n        (key-value x)    (if (< (key-value x) divider-value) -1 +1)\n        (key-value y)    (if (< (key-value y) divider-value) +1 -1)\n        (= zdotdotdot x) +1\n        (= zdotdotdot y) -1\n        :else            (compare-keys x y)))\n\n(let [l-str     \"#<\"\n      r-str     \">\"\n      indent    (count l-str)\n      l-str-vec [[l-str (zcolor-map options l-str) :left]]\n      r-str-vec (rstr-vec options ind zloc r-str)\n      type-str  (case zloc-type\n                  :future  \"Future@\"\n                  :promise \"Promise@\"\n                  :delay   \"Delay@\"\n                  :agent   \"Agent@\")]\n  (stuff))\n\n(defn integrate-next-inner\n  \"If the value of :next-inner is a map, then config-and-validate it. If\n  the value of :next-inner is a vector of maps, then config-and-validate\n  each of the maps in turn.\"\n  [options]\n  (dbg-pr options \"integrate-next-inner:\")\n  (let [next-inner (:next-inner options :unset)]\n    (cond (map? next-inner)     (first\n                                  (zprint.config/config-and-validate\n                                    \"next-inner:\"\n                                    nil\n                                    (dissoc options :next-inner)\n                                    next-inner\n                                    nil ; validate?\n                                  ))\n          (vector? next-inner)  (reduce\n                                  #(first\n                                     (zprint.config/config-and-validate\n                                       \"next-inner-vector\"\n                                       nil\n                                       %1\n                                       %2\n                                       nil))\n                                  (dissoc options :next-inner)\n                                  next-inner)\n          (= next-inner :unset) options\n          :else                 options)))\n\n\n\n\n" 
-
- (zprint-file-str i301e   "x"  {:style [:respect-nl :justified], :remove-final-keys [[:fn-map]]  :list {:wrap? true,  :option-fn (fn   ([] "TBCF")    ([opts n exprs]  (when-not (or (keyword? (first exprs))  (symbol? (first exprs)))   {:list {:indent 1}})))},    :fn-map      {"let" :binding, "cond" :pair-fn, "case" :arg1-pair-body}}))
+  (expect
+    "(when something\n  body)\n\n(defn f [x]\n  body)\n\n(defn f\n  [x]\n  body)\n\n(defn many-args\n  [a b c\n   d e f]\n  body)\n\n(defn multi-arity\n  ([x]\n   body)\n  ([x y]\n   body))\n\n(let [x      1\n      y-long 2]\n  body)\n\n[1 2 3\n 4 5 6]\n\n{:key-1      v1,\n :key-2-long v2}\n\n#{a b c\n  d e f}\n\n(1 2 3\n 4 5 6 7\n 8 9)\n\n'(1 2 3\n  4 5 6 7\n  8 9)\n\n\n(or (condition-a)\n  (condition-b)\n  (condition-c))\n\n(defn compare-ordered-keys\n  \"Do a key comparison that places ordered keys first or last, based on\n  where they fall with respect to the value of a divider -- :|.\"\n  [key-value divider-value zdotdotdot x y]\n  (cond (and (key-value x) (key-value y)) (compare (key-value x) (key-value y))\n        (key-value x)    (if (< (key-value x) divider-value) -1 +1)\n        (key-value y)    (if (< (key-value y) divider-value) +1 -1)\n        (= zdotdotdot x) +1\n        (= zdotdotdot y) -1\n        :else            (compare-keys x y)))\n\n(let [l-str     \"#<\"\n      r-str     \">\"\n      indent    (count l-str)\n      l-str-vec [[l-str (zcolor-map options l-str) :left]]\n      r-str-vec (rstr-vec options ind zloc r-str)\n      type-str  (case zloc-type\n                  :future  \"Future@\"\n                  :promise \"Promise@\"\n                  :delay   \"Delay@\"\n                  :agent   \"Agent@\")]\n  (stuff))\n\n(defn integrate-next-inner\n  \"If the value of :next-inner is a map, then config-and-validate it. If\n  the value of :next-inner is a vector of maps, then config-and-validate\n  each of the maps in turn.\"\n  [options]\n  (dbg-pr options \"integrate-next-inner:\")\n  (let [next-inner (:next-inner options :unset)]\n    (cond (map? next-inner)     (first\n                                  (zprint.config/config-and-validate\n                                    \"next-inner:\"\n                                    nil\n                                    (dissoc options :next-inner)\n                                    next-inner\n                                    nil ; validate?\n                                  ))\n          (vector? next-inner)  (reduce\n                                  #(first\n                                     (zprint.config/config-and-validate\n                                       \"next-inner-vector\"\n                                       nil\n                                       %1\n                                       %2\n                                       nil))\n                                  (dissoc options :next-inner)\n                                  next-inner)\n          (= next-inner :unset) options\n          :else                 options)))\n\n\n\n\n"
+    (zprint-file-str
+      i301e
+      "x"
+      {:style [:respect-nl :justified],
+       :remove-final-keys [[:fn-map]],
+       :list {:wrap? true,
+              :option-fn (fn
+                           ([] "TBCF")
+                           ([opts n exprs]
+                            (when-not (or (keyword? (first exprs))
+                                          (symbol? (first exprs)))
+                              {:list {:indent 1}})))},
+       :fn-map {"let" :binding, "cond" :pair-fn, "case" :arg1-pair-body}}))
 
 
 

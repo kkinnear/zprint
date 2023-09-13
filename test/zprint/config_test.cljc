@@ -235,18 +235,18 @@
 
   ; Define a new style
 
-  (expect
-    (more-of options
-      {:extend {:modifiers #{"stuff"}}} (:tst-style-1 (:style-map options)))
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)
-                  zprint.config/write-options? (atom nil)]
-      (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
-                                                          #{"stuff"}}}}})
-      (get-options)))
+  (expect (more-of options
+            {:extend {:modifiers #{"stuff"}}} (:tst-style-1 (:style-map
+                                                              options)))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)
+                        zprint.config/write-options? (atom nil)]
+            (set-options! {:style-map {:tst-style-1 {:extend {:modifiers
+                                                                #{"stuff"}}}}})
+            (get-options)))
 
   ; Apply a new style (which adds a set element)
 
@@ -281,34 +281,34 @@
   ; Define a new style and use it to define another style and then use
   ; that second style
 
-  (expect
-    (more-of options
-      #{"static" "stuff"} (:modifiers (:extend options)))
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)
-                  zprint.config/write-options? (atom nil)]
-      (set-options! {:style :tst-style-2,
-                     :style-map {:tst-style-1 {:extend {:modifiers #{"stuff"}}},
-                                 :tst-style-2 {:style :tst-style-1}}})
-      (get-options)))
+  (expect (more-of options
+            #{"static" "stuff"} (:modifiers (:extend options)))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)
+                        zprint.config/write-options? (atom nil)]
+            (set-options! {:style :tst-style-2,
+                           :style-map {:tst-style-1 {:extend {:modifiers
+                                                                #{"stuff"}}},
+                                       :tst-style-2 {:style :tst-style-1}}})
+            (get-options)))
 
   ; Define two styles that reference each other, and see if we get an
   ; exception
 
-  (expect
-    #?(:clj Exception
-       :cljs js/Error)
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)
-                  zprint.config/write-options? (atom nil)]
-      (set-options! {:style-map {:x {:style :y}, :y {:style :x}}, :style :x})
-      (get-options)))
+  (expect #?(:clj Exception
+             :cljs js/Error)
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)
+                        zprint.config/write-options? (atom nil)]
+            (set-options! {:style-map {:x {:style :y}, :y {:style :x}},
+                           :style :x})
+            (get-options)))
 
   ; Define three styles that reference each other in a circle, and see if
   ; we get an exception
@@ -425,19 +425,19 @@
   ; Will we get an exception when setting an invalid options map inside of
   ; an otherwise valid options map?
 
-  (expect
-    #?(:clj Exception
-       :cljs js/Error)
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)
-                  zprint.config/write-options? (atom nil)]
-      (set-options!
-        {:fn-map {"xx" [:arg1-body
-                        {:fn-map {":export" [:flow {:list {:hang true}}]}}]}})
-      (get-options)))
+  (expect #?(:clj Exception
+             :cljs js/Error)
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)
+                        zprint.config/write-options? (atom nil)]
+            (set-options!
+              {:fn-map {"xx" [:arg1-body
+                              {:fn-map {":export" [:flow
+                                                   {:list {:hang true}}]}}]}})
+            (get-options)))
 
   ;; Test config loading via URL
   ;;
@@ -474,126 +474,126 @@
 
 
   #?(:bb nil
-     :clj (expect
-            (more-of options
-              1 (get options :max-depth))
-            (let [options-file (File/createTempFile "load-options" "1")
-                  cache-file (io/file url-cache-path
-                                      (str "nohost_"
-                                           (hash (str (.toURL options-file)))))]
-              (.delete cache-file)
-              (spit options-file (print-str {:max-depth 1}))
-              (with-redefs [zprint.config/configured-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)
-                            zprint.config/write-options? (atom nil)]
-                (load-options! nil (.toURL options-file))
-                (.delete cache-file)
-                (get-options)))))
+     :clj (expect (more-of options
+                    1 (get options :max-depth))
+                  (let [options-file (File/createTempFile "load-options" "1")
+                        cache-file (io/file url-cache-path
+                                            (str "nohost_"
+                                                 (hash (str (.toURL
+                                                              options-file)))))]
+                    (.delete cache-file)
+                    (spit options-file (print-str {:max-depth 1}))
+                    (with-redefs [zprint.config/configured-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-sequence (atom 1)
+                                  zprint.config/write-options? (atom nil)]
+                      (load-options! nil (.toURL options-file))
+                      (.delete cache-file)
+                      (get-options)))))
 
   ; Extend with set-options
   #?(:bb nil
-     :clj (expect
-            (more-of options
-              2 (get options :max-depth)
-              22 (get options :max-length))
-            (let [options-file (File/createTempFile "load-options" "2")
-                  cache-file (io/file url-cache-path
-                                      (str "nohost_"
-                                           (hash (str (.toURL options-file)))))]
-              (.delete cache-file)
-              (spit options-file (print-str {:max-depth 2}))
-              (with-redefs [zprint.config/configured-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)
-                            zprint.config/write-options? (atom nil)]
-                (set-options! {:max-length 22})
-                (load-options! nil (.toURL options-file))
-                ;(.delete cache-file)
-                (get-options)))))
+     :clj (expect (more-of options
+                    2 (get options :max-depth)
+                    22 (get options :max-length))
+                  (let [options-file (File/createTempFile "load-options" "2")
+                        cache-file (io/file url-cache-path
+                                            (str "nohost_"
+                                                 (hash (str (.toURL
+                                                              options-file)))))]
+                    (.delete cache-file)
+                    (spit options-file (print-str {:max-depth 2}))
+                    (with-redefs [zprint.config/configured-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-sequence (atom 1)
+                                  zprint.config/write-options? (atom nil)]
+                      (set-options! {:max-length 22})
+                      (load-options! nil (.toURL options-file))
+                      ;(.delete cache-file)
+                      (get-options)))))
 
   ; Cached
   #?(:bb nil
-     :clj (expect
-            (more-of options
-              3 (get options :max-depth))
-            (let [options-file (File/createTempFile "load-options" "3")
-                  cache-file (io/file url-cache-path
-                                      (str "nohost_"
-                                           (hash (str (.toURL options-file)))))]
-              (.delete cache-file)
-              (spit options-file (print-str {:max-depth 3}))
-              (with-redefs [zprint.config/configured-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)
-                            zprint.config/write-options? (atom nil)]
-                (load-options! nil (.toURL options-file))
-                (while (not (.exists cache-file)) ;default 5 min
-                                                  ;cache
-                                                  ;created async in
-                                                  ;ms
-                       (Thread/sleep 10))
-                (spit options-file (print-str {:max-depth 33})) ;unused
-                                                                ;remote
-                (load-options! nil (.toURL options-file))
-                (.delete cache-file)
-                (get-options)))))
+     :clj (expect (more-of options
+                    3 (get options :max-depth))
+                  (let [options-file (File/createTempFile "load-options" "3")
+                        cache-file (io/file url-cache-path
+                                            (str "nohost_"
+                                                 (hash (str (.toURL
+                                                              options-file)))))]
+                    (.delete cache-file)
+                    (spit options-file (print-str {:max-depth 3}))
+                    (with-redefs [zprint.config/configured-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-sequence (atom 1)
+                                  zprint.config/write-options? (atom nil)]
+                      (load-options! nil (.toURL options-file))
+                      (while (not (.exists cache-file)) ;default 5 min
+                                                        ;cache
+                                                        ;created async in
+                                                        ;ms
+                        (Thread/sleep 10))
+                      (spit options-file (print-str {:max-depth 33})) ;unused
+                                                                      ;remote
+                      (load-options! nil (.toURL options-file))
+                      (.delete cache-file)
+                      (get-options)))))
 
   ; Expired cache, get rempte
   #?(:bb nil
-     :clj (expect
-            (more-of options
-              44 (get options :max-depth))
-            (let [options-file (File/createTempFile "load-options" "4")
-                  cache-file (io/file url-cache-path
-                                      (str "nohost_"
-                                           (hash (str (.toURL options-file)))))]
-              (.delete cache-file)
-              (spit options-file (print-str {:max-depth 4}))
-              (with-redefs [zprint.config/configured-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)
-                            zprint.config/write-options? (atom nil)]
-                (load-options! nil (.toURL options-file))
-                (while (not (.exists cache-file)) (Thread/sleep 10))
-                ; expired cache
-                (spit cache-file
-                      (print-str {:expires 0, :options {:max-depth 4}}))
-                ;used remote
-                (spit options-file (print-str {:max-depth 44}))
-                (load-options! nil (.toURL options-file))
-                (.delete cache-file)
-                (get-options)))))
+     :clj (expect (more-of options
+                    44 (get options :max-depth))
+                  (let [options-file (File/createTempFile "load-options" "4")
+                        cache-file (io/file url-cache-path
+                                            (str "nohost_"
+                                                 (hash (str (.toURL
+                                                              options-file)))))]
+                    (.delete cache-file)
+                    (spit options-file (print-str {:max-depth 4}))
+                    (with-redefs [zprint.config/configured-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-sequence (atom 1)
+                                  zprint.config/write-options? (atom nil)]
+                      (load-options! nil (.toURL options-file))
+                      (while (not (.exists cache-file)) (Thread/sleep 10))
+                      ; expired cache
+                      (spit cache-file
+                            (print-str {:expires 0, :options {:max-depth 4}}))
+                      ;used remote
+                      (spit options-file (print-str {:max-depth 44}))
+                      (load-options! nil (.toURL options-file))
+                      (.delete cache-file)
+                      (get-options)))))
 
   ; Good url, corrupt cache
   #?(:bb nil
-     :clj (expect
-            (more-of options
-              5 (get options :max-depth))
-            (let [options-file (File/createTempFile "load-options" "5")
-                  cache-file (io/file url-cache-path
-                                      (str "nohost_"
-                                           (hash (str (.toURL options-file)))))]
-              (.delete cache-file)
-              (spit options-file (print-str {:max-depth 5}))
-              (with-redefs [zprint.config/configured-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)
-                            zprint.config/write-options? (atom nil)]
-                (spit cache-file "{bad-cache")       ;corrupt edn
-                (load-options! nil (.toURL options-file))
-                (.delete cache-file)
-                (get-options)))))
+     :clj (expect (more-of options
+                    5 (get options :max-depth))
+                  (let [options-file (File/createTempFile "load-options" "5")
+                        cache-file (io/file url-cache-path
+                                            (str "nohost_"
+                                                 (hash (str (.toURL
+                                                              options-file)))))]
+                    (.delete cache-file)
+                    (spit options-file (print-str {:max-depth 5}))
+                    (with-redefs [zprint.config/configured-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-sequence (atom 1)
+                                  zprint.config/write-options? (atom nil)]
+                      (spit cache-file "{bad-cache") ;corrupt edn
+                      (load-options! nil (.toURL options-file))
+                      (.delete cache-file)
+                      (get-options)))))
 
   #?(:bb nil
      :clj (expect Exception
@@ -609,41 +609,41 @@
 
   ; Write url, bad content, no cache
   #?(:bb nil
-     :clj (expect
-            Exception
-            (let [options-file (File/createTempFile "url-bad-content" "1")]
-              (spit options-file "{bad-content")
-              (with-redefs [zprint.config/configured-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)
-                            zprint.config/write-options? (atom nil)]
-                (load-options! nil (.toURL options-file))))))
+     :clj (expect Exception
+                  (let [options-file (File/createTempFile "url-bad-content"
+                                                          "1")]
+                    (spit options-file "{bad-content")
+                    (with-redefs [zprint.config/configured-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-sequence (atom 1)
+                                  zprint.config/write-options? (atom nil)]
+                      (load-options! nil (.toURL options-file))))))
 
   ; Bad url, but cache
   #?(:bb nil
-     :clj (expect
-            (more-of options
-              6 (get options :max-depth))
-            (let [options-file (File/createTempFile "load-options" "6")
-                  cache-file (io/file url-cache-path
-                                      (str "nohost_"
-                                           (hash (str (.toURL options-file)))))]
-              (.delete cache-file)
-              (spit options-file (print-str {:max-depth 6}))
-              (with-redefs [zprint.config/configured-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-options
-                              (atom zprint.config/default-zprint-options)
-                            zprint.config/explained-sequence (atom 1)
-                            zprint.config/write-options? (atom nil)]
-                (load-options! nil (.toURL options-file))
-                (while (not (.exists cache-file)) (Thread/sleep 10))
-                (.delete options-file)               ;break url
-                (load-options! nil (.toURL options-file))
-                (.delete cache-file)
-                (get-options)))))
+     :clj (expect (more-of options
+                    6 (get options :max-depth))
+                  (let [options-file (File/createTempFile "load-options" "6")
+                        cache-file (io/file url-cache-path
+                                            (str "nohost_"
+                                                 (hash (str (.toURL
+                                                              options-file)))))]
+                    (.delete cache-file)
+                    (spit options-file (print-str {:max-depth 6}))
+                    (with-redefs [zprint.config/configured-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-options
+                                    (atom zprint.config/default-zprint-options)
+                                  zprint.config/explained-sequence (atom 1)
+                                  zprint.config/write-options? (atom nil)]
+                      (load-options! nil (.toURL options-file))
+                      (while (not (.exists cache-file)) (Thread/sleep 10))
+                      (.delete options-file) ;break url
+                      (load-options! nil (.toURL options-file))
+                      (.delete cache-file)
+                      (get-options)))))
 
   ; Bad url, expired cache
   #?(:bb nil
@@ -669,7 +669,7 @@
                 (spit cache-file
                       (print-str {:expires 0, :options {:max-depth 7}}))
                 ; break url
-                (.delete options-file)               ;break url
+                (.delete options-file) ;break url
                 (try (load-options! nil (.toURL options-file))
                      (finally (.delete cache-file)))
                 [(get-options) (str baos)]))))
@@ -761,7 +761,7 @@
                                            ; general use
                                            :cache-path (.getPath cache-file)}})
                       (load-options! (get-options) (.toURL options-file))
-                      (Thread/sleep 1)      ;make sure expires
+                      (Thread/sleep 1) ;make sure expires
                       (.delete options-file)
                       (load-options! (get-options) (.toURL options-file))
                       (while (not (.exists cache-file)) (Thread/sleep 10))
@@ -776,17 +776,17 @@
   ;; Issue #111
   ;;
 
-  (expect
-    (more-of options
-      false (boolean (:to-string? (:record options))))
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)
-                  zprint.config/write-options? (atom nil)]
-      (set-options! {:coerce-to-false 'stuff, :record {:to-string? 'stuff}})
-      (get-options)))
+  (expect (more-of options
+            false (boolean (:to-string? (:record options))))
+          (with-redefs [zprint.config/configured-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-options
+                          (atom zprint.config/default-zprint-options)
+                        zprint.config/explained-sequence (atom 1)
+                        zprint.config/write-options? (atom nil)]
+            (set-options! {:coerce-to-false 'stuff,
+                           :record {:to-string? 'stuff}})
+            (get-options)))
 
 
   ;;
@@ -819,13 +819,13 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-sequence (atom 1)
                         zprint.config/write-options? (atom nil)]
-            (set-options!
-              {:fn-map {"quote" [:replace-w-string
-                                 {:list {:replacement-string "'"}} {:width 20}
-                                 ; This is incorrect, and should
-                                 ; force an Exception -- can't have
-                                 ; more than two maps.
-                                 {}]}})
+            (set-options! {:fn-map {"quote" [:replace-w-string
+                                             {:list {:replacement-string "'"}}
+                                             {:width 20}
+                                             ; This is incorrect, and should
+                                             ; force an Exception -- can't have
+                                             ; more than two maps.
+                                             {}]}})
             (get-options)))
 
 
@@ -840,37 +840,37 @@
   ;; ## Test only-set (used in :explain-set)
   ;;
 
-  (expect
-    {:list {:hang? {:set-by "repl or api call 3", :value false}},
-     :parallel? {:set-by "repl or api call 4", :value false},
-     :style-map {:test {:list {:hang? {:set-by "repl or api call 2",
-                                       :value true}}}}}
-    (only-set
-      {:input {:range {:end nil, :start nil}},
-       :list {:constant-pair-min 4,
-              :constant-pair? true,
-              :hang-avoid 0.5,
-              :hang-diff 1,
-              :hang-expand 2.0,
-              :hang-size 100,
-              :hang? {:set-by "repl or api call 3", :value false},
-              :indent 2,
-              :indent-arg nil},
-       :pair-fn {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
-       :parallel? {:set-by "repl or api call 4", :value false},
-       :parse {:interpose nil, :left-space :drop},
-       :style nil,
-       :style-map {:all-hang {:extend {:hang? true},
-                              :list {:hang? true},
-                              :map {:hang? true},
-                              :pair {:hang? true},
-                              :pair-fn {:hang? true},
-                              :reader-cond {:hang? true},
-                              :record {:hang? true}},
-                   :test {:list {:hang? {:set-by "repl or api call 2",
-                                         :value true}}}},
-       :tab {:expand? true, :size 8},
-       :width 80}))
+  (expect {:list {:hang? {:set-by "repl or api call 3", :value false}},
+           :parallel? {:set-by "repl or api call 4", :value false},
+           :style-map {:test {:list {:hang? {:set-by "repl or api call 2",
+                                             :value true}}}}}
+          (only-set
+            {:input {:range {:end nil, :start nil}},
+             :list {:constant-pair-min 4,
+                    :constant-pair? true,
+                    :hang-avoid 0.5,
+                    :hang-diff 1,
+                    :hang-expand 2.0,
+                    :hang-size 100,
+                    :hang? {:set-by "repl or api call 3", :value false},
+                    :indent 2,
+                    :indent-arg nil},
+             :pair-fn
+               {:hang-diff 1, :hang-expand 2.0, :hang-size 10, :hang? true},
+             :parallel? {:set-by "repl or api call 4", :value false},
+             :parse {:interpose nil, :left-space :drop},
+             :style nil,
+             :style-map {:all-hang {:extend {:hang? true},
+                                    :list {:hang? true},
+                                    :map {:hang? true},
+                                    :pair {:hang? true},
+                                    :pair-fn {:hang? true},
+                                    :reader-cond {:hang? true},
+                                    :record {:hang? true}},
+                         :test {:list {:hang? {:set-by "repl or api call 2",
+                                               :value true}}}},
+             :tab {:expand? true, :size 8},
+             :width 80}))
 
   ;;
   ;; # See if we can get calculated-options to work with config-and-validate
@@ -912,47 +912,42 @@
       (get-options)))
 
 
-   ;
-   ; Test set-options! from string, Issue #283
-   ;
+  ;
+  ; Test set-options! from string, Issue #283
+  ;
 
-(def i283p
-"{:vector {:option-fn (fn\n                       ([] \"vector-lines\")\n                       ([options len sexpr]\n                        {:guide (into []\n                                      (->> (repeat (count sexpr) :element)\n                                           (interpose [:newline :newline])\n                                           flatten))}))}}\n")
+  (def i283p
+    "{:vector {:option-fn (fn\n                       ([] \"vector-lines\")\n                       ([options len sexpr]\n                        {:guide (into []\n                                      (->> (repeat (count sexpr) :element)\n                                           (interpose [:newline :newline])\n                                           flatten))}))}}\n")
 
-  ; We expect this to have worked if there is a legit function in the 
+  ; We expect this to have worked if there is a legit function in the
   ; :vector {:option-fn ...}
   #?(:bb nil
-     :clj 
-
-  (expect (more-of options
-            true (fn? (:option-fn (:vector options))))
-          (with-redefs [zprint.config/configured-options
-                          (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-options
-                          (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)
-                        zprint.config/write-options? (atom nil)]
-            (set-options! i283p)
-            (get-options)))
-
-      :cljs
-  (expect (more-of options
-            true (fn? (:option-fn (:vector options))))
-          (with-redefs [zprint.config/configured-options
-                          (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-options
-                          (atom zprint.config/default-zprint-options)
-                        zprint.config/explained-sequence (atom 1)
-                        zprint.config/write-options? (atom nil)]
-            (set-options! i283p)
-            (get-options))))
+     :clj (expect (more-of options
+                    true (fn? (:option-fn (:vector options))))
+                  (with-redefs [zprint.config/configured-options
+                                  (atom zprint.config/default-zprint-options)
+                                zprint.config/explained-options
+                                  (atom zprint.config/default-zprint-options)
+                                zprint.config/explained-sequence (atom 1)
+                                zprint.config/write-options? (atom nil)]
+                    (set-options! i283p)
+                    (get-options)))
+     :cljs (expect (more-of options
+                     true (fn? (:option-fn (:vector options))))
+                   (with-redefs [zprint.config/configured-options
+                                   (atom zprint.config/default-zprint-options)
+                                 zprint.config/explained-options
+                                   (atom zprint.config/default-zprint-options)
+                                 zprint.config/explained-sequence (atom 1)
+                                 zprint.config/write-options? (atom nil)]
+                     (set-options! i283p)
+                     (get-options))))
 
 
 
 
- (def
- i283q
-"{:vector {:option-fn (fnx\n                       ([] \"vector-lines\")\n                       ([options len sexpr]\n                        {:guide (into []\n                                      (->> (repeat (count sexpr) :element)\n                                           (interpose [:newline :newline])\n                                           flatten))}))}}\n")
+  (def i283q
+    "{:vector {:option-fn (fnx\n                       ([] \"vector-lines\")\n                       ([options len sexpr]\n                        {:guide (into []\n                                      (->> (repeat (count sexpr) :element)\n                                           (interpose [:newline :newline])\n                                           flatten))}))}}\n")
 
   (expect #?(:clj Exception
              :cljs js/Error)
@@ -962,143 +957,161 @@
                           (atom zprint.config/default-zprint-options)
                         zprint.config/explained-sequence (atom 1)
                         zprint.config/write-options? (atom nil)]
-	    ; This should cause an Exception, because (fnx ...) isn't
-	    ; correct in the string.
+            ; This should cause an Exception, because (fnx ...) isn't
+            ; correct in the string.
             (set-options! i283q)
             (get-options)))
 
 
 
-;;
-;; # Configurable Styles
-;;
+  ;;
+  ;; # Configurable Styles
+  ;;
 
-;; The style-call doesn't have a valid target.
-(def
-i294
-"(defn my-fn \n  ([a] (my-fn a {}))\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))\n" )
+  ;; The style-call doesn't have a valid target.
+  (def i294
+    "(defn my-fn \n  ([a] (my-fn a {}))\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))\n")
 
 
-(expect "it referenced the style: :rodf which was not found!"
-        (try (zprint-str i294 {:parse-string? true, :style {:style-call :rodf}})
-             (catch #?(:clj Exception
-                       :cljs :default)
-               e
-               (re-find #"it referenced the style: :rodf which was not found!"
-                        (str e)))))
+  (expect "it referenced the style: :rodf which was not found!"
+          (try (zprint-str i294
+                           {:parse-string? true, :style {:style-call :rodf}})
+               (catch #?(:clj Exception
+                         :cljs :default)
+                 e
+                 (re-find #"it referenced the style: :rodf which was not found!"
+                          (str e)))))
 
-;; The style-fn returns an options map with {:style {:style-call ...}}
+  ;; The style-fn returns an options map with {:style {:style-call ...}}
 
- (expect
-"(defn my-fn\n  ([a]\n   (my-fn a {}))\n\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))"
- (zprint-str i294 {:parse-string? true :style {:style-call :rodt} :style-map {:rodt {:style-fn (fn [_ _ _ _] {:style {:style-call :rod}})}}}))
-
-;; The style-fn returns a style-call.  This is an invalid options-map, and
-;; do it throws an exception.
-
-(expect
-  "In a zprint call, In the key-sequence [:style-call] the key :style-call was not recognized as valid!"
-  (try
+  (expect
+    "(defn my-fn\n  ([a]\n   (my-fn a {}))\n\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))"
     (zprint-str i294
                 {:parse-string? true,
                  :style {:style-call :rodt},
                  :style-map {:rodt {:style-fn (fn [_ _ _ _]
-                                                {:style-call :rod})}}})
-    (catch #?(:clj Exception
-              :cljs :default)
-      e
-      (re-find
-        #"In a zprint call, In the key-sequence .:style.call. the key :style.call was not recognized as valid!"
-        (str e)))))
+                                                {:style {:style-call
+                                                           :rod}})}}}))
 
-;; The style is a map w/out :style-call in it
+  ;; The style-fn returns a style-call.  This is an invalid options-map, and
+  ;; do it throws an exception.
 
-(expect "This style: '{:stuff :bother}' contains neither!"
-        (try (zprint-str i294 {:parse-string? true, :style {:stuff :bother}})
-             (catch #?(:clj Exception
-                       :cljs :default)
-               e
-               (re-find #"This style: ..:stuff :bother.. contains neither!"
-                        (str e)))))
+  (expect
+    "In a zprint call, In the key-sequence [:style-call] the key :style-call was not recognized as valid!"
+    (try
+      (zprint-str i294
+                  {:parse-string? true,
+                   :style {:style-call :rodt},
+                   :style-map {:rodt {:style-fn (fn [_ _ _ _]
+                                                  {:style-call :rod})}}})
+      (catch #?(:clj Exception
+                :cljs :default)
+        e
+        (re-find
+          #"In a zprint call, In the key-sequence .:style.call. the key :style.call was not recognized as valid!"
+          (str e)))))
 
-;; Same thing when it is in a vector
+  ;; The style is a map w/out :style-call in it
 
-(expect "This style: '{:stuff :bother}' contains neither!"
-        (try (zprint-str i294 {:parse-string? true, :style [{:stuff :bother}]})
-             (catch #?(:clj Exception
-                       :cljs :default)
-               e
-               (re-find #"This style: ..:stuff :bother.. contains neither!"
-                        (str e)))))
+  (expect "This style: '{:stuff :bother}' contains neither!"
+          (try (zprint-str i294 {:parse-string? true, :style {:stuff :bother}})
+               (catch #?(:clj Exception
+                         :cljs :default)
+                 e
+                 (re-find #"This style: ..:stuff :bother.. contains neither!"
+                          (str e)))))
 
+  ;; Same thing when it is in a vector
 
-;; Valid :style-calls
-
-(expect
-"(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
-(zprint-str i294 {:parse-string? true :style {:style-call :rod-config :one-line-ok? true}}))
-
-(expect
-"(defn my-fn\n  ([a]\n   (my-fn a {}))\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))"
-(zprint-str i294 {:parse-string? true :style {:style-call :rod-config :one-line-ok? false}}))
-
-;; Style not found
-
-(expect "it referenced the style: :rod-configxxx which was not found!"
-        (try (zprint-str i294
-                         {:parse-string? true,
-                          :style {:style-call :rod-configxxx,
-                                  :one-line-ok? true}})
-             (catch #?(:clj Exception
-                       :cljs :default)
-               e
-               (re-find
-                 #"it referenced the style: :rod-configxxx which was not found!"
-                 (str e)))))
+  (expect "This style: '{:stuff :bother}' contains neither!"
+          (try (zprint-str i294
+                           {:parse-string? true, :style [{:stuff :bother}]})
+               (catch #?(:clj Exception
+                         :cljs :default)
+                 e
+                 (re-find #"This style: ..:stuff :bother.. contains neither!"
+                          (str e)))))
 
 
+  ;; Valid :style-calls
 
-;; Bad style map value
+  (expect "(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
+          (zprint-str i294
+                      {:parse-string? true,
+                       :style {:style-call :rod-config, :one-line-ok? true}}))
 
-(expect "the style :rodt failed to validate"
-        (try (zprint-str i294
-                         {:parse-string? true,
-                          :style {:style-call :rodt},
-                          :style-map {:rodt {:list {:indentx 5}}}})
-             (catch #?(:clj Exception
-                       :cljs :default)
-               e
-               (re-find #"the style :rodt failed to validate" (str e)))))
+  (expect
+    "(defn my-fn\n  ([a]\n   (my-fn a {}))\n  ([a {:keys [b c]}]\n   (do-stuff a b c)))"
+    (zprint-str i294
+                {:parse-string? true,
+                 :style {:style-call :rod-config, :one-line-ok? false}}))
 
-;; Circular style error
+  ;; Style not found
 
-(expect "Circular style error!"
-        (try (zprint-str i294
-                         {:parse-string? true,
-                          :style {:style-call :rodt},
-                          :style-map {:rodt {:style-call :rodu},
-                                      :rodu {:style-call :rodt}}})
-             (catch #?(:clj Exception
-                       :cljs :default)
-               e
-               (re-find #"Circular style error!" (str e)))))
+  (expect
+    "it referenced the style: :rod-configxxx which was not found!"
+    (try (zprint-str i294
+                     {:parse-string? true,
+                      :style {:style-call :rod-configxxx, :one-line-ok? true}})
+         (catch #?(:clj Exception
+                   :cljs :default)
+           e
+           (re-find
+             #"it referenced the style: :rod-configxxx which was not found!"
+             (str e)))))
 
-;; Validate entire default options map
 
-(expect nil
-  (set-options! (get-options)))
 
-;; Show that it is ok for a style-fn to return nil
+  ;; Bad style map value
 
-(expect
-"(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
-(zprint-str i294 {:parse-string? true :style :rodt :style-map {:rodt {:style-fn (fn ([] "test-style-fn") ([_ _ _ style-call]  nil))}}}))
+  (expect "the style :rodt failed to validate"
+          (try (zprint-str i294
+                           {:parse-string? true,
+                            :style {:style-call :rodt},
+                            :style-map {:rodt {:list {:indentx 5}}}})
+               (catch #?(:clj Exception
+                         :cljs :default)
+                 e
+                 (re-find #"the style :rodt failed to validate" (str e)))))
 
-;; Show that it is ok for a style-fn to return {}
+  ;; Circular style error
 
-(expect
-"(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
-(zprint-str i294 {:parse-string? true :style :rodt :style-map {:rodt {:style-fn (fn ([] "test-style-fn") ([_ _ _ style-call]  {}))}}}))
+  (expect "Circular style error!"
+          (try (zprint-str i294
+                           {:parse-string? true,
+                            :style {:style-call :rodt},
+                            :style-map {:rodt {:style-call :rodu},
+                                        :rodu {:style-call :rodt}}})
+               (catch #?(:clj Exception
+                         :cljs :default)
+                 e
+                 (re-find #"Circular style error!" (str e)))))
+
+  ;; Validate entire default options map
+
+  (expect nil (set-options! (get-options)))
+
+  ;; Show that it is ok for a style-fn to return nil
+
+  (expect "(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
+          (zprint-str i294
+                      {:parse-string? true,
+                       :style :rodt,
+                       :style-map {:rodt {:style-fn (fn
+                                                      ([] "test-style-fn")
+                                                      ([_ _ _ style-call]
+                                                       nil))}}}))
+
+  ;; Show that it is ok for a style-fn to return {}
+
+  (expect "(defn my-fn ([a] (my-fn a {})) ([a {:keys [b c]}] (do-stuff a b c)))"
+          (zprint-str i294
+                      {:parse-string? true,
+                       :style :rodt,
+                       :style-map {:rodt {:style-fn (fn
+                                                      ([] "test-style-fn")
+                                                      ([_ _ _ style-call]
+                                                       {}))}}}))
 
 
 

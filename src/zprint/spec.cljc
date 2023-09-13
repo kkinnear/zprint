@@ -182,7 +182,7 @@
   (s/or :length number?
         :length-by-depth (s/coll-of number? :kind vector?)))
 (s/def ::vector-of-keywords (s/coll-of keyword? :kind sequential?))
-(s/def ::vector-of-vector-of-keywords 
+(s/def ::vector-of-vector-of-keywords
   (s/coll-of ::vector-of-keywords :kind vector?))
 (s/def ::indent-only-style-value #{:input-hang :none})
 (s/def ::inline-align-style-value #{:consecutive :aligned :none})

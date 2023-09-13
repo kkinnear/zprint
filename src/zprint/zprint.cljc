@@ -3371,60 +3371,59 @@
                                    hang-count
                                    hanging-line-count))
              #_(inc-pass-count)
-             flow
-               (when flow?
-                 ;; :parallel?
-                 (#?@(:clj [zfuture options]
-                      :cljs [do])
-                  (let [flow-result
-                          (if-not pair-seq
-                            ; We don't have any constant pairs
-                            (fzprint-flow-seq caller
-                                              options
-                                              findent
-                                              seq-right
-                                              :force-nl
-                                              :nl-first)
-                            (if (not (zero? non-paired-item-count))
-                              ; We have constant pairs, ; but they follow
-                              ; some stuff that isn't paired. Do the
-                              ; elements that are not pairs
-                              (concat-no-nil
-                                (ensure-end-w-nl findent
-                                                 (fzprint-flow-seq
-                                                   caller
-                                                   (not-rightmost options)
-                                                   findent
-                                                   (take non-paired-item-count
-                                                         seq-right)
-                                                   :force-nl
-                                                   :nl-first))
-                                ; The elements that are constant pairs
-                                (fzprint-pairs options findent pair-seq))
-                              ; This code path is where we have all
-                              ; constant pairs.
-                              (fzprint-pairs options findent pair-seq)))]
-                    ; Skip the first line when doing the calcuation so that
-                    ; good-enough doesn't change the layout from the
-                    ; original
-                    [flow-result
-                     (style-lines
-                       options
-                       findent
-                       ; Issue #173 -- the following code caused code to
-                       ; disappear, because if there was just one thing
-                       ; in flow-result, then it would be empty and
-                       ; style-lines would return nil, causing neither
-                       ; hang nor flow to be used.
-                       ;
-                       ; (if (not pair-seq)
-                       ;   (next flow-result)
-                       ;   flow-result)
-                       ;
-                       ; Now we do a similar thing -- as long as
-                       ; flow-result has more than one thing, below when we
-                       ; call good-enough.
-                       flow-result)])))
+             flow (when flow?
+                    ;; :parallel?
+                    (#?@(:clj [zfuture options]
+                         :cljs [do])
+                     (let [flow-result
+                             (if-not pair-seq
+                               ; We don't have any constant pairs
+                               (fzprint-flow-seq caller
+                                                 options
+                                                 findent
+                                                 seq-right
+                                                 :force-nl
+                                                 :nl-first)
+                               (if (not (zero? non-paired-item-count))
+                                 ; We have constant pairs, ; but they
+                                 ; follow some stuff that isn't paired. Do
+                                 ; the elements that are not pairs
+                                 (concat-no-nil
+                                   (ensure-end-w-nl
+                                     findent
+                                     (fzprint-flow-seq
+                                       caller
+                                       (not-rightmost options)
+                                       findent
+                                       (take non-paired-item-count seq-right)
+                                       :force-nl
+                                       :nl-first))
+                                   ; The elements that are constant pairs
+                                   (fzprint-pairs options findent pair-seq))
+                                 ; This code path is where we have all
+                                 ; constant pairs.
+                                 (fzprint-pairs options findent pair-seq)))]
+                       ; Skip the first line when doing the calcuation so
+                       ; that good-enough doesn't change the layout from
+                       ; the original
+                       [flow-result
+                        (style-lines
+                          options
+                          findent
+                          ; Issue #173 -- the following code caused code to
+                          ; disappear, because if there was just one thing
+                          ; in flow-result, then it would be empty and
+                          ; style-lines would return nil, causing neither
+                          ; hang nor flow to be used.
+                          ;
+                          ; (if (not pair-seq)
+                          ;   (next flow-result)
+                          ;   flow-result)
+                          ;
+                          ; Now we do a similar thing -- as long as
+                          ; flow-result has more than one thing, below when
+                          ; we call good-enough.
+                          flow-result)])))
              [flow flow-lines] (when flow (zat options flow)) ; PT
              _ (log-lines options
                           "fzprint-hang-remaining: hanging:"

@@ -2168,8 +2168,7 @@
                                'rulesfn zprint.optionfn/rulesfn,
                                'regexfn zprint.optionfn/regexfn,
                                'merge-deep zprint.config/merge-deep}}})
-(def sci-ctx
-  (sci/init opts))
+(def sci-ctx (sci/init opts))
 ;  #?(:bb (sci/init opts)
 ;     ;:clj nil
 ;     ; To completely remove sci, include the previous line and comment
@@ -2474,13 +2473,13 @@
     (let [; remove set elements, and then remove the :remove key too
           [existing-map new-map new-doc-map]
             (perform-remove doc-string doc-map existing-map new-map)
-	  ; Remove sections of the options map.  Then remove the
-	  ; :remove-final-keys element itself.
-	  final-keys (:remove-final-keys new-map)
-	  existing-map (if final-keys
-	            (-> (remove-final-keys existing-map final-keys) 
-		      (dissoc :remove-final-keys))
-		    existing-map)
+          ; Remove sections of the options map.  Then remove the
+          ; :remove-final-keys element itself.
+          final-keys (:remove-final-keys new-map)
+          existing-map (if final-keys
+                         (-> (remove-final-keys existing-map final-keys)
+                             (dissoc :remove-final-keys))
+                         existing-map)
           ; Preserve the existing-map so we can use it to see what styles
           ; were there originally when adjusting the key sequence for the
           ; doc-map.
@@ -2647,9 +2646,10 @@
         [opts-rcfile errors-rcfile rc-filename :as home-config]
           (when (and home file-separator)
             (get-config-from-path [zprintrc zprintedn] file-separator [home]))
-	_ (dbg-s (merge op-options opts-rcfile) 
-	         #{:zprintrc} 
-		 "~/.zprintrc:" home-config)
+        _ (dbg-s (merge op-options opts-rcfile)
+                 #{:zprintrc}
+                 "~/.zprintrc:"
+                 home-config)
         [updated-map new-doc-map rc-errors]
           (config-and-validate (str "Home directory file: " rc-filename)
                                default-doc-map
@@ -2666,18 +2666,20 @@
                          (:search-config? op-options))
                      file-separator)
             (scan-up-dir-tree [zprintrc zprintedn] file-separator))
-	_ (dbg-s (merge op-options opts-rcfile search-rcfile) 
-	         #{:zprintrc} 
-		 "search-config? first .zprintrc:" search-config)
-	; If the scan up the directory tree ended up finding a different
-	; configuration from the one in the home directory, then use it.
-	; Otherwise ignore what we found, since it is a duplicate.
+        _ (dbg-s (merge op-options opts-rcfile search-rcfile)
+                 #{:zprintrc}
+                 "search-config? first .zprintrc:"
+                 search-config)
+        ; If the scan up the directory tree ended up finding a different
+        ; configuration from the one in the home directory, then use it.
+        ; Otherwise ignore what we found, since it is a duplicate.
         [search-rcfile search-errors-rcfile search-filename :as search-config]
           (when (not= home-config search-config)
             [search-rcfile search-errors-rcfile search-filename])
-	_ (dbg-s (merge op-options opts-rcfile search-rcfile) 
-	         #{:zprintrc} 
-		 "search-config? second .zprintrc:" search-config)
+        _ (dbg-s (merge op-options opts-rcfile search-rcfile)
+                 #{:zprintrc}
+                 "search-config? second .zprintrc:"
+                 search-config)
         [search-map search-doc-map search-rc-errors]
           (config-and-validate (str ":search-config? file: " search-filename)
                                new-doc-map
@@ -2695,9 +2697,10 @@
                          (:cwd-zprintrc? op-options))
                      file-separator)
             (get-config-from-path [zprintrc zprintedn] file-separator ["."]))
-	_ (dbg-s (merge op-options opts-rcfile search-rcfile cwd-rcfile)
-	         #{:zprintrc} 
-		 "cwd-zprintrc? .zprintrc:" cwd-rcfile)
+        _ (dbg-s (merge op-options opts-rcfile search-rcfile cwd-rcfile)
+                 #{:zprintrc}
+                 "cwd-zprintrc? .zprintrc:"
+                 cwd-rcfile)
         [updated-map new-doc-map cwd-rc-errors]
           (config-and-validate (str ":cwd-zprintrc? file: " cwd-filename)
                                search-doc-map

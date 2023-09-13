@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.8 - 2023-06-26
+## 1.2.8 - 2023-09-25
 
 ### Added
 
@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
   live without if you really need it!
   * New pre-compiled binary for macOS running on Apple Silicon. Install
   `zprintma-1.2.8` from the release to get it.  Runs up to 3x the speed
-  of the Intel binary on Apple Silicon!
+  of the Intel binary on Apple Silicon!  Discussioin #302.
   * Added support for using babashka `bbin` to easily install zprint.
 
 ### Changed

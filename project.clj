@@ -1,4 +1,4 @@
-(defproject zprint "1.2.8"
+(defproject zprint "1.2.9"
   :description "Pretty print Clojure source and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License",

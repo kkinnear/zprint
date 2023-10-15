@@ -23,13 +23,13 @@ in the dependencies.  For example:
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [zprint "1.2.8"]]
+                 [zprint "1.2.9"]]
   :repl-options {:init-ns zpuse.core})
 ```
 
 __Even better -- put it in the:__ 
 
-`:profiles {:dev {:dependencies [zprint "1.2.8"]}}`
+`:profiles {:dev {:dependencies [zprint "1.2.9"]}}`
 
 like this:
 

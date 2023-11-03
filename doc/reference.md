@@ -5532,7 +5532,7 @@ An example of `:hang?`, `:record-type?`, and `:to-string?`
         "one" "line"],
  :right [:more :stuff :but :not :quite :as :much]}
 
-(zprint x {:record {:to-string? true}})
+(zp/zprint x {:record {:to-string? true}})
 
 "zprint.core.myrecord@682a5f6b"
 ```

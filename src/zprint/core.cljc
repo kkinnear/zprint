@@ -1598,7 +1598,7 @@
              (if error-str
                (throw (#?(:clj Exception.
                           :cljs js/Error.)
-                       error-str))
+                       ^String error-str))
                updated-map))
          ; Don't forget :html before we change it
          html? (= :html (:format (:output full-options)))

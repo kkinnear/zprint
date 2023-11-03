@@ -5623,7 +5623,7 @@
                   ; If we have a no-wrap element, make the index the index
                   ; of the next element, so we handle rightcnt correctly
                   original-len len
-                  [len index] (if next-len
+                  [len ^long index] (if next-len
                                 ; Add the lengths together, and also one
                                 ; for the space
                                 [(+ len next-len 1) (inc index)]
@@ -7755,7 +7755,7 @@
                        previous-needs-comma?
                        add-nl?
                        first?
-                       (+ newline-count (count-newline-types style-vec))))
+                       (+ newline-count ^long (count-newline-types style-vec))))
           :else
             ; We have a normal style-vec that we will process.  This one
             ; may have plenty of newlines, but there isn't one first. But
@@ -8178,7 +8178,7 @@
 (defn fzprint-record
   [{{:keys [record-type? to-string?]} :record, :as options} ind zloc]
   (if to-string?
-    (fzprint* options ind (. zloc toString))
+    (fzprint* options ind (str zloc))
     (if-not record-type?
       ; if not printing as record-type, turn it into map
       (fzprint* options ind (into {} zloc))

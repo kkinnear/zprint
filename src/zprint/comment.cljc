@@ -103,7 +103,7 @@
           (if-not moving-up
             ; can't go up, ran out of expression
             [total-up nil]
-            (recur moving-up (+ total-up up-size))))))))
+            (recur moving-up (+ total-up ^long up-size))))))))
 
 (defn length-after-newline
   "Given a string, return the number of characters to the right

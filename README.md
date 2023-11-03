@@ -54,7 +54,7 @@ a number of major source code formatting approaches.
   * A new pre-compiled binary is available for macOS running on Apple 
   Silicon.  While the macOS Intel binary runs fine on Apple Silicon, the
   Apple Silicon binary runs considerably (up to 3x) faster!  Download
-  `zprintma-1.2.8` from the release to get the Apple Silicon version.
+  `zprintma-1.2.9` from the release to get the Apple Silicon version.
   * You can now run zprint as a babashka task or use `bbin`.
   It starts very quickly and runs faster than the uberjar on even very 
   large files.  If using a task,  you don't need to install a new version, 

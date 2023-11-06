@@ -5,11 +5,19 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * If you configure `:comment {:min-space-after-semi 1}` then a
+  comment like this: `;this is a comment` will be changed after
+  formatting into a comment like this: `; this is a comment`.  The
+  default for `:min-space-after-semi` is 0, so by default no changes
+  are made.  Issue #306.
+
 
 ### Changed
 
 
 ### Fixed
+
+  * Fixed two reflection issues.  Issue #305.
 
 
 ## 1.2.8 - 2023-09-14

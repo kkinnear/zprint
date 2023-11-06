@@ -15,7 +15,7 @@
                                 color-comp-vec handle-lines create-hvec-or-str]]
     [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments
                                 fzprint-align-inline-comments blanks
-                                fzprint-smart-wrap]]
+                                fzprint-smart-wrap fzprint-fix-spaces-in-comments]]
     [zprint.config      :as    config
                         :refer [add-calculated-options config-set-options!
                                 get-options config-configure-all! reset-options!
@@ -846,10 +846,16 @@
                 focus-vec
                 accept-vec)
             #_(def ssvx str-style-vec)
+	    ; Ensure that every comment has at least min-space-after-semi
+	    ; spaces after the semicolon.  Does nothing if min-space-after-semi
+	    ; is zero.
+	    fixed-style-vec (fzprint-fix-spaces-in-comments 
+	                      options str-style-vec)
+            #_(def fsvx fixed-style-vec)
             smart-style-vec (if (and (:smart-wrap? (:comment options))
                                      (:wrap? (:comment options)))
-                              (fzprint-smart-wrap options str-style-vec)
-                              str-style-vec)
+                              (fzprint-smart-wrap options fixed-style-vec)
+                              fixed-style-vec)
             #_(def smsv smart-style-vec)
             wrapped-style-vec (if (and (:wrap? (:comment options))
                                        (not format-off?))

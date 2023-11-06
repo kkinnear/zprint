@@ -523,6 +523,7 @@
              :inline? true,
              :inline-align-style :aligned,
              :border 0,
+	     :min-space-after-semi 0
              :smart-wrap? true,
              :smart-wrap {:border 5,
                           ; These regexes will end one comment group and

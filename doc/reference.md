@@ -3458,6 +3458,29 @@ There are three possible ways that inline comments can be aligned:
     in the output (not the input) will be aligned.  All inline comments
     will shift left to be one space from the widest code.
 
+#### :min-space-after-semi _0_
+
+There can be zero to several spaces after the rightmost semicolon
+and before the comment text in a comment.  `:min-space-after-semi`
+sets the minimum number of spaces after the rightmost semicolon
+before the text of the comment that is allowed.  If there are less
+than `:min-space-after-semi` spaces between the rightmost semicolon
+and the comment text, then the number of spaces will be increased
+to equal the value of `:min-space-after-semi`.
+
+In short, if you don't want comments like this: `;this is a comment`,
+you can set `:min-space-after-semi` to 1, and that comment will end
+up like this: `; this is a comment` in the formatted source.
+
+The default for this is `0`, so by default no changes will be made.
+
+Note that any length increase in a comment caused by additional
+spaces being added to bring the total up to `:min-space-after-semi`
+will not be included in the length of the comment as determined by
+the `:count?` option (see below).  Note that by default, the length
+of comments is not considered when formatting source code because
+the default for `:count?` is `false`.
+
 #### :count? _false_
 
 Count the length of the comment when ensuring that things fit within the

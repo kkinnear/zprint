@@ -445,7 +445,115 @@
     "(test-comment\n ; {:org-id 123 :name \"Abcde\"} ->\n ; [{:externalId 'external_org-id' :value \"123\"},\n ;  {:externalId 'external_name' :value \\\"Sabre\\\"}]\n)"
     (zprint-str i297f {:parse-string? true}))
 
+   ;;
+   ;; min-space-after-semi Issue #306
+   ;;
 
+ (def test-fast-hangstr-1
+    "(defn test-fast-hang
+  \"Try to bring inline comments back onto the line on which they belong.\"
+  [{:keys [width], :as options} style-vec]
+  (loop [cvec style-vec
+         last-out [\"\" nil nil]
+         out []]
+    (if-not cvec                    ;aligned comment
+  (do #_(def fico out) out)         ; second aligned one
+  (let [[s c e :as element] (first cvec)
+            [_ _ ne nn :as next-element] (second cvec)
+  [_ _ le] last-out                 ;third aligned one
+            new-element
+              (cond
+                (and (or (= e :indent) (= e :newline))
+                     (= ne :comment-inline))
+                  (if-not (or (= le :comment) (= le :comment-inline))
+                    ; Regular line to get the inline comment
+                    [(blanks nn) c :whitespace 25]
+                    ;Last element was a comment...
+                    ; Can't put a comment on a comment, but
+                    ;we want to indent it like the last comment and it is very long, so what will happen?
+                    ; We will have to see, won't we?
+                    ;How much space before the last comment?
+                    (do #_(prn \"inline:\" (space-before-comment out))
+                        [(str \"\\n\" (blanks out)) c
+                         :indent 41]
+                        #_element))
+                :else element)]
+        (recur (next cvec) new-element (conj out new-element))))))")
+
+ (expect
+
+"(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec                ; aligned comment\n      (do #_(def fico out) out) ; second aligned one\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out   ; third aligned one\n            new-element\n              (cond (and (or (= e :indent) (= e :newline))\n                         (= ne :comment-inline))\n                      (if-not (or (= le :comment) (= le :comment-inline))\n                        ; Regular line to get the inline comment\n                        [(blanks nn) c :whitespace 25]\n                        ; Last element was a comment... Can't put a comment\n                        ; on a comment, but we want to indent it like the\n                        ; last comment and it is very long, so what will\n                        ; happen? We will have to see, won't we? How much\n                        ; space before the last comment?\n                        (do #_(prn \"inline:\" (space-before-comment out))\n                            [(str \"\\n\" (blanks out)) c :indent 41]\n                            #_element))\n                    :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+
+
+ (zprint-str test-fast-hangstr-1 {:parse-string? true :comment {:min-space-after-semi 1}}))
+
+ (expect
+"(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec                ;aligned comment\n      (do #_(def fico out) out) ; second aligned one\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out   ;third aligned one\n            new-element\n              (cond (and (or (= e :indent) (= e :newline))\n                         (= ne :comment-inline))\n                      (if-not (or (= le :comment) (= le :comment-inline))\n                        ; Regular line to get the inline comment\n                        [(blanks nn) c :whitespace 25]\n                        ;Last element was a comment...\n                        ; Can't put a comment on a comment, but\n                        ;we want to indent it like the last comment and it\n                        ;is very long, so what will happen?\n                        ; We will have to see, won't we?\n                        ;How much space before the last comment?\n                        (do #_(prn \"inline:\" (space-before-comment out))\n                            [(str \"\\n\" (blanks out)) c :indent 41]\n                            #_element))\n                    :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+(zprint-str test-fast-hangstr-1 {:parse-string? true :comment {:min-space-after-semi 0}}))
+
+(expect
+"(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec                ; aligned comment\n      (do #_(def fico out) out) ; second aligned one\n      (let [[s c e :as element] (first cvec)\n            [_ _ ne nn :as next-element] (second cvec)\n            [_ _ le] last-out   ; third aligned one\n            new-element\n              (cond (and (or (= e :indent) (= e :newline))\n                         (= ne :comment-inline))\n                      (if-not (or (= le :comment) (= le :comment-inline))\n                        ; Regular line to get the inline comment\n                        [(blanks nn) c :whitespace 25]\n                        ; Last element was a comment...\n                        ; Can't put a comment on a comment, but\n                        ; we want to indent it like the last comment and it is\n                        ; very long, so what will happen?\n                        ; We will have to see, won't we?\n                        ; How much space before the last comment?\n                        (do #_(prn \"inline:\" (space-before-comment out))\n                            [(str \"\\n\" (blanks out)) c :indent 41]\n                            #_element))\n                    :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+(zprint-str test-fast-hangstr-1 {:parse-string? true :comment {:min-space-after-semi 1 :smart-wrap? false}}))
+
+
+  (def zctest5astr
+    "(defn zctest5
+  \"Model defn issue.\"
+  [x]
+  (let [abade :b       ; aligned
+     ceered (let [b :d];with this one
+                 (if (:a x) ;inline comment
+                   ;this is a very long comment that should force things way to the left if it were counted
+                   (assoc b :a :c)))]
+    (list :a
+          (with-meta name x)
+          ; a short comment that might be long if we wanted it to be
+          :c)))")
+
+(expect
+"(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let [abade :b           ; aligned\n        ceered (let [b :d] ; with this one\n                 (if (:a x) ; inline comment\n                   ; this is a very long comment that should force things\n                   ; way to the left if it were counted\n                   (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
+(zprint-str zctest5astr {:parse-string? true :comment {:min-space-after-semi 1}}))
+
+
+(expect
+"(defn zctest5\n  \"Model defn issue.\"\n  [x]\n  (let [abade :b           ; aligned\n        ceered (let [b :d] ;with this one\n                 (if (:a x) ;inline comment\n                   ;this is a very long comment that should force things\n                   ;way to the left if it were counted\n                   (assoc b :a :c)))]\n    (list :a\n          (with-meta name x)\n          ; a short comment that might be long if we wanted it to be\n          :c)))"
+(zprint-str zctest5astr {:parse-string? true :comment {:min-space-after-semi 0}}))
+
+(def are12b
+"
+(deftest t-parsing-auto-resolve-keywords
+  (are-mine [?s ?sexpr-default ?sexpr-custom]
+       (let [n (p/parse-string ?s)]
+  (is (= :token (node/tag n)))                     ;first align
+     (is (= ?s (node/string n)))                  ;second not align
+       (is (= ?sexpr-default (node/sexpr n)))    ;third not align
+         (is (= ?sexpr-custom (node/sexpr n {:auto-resolve #(if (= :current %)
+                                                              'my.current.ns
+                                                              (get {'xyz 'my.aliased.ns} % 'alias-unresolved))}))))
+    \"::key\"        :?_current-ns_?/key    :my.current.ns/key
+    \"::xyz/key\"    :??_xyz_??/key         :my.aliased.ns/key))
+    "
+    )
+
+ (expect
+"(deftest t-parsing-auto-resolve-keywords\n  (are-mine [?s ?sexpr-default ?sexpr-custom]\n            (let [n (p/parse-string ?s)]\n              (is (= :token (node/tag n))) ;first align\n              (is (= ?s (node/string n))) ;second not align\n              (is (= ?sexpr-default (node/sexpr n))) ;third not align\n              (is (= ?sexpr-custom\n                     (node/sexpr n\n                                 {:auto-resolve #(if (= :current %)\n                                                   'my.current.ns\n                                                   (get {'xyz 'my.aliased.ns}\n                                                        %\n                                                        'alias-unresolved))}))))\n            \"::key\" :?_current-ns_?/key\n            :my.current.ns/key \"::xyz/key\"\n            :??_xyz_??/key :my.aliased.ns/key))"
+
+ (zprint-str are12b {:parse-string? true :comment {:min-space-after-semi 0}}))
+
+ (expect
+
+"(deftest t-parsing-auto-resolve-keywords\n  (are-mine [?s ?sexpr-default ?sexpr-custom]\n            (let [n (p/parse-string ?s)]\n              (is (= :token (node/tag n))) ; first align\n              (is (= ?s (node/string n))) ; second not align\n              (is (= ?sexpr-default (node/sexpr n))) ; third not align\n              (is (= ?sexpr-custom\n                     (node/sexpr n\n                                 {:auto-resolve #(if (= :current %)\n                                                   'my.current.ns\n                                                   (get {'xyz 'my.aliased.ns}\n                                                        %\n                                                        'alias-unresolved))}))))\n            \"::key\" :?_current-ns_?/key\n            :my.current.ns/key \"::xyz/key\"\n            :??_xyz_??/key :my.aliased.ns/key))"
+
+
+(zprint-str are12b {:parse-string? true :comment {:min-space-after-semi 1}}))
+
+(expect
+"(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec                ; aligned comment\n      (do #_(def fico out) out) ; second aligned one\n      (let\n        [[s c e :as element] (first cvec)\n         [_ _ ne nn :as next-element] (second cvec)\n         [_ _ le] last-out      ; third aligned one\n         new-element\n           (cond\n             (and (or (= e :indent) (= e :newline)) (= ne :comment-inline))\n               (if-not (or (= le :comment) (= le :comment-inline))\n                 ; Regular line to get the inline comment\n                 [(blanks nn) c :whitespace 25]\n                 ; Last element was a comment...\n                 ; Can't put a comment on a comment, but\n                 ; we want to indent it like the last comment and it is very long, so what will happen?\n                 ; We will have to see, won't we?\n                 ; How much space before the last comment?\n                 (do #_(prn \"inline:\" (space-before-comment out))\n                     [(str \"\\n\" (blanks out)) c :indent 41]\n                     #_element))\n             :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+(zprint-str test-fast-hangstr-1 {:parse-string? true :comment {:min-space-after-semi 1 :smart-wrap? true :wrap? false :count? true}}))
+
+(expect
+"(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec                ;  aligned comment\n      (do #_(def fico out) out) ;  second aligned one\n      (let\n        [[s c e :as element] (first cvec)\n         [_ _ ne nn :as next-element] (second cvec)\n         [_ _ le] last-out      ;  third aligned one\n         new-element\n           (cond\n             (and (or (= e :indent) (= e :newline)) (= ne :comment-inline))\n               (if-not (or (= le :comment) (= le :comment-inline))\n                 ;  Regular line to get the inline comment\n                 [(blanks nn) c :whitespace 25]\n                 ;  Last element was a comment...\n                 ;  Can't put a comment on a comment, but\n                 ;  we want to indent it like the last comment and it is very long, so what will happen?\n                 ;  We will have to see, won't we?\n                 ;  How much space before the last comment?\n                 (do #_(prn \"inline:\" (space-before-comment out))\n                     [(str \"\\n\" (blanks out)) c :indent 41]\n                     #_element))\n             :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
+(zprint-str test-fast-hangstr-1 {:parse-string? true :comment {:min-space-after-semi 2 :smart-wrap? false :wrap? false :count? true}}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

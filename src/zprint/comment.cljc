@@ -1426,3 +1426,38 @@
             comment-vec-column (comment-vec-all-column style-vec comment-vec)]
         (reduce align-comment-vec style-vec comment-vec-column)))))
 
+;;
+;; Handle min-space-after-semi
+;;
+
+(defn fix-spaces-in-comment
+  "Take an element of a style-vec, and if it is a comment, then check
+  to see if the spaces after the semicolons are less than min-space-after-semi,
+  and if they are, make sure that the returned element has at least
+  min-space-after-semi spaces."
+  [min-space-after-semi out [s color what :as element]]
+  (let [semi-str (re-find #"^;*" s)]
+    (if (zero? (count semi-str))
+      (conj out element)
+      ; We have a comment
+      (let [rest-str (subs s (count semi-str))
+            space-str (re-find #"^ *" rest-str)
+            comment-str (subs rest-str (count space-str))
+            [s changed?]
+              (if (< (count space-str) min-space-after-semi)
+                [(str semi-str (blanks min-space-after-semi) comment-str) true]
+                [s false])]
+        (if changed? (conj out (assoc element 0 s)) (conj out element))))))
+
+(defn fzprint-fix-spaces-in-comments
+  "Take a style-vec, and ensure that every comment in the style-vec has
+  at least min-space-after-semi spaces after the semicolon.  This only
+  does something if the min-space-after-semi is non-zero."
+  [{{:keys [min-space-after-semi]} :comment, :as options} style-vec]
+  (if (> min-space-after-semi 0)
+    (reduce (partial fix-spaces-in-comment min-space-after-semi) [] style-vec)
+    style-vec))
+  
+
+ 
+

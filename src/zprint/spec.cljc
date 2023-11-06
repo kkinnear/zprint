@@ -265,6 +265,7 @@
 (s/def ::max-variance number?)
 (s/def ::max-gap (s/nilable number?))
 #_(s/def ::memoize? (s/nilable ::boolean))
+(s/def ::min-space-after-semi number?)
 (s/def ::modifiers (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::multi-lhs-hang? ::boolean)
 (s/def ::multi-lhs-overlap? ::boolean)
@@ -349,7 +350,8 @@
                       ::unquote ::unquote-splicing ::user-fn]))
 (s/def :alt/comment
   (only-keys :opt-un [::count? ::wrap? ::inline? ::inline-align-style
-                      ::smart-wrap? ::smart-wrap ::border]))
+                      ::smart-wrap? ::smart-wrap ::border
+		      ::min-space-after-semi]))
 (s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
 (s/def ::cwd-zprintrc? ::boolean)

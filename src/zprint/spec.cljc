@@ -426,6 +426,13 @@
 (s/def ::max-hang-span number?)
 (s/def ::max-length ::number-or-vector-of-numbers)
 (s/def ::meta (only-keys :opt-un [::split?]))
+
+(s/def ::modify-sexpr-value (s/tuple (s/nilable fn?) (s/nilable ::options)))
+(s/def ::modify-sexpr-by-type 
+  (s/nilable (s/map-of string? ::modify-sexpr-value)))
+
+#_(s/def ::modify-sexpr-by-type (s/nilable map?))
+
 (s/def ::no-justify (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::no-wrap-after (s/nilable (s/coll-of string? :kind set?)))
 (s/def ::object (only-keys :opt-un [::indent ::wrap-coll? ::wrap-after-multi?]))
@@ -536,7 +543,8 @@
              ::force-validate? ::doc ::next-inner-restore ::fn-style
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
              ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
-             ::tagged-literal #_::memoize? ::remove-final-keys]))
+             ::tagged-literal #_::memoize? ::remove-final-keys
+	     ::modify-sexpr-by-type]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

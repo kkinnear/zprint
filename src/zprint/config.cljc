@@ -701,6 +701,7 @@
            {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}},
    :max-depth 1000000,
    :max-depth-string "##",
+   :modify-sexpr-by-type nil
    :parallel? false,
    :max-hang-count 4,
    ; :max-hang-depth used to be 3, but while it helped a bit, there was

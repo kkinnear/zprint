@@ -8527,6 +8527,34 @@
                     "fzprint-noformat remove-spaces-vec:"
                     remove-spaces-vec)]
     remove-spaces-vec))
+
+(defn modify-sexpr-zloc
+  "Call a function to modify a zloc.  The function came from 
+  modify-zloc-by-type.  This is only ever called for structures, not
+  zippers. Returns a new zloc."
+  [options modify-fn zloc error-str]
+  (try
+    (dbg-pr options "modify-sexpr-zloc zloc:" zloc)
+    (let [result (modify-fn options zloc)]
+      (dbg-s options #{:modify-sexpr-zloc} "modify-sexpr-zloc result:" result)
+      result)
+    (catch #?(:clj Exception
+              :cljs :default)
+      e
+      (do (dbg-s options
+                 :guide-exception
+                 "Failure in modify-sexpr-zloc:"
+                 (throw e))
+          (throw (#?(:clj Exception.
+                     :cljs js/Error.)
+                  (str " When "
+                       error-str
+                       " called a function to modify the zloc"
+                       " it failed because: "
+                       e)))))))
+
+
+
 ;;
 ;; # The center of the zprint universe
 ;;
@@ -8552,7 +8580,8 @@
   "The pretty print part of fzprint."
   [{:keys [width rightcnt hex? shift-seq dbg? dbg-print? dbg-s in-hang?
            one-line? string-str? string-color depth max-depth trim-comments?
-           in-code? max-hang-depth max-hang-span max-hang-count next-inner],
+           in-code? max-hang-depth max-hang-span max-hang-count next-inner
+           ztype],
     :as options} indent zloc]
   (let [avail (- width indent)
         ; note that depth affects how comments are printed, toward the end
@@ -8594,7 +8623,42 @@
         dbg-data @fzprint-dbg
         dbg-focus? (and dbg? (= dbg-data (second (zfind-path zloc))))
         options (if dbg-focus? (assoc options :dbg :on) options)
-        _ (if dbg-focus? (println "fzprint dbg-data:" dbg-data))]
+        _ (if dbg-focus? (println "fzprint dbg-data:" dbg-data))
+        ; Handle any mapping from type to a different data type
+        ; Only operates with structures, i.e., s-expressions
+        [zloc options]
+          (if (or (= (:ztype options) :zipper)
+                  (nil? (:modify-sexpr-by-type options)))
+            ; We don't have any modify-sexpr-by-type map or this is
+            ; doing source formatting, not structures.  Change nothing.
+            [zloc options]
+            (let [type-zloc (pr-str (type zloc))
+                  [modify-by-type-fn new-options]
+                    ((:modify-sexpr-by-type options) type-zloc)
+                  ; Figure out the new options, if any, so we can
+                  ; also pass them to the modify-by-type-fn if there
+                  ; is one.
+                  [options new-options]
+                    (if new-options
+                      (internal-config-and-validate
+                        options
+                        new-options
+                        (str "when processing modify-sexpr-by-type for type "
+                             type-zloc
+                             " ")
+                        nil ;validate?
+                      )
+                      [options nil])]
+              #_(println "modify-by-type-fn" modify-by-type-fn)
+              [(if modify-by-type-fn
+                 ; We have a modify function, call it.
+                 (modify-sexpr-zloc options
+                                    modify-by-type-fn
+                                    zloc
+                                    (str "a function in :modify-sexpr-by-type"
+                                         " associated with type: "
+                                         type-zloc))
+                 zloc) options]))]
     #_(def zlocx zloc)
     ; We don't check depth if it is not a collection.  We might have
     ; just not incremented depth if it wasn't a collection, but this

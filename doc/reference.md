@@ -779,6 +779,28 @@ You will want to avoid setting `{:color? true}` in a `$HOME/.zprintrc` file,
 as then all of the files produced by the uberjar and graalVM binaries would
 always contain ANSI escapse sequences!
 
+#### :modify-sexpr-by-type
+
+Clojure can operate on Java classe like `java.util.ArrayList` and there are
+even classes that are a native to clojure that have no syntax for creating
+them or printing them, such as `clojure.lang.PersistentQueue`.
+
+When encountering some of these classes at the REPL, zprint will typically
+return the `toString` value of these classes, which in many cases is useful
+in that it gives you the value of the class.  However, if the class has even a
+bit of real data in it, the string can be very long and rarely makes working
+with it at the REPL clear and easy.
+
+The `:modify-sexpr-by-type` capability allows you to specify two things
+when a particular class is encountered while formatting a structure at
+the REPL.  These two things appear in a vector.  The  first element of 
+this vctor is a function which will accept the object and return a replacement
+object to be used when it is formatted.  The second element of the vector
+is an options map to be used whenever this type is encountered.  
+
+Some examples: 
+particularly useful
+
 
 
 ### Syntax coloring

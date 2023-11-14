@@ -793,7 +793,7 @@ with it at the REPL clear and easy.
 
 The `:modify-sexpr-by-type` capability allows you to specify two things
 when a particular class is encountered while formatting a structure at
-the REPL.  These two things appear in a vector.  The  first element of 
+the REPL.  These two things appear in a vector.  The first element of 
 this vector is a function which will accept the object and return a replacement
 object to be used when it is formatted.  The second element of the vector
 is an options map to be used whenever this type is encountered.  

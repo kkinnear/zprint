@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
   default for `:min-space-after-semi` is 0, so by default no changes
   are made.  Issue #306.
 
+  * New option map to transform random Java classes into other,
+  more manageable data types: `:modify-sexpr-by-type`.  Also allows
+  options map to be used when particular types are encountered, and
+  enhanced color map handling supports specification of colors when
+  using `:new-l-str` and `:new-r-str` in option map.  Issue #307.
 
 ### Changed
 

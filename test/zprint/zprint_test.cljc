@@ -8490,8 +8490,93 @@ ser/collect-vars-acc %1 %2) )))"
                               {:list {:indent 1}})))},
        :fn-map {"let" :binding, "cond" :pair-fn, "case" :arg1-pair-body}}))
 
+;;
+;; Tests for :modify-sexpr-by-type
+;;
+;; Issue #307
+;;
+
+(def alist (java.util.ArrayList.))
+
+(dotimes [_ 100] (.add alist "SOME STRING"))
+
+ (expect
+"[\"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"]"
+ (zprint-str alist {:modify-sexpr-by-type {"java.util.ArrayList" [(fn [options sexpr] (apply vector sexpr)) nil]}}))
+
+ (expect
+"[\"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"]"
+(zprint-str alist {:modify-sexpr-by-type {"java.util.ArrayList" [(fn [options sexpr] (vec sexpr)) nil]}}))
+
+(def mal {:this :is :a :test :stuff alist})
+
+(zprint-str mal {:modify-sexpr-by-type {"java.util.ArrayList" [(fn [options sexpr] (vec sexpr)) nil]}})
+"{:a :test,\n :stuff\n   [\"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"\n    \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\" \"SOME STRING\"],\n :this :is}"
 
 
+(def clpq
+  {:this :is
+   :a :test
+   :this2 :is
+   :only :a
+   :test :how 
+   (conj (conj (conj (conj (conj (conj 
+   (conj clojure.lang.PersistentQueue/EMPTY :aaaaaaaaaa) :bbbbbbbbb) :ccccccccc) :ddddddddddd) :eeeeeeeeeeee) :fffffffff) :gggggggggg)
+    :does
+    :this3 :work
+   
+   })
+
+(expect
+"{:a :test,\n :only :a,\n :test :how,\n :this :is,\n :this2 :is,\n :this3 :work,\n <-(:aaaaaaaaaa :bbbbbbbbb :ccccccccc :ddddddddddd :eeeeeeeeeeee :fffffffff\n    :gggggggggg)-<\n   :does}"
+(zprint-str clpq {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"}) :wrap? true :indent 1} :color-map {:left :cyan :right :cyan} :next-inner-restore [[:list :option-fn] [:list :wrap?] [:list :indent] [:color-map :left] [:color-map :right]]}]}}))
+
+(def clpqs
+  {:thiseeeeeeeeeeeeeeeeeeeeee :is
+   :addddddddddddddddddddd :test
+   :this2ccccccccccccccccccc :is
+   :onlybbbbbbbbbbbbbbbbb :a
+   :testaaaaaaaaaaaaaaaa :how 
+   (conj 
+   (conj clojure.lang.PersistentQueue/EMPTY :aaaaaaaaaa) :bbbbbbbbb) 
+    :does
+    :this3ffffffffffffffffff :work
+   
+   })
+
+
+(expect
+"{:addddddddddddddddddddd      :test,\n :onlybbbbbbbbbbbbbbbbb       :a,\n :testaaaaaaaaaaaaaaaa        :how,\n :this2ccccccccccccccccccc    :is,\n :this3ffffffffffffffffff     :work,\n :thiseeeeeeeeeeeeeeeeeeeeee  :is,\n <-(:aaaaaaaaaa :bbbbbbbbb)-< :does}"
+(zprint-str clpqs {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"}) :wrap? true :indent 1} :color-map {:left :cyan :right :cyan} :next-inner-restore [[:list :option-fn] [:list :wrap?] [:list :indent] [:color-map :left] [:color-map :right]]}]} :style :justified}))
+
+(def pqm (-> clojure.lang.PersistentQueue/EMPTY (conj :a) (conj :b)))
+
+(expect
+"<-(:a :b)-<"
+(zprint-str pqm {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"}) :wrap? true :indent 1} :next-inner-restore [[:list :option-fn] [:list :wrap?] [:list :indent]]}]}}))
+
+
+(def tpq
+   (conj (conj (conj (conj (conj (conj 
+   (conj clojure.lang.PersistentQueue/EMPTY :aaaaaaaaaa) :bbbbbbbbb) :ccccccccc) :ddddddddddd) :eeeeeeeeeeee) :fffffffff) :gggggggggg))
+
+(expect
+"<-(:aaaaaaaaaa :bbbbbbbbb :ccccccccc\n               :ddddddddddd :eeeeeeeeeeee\n               :fffffffff :gggggggggg)-<"
+(zprint-str tpq {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"})} :color-map {:right :magenta :left :cyan} :next-inner-restore [[:list :option-fn]]}]}}))
+
+(expect
+"<-(:aaaaaaaaaa :bbbbbbbbb :ccccccccc :ddddddddddd :eeeeeeeeeeee :fffffffff\n   :gggggggggg)-<"
+(zprint-str tpq {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"}) :indent 1 :wrap? true} :color-map {:right :magenta :left :cyan} :next-inner-restore [[:list :option-fn]]}]}}))
+
+(def tpqs
+   (conj clojure.lang.PersistentQueue/EMPTY 'aaaaaaaaaa) )
+
+(def tpqsv
+'(\< \- \( \u001b \[ \3 \0 \m \a \a \a \a \a \a \a \a \a \a \u001b \[ \0 \m \u001b \[ \3 \3 \m \) \- \< \u001b \[ \0 \m))
+
+(expect
+tpqsv
+(seq (czprint-str tpqs {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"})} :color-map {:right :yellow} :next-inner-restore [[:list :option-fn]]}]}})))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

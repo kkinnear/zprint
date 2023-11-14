@@ -75,6 +75,8 @@
 (s/def ::unquote ::color)
 (s/def ::unquote-splicing ::color)
 (s/def ::user-fn ::color)
+(s/def ::left ::color)
+(s/def ::right ::color)
 
 ;;
 ;; # Fundamental values
@@ -347,7 +349,7 @@
                       ::fn ::hash-brace ::hash-paren ::keyword ::nil ::none
                       ::number ::paren ::quote ::regex ::string ::symbol
                       ::syntax-quote ::syntax-quote-paren ::true ::uneval
-                      ::unquote ::unquote-splicing ::user-fn]))
+                      ::unquote ::unquote-splicing ::user-fn ::left ::right]))
 (s/def :alt/comment
   (only-keys :opt-un [::count? ::wrap? ::inline? ::inline-align-style
                       ::smart-wrap? ::smart-wrap ::border

@@ -517,7 +517,9 @@
                :string :red,
                :true :black,
                :uneval :magenta,
-               :user-fn :black},
+               :user-fn :black
+	       :left :none
+	       :right :none},
    :comment {:count? false,
              :wrap? true,
              :inline? true,
@@ -886,7 +888,9 @@
                                    :uneval :bright-red,
                                    :unquote :bright-yellow,
                                    :unquote-splicing :bright-yellow,
-                                   :user-fn :bright-yellow},
+                                   :user-fn :bright-yellow
+				   :left :bright-white
+				   :right :bright-white}
                        :uneval {:color-map {:brace :white,
                                             :bracket :white,
                                             :char :bright-cyan,
@@ -912,7 +916,9 @@
                                             :uneval :bright-red,
                                             :unquote :bright-yellow,
                                             :unquote-splicing :bright-yellow,
-                                            :user-fn :bright-yellow}}},
+                                            :user-fn :bright-yellow
+					    :left :bright-white
+					    :right :bright-white}}},
       :defprotocolguide {:doc "Allow alteration of defprotocol in :fn-map",
                          :list {:option-fn defprotocolguide}},
       :extend-nl {:doc "Add a blank line between protocols",
@@ -1208,7 +1214,9 @@
                         :syntax-quote-paren :yellow,
                         :true :yellow,
                         :uneval :magenta,
-                        :user-fn :cyan}},
+                        :user-fn :cyan
+			:left :none
+			:right :none}},
    :user-fn-map {},
    :vector {:indent 1,
             :binding? false,

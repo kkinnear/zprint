@@ -782,7 +782,7 @@ always contain ANSI escapse sequences!
 #### :modify-sexpr-by-type
 
 Clojure can operate on Java classe like `java.util.ArrayList` and there are
-even classes that are a native to clojure that have no syntax for creating
+even classes that are native to Clojure that have no syntax for creating
 them or printing them, such as `clojure.lang.PersistentQueue`.
 
 When encountering some of these classes at the REPL, zprint will typically
@@ -794,14 +794,289 @@ with it at the REPL clear and easy.
 The `:modify-sexpr-by-type` capability allows you to specify two things
 when a particular class is encountered while formatting a structure at
 the REPL.  These two things appear in a vector.  The  first element of 
-this vctor is a function which will accept the object and return a replacement
+this vector is a function which will accept the object and return a replacement
 object to be used when it is formatted.  The second element of the vector
 is an options map to be used whenever this type is encountered.  
 
 Some examples: 
-particularly useful
 
+```
+; Create a java.util.ArrayList, and put something in it...
 
+zprint.core=> (def alist (java.util.ArrayList.))
+#'zprint.core/alist
+zprint.core=> (dotimes [_ 100] (.add alist "SOME STRING"))
+nil
+
+; How does it show up?
+
+zprint.core=> (czprint alist)
+["SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"]
+nil
+
+; Not great.  You can see what is in it, but it doesn't really format
+; well at the REPL.
+
+; But if we turn it into a vector, it works just fine:
+
+zprint.core=>
+(czprint alist
+         {:modify-sexpr-by-type {"java.util.ArrayList" [(fn [options sexpr]
+                                                          (vec sexpr)) nil]}})
+["SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"]
+nil
+
+; If we make it more complex, the value increases
+
+zprint.core=> (def mal {:this :is :a :test :stuff alist})
+#'zprint.core/mal
+zprint.core=> (czprint mal)
+{:a :test,
+ :stuff
+   ["SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"],
+ :this :is}
+nil
+
+; Again, turn it into a vector, and you can see the structure so much
+; more clearly.
+
+zprint.core=> (czprint mal {:modify-sexpr-by-type {"java.util.ArrayList" [(fn [options sexpr] (vec sexpr)) nil]}})
+{:a :test,
+ :stuff
+   ["SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+    "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"],
+ :this :is}
+```
+
+NOTE: The use of `vec` in the above example works because `vec` will
+take all of the elements out of its single arguement and make a new
+vector out of those elements.  Which is exactly what you want.
+
+Were you to use `vector`, however, the results wouldn't be so nice:
+
+```
+zprint.core=> (czprint alist {:modify-sexpr-by-type {"java.util.ArrayList" [(fn [options sexpr] (vector sexpr)) nil]}})
+Execution error (StackOverflowError) at zprint.zprint/fzprint* (zprint.cljc:8651).
+null
+```
+
+There is a stack overflow, because the function `vector` creates a vector
+out of all of its arguments.  In this case, there is one argument, the
+`java.util.ArrayList`, and so it wraps a vector around the 
+`java.util.ArrayList` and then formats the vector.  Then it encounters the
+`java.util.ArrayList`, and wraps a vector around it, and then formats
+that vector.  Then it encounters the `java.util.ArrayList` and then ...
+it goes on until the stack overflows.
+
+You can use the function `vector`, but you need to use `apply` so that
+it will be applied to all of the elements in the `java.util.ArrayList`, like
+this:
+
+```
+zprint.core=> (czprint alist {:modify-sexpr-by-type {"java.util.ArrayList" [(fn [options sexpr] (apply vector sexpr)) nil]}})
+["SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"
+ "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING" "SOME STRING"]
+nil
+```
+
+The same goes for functions like `list`.
+
+In addition to turning one type into another, you can also affect the
+options map with the second element of the vector which is the value of
+the type of the object.  Using the (rather little known) option of
+supplying a new "l-str" and "r-str" (which are the beginning and
+end of a collection internal to zprint), you can enhance zprint to
+format data types that have no standard Clojure printed format.
+
+Take, for example, the `clojure.lang.PersistentQueue` data type.
+It exists, it can be used, but there is no standard syntax to create
+or print a `clojure.lang.PersistentQueue`.  For example:
+
+```
+; Create a clojure.lang.PersistentQueue and put something in it.
+
+% (def pq clojure.lang.PersistentQueue/EMPTY)
+#'zprint.core/pq
+% (def pqm (-> pq (conj :a) (conj :b)))
+#'zprint.core/pqm
+
+; What have we got?
+
+% pqm
+#object[clojure.lang.PersistentQueue 0x6d05ca59 "clojure.lang.PersistentQueue@8de188a4"]
+
+; Not clear what we've got
+
+: What does zprint do?
+
+% (czprint pqm)
+(:a :b)
+
+; Well, we can see the contents, which is good, but is sure looks like
+; a list.
+
+; What about clojure.pprint/pprint?
+
+% (clojure.pprint/pprint pqm)
+<-(:a :b)-<
+
+; Wow, that's different.  clojure.pprint must special case 
+; clojure.lang.PersistentQueue!
+
+; zprint will do that too, with a bit of work...
+
+(czprint pqm
+         {:modify-sexpr-by-type
+            {"clojure.lang.PersistentQueue"
+               [(fn [options zloc] (apply list zloc))
+                {:list {:option-fn (fn [options n sexpr]
+                                     {:new-l-str "<-(", :new-r-str ")-<"}),
+                        :wrap? true,
+                        :indent 1},
+                 :next-inner-restore [[:list :option-fn] [:list :wrap?]
+                                      [:list :indent]]}]}})
+<-(:a :b)-<
+```
+
+This `czprint` call is modifying the `clojure.lang.PersistentQueue` into a
+list.  Note the use of `apply`, as discussed above.  Without using `apply`,
+you will overflow the stack.  See the NOTE a few paragraphs previous.
+
+In this example, there is also the specification of an `option-fn`
+to be called on every list that is subsequently encountered.  That
+`option-fn` is specifying a new `l-str` and `r-str`, which are the
+beginning and end of the list.  It is also telling the list formatting
+routine `:wrap? true`, which means to fill things out to the
+right margin and not to treat a list as a function call.  Then the
+`:next-inner-restore` specifies the things that were changed to be
+put back as they were so that any list inside of the
+`clojure.lang.PersistentQueue` is not formatted like the
+`clojure.lang.PersistentQueue`.
+
+The `:indent 1` and `:wrap? true` are illustrated by this example:
+
+```
+zprint.core=> (czprint clpq {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"}) :wrap? true :indent 1} :next-inner-restore [[:list :option-fn] [:list :wrap?] [:list :indent]]}]}})
+{:a :test,
+ :only :a,
+ :test :how,
+ :this :is,
+ :this2 :is,
+ :this3 :work,
+ <-(:aaaaaaaaaa :bbbbbbbbb :ccccccccc :ddddddddddd :eeeeeeeeeeee :fffffffff
+    :gggggggggg)-<
+   :does}
+nil
+```
+
+You can see that the elements of the list simply fill out the line until
+the `:width` of the output, and then it starts (properly indented) on the
+next line.
+
+This next example shows a justified map, with the justification working
+correctly with the `clojure.lang.PersistentQueue`:
+
+```
+zprint.core=> (czprint clpqs {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"}) :wrap? true :indent 1} :next-inner-restore [[:list :option-fn] [:list :wrap?] [:list :indent]]}]} :style :justified})
+{:addddddddddddddddddddd      :test,
+ :onlybbbbbbbbbbbbbbbbb       :a,
+ :testaaaaaaaaaaaaaaaa        :how,
+ :this2ccccccccccccccccccc    :is,
+ :this3ffffffffffffffffff     :work,
+ :thiseeeeeeeeeeeeeeeeeeeeee  :is,
+ <-(:aaaaaaaaaa :bbbbbbbbb)-< :does}
+nil
+```
+
+You can even change the color of the output of the beginning and ending
+of the `clojure.lang.PersistentQueue` with a little more work:
+
+```
+(czprint clpq
+         {:modify-sexpr-by-type
+            {"clojure.lang.PersistentQueue"
+               [(fn [options zloc] (apply list zloc))
+                {:list {:option-fn (fn [options n sexpr]
+                                     {:new-l-str "<-(", :new-r-str ")-<"}),
+                        :wrap? true,
+                        :indent 1},
+                 :color-map {:left :cyan, :right :cyan},
+                 :next-inner-restore [[:list :option-fn] [:list :wrap?]
+                                      [:list :indent] [:color-map :left]
+                                      [:color-map :right]]}]}})
+{:a :test,
+ :only :a,
+ :test :how,
+ :this :is,
+ :this2 :is,
+ :this3 :work,
+ <-(:aaaaaaaaaa :bbbbbbbbb :ccccccccc :ddddddddddd :eeeeeeeeeeee :fffffffff
+    :gggggggggg)-<
+   :does}
+```
+
+You can't see the colors in the output in the documentation, but
+the "<-(" and ")-<" are cyan in the REPL.  This is because of the `{:color-map {:left :cyan :right :cyan}}` in the options map.  If the characters in the
+`new-l-str` or `new-z-str` are not recognized as "normal" characters in the
+color map (i.e., :paren, :bracket, :brace, etc.), then if they are
+the `:left` or `:right` of a collection, then the color map values for
+`:left` and `:right` are used.  There are no useful defaults for `:left`
+and `:right` colors, so you would need to set them yourself.
 
 ### Syntax coloring
 

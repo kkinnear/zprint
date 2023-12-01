@@ -8,11 +8,9 @@
             [zprint.util :refer [column-alignment cumulative-alignment]]))
 
 ;;
-;; Contains functions which can be called with {:option-fn <fn>} to
-;; produce
-;; a new options map.  Option-fns which produce a "guide" are in
-;; guide.cljc.
-;; The optionfns here are called the same way, but just produce a basic
+;; Contains functions which can be called with {:option-fn <fn>} to produce
+;; a new options map.  Option-fns which produce a "guide" are in guide.cljc.
+;; The optionfns here are called the same way, but just produce a basic 
 ;; option map.
 ;;
 
@@ -53,7 +51,7 @@
                  (not multi-arity?) (assoc option-map
                                       :fn-style :arg1-force-nl-body)
                  :else (assoc option-map :fn-style :flow-body))]
-     (if multi-arity?
+     (if (and multi-arity? (not one-line-ok?))
        (assoc option-map
          :next-inner {:list {:option-fn nil},
                       :fn-map {:vector :force-nl},

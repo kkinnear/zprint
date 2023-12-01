@@ -24,6 +24,10 @@ All notable changes to this project will be documented in this file.
 
   * Fixed two reflection issues.  Issue #305.
 
+  * Extended the meaning of `:one-line-ok?` for `{:style :rod-config}` so
+  that if a particular arity would format successfully onto one line, it 
+  will now do so if `:one-line-ok?` is `true`.  Issue #282.
+
 
 ## 1.2.8 - 2023-09-14
 

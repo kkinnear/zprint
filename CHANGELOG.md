@@ -15,7 +15,8 @@ All notable changes to this project will be documented in this file.
   more manageable data types: `:modify-sexpr-by-type`.  Also allows
   options map to be used when particular types are encountered, and
   enhanced color map handling supports specification of colors when
-  using `:new-l-str` and `:new-r-str` in option map.  Issue #307.
+  using `:new-l-str` and `:new-r-str` in option map by using the
+  color map values of `:left` and `:right`.  Issue #307.
 
 ### Changed
 

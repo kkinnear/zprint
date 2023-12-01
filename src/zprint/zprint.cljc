@@ -8128,7 +8128,7 @@
     (let [l-str "#<"
           r-str ">"
           indent (count l-str)
-          l-str-vec (lstr-vec options l-str :fn) 
+          l-str-vec (lstr-vec options l-str :fn)
           r-str-vec (rstr-vec options ind r-str :fn)
           arg-1-left "Fn@"
           arg-1-right (hash-identity-str zloc)
@@ -8157,7 +8157,7 @@
               (zstring zloc))
       (concat-no-nil l-str-vec
                      [[arg-1-left (zcolor-map options :fn) :element]]
-                     [[arg-1-right (zcolor-map options :none) :element]]
+                     [[arg-1-right (zcolor-map options :fn) :element]]
                      (fzprint-hang-one :unknown
                                        (rightmost (assoc options
                                                     :string-str? true

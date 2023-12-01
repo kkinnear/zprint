@@ -8579,6 +8579,37 @@ tpqsv
 (seq (czprint-str tpqs {:modify-sexpr-by-type {"clojure.lang.PersistentQueue" [(fn [options zloc] (apply list zloc)) {:list {:option-fn (fn [options n sexpr] {:new-l-str "<-(" :new-r-str ")-<"})} :color-map {:right :yellow} :next-inner-restore [[:list :option-fn]]}]}})))
 
 
+;;
+;; Try out zcolor ... :fn
+;;
+;; Since these things come up with numbers in them, you have to get rid of
+;; the numbers or they won't compare.
+;;
+
+(def fnclr1
+'(\u001b \[ \3 \5 \m \[ \u001b \[ \0 \m \u001b \[ \3 \2 \m \# \< \F \n \u001b \[ \0 \m \space \z \p \r \i \n \t \. \z \p \r \i \n \t \_ \t \e \s \t \/ \[ \f \n \] \u001b \[ \3 \2 \m \> \u001b \[ \0 \m \u001b \[ \3 \5 \m \] \u001b \[ \0 \m))
+
+
+(expect fnclr1
+        (seq (clojure.string/replace (clojure.string/replace
+                                       (czprint-str [(fn [x] (println x))]
+                                                    {:color-map {:fn :green}})
+                                       #"\@[0-9a-f]*"
+                                       "")
+                                     #"fn\_\_[0-9a-f]*"
+                                     "")))
+
+(def fnclr2
+'(\u001b \[ \3 \5 \m \[ \u001b \[ \0 \m \u001b \[ \3 \2 \m \# \< \F \n \u001b \[ \0 \m \space \u001b \[ \3 \2 \m \c \l \o \j \u \r \e \. \l \a \n \g \. \P \e \r \s \i \s \t \e \n \t \L \i \s \t \/ \P \r \i \m \o \r \d \i \a \l \> \u001b \[ \0 \m \u001b \[ \3 \5 \m \] \u001b \[ \0 \m))
+
+
+(expect fnclr2
+        (seq (clojure.string/replace (czprint-str [list]
+                                                  {:color-map {:fn :green}})
+                                     #"\@[0-9a-f]*"
+                                     "")))
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

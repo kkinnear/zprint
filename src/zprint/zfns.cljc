@@ -75,6 +75,8 @@
 (def zlift-ns nil)
 (def zfind nil)
 (def ztake-append nil)
+(def zcount-nc nil)
+(def zreader-macro-splicing? nil)
 
 (defn zfn-map
   []

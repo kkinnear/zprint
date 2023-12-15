@@ -69,7 +69,7 @@ This is the basic approach for `:next-inner`, but of course the problem
 with this approach is that when "resetting" the things that have been
 changed, we aren't really resetting them to what they were before.  We
 are changing them to what we imagine they were before, but we don't really
-have know if some overall configuration has changed them before we changed
+know if some overall configuration has changed them before we changed
 them again.
 
 While you could examine the options map in an `:option-fn`, and create
@@ -120,7 +120,7 @@ Here is a function definition, formatted with classical zprint:
 ```
 
 The desire is to have the map with `:pre` and `:post` format with each pair
-on a different line, and for ensure that `:pre` comes first, before `:post`.
+on a different line, and to ensure that `:pre` comes first, before `:post`.
 We also want to gobally sort the keys of maps that appear in code (which will
 make `:post` come before `:pre` if we don't do something about that). Finally,
 we want to have the maps inside of the expressions of the `defn` to be

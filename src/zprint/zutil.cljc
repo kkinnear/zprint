@@ -68,6 +68,11 @@
 
 (defn zreader-macro? "Is this a #..." [zloc] (= (tag zloc) :reader-macro))
 
+(defn zreader-macro-splicing?
+  "Is this a #?@..."
+  [zloc]
+  (and (= (tag zloc) :reader-macro) (= (z/string (z/down zloc)) "?@")))
+
 (defn ztag "Return the tag for this zloc" [zloc] (tag zloc))
 
 (defn znamespacedmap?
@@ -140,6 +145,13 @@
   if nothing left."
   [zloc]
   (if zloc (if-let [nloc (right* zloc)] (skip right* whitespace? nloc))))
+
+(defn zrightnwsnc
+  "Find the next non-whitespace non-comment zloc inside of this zloc. 
+  Returns nil if nothing left."
+  [zloc]
+  (if zloc
+    (if-let [nloc (right* zloc)] (skip right* whitespace-or-comment? nloc))))
 
 (defn znextnws-w-nl
   "Find the next non-whitespace zloc inside of this zloc considering 
@@ -409,6 +421,19 @@
       (if-not nloc
         i
         (recur (right* nloc) (if (not (whitespace? nloc)) (inc i) i))))))
+
+(defn zcount-nc
+  "Return the count of non-whitespace-or-comment elements in zloc.  
+  Comments are not counted, commas are ignored as whitespace."
+  [zloc]
+  (if (nil? zloc)
+    0
+    (loop [nloc (down* zloc)
+           i 0]
+      (if-not nloc
+        i
+        (recur (right* nloc)
+               (if (not (whitespace-or-comment? nloc)) (inc i) i))))))
 
 ; Used in core.cljc
 (defn zmap-all
@@ -861,5 +886,7 @@
     zprint.zfns/zreader-cond-w-coll? zreader-cond-w-coll?
     zprint.zfns/zlift-ns zlift-ns
     zprint.zfns/zfind zfind
-    zprint.zfns/ztake-append ztake-append]
+    zprint.zfns/ztake-append ztake-append
+    zprint.zfns/zcount-nc zcount-nc
+    zprint.zfns/zreader-macro-splicing? zreader-macro-splicing?]
    (body-fn)))

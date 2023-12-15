@@ -351,5 +351,7 @@
     zprint.zfns/zreader-cond-w-coll? (constantly false)
     zprint.zfns/zlift-ns slift-ns
     zprint.zfns/zfind sfind
-    zprint.zfns/ztake-append stake-append]
+    zprint.zfns/ztake-append stake-append
+    zprint.zfns/zcount-nc scount
+    zprint.zfns/zreader-macro-splicing? (constantly false)]
    (body-fn)))

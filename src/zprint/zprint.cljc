@@ -22,7 +22,8 @@
                            zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns
                            zfind zmap-w-nl zmap-w-nl-comma ztake-append
                            znextnws-w-nl znextnws znamespacedmap? zmap-w-bl
-                           zseqnws-w-bl zsexpr? zmap-no-comment zfn-map]]
+                           zseqnws-w-bl zsexpr? zmap-no-comment zfn-map 
+			   zreader-macro-splicing? zcount-nc]]
     [zprint.comment     :refer [blanks inlinecomment? length-before]]
     [zprint.ansi        :refer [color-str]]
     [zprint.config      :refer [validate-options merge-deep]]
@@ -1061,6 +1062,17 @@
 #_(defn inc-pass-count [] (swap! pass-count inc))
 #_(defn print-pass-count [] (println "pass-count:" @pass-count))
 
+(defn get-l+r-str
+  "Given a zloc, return the beginning and ending collection values."
+  [zloc]
+  (cond (zlist? zloc) ["(" ")"]
+        (zvector? zloc) ["[" "]"]
+        (zset? zloc) ["#{" "}"]
+	(zmap? zloc) ["{" "}"]
+	:else ["?" "?"]))
+
+(declare id-splicing-pairs?)
+
 (defn fzprint-two-up
   "Print a single pair of things (though it might not be exactly a
   pair, given comments and :extend and the like), like bindings in
@@ -1083,6 +1095,7 @@
   (dbg-s options
          #{:narrow :justify :justify-result}
          "fzprint-two-up:" (pr-str (zstring lloc))
+	 "caller:" caller
          "justify-width:" justify-width
          "width:" (:width options)
          "justify-options-width:" (:width justify-options)
@@ -1323,7 +1336,41 @@
                      "fzprint-two-up: redoing lhs arg-1" (pr-str (zstring lloc))
                      "arg-1-lines:" arg-1-lines)
               [nil arg-1 arg-1-lines arg-1-width])
-            [narrow-width arg-1 arg-1-lines arg-1-width])]
+            [narrow-width arg-1 arg-1-lines arg-1-width])
+
+
+ ;       (and (> (count pair) 2) (zstring lloc) (keyword-fn? options (zstring lloc))
+;	     (some zcomment? pair)
+;	     (not (= caller :map)))
+;            (if (and (zstring lloc)
+;                     (keyword-fn? options (zstring lloc))
+;                     (not (= caller :map)))
+;              ; We could also check for (= caller :pair-fn) here,
+;              ; or at least check to see that it isn't a map.
+;	      ; ???
+;              (if (zvector? #_rloc (last pair))
+
+
+
+	better-cond? (and (zstring lloc) 
+	                  (keyword-fn? options (zstring lloc))
+			  (not (= caller :map))
+			  )
+
+
+
+
+
+	splicing-pairs? (and (zstring lloc)
+			     (zkeyword? lloc)
+			     (= caller :reader-cond)
+			     (zcoll? (last pair))
+			     (:splicing-pair? (:reader-cond options))
+			     #_false
+			     )
+
+	    
+	    ]
     (dbg-s options
            #{:justify-result :justify-width}
            "fzprint-two-up a:" (zstring lloc)
@@ -1348,8 +1395,96 @@
         ; This is what does comments, and will cause an infinite loop
         ; in fzprint-map-two-up with flow-all-if-any? true,
         ; since it used to always hang even if force-flow? was true.
-        (= (count pair) 1) [(if force-flow? :flow :hang)
+        (= (count pair) 1) #_[(if force-flow? :flow :hang)
                             (fzprint* roptions ind lloc)]
+
+          [(if force-flow? :flow :hang)
+	   ; If we have a reader-cond here, and it is splicing, then
+	   ; we will set things up so that it formats as pairs.
+	   ; This catches fzprint-binding-vec and fzprint-list*/:pair-fn
+	   ; (which is cond).  It will also catch any other things that
+	   ; are pairs and have a splicing reader-cond in them.  Which,
+	   ; hopefully, is a good thing.  It will also catch maps.
+	   (if (and (= (ztag lloc) :reader-macro) (id-splicing-pairs? lloc))
+	     (fzprint*
+		      #_roptions
+		      (merge-deep
+		        roptions
+			{:next-inner {:reader-cond {:splicing-pair? true} 
+			              :next-inner-restore
+				        [[:reader-cond :splicing-pair?]]}})
+			ind
+			lloc)
+	     
+		(fzprint* roptions ind lloc))]
+
+
+	; Better cond processing if there were more than two things
+	; at least some of which are comments 
+        #_(and (> (count pair) 2) (zstring lloc) (keyword-fn? options (zstring lloc))
+	     (some zcomment? pair)
+	     (not (= caller :map)))
+
+
+	(and (> (count pair) 2) 
+	     (or better-cond? splicing-pairs?)  
+	     (some zcomment? pair))
+	     
+
+          (let [flow-indent (+ indent ind)
+	        rloc (last pair)
+	         mid (next pair)
+		 mid (butlast mid)
+		 
+                [l-str r-str] (get-l+r-str rloc)
+		      _ (dbg-s options #{:lstr} 
+		          "fzprint-two-up 3 or more:  l-str:" (pr-str l-str) 
+			  "r-str:" (pr-str r-str)
+			  "zvector? rloc:" (zvector? rloc)
+			  "zlist? rloc:" (zlist? rloc)
+			  )
+		 
+		 
+		 
+		 
+		 ]
+	    (dbg-s options #{:better-cond} "fzprint-two-up: better-cond: mid:"
+                       (mapv (comp pr-str zstring) mid))
+              (if (or (zvector? rloc) splicing-pairs?)
+                ; This is an embedded :let or :when-let or something. We
+                ; check to see if a keyword is found in the :fn-map
+                ; 'without the :, of course' and if it is and there is a
+                ; vector after it, we assume that it must be one of these.
+
+                (let [rloc-style-vec (fzprint-binding-vec
+						 l-str
+						 r-str
+                                                 loptions
+                                                 flow-indent
+                                                 rloc)
+                        mid-style-vec (fzprint-flow-seq
+			                caller
+					loptions
+					flow-indent
+					mid
+					true ; force-nl?
+					true ; nl-first
+					)]
+		     [:flow (concat-no-nil arg-1 mid-style-vec rloc-style-vec)])
+
+		(let [style-vec (fzprint-flow-seq
+				  caller
+		                  loptions
+				  flow-indent
+				  (next pair)
+				  true ; force-nl?
+				  true ; nl-first?
+				  )
+				  ]
+		      [:flow (concat-no-nil arg-1 style-vec)])
+		  ))
+
+
         (or (= (count pair) 2) (and modifier? (= (count pair) 3)))
           ;concat-no-nil
           ;  arg-1
@@ -1370,21 +1505,42 @@
                   (if justify-width (inc (- justify-width-n arg-1-width-n)) 1)
                 hanging-indent (+ 1 hanging-width ind)
                 flow-indent (+ indent ind)]
-            (if (and (zstring lloc)
+	    (dbg-s options #{:splicing-pairs} 
+	      "fzprint-two-up: splicing-pairs: splicing-pairs?" splicing-pairs? 
+	      "better-cond?" better-cond?
+	      " pair:" (mapv (comp pr-str zstring) pair))
+	    ; The reason why this code is here, and the check for zvector?
+	    ; rloc is there below (and not here), is because for things that
+	    ; are not followed by a vector, the code will pair them up and
+	    ; try to hang them even when :pair {:flow? true} is set.  Otherwise
+	    ; they will be flowed along with the data, and that seems to not
+	    ; have been a desired outcome when this was first written.
+            (if #_(and (zstring lloc)
                      (keyword-fn? options (zstring lloc))
                      (not (= caller :map)))
-              ; We could also check for (= caller :pair-fn) here,
-              ; or at least check to see that it isn't a map.
-              (if (zvector? rloc)
+
+		 (or better-cond? splicing-pairs?)
+
+
+              (if (or (zvector? rloc #_(last pair)) splicing-pairs?)
                 ; This is an embedded :let or :when-let or something. We
                 ; check to see if a keyword is found in the :fn-map
                 ; (without the :, of course) and if it is and there is a
                 ; vector after it, we assume that it must be one of these.
-                (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
+                (let [[l-str r-str] (get-l+r-str rloc)
+		      _ (dbg-s options #{:lstr} 
+		          "fzprint-two-up l-str:" (pr-str l-str) 
+			  "r-str:" (pr-str r-str)
+			  "zvector? rloc:" (zvector? rloc)
+			  "zlist? rloc:" (zlist? rloc))
+		      [hang-or-flow style-vec] (fzprint-hang-unless-fail
                                                  loptions
                                                  hanging-indent
                                                  flow-indent
+						 (partial
                                                  fzprint-binding-vec
+						 l-str
+						 r-str)
                                                  rloc)
                       arg-1 (if (= hang-or-flow :hang)
                               (concat-no-nil arg-1
@@ -1392,6 +1548,7 @@
                                                :whitespace 2]])
                               arg-1)]
                   [hang-or-flow (concat-no-nil arg-1 style-vec)])
+		#_(println "THIS IS A PROBLEM ***********----------------")
                 (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
                                                  loptions
                                                  hanging-indent
@@ -1422,7 +1579,7 @@
                                     (>= flow-indent hanging-indent))))
                     ; We used to adjust the hang-flow in-line here to make
                     ; things come out better.  Now we have instead made all
-                    ; fo the :justify-tuning to be relative to just the
+                    ; of the :justify-tuning to be relative to just the
                     ; justification data or code type, and the hang-flow
                     ; for the data in the justified rhs is independent of
                     ; the hang-flow for the justification itself.
@@ -2024,6 +2181,9 @@
     :keys [width rightcnt one-line? parallel?],
     :as options} ind commas? coll]
   ; Make coll a vector, since fzprint-two-up-pass requires that
+  #_(dbg-s options #{:justify} "fzprint-map-two-up: coll:"
+                       (mapv #(vector (count %) (mapv (comp pr-str zstring) %))
+                         coll))
   (let [coll (into [] coll)
         len (count coll)]
     ; If it is one-line? and force-nl? and there is more than one thing,
@@ -2282,6 +2442,43 @@
         out)
       out)))
 
+(defn id-splicing-pairs?
+  "Is this zloc a splicing reader-macro, which contains sequences of pairs
+  that will be spliced in?  Note that all sequences to be spliced must have
+  an even number of elements to qualify."
+  [zloc]
+  #_(prn "id-splicing-pairs? entry zloc:" (zstring zloc))
+  (when (zreader-macro-splicing? zloc)
+    ; Now that we know it is a zipper, step through it and return true if
+    ; every other element is a collection with an even number of elements.
+    #_(prn "id-splicing-pairs? entry zloc:" (zstring zloc))
+    (let [ncoll (-> zloc
+                    z/down
+                    zprint.zutil/zrightnwsnc)]
+      (if-not (zcoll? ncoll)
+        nil
+	; Move down into the collection of the reader-cond
+        (loop [nloc (z/down ncoll)
+               index 1
+               out? nil]
+          #_(prn "id-splicing-pairs? zloc:"
+               #_(zstring zloc)
+               nil
+               "nloc:" (zstring nloc)
+	       "meta:" (meta nloc)
+               "index:" index
+               "out?" out?)
+          (cond (nil? nloc) out?
+                ; zrightnws doesn't skip comments
+                (zcomment? nloc)
+                  (recur (zprint.zutil/zrightnwsnc nloc) index out?)
+                :else (if (odd? index)
+                        ; index is odd, don't examine this one
+                        (recur (zprint.zutil/zrightnwsnc nloc) (inc index) out?)
+                        (if (and (zcoll? nloc) (even? (zcount-nc nloc)))
+                          (recur (zprint.zutil/zrightnwsnc nloc) (inc index) true)
+                          nil))))))))
+	               
 (defn pair-element?
   "This checks to see if an element should be considered part of a
   pair if it comes between other elements, and a single element on
@@ -2289,7 +2486,10 @@
   this will trigger on comments, but a #_(...) element will also
   trigger this, as will a newline if one appears."
   [zloc]
-  (or (zcomment? zloc) (zuneval? zloc) (znewline? zloc)))
+  (or (zcomment? zloc)
+      (zuneval? zloc)
+      (znewline? zloc)
+      (id-splicing-pairs? zloc)))
 
 (defn nosort?
   "Check a zloc to see if this should trigger no-sort? for this set
@@ -2595,11 +2795,12 @@
 (declare fzprint-get-zloc-seq)
 
 (defn fzprint-binding-vec
-  [{{:keys [nl-separator?]} :binding, :as options} ind zloc]
-  (dbg options "fzprint-binding-vec: ind:" ind "zloc:" (zstring (zfirst zloc)))
+  ([options ind zloc] (fzprint-binding-vec "[" "]" options ind zloc))
+  ([l-str r-str {{:keys [nl-separator?]} :binding, :as options} ind zloc]
+  (dbg-s options #{:binding} "fzprint-binding-vec:" "l-str" (pr-str l-str) "r-str" (pr-str r-str) "ind:" ind "zloc:" (zstring (zfirst zloc)))
   (let [options (rightmost options)
-        l-str "["
-        r-str "]"
+        #_#_l-str "["
+        #_#_r-str "]"
         l-str-vec (lstr-vec options l-str) 
         r-str-vec (rstr-vec options ind r-str)]
     (dbg-form options
@@ -2614,6 +2815,12 @@
                     (fzprint-map-two-up
                       :binding
                       options
+		      ; ???
+		      #_(merge-deep
+		        options
+			{:next-inner {:reader-cond {:splicing-pair? true} 
+			              :next-inner-restore
+				        [[:reader-cond :splicing-pair?]]}})
                       (inc ind)
                       false
                       (second
@@ -2638,36 +2845,40 @@
                           ; and that is implemented by changing what
                           ; gets returned as a zloc-seq.
                           (fzprint-get-zloc-seq :vector options zloc)))))
-                  r-str-vec)))))
+                  r-str-vec))))))
 
 (defn fzprint-hang
   "Try to hang something and try to flow it, and then see which is
   better.  Has hang and flow indents. fzfn is the function to use 
-  to do zloc.  Note what fzfn does with the input. Presumably the
+  to do zloc-seq.  Note what fzfn does with the input. Presumably the
   caller knows what the fzfn does, so it has to count the items
-  itself and pass it in here as zloc-count if it isn't just (zcount zloc)."
+  itself and pass it in here as zloc-count if it isn't just (count zloc).
+  Note that as of 12/14/23, this is called exactly once, in fzprint-list*.
+  Note also that you can't pass the caller on to fzfn, as :pair-fn (which is
+  what fzprint-list* uses as the caller of this routine) doesn't
+  have the requisite keys that :pair does, so things fail downstream."
   [{:keys [one-line? force-eol-blanks?], :as options} caller hindent findent
-   fzfn zloc-count zloc]
+   fzfn zloc-count zloc-seq]
   (dbg options "fzprint-hang: caller:" caller)
   (let [hanging (when (and (not= hindent findent)
                            ((options caller) :hang?)
                            ; If it starts with a newline, we aren't hanging
                            ; it.  Comment, sure, but not newline.
-                           (not (znewline? (first zloc))))
+                           (not (znewline? (first zloc-seq))))
                   (concat-no-nil [[(str " ") :none :whitespace 5]]
-                                 (fzfn (in-hang options) hindent zloc)))
+                                 (fzfn (in-hang options) hindent zloc-seq)))
         #_(prn "fzprint-hang: first hanging:" (first hanging) (second hanging))
         _ (dbg options
                "fzprint-hang: caller:" caller
                "hang?" ((options caller) :hang?))
         hanging (when (not= (nth (second hanging) 2) :comment-inline) hanging)
-        hang-count (or zloc-count (zcount zloc))
+        hang-count (or zloc-count (count zloc-seq))
         hr-lines (style-lines options (dec hindent) hanging)
-        ;flow (fzfn options findent zloc)
+        ;flow (fzfn options findent zloc-seq)
        ]
     (if (or (fzfit-one-line options hr-lines) one-line?)
       hanging
-      (let [flow (let [result (fzfn options findent zloc)]
+      (let [flow (let [result (fzfn options findent zloc-seq)]
                    (concat-no-nil
                      ; This will create an end-of-line blanks situation so
                      ; we can test our ability to see it.  If we weren't
@@ -5108,6 +5319,12 @@
                            ; over from when a zloc was passed down and not
                            ; a zloc-seq?
                            (fzprint-hang options
+		      #_(merge-deep
+		        options
+			{:next-inner {:reader-cond {:splicing-pair? true} 
+			              :next-inner-restore
+				        [[:reader-cond :splicing-pair?]]}})
+
                                          #_(assoc-in options
                                              [:pair :respect-nl?]
                                              (:respect-nl? (caller options)))
@@ -8316,6 +8533,11 @@
         ; well.
         namespaced? (= (subs zstr 0 1) ":")
         at? (or (= (ztag (zsecond zloc)) :deref) alt-at?)
+	options (if (:splicing-pair? (:reader-cond options))
+	            (if at? 
+		      options
+		      (assoc-in options [:reader-cond :splicing-pair?] false))
+		    options)
         ; If :reader-cond doesn't have these things, then let :map govern
         [respect-nl? respect-bl? indent-only?]
           (get-respect-indent options :reader-cond :map)
@@ -8345,6 +8567,9 @@
             "floc:" (zstring floc)
             "l-str:" l-str
             "reader-cond?" reader-cond?)
+    (dbg-s options #{:reader-cond}
+      "fzprint-reader-macro splicing-pair?:" 
+        (:splicing-pair? (:reader-cond options)))
     ; This isn't really all that correct, but does yield the right output.
     ; Question about whether or not it does the right stuff for focus.
     ; Maybe there is some way to call fzprint-indent with just the

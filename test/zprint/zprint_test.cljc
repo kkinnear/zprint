@@ -8609,6 +8609,58 @@ tpqsv
                                      #"\@[0-9a-f]*"
                                      "")))
 
+;;
+;; Test for fixes for Issue #282, where we added :one-line-ok? to :rod-config,
+;; but didn't do it for individual arities.
+;;
+
+(def
+i286a
+"(defn set-item!\n  ([k value] (set-item! k value identity))\n  ([k value cb]\n   (-> ^js async-storage\n       (.setItem (str k)\n                 (clj->transit value))\n       (.then (fn [_] (cb)))\n       (.catch (fn [error]\n                 (log/error \"[async-storage]\" error))))))\n")
+
+(expect
+"(defn set-item!\n  ([k value] (set-item! k value identity))\n  ([k value cb]\n   (-> ^js async-storage\n       (.setItem (str k) (clj->transit value))\n       (.then (fn [_] (cb)))\n       (.catch (fn [error] (log/error \"[async-storage]\" error))))))"
+(zprint-str i286a {:parse-string? true :style {:style-call :rod-config :one-line-ok? true}}))
+
+(expect
+"(defn set-item!\n  ([k value]\n   (set-item! k value identity))\n  ([k value cb]\n   (-> ^js async-storage\n       (.setItem (str k) (clj->transit value))\n       (.then (fn [_] (cb)))\n       (.catch (fn [error] (log/error \"[async-storage]\" error))))))"
+(zprint-str i286a {:parse-string? true :style {:style-call :rod-config}}))
+
+(def
+i282b
+"(defn easing-in ([] (.-in ^js easing)) ([x] (.-in ^js easing)))\n")
+
+(expect
+"(defn easing-in\n  ([]\n   (.-in ^js easing))\n  ([x]\n   (.-in ^js easing)))"
+(zprint-str i282b {:parse-string? true :style :rod-no-ma-nl}))
+
+(expect
+"(defn easing-in\n  ([]\n   (.-in ^js easing))\n\n  ([x]\n   (.-in ^js easing)))"
+(zprint-str i282b {:parse-string? true :style :rod}))
+
+(expect
+"(defn easing-in ([] (.-in ^js easing)) ([x] (.-in ^js easing)))"
+(zprint-str i282b {:parse-string? true :style {:style-call :rod-config :one-line-ok? true}}))
+
+;;
+;; Test new functionality which will show reader-cond-splicing pairs as
+;; pairs when formatting.
+;;
+
+(def mp1
+"{:this :is :a :map #?@(:clj [:with :a :reader :cond] :cljs (:in :the :middle :of-it)) :and #?(:clj [:some :RHS :stuff :which :could-be :pairs] :cljs (:but :some :probably :isnot)) :more :stuff}")
+
+(expect
+"{:this :is,\n :a :map,\n #?@(:clj [:with :a\n           :reader :cond]\n     :cljs (:in :the\n            :middle :of-it)),\n :and #?(:clj [:some :RHS :stuff :which :could-be :pairs]\n         :cljs (:but :some :probably :isnot)),\n :more :stuff}"
+(zprint-str mp1 {:parse-string? true}))
+
+(def tp7
+"(defn tst-pair-1\n  [{{:keys [object?]} :fn-obj, :as options} ind zloc]\n  (if (and object? (object-str? (zstring zloc)))\n    (fzprint-object options ind zloc)\n    (let [l-str \"#<\"\n          r-str \">\"\n          indent (count l-str)\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)\n          arg-1-left \"Fn@\"\n          arg-1-right (hash-identity-str zloc)\n          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))\n          class-str (pr-str #?(:clj (class zloc)\n                               :cljs (type zloc)))\n          class-str (pr-str #?(:clj (this is a test this is only a test it should not show up in pairs)\n                               :cljs (type zloc)))\n          #?@(\n\t      ;lots of comments \n\t      :clj \n\t      ([class-name & more]\n                    (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\") color\n                    (if (re-find #\"clojure\" class-name)\n                      (zcolor-map options :fn)\n                      :none) arg-2 (str class-name (when more \"[fn]\")))\n              :cljs \n\t      ; This has a lot of comments\n\n\t      ; and even more\n\t      \n\t      [name-js \n\t      \n\t      ; and they are inside of the sequences too\n\t      \n\t      (str (.-name zloc)) color\n                     (if (or (re-find #\"^clojure\" name-js)\n                             (re-find #\"^cljs\" name-js))\n                       (zcolor-map options :fn)\n                       :none) name-split (clojure.string/split name-js #\"x\")\n                     arg-2\n                     (str (apply str (interpose \".\" (butlast name-split)))\n                          \"/\"\n                          (last name-split))])\n            l-str-vec\n          (lstr-vec options l-str :fn) r-str-vec\n          (rstr-vec options ind r-str :fn)]\n\n\n     (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]\n           (string? third3)  [third nil nil]    \n\t   (keyword? third) [nil #?@(:clj [third fourth fifth sixth] \n\t                             :cljs (fifth sixth fifth sixth))]\n\t   #?@( :clj ((keyword? first) [fourth nil nil]\n\t              (string? fourth)            [nil nil nil]\n\t              (string? third2)            [nil fifth nil]\n\t\t      )\n\t\t:cljs ((keyword? fifth) [first nil nil]\n\t              (string? third1)            [nil nil nil]))\n       :else [nil nil nil]\n\t   )\n\n\n      (concat-no-nil l-str-vec\n                     r-str-vec))))")
+
+(expect
+"(defn tst-pair-1\n  [{{:keys [object?]} :fn-obj, :as options} ind zloc]\n  (if (and object? (object-str? (zstring zloc)))\n    (fzprint-object options ind zloc)\n    (let [l-str \"#<\"\n          r-str \">\"\n          indent (count l-str)\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)\n          arg-1-left \"Fn@\"\n          arg-1-right (hash-identity-str zloc)\n          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))\n          class-str (pr-str #?(:clj (class zloc)\n                               :cljs (type zloc)))\n          class-str (pr-str #?(:clj (this is\n                                          a\n                                          test\n                                          this\n                                          is\n                                          only\n                                          a\n                                          test\n                                          it\n                                          should\n                                          not\n                                          show\n                                          up\n                                          in\n                                          pairs)\n                               :cljs (type zloc)))\n          #?@(;lots of comments\n              :clj ([class-name & more]\n                      (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\")\n                    color (if (re-find #\"clojure\" class-name)\n                            (zcolor-map options :fn)\n                            :none)\n                    arg-2 (str class-name (when more \"[fn]\")))\n              :cljs\n                ; This has a lot of comments and even more\n                [name-js\n                   ; and they are inside of the sequences too\n                   (str (.-name zloc))\n                 color (if (or (re-find #\"^clojure\" name-js)\n                               (re-find #\"^cljs\" name-js))\n                         (zcolor-map options :fn)\n                         :none)\n                 name-split (clojure.string/split name-js #\"x\")\n                 arg-2 (str (apply str (interpose \".\" (butlast name-split)))\n                            \"/\"\n                            (last name-split))])\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)]\n      (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]\n            (string? third3) [third nil nil]\n            (keyword? third) [nil\n                              #?@(:clj [third fourth fifth sixth]\n                                  :cljs (fifth sixth fifth sixth))]\n            #?@(:clj ((keyword? first) [fourth nil nil]\n                      (string? fourth) [nil nil nil]\n                      (string? third2) [nil fifth nil])\n                :cljs ((keyword? fifth) [first nil nil]\n                       (string? third1) [nil nil nil]))\n            :else [nil nil nil])\n      (concat-no-nil l-str-vec r-str-vec))))"
+(zprint-str tp7 {:parse-string? true}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

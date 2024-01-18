@@ -1095,7 +1095,7 @@
   (dbg-s options
          #{:narrow :justify :justify-result}
          "fzprint-two-up:" (pr-str (zstring lloc))
-	 "caller:" caller
+         "caller:" caller
          "justify-width:" justify-width
          "width:" (:width options)
          "justify-options-width:" (:width justify-options)
@@ -1337,40 +1337,14 @@
                      "arg-1-lines:" arg-1-lines)
               [nil arg-1 arg-1-lines arg-1-width])
             [narrow-width arg-1 arg-1-lines arg-1-width])
-
-
- ;       (and (> (count pair) 2) (zstring lloc) (keyword-fn? options (zstring lloc))
-;	     (some zcomment? pair)
-;	     (not (= caller :map)))
-;            (if (and (zstring lloc)
-;                     (keyword-fn? options (zstring lloc))
-;                     (not (= caller :map)))
-;              ; We could also check for (= caller :pair-fn) here,
-;              ; or at least check to see that it isn't a map.
-;	      ; ???
-;              (if (zvector? #_rloc (last pair))
-
-
-
-	better-cond? (and (zstring lloc) 
-	                  (keyword-fn? options (zstring lloc))
-			  (not (= caller :map))
-			  )
-
-
-
-
-
-	splicing-pairs? (and (zstring lloc)
-			     (zkeyword? lloc)
-			     (= caller :reader-cond)
-			     (zcoll? (last pair))
-			     (:splicing-pair? (:reader-cond options))
-			     #_false
-			     )
-
-	    
-	    ]
+        better-cond? (and (zstring lloc)
+                          (keyword-fn? options (zstring lloc))
+                          (not (= caller :map)))
+        splicing-pairs? (and (zstring lloc)
+                             (zkeyword? lloc)
+                             (= caller :reader-cond)
+                             (zcoll? (last pair))
+                             (:splicing-pair? (:reader-cond options)))]
     (dbg-s options
            #{:justify-result :justify-width}
            "fzprint-two-up a:" (zstring lloc)
@@ -1388,103 +1362,91 @@
     ;  in-hang, then we can bail, but otherwise, not.
     (dbg-pr options "fzprint-two-up: arg-1:" arg-1)
     (when arg-1
-      #_(and arg-1 (or arg-1-fit? (not in-hang?)))
       (cond
         ; This used to always :flow
         arg-1-newline? [(if force-flow? :flow :hang) arg-1]
         ; This is what does comments, and will cause an infinite loop
         ; in fzprint-map-two-up with flow-all-if-any? true,
         ; since it used to always hang even if force-flow? was true.
-        (= (count pair) 1) #_[(if force-flow? :flow :hang)
-                            (fzprint* roptions ind lloc)]
-
+        (= (count pair) 1)
           [(if force-flow? :flow :hang)
-	   ; If we have a reader-cond here, and it is splicing, then
-	   ; we will set things up so that it formats as pairs.
-	   ; This catches fzprint-binding-vec and fzprint-list*/:pair-fn
-	   ; (which is cond).  It will also catch any other things that
-	   ; are pairs and have a splicing reader-cond in them.  Which,
-	   ; hopefully, is a good thing.  It will also catch maps.
-	   (if (and (= (ztag lloc) :reader-macro) (id-splicing-pairs? lloc))
-	     (fzprint*
-		      #_roptions
-		      (merge-deep
-		        roptions
-			{:next-inner {:reader-cond {:splicing-pair? true} 
-			              :next-inner-restore
-				        [[:reader-cond :splicing-pair?]]}})
-			ind
-			lloc)
-	     
-		(fzprint* roptions ind lloc))]
-
-
-	; Better cond processing if there were more than two things
-	; at least some of which are comments 
-        #_(and (> (count pair) 2) (zstring lloc) (keyword-fn? options (zstring lloc))
-	     (some zcomment? pair)
-	     (not (= caller :map)))
-
-
-	(and (> (count pair) 2) 
-	     (or better-cond? splicing-pairs?)  
-	     (some zcomment? pair))
-	     
-
+           ; If we have a reader-cond here, and it is splicing, then
+           ; we will set things up so that it formats as pairs.
+           ; This catches fzprint-binding-vec and fzprint-list*/:pair-fn
+           ; (which is cond).  It will also catch any other things that
+           ; are pairs and have a splicing reader-cond in them.  Which,
+           ; hopefully, is a good thing.  It will also catch maps.
+           (if (and (= (ztag lloc) :reader-macro) (id-splicing-pairs? lloc))
+             (fzprint* (merge-deep roptions
+                                   {:next-inner
+                                      {:reader-cond {:splicing-pair? true},
+                                       ; This doesn't work, need to call
+                                       ; config-and-validate to use
+                                       ; next-inner-restore
+                                       ;    :next-inner-restore
+                                       ;      [[:reader-cond :splicing-pair?]]
+                                       ; Restore :splicing-pair? when next we
+                                       ; transit fzprint*.  Can't use
+                                       ; :next-inner-restore because we aren't
+                                       ; calling config-and-validate.
+                                       ; Without this, splicing things that are
+                                       ; not supposed to be in pairs get done in
+                                       ; pairs if they are inside of things that
+                                       ; are being done in pairs.
+                                       :next-inner {:reader-cond
+                                                      {:splicing-pair?
+                                                         ; Current value of
+                                                         ; splicing-pair
+                                                         (:splicing-pair?
+                                                           (:reader-cond?
+                                                             roptions))}}}})
+                       ind
+                       lloc)
+             (fzprint* roptions ind lloc))]
+        ; Better cond processing if there were more than two things
+        ; at least some of which are comments
+        (and (> (count pair) 2) (or better-cond? splicing-pairs?))
           (let [flow-indent (+ indent ind)
-	        rloc (last pair)
-	         mid (next pair)
-		 mid (butlast mid)
-		 
+                rloc (last pair)
+                mid (next pair)
+                mid (butlast mid)
                 [l-str r-str] (get-l+r-str rloc)
-		      _ (dbg-s options #{:lstr} 
-		          "fzprint-two-up 3 or more:  l-str:" (pr-str l-str) 
-			  "r-str:" (pr-str r-str)
-			  "zvector? rloc:" (zvector? rloc)
-			  "zlist? rloc:" (zlist? rloc)
-			  )
-		 
-		 
-		 
-		 
-		 ]
-	    (dbg-s options #{:better-cond} "fzprint-two-up: better-cond: mid:"
-                       (mapv (comp pr-str zstring) mid))
-              (if (or (zvector? rloc) splicing-pairs?)
-                ; This is an embedded :let or :when-let or something. We
-                ; check to see if a keyword is found in the :fn-map
-                ; 'without the :, of course' and if it is and there is a
-                ; vector after it, we assume that it must be one of these.
-
-                (let [rloc-style-vec (fzprint-binding-vec
-						 l-str
-						 r-str
-                                                 loptions
-                                                 flow-indent
-                                                 rloc)
-                        mid-style-vec (fzprint-flow-seq
-			                caller
-					loptions
-					flow-indent
-					mid
-					true ; force-nl?
-					true ; nl-first
-					)]
-		     [:flow (concat-no-nil arg-1 mid-style-vec rloc-style-vec)])
-
-		(let [style-vec (fzprint-flow-seq
-				  caller
-		                  loptions
-				  flow-indent
-				  (next pair)
-				  true ; force-nl?
-				  true ; nl-first?
-				  )
-				  ]
-		      [:flow (concat-no-nil arg-1 style-vec)])
-		  ))
-
-
+                _ (dbg-s options
+                         #{:lstr}
+                         "fzprint-two-up 3 or more:  l-str:" (pr-str l-str)
+                         "r-str:" (pr-str r-str)
+                         "zvector? rloc:" (zvector? rloc)
+                         "zlist? rloc:" (zlist? rloc))]
+            (dbg-s options
+                   #{:better-cond}
+                   "fzprint-two-up: better-cond: mid:"
+                   (mapv (comp pr-str zstring) mid))
+            (if (or (zvector? rloc) splicing-pairs?)
+              ; This is an embedded :let or :when-let or something. We
+              ; check to see if a keyword is found in the :fn-map
+              ; 'without the :, of course' and if it is and there is a
+              ; vector after it, we assume that it must be one of these.
+              (let [rloc-style-vec (fzprint-binding-vec l-str
+                                                        r-str
+                                                        loptions
+                                                        flow-indent
+                                                        rloc)
+                    mid-style-vec (fzprint-flow-seq caller
+                                                    loptions
+                                                    flow-indent
+                                                    mid
+                                                    true ; force-nl?
+                                                    true ; nl-first
+                                  )]
+                [:flow (concat-no-nil arg-1 mid-style-vec rloc-style-vec)])
+              (let [style-vec (fzprint-flow-seq caller
+                                                loptions
+                                                flow-indent
+                                                (next pair)
+                                                true ; force-nl?
+                                                true ; nl-first?
+                              )]
+                [:flow (concat-no-nil arg-1 style-vec)])))
         (or (= (count pair) 2) (and modifier? (= (count pair) 3)))
           ;concat-no-nil
           ;  arg-1
@@ -1505,50 +1467,48 @@
                   (if justify-width (inc (- justify-width-n arg-1-width-n)) 1)
                 hanging-indent (+ 1 hanging-width ind)
                 flow-indent (+ indent ind)]
-	    (dbg-s options #{:splicing-pairs} 
-	      "fzprint-two-up: splicing-pairs: splicing-pairs?" splicing-pairs? 
-	      "better-cond?" better-cond?
-	      " pair:" (mapv (comp pr-str zstring) pair))
-	    ; The reason why this code is here, and the check for zvector?
-	    ; rloc is there below (and not here), is because for things that
-	    ; are not followed by a vector, the code will pair them up and
-	    ; try to hang them even when :pair {:flow? true} is set.  Otherwise
-	    ; they will be flowed along with the data, and that seems to not
-	    ; have been a desired outcome when this was first written.
-            (if #_(and (zstring lloc)
-                     (keyword-fn? options (zstring lloc))
-                     (not (= caller :map)))
-
-		 (or better-cond? splicing-pairs?)
-
-
-              (if (or (zvector? rloc #_(last pair)) splicing-pairs?)
+            (dbg-s options
+                   #{:splicing-pairs}
+                   "fzprint-two-up: splicing-pairs: splicing-pairs?"
+                     splicing-pairs?
+                   "better-cond?" better-cond?
+                   " pair:" (mapv (comp pr-str zstring) pair))
+            ; The reason why this code is here, and the check for zvector?
+            ; rloc is there below (and not here), is because for things that
+            ; are not followed by a vector, the code will pair them up and
+            ; try to hang them even when :pair {:flow? true} is set.  Otherwise
+            ; they will be flowed along with the data, and that seems to not
+            ; have been a desired outcome when this was first written.
+            (if (or better-cond? splicing-pairs?)
+              (if (or (zvector? (last pair)) splicing-pairs?)
                 ; This is an embedded :let or :when-let or something. We
                 ; check to see if a keyword is found in the :fn-map
                 ; (without the :, of course) and if it is and there is a
                 ; vector after it, we assume that it must be one of these.
                 (let [[l-str r-str] (get-l+r-str rloc)
-		      _ (dbg-s options #{:lstr} 
-		          "fzprint-two-up l-str:" (pr-str l-str) 
-			  "r-str:" (pr-str r-str)
-			  "zvector? rloc:" (zvector? rloc)
-			  "zlist? rloc:" (zlist? rloc))
-		      [hang-or-flow style-vec] (fzprint-hang-unless-fail
-                                                 loptions
-                                                 hanging-indent
-                                                 flow-indent
-						 (partial
-                                                 fzprint-binding-vec
-						 l-str
-						 r-str)
-                                                 rloc)
+                      _ (dbg-s options
+                               #{:lstr}
+                               "fzprint-two-up l-str:" (pr-str l-str)
+                               "r-str:" (pr-str r-str)
+                               "zvector? rloc:" (zvector? rloc)
+                               "zlist? rloc:" (zlist? rloc))
+                      ; Note that here we might hang this or flow it,
+                      ; because we have only two things, and therefore
+                      ; there can't be a comment or a newline in it.
+                      [hang-or-flow style-vec]
+                        (fzprint-hang-unless-fail
+                          loptions
+                          hanging-indent
+                          flow-indent
+                          (partial fzprint-binding-vec l-str r-str)
+                          rloc)
                       arg-1 (if (= hang-or-flow :hang)
                               (concat-no-nil arg-1
                                              [[(blanks hanging-spaces) :none
                                                :whitespace 2]])
                               arg-1)]
                   [hang-or-flow (concat-no-nil arg-1 style-vec)])
-		#_(println "THIS IS A PROBLEM ***********----------------")
+                #_(println "THIS IS A PROBLEM ***********----------------")
                 (let [[hang-or-flow style-vec] (fzprint-hang-unless-fail
                                                  loptions
                                                  hanging-indent
@@ -2202,10 +2162,6 @@
                 ; isn't anything commplex oin the :justify-tuning.  And
                 ; we don't expect there to be anytime soon.  It didn't
                 ; really make much difference, interestingly enough.
-                #_[(merge-deep (merge-deep options
-                                           {caller (caller-options
-                                                     :justify-hang)})
-                               (caller-options :justify-tuning)) nil]
                 (internal-config-and-validate
                   (merge-deep options {caller (caller-options :justify-hang)})
                   (caller-options :justify-tuning)
@@ -2799,8 +2755,6 @@
   ([l-str r-str {{:keys [nl-separator?]} :binding, :as options} ind zloc]
   (dbg-s options #{:binding} "fzprint-binding-vec:" "l-str" (pr-str l-str) "r-str" (pr-str r-str) "ind:" ind "zloc:" (zstring (zfirst zloc)))
   (let [options (rightmost options)
-        #_#_l-str "["
-        #_#_r-str "]"
         l-str-vec (lstr-vec options l-str) 
         r-str-vec (rstr-vec options ind r-str)]
     (dbg-form options
@@ -2815,12 +2769,6 @@
                     (fzprint-map-two-up
                       :binding
                       options
-		      ; ???
-		      #_(merge-deep
-		        options
-			{:next-inner {:reader-cond {:splicing-pair? true} 
-			              :next-inner-restore
-				        [[:reader-cond :splicing-pair?]]}})
                       (inc ind)
                       false
                       (second
@@ -5319,11 +5267,6 @@
                            ; over from when a zloc was passed down and not
                            ; a zloc-seq?
                            (fzprint-hang options
-		      #_(merge-deep
-		        options
-			{:next-inner {:reader-cond {:splicing-pair? true} 
-			              :next-inner-restore
-				        [[:reader-cond :splicing-pair?]]}})
 
                                          #_(assoc-in options
                                              [:pair :respect-nl?]

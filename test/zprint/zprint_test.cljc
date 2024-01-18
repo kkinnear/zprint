@@ -8661,6 +8661,89 @@ i282b
 "(defn tst-pair-1\n  [{{:keys [object?]} :fn-obj, :as options} ind zloc]\n  (if (and object? (object-str? (zstring zloc)))\n    (fzprint-object options ind zloc)\n    (let [l-str \"#<\"\n          r-str \">\"\n          indent (count l-str)\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)\n          arg-1-left \"Fn@\"\n          arg-1-right (hash-identity-str zloc)\n          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))\n          class-str (pr-str #?(:clj (class zloc)\n                               :cljs (type zloc)))\n          class-str (pr-str #?(:clj (this is\n                                          a\n                                          test\n                                          this\n                                          is\n                                          only\n                                          a\n                                          test\n                                          it\n                                          should\n                                          not\n                                          show\n                                          up\n                                          in\n                                          pairs)\n                               :cljs (type zloc)))\n          #?@(;lots of comments\n              :clj ([class-name & more]\n                      (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\")\n                    color (if (re-find #\"clojure\" class-name)\n                            (zcolor-map options :fn)\n                            :none)\n                    arg-2 (str class-name (when more \"[fn]\")))\n              :cljs\n                ; This has a lot of comments and even more\n                [name-js\n                   ; and they are inside of the sequences too\n                   (str (.-name zloc))\n                 color (if (or (re-find #\"^clojure\" name-js)\n                               (re-find #\"^cljs\" name-js))\n                         (zcolor-map options :fn)\n                         :none)\n                 name-split (clojure.string/split name-js #\"x\")\n                 arg-2 (str (apply str (interpose \".\" (butlast name-split)))\n                            \"/\"\n                            (last name-split))])\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)]\n      (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]\n            (string? third3) [third nil nil]\n            (keyword? third) [nil\n                              #?@(:clj [third fourth fifth sixth]\n                                  :cljs (fifth sixth fifth sixth))]\n            #?@(:clj ((keyword? first) [fourth nil nil]\n                      (string? fourth) [nil nil nil]\n                      (string? third2) [nil fifth nil])\n                :cljs ((keyword? fifth) [first nil nil]\n                       (string? third1) [nil nil nil]))\n            :else [nil nil nil])\n      (concat-no-nil l-str-vec r-str-vec))))"
 (zprint-str tp7 {:parse-string? true}))
 
+(def tp8
+"(defn tst-pair-1
+  [{{:keys [object?]} :fn-obj, :as options} ind zloc]
+  (if (and object? (object-str? (zstring zloc)))
+    (fzprint-object options ind zloc)
+    (let [l-str \"#<\"
+          r-str \">\"
+          indent (count l-str)
+          l-str-vec (lstr-vec options l-str :fn)
+          r-str-vec (rstr-vec options ind r-str :fn)
+          arg-1-left \"Fn@\"
+          arg-1-right (hash-identity-str zloc)
+          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))
+          class-str (pr-str #?(:clj (class zloc)
+                               :cljs (type zloc)))
+          class-str (pr-str #?(:clj (this is a test this is only a test it should not show up in pairs)
+                               :cljs (type zloc)))
+          #?@(
+	      ;lots of comments 
+	      :clj 
+	      ([class-name & more] (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\") color (if (re-find #\"clojure\" class-name) (zcolor-map options :fn) :none) arg-2 (str class-name (when more \"[fn]\")))
+              :cljs 
+	      ; This has a lot of comments
+
+	      ; and even more
+	      
+	      [name-js 
+	      
+	      ; and they are inside of the sequences too
+	      
+	      (str (.-name zloc)) color
+                     (if (or (re-find #\"^clojure\" name-js)
+                             (re-find #\"^cljs\" name-js))
+                       (zcolor-map options :fn)
+                       :none) name-split (clojure.string/split name-js #\"x\")
+                     arg-2
+                     (str (apply str (interpose \".\" (butlast name-split)))
+                          \"/\"
+                          (last name-split))])
+            l-str-vec
+          (lstr-vec options l-str :fn) r-str-vec (rstr-vec options ind r-str :fn)]
+
+     (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]
+           (string? third3)  [third nil nil]    
+	   (keyword? third) [nil #?@(:clj [third fourth fifth sixth] 
+	                             :cljs (fifth sixth fifth sixth))]
+	   #?@( :clj ((keyword? first) [fourth nil nil] (string? fourth)            [nil nil nil] (string? third2)            [nil fifth #?@(:clj [:a :b :c :d]) nil])
+		:cljs ((keyword? fifth) [first nil nil] (string? third1)            [nil nil nil])) :else [nil nil nil])
+
+
+      (concat-no-nil l-str-vec
+                     r-str-vec))))")
+
+ (expect
+"(defn tst-pair-1\n  [{{:keys [object?]} :fn-obj, :as options} ind zloc]\n  (if (and object? (object-str? (zstring zloc)))\n    (fzprint-object options ind zloc)\n    (let [l-str \"#<\"\n          r-str \">\"\n          indent (count l-str)\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)\n          arg-1-left \"Fn@\"\n          arg-1-right (hash-identity-str zloc)\n          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))\n          class-str (pr-str #?(:clj (class zloc)\n                               :cljs (type zloc)))\n          class-str (pr-str #?(:clj (this is\n                                          a\n                                          test\n                                          this\n                                          is\n                                          only\n                                          a\n                                          test\n                                          it\n                                          should\n                                          not\n                                          show\n                                          up\n                                          in\n                                          pairs)\n                               :cljs (type zloc)))\n          #?@(;lots of comments\n              :clj ([class-name & more]\n                      (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\")\n                    color (if (re-find #\"clojure\" class-name)\n                            (zcolor-map options :fn)\n                            :none)\n                    arg-2 (str class-name (when more \"[fn]\")))\n              :cljs\n                ; This has a lot of comments and even more\n                [name-js\n                   ; and they are inside of the sequences too\n                   (str (.-name zloc))\n                 color (if (or (re-find #\"^clojure\" name-js)\n                               (re-find #\"^cljs\" name-js))\n                         (zcolor-map options :fn)\n                         :none)\n                 name-split (clojure.string/split name-js #\"x\")\n                 arg-2 (str (apply str (interpose \".\" (butlast name-split)))\n                            \"/\"\n                            (last name-split))])\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)]\n      (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]\n            (string? third3) [third nil nil]\n            (keyword? third) [nil\n                              #?@(:clj [third fourth fifth sixth]\n                                  :cljs (fifth sixth fifth sixth))]\n            #?@(:clj ((keyword? first) [fourth nil nil]\n                      (string? fourth) [nil nil nil]\n                      (string? third2) [nil fifth #?@(:clj [:a :b :c :d]) nil])\n                :cljs ((keyword? fifth) [first nil nil]\n                       (string? third1) [nil nil nil]))\n            :else [nil nil nil])\n      (concat-no-nil l-str-vec r-str-vec))))"
+ (zprint-str tp8 {:parse-string? true}))
+
+
+
+(expect
+"(defn tst-pair-1\n  [{{:keys [object?]} :fn-obj, :as options} ind zloc]\n  (if (and object? (object-str? (zstring zloc)))\n    (fzprint-object options ind zloc)\n    (let [l-str \"#<\"\n          r-str \">\"\n          indent (count l-str)\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)\n          arg-1-left \"Fn@\"\n          arg-1-right (hash-identity-str zloc)\n          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))\n          class-str (pr-str #?(:clj (class zloc)\n                               :cljs (type zloc)))\n          class-str (pr-str #?(:clj (this is\n                                          a\n                                          test\n                                          this\n                                          is\n                                          only\n                                          a\n                                          test\n                                          it\n                                          should\n                                          not\n                                          show\n                                          up\n                                          in\n                                          pairs)\n                               :cljs (type zloc)))\n          #?@(;lots of comments\n              :clj\n                ([class-name & more]\n                   (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\")\n                 color (if (re-find #\"clojure\" class-name)\n                         (zcolor-map options :fn)\n                         :none)\n                 arg-2 (str class-name (when more \"[fn]\")))\n              :cljs\n                ; This has a lot of comments\n\n                ; and even more\n\n                [name-js\n\n                   ; and they are inside of the sequences too\n\n                   (str (.-name zloc))\n                 color\n                   (if (or (re-find #\"^clojure\" name-js)\n                           (re-find #\"^cljs\" name-js))\n                     (zcolor-map options :fn)\n                     :none)\n                 name-split (clojure.string/split name-js #\"x\")\n                 arg-2\n                   (str (apply str (interpose \".\" (butlast name-split)))\n                        \"/\"\n                        (last name-split))])\n          l-str-vec\n            (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)]\n\n      (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]\n            (string? third3) [third nil nil]\n            (keyword? third) [nil\n                              #?@(:clj [third fourth fifth sixth]\n                                  :cljs (fifth sixth fifth sixth))]\n            #?@(:clj ((keyword? first) [fourth nil nil]\n                      (string? fourth) [nil nil nil]\n                      (string? third2) [nil fifth #?@(:clj [:a :b :c :d]) nil])\n                :cljs ((keyword? fifth) [first nil nil]\n                       (string? third1) [nil nil nil]))\n            :else [nil nil nil])\n\n\n      (concat-no-nil l-str-vec\n                     r-str-vec))))"
+(zprint-str tp8 {:parse-string? true :style :respect-nl}))
+
+(def bc1a
+"(cond
+   (odd? a) 1
+   ; This is a comment
+   :let [a (quot a 2)]
+   :when-let ; this is also a comment
+             [x (fn-which-may-return-falsey a),
+              y (fn-which-may-return-falsey (* 2 a))]
+   :when-some [b (fn-which-may-return-nil x),
+               c (fn-which-may-return-nil y)]
+   :when (seq x)
+   :do (println x)
+   (odd? (+ x y)) 2
+   3)")
+
+
+(expect
+"(cond (odd? a) 1\n      ; This is a comment\n      :let [a (quot a 2)]\n      :when-let ; this is also a comment\n        [x (fn-which-may-return-falsey a)\n         y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y)) 2\n      3)"
+(zprint-str bc1a {:parse-string? true}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

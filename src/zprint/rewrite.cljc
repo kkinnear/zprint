@@ -87,59 +87,68 @@
       ; if skip-fn? is req-skip?.
       (if (skip-fn? nloc) (recur (z/right nloc)) nloc))))
 
+(defn ^:no-doc contains-comment?
+  "Check a zloc (of a collection) to see if it contains any comments."
+  [zloc]
+  (loop [nloc zloc]
+    (when nloc (if (= (z/tag nloc) :comment) true (recur (z/right* nloc))))))
+
 (defn ^:no-doc sort-val
   "Sort the everything in the vector to the right of zloc."
   [get-sortable-fn sort-fn skip-fn? zloc]
-  (let [dep-val zloc
-        ; Put all of the individual zlocs into a vector.
-        dep-seq (loop [nloc zloc
-                       out []]
-                  (if nloc
-                    (if (skip-fn? nloc)
-                      (recur (z/right nloc) out)
-                      (recur (z/right nloc) (conj out nloc)))
-                    out))
-        #_ (println "sort-val: count:" (count dep-seq))
-        dep-count (count dep-seq)
-        sorted-seq (#_sort-by sort-fn get-sortable-fn dep-seq)
-        #_ (println "sort-val: dep-seq:" (mapv get-sortable-fn dep-seq))
-        #_ (println "sort-val: sorted-seq:" (mapv get-sortable-fn sorted-seq))]
-    ; Loop through all of the elements of zloc, replacing them one by one
-    ; with the elements of sorted-seq.  Since there should be the same
-    ; amount of elements in each, this should work.
-    (loop [nloc zloc
-           new-loc sorted-seq
-           last-loc nil]
-      #_(println "sort-val: loop: before:" (z/string nloc))
-      #_(when nloc (println "sort-val: loop: n/tag:" (n/tag (z/node nloc))))
-      #_(when new-loc
-          (println "sort-val: loop: after:" (n/string (z/node (first new-loc))))
-          (println "sort-val: loop: n/tag:" (n/tag (z/node (first new-loc)))))
-      (if nloc
-        (if (skip-fn? nloc)
-          (recur (z/right nloc) new-loc last-loc)
-          (if new-loc
-            (let [new-z (first new-loc)
-                  ; rewrite-cljs doesn't handle z/node for :uneval
-                  ; so we will get an :uneval node a different way
-                  new-node (if (= (z/tag new-z) :uneval)
-                             (p/parse-string (z/string new-z))
-                             (z/node new-z))
-                  ; use clojure.zip for cljs, since the z/replace has
-                  ; a built-in coerce, which doesn't work for an :uneval
-                  replaced-loc #?(:clj (z/replace nloc new-node)
-                                  :cljs (clojure.zip/replace nloc new-node))]
-              #_(println "sort-val: loop: replaced-loc n/tag:"
-                         (n/tag (z/node replaced-loc)))
-              ; Why isn't this (z/right nloc)?  Because after modifying a
-	      ; zipper, the thing you have is the only thing that contains
-	      ; the modification, so you have to work with that else you
-	      ; lose what you did.
-              (recur (right-fn skip-fn? replaced-loc)
-                     (next new-loc)
-                     replaced-loc))
-            last-loc))
-        last-loc))))
+  (if (contains-comment? zloc)
+    zloc
+    (let [dep-val zloc
+          ; Put all of the individual zlocs into a vector.
+          dep-seq (loop [nloc zloc
+                         out []]
+                    (if nloc
+                      (if (skip-fn? nloc)
+                        (recur (z/right nloc) out)
+                        (recur (z/right nloc) (conj out nloc)))
+                      out))
+          #_(println "sort-val: count:" (count dep-seq))
+          dep-count (count dep-seq)
+          sorted-seq (#_sort-by sort-fn get-sortable-fn dep-seq)
+          #_(println "sort-val: dep-seq:" (mapv get-sortable-fn dep-seq))
+          #_(println "sort-val: sorted-seq:" (mapv get-sortable-fn sorted-seq))]
+      ; Loop through all of the elements of zloc, replacing them one by one
+      ; with the elements of sorted-seq.  Since there should be the same
+      ; amount of elements in each, this should work.
+      (loop [nloc zloc
+             new-loc sorted-seq
+             last-loc nil]
+        #_(println "sort-val: loop: before:" (z/string nloc))
+        #_(when nloc (println "sort-val: loop: n/tag:" (n/tag (z/node nloc))))
+        #_(when new-loc
+            (println "sort-val: loop: after:"
+                     (n/string (z/node (first new-loc))))
+            (println "sort-val: loop: n/tag:" (n/tag (z/node (first new-loc)))))
+        (if nloc
+          (if (skip-fn? nloc)
+            (recur (z/right nloc) new-loc last-loc)
+            (if new-loc
+              (let [new-z (first new-loc)
+                    ; rewrite-cljs doesn't handle z/node for :uneval
+                    ; so we will get an :uneval node a different way
+                    new-node (if (= (z/tag new-z) :uneval)
+                               (p/parse-string (z/string new-z))
+                               (z/node new-z))
+                    ; use clojure.zip for cljs, since the z/replace has
+                    ; a built-in coerce, which doesn't work for an :uneval
+                    replaced-loc #?(:clj (z/replace nloc new-node)
+                                    :cljs (clojure.zip/replace nloc new-node))]
+                #_(println "sort-val: loop: replaced-loc n/tag:"
+                           (n/tag (z/node replaced-loc)))
+                ; Why isn't this (z/right nloc)?  Because after modifying a
+                ; zipper, the thing you have is the only thing that contains
+                ; the modification, so you have to work with that else you
+                ; lose what you did.
+                (recur (right-fn skip-fn? replaced-loc)
+                       (next new-loc)
+                       replaced-loc))
+              last-loc))
+          last-loc)))))
 
 (defn ^:no-doc sort-down
   "Do a down and a sort-val"

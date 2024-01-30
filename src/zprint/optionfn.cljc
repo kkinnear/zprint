@@ -4,7 +4,8 @@
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
   (:require #?@(:clj [[zprint.macros :refer
                        [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-            [zprint.rewrite :refer [sort-dependencies]]
+            [zprint.rewrite :refer [sort-dependencies sort-requires]]
+            [rewrite-clj.zip :as z :refer [string]]
             [zprint.util :refer [column-alignment cumulative-alignment]]))
 
 ;;
@@ -134,7 +135,23 @@
      (let [caller (:caller options)
            zloc (:zloc options)
            new-zloc (sort-dependencies caller options zloc)]
+       (dbg-s options #{:sort-dependencies} "sort-deps: new-zloc:"
+         (z/string new-zloc))
        {:new-zloc new-zloc, :list {:option-fn nil}}))))
+
+(defn sort-reqs
+  "option-fn interface to sort-dependencies for :require clauses in ns macros"
+  ([] "sort-reqs")
+  ([sort-options] "sort-reqs")
+  ([sort-options options n exprs]
+   (when (= (:ztype options) :zipper)
+     (let [caller (:caller options)
+           zloc (:zloc options)
+           new-zloc (sort-requires caller sort-options options zloc)]
+       (dbg-s options #{:sort-requires} "sort-reqs: new-zloc:"
+         (z/string new-zloc))
+       {:new-zloc new-zloc, :list {:option-fn nil}}))))
+
 
 (defn regexfn
   "Match functions that are not found in the :fn-map against a

@@ -9,13 +9,13 @@
             [clojure.set :refer [difference]]
             [clojure.data :as d]
             [zprint.spec :refer [validate-basic coerce-to-boolean]]
-            [zprint.rewrite :refer [sort-dependencies]]
+            [zprint.rewrite :refer [sort-dependencies sort-requires]]
             [zprint.util :refer [dissoc-two dbg-s-merge]]
             [zprint.guide :refer
              [jrequireguide defprotocolguide signatureguide1 odrguide guideguide
               rodguide areguide defprotocolguide-s]]
             [zprint.optionfn :refer
-             [rodfn meta-base-fn fn*->% sort-deps regexfn rulesfn]]
+             [rodfn meta-base-fn fn*->% sort-deps regexfn rulesfn sort-reqs]]
             #?@(:bb [[sci.core :as sci]]
                 ; To completely remove sci, comment out the following line.
                 :clj [[sci.core :as sci]]
@@ -1167,7 +1167,28 @@
                           :fn-map {"defproject" [:arg2-pair
                                                  {:vector {:wrap? false},
                                                   :list {:option-fn
-                                                           sort-deps}}]}}},
+                                                           sort-deps}}]}}
+
+      :sort-requires {:doc "Sort requires in ns macro, possibly with regexes."
+	    :regex-vec []
+	    :style-call :sort-requires-config}
+      :sort-requires-config
+        {:doc "Sort requires in ns macro, possibly with regexes",
+	 :regex-vec []
+         :style-fn (fn
+                     ([] "sort-requires-config")
+                     ([existing-options new-options style-fn-map style-call]
+                      {:fn-map {"ns" [:arg1-body
+                                        {:list {:option-fn (partial
+                                                             sort-reqs
+                                                             (merge-deep
+                                                               style-fn-map
+                                                               style-call))}}],
+                                }}))},
+
+							   
+							   },
+
    :tab {:expand? true, :size 8},
    :tagged-literal {:hang-diff 1,
                     :hang-expand 1000.0,

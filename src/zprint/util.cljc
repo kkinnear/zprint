@@ -13,7 +13,7 @@
   map into the first map."
   [map1 map2]
   (let [map1 (if (:dbg-s map2)
-               (assoc map1 :dbg-s (into (:dbg-s map1) (:dbg-s map2)))
+               (assoc map1 :dbg-s (into (or (:dbg-s map1) #{}) (:dbg-s map2)))
                map1)
         map1 (if (:dbg? map2)
                (assoc map1

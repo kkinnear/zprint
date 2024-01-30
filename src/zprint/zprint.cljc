@@ -4655,7 +4655,7 @@
   ([fn-map fn-str] (lookup-fn-str fn-map fn-str #{})))
 
 (defn get-correct-options-map
-  "Given a fn-style, which might be a keyword or might be avector with 
+  "Given a fn-style, which might be a keyword or might be a vector with 
   one or two options maps, get the correct one based on the :ztype 
   in the options. Returns [fn-style options-map]"
   [options fn-style]

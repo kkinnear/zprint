@@ -2,7 +2,7 @@
   (:require [expectations.clojure.test
              #?(:clj :refer
                 :cljs :refer-macros) [defexpect expect]]
-            [zprint.core :refer [set-options! zprint-file-str]]))
+            [zprint.core :refer [set-options! zprint-file-str zprint-str]]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -39,4 +39,118 @@
     "(defproject zprint \"0.4.14\"\n  :description \"Pretty print zippers and s-expressions\"\n  :url \"https://github.com/kkinnear/zprint\"\n  :license {:name \"MIT License\",\n            :url \"https://opensource.org/licenses/MIT\",\n            :key \"mit\",\n            :year 2015}\n  :plugins\n    [[lein-expectations \"0.0.8\"] [lein-codox \"0.10.3\"] [lein-zprint \"0.3.12\"]]\n  :profiles {:dev {:dependencies [[better-cond \"1.0.1\"]\n                                  [clojure-future-spec \"1.9.0-alpha17\"]\n                                  [com.taoensso/tufte \"1.1.1\"]\n                                  ;[rum \"0.10.8\"];\n                                  [expectations \"2.2.0-rc1\"]\n                                  #_[org.clojure/clojurescript \"1.9.946\"]\n                                  [org.clojure/core.match \"0.3.0-alpha5\"]\n                                  [zpst \"0.1.6\"]]},\n             :uberjar {:aot [zprint.core zprint.main],\n                       ; For 1.9.0-alpha17, use this for the :aot value\n                       ;:aot [zprint.core zprint.main\n                       ;clojure.core.specs.alpha],\n                       :main zprint.main,\n                       :dependencies [[clojure-future-spec \"1.9.0-alpha17\"]],\n                       :omit-source true,\n                       :uberjar-name \"zprint-filter-%s\"}}\n  ; Clojure 1.8 you can exclude all sources in the uberjar\n  :uberjar-exclusions [#\"\\.(clj|java|txt)\"]\n  ; Clojure 1.9 requires the .clj files in the uberjar\n  ; :uberjar-exclusions [#\"\\.(clj\\.|java|cljs|txt)\"]\n  :jar-exclusions [#\"\\.(clj$|clj\\.|java|txt)\"]\n  :zprint {:old? false}\n  :jvm-opts ^:replace\n            [\"-server\"\n             \"-Xms2048m\"\n             \"-Xmx2048m\"\n             \"-Xss500m\"\n             \"-XX:-OmitStackTraceInFastThrow\"]\n  :scm {:name \"git\", :url \"https://github.com/kkinnear/zprint\"}\n  :codox {:namespaces [zprint.core],\n          :doc-files\n            [\"README.md\" \"doc/bang.md\" \"doc/graalvm.md\" \"doc/filter.md\"],\n          :metadata {:doc/format :markdown}}\n  :dependencies\n    [#_[cprop \"0.1.6\"]\n     #_[org.clojure/clojure \"1.10.0-beta3\"]\n     [org.clojure/clojure \"1.8.0\"]\n     #_[org.clojure/clojure \"1.9.0\"]\n     [rewrite-clj \"0.6.1\" :exclusions [[com.cemerick/austin]]]\n     [rewrite-cljs \"0.4.4\" :exclusions [[org.clojure/clojurescript]]]\n     #_[table \"0.4.0\" :exclusions [[org.clojure/clojure]]]])\n"
     (zprint-file-str prj "stuff" {:style :sort-dependencies}))
 
+;;
+;; :sort-requires 
+;;
+;; Issue #310
+;;
+
+(def i310 
+"(ns i310\n  (:require \n\t    [a.b]\n\t    [b.c.e.f]\n\t    [b.c.d.e]\n            [a.b.c.e]\n\t    [c.b.a]\n\t    [a.b.c.d.e.f]\n\t    [c.b.d]\n            [a.b.c.d]\n\t    [a.b.c.f]\n\t    [a.b.c]\n\t    \n\t    ))\n  \n\t    \n")
+
+(expect
+"(ns i310\n  (:require [a.b]\n            [b.c.e.f]\n            [b.c.d.e]\n            [a.b.c.e]\n            [c.b.a]\n            [a.b.c.d.e.f]\n            [c.b.d]\n            [a.b.c.d]\n            [a.b.c.f]\n            [a.b.c]))"
+(zprint-str i310 {:parse-string? true}))
+
+(expect
+"(ns i310\n  (:require [a.b]\n            [a.b.c]\n            [a.b.c.d]\n            [a.b.c.d.e.f]\n            [a.b.c.e]\n            [a.b.c.f]\n            [c.b.a]\n            [c.b.d]\n            [b.c.d.e]\n            [b.c.e.f]))"
+(zprint-str i310 {:parse-string? true :style {:style-call :sort-requires :regex-vec [:| #"^b\."]}}))
+
+(expect
+"(ns i310\n  (:require [a.b]\n            [b.c.e.f]\n            [b.c.d.e]\n            [a.b.c.e]\n            [c.b.a]\n            [a.b.c.d.e.f]\n            [c.b.d]\n            [a.b.c.d]\n            [a.b.c.f]\n            [a.b.c]))"
+(zprint-str i310 {:parse-string? true}))
+
+(expect
+"(ns i310\n  (:require [a.b]\n            [a.b.c]\n            [a.b.c.d]\n            [a.b.c.d.e.f]\n            [a.b.c.e]\n            [a.b.c.f]\n            [b.c.e.f]\n            [c.b.a]\n            [c.b.d]\n            [b.c.d.e]))"
+(zprint-str i310 {:parse-string? true :style {:style-call :sort-requires :regex-vec [:| #"^b\.c\.d"]}}))
+
+(expect
+"(ns i310\n  (:require [b.c.d.e]\n            [a.b]\n            [a.b.c]\n            [a.b.c.d]\n            [a.b.c.d.e.f]\n            [a.b.c.e]\n            [a.b.c.f]\n            [b.c.e.f]\n            [c.b.a]\n            [c.b.d]))"
+(zprint-str i310 {:parse-string? true :style {:style-call :sort-requires :regex-vec [ #"^b\.c\.d"]}}))
+
+(expect
+"(ns i310\n  (:require [b.c.d.e]\n            [a.b]\n            [a.b.c]\n            [a.b.c.d]\n            [a.b.c.d.e.f]\n            [a.b.c.e]\n            [a.b.c.f]\n            [c.b.a]\n            [c.b.d]\n            [b.c.e.f]))"
+(zprint-str i310 {:parse-string? true :style {:style-call :sort-requires :regex-vec [ #"^b\.c\.d" :| #"^b\.c\.e"]}}))
+
+(def corens1
+"(ns zprint.core
+#?@(:cljs [[:require-macros
+[zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])
+(:require
+#?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
+clojure.string
+#?@(:cljs [[cljs.reader :refer [read-string]]])
+#?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])
+[zprint.zprint      :as    zprint
+:refer [fzprint line-count max-width line-widths
+expand-tabs zcolor-map
+determine-ending-split-lines]]
+[zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map
+color-comp-vec handle-lines]]
+[zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments
+fzprint-align-inline-comments blanks]]
+[zprint.config      :as    config
+:refer [add-calculated-options config-set-options!
+get-options config-configure-all! reset-options!
+help-str get-explained-options
+get-explained-set-options
+get-explained-all-options get-default-options
+validate-options apply-style perform-remove
+no-color-map merge-deep sci-load-string
+config-and-validate
+]]
+[zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?
+find-root-and-path-nw]]
+[zprint.sutil]
+[zprint.focus       :refer [range-ssv]]
+[zprint.range       :refer [expand-range-to-top-level split-out-range
+reassemble-range]]
+[rewrite-clj.parser :as p]
+[rewrite-clj.zip :as z :refer [edn* string]]
+#_[clojure.spec.alpha :as s])
+#?@(:clj ((:import #?(:bb []
+:clj (java.net URL URLConnection))
+#?(:bb []
+:clj (java.util.concurrent Executors))
+(java.io File)
+(java.util Date)))))")
+
+(expect
+"(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    #_[clojure.spec.alpha :as s]\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    clojure.string\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip :as z :refer [edn* string]]\n    [zprint.comment :refer\n     [fzprint-inline-comments fzprint-wrap-comments\n      fzprint-align-inline-comments blanks]]\n    [zprint.config :as config :refer\n     [add-calculated-options config-set-options! get-options\n      config-configure-all! reset-options! help-str get-explained-options\n      get-explained-set-options get-explained-all-options get-default-options\n      validate-options apply-style perform-remove no-color-map merge-deep\n      sci-load-string config-and-validate]]\n    [zprint.finish :refer\n     [cvec-to-style-vec compress-style no-style-map color-comp-vec\n      handle-lines]]\n    [zprint.focus :refer [range-ssv]]\n    [zprint.range :refer\n     [expand-range-to-top-level split-out-range reassemble-range]]\n    [zprint.sutil]\n    [zprint.zprint :as zprint :refer\n     [fzprint line-count max-width line-widths expand-tabs zcolor-map\n      determine-ending-split-lines]]\n    [zprint.zutil :refer\n     [zmap-all zcomment? whitespace? znewline? find-root-and-path-nw]])\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n                        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))"
+(zprint-str corens1 {:parse-string? true :style :sort-requires}))
+
+
+(expect
+"(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    [zprint.comment :refer\n     [fzprint-inline-comments fzprint-wrap-comments\n      fzprint-align-inline-comments blanks]]\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [zprint.config :as config :refer\n     [add-calculated-options config-set-options! get-options\n      config-configure-all! reset-options! help-str get-explained-options\n      get-explained-set-options get-explained-all-options get-default-options\n      validate-options apply-style perform-remove no-color-map merge-deep\n      sci-load-string config-and-validate]]\n    [zprint.finish :refer\n     [cvec-to-style-vec compress-style no-style-map color-comp-vec\n      handle-lines]]\n    [zprint.focus :refer [range-ssv]]\n    [zprint.range :refer\n     [expand-range-to-top-level split-out-range reassemble-range]]\n    [zprint.sutil]\n    [zprint.zprint :as zprint :refer\n     [fzprint line-count max-width line-widths expand-tabs zcolor-map\n      determine-ending-split-lines]]\n    [zprint.zutil :refer\n     [zmap-all zcomment? whitespace? znewline? find-root-and-path-nw]]\n    #_[clojure.spec.alpha :as s]\n    clojure.string\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip :as z :refer [edn* string]])\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n                        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))"
+(zprint-str corens1 {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^zprint\."]}}))
+
+(expect
+"(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    [zprint.comment :refer\n     [fzprint-inline-comments fzprint-wrap-comments\n      fzprint-align-inline-comments blanks]]\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [zprint.config :as config :refer\n     [add-calculated-options config-set-options! get-options\n      config-configure-all! reset-options! help-str get-explained-options\n      get-explained-set-options get-explained-all-options get-default-options\n      validate-options apply-style perform-remove no-color-map merge-deep\n      sci-load-string config-and-validate]]\n    [zprint.finish :refer\n     [cvec-to-style-vec compress-style no-style-map color-comp-vec\n      handle-lines]]\n    [zprint.focus :refer [range-ssv]]\n    [zprint.range :refer\n     [expand-range-to-top-level split-out-range reassemble-range]]\n    [zprint.sutil]\n    [zprint.zprint :as zprint :refer\n     [fzprint line-count max-width line-widths expand-tabs zcolor-map\n      determine-ending-split-lines]]\n    [zprint.zutil :refer\n     [zmap-all zcomment? whitespace? znewline? find-root-and-path-nw]]\n    #_[clojure.spec.alpha :as s]\n    clojure.string\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip :as z :refer [edn* string]])\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n                        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))"
+(zprint-str corens1 {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^zprint\." #"^clojure\."]}}))
+
+(expect
+"(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    [zprint.comment :refer\n     [fzprint-inline-comments fzprint-wrap-comments\n      fzprint-align-inline-comments blanks]]\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [zprint.config :as config :refer\n     [add-calculated-options config-set-options! get-options\n      config-configure-all! reset-options! help-str get-explained-options\n      get-explained-set-options get-explained-all-options get-default-options\n      validate-options apply-style perform-remove no-color-map merge-deep\n      sci-load-string config-and-validate]]\n    [zprint.finish :refer\n     [cvec-to-style-vec compress-style no-style-map color-comp-vec\n      handle-lines]]\n    [zprint.focus :refer [range-ssv]]\n    [zprint.range :refer\n     [expand-range-to-top-level split-out-range reassemble-range]]\n    [zprint.sutil]\n    [zprint.zprint :as zprint :refer\n     [fzprint line-count max-width line-widths expand-tabs zcolor-map\n      determine-ending-split-lines]]\n    [zprint.zutil :refer\n     [zmap-all zcomment? whitespace? znewline? find-root-and-path-nw]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip :as z :refer [edn* string]]\n    #_[clojure.spec.alpha :as s]\n    clojure.string)\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n                        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))"
+(zprint-str corens1 {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^zprint\." :| #"^clojure\."]}}))
+
+(expect
+"(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    [rewrite-clj.parser :as p]\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [rewrite-clj.zip :as z :refer [edn* string]]\n    [zprint.comment :refer\n     [fzprint-inline-comments fzprint-wrap-comments\n      fzprint-align-inline-comments blanks]]\n    [zprint.config :as config :refer\n     [add-calculated-options config-set-options! get-options\n      config-configure-all! reset-options! help-str get-explained-options\n      get-explained-set-options get-explained-all-options get-default-options\n      validate-options apply-style perform-remove no-color-map merge-deep\n      sci-load-string config-and-validate]]\n    [zprint.finish :refer\n     [cvec-to-style-vec compress-style no-style-map color-comp-vec\n      handle-lines]]\n    [zprint.focus :refer [range-ssv]]\n    [zprint.range :refer\n     [expand-range-to-top-level split-out-range reassemble-range]]\n    [zprint.sutil]\n    [zprint.zprint :as zprint :refer\n     [fzprint line-count max-width line-widths expand-tabs zcolor-map\n      determine-ending-split-lines]]\n    [zprint.zutil :refer\n     [zmap-all zcomment? whitespace? znewline? find-root-and-path-nw]]\n    #_[clojure.spec.alpha :as s]\n    clojure.string)\n  #?@(:clj ((:import #?(:bb []\n                        :clj (java.net URL URLConnection))\n                     #?(:bb []\n                        :clj (java.util.concurrent Executors))\n                     (java.io File)\n                     (java.util Date)))))"
+(zprint-str corens1 {:parse-string? true :style {:style-call :sort-requires :regex-vec [:| #"^zprint\." #"^clojure\."]}}))
+    
+;;
+;; Try multiple styles together
+;;
+
+(expect
+"(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments\n                                fzprint-align-inline-comments blanks]]\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    [zprint.config      :as    config\n                        :refer [add-calculated-options config-set-options!\n                                get-options config-configure-all! reset-options!\n                                help-str get-explained-options\n                                get-explained-set-options\n                                get-explained-all-options get-default-options\n                                validate-options apply-style perform-remove\n                                no-color-map merge-deep sci-load-string\n                                config-and-validate]]\n    [zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map\n                                color-comp-vec handle-lines]]\n    [zprint.focus       :refer [range-ssv]]\n    [zprint.range       :refer [expand-range-to-top-level split-out-range\n                                reassemble-range]]\n    [zprint.sutil]\n    [zprint.zprint      :as    zprint\n                        :refer [fzprint line-count max-width line-widths\n                                expand-tabs zcolor-map\n                                determine-ending-split-lines]]\n    [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?\n                                find-root-and-path-nw]]\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as    z\n                        :refer [edn* string]]\n    #_[clojure.spec.alpha :as s]\n    clojure.string)\n  #?@(:clj ((:import\n              #?(:bb []\n                 :clj (java.net URL URLConnection))\n              #?(:bb []\n                 :clj (java.util.concurrent Executors))\n              (java.io     File)\n              (java.util   Date)))))"
+(zprint-str corens1 {:parse-string? true :style [:how-to-ns {:style-call :sort-requires :regex-vec [ #"^zprint\." :| #"^clojure\."]} :ns-justify]}))
+
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;
+  ;; End of defexpect
+  ;;
+  ;; All tests MUST come before this!!!
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 )
+

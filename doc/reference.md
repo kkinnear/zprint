@@ -4446,8 +4446,6 @@ considered constant as well:
 
 #### :return-altered-zipper _nil_
 
-__EXPERIMENTAL & DEPRECATED as of `1.2.5`__
-
 This capability will let you rewrite any list that zprint encounters.  It only
 works when zprint is formatting source code -- where `:parse-string?` is
 `true`.  When a structure is being formatted, none of this is invoked.
@@ -4461,8 +4459,10 @@ is obvious.  Less obvious is the relative difficulty of actually writing a
 function to rewrite the code.  Implementing this feature was very easy,
 writng the first example, the style `:sort-dependencies` was a significant
 piece of work.  It is hard to rewrite code using rewrite-clj (not that
-I have a better approach), it is hard to debug, the Clojure and Clojurescript
-implementations of rewrite-clj are very slightly different.
+I have a better approach), in part because you are operating both with
+zippers and regular Clojure data types.  Once you have changed something
+in the zipper, the zipper is the only place the change exists.  Which
+is obvious, but still confusing.
 
 The configuration for `:return-altered-zipper` is a vector: `[<depth> <symbol> <fn>]`, where `<depth>` is the depth to call the function (if the `<symbol>`
 matches).  A `<depth>` of `nil` will call at any depth.  The `<symbol>` is the
@@ -4480,9 +4480,8 @@ can be modified.  The `<fn>` should return a zipper which is an
 alteration of `zloc`.  See the file `rewrite.cljc` for the current
 implementation of `:sort-dependencies` as an example.
 
-This whole capability is experimental until further notice.  There may be
-a better way of accomplishing this, or the API may change in important
-ways.  In the event you write a function that works, let me know!
+This whole capability is largely firmed up.  There are two styles
+that use this capbility: `:sort-dependencies` and `:sort-requires`.
 
 #### :respect-bl? _false_
 
@@ -7086,13 +7085,218 @@ your own values in the vector which is `rulesfn`'s first argument.
 
 #### :sort-dependencies
 
-__EXPERIMENTAL__
-
 Sort the dependencies in a leiningen project.clj file in alphabetical
 order.  Technically, it will sort the vectors in the value of any
 key named `:dependencies` inside any function (macro) named
 `defproject`.  Has no effect when formatting a structure (as opposed
-to parsing a string and formatting code).
+to parsing a string and formatting code).  If there is a comment
+in any of the dependencies, it will not sort those dependencies.
+
+#### :sort-requires
+
+Sort the elements of the `:require` list in an `ns` macro.  In its most
+basic form, this style will simply sort the dependencies within the list
+starting with `:require`.  It will sort them alphabetically, based on the 
+string of the namespace involved.  The string may be freestanding, or it 
+may be the first element of a vector.  The string may also be unevaluted
+(i.e., begin with `#_`) or the first element of a vector that is unevaluated.
+
+```
+; As written, nothing done to it
+
+(czprint i310b {:parse-string? true})
+(ns i310
+  (:require [a.b]
+            [b.c.e.f]
+            [b.c.d.e]
+            [a.b.c.e]
+            [c.b.a]
+            b.g.h
+            (a.c.e)
+            [a.b.c.d.e.f]
+            [c.b.d]
+            [a.b.c.d]
+            [a.b.c.f]
+            [a.b.c]))
+
+; Sorted with basic :sort-requires
+
+(czprint i310b {:parse-string? true :style :sort-requires})
+(ns i310
+  (:require [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e]
+            [a.b.c.f]
+            (a.c.e)
+            [b.c.d.e]
+            [b.c.e.f]
+            b.g.h
+            [c.b.a]
+            [c.b.d]))
+```
+Several notes:
+
+  * If there is a comment in the list of requires, the list will be
+untouched and not sorted.  
+  * Only when `:require` is the first element of a list (not a vector), will the elements be sorted.
+  * Unevaluated elements will be sorted.
+  * Reader conditionals within the list of requires will not be sorted or moved.  All of the other elements will sort around them.
+
+A slightly more complex example:
+
+```
+; Without sorting
+
+(czprint i310d {:parse-string? true})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [b.c.e.f]
+            [a.b]
+            [b.c.d.e]
+            [a.b.c.e]
+            [c.b.a]
+            #_b.g.h
+            (a.c.e)
+            [a.b.c.d.e.f]
+            [c.b.d]
+            [a.b.c.d]
+            [a.b.c.f]
+            [a.b.c]))
+
+; With sorting -- note the reader-conditional doesn't move
+
+(czprint i310d {:parse-string? true :style :sort-requires})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e]
+            [a.b.c.f]
+            (a.c.e)
+            [b.c.d.e]
+            [b.c.e.f]
+            #_b.g.h
+            [c.b.a]
+            [c.b.d]))
+```
+If you wish to have some elements sort either before or after some other 
+elements, you can select the groups to move up (or down) with regular
+expressions.  To do this, you have to invoke the style with a `:style-call`,
+and pass it the regular expressions as arguments in a style map.
+
+For instance, if you wished to move all of the namespaces starting with "b"
+to the top, you could do it this way:
+
+
+```
+(czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^b\."]}})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [b.c.d.e]
+            [b.c.e.f]
+            #_b.g.h
+            [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e]
+            [a.b.c.f]
+            (a.c.e)
+            [c.b.a]
+            [c.b.d]))
+```
+
+You can see that the reader-conditional doesn't move, but now all of the
+namespaces starting with "b." are at the top.  You may specify multiple 
+regular expressions.
+
+```
+ (czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^b\." #"^a\.c\."]}})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [b.c.d.e]
+            [b.c.e.f]
+            #_b.g.h
+            (a.c.e)
+            [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e]
+            [a.b.c.f]
+            [c.b.a]
+            [c.b.d]))
+```
+The things that match the first regex are placed first in the list, 
+those that match the second are placed next in the list, and so on.  When there
+are multiple elements that match a particular regex, they are sorted 
+amongst the others that match that particular regex.
+
+You can also specify things that go at the end, as opposed to the beginning,
+by using the distinguished element `:|`.
+
+```
+ (czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [:| #"^b\." #"^a\.c\."]}})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e]
+            [a.b.c.f]
+            [c.b.a]
+            [c.b.d]
+            [b.c.d.e]
+            [b.c.e.f]
+            #_b.g.h
+            (a.c.e)))
+```
+
+This puts all of the things that match those regexes at the end.  You can put
+some at the front and some at the end, by adjusting where you put the `:|`.
+
+```
+(czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^b\." :| #"^a\.c\."]}})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [b.c.d.e]
+            [b.c.e.f]
+            #_b.g.h
+            [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e]
+            [a.b.c.f]
+            [c.b.a]
+            [c.b.d]
+            (a.c.e)))
+```
+
+Of course, if nothing matches a regex, then that isn't a problem:
+
+```
+(czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^aa\." #"^b\." :| #"^a\.c\."]}})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [b.c.d.e]
+            [b.c.e.f]
+            #_b.g.h
+            [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e]
+            [a.b.c.f]
+            [c.b.a]
+            [c.b.d]
+            (a.c.e)))
+```
 
 ### Convenience Styles
 

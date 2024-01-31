@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * If you would like to have the namespaces sorted in a `(:require ...)` in
+  an `ns` macro, you can use the style `:sort-requires`.  You can also
+  select (using regular expressions) namespaces to put first (or last, or
+  both).  Search for `:sort-requires` in the reference manual for details.  
+
   * If you configure `:comment {:min-space-after-semi 1}` then a
   comment like this: `;this is a comment` will be changed after
   formatting into a comment like this: `; this is a comment`.  The

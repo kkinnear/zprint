@@ -51,6 +51,11 @@ a number of major source code formatting approaches.
 ### *Recent Additions!* 
 
 
+  * A new style, `:sort-requires`, will sort the requires in an `ns` macro, 
+  as suggested by 
+  [how-to-ns](https://stuartsierra.com/2016/clojure-how-to-ns.html).
+  This will interoperate with `:ns-justify` well, but be sure and put
+  the `:sort-requires` to the left of (i.e., before) the `:ns-justify`.
   * A new pre-compiled binary is available for macOS running on Apple 
   Silicon.  While the macOS Intel binary runs fine on Apple Silicon, the
   Apple Silicon binary runs considerably (up to 3x) faster!  Download

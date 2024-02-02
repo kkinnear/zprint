@@ -3000,8 +3000,7 @@
     (zprint-str
       "(:import [callerxx  aaaa bbbb ccc dddddd] [really-longer-even this is a test this is only a test and it needs to go on for a very long time too] [short foo bar baz stuff bother this too is a test and it goes on for a very long time] [small this one is also very small])"
       {:parse-string? true,
-       :style :import-justify,
-       :style-map {:ij-var {:pair {:justify {:max-variance 20}}}},
+       :style {:style-call :import-justify :max-variance 20},
        :width 80}))
 
   (expect
@@ -3009,8 +3008,7 @@
     (zprint-str
       "(:import [callerxx  aaaa bbbb ccc dddddd] [really-longer-even this is a test this is only a test and it needs to go on for a very long time too] [short foo bar baz stuff bother this too is a test and it goes on for a very long time] [small this one is also very small])"
       {:parse-string? true,
-       :style :import-justify,
-       :style-map {:ij-var {:pair {:justify {:max-variance 2000}}}},
+       :style {:style-call :import-justify, :max-variance 2000}
        :width 80}))
 
   (def i166a
@@ -3022,21 +3020,21 @@
     (zprint-str i166a
                 {:parse-string? true,
                  :style :require-justify,
-                 :style-map {:ij-var {:pair {:justify {:max-variance 20}}}}}))
+		 }))
 
   (expect
     "(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import [java.io File]\n           [java.util HashMap ArrayList]\n           [org.apache.storm.task OutputCollector IBolt TopologyContext]\n           [goog.net XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
     (zprint-str i166a
                 {:parse-string? true,
                  :style :require-macros-justify,
-                 :style-map {:ij-var {:pair {:justify {:max-variance 20}}}}}))
+		 }))
 
   (expect
     "(ns my.awesome.app\n  (:require [example.library :as library]\n            [\"@vimeo/player$default\" :as vimeo]\n            [\"@f/app$default\" :as firebase])\n  (:require-macros [cljs.analyzer.macros :refer\n                    [allowing-redef disallowing-ns* disallowing-recur]]\n                   [cljs.env.macros :as env]\n                   [devcards.core :as dc :refer\n                    [defcard defcard-doc deftest dom-node defcard-om-next]])\n  (:import\n    [java.io   File]\n    [java.util HashMap ArrayList]\n    [org.apache.storm.task OutputCollector IBolt TopologyContext]\n    [goog.net  XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
     (zprint-str i166a
                 {:parse-string? true,
-                 :style :import-justify,
-                 :style-map {:ij-var {:pair {:justify {:max-variance 20}}}}}))
+                 :style {:style-call :import-justify, :max-variance 20}
+		 }))
 
 
   (def i166d
@@ -3046,25 +3044,24 @@
     "(ns my.awesome.app\n  (:require\n    [example.library                                :as library]\n    [\"@vimeo/player$default\"                        :as vimeo]\n    [\"@f/app$default\"                               :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
     (zprint-str i166d
                 {:parse-string? true,
-                 :style :ns-justify,
-                 :style-map {:rj-var {:pair {:justify {:max-variance 2000}}}}}))
+                 :style {:style-call :ns-justify, :require-max-variance 2000}
+		 }))
 
 
   (expect
     "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros                          :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros                               :as env]\n    [devcards.core                                 :as    dc\n                                                   :refer [defcard defcard-doc\n                                                           deftest dom-node\n                                                           defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
     (zprint-str i166d
                 {:parse-string? true,
-                 :style :ns-justify,
-                 :style-map {:rjm-var {:pair {:justify {:max-variance
-                                                          2000}}}}}))
+                 :style {:style-call :ns-justify,
+		         :require-macros-max-variance 2000}}))
 
 
   (expect
     "(ns my.awesome.app\n  (:require\n    [example.library         :as library]\n    [\"@vimeo/player$default\" :as vimeo]\n    [\"@f/app$default\"        :as firebase]\n    [\"@firebase/app$default-and-otherstuffs-longer\" :as firebase-other])\n  (:require-macros\n    [cljs.analyzer.macros :refer [allowing-redef disallowing-ns*\n                                  disallowing-recur]]\n    [cljs.analyzer.macros.with.lots.of.extra.space :refer [allowing-redef\n                                                           disallowing-ns*\n                                                           disallowing-recur]]\n    [cljs.env.macros      :as env]\n    [devcards.core        :as    dc\n                          :refer [defcard defcard-doc deftest dom-node\n                                  defcard-om-next]])\n  (:import\n    [java.io                              File]\n    [java.util                            HashMap ArrayList]\n    [org.apache.storm.task                OutputCollector IBolt TopologyContext]\n    [org.apache.storm.generated.very.long JavaObject Grouping StormTopology\n                                          StormTopology$_Fields Bolt\n                                          Nimbus$Client ComponentCommon\n                                          Grouping$_Fields SpoutSpec NullStruct\n                                          StreamInfo GlobalStreamId\n                                          ComponentObject\n                                          ComponentObject$_Fields]\n    [goog.net                             XhrIo])\n  (:use [backtype.storm cluster util thrift config log]))"
     (zprint-str i166d
                 {:parse-string? true,
-                 :style :ns-justify,
-                 :style-map {:ij-var {:pair {:justify {:max-variance 2000}}}}}))
+                 :style {:style-call :ns-justify, :import-max-variance 2000}
+		 }))
 
   ;;
   ;; Additional tests for use of lists instead of vectors
@@ -3159,6 +3156,32 @@
     "(deftest test\n  (are [a b c d] (= a b c d)\n    \"1\" \"1\" \"1\"         \"1\"\n    \"1\" \"1\" \"ABCDEFGHI\" \"1\"\n    \"1\" \"1\" \"ABCDEFGHI\" \"1\"))"
     (zprint-str i212 {:parse-string? true}))
 
+
+;;
+;; Issue #310
+;;
+;; Sort things in :require, but also needed to re-write :ns-justify
+;; and :require-justify
+
+ (def
+ i310i
+"(ns mechanism-net.pages.admin\n  \"docstriing\"\n  (:require\n   [mechanism-center.app.build-config :as build-config]\n   [mechanism-center.adapters.edn-utils :as edn-utils]\n   [mechanism-center.adapters.env-variables :as env-vars]\n   [mechanism-center.adapters.version :as version]\n   [mechanism-net.configuration :as net-conf]\n   [mechanism-center.http.request :as request]\n   [mechanism-net.components.icons :as net-icons]\n   [mechanism-net.components.table :as table]\n   [mount.tools.graph :as mount-graph]))\n")
+
+(expect
+"(ns mechanism-net.pages.admin\n  \"docstriing\"\n  (:require\n    [mechanism-center.app.build-config :as build-config]\n    [mechanism-center.adapters.edn-utils :as edn-utils]\n    [mechanism-center.adapters.env-variables :as env-vars]\n    [mechanism-center.adapters.version :as version]\n    [mechanism-net.configuration :as net-conf]\n    [mechanism-center.http.request :as request]\n    [mechanism-net.components.icons :as net-icons]\n    [mechanism-net.components.table :as table]\n    [mount.tools.graph :as mount-graph]))"
+(zprint-str i310i {:parse-string? true :style :require-justify}))
+
+(expect
+"(ns mechanism-net.pages.admin\n  \"docstriing\"\n  (:require\n    [mechanism-center.app.build-config       :as build-config]\n    [mechanism-center.adapters.edn-utils     :as edn-utils]\n    [mechanism-center.adapters.env-variables :as env-vars]\n    [mechanism-center.adapters.version       :as version]\n    [mechanism-net.configuration             :as net-conf]\n    [mechanism-center.http.request           :as request]\n    [mechanism-net.components.icons          :as net-icons]\n    [mechanism-net.components.table          :as table]\n    [mount.tools.graph                       :as mount-graph]))"
+(zprint-str i310i {:parse-string? true :style {:style-call :require-justify :max-variance 1000}}))
+
+(expect
+"(ns mechanism-net.pages.admin\n  \"docstriing\"\n  (:require\n    [mechanism-center.app.build-config :as build-config]\n    [mechanism-center.adapters.edn-utils :as edn-utils]\n    [mechanism-center.adapters.env-variables :as env-vars]\n    [mechanism-center.adapters.version :as version]\n    [mechanism-net.configuration :as net-conf]\n    [mechanism-center.http.request :as request]\n    [mechanism-net.components.icons :as net-icons]\n    [mechanism-net.components.table :as table]\n    [mount.tools.graph :as mount-graph]))"
+(zprint-str i310i {:parse-string? true :style :ns-justify}))
+
+(expect
+"(ns mechanism-net.pages.admin\n  \"docstriing\"\n  (:require\n    [mechanism-center.app.build-config       :as build-config]\n    [mechanism-center.adapters.edn-utils     :as edn-utils]\n    [mechanism-center.adapters.env-variables :as env-vars]\n    [mechanism-center.adapters.version       :as version]\n    [mechanism-net.configuration             :as net-conf]\n    [mechanism-center.http.request           :as request]\n    [mechanism-net.components.icons          :as net-icons]\n    [mechanism-net.components.table          :as table]\n    [mount.tools.graph                       :as mount-graph]))"
+(zprint-str i310i {:parse-string? true :style {:style-call :ns-justify :require-max-variance 1000}}))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

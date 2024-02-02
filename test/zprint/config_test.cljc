@@ -889,27 +889,28 @@
   ;
   ; Issue #217
 
-  (expect
-    (more-of options
-      [:flow {:style [:jimportguide :ij-var]}] (get (:fn-map options) ":import")
-      [:flow {:style [:jrequireguide :rj-var]}] (get (:fn-map options)
-                                                     ":require")
-      [:flow {:style [:jrequiremacrosguide :rjm-var]}] (get (:fn-map options)
-                                                            ":require-macros")
-      0 (:indent (:map options))
-      true (:nl-separator? (:map options))
-      {:doc "style :a", :style [:map-nl :keyword-respect-nl]} (:a (:style-map
-                                                                    options)))
-    (with-redefs [zprint.config/configured-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-options
-                    (atom zprint.config/default-zprint-options)
-                  zprint.config/explained-sequence (atom 1)
-                  zprint.config/write-options? (atom nil)]
-      (set-options! {:style [:a :ns-justify],
-                     :style-map {:a {:doc "style :a",
-                                     :style [:map-nl :keyword-respect-nl]}}})
-      (get-options)))
+(expect
+  (more-of options
+    [:flow {:style :jimportguide, :pair {:justify {:max-variance 1000}}}]
+      (get (:fn-map options) ":import")
+    [:flow {:style :jrequireguide, :pair {:justify {:max-variance 20}}}]
+      (get (:fn-map options) ":require")
+    [:flow {:style :jrequiremacrosguide, :pair {:justify {:max-variance 20}}}]
+      (get (:fn-map options) ":require-macros")
+    0 (:indent (:map options))
+    true (:nl-separator? (:map options))
+    {:doc "style :a", :style [:map-nl :keyword-respect-nl]} (:a (:style-map
+                                                                  options)))
+  (with-redefs [zprint.config/configured-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-options
+                  (atom zprint.config/default-zprint-options)
+                zprint.config/explained-sequence (atom 1)
+                zprint.config/write-options? (atom nil)]
+    (set-options! {:style [:a :ns-justify],
+                   :style-map {:a {:doc "style :a",
+                                   :style [:map-nl :keyword-respect-nl]}}})
+    (get-options)))
 
 
   ;

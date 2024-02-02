@@ -6254,6 +6254,90 @@ information more understandable.
 
 ```
 
+#### :import-justify
+
+This will clean up and justify the `(:import ...)` section of the
+`ns` macro.  
+
+This is the basic formatting for the `ns` macro:
+
+```
+(czprint replns1 {:parse-string? true})
+(ns ^:no-doc zprint.example
+  (:use [clojure.repl])
+  (:require [zprint.zprint :as zprint :refer
+             [line-count max-width line-widths determine-ending-split-lines]]
+            [zprint.comment :refer
+             [blanks length-before get-next-comment-group
+              style-lines-in-comment-group flow-comments-in-group]]
+            [zprint.optionfn :refer [rodfn]]
+            clojure.string
+            [clojure.data :as d]
+            [clojure.java.io :refer [reader]]
+            [zprint.finish :refer [within?]]
+            [clojure.zip :as zip]
+            #_[sci.core :as sci]
+            [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
+            [rewrite-clj.node :as n]
+            [rewrite-clj.zip :as z :only
+             [edn* down* up* left* right* prev* string]]
+            [clojure.pprint :refer [pprint]]
+            #_[better-cond.core :as b])
+  (:import (java.io InputStreamReader
+                    OutputStreamWriter
+                    FileReader
+                    LineNumberReader
+                    PushbackReader
+                    FileWriter
+                    BufferedReader
+                    File
+                    FileInputStream)
+           (java.net URL URLConnection)
+           (java.util.concurrent Executors)
+           (java.util Date)
+           #_(clojure.lang RT))
+  (:gen-class))
+```
+
+This is the formatting for the `ns` macro with style `:import-justify`:
+
+```
+(czprint replns1 {:parse-string? true :style :import-justify})
+(ns ^:no-doc zprint.example
+  (:use [clojure.repl])
+  (:require [zprint.zprint :as zprint :refer
+             [line-count max-width line-widths determine-ending-split-lines]]
+            [zprint.comment :refer
+             [blanks length-before get-next-comment-group
+              style-lines-in-comment-group flow-comments-in-group]]
+            [zprint.optionfn :refer [rodfn]]
+            clojure.string
+            [clojure.data :as d]
+            [clojure.java.io :refer [reader]]
+            [zprint.finish :refer [within?]]
+            [clojure.zip :as zip]
+            #_[sci.core :as sci]
+            [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
+            [rewrite-clj.node :as n]
+            [rewrite-clj.zip :as z :only
+             [edn* down* up* left* right* prev* string]]
+            [clojure.pprint :refer [pprint]]
+            #_[better-cond.core :as b])
+  (:import
+    (java.io              InputStreamReader OutputStreamWriter FileReader
+                          LineNumberReader PushbackReader FileWriter
+                          BufferedReader File FileInputStream)
+    (java.net             URL URLConnection)
+    (java.util.concurrent Executors)
+    (java.util            Date)
+    #_(clojure.lang RT))
+  (:gen-class))
+```
+
+This is also available together with `:require-justify` and
+`:require-macros-justify` in the style `:ns-justify`.
+
+
 #### :indent-only 
 
 This is __very different__ from classic zprint!
@@ -6617,7 +6701,10 @@ time.
 
 #### :ns-justify
 
-This will make `ns` statements look more readable.
+This will make `ns` statements look more readable.  It pulls together
+the styles `:require-justify`, `:require-macros-justify` and `:import-justify`.
+If you don't want all three, consider exploring just the one or two that
+you do want.
 
 For example:
 
@@ -6680,6 +6767,73 @@ required one major architectural change and a number of other
 changes, but the results, especially for complex `ns` statements,
 are quite nice.
 
+But what if your `:require` (or `:require-macros` or `:import`) doesn't
+actually come out looking different?  Most frequently this is because
+the justification code looks at all of the namespaces in the `:require` 
+list and decides that they are just too different in length so they
+will not look good.  In that case, it doesn't justify them. 
+
+But you can change the criterion that is used to make that decision.  There
+is a value called the "variance", which quantifies the amount of difference
+in length among a sequence of namespaces.  There is a default maximum
+variance for justification, and if the namespaces have a variance greater
+than the default, then justification will not be done.  You can change
+this maximum variance when you specify the `:ns-justify` style, allowing
+you to essentially force justification even for namespaces which vary
+widely in length.  The default maximum variance for `:require` and
+`:require-macros` is 20, and for `:import`, it is 1000.
+
+In order to change the variance for `:require` when using `:ns-justify`,
+you need to invoke the style `:ns-justify` by using a style-map, as opposed
+to simply specifying the keyword `:ns-justify`.  When using a style-map,
+you specify the style as a map containing the `:style-call` keyword along
+with any other key value pairs known by that style.  Using a style-map
+allows you to pass parameters to styles that are able to accept them.  
+
+Here is a reasonable `ns` macro which will not justify using the default
+variance for the `:require` list:
+
+```
+ (czprint i310i {:parse-string? true :style :ns-justify})
+(ns mechanism-net.pages.admin
+  "docstriing"
+  (:require
+    [mechanism-center.app.build-config :as build-config]
+    [mechanism-center.adapters.edn-utils :as edn-utils]
+    [mechanism-center.adapters.env-variables :as env-vars]
+    [mechanism-center.adapters.version :as version]
+    [mechanism-net.configuration :as net-conf]
+    [mechanism-center.http.request :as request]
+    [mechanism-net.components.icons :as net-icons]
+    [mechanism-net.components.table :as table]
+    [mount.tools.graph :as mount-graph]))
+```
+
+If we adjust the maximum variance for the `:require` list to be justified,
+we get something a bit nicer:
+
+```
+(czprint i310i {:parse-string? true :style {:style-call :ns-justify :require-max-variance 1000}})
+(ns mechanism-net.pages.admin
+  "docstriing"
+  (:require
+    [mechanism-center.app.build-config       :as build-config]
+    [mechanism-center.adapters.edn-utils     :as edn-utils]
+    [mechanism-center.adapters.env-variables :as env-vars]
+    [mechanism-center.adapters.version       :as version]
+    [mechanism-net.configuration             :as net-conf]
+    [mechanism-center.http.request           :as request]
+    [mechanism-net.components.icons          :as net-icons]
+    [mechanism-net.components.table          :as table]
+    [mount.tools.graph                       :as mount-graph]))
+```
+
+The parameters used by `:ns-justify` are: `:require-max-variance`,
+`:require-macros-max-variance` and `:import-max-variance`.  
+Note that there is no validation performed on the key value pairs
+in a style-map, so if things aren't working the way you expect,
+be sure to check your spelling of the parameters!
+
 #### :original-tuning
 
 The `:tuning` was changed as part of the modifications to zprint
@@ -6701,9 +6855,12 @@ regular expression matching.  See the explanation of `:rules-example`
 for details.
 
 #### :require-justify
-#### :rj-var
+#### :require-macros-justify
 
-A new approach to handling the `(ns (:require ...))` form, which will
+NOTE: Everything in this section applies equally to `:require-justify`
+and `:require-macros-justify`. 
+
+An approach to formatting the `(ns (:require ...))` form, which will
 turn this:
 ```clojure
 % (zprint nsc {:parse-string? true})
@@ -6731,11 +6888,48 @@ into this:
                            color-comp-vec handle-lines]]))
 ```
 
-The `:max-variance` used by `:require-justify` is `20` and comes
-from `:style :rj-var`. It can be changed thus: `{:style :require-justify
-:style-map {:rj-var {:pair {:justify {:max-variance n}}}}}` to use
-n as a max-variance for just the `:require-justify`.
+It is possible that the list of namespaces will not justify because they
+vary too much in length.  This often occurs when the lengths of the
+namespaces cluster around some value, and there are some whose lengths do not
+conform closely to the value of the others.
 
+For example, this will not justify with just `:require-justify`:
+
+```
+(czprint i310i {:parse-string? true :style :require-justify})
+(ns mechanism-net.pages.admin
+  "docstriing"
+  (:require
+    [mechanism-center.app.build-config :as build-config]
+    [mechanism-center.adapters.edn-utils :as edn-utils]
+    [mechanism-center.adapters.env-variables :as env-vars]
+    [mechanism-center.adapters.version :as version]
+    [mechanism-net.configuration :as net-conf]
+    [mechanism-center.http.request :as request]
+    [mechanism-net.components.icons :as net-icons]
+    [mechanism-net.components.table :as table]
+    [mount.tools.graph :as mount-graph]))
+```
+
+You can easily adjust the maximum variance for the `:require-justify`
+by calling it with a map as opposed to a keyword, and then placing the
+correct key value "parameters" in the map, like this:
+
+```
+(czprint i310i {:parse-string? true :style {:style-call :require-justify :max-variance 1000}})
+(ns mechanism-net.pages.admin
+  "docstriing"
+  (:require
+    [mechanism-center.app.build-config       :as build-config]
+    [mechanism-center.adapters.edn-utils     :as edn-utils]
+    [mechanism-center.adapters.env-variables :as env-vars]
+    [mechanism-center.adapters.version       :as version]
+    [mechanism-net.configuration             :as net-conf]
+    [mechanism-center.http.request           :as request]
+    [mechanism-net.components.icons          :as net-icons]
+    [mechanism-net.components.table          :as table]
+    [mount.tools.graph                       :as mount-graph]))
+```
 
 #### :require-pair
 
@@ -7279,6 +7473,10 @@ some at the front and some at the end, by adjusting where you put the `:|`.
 ```
 
 Of course, if nothing matches a regex, then that isn't a problem:
+
+This style will interoperate well with `:ns-justify` or `:require-justify`.
+Just be sure and put `:sort-requires` first.  You can also use `how-to-ns`.
+
 
 ```
 (czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^aa\." #"^b\." :| #"^a\.c\."]}})

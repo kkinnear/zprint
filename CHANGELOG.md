@@ -25,6 +25,19 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+  * The style `:ns-justify` was difficult to change in situations where
+  it wouldn't justify something because the maximum variance was exceeded.
+  It has been restructured using the new style-map approach to allow it
+  to be easily parameterized.  If you invoke `:ns-justify` by using its
+  keyword name, the maximum variance for justification will be 20
+  for `:require` and `:require-macros` and will be 1000 for `:import`.
+  You can change any or all of these by using a map to invoke the
+  `:ns-justify` style.  Invoke it with `{:style-call :ns-justify
+  :require-max-variance 1000}` to essentially force it to try as hard
+  as it can to justify the `:require` list in an `ns` macro.  Likewise,
+  you can use `:require-macros-max-variance` and `:import-max-variance` 
+  to adjust the maximum variance for these sections of the `ns` macro.
+
 
 ### Fixed
 

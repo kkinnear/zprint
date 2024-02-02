@@ -1047,24 +1047,77 @@
       :jrequiremacrosguide {:list {:option-fn (partial jrequireguide
                                                        :require-macros)}},
       :jimportguide {:list {:option-fn (partial jrequireguide :import)}},
-      :rj-var {:doc "Set max-variance for :require-justify",
-               :pair {:justify {:max-variance 20}}},
-      :rjm-var {:doc "Set max-variance for :require-justify-macros",
-                :pair {:justify {:max-variance 20}}},
-      :ij-var {:doc "Set max-variance for :import-justify",
-               :pair {:justify {:max-variance 1000}}},
-      :require-justify {:doc "Justify namespaces in :require",
-                        :fn-map {":require"
-                                   [:flow {:style [:jrequireguide :rj-var]}]}},
-      :require-macros-justify
+      :require-justify 
+        {:doc "Justify namespaces in :require",
+	 :max-variance 20
+	 :style-fn (fn
+	             ([] "require-justify")
+		     ([existing-options new-otions style-fn-map style-call]
+		      {:fn-map {":require"
+		                  [:flow 
+				    {:style :jrequireguide
+				     :pair 
+				       {:justify
+				         {:max-variance 
+					   (:max-variance
+					     (merge-deep 
+					       style-fn-map
+					       style-call))}}}]}}))}
+
+
+
+      :require-macros-justify 
         {:doc "Justify namespaces in :require-macros",
-         :fn-map {":require-macros"
-                    [:flow {:style [:jrequiremacrosguide :rjm-var]}]}},
-      :import-justify {:doc "Justify :import",
-                       :fn-map {":import" [:flow
-                                           {:style [:jimportguide :ij-var]}]}},
-      :ns-justify {:style [:require-justify :require-macros-justify
-                           :import-justify]},
+	 :max-variance 20
+	 :style-fn (fn
+	             ([] "require-macros-justify")
+		     ([existing-options new-otions style-fn-map style-call]
+		      {:fn-map {":require-macros"
+		                  [:flow 
+				    {:style :jrequiremacrosguide
+				     :pair 
+				       {:justify
+				         {:max-variance 
+					   (:max-variance
+					     (merge-deep 
+					       style-fn-map
+					       style-call))}}}]}}))}
+      :import-justify
+        {:doc "Justify :import",
+	 :max-variance 1000
+	 :style-fn (fn
+	             ([] "import-justify")
+		     ([existing-options new-otions style-fn-map style-call]
+		      {:fn-map {":import"
+		                  [:flow 
+				    {:style :jimportguide
+				     :pair 
+				       {:justify
+				         {:max-variance 
+					   (:max-variance
+					     (merge-deep 
+					       style-fn-map
+					       style-call))}}}]}}))}
+
+      :ns-justify
+        {:doc "Justify :require, :require-macros, :import in ns",
+	 :require-macros-max-variance 20
+	 :require-max-variance 20
+	 :import-max-variance 1000
+	 :style-fn (fn
+	             ([] "import-justify")
+		     ([existing-options new-otions style-fn-map style-call]
+		      (let [merged-options (merge-deep style-fn-map style-call)]
+			  {:style
+		       [{:style-call :require-justify
+			 :max-variance (:require-max-variance merged-options)}
+		        {:style-call :require-macros-justify
+			 :max-variance (:require-macros-max-variance 
+			                        merged-options)}
+		        {:style-call :import-justify
+			 :max-variance (:import-max-variance merged-options)}]})))}
+
+
       :original-tuning
         {:doc "Original tuning prior to stability fixes for multiple passes",
          :binding {:hang-expand 2.0,

@@ -56,6 +56,13 @@ a number of major source code formatting approaches.
   [how-to-ns](https://stuartsierra.com/2016/clojure-how-to-ns.html).
   This will interoperate with `:ns-justify` well, but be sure and put
   the `:sort-requires` to the left of (i.e., before) the `:ns-justify`.
+  * `:ns-justify` has been modified to support explicit parameters
+  for the variance in the `:require`, `:require-macros` and `:import`
+  sections of the `ns` macro.  They are `:require-max-variance`,
+  `:require-macros-max-variance` and `:import-max-variance` and may
+  be used in a style map.  For example `{:style-call :ns-justify
+  :require-max-variance 1000}` will try as hard as possible to justify
+  the `:require` list in an `ns` macro.
   * A new pre-compiled binary is available for macOS running on Apple 
   Silicon.  While the macOS Intel binary runs fine on Apple Silicon, the
   Apple Silicon binary runs considerably (up to 3x) faster!  Download

@@ -1194,13 +1194,22 @@
       :rod {:doc "Rules of defn, with newlines between arities.",
             :multi-arity-nl? true,
             :one-line-ok? false,
-            :style-call :rod-config},
+	    :style-fn (fn
+			([] "rod-style-fn")
+			([existing-options new-options style-fn-map style-call]
+			 {:fn-map {"defn" [:none
+					   {:list {:option-fn (partial
+								rodfn
+								(merge-deep
+								  style-fn-map
+								 style-call))}}],
+				    "defn-" "defn"}}))},
       :rod-no-ma-nl {:doc "Rules of defn, no newlines between arities.",
                      :multi-arity-nl? false,
                      :one-line-ok? false,
-                     :style-call :rod-config},
+                     :style-call :rod},
       :rod-config
-        {:doc "Configurable :rod {:multi-arity-nl? ... :one-line-ok? ..,}",
+        {:doc "DEPRECATED, here for backward compatibility",
          :one-line-ok? false,
          :multi-arity-nl? false,
          :style-fn (fn
@@ -1212,7 +1221,8 @@
                                                              (merge-deep
                                                                style-fn-map
                                                                style-call))}}],
-                                "defn-" "defn"}}))},
+                                "defn-" "defn"}}))
+				},
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
@@ -1222,14 +1232,12 @@
                                                   :list {:option-fn
                                                            sort-deps}}]}}
 
-      :sort-requires {:doc "Sort requires in ns macro, possibly with regexes."
-	    :regex-vec []
-	    :style-call :sort-requires-config}
-      :sort-requires-config
-        {:doc "Sort requires in ns macro, possibly with regexes",
+	:sort-require
+        {:doc "Sort requires & refers in ns macro, possibly with regexes.",
 	 :regex-vec []
+	 :sort-refer? true
          :style-fn (fn
-                     ([] "sort-requires-config")
+                     ([] "sort-require-config")
                      ([existing-options new-options style-fn-map style-call]
                       {:fn-map {"ns" [:arg1-body
                                         {:list {:option-fn (partial
@@ -1238,7 +1246,6 @@
                                                                style-fn-map
                                                                style-call))}}],
                                 }}))},
-
 							   
 							   },
 

@@ -4481,7 +4481,7 @@ alteration of `zloc`.  See the file `rewrite.cljc` for the current
 implementation of `:sort-dependencies` as an example.
 
 This whole capability is largely firmed up.  There are two styles
-that use this capbility: `:sort-dependencies` and `:sort-requires`.
+that use this capbility at present: `:sort-dependencies` and `:sort-require`.
 
 #### :respect-bl? _false_
 
@@ -6256,6 +6256,10 @@ information more understandable.
 
 #### :import-justify
 
+Recognizes this key-value pair in a `{:style-call :import-justify}`
+
+__:max-variance__ _1000_  
+
 This will clean up and justify the `(:import ...)` section of the
 `ns` macro.  
 
@@ -6701,6 +6705,12 @@ time.
 
 #### :ns-justify
 
+Recognizes these key-value pairs in a `{:style-call :ns-justify}`:
+
+ __:require-max-variance__ _20_  
+ __:require-macros-max-variance__ _20_  
+ __:import-max-variance__ _1000_
+
 This will make `ns` statements look more readable.  It pulls together
 the styles `:require-justify`, `:require-macros-justify` and `:import-justify`.
 If you don't want all three, consider exploring just the one or two that
@@ -6856,6 +6866,11 @@ for details.
 
 #### :require-justify
 #### :require-macros-justify
+
+Both recognize this key-value pair in a `{:style-call :require-justify}`
+or a `{:style-call :require-macros-justify}`:
+
+__:max-variance__ _20_  
 
 NOTE: Everything in this section applies equally to `:require-justify`
 and `:require-macros-justify`. 
@@ -7170,6 +7185,12 @@ the rest of an expression.
 
 #### :rod, :rod-no-ma-nl
 
+Recognizes these key-value pairs in a `{:style-call :rod}`:
+
+__:multi-arity-nl?__ _true_  (:rod-no-ma-nl has this as _false_)  
+__:one-line-ok?__ _false_   
+
+
 An alternative way to format `defn` and `defn-` functions.  The
 basic `:rod` style will place a blank line between arities of a multi-arity
 function.  `:rod-no-ma-nl` is identical to `:rod`, but it will not
@@ -7286,14 +7307,21 @@ key named `:dependencies` inside any function (macro) named
 to parsing a string and formatting code).  If there is a comment
 in any of the dependencies, it will not sort those dependencies.
 
-#### :sort-requires
+#### :sort-require
+
+Recognizes these key-value pairs in a {:style-call :sort-require}:
+
+__:regex-vec__ _[]_  
+__:sort-refer?__ _true_  
 
 Sort the elements of the `:require` list in an `ns` macro.  In its most
 basic form, this style will simply sort the dependencies within the list
-starting with `:require`.  It will sort them alphabetically, based on the 
+starting with `:require`.  It will sort them lexographically, based on the 
 string of the namespace involved.  The string may be freestanding, or it 
 may be the first element of a vector.  The string may also be unevaluted
 (i.e., begin with `#_`) or the first element of a vector that is unevaluated.
+In addition, the elements of any `:refer` vector will also be sorted (by
+default -- you can disable this if desired).
 
 ```
 ; As written, nothing done to it
@@ -7313,9 +7341,9 @@ may be the first element of a vector.  The string may also be unevaluted
             [a.b.c.f]
             [a.b.c]))
 
-; Sorted with basic :sort-requires
+; Sorted with basic :sort-require
 
-(czprint i310b {:parse-string? true :style :sort-requires})
+(czprint i310b {:parse-string? true :style :sort-require})
 (ns i310
   (:require [a.b]
             [a.b.c]
@@ -7361,7 +7389,7 @@ A slightly more complex example:
 
 ; With sorting -- note the reader-conditional doesn't move
 
-(czprint i310d {:parse-string? true :style :sort-requires})
+(czprint i310d {:parse-string? true :style :sort-require})
 (ns i310
   (:require #?@(:clj [[e.c.e.f]])
             [a.b]
@@ -7387,7 +7415,7 @@ to the top, you could do it this way:
 
 
 ```
-(czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^b\."]}})
+(czprint i310d {:parse-string? true :style {:style-call :sort-require :regex-vec [#"^b\."]}})
 (ns i310
   (:require #?@(:clj [[e.c.e.f]])
             [b.c.d.e]
@@ -7409,7 +7437,7 @@ namespaces starting with "b." are at the top.  You may specify multiple
 regular expressions.
 
 ```
- (czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^b\." #"^a\.c\."]}})
+ (czprint i310d {:parse-string? true :style {:style-call :sort-require :regex-vec [#"^b\." #"^a\.c\."]}})
 (ns i310
   (:require #?@(:clj [[e.c.e.f]])
             [b.c.d.e]
@@ -7434,7 +7462,7 @@ You can also specify things that go at the end, as opposed to the beginning,
 by using the distinguished element `:|`.
 
 ```
- (czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [:| #"^b\." #"^a\.c\."]}})
+ (czprint i310d {:parse-string? true :style {:style-call :sort-require :regex-vec [:| #"^b\." #"^a\.c\."]}})
 (ns i310
   (:require #?@(:clj [[e.c.e.f]])
             [a.b]
@@ -7455,7 +7483,7 @@ This puts all of the things that match those regexes at the end.  You can put
 some at the front and some at the end, by adjusting where you put the `:|`.
 
 ```
-(czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^b\." :| #"^a\.c\."]}})
+(czprint i310d {:parse-string? true :style {:style-call :sort-require :regex-vec [#"^b\." :| #"^a\.c\."]}})
 (ns i310
   (:require #?@(:clj [[e.c.e.f]])
             [b.c.d.e]
@@ -7475,11 +7503,11 @@ some at the front and some at the end, by adjusting where you put the `:|`.
 Of course, if nothing matches a regex, then that isn't a problem:
 
 This style will interoperate well with `:ns-justify` or `:require-justify`.
-Just be sure and put `:sort-requires` first.  You can also use `how-to-ns`.
+Just be sure and put `:sort-require` first.  You can also use `how-to-ns`.
 
 
 ```
-(czprint i310d {:parse-string? true :style {:style-call :sort-requires :regex-vec [#"^aa\." #"^b\." :| #"^a\.c\."]}})
+(czprint i310d {:parse-string? true :style {:style-call :sort-require :regex-vec [#"^aa\." #"^b\." :| #"^a\.c\."]}})
 (ns i310
   (:require #?@(:clj [[e.c.e.f]])
             [b.c.d.e]
@@ -7494,6 +7522,64 @@ Just be sure and put `:sort-requires` first.  You can also use `how-to-ns`.
             [c.b.a]
             [c.b.d]
             (a.c.e)))
+```
+
+The elements of the `:refer` vector are also sorted:
+
+```
+; The basic formatting
+
+(czprint i310j {:parse-string? true})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [b.c.e.f]
+            [a.b]
+            [b.c.d.e]
+            [a.b.c.e :refer [y q u n e g t a c p]]
+            [c.b.a]
+            #_b.g.h
+            (a.c.e)
+            [a.b.c.d.e.f]
+            [c.b.d]
+            [a.b.c.d]
+            [a.b.c.f]
+            [a.b.c]))
+
+; With the default approach to :sort-require
+
+(czprint i310j {:parse-string? true :style {:style-call :sort-require}})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e :refer [a c e g n p q t u y]]
+            [a.b.c.f]
+            (a.c.e)
+            [b.c.d.e]
+            [b.c.e.f]
+            #_b.g.h
+            [c.b.a]
+            [c.b.d]))
+
+; Disabling sorting of :refer elements:
+
+(czprint i310j {:parse-string? true :style {:style-call :sort-require :sort-refer? false}})
+(ns i310
+  (:require #?@(:clj [[e.c.e.f]])
+            [a.b]
+            [a.b.c]
+            [a.b.c.d]
+            [a.b.c.d.e.f]
+            [a.b.c.e :refer [y q u n e g t a c p]]
+            [a.b.c.f]
+            (a.c.e)
+            [b.c.d.e]
+            [b.c.e.f]
+            #_b.g.h
+            [c.b.a]
+            [c.b.d]))
 ```
 
 ### Convenience Styles
@@ -7598,25 +7684,24 @@ Here is an example of a style defined using a `:style-fn`:
 
 
 ```
-{:rod-config {:doc "Configurable :rod {:multi-arity-nl? ... :one-line-ok? ..,}",
-              :multi-arity-nl? false,
-              :one-line-ok? false,
-              :style-fn
-                (fn
-                  ([] "rod-config-style-fn")
-                  ([existing-options new-options style-fn-map style-call]
-                   {:fn-map {"defn" [:none
-                                     {:list {:option-fn (partial
-                                                          rodfn
-                                                          (merge-deep
-                                                            style-fn-map
-                                                            style-call))}}],
-                             "defn-" "defn"}}))}}
+{:rod {:doc "Rules of defn approach",
+       :multi-arity-nl? true,
+       :one-line-ok? false,
+       :style-fn (fn
+                   ([] "rod-style-fn")
+                   ([existing-options new-options style-fn-map style-call]
+                    {:fn-map {"defn" [:none
+                                      {:list {:option-fn (partial
+                                                           rodfn
+                                                           (merge-deep
+                                                             style-fn-map
+                                                             style-call))}}],
+                              "defn-" "defn"}}))}}
 ```
 
 Typically, the map which contains the `:style-fn` key also contains the
 default values for the configuration for the option-fn which will be called.
-In the example above, these would be `:multi-arity-nl? false` and
+In the example above, these would be `:multi-arity-nl? true` and
 `:one-line-ok? false`.
 
 The map which contains the `:style-call` key (if any), will have
@@ -7629,7 +7714,7 @@ values.  The function `merge-deep` is available to all `option-fn`
 definitions, including those read in from zprint configuration files
 (and therefore processed by `sci`).
 
-Note that the only styles that involve a `:style-fn` may be invoked with
+Note that only styles that involve a `:style-fn` may be invoked with
 a map containing the key `:style-call`.  You cannot invoke any arbitrary
 style with a map containing `:style-call` -- only those which ultimately
 end up resolving to a map containing a `:style-fn` call.

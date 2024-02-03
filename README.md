@@ -51,11 +51,12 @@ a number of major source code formatting approaches.
 ### *Recent Additions!* 
 
 
-  * A new style, `:sort-requires`, will sort the requires in an `ns` macro, 
+  * A new style, `:sort-require`, will sort the requires in an `ns` macro, 
   as suggested by 
   [how-to-ns](https://stuartsierra.com/2016/clojure-how-to-ns.html).
   This will interoperate with `:ns-justify` well, but be sure and put
-  the `:sort-requires` to the left of (i.e., before) the `:ns-justify`.
+  the `:sort-require` to the left of (i.e., before) the `:ns-justify`.
+  This will sort the elements of the `:refer` vector as well.
   * `:ns-justify` has been modified to support explicit parameters
   for the variance in the `:require`, `:require-macros` and `:import`
   sections of the `ns` macro.  They are `:require-max-variance`,

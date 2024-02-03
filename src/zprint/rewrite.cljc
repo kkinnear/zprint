@@ -94,7 +94,7 @@
     (when nloc (if (= (z/tag nloc) :comment) true (recur (z/right* nloc))))))
 
 (defn ^:no-doc sort-val
-  "Sort the everything in the vector to the right of zloc."
+  "Sort everything in the vector to the right of zloc."
   [get-sortable-fn sort-fn skip-fn? zloc]
   (if (contains-comment? zloc)
     zloc
@@ -109,7 +109,7 @@
                       out))
           #_(println "sort-val: count:" (count dep-seq))
           dep-count (count dep-seq)
-          sorted-seq (#_sort-by sort-fn get-sortable-fn dep-seq)
+          sorted-seq (sort-fn get-sortable-fn dep-seq)
           #_(println "sort-val: dep-seq:" (mapv get-sortable-fn dep-seq))
           #_(println "sort-val: sorted-seq:" (mapv get-sortable-fn sorted-seq))]
       ; Loop through all of the elements of zloc, replacing them one by one
@@ -180,14 +180,10 @@
 (defn ^:no-doc sort-within
   "Sort to the right of zloc."
   [get-sortable-fn sort-options zloc]
-  (if (empty? (:regex-vec sort-options))
-    (z/leftmost
-      (sort-val get-sortable-fn sort-by req-skip? #_z/right (z/right zloc)))
-    (z/leftmost (sort-val get-sortable-fn
-                          (partial sort-w-regex (:regex-vec sort-options))
-                          req-skip?
-                          #_z/right
-                          (z/right zloc)))))
+  (z/leftmost (sort-val get-sortable-fn
+                        (partial sort-w-regex sort-options)
+                        req-skip?
+                        (z/right zloc))))
 
 (defn sort-requires
   "Reorder the requires in an ns macro."
@@ -215,12 +211,6 @@
   (if (re-find regex s)
     (reduced i)
     (inc i)))
-
-#_(defn try-regex
-  "Given a vector of regexes and a string, return the index of the regex or
-  the count of regexes if none of them are a hit."
-  [regex-vec s]
-  (reduce (partial try-one-regex s) 0 regex-vec))
 
 (defn try-regex-on-zloc
   "Given a vector of regexes and a zloc, return the index of the regex or
@@ -281,27 +271,41 @@
         sorted-seq (sort-by get-sortable-fn pre-sorted)]
     (assoc m i sorted-seq)))
 
+(defn sort-refer
+  "Sort the elements of a :refer vector (if any) in a zloc of a :require 
+  list, and return the modified zloc."
+  [zloc]
+  (let [refer-zloc (z/find-value (z/down zloc) :refer)]
+    (if refer-zloc
+      (z/up
+        (z/up
+          (sort-val z/string sort-by no-skip? (z/down (z/right refer-zloc)))))
+      zloc)))
+
 (defn sort-w-regex
-  "Given a vector of regexes, sort within the regexes (in order) first 
-  and then sort the rest at the end. Unless there is a divider: :|, in
-  which case the things before the divider go first, the things after
-  the divider go last, and everything that doesn't match a regex goes
-  where the divider is. get-sortable-fn will return something
-  that is sortable from every element of req-seq, which contains the things
-  to sort.  regex-vec is a vector of regexes."
-  [regex-vec get-sortable-fn req-seq]
+  "Given a vector of regexes (possibly empty), sort within the
+  regexes (in order) first and then sort the rest at the end. Unless
+  there is a divider: :|, in which case the things before the divider
+  go first, the things after the divider go last, and everything
+  that doesn't match a regex goes where the divider is. get-sortable-fn
+  will return something that is sortable from every element of
+  req-seq, which contains the things to sort.  regex-vec is a vector
+  of regexes."
+  [sort-options get-sortable-fn req-seq]
   ; First, we need to get any :| out of the regex-vec, and remember where
   ; it was.  This separates the first from the last groups.
-  (let [[divider-position clean-regex-vec] (find-and-remove-divider :|
+  (let [regex-vec (:regex-vec sort-options)
+        [divider-position clean-regex-vec] (find-and-remove-divider :|
                                                                     regex-vec)
         group (group-by
                 (partial try-regex-on-zloc clean-regex-vec get-sortable-fn)
                 req-seq)
         ; Next we need to sort each group amongst themselves
-	groups-sorted
-	  (reduce (partial sort-group get-sortable-fn) group (keys group))
+        groups-sorted
+          (reduce (partial sort-group get-sortable-fn) group (keys group))
         ; Next we need to put the group back into a single vector by order of
         ; the number in the group map.  Put the last group into the
         ; vector in the divider-position if it is positive.
-        out (assemble-by-numeric-key divider-position groups-sorted)]
-    out))
+        out (assemble-by-numeric-key divider-position groups-sorted)
+        refer-sorted (if (:sort-refer? sort-options) (mapv sort-refer out) out)]
+    refer-sorted))

@@ -1115,6 +1115,26 @@
                                                        {}))}}}))
 
 
+(expect "Option errors in this call:  Style ':junk' not found!"
+        (try (zprint-str "(test)"
+                         {:parse-string? true, :style [:junk :respect-bl]})
+             (catch #?(:clj Exception
+                       :cljs :default)
+               e
+               (re-find #"Option errors in this call:  Style ':junk' not found!"
+                        (str e)))))
+
+(expect
+  "Option errors in this call:  Style ':junk' not found!, Style ':stuff' not found!"
+  (try
+    (zprint-str "(test)" {:parse-string? true, :style [:junk :stuff]})
+    (catch #?(:clj Exception
+              :cljs :default)
+      e
+      (re-find
+        #"Option errors in this call:  Style ':junk' not found!, Style ':stuff' not found!"
+        (str e)))))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

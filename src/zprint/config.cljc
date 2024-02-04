@@ -2073,7 +2073,123 @@
    (style-call->style-fn-map doc-string new-map existing-map style-call #{})))
 
 
+(defn error-str-merge
+  "Take an existing error-str and add some punctuation if there is one."
+  [s]
+  (when s
+    (str s ", ")))
+
 (defn apply-one-style
+  "Take a [doc-string new-map styles-applied [existing-map doc-map
+  error-str] style-name] and produce a new [existing-map doc-map
+  error-str] from the style defined in the new-map if it exists,
+  or the existing-map if it doesn't.  Does not throw exceptions."
+  [doc-string new-map [existing-map doc-map error-str] style-name]
+  (if (or (= style-name :not-specified) (nil? style-name))
+    [existing-map doc-map nil]
+    ; A single :style specification (i.e., the value of :style or
+    ; one of the elements of vector which is the value of :style)
+    ; must either be a keyword or a map which contains :style-call.
+    (if (not (or (keyword? style-name)
+                 (and (map? style-name) (:style-call style-name))))
+      [existing-map doc-map
+       (str (error-str-merge error-str)
+            "A single style specification must either be a keyword"
+            " referencing a style in the :style-map, or a map"
+            " which contains a :style-call key.  This style: '"
+            style-name
+            "' contains neither!")]
+      (let [[style-name style-call style-map error-str]
+              (let [result style-name
+                    [style-name result error-str]
+                      (if (keyword? result)
+                        (let [style-map
+                                (get-style-map new-map existing-map result)]
+                          (if style-map
+                            [style-name style-map error-str]
+                            [style-name nil
+                             (str (error-str-merge error-str)
+                                  "Style '"
+                                  result
+                                  "' not found!")]))
+                        [nil result nil])
+                    _ (dbg-s new-map
+                             #{:apply-style}
+                             "apply-one-style: style-name:" style-name
+                             "result:" result
+                             "error-str:" (pr-str error-str))
+                    [style-name style-call result error-str]
+                      (if (and (not error-str)
+                               (map? result)
+                               (:style-call result))
+                        (let [[style-call style-fn-map new-error-str]
+                                (style-call->style-fn-map
+                                  doc-string
+                                  new-map
+                                  existing-map
+                                  result
+                                  (if style-name #{style-name} #{}))]
+                          (dbg-s new-map
+                                 #{:apply-style}
+                                 "apply-one-style: style-name:" style-name
+                                 "new-error-str:" (pr-str new-error-str))
+                          [(:style-call result) style-call style-fn-map
+			   (when (or error-str new-error-str)
+                           (str (error-str-merge error-str) new-error-str)
+			   )])
+                        [style-name nil result error-str])
+                    _ (dbg-s new-map
+                             #{:apply-style}
+                             "apply-one-style: style-name:" style-name
+                             "style-call:" style-call
+                             "result:" result
+                             "error-str:" (pr-str error-str))
+                    [result error-str] (if error-str
+                                         [result error-str]
+                                         (if (and (map? result)
+                                                  (:style-fn result))
+                                           (call-style-fn doc-string
+                                                          new-map
+                                                          existing-map
+                                                          result
+                                                          style-call)
+                                           [result error-str]))]
+                [style-name style-call result error-str])
+            _ (dbg-s new-map
+                     #{:apply-style}
+                     "apply-one-style: style-name:" style-name
+                     "style-call:" style-call
+                     "style-map:" style-map
+                     "error-str:" (pr-str error-str))
+            ; Remove the :doc key from the style,  or it will end up in
+            ; the top level options map.
+            style-map (dissoc style-map :doc)
+            ; Note that styles-applied is initialized in
+            ; config-and-validate to be [].
+            existing-map (assoc existing-map
+                           :styles-applied (conj (:styles-applied existing-map)
+                                                 style-name))]
+        (if error-str
+          [existing-map doc-map error-str]
+          (if style-map
+            (let [[updated-map new-doc-map error-vec]
+                    (internal-config
+                      (str doc-string " specified :style " style-name)
+                      doc-map
+                      existing-map
+                      style-map)
+                  new-doc-map (when new-doc-map
+                                (assoc new-doc-map
+                                  :styles-applied (:styles-applied
+                                                    updated-map)))]
+              [updated-map new-doc-map
+               (when (or error-str error-vec)
+                 (str error-str (when error-str ",") error-vec))])
+            ; It all worked, but the :style-fn returned nil, which is fine.
+            [existing-map doc-map nil]))))))
+
+
+#_(defn apply-one-style
   "Take a [doc-string new-map styles-applied [existing-map doc-map
   error-str] style-name] and produce a new [existing-map doc-map
   error-str] from the style defined in the new-map if it exists,

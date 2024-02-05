@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.9 - 2023-10-15
+## 1.2.9 - 2024-2-5
 
 ### Added
 
@@ -48,6 +48,24 @@ All notable changes to this project will be documented in this file.
   that if a particular arity would format successfully onto one line, it 
   will now do so if `:one-line-ok?` is `true`.  Issue #282.
 
+  * There was a bug where if you specified multiple styles in a
+  vector, if there were any errors detected when applying the styles,
+  the errors were lost unless they occurred in the rightmost (that
+  is, final) style.  Any styles that had errors wouldn't be applied,
+  but there would be no idication of that and it would all appear
+  to be successful.  This has now been fixed to detect and report
+  errors from any styles where there was a failure to apply the
+  style.  There is a small chance that this will appear to break
+  some working configurations, since if there were errors applying
+  multiple styles some of those errors would not be reported if
+  they were not associated with the final style.  In any situations
+  where these errors suddenly appear, it signals errors that were
+  not properly exposed to the user now being reported.  You can
+  restore the previous behavior by simply removing the style that
+  causes an error, since it was not being applied previously.  You
+  may instead want to figure out how to get the benefit of actually
+  applying that style by correcting the error, since that was
+  probably the original intent.  Issue #311.
 
 ## 1.2.8 - 2023-09-14
 

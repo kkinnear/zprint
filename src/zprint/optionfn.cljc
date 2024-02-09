@@ -71,15 +71,19 @@
   ([] "meta-base-fn")
   ([opts n exprs]
    (when (meta (second exprs))
-     #_(println (meta (second exprs)))
+     #_(println "(meta (second exprs)):" (meta (second exprs)))
      (let [zfn-map (:zfn-map opts)
            zloc-seq-nc ((:zmap-no-comment zfn-map) identity (:zloc opts))
            meta-zloc (second zloc-seq-nc)
-           #_(println "tag:" ((:ztag zfn-map) meta))
+           #_ (println "tag:" ((:ztag zfn-map) meta-zloc))
            meta-seq ((:zmap-no-comment zfn-map) identity meta-zloc)
-           #_(println "count meta-seq:" (count meta-seq)
-                      "meta-seq:" (map (:zstring zfn-map) meta-seq)
-                      "meta-seq-tag:" (map (:ztag zfn-map) meta-seq))]
+           #_ (println "count meta-seq:" (count meta-seq)
+                      "\nmeta-seq:" (map (:zstring zfn-map) meta-seq)
+                      "\nmeta-seq-tag:" (map (:ztag zfn-map) meta-seq)
+		      "\nfirst meta-seq:" ((:zstring zfn-map) (first meta-seq))
+		      "\nsecond meta-seq:" ((:zstring zfn-map) (second meta-seq))
+		      )
+		      ]
        (if (= :meta ((:ztag zfn-map) (second meta-seq)))
          ; Figure out next-inner restore
          nil
@@ -89,7 +93,8 @@
                              (> (count (keys (meta (second exprs)))) 1))
                       :arg1-body
                       :arg2),
-          :next-inner-restore [[:list :hang-expand]]})))))
+          :next-inner-restore [[:list :hang-expand]]})))
+	  ))
 
 
 ;;

@@ -4942,6 +4942,9 @@
           vector-fn-style? (vector? fn-style)
           ; After this, it isn't a vector any more... Note that changed?
           ; refers only zloc, l-str, or r-str!!
+	  ;
+	  ; Call any option-fn
+	  ;
           [options fn-style zloc l-str r-str changed?]
             (fn-style+option-fn caller options fn-style zloc l-str r-str)
           ; recalculate necessary information
@@ -8573,6 +8576,12 @@
                         nil)
           ; not reader-cond?
           (fzprint-pairs options
+			 ; If we have :indent 0 by default, then if the RHS
+			 ; of the pair flows, it will be one space past the
+			 ; # because that is "where we are" on the line.  If
+			 ; you want to not have any spaces there, then specify
+			 ; an :indent -1, which moves us to the left of "where
+			 ; we are" on the line.
                          (+ indent ind)
                          (let [zloc-seq
                                  (cond respect-nl? (zmap-w-nl identity zloc)

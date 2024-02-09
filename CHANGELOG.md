@@ -39,6 +39,13 @@ All notable changes to this project will be documented in this file.
   you can use `:require-macros-max-variance` and `:import-max-variance` 
   to adjust the maximum variance for these sections of the `ns` macro.
 
+  * zprint will now recognize when a set of pairs is being spliced in using
+  reader-conditionals, and format them as a set of pairs.  This comes up
+  when splicing in a series of local symbols and expressions into a `let`,
+  or splicing in a series of key value pairs into a map.  If there are an
+  even number of elements in the reader-conditional and it appears in a
+  place that expects pairs, then the insides of the reader-conditional is
+  formatted as pairs. 
 
 ### Fixed
 
@@ -57,15 +64,15 @@ All notable changes to this project will be documented in this file.
   errors from any styles where there was a failure to apply the
   style.  There is a small chance that this will appear to break
   some working configurations, since if there were errors applying
-  multiple styles some of those errors would not be reported if
-  they were not associated with the final style.  In any situations
-  where these errors suddenly appear, it signals errors that were
-  not properly exposed to the user now being reported.  You can
-  restore the previous behavior by simply removing the style that
-  causes an error, since it was not being applied previously.  You
-  may instead want to figure out how to get the benefit of actually
-  applying that style by correcting the error, since that was
-  probably the original intent.  Issue #311.
+  multiple styles some of those errors would not currently be
+  reported if they were not associated with the final style.  In
+  any situations where these errors suddenly appear, it signals
+  errors that were not properly exposed to the user now being
+  reported.  You can restore the previous behavior by simply removing
+  the style that causes an error, since it was not being applied
+  previously.  You may instead want to figure out how to get the
+  benefit of actually applying that style by correcting the error,
+  since that was probably the original intent.  Issue #311.
 
 ## 1.2.8 - 2023-09-14
 

@@ -618,6 +618,54 @@
                    :else (conj :element-newline-extend-*))]
        {:guide guide, :next-inner {:list {:option-fn nil}}}))))
 
+(defn metaguide
+  "A better way to do complex metadata."
+  ([] "metaguide")
+  ([metaguide-options options len exprs]
+   ; Only change things if we actually have metadata
+   (when (meta (second exprs))
+     #_(println "(meta (second exprs))" (meta (second exprs)))
+     (let [zfn-map (:zfn-map options)
+           zstring (:zstring zfn-map)
+           zcount (:zcount zfn-map)
+           zfirst (:zfirst zfn-map)
+           ztag (:ztag zfn-map)
+           ind (:ind options)
+           l-str-len (count (:l-str options))
+           caller (:caller options)
+           zloc (:zloc options)
+           #_(println "caller:" caller "l-str-len:" l-str-len "ind:" ind)
+           options (assoc-in options [:meta :split?] true)
+           ; We use fzprint-up-to-first-zloc because it has special
+           ; processing to handle :meta {:split? true}, when creating
+           ; the zloc-seq, where normal zmap routines do not.
+           [pre-arg-1-style-vec arg-1-zloc arg-1-count zloc-seq :as second-data]
+             ((:fzprint-up-to-first-zloc zfn-map)
+               caller
+               options
+               (+ ind l-str-len)
+               zloc)
+           #_(println "count zloc-seq: 2" (count zloc-seq)
+                      "zloc-seq:" (interpose "|" (map zstring zloc-seq)))
+           #_(println "zloc-seq tags:" (map ztag zloc-seq))
+           #_(println "zloc-seq zcount:" (map zcount zloc-seq))
+           #_(println
+               "zloc-seq first:"
+               (map (fn [x]
+                      (if (= (zcount x) 2) (zstring (zfirst x)) (zstring x)))
+                 zloc-seq))
+           meta-count (count (filter #{:meta} (map ztag zloc-seq)))
+           meta-guide (into [:indent-here] (repeat meta-count :element))
+           meta-guide (conj meta-guide :indent-reset :newline)
+           guide (cond-> (-> [:element]
+                             (into meta-guide))
+                   true (into [:element :newline :element]))]
+       #_(println "guide:" guide)
+       {:meta {:split? true},
+        :fn-style :guided,
+        :guide guide,
+        :one-line-ok? (:one-line-ok? metaguide-options)}))))
+
 ;;
 ;; Temporary place to stash semantic3 to make collaboration easier
 ;;

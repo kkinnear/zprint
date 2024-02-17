@@ -13,7 +13,7 @@
             [zprint.util :refer [dissoc-two dbg-s-merge]]
             [zprint.guide :refer
              [jrequireguide defprotocolguide signatureguide1 odrguide guideguide
-              rodguide areguide defprotocolguide-s]]
+              rodguide areguide defprotocolguide-s metaguide]]
             [zprint.optionfn :refer
              [rodfn meta-base-fn fn*->% sort-deps regexfn rulesfn sort-reqs]]
             #?@(:bb [[sci.core :as sci]]
@@ -989,6 +989,35 @@
       :meta-alt {:doc "Alternative for metadata. Experimental.",
                  :fn-map {"def" [:arg2 {:style :meta-base}],
                           "deftest" [:arg1-body {:style :meta-base}]}},
+     #_#_ :meta-guide {:doc "Alternative for metadata. Experimental.",
+	     :fn-map {"def" [:arg2 {:list {:option-fn metaguide}}]
+		      "deftest" [:arg1-body {:list {:option-fn metaguide}}]}}
+
+
+      :meta-guide {:doc "Alternative for metadata. Experimental.",
+
+	 :one-line-ok? true
+	 :style-fn (fn
+	             ([] "meta-guide")
+		     ([existing-options new-otions style-fn-map style-call]
+		      {:fn-map {"def"
+		                  [:arg2
+				    {:list 
+				      {:option-fn 
+				         (partial
+					   metaguide
+					   (merge-deep style-fn-map style-call))}}]
+			         "deftest" 
+		                  [:arg1-body
+				    {:list 
+				      {:option-fn 
+				         (partial
+					   metaguide
+					   (merge-deep style-fn-map style-call))}}]
+				 
+				 }}))}
+
+
       :minimal-smart-wrap {:doc "Do the minimal smart-wrap",
                            :comment {:smart-wrap {:last-max 80,
                                                   :border 0,
@@ -1105,7 +1134,7 @@
 	 :require-max-variance 20
 	 :import-max-variance 1000
 	 :style-fn (fn
-	             ([] "import-justify")
+	             ([] "ns-justify")
 		     ([existing-options new-otions style-fn-map style-call]
 		      (let [merged-options (merge-deep style-fn-map style-call)]
 			  {:style
@@ -2374,7 +2403,8 @@
                                'rodfn zprint.optionfn/rodfn,
                                'rulesfn zprint.optionfn/rulesfn,
                                'regexfn zprint.optionfn/regexfn,
-                               'merge-deep zprint.config/merge-deep}}})
+                               'merge-deep zprint.config/merge-deep
+                               'metaguide zprint.guide/metaguide}}})
 (def sci-ctx (sci/init opts))
 ;  #?(:bb (sci/init opts)
 ;     ;:clj nil

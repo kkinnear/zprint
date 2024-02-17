@@ -177,7 +177,7 @@
   "Call an option-fn and return a validated map of the merged options. 
   Returns [merged-options-map new-options zloc l-str r-str changed?] where
   changed? refers only to changes in any of zloc, l-str, or r-str."
-  [caller options option-fn zloc l-str r-str]
+  [caller options ind option-fn zloc l-str r-str]
   #_(prn "call-option-fn caller:" caller)
   (let [sexpr-seq (get-sexpr options zloc)
         ; Add the current zloc and l-str, r-str to the options
@@ -186,7 +186,8 @@
                   :zloc zloc
                   :l-str l-str
                   :r-str r-str
-                  :caller caller)
+                  :caller caller
+		  :ind ind)
         _ (dbg-s options
                  #{:call-option-fn}
                  "call-option-fn: caller:" caller
@@ -4776,7 +4777,7 @@
   option-fn(s) as necessary.  
   Returns [options fn-style zloc l-str r-str changed?], where changed?
   refers only to the zloc, l-str, or r-str."
-  ([caller options fn-style zloc l-str r-str option-fn-set]
+  ([caller options ind fn-style zloc l-str r-str option-fn-set]
    (dbg-s options
           #{:call-option-fn}
           "fn-style+option-fn caller:" caller
@@ -4802,7 +4803,7 @@
          ; have raw styles in them
          [options zloc l-str r-str changed?]
            (if option-fn
-             (call-option-fn caller options option-fn zloc l-str r-str)
+             (call-option-fn caller options ind option-fn zloc l-str r-str)
              [options zloc l-str r-str nil])
          ; If we got a new fn-style in new-options, handle it
          [options fn-style] (handle-new-fn-style caller
@@ -4818,6 +4819,7 @@
              (if (and new-option-fn (not= option-fn new-option-fn))
                (fn-style+option-fn caller
                                    options
+				   ind
                                    fn-style
                                    zloc
                                    l-str
@@ -4827,8 +4829,8 @@
                [options fn-style zloc l-str r-str nil]))
          changed? (or changed? new-changed?)]
      [options fn-style zloc l-str r-str changed?]))
-  ([caller options fn-style zloc l-str r-str]
-   (fn-style+option-fn caller options fn-style zloc l-str r-str #{})))
+  ([caller options ind fn-style zloc l-str r-str]
+   (fn-style+option-fn caller options ind fn-style zloc l-str r-str #{})))
 
 (declare fzprint-noformat)
 
@@ -4946,7 +4948,7 @@
 	  ; Call any option-fn
 	  ;
           [options fn-style zloc l-str r-str changed?]
-            (fn-style+option-fn caller options fn-style zloc l-str r-str)
+            (fn-style+option-fn caller options ind fn-style zloc l-str r-str)
           ; recalculate necessary information
           l-str-len (if changed? (count l-str) l-str-len)
           ; zcount is not free, so only do it if the zloc changed
@@ -7494,7 +7496,7 @@
             ; Fix this to handle new returns.
             [options zloc l-str r-str]
               (if option-fn
-                (call-option-fn caller options option-fn zloc l-str r-str)
+                (call-option-fn caller options ind option-fn zloc l-str r-str)
                 [options zloc l-str r-str])
             ; Do this after call-option-fn in case anything changed.
             l-str-len (count l-str)
@@ -9019,7 +9021,13 @@
                               :map-depth 0
                               ; Add a map of zfns to the options for use
                               ; by guides that need them.
-                              :zfn-map (zfn-map))
+                              :zfn-map (assoc (zfn-map)
+              :fzprint-up-to-first-zloc fzprint-up-to-first-zloc
+			           
+			      )
+			                  
+			      )
+
                             indent
                             zloc)]
     #_(def fsv style-vec)

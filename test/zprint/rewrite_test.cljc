@@ -172,6 +172,28 @@ i310a
 "(ns zprint.core\n  #?@(:cljs [[:require-macros\n              [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])\n  (:require\n    #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])\n    #_[clojure.spec.alpha :as s]\n    #?@(:cljs [[cljs.reader :refer [read-string]]])\n    #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])\n    clojure.string\n    [rewrite-clj.parser :as p]\n    [rewrite-clj.zip    :as    z\n                        :refer [edn* string]]\n    [zprint.comment     :refer [blanks fzprint-align-inline-comments\n                                fzprint-inline-comments fzprint-wrap-comments]]\n    [zprint.config      :as    config\n                        :refer [add-calculated-options apply-style\n                                config-and-validate config-configure-all!\n                                config-set-options! get-default-options\n                                get-explained-all-options get-explained-options\n                                get-explained-set-options get-options help-str\n                                merge-deep no-color-map perform-remove\n                                reset-options! sci-load-string\n                                validate-options]]\n    [zprint.finish      :refer [color-comp-vec compress-style cvec-to-style-vec\n                                handle-lines no-style-map]]\n    [zprint.focus       :refer [range-ssv]]\n    [zprint.range       :refer [expand-range-to-top-level reassemble-range\n                                split-out-range]]\n    [zprint.sutil]\n    [zprint.zprint      :as    zprint\n                        :refer [determine-ending-split-lines expand-tabs fzprint\n                                line-count line-widths max-width zcolor-map]]\n    [zprint.zutil       :refer [find-root-and-path-nw whitespace? zcomment?\n                                zmap-all znewline?]])\n  #?@(:clj ((:import\n              #?(:bb []\n                 :clj (java.net URL URLConnection))\n              #?(:bb []\n                 :clj (java.util.concurrent Executors))\n              (java.io     File)\n              (java.util   Date)))))"
 (zprint-str corens1 {:parse-string? true :style [{:style-call :sort-require} :ns-justify]}))
 
+;;
+;; Bug with :refer :all
+;;
+
+(def
+i310l
+"(defn -main\n  \"Launch repl and init landing app\"\n  [& args]\n  (try (when-not (force-option? (first args)) (landing/-main))\n       (core-repl/start-repl)\n       (ns user\n         (:require\n          [automaton-core.dev :refer :all]))\n       (catch Exception e\n         ;; The print is done on purpose, as it is the message in the console if you launch the repl and it doesn't work\n         (prn (str \"error: \" e))\n         (core-log/error (ex-info \"Failed to start landing, relaunch with user/\"\n                                  {:error e}))\n         (throw e))))\n")
+
+(expect
+"(defn -main\n  \"Launch repl and init landing app\"\n  [& args]\n  (try (when-not (force-option? (first args)) (landing/-main))\n       (core-repl/start-repl)\n       (ns user\n         (:require [automaton-core.dev :refer :all]))\n       (catch Exception e\n         ;; The print is done on purpose, as it is the message in the\n         ;; console if you launch the repl and it doesn't work\n         (prn (str \"error: \" e))\n         (core-log/error (ex-info \"Failed to start landing, relaunch with user/\"\n                                  {:error e}))\n         (throw e))))"
+(zprint-str i310l {:parse-string? true :style :sort-require}))
+
+;;
+;; Bug with (:require ) (i.e., empty :require)
+;;
+
+(def
+i310p
+"(ns automaton-core.utils.uuid-gen\n  \"Generate uuid, is a proxy to `http://danlentz.github.io/clj-uuid/`\"\n  (:require))\n")
+(expect
+"(ns automaton-core.utils.uuid-gen\n  \"Generate uuid, is a proxy to `http://danlentz.github.io/clj-uuid/`\"\n  (:require))"
+(zprint-str i310p {:parse-string? true :style :sort-require}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

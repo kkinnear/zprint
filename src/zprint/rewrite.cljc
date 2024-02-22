@@ -246,22 +246,28 @@
   divider so it can be ignored.  Otherwise, place the highest key in the
   divider-position, before the key of that number."
   [divider-position group-map]
-  (let [max-int-key (apply max (keys group-map))]
-    (loop [idx 0
-           divider-position divider-position
-           max-int-key max-int-key
-           out []]
-      (if (> idx max-int-key)
-        out
-        (if (= idx divider-position)
-          (recur idx
-		 (dec idx)  ; make sure we don't traverse this arm again
-                 (dec max-int-key)
-                 (concat out (get group-map max-int-key)))
-          (let [group (get group-map idx)]
-            (if group
-              (recur (inc idx) divider-position max-int-key (concat out group))
-              (recur (inc idx) divider-position max-int-key out))))))))
+  (let [group-keys (keys group-map)]
+    (if (zero? (count group-keys))
+      []
+      (let [max-int-key (apply max group-keys)]
+        (loop [idx 0
+               divider-position divider-position
+               max-int-key max-int-key
+               out []]
+          (if (> idx max-int-key)
+            out
+            (if (= idx divider-position)
+              (recur idx
+                     (dec idx) ; make sure we don't traverse this arm again
+                     (dec max-int-key)
+                     (concat out (get group-map max-int-key)))
+              (let [group (get group-map idx)]
+                (if group
+                  (recur (inc idx)
+                         divider-position
+                         max-int-key
+                         (concat out group))
+                  (recur (inc idx) divider-position max-int-key out))))))))))
 
 (defn sort-group
   "Given a map with numeric keys, sort the group specified by the supplied
@@ -273,10 +279,13 @@
 
 (defn sort-refer
   "Sort the elements of a :refer vector (if any) in a zloc of a :require 
-  list, and return the modified zloc."
+  list, and return the modified zloc. Make sure that the :refer is
+  followed by a vector."
   [zloc]
-  (let [refer-zloc (z/find-value (z/down zloc) :refer)]
-    (if refer-zloc
+  (let [refer-zloc (z/find-value (z/down zloc) :refer)
+        refer-right (when refer-zloc (z/right refer-zloc))
+	refer-tag (when refer-right (z/tag refer-right))]
+    (if (and refer-zloc (= refer-tag :vector))
       (z/up
         (z/up
           (sort-val z/string sort-by no-skip? (z/down (z/right refer-zloc)))))

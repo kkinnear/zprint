@@ -43,9 +43,14 @@ you called it), by giving it the -v switch:
 zprint-1.2.3
 ```
 
+Note that sometimes in macos to run the binary like `./zprint -v`, you need to first do two steps:
+1. Give execute access `chmod +x ./zprint`
+2. Give it trusted status by: right-clicking on the binary and choosing "Open with" -> iterm/terminal -> it should give you a message about Macos not being able to verify it to which you need to respond with clicking "Open"
+
 ### 4. Put zprint into a directory in your path
 To be able to run zprint it needs to be in a directory that appears in
 your path.
+
 
 ## Install from Homebrew
 

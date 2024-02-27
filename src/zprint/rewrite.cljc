@@ -205,7 +205,7 @@
                   (partial sort-within require-get-sortable sort-options))]
     new-dep))
 
-(defn try-one-regex
+(defn ^:no-doc try-one-regex
   "Given a regex, see if it is a match with this string.  If it is, return
   i as the end of the reduce, else increment i."
   [s i regex]
@@ -213,13 +213,13 @@
     (reduced i)
     (inc i)))
 
-(defn try-regex-on-zloc
+(defn ^:no-doc try-regex-on-zloc
   "Given a vector of regexes and a zloc, return the index of the regex or
   the count of regexes if none of them are a hit."
   [regex-vec get-sortable-fn zloc]
   (reduce (partial try-one-regex (get-sortable-fn zloc)) 0 regex-vec))
 
-(defn find-and-remove-divider
+(defn ^:no-doc find-and-remove-divider
   "Given a keyword divider, find where it is, remove it, and return the
   count and the vector w/out the divider. The count is the position of
   the divider in the vector.  If it is negative, there was no divider
@@ -240,7 +240,7 @@
     ; Adjust position back to zero-based 
     [(if (pos? position) (dec position) (inc position)) new-regex-vec]))
 
-(defn assemble-by-numeric-key
+(defn ^:no-doc assemble-by-numeric-key
   "Given a map where the keys are integers and the values are sequences, 
   assemble all of the sequences into a single sequence based on the
   order of the keys.  If the divider-position is negative, there was no
@@ -270,7 +270,7 @@
                          (concat out group))
                   (recur (inc idx) divider-position max-int-key out))))))))))
 
-(defn sort-group
+(defn ^:no-doc sort-group
   "Given a map with numeric keys, sort the group specified by the supplied
   number, and put it back in the map.  Return the updated map."
   [get-sortable-fn m i]
@@ -278,7 +278,7 @@
         sorted-seq (sort-by get-sortable-fn pre-sorted)]
     (assoc m i sorted-seq)))
 
-(defn sort-refer
+(defn ^:no-doc sort-refer
   "Sort the elements of a :refer vector (if any) in a zloc of a :require 
   list, and return the modified zloc. Make sure that the :refer is
   followed by a vector."
@@ -292,7 +292,7 @@
           (sort-val z/string sort-by no-skip? (z/down (z/right refer-zloc)))))
       zloc)))
 
-(defn sort-w-regex
+(defn ^:no-doc sort-w-regex
   "Given a vector of regexes (possibly empty), sort within the
   regexes (in order) first and then sort the rest at the end. Unless
   there is a divider: :|, in which case the things before the divider

@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.9 - 2024-2-5
+## 1.2.9 - 2024-2-28
 
 ### Added
 
@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file.
   an `ns` macro, you can use the style `:sort-require`.  You can also
   select (using regular expressions) namespaces to put first (or last, or
   both).  Search for `:sort-require` in the reference manual for details.  
-  This will also, by default, sort the identifiers in the `:refer` vector.
+  This will also, by default, sort the identifiers in the `:refer` vector,
+  though you can disable that sorting.
 
   * If you configure `:comment {:min-space-after-semi 1}` then a
   comment like this: `;this is a comment` will be changed after
@@ -45,7 +46,12 @@ All notable changes to this project will be documented in this file.
   or splicing in a series of key value pairs into a map.  If there are an
   even number of elements in the reader-conditional and it appears in a
   place that expects pairs, then the insides of the reader-conditional is
-  formatted as pairs. 
+  formatted as pairs. NOTE: this can (rarely) result in unanticipated
+  changes in formatting where there was no source change.  In the event
+  that happens to you, if the new version isn't "better" than the old
+  version, please submit an issue.  There were two small changes in
+  the formatting for zprint, and both were considerably better than the
+  previous formatting.
 
 ### Fixed
 

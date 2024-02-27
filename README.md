@@ -194,7 +194,7 @@ Some commonly used styles:
 [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
 
 
-### Clojure 1.9, 1.10, 1.10.3, 1.11.1, 1.12.0-alpha3:
+### Clojure 1.9, 1.10, 1.10.3, 1.11.1, 1.12.0-alpha8:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
@@ -206,7 +206,7 @@ zprint has been tested in each of the following environments:
 
   * figwheel-main 0.2.16 (Clojurescript 1.11.4)
   * shadow-cljs 2.18.0
-  * `planck` 2.26.0 (Clojurescript 1.10.914)
+  * `planck` 2.27.0 (Clojurescript 1.11.60)
 
 It requires `tools.reader` at least 1.0.5, which all of the environments
 above contain.

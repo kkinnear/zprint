@@ -46,7 +46,7 @@
           :metadata {:doc/format :markdown}}
   :dependencies [#_[org.clojure/clojure "1.10.3"]
                  [org.clojure/clojure "1.11.1"]
-                 #_[org.clojure/clojure "1.12.0-alpha3"]
+                 #_[org.clojure/clojure "1.12.0-alpha8"]
                  #_[org.clojure/clojure "1.10.0"]
                  #_[org.clojure/clojure "1.9.0"]
                  #_[org.clojure/clojure "1.8.0"]

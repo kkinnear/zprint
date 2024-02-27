@@ -5,6 +5,7 @@
   (:require #?@(:clj [[zprint.macros :refer
                        [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
             clojure.string
+            [zprint.util :refer [local-abs]]
             [zprint.zutil :as zu :refer [zreplace]]
             [rewrite-clj.parser :as p]
             [rewrite-clj.node :as n]
@@ -227,7 +228,7 @@
   (let [scan-fn (fn [[i out] element]
                   (if (= element divider-value)
                     ; Set the number positive, and skip this element.
-                    [(abs i) out]
+                    [(local-abs i) out]
                     (if (pos? i)
                       ; We have already seen the divider-value
                       [i (conj out element)]

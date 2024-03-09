@@ -1024,11 +1024,18 @@
                                                   :max-variance 200,
                                                   :space-factor 100,
                                                   :end-cg [; If it ends with
-                                                           ; two lowercase
-                                                           ; alpha and a
-                                                           ; period, it ends
-                                                           ; a cg.
-                                                           #"[a-z][a-z]\.$"]}}},
+                                                           ; a period, it ends
+                                                           ; the cg.
+							   #"\.$"]
+							   }}},
+      :sentence-smart-wrap {:doc "Don't run sentences together if they aren't already.",
+                           :comment {:smart-wrap {:end-cg [; If it ends with
+                                                           ; a period, it ends
+                                                           ; the cg.
+							   #"\.$"]
+							   }}},
+
+
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
       :multi-lhs-hang {:doc "Allow multi-lhs-hang in all three places.",

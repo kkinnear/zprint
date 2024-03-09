@@ -447,9 +447,13 @@
   with spaces and return the resulting string, otherwise return the
   string unchanged. Returns [s skip?] in case the comment string
   matched the end+skip-cg vector of regexs."
-  [end+start-cg end+skip-cg s]
+  [end+start-cg end+skip-cg end-cg s]
   #_(println "match-and-modify-comment s:" s)
-  (let [skip? (match-regex-seq end+skip-cg :end+skip-cg nil s)]
+  (let [skip? (or 
+                 (match-regex-seq end+skip-cg :end+skip-cg nil s)
+                 (match-regex-seq end-cg :end-cg nil s))
+		 
+		 ]
     (if skip?
       [s true]
       (let [match (match-regex-seq end+start-cg :end+start-cg true s)]
@@ -519,7 +523,8 @@
          #{:smart-wrap}
          "get-next-comment-group: depth:" depth
          "end+start-cg" end+start-cg
-         "end+skip-cg" end+skip-cg)
+         "end+skip-cg" end+skip-cg
+	 "end-cg" end-cg)
   (loop [idx index
          depth depth
          start-col 0
@@ -580,14 +585,14 @@
               (if (or (= what :comment) (= what :comment-inline))
                 ; any comment starts a group
                 (let [[s skip?]
-                        (match-and-modify-comment end+start-cg end+skip-cg s)
+                        (match-and-modify-comment end+start-cg end+skip-cg end-cg s)
                       ; having possibly modified the beginning of the
                       ; comment
                       [semi-count space-count] (when-not skip?
                                                  (get-semis-and-spaces s))]
                   #_(println "semi-count:" semi-count
                              "space-count:" space-count
-                             "blank?" blank?
+			     "skip?" skip?
                              "s:" s)
                   (if skip?
                     ; blank comment line or one to skip, ignore it

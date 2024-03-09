@@ -555,6 +555,42 @@
 "(defn test-fast-hang\n  \"Try to bring inline comments back onto the line on which they belong.\"\n  [{:keys [width], :as options} style-vec]\n  (loop [cvec style-vec\n         last-out [\"\" nil nil]\n         out []]\n    (if-not cvec                ;  aligned comment\n      (do #_(def fico out) out) ;  second aligned one\n      (let\n        [[s c e :as element] (first cvec)\n         [_ _ ne nn :as next-element] (second cvec)\n         [_ _ le] last-out      ;  third aligned one\n         new-element\n           (cond\n             (and (or (= e :indent) (= e :newline)) (= ne :comment-inline))\n               (if-not (or (= le :comment) (= le :comment-inline))\n                 ;  Regular line to get the inline comment\n                 [(blanks nn) c :whitespace 25]\n                 ;  Last element was a comment...\n                 ;  Can't put a comment on a comment, but\n                 ;  we want to indent it like the last comment and it is very long, so what will happen?\n                 ;  We will have to see, won't we?\n                 ;  How much space before the last comment?\n                 (do #_(prn \"inline:\" (space-before-comment out))\n                     [(str \"\\n\" (blanks out)) c :indent 41]\n                     #_element))\n             :else element)]\n        (recur (next cvec) new-element (conj out new-element))))))"
 (zprint-str test-fast-hangstr-1 {:parse-string? true :comment {:min-space-after-semi 2 :smart-wrap? false :wrap? false :count? true}}))
 
+;;
+;; Fixes to :mminimal-smart-wrap, and creation of :sentence-smart-wrap
+;;
+;; Still Issue #297
+;;
+
+(def i297r
+" (deftest all-overlaps-when-sharing-rules-change-test--multiple-pops\n   ;; test scenario\n  ; Org 1 is using the overlaps endpoint.\n  ; Org 1 has two pops -- at least 1 record is \n  ; exclusive to each pop (not the\n  ; same pops).\n  ; Org 2 has two pops, initially both \n  ; visible and with full overlaps for org 1\n  ; initial call to overlaps endpoints returns all overlaps, \n  ; on both populations\n  ; org1 stops sharing pop 1 with org 2 (not a default rule).\n  ; Subsequent call to \n  ; overlaps endpoint returns:\n  ;  o this\n  ;  o is\n  ;  o a\n  ;  o test\n  (stuff and bother))\n \n")
+
+(expect
+"(deftest all-overlaps-when-sharing-rules-change-test--multiple-pops\n  ;; test scenario\n  ; Org 1 is using the overlaps endpoint. Org 1 has two pops -- at least 1\n  ; record is exclusive to each pop (not the same pops). Org 2 has two\n  ; pops, initially both visible and with full overlaps for org 1 initial\n  ; call to overlaps endpoints returns all overlaps, on both populations\n  ; org1 stops sharing pop 1 with org 2 (not a default rule). Subsequent\n  ; call to overlaps endpoint returns:\n  ;  o this\n  ;  o is\n  ;  o a\n  ;  o test\n  (stuff and bother))"
+(zprint-str i297r {:parse-string? true}))
+
+(expect
+"(deftest all-overlaps-when-sharing-rules-change-test--multiple-pops\n  ;; test scenario\n  ; Org 1 is using the overlaps endpoint.\n  ; Org 1 has two pops -- at least 1 record is\n  ; exclusive to each pop (not the\n  ; same pops).\n  ; Org 2 has two pops, initially both visible and with full overlaps for org 1\n  ; initial call to overlaps endpoints returns all overlaps, on both\n  ; populations org1 stops sharing pop 1 with org 2 (not a default rule).\n  ; Subsequent call to\n  ; overlaps endpoint returns:\n  ;  o this\n  ;  o is\n  ;  o a\n  ;  o test\n  (stuff and bother))"
+(zprint-str i297r {:parse-string? true :style :minimal-smart-wrap}))
+
+(expect
+"(deftest all-overlaps-when-sharing-rules-change-test--multiple-pops\n  ;; test scenario\n  ; Org 1 is using the overlaps endpoint.\n  ; Org 1 has two pops -- at least 1 record is exclusive to each pop (not\n  ; the same pops).\n  ; Org 2 has two pops, initially both visible and with full overlaps for\n  ; org 1 initial call to overlaps endpoints returns all overlaps, on both\n  ; populations org1 stops sharing pop 1 with org 2 (not a default rule).\n  ; Subsequent call to overlaps endpoint returns:\n  ;  o this\n  ;  o is\n  ;  o a\n  ;  o test\n  (stuff and bother))"
+(zprint-str i297r {:parse-string? true :style :sentence-smart-wrap}))
+
+ (def i297s
+" (deftest all-overlaps-when-sharing-rules-change-test--multiple-pops\n   ;; test scenario\n  ; Org 1 is using the overlaps endpoint.\n  ; Org 2 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 3 is using the overlaps endpoint.\n  ; Org 4 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 5 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 6 is using the overlaps endpoint.\n  ; Org 7 is using the overlaps endpoint.\n  ; Org 8 is using the overlaps endpoint.\n  ; Org 9 is using the overlaps endpoint.\n  ; Org 10 is using the overlaps endpoint.\n  ; Org 11 has two pops -- at least 1 record is \n  ; Subsequent call to \n  ; overlaps endpoint returns:\n  ;  o this\n  ;  o is\n  ;  o a\n  ;  o test\n  (stuff and bother))\n")
+
+(expect
+"(deftest all-overlaps-when-sharing-rules-change-test--multiple-pops\n  ;; test scenario\n  ; Org 1 is using the overlaps endpoint. Org 2 a lot longer and uses many\n  ; more characters the overlaps endpoint. Org 3 is using the overlaps\n  ; endpoint. Org 4 a lot longer and uses many more characters the overlaps\n  ; endpoint. Org 5 a lot longer and uses many more characters the overlaps\n  ; endpoint. Org 6 is using the overlaps endpoint. Org 7 is using the\n  ; overlaps endpoint. Org 8 is using the overlaps endpoint. Org 9 is using\n  ; the overlaps endpoint. Org 10 is using the overlaps endpoint. Org 11\n  ; has two pops -- at least 1 record is. Subsequent call to\n  ; overlaps endpoint returns:\n  ;  o this\n  ;  o is\n  ;  o a\n  ;  o test\n  (stuff and bother))"
+(zprint-str i297s {:parse-string? true}))
+
+(expect
+"(deftest all-overlaps-when-sharing-rules-change-test--multiple-pops\n  ;; test scenario\n  ; Org 1 is using the overlaps endpoint.\n  ; Org 2 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 3 is using the overlaps endpoint.\n  ; Org 4 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 5 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 6 is using the overlaps endpoint.\n  ; Org 7 is using the overlaps endpoint.\n  ; Org 8 is using the overlaps endpoint.\n  ; Org 9 is using the overlaps endpoint.\n  ; Org 10 is using the overlaps endpoint.\n  ; Org 11 has two pops -- at least 1 record is\n  ; Subsequent call to\n  ; overlaps endpoint returns:\n  ;  o this\n  ;  o is\n  ;  o a\n  ;  o test\n  (stuff and bother))"
+(zprint-str i297s {:parse-string? true :style :minimal-smart-wrap}))
+
+(expect
+"(deftest all-overlaps-when-sharing-rules-change-test--multiple-pops\n  ;; test scenario\n  ; Org 1 is using the overlaps endpoint.\n  ; Org 2 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 3 is using the overlaps endpoint.\n  ; Org 4 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 5 a lot longer and uses many more characters the overlaps endpoint.\n  ; Org 6 is using the overlaps endpoint.\n  ; Org 7 is using the overlaps endpoint.\n  ; Org 8 is using the overlaps endpoint.\n  ; Org 9 is using the overlaps endpoint.\n  ; Org 10 is using the overlaps endpoint.\n  ; Org 11 has two pops -- at least 1 record is. Subsequent call to\n  ; overlaps endpoint returns:\n  ;  o this\n  ;  o is\n  ;  o a\n  ;  o test\n  (stuff and bother))"
+(zprint-str i297s {:parse-string? true :style :sentence-smart-wrap}))
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

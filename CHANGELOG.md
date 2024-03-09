@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.2.9 - 2024-2-28
+## 1.2.9 - 2024-3-10
 
 ### Added
 
@@ -79,6 +79,12 @@ All notable changes to this project will be documented in this file.
   previously.  You may instead want to figure out how to get the
   benefit of actually applying that style by correcting the error,
   since that was probably the original intent.  Issue #311.
+
+  * The style `:minimal-smart-wrap` added in `1.2.5` had a problem
+  where it wouldn't properly deal with single lines ending in a period.
+  It also didn't recognize lines ending in a period if it wasn't preceded
+  by two lower-case characters.  Both of these problems are now fixed.
+  Issue #297.
 
 ## 1.2.8 - 2023-09-14
 

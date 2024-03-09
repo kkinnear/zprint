@@ -3687,8 +3687,16 @@ minimize the wrapping that it will do when processing a file.  There
 is a style called `:minimal-smart-wrap` which will configure it to make
 minimal changes but will also still fix up problems like those above.
 Minimal smart wrap will flow words from one line to the next less
-frequently, and will never flow words back up onto a line ending into
-several lowercase letters and terminated by a period.
+frequently, and will never flow words back up onto a line terminated 
+by a period.
+
+There is a less severe version of `:minimal-smart-wrap` called 
+`:sentence-smart-wrap` which is identical to normal (default) smart-wrap,
+but which will not flow things back up to a line terminated by a period.
+Since a line ending with a period terminates the "comment group", each
+series of lines where the final line ends in a period becomes a separate
+comment group and is handled independently.  Which may be more to your
+liking, particularly if you haven't already used smart wrap before.
 
 Note that all comment wrapping (including smart-wrap) is performed after
 all of the formatting of any code.  Comment wrapping is thus independent of

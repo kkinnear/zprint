@@ -1,11 +1,12 @@
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns ^:no-doc zprint.spec
   #?@(:cljs [[:require-macros [zprint.smacros :refer [only-keys]]]])
-  (:require clojure.string
-            [clojure.walk :refer [prewalk]]
-            [zprint.ansi :refer [ansi-codes]]
-            #?@(:clj [[zprint.smacros :refer [only-keys]]
-                      [clojure.spec.alpha :as s]]
-                :cljs [[cljs.spec.alpha :as s]])))
+  (:require
+    clojure.string
+    [clojure.walk :refer [prewalk]]
+    [zprint.ansi  :refer [ansi-codes]]
+    #?@(:clj [[zprint.smacros :refer [only-keys]] [clojure.spec.alpha :as s]]
+        :cljs [[cljs.spec.alpha :as s]])))
 
 ;;
 ;; # Compatibility
@@ -353,7 +354,7 @@
 (s/def :alt/comment
   (only-keys :opt-un [::count? ::wrap? ::inline? ::inline-align-style
                       ::smart-wrap? ::smart-wrap ::border
-		      ::min-space-after-semi]))
+                      ::min-space-after-semi]))
 (s/def ::color? ::boolean)
 (s/def ::configured? ::boolean)
 (s/def ::cwd-zprintrc? ::boolean)
@@ -430,7 +431,7 @@
 (s/def ::meta (only-keys :opt-un [::split?]))
 
 (s/def ::modify-sexpr-value (s/tuple (s/nilable fn?) (s/nilable ::options)))
-(s/def ::modify-sexpr-by-type 
+(s/def ::modify-sexpr-by-type
   (s/nilable (s/map-of string? ::modify-sexpr-value)))
 
 #_(s/def ::modify-sexpr-by-type (s/nilable map?))
@@ -526,27 +527,27 @@
 ;;
 
 (s/def ::options
-  (only-keys
-    :opt-un [::agent ::array ::atom ::binding ::cache ::call-stack ::color?
-             ::color-map :alt/comment ::configured? ::dbg? ::dbg-s ::dbg-local?
-             ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge ::delay
-             ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
-             ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
-             ::force-eol-blanks? ::format ::future ::indent ::input ::list ::map
-             ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
-             ::max-hang-span ::max-length ::object ::old? ::output ::pair
-             ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
-             ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
-             ::record ::remove ::next-inner ::return-cvec? ::search-config?
-             ::set ::spaces? ::script ::spec ::style ::styles-applied
-             ::style-map ::tab ::test-for-eol-blanks? ::trim-comments? ::tuning
-             :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
-             ::url ::zipper? ::guide ::guide-debug ::no-validate?
-             ::force-validate? ::doc ::next-inner-restore ::fn-style
-             ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
-             ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
-             ::tagged-literal #_::memoize? ::remove-final-keys
-	     ::modify-sexpr-by-type]))
+  (only-keys :opt-un
+               [::agent ::array ::atom ::binding ::cache ::call-stack ::color?
+                ::color-map :alt/comment ::configured? ::dbg? ::dbg-s
+                ::dbg-local? ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge
+                ::delay ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
+                ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
+                ::force-eol-blanks? ::format ::future ::indent ::input ::list
+                ::map ::max-depth ::max-depth-string ::max-hang-count
+                ::max-hang-depth ::max-hang-span ::max-length ::object ::old?
+                ::output ::pair ::pair-fn ::parallel? ::parse
+                ::parse-string-all? ::parse-string? ::perf-vs-format
+                ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
+                ::next-inner ::return-cvec? ::search-config? ::set ::spaces?
+                ::script ::spec ::style ::styles-applied ::style-map ::tab
+                ::test-for-eol-blanks? ::trim-comments? ::tuning :alt/uneval
+                ::user-fn-map ::vector ::vector-fn ::version ::width ::url
+                ::zipper? ::guide ::guide-debug ::no-validate? ::force-validate?
+                ::doc ::next-inner-restore ::fn-style ::!zprint-elide-skip-next?
+                ::meta ::fn-str ::fn-type-map ::new-zloc ::new-l-str ::new-r-str
+                ::option-fn-map ::alt? ::one-line-ok? ::tagged-literal
+                #_::memoize? ::remove-final-keys ::modify-sexpr-by-type]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

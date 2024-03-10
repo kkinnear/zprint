@@ -1,10 +1,12 @@
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns ^:no-doc zprint.range
-  (:require [clojure.string :as s]
-            [zprint.util :refer [local-abs]]
-            [zprint.config]
-            [rewrite-clj.parser :as p]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z]))
+  (:require
+    [clojure.string     :as s]
+    [zprint.config]
+    [zprint.util        :refer [local-abs]]
+    [rewrite-clj.node   :as n]
+    [rewrite-clj.parser :as p]
+    [rewrite-clj.zip    :as z]))
 
 ;;
 ;; # Handle range specification

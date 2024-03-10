@@ -1,8 +1,10 @@
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns ^:no-doc zprint.finish
-  (:require [clojure.string :as s]
-            [zprint.ansi :refer [color-str]]
-            [zprint.hiccup :refer [hiccup-color-str]]
-            [zprint.focus :refer [type-ssv range-ssv]]))
+  (:require
+    [clojure.string :as s]
+    [zprint.ansi    :refer [color-str]]
+    [zprint.focus   :refer [range-ssv type-ssv]]
+    [zprint.hiccup  :refer [hiccup-color-str]]))
 
 ;;
 ;; # Process results from fzprint*

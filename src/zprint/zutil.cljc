@@ -1,4 +1,4 @@
-;!zprint {:style :require-justify}
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns ^:no-doc zprint.zutil
   (:require
     #?@(:bb []
@@ -6,13 +6,12 @@
     clojure.string
     zprint.zfns
     #?@(:clj [[zprint.redef]])
-    [rewrite-clj.parser :as p]
     [rewrite-clj.node   :as n]
+    [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
-                        :refer [down* up* right* left* next* prev* replace*
-                                insert-right* of-node* sexpr string tag skip
-                                whitespace-or-comment? length rightmost?
-                                leftmost?]]))
+                        :refer [down* insert-right* left* leftmost? length next*
+                                of-node* prev* replace* right* rightmost? sexpr
+                                skip string tag up* whitespace-or-comment?]]))
 
 ;;
 ;; # Zipper oriented style printers

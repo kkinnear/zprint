@@ -1,12 +1,11 @@
-;!zprint {:style :require-justify}
+;!zprint {:style [:sort-require :require-justify]}
 (ns ^:no-doc zprint.main
   (:require ;[clojure.string :as str]
-    [zprint.core   :refer [zprint-str czprint zprint-file-str set-options!
-                           load-options!]]
-    [zprint.config :refer [get-options get-explained-options
-                           get-explained-set-options config-and-validate-all
-                           select-op-options vec-str-to-str merge-deep
-                           sci-load-string]])
+    [zprint.config :refer [config-and-validate-all get-explained-options
+                           get-explained-set-options get-options merge-deep
+                           sci-load-string select-op-options vec-str-to-str]]
+    [zprint.core   :refer [czprint load-options! set-options! zprint-file-str
+                           zprint-str]])
   #?(:clj (:gen-class)))
 
 

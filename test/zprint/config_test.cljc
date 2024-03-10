@@ -8,13 +8,14 @@
     #?(:clj [clojure.edn :as edn])
     #?(:clj [clojure.java.io :as io])
     #?(:clj [clojure.string :as str])
-    [zprint.core        :refer [set-options! zprint-str load-options!]]
-    [zprint.config      :refer [get-options get-explained-all-options only-set]]
-    [rewrite-clj.parser :as    p
-                        :refer [parse-string parse-string-all]]
-    [rewrite-clj.node   :as n]
-    [rewrite-clj.zip    :as    z
-                        :refer [edn*]])
+    [zprint.core               :refer [set-options! zprint-str load-options!]]
+    [zprint.config             :refer [get-options get-explained-all-options
+                                       only-set]]
+    [rewrite-clj.parser        :as    p
+                               :refer [parse-string parse-string-all]]
+    [rewrite-clj.node          :as n]
+    [rewrite-clj.zip           :as    z
+                               :refer [edn*]])
   #?(:bb (:import)
      :clj (:import (com.sun.net.httpserver HttpHandler HttpServer)
                    (java.net InetSocketAddress)
@@ -889,28 +890,28 @@
   ;
   ; Issue #217
 
-(expect
-  (more-of options
-    [:flow {:style :jimportguide, :pair {:justify {:max-variance 1000}}}]
-      (get (:fn-map options) ":import")
-    [:flow {:style :jrequireguide, :pair {:justify {:max-variance 20}}}]
-      (get (:fn-map options) ":require")
-    [:flow {:style :jrequiremacrosguide, :pair {:justify {:max-variance 20}}}]
-      (get (:fn-map options) ":require-macros")
-    0 (:indent (:map options))
-    true (:nl-separator? (:map options))
-    {:doc "style :a", :style [:map-nl :keyword-respect-nl]} (:a (:style-map
-                                                                  options)))
-  (with-redefs [zprint.config/configured-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-options
-                  (atom zprint.config/default-zprint-options)
-                zprint.config/explained-sequence (atom 1)
-                zprint.config/write-options? (atom nil)]
-    (set-options! {:style [:a :ns-justify],
-                   :style-map {:a {:doc "style :a",
-                                   :style [:map-nl :keyword-respect-nl]}}})
-    (get-options)))
+  (expect
+    (more-of options
+      [:flow {:style :jimportguide, :pair {:justify {:max-variance 1000}}}]
+        (get (:fn-map options) ":import")
+      [:flow {:style :jrequireguide, :pair {:justify {:max-variance 20}}}]
+        (get (:fn-map options) ":require")
+      [:flow {:style :jrequiremacrosguide, :pair {:justify {:max-variance 20}}}]
+        (get (:fn-map options) ":require-macros")
+      0 (:indent (:map options))
+      true (:nl-separator? (:map options))
+      {:doc "style :a", :style [:map-nl :keyword-respect-nl]} (:a (:style-map
+                                                                    options)))
+    (with-redefs [zprint.config/configured-options
+                    (atom zprint.config/default-zprint-options)
+                  zprint.config/explained-options
+                    (atom zprint.config/default-zprint-options)
+                  zprint.config/explained-sequence (atom 1)
+                  zprint.config/write-options? (atom nil)]
+      (set-options! {:style [:a :ns-justify],
+                     :style-map {:a {:doc "style :a",
+                                     :style [:map-nl :keyword-respect-nl]}}})
+      (get-options)))
 
 
   ;
@@ -1115,25 +1116,25 @@
                                                        {}))}}}))
 
 
-(expect "Option errors in this call:  Style ':junk' not found!"
-        (try (zprint-str "(test)"
-                         {:parse-string? true, :style [:junk :respect-bl]})
-             (catch #?(:clj Exception
-                       :cljs :default)
-               e
-               (re-find #"Option errors in this call:  Style ':junk' not found!"
-                        (str e)))))
+  (expect
+    "Option errors in this call:  Style ':junk' not found!"
+    (try (zprint-str "(test)" {:parse-string? true, :style [:junk :respect-bl]})
+         (catch #?(:clj Exception
+                   :cljs :default)
+           e
+           (re-find #"Option errors in this call:  Style ':junk' not found!"
+                    (str e)))))
 
-(expect
-  "Option errors in this call:  Style ':junk' not found!, Style ':stuff' not found!"
-  (try
-    (zprint-str "(test)" {:parse-string? true, :style [:junk :stuff]})
-    (catch #?(:clj Exception
-              :cljs :default)
-      e
-      (re-find
-        #"Option errors in this call:  Style ':junk' not found!, Style ':stuff' not found!"
-        (str e)))))
+  (expect
+    "Option errors in this call:  Style ':junk' not found!, Style ':stuff' not found!"
+    (try
+      (zprint-str "(test)" {:parse-string? true, :style [:junk :stuff]})
+      (catch #?(:clj Exception
+                :cljs :default)
+        e
+        (re-find
+          #"Option errors in this call:  Style ':junk' not found!, Style ':stuff' not found!"
+          (str e)))))
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

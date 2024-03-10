@@ -1,4 +1,4 @@
-;!zprint {:style :require-justify}
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns ^:no-doc zprint.zprint
   #?@(:cljs [[:require-macros
               [zprint.macros :refer
@@ -7,32 +7,33 @@
     #?@(:clj [[zprint.macros :refer
                [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
     [clojure.string     :as s]
-    [zprint.finish      :refer [newline-vec]]
-    [zprint.zfns        :refer
-                          [zstring znumstr zbyte-array? zcomment? zsexpr zseqnws
-                           zseqnws-w-nl zfocus-style zstart zfirst zfirst-sexpr
-                           zsecond znthnext zcount zmap zanonfn? zfn-obj? zfocus
-                           zfind-path zwhitespace? zlist? zcount-zloc-seq-nc-nws
-                           zvector? zmap? zset? zcoll? zuneval? zmeta? ztag
-                           zlast zarray? zatom? zderef zrecord? zns? zobj-to-vec
-                           zexpandarray znewline? zwhitespaceorcomment? zmap-all
-                           zmap-all-nl-comment zpromise? zfuture? zdelay?
-                           zkeyword? zconstant? zagent? zreader-macro?
-                           zarray-to-shift-seq zdotdotdot zsymbol? znil?
-                           zreader-cond-w-symbol? zreader-cond-w-coll? zlift-ns
-                           zfind zmap-w-nl zmap-w-nl-comma ztake-append
-                           znextnws-w-nl znextnws znamespacedmap? zmap-w-bl
-                           zseqnws-w-bl zsexpr? zmap-no-comment zfn-map 
-			   zreader-macro-splicing? zcount-nc]]
-    [zprint.comment     :refer [blanks inlinecomment? length-before]]
     [zprint.ansi        :refer [color-str]]
-    [zprint.config      :refer [validate-options merge-deep]]
-    [zprint.zutil       :refer [add-spec-to-docstring]]
-    [zprint.util        :refer [column-width-variance median mean percent-gt-n]]
+    [zprint.comment     :refer [blanks inlinecomment? length-before]]
+    [zprint.config      :refer [merge-deep validate-options]]
+    [zprint.finish      :refer [newline-vec]]
     [zprint.optionfn    :refer [rodfn]]
+    [zprint.util        :refer [column-width-variance mean median percent-gt-n]]
+    [zprint.zfns        :refer [zagent? zanonfn? zarray-to-shift-seq zarray?
+                                zatom? zbyte-array? zcoll? zcomment? zconstant?
+                                zcount zcount-nc zcount-zloc-seq-nc-nws zdelay?
+                                zderef zdotdotdot zexpandarray zfind zfind-path
+                                zfirst zfirst-sexpr zfn-map zfn-obj? zfocus
+                                zfocus-style zfuture? zkeyword? zlast zlift-ns
+                                zlist? zmap zmap-all zmap-all-nl-comment
+                                zmap-no-comment zmap-w-bl zmap-w-nl
+                                zmap-w-nl-comma zmap? zmeta? znamespacedmap?
+                                znewline? znextnws znextnws-w-nl znil? zns?
+                                znthnext znumstr zobj-to-vec zpromise?
+                                zreader-cond-w-coll? zreader-cond-w-symbol?
+                                zreader-macro-splicing? zreader-macro? zrecord?
+                                zsecond zseqnws zseqnws-w-bl zseqnws-w-nl zset?
+                                zsexpr zsexpr? zstart zstring zsymbol? ztag
+                                ztake-append zuneval? zvector? zwhitespace?
+                                zwhitespaceorcomment?]]
+    [zprint.zutil       :refer [add-spec-to-docstring]]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
-                        :refer [of-node* tag right* down*]]
+                        :refer [down* of-node* right* tag]]
     #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 #_(tufte/add-basic-println-handler! {})
@@ -187,7 +188,7 @@
                   :l-str l-str
                   :r-str r-str
                   :caller caller
-		  :ind ind)
+                  :ind ind)
         _ (dbg-s options
                  #{:call-option-fn}
                  "call-option-fn: caller:" caller
@@ -974,9 +975,9 @@
      (let [str-key (str->key key-or-str)]
        (color-map (if (keyword? key-or-str)
                     key-or-str
-		    ; If we have a mapping in str->key, use that else
-		    ; use the what (which should be either :left or
-		    ; :right).
+                    ; If we have a mapping in str->key, use that else
+                    ; use the what (which should be either :left or
+                    ; :right).
                     (if str-key str-key what)
                     #_(str->key key-or-str))))
      :none))
@@ -1069,8 +1070,8 @@
   (cond (zlist? zloc) ["(" ")"]
         (zvector? zloc) ["[" "]"]
         (zset? zloc) ["#{" "}"]
-	(zmap? zloc) ["{" "}"]
-	:else ["?" "?"]))
+        (zmap? zloc) ["{" "}"]
+        :else ["?" "?"]))
 
 (declare id-splicing-pairs?)
 
@@ -1385,15 +1386,18 @@
                                        ; config-and-validate to use
                                        ; next-inner-restore
                                        ;    :next-inner-restore
-                                       ;      [[:reader-cond :splicing-pair?]]
-                                       ; Restore :splicing-pair? when next we
-                                       ; transit fzprint*.  Can't use
-                                       ; :next-inner-restore because we aren't
-                                       ; calling config-and-validate.
-                                       ; Without this, splicing things that are
-                                       ; not supposed to be in pairs get done in
-                                       ; pairs if they are inside of things that
-                                       ; are being done in pairs.
+                                       ;      [[:reader-cond
+                                       ;      :splicing-pair?]]
+                                       ; Restore :splicing-pair? when next
+                                       ; we transit fzprint*.  Can't use
+                                       ; :next-inner-restore because we
+                                       ; aren't calling
+                                       ; config-and-validate. Without this,
+                                       ; splicing things that are not
+                                       ; supposed to be in pairs get done
+                                       ; in pairs if they are inside of
+                                       ; things that are being done in
+                                       ; pairs.
                                        :next-inner {:reader-cond
                                                       {:splicing-pair?
                                                          ; Current value of
@@ -1475,11 +1479,12 @@
                    "better-cond?" better-cond?
                    " pair:" (mapv (comp pr-str zstring) pair))
             ; The reason why this code is here, and the check for zvector?
-            ; rloc is there below (and not here), is because for things that
-            ; are not followed by a vector, the code will pair them up and
-            ; try to hang them even when :pair {:flow? true} is set.  Otherwise
-            ; they will be flowed along with the data, and that seems to not
-            ; have been a desired outcome when this was first written.
+            ; rloc is there below (and not here), is because for things
+            ; that are not followed by a vector, the code will pair them up
+            ; and try to hang them even when :pair {:flow? true} is set.
+            ; Otherwise they will be flowed along with the data, and that
+            ; seems to not have been a desired outcome when this was first
+            ; written.
             (if (or better-cond? splicing-pairs?)
               (if (or (zvector? (last pair)) splicing-pairs?)
                 ; This is an embedded :let or :when-let or something. We
@@ -2142,9 +2147,10 @@
     :keys [width rightcnt one-line? parallel?],
     :as options} ind commas? coll]
   ; Make coll a vector, since fzprint-two-up-pass requires that
-  #_(dbg-s options #{:justify} "fzprint-map-two-up: coll:"
-                       (mapv #(vector (count %) (mapv (comp pr-str zstring) %))
-                         coll))
+  #_(dbg-s options
+           #{:justify}
+           "fzprint-map-two-up: coll:"
+           (mapv #(vector (count %) (mapv (comp pr-str zstring) %)) coll))
   (let [coll (into [] coll)
         len (count coll)]
     ; If it is one-line? and force-nl? and there is more than one thing,
@@ -2414,28 +2420,29 @@
                     zprint.zutil/zrightnwsnc)]
       (if-not (zcoll? ncoll)
         nil
-	; Move down into the collection of the reader-cond
+        ; Move down into the collection of the reader-cond
         (loop [nloc (z/down ncoll)
                index 1
                out? nil]
           #_(prn "id-splicing-pairs? zloc:"
-               #_(zstring zloc)
-               nil
-               "nloc:" (zstring nloc)
-	       "meta:" (meta nloc)
-               "index:" index
-               "out?" out?)
+                 #_(zstring zloc)
+                 nil
+                 "nloc:" (zstring nloc)
+                 "meta:" (meta nloc)
+                 "index:" index
+                 "out?" out?)
           (cond (nil? nloc) out?
                 ; zrightnws doesn't skip comments
                 (zcomment? nloc)
                   (recur (zprint.zutil/zrightnwsnc nloc) index out?)
-                :else (if (odd? index)
-                        ; index is odd, don't examine this one
-                        (recur (zprint.zutil/zrightnwsnc nloc) (inc index) out?)
-                        (if (and (zcoll? nloc) (even? (zcount-nc nloc)))
-                          (recur (zprint.zutil/zrightnwsnc nloc) (inc index) true)
-                          nil))))))))
-	               
+                :else
+                  (if (odd? index)
+                    ; index is odd, don't examine this one
+                    (recur (zprint.zutil/zrightnwsnc nloc) (inc index) out?)
+                    (if (and (zcoll? nloc) (even? (zcount-nc nloc)))
+                      (recur (zprint.zutil/zrightnwsnc nloc) (inc index) true)
+                      nil))))))))
+
 (defn pair-element?
   "This checks to see if an element should be considered part of a
   pair if it comes between other elements, and a single element on
@@ -2754,47 +2761,53 @@
 (defn fzprint-binding-vec
   ([options ind zloc] (fzprint-binding-vec "[" "]" options ind zloc))
   ([l-str r-str {{:keys [nl-separator?]} :binding, :as options} ind zloc]
-  (dbg-s options #{:binding} "fzprint-binding-vec:" "l-str" (pr-str l-str) "r-str" (pr-str r-str) "ind:" ind "zloc:" (zstring (zfirst zloc)))
-  (let [options (rightmost options)
-        l-str-vec (lstr-vec options l-str) 
-        r-str-vec (rstr-vec options ind r-str)]
-    (dbg-form options
-              "fzprint-binding-vec exit:"
-              (if (= (zcount zloc) 0)
-                (concat-no-nil l-str-vec r-str-vec)
-                (concat-no-nil
-                  l-str-vec
-                  (interpose-nl-hf
-                    (:binding options)
-                    (inc ind)
-                    (fzprint-map-two-up
-                      :binding
-                      options
-                      (inc ind)
-                      false
-                      (second
-                        (partition-all-2-nc
-                          :binding
-                          options
-                          ; This is controlled by the :vector config
-                          ; options, because if we added it to the
-                          ; :binding option, it would not work because
-                          ; the fzprint-list* one line testing doesn't
-                          ; know it is a binding vector, it thinks
-                          ; that it is just a vector.  Alternatively
-                          ; we could probably notice that we were in
-                          ; a :binding fn-type, and force :vector
-                          ; :respect-nl? to be the same as :binding
-                          ; :respect-nl? for the one-line test.  Which
-                          ; would fail if there were some other vector
-                          ; with newlines in it that wasn't the
-                          ; binding vector.  Ultimately this is because
-                          ; :respect-nl? (and :respect-bl?) are only
-                          ; defined for vectors, maps, lists and sets,
-                          ; and that is implemented by changing what
-                          ; gets returned as a zloc-seq.
-                          (fzprint-get-zloc-seq :vector options zloc)))))
-                  r-str-vec))))))
+   (dbg-s options
+          #{:binding}
+          "fzprint-binding-vec:"
+          "l-str" (pr-str l-str)
+          "r-str" (pr-str r-str)
+          "ind:" ind
+          "zloc:" (zstring (zfirst zloc)))
+   (let [options (rightmost options)
+         l-str-vec (lstr-vec options l-str)
+         r-str-vec (rstr-vec options ind r-str)]
+     (dbg-form options
+               "fzprint-binding-vec exit:"
+               (if (= (zcount zloc) 0)
+                 (concat-no-nil l-str-vec r-str-vec)
+                 (concat-no-nil
+                   l-str-vec
+                   (interpose-nl-hf
+                     (:binding options)
+                     (inc ind)
+                     (fzprint-map-two-up
+                       :binding
+                       options
+                       (inc ind)
+                       false
+                       (second
+                         (partition-all-2-nc
+                           :binding
+                           options
+                           ; This is controlled by the :vector config
+                           ; options, because if we added it to the
+                           ; :binding option, it would not work because
+                           ; the fzprint-list* one line testing doesn't
+                           ; know it is a binding vector, it thinks
+                           ; that it is just a vector.  Alternatively
+                           ; we could probably notice that we were in
+                           ; a :binding fn-type, and force :vector
+                           ; :respect-nl? to be the same as :binding
+                           ; :respect-nl? for the one-line test.  Which
+                           ; would fail if there were some other vector
+                           ; with newlines in it that wasn't the
+                           ; binding vector.  Ultimately this is because
+                           ; :respect-nl? (and :respect-bl?) are only
+                           ; defined for vectors, maps, lists and sets,
+                           ; and that is implemented by changing what
+                           ; gets returned as a zloc-seq.
+                           (fzprint-get-zloc-seq :vector options zloc)))))
+                   r-str-vec))))))
 
 (defn fzprint-hang
   "Try to hang something and try to flow it, and then see which is
@@ -4819,7 +4832,7 @@
              (if (and new-option-fn (not= option-fn new-option-fn))
                (fn-style+option-fn caller
                                    options
-				   ind
+                                   ind
                                    fn-style
                                    zloc
                                    l-str
@@ -4944,9 +4957,9 @@
           vector-fn-style? (vector? fn-style)
           ; After this, it isn't a vector any more... Note that changed?
           ; refers only zloc, l-str, or r-str!!
-	  ;
-	  ; Call any option-fn
-	  ;
+          ;
+          ; Call any option-fn
+          ;
           [options fn-style zloc l-str r-str changed?]
             (fn-style+option-fn caller options ind fn-style zloc l-str r-str)
           ; recalculate necessary information
@@ -5130,10 +5143,9 @@
               options)
           loptions (not-rightmost options)
           roptions options
-          l-str-vec (lstr-vec options l-str) 
+          l-str-vec (lstr-vec options l-str)
           ; Fudge the ind a bit for r-str-vec for anon fns: #()
-          r-str-vec
-            (rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
+          r-str-vec (rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
           _ (dbg-pr
               options
               "fzprint-list*:" (zstring zloc)
@@ -5272,7 +5284,6 @@
                            ; over from when a zloc was passed down and not
                            ; a zloc-seq?
                            (fzprint-hang options
-
                                          #_(assoc-in options
                                              [:pair :respect-nl?]
                                              (:respect-nl? (caller options)))
@@ -5805,10 +5816,10 @@
                   ; of the next element, so we handle rightcnt correctly
                   original-len len
                   [len ^long index] (if next-len
-                                ; Add the lengths together, and also one
-                                ; for the space
-                                [(+ len next-len 1) (inc index)]
-                                [len index])
+                                      ; Add the lengths together, and also
+                                      ; one for the space
+                                      [(+ len next-len 1) (inc index)]
+                                      [len index])
                   newline? (= (nth (first this-seq) 2) :newline)
                   comment?
                     (if respect-nl? nil (= (nth (first this-seq) 2) :comment))
@@ -7500,9 +7511,8 @@
                 [options zloc l-str r-str])
             ; Do this after call-option-fn in case anything changed.
             l-str-len (count l-str)
-            l-str-vec (lstr-vec options l-str) 
-            r-str-vec
-              (rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
+            l-str-vec (lstr-vec options l-str)
+            r-str-vec (rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
             len (zcount zloc)
             #_(when option-fn
                 (dbg-pr options
@@ -8030,7 +8040,7 @@
         (let [options (assoc options :map-depth (inc map-depth))
               ; Put a namespaced map back together
               l-str (if ns (str "#" ns l-str) l-str)
-              l-str-vec (lstr-vec options l-str) 
+              l-str-vec (lstr-vec options l-str)
               r-str-vec (rstr-vec options ind r-str)]
           (if (zero? (zcount zloc))
             (concat-no-nil l-str-vec r-str-vec)
@@ -8256,21 +8266,19 @@
                        :agent "Agent@")
             arg-1 (str type-str (hash-identity-str zloc))
             #?@(:bb [_ nil]
-                :clj [arg-1
-                      (if (and (= zloc-type :agent) (agent-error zloc))
-                        (str arg-1 " FAILED")
-                        arg-1)])
-              arg-1-indent
-            (+ ind indent 1 (count arg-1)) zloc-realized?
-            (if (= zloc-type :agent) true (realized? zloc)) value
-            (if zloc-realized?
-              (zderef zloc)
-              (case zloc-type
-                :future "pending"
-                :promise "not-delivered"
-                :delay "pending"))
-              options
-            (if zloc-realized? options (assoc options :string-str? true))]
+                :clj [arg-1 (if (and (= zloc-type :agent) (agent-error zloc))
+                              (str arg-1 " FAILED")
+                              arg-1)])
+            arg-1-indent (+ ind indent 1 (count arg-1))
+            zloc-realized? (if (= zloc-type :agent) true (realized? zloc))
+            value (if zloc-realized?
+                    (zderef zloc)
+                    (case zloc-type
+                      :future "pending"
+                      :promise "not-delivered"
+                      :delay "pending"))
+            options
+              (if zloc-realized? options (assoc options :string-str? true))]
         (dbg-pr options
                 "fzprint-fpda: arg-1:" arg-1
                 "zstring arg-1:" (zstring zloc))
@@ -8301,19 +8309,20 @@
           class-str (pr-str #?(:clj (class zloc)
                                :cljs (type zloc)))
           #?@(:clj [[class-name & more]
-                    (s/split (s/replace-first class-str #"\$" "/") #"\$") color
-                    (if (re-find #"clojure" class-name)
-                      (zcolor-map options :fn)
-                      :none) arg-2 (str class-name (when more "[fn]"))]
-              :cljs [name-js (str (.-name zloc)) color
-                     (if (or (re-find #"^clojure" name-js)
-                             (re-find #"^cljs" name-js))
-                       (zcolor-map options :fn)
-                       :none) name-split (clojure.string/split name-js #"\$")
-                     arg-2
-                     (str (apply str (interpose "." (butlast name-split)))
-                          "/"
-                          (last name-split))])]
+                      (s/split (s/replace-first class-str #"\$" "/") #"\$")
+                    color (if (re-find #"clojure" class-name)
+                            (zcolor-map options :fn)
+                            :none)
+                    arg-2 (str class-name (when more "[fn]"))]
+              :cljs [name-js (str (.-name zloc))
+                     color (if (or (re-find #"^clojure" name-js)
+                                   (re-find #"^cljs" name-js))
+                             (zcolor-map options :fn)
+                             :none)
+                     name-split (clojure.string/split name-js #"\$")
+                     arg-2 (str (apply str (interpose "." (butlast name-split)))
+                                "/"
+                                (last name-split))])]
       (dbg-pr options
               "fzprint-fn-obj: arg-1:"
               arg-1-left
@@ -8481,11 +8490,11 @@
         ; well.
         namespaced? (= (subs zstr 0 1) ":")
         at? (or (= (ztag (zsecond zloc)) :deref) alt-at?)
-	options (if (:splicing-pair? (:reader-cond options))
-	            (if at? 
-		      options
-		      (assoc-in options [:reader-cond :splicing-pair?] false))
-		    options)
+        options (if (:splicing-pair? (:reader-cond options))
+                  (if at?
+                    options
+                    (assoc-in options [:reader-cond :splicing-pair?] false))
+                  options)
         ; If :reader-cond doesn't have these things, then let :map govern
         [respect-nl? respect-bl? indent-only?]
           (get-respect-indent options :reader-cond :map)
@@ -8515,9 +8524,10 @@
             "floc:" (zstring floc)
             "l-str:" l-str
             "reader-cond?" reader-cond?)
-    (dbg-s options #{:reader-cond}
-      "fzprint-reader-macro splicing-pair?:" 
-        (:splicing-pair? (:reader-cond options)))
+    (dbg-s options
+           #{:reader-cond}
+           "fzprint-reader-macro splicing-pair?:"
+           (:splicing-pair? (:reader-cond options)))
     ; This isn't really all that correct, but does yield the right output.
     ; Question about whether or not it does the right stuff for focus.
     ; Maybe there is some way to call fzprint-indent with just the
@@ -8578,12 +8588,12 @@
                         nil)
           ; not reader-cond?
           (fzprint-pairs options
-			 ; If we have :indent 0 by default, then if the RHS
-			 ; of the pair flows, it will be one space past the
-			 ; # because that is "where we are" on the line.  If
-			 ; you want to not have any spaces there, then specify
-			 ; an :indent -1, which moves us to the left of "where
-			 ; we are" on the line.
+                         ; If we have :indent 0 by default, then if the RHS
+                         ; of the pair flows, it will be one space past the
+                         ; # because that is "where we are" on the line.
+                         ; If you want to not have any spaces there, then
+                         ; specify an :indent -1, which moves us to the
+                         ; left of "where we are" on the line.
                          (+ indent ind)
                          (let [zloc-seq
                                  (cond respect-nl? (zmap-w-nl identity zloc)
@@ -9022,12 +9032,8 @@
                               ; Add a map of zfns to the options for use
                               ; by guides that need them.
                               :zfn-map (assoc (zfn-map)
-              :fzprint-up-to-first-zloc fzprint-up-to-first-zloc
-			           
-			      )
-			                  
-			      )
-
+                                         :fzprint-up-to-first-zloc
+                                           fzprint-up-to-first-zloc))
                             indent
                             zloc)]
     #_(def fsv style-vec)

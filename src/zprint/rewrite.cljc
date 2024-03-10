@@ -1,15 +1,19 @@
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns zprint.rewrite
   #?@(:cljs [[:require-macros
               [zprint.macros :refer
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
-  (:require #?@(:clj [[zprint.macros :refer
-                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-            clojure.string
-            [zprint.util :refer [local-abs]]
-            [zprint.zutil :as zu :refer [zreplace]]
-            [rewrite-clj.parser :as p]
-            [rewrite-clj.node :as n]
-            [rewrite-clj.zip :as z :refer [string tag sexpr of-node*]]))
+  (:require
+    #?@(:clj [[zprint.macros :refer
+               [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+    clojure.string
+    [zprint.util        :refer [local-abs]]
+    [zprint.zutil       :as    zu
+                        :refer [zreplace]]
+    [rewrite-clj.node   :as n]
+    [rewrite-clj.parser :as p]
+    [rewrite-clj.zip    :as    z
+                        :refer [of-node* sexpr string tag]]))
 
 ;;
 ;; No prewalk in rewrite-cljs, so we'll do it ourselves here
@@ -61,8 +65,8 @@
     (if-not nloc
       ""
       (if (= (z/tag nloc) :token)
-	; This will put reader-conditionals where they "go" for the thing
-	; inside.
+        ; This will put reader-conditionals where they "go" for the thing
+        ; inside.
         (if (= (str (z/sexpr nloc)) "?@")
           (recur (z/right (z/down (z/right nloc))))
           (str (z/string nloc)))
@@ -74,10 +78,7 @@
   [zloc]
   (when zloc (= (z/tag zloc) :reader-macro)))
 
-(defn ^:no-doc no-skip?
-  "Don't skip something."
-  [zloc]
-  nil)
+(defn ^:no-doc no-skip? "Don't skip something." [zloc] nil)
 
 (defn ^:no-doc right-fn
   "Get the next thing to the right that might be sortable."
@@ -142,9 +143,9 @@
                 #_(println "sort-val: loop: replaced-loc n/tag:"
                            (n/tag (z/node replaced-loc)))
                 ; Why isn't this (z/right nloc)?  Because after modifying a
-                ; zipper, the thing you have is the only thing that contains
-                ; the modification, so you have to work with that else you
-                ; lose what you did.
+                ; zipper, the thing you have is the only thing that
+                ; contains the modification, so you have to work with that
+                ; else you lose what you did.
                 (recur (right-fn skip-fn? replaced-loc)
                        (next new-loc)
                        replaced-loc))
@@ -209,9 +210,7 @@
   "Given a regex, see if it is a match with this string.  If it is, return
   i as the end of the reduce, else increment i."
   [s i regex]
-  (if (re-find regex s)
-    (reduced i)
-    (inc i)))
+  (if (re-find regex s) (reduced i) (inc i)))
 
 (defn ^:no-doc try-regex-on-zloc
   "Given a vector of regexes and a zloc, return the index of the regex or
@@ -234,10 +233,10 @@
                       [i (conj out element)]
                       ; Still looking for the divider-value
                       [(dec i) (conj out element)])))
-	; Note position starts as one-based, with -1 (i.e. neg?), 
-	; otherwise 0 doesn't work
+        ; Note position starts as one-based, with -1 (i.e. neg?),
+        ; otherwise 0 doesn't work
         [position new-regex-vec] (reduce scan-fn [-1 []] regex-vec)]
-    ; Adjust position back to zero-based 
+    ; Adjust position back to zero-based
     [(if (pos? position) (dec position) (inc position)) new-regex-vec]))
 
 (defn ^:no-doc assemble-by-numeric-key
@@ -285,7 +284,7 @@
   [zloc]
   (let [refer-zloc (z/find-value (z/down zloc) :refer)
         refer-right (when refer-zloc (z/right refer-zloc))
-	refer-tag (when refer-right (z/tag refer-right))]
+        refer-tag (when refer-right (z/tag refer-right))]
     (if (and refer-zloc (= refer-tag :vector))
       (z/up
         (z/up
@@ -313,8 +312,8 @@
         ; Next we need to sort each group amongst themselves
         groups-sorted
           (reduce (partial sort-group get-sortable-fn) group (keys group))
-        ; Next we need to put the group back into a single vector by order of
-        ; the number in the group map.  Put the last group into the
+        ; Next we need to put the group back into a single vector by order
+        ; of the number in the group map.  Put the last group into the
         ; vector in the divider-position if it is positive.
         out (assemble-by-numeric-key divider-position groups-sorted)
         refer-sorted (if (:sort-refer? sort-options) (mapv sort-refer out) out)]

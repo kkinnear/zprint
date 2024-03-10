@@ -1,14 +1,17 @@
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns ^:no-doc zprint.comment
   #?@(:cljs [[:require-macros
               [zprint.macros :refer
                [dbg dbg-pr dbg-form dbg-print dbg-s dbg-s-pr zfuture]]]])
-  (:require #?@(:clj [[zprint.macros :refer
-                       [dbg-pr dbg dbg-form dbg-print dbg-s dbg-s-pr zfuture]]])
-            [clojure.string :as s]
-            [zprint.zfns :refer [zstring ztag]]
-            [zprint.util :refer [variance]]
-            [rewrite-clj.zip :as z :refer [left* up* tag length]]
-            #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
+  (:require
+    #?@(:clj [[zprint.macros :refer
+               [dbg-pr dbg dbg-form dbg-print dbg-s dbg-s-pr zfuture]]])
+    [clojure.string  :as s]
+    [zprint.util     :refer [variance]]
+    [zprint.zfns     :refer [zstring ztag]]
+    [rewrite-clj.zip :as    z
+                     :refer [left* length tag up*]]
+    #_[taoensso.tufte :as tufte :refer (p defnp profiled profile)]))
 
 #_(tufte/add-basic-println-handler! {})
 
@@ -449,11 +452,8 @@
   matched the end+skip-cg vector of regexs."
   [end+start-cg end+skip-cg end-cg s]
   #_(println "match-and-modify-comment s:" s)
-  (let [skip? (or 
-                 (match-regex-seq end+skip-cg :end+skip-cg nil s)
-                 (match-regex-seq end-cg :end-cg nil s))
-		 
-		 ]
+  (let [skip? (or (match-regex-seq end+skip-cg :end+skip-cg nil s)
+                  (match-regex-seq end-cg :end-cg nil s))]
     (if skip?
       [s true]
       (let [match (match-regex-seq end+start-cg :end+start-cg true s)]
@@ -524,7 +524,7 @@
          "get-next-comment-group: depth:" depth
          "end+start-cg" end+start-cg
          "end+skip-cg" end+skip-cg
-	 "end-cg" end-cg)
+         "end-cg" end-cg)
   (loop [idx index
          depth depth
          start-col 0
@@ -584,15 +584,17 @@
               ; we are not yet in a group -- just looking for a comment
               (if (or (= what :comment) (= what :comment-inline))
                 ; any comment starts a group
-                (let [[s skip?]
-                        (match-and-modify-comment end+start-cg end+skip-cg end-cg s)
+                (let [[s skip?] (match-and-modify-comment end+start-cg
+                                                          end+skip-cg
+                                                          end-cg
+                                                          s)
                       ; having possibly modified the beginning of the
                       ; comment
                       [semi-count space-count] (when-not skip?
                                                  (get-semis-and-spaces s))]
                   #_(println "semi-count:" semi-count
                              "space-count:" space-count
-			     "skip?" skip?
+                             "skip?" skip?
                              "s:" s)
                   (if skip?
                     ; blank comment line or one to skip, ignore it
@@ -1462,7 +1464,7 @@
   (if (> min-space-after-semi 0)
     (reduce (partial fix-spaces-in-comment min-space-after-semi) [] style-vec)
     style-vec))
-  
 
- 
+
+
 

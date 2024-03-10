@@ -83,6 +83,6 @@
   {:zmap-no-comment zmap-no-comment,
    :zstring zstring,
    :zcount zcount,
-   :ztag ztag
+   :ztag ztag,
    :zfirst zfirst})
 

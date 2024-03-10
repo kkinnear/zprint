@@ -1,27 +1,29 @@
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns ^:no-doc zprint.config
   #?(:clj [:refer-clojure :exclude [read-string]])
   #?@(:cljs [[:require-macros
               [zprint.macros :refer
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
-  (:require #?@(:clj [[zprint.macros :refer
-                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-            clojure.string
-            [clojure.set :refer [difference]]
-            [clojure.data :as d]
-            [zprint.spec :refer [validate-basic coerce-to-boolean]]
-            [zprint.rewrite :refer [sort-dependencies sort-requires]]
-            [zprint.util :refer [dissoc-two dbg-s-merge]]
-            [zprint.guide :refer
-             [jrequireguide defprotocolguide signatureguide1 odrguide guideguide
-              rodguide areguide defprotocolguide-s metaguide]]
-            [zprint.optionfn :refer
-             [rodfn meta-base-fn fn*->% sort-deps regexfn rulesfn sort-reqs]]
-            #?@(:bb [[sci.core :as sci]]
-                ; To completely remove sci, comment out the following line.
-                :clj [[sci.core :as sci]]
-                :cljs [[sci.core :as sci]])
-            #?(:clj [clojure.edn :refer [read-string]]
-               :cljs [cljs.reader :refer [read-string]]))
+  (:require
+    #?@(:clj [[zprint.macros :refer
+               [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+    [clojure.data    :as d]
+    [clojure.set     :refer [difference]]
+    clojure.string
+    [zprint.guide    :refer [areguide defprotocolguide defprotocolguide-s
+                             guideguide jrequireguide metaguide odrguide
+                             rodguide signatureguide1]]
+    [zprint.optionfn :refer [fn*->% meta-base-fn regexfn rodfn rulesfn sort-deps
+                             sort-reqs]]
+    [zprint.rewrite  :refer [sort-dependencies sort-requires]]
+    [zprint.spec     :refer [coerce-to-boolean validate-basic]]
+    [zprint.util     :refer [dbg-s-merge dissoc-two]]
+    #?@(:bb [[sci.core :as sci]]
+        ; To completely remove sci, comment out the following line.
+        :clj [[sci.core :as sci]]
+        :cljs [[sci.core :as sci]])
+    #?(:clj [clojure.edn :refer [read-string]]
+       :cljs [cljs.reader :refer [read-string]]))
   #?@(:clj [(:import (java.io InputStreamReader FileReader BufferedReader))]))
 
 ;;
@@ -517,15 +519,15 @@
                :string :red,
                :true :black,
                :uneval :magenta,
-               :user-fn :black
-	       :left :none
-	       :right :none},
+               :user-fn :black,
+               :left :none,
+               :right :none},
    :comment {:count? false,
              :wrap? true,
              :inline? true,
              :inline-align-style :aligned,
              :border 0,
-	     :min-space-after-semi 0
+             :min-space-after-semi 0,
              :smart-wrap? true,
              :smart-wrap {:border 5,
                           ; These regexes will end one comment group and
@@ -703,7 +705,7 @@
            {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}},
    :max-depth 1000000,
    :max-depth-string "##",
-   :modify-sexpr-by-type nil
+   :modify-sexpr-by-type nil,
    :parallel? false,
    :max-hang-count 4,
    ; :max-hang-depth used to be 3, but while it helped a bit, there was
@@ -888,9 +890,9 @@
                                    :uneval :bright-red,
                                    :unquote :bright-yellow,
                                    :unquote-splicing :bright-yellow,
-                                   :user-fn :bright-yellow
-				   :left :bright-white
-				   :right :bright-white}
+                                   :user-fn :bright-yellow,
+                                   :left :bright-white,
+                                   :right :bright-white},
                        :uneval {:color-map {:brace :white,
                                             :bracket :white,
                                             :char :bright-cyan,
@@ -916,9 +918,9 @@
                                             :uneval :bright-red,
                                             :unquote :bright-yellow,
                                             :unquote-splicing :bright-yellow,
-                                            :user-fn :bright-yellow
-					    :left :bright-white
-					    :right :bright-white}}},
+                                            :user-fn :bright-yellow,
+                                            :left :bright-white,
+                                            :right :bright-white}}},
       :defprotocolguide {:doc "Allow alteration of defprotocol in :fn-map",
                          :list {:option-fn defprotocolguide}},
       :extend-nl {:doc "Add a blank line between protocols",
@@ -989,53 +991,43 @@
       :meta-alt {:doc "Alternative for metadata. Experimental.",
                  :fn-map {"def" [:arg2 {:style :meta-base}],
                           "deftest" [:arg1-body {:style :meta-base}]}},
-     #_#_ :meta-guide {:doc "Alternative for metadata. Experimental.",
-	     :fn-map {"def" [:arg2 {:list {:option-fn metaguide}}]
-		      "deftest" [:arg1-body {:list {:option-fn metaguide}}]}}
-
-
-      :meta-guide {:doc "Alternative for metadata. Experimental.",
-
-	 :one-line-ok? true
-	 :style-fn (fn
-	             ([] "meta-guide")
-		     ([existing-options new-otions style-fn-map style-call]
-		      {:fn-map {"def"
-		                  [:arg2
-				    {:list 
-				      {:option-fn 
-				         (partial
-					   metaguide
-					   (merge-deep style-fn-map style-call))}}]
-			         "deftest" 
-		                  [:arg1-body
-				    {:list 
-				      {:option-fn 
-				         (partial
-					   metaguide
-					   (merge-deep style-fn-map style-call))}}]
-				 
-				 }}))}
-
-
+      #_#_:meta-guide
+        {:doc "Alternative for metadata. Experimental.",
+         :fn-map {"def" [:arg2 {:list {:option-fn metaguide}}],
+                  "deftest" [:arg1-body {:list {:option-fn metaguide}}]}},
+      :meta-guide
+        {:doc "Alternative for metadata. Experimental.",
+         :one-line-ok? true,
+         :style-fn (fn
+                     ([] "meta-guide")
+                     ([existing-options new-otions style-fn-map style-call]
+                      {:fn-map
+                         {"def" [:arg2
+                                 {:list {:option-fn (partial metaguide
+                                                             (merge-deep
+                                                               style-fn-map
+                                                               style-call))}}],
+                          "deftest" [:arg1-body
+                                     {:list {:option-fn
+                                               (partial metaguide
+                                                        (merge-deep
+                                                          style-fn-map
+                                                          style-call))}}]}}))},
       :minimal-smart-wrap {:doc "Do the minimal smart-wrap",
                            :comment {:smart-wrap {:last-max 80,
                                                   :border 0,
                                                   :max-variance 200,
                                                   :space-factor 100,
                                                   :end-cg [; If it ends with
-                                                           ; a period, it ends
-                                                           ; the cg.
-							   #"\.$"]
-							   }}},
-      :sentence-smart-wrap {:doc "Don't run sentences together if they aren't already.",
-                           :comment {:smart-wrap {:end-cg [; If it ends with
-                                                           ; a period, it ends
-                                                           ; the cg.
-							   #"\.$"]
-							   }}},
-
-
+                                                           ; a period, it
+                                                           ; ends the cg.
+                                                           #"\.$"]}}},
+      :sentence-smart-wrap
+        {:doc "Don't run sentences together if they aren't already.",
+         :comment {:smart-wrap {:end-cg [; If it ends with
+                                         ; a period, it ends
+                                         ; the cg.
+                                         #"\.$"]}}},
       :moustache {:doc "Format moustache elements nicely",
                   :fn-map {"app" [:flow {:style :vector-pairs}]}},
       :multi-lhs-hang {:doc "Allow multi-lhs-hang in all three places.",
@@ -1083,77 +1075,69 @@
       :jrequiremacrosguide {:list {:option-fn (partial jrequireguide
                                                        :require-macros)}},
       :jimportguide {:list {:option-fn (partial jrequireguide :import)}},
-      :require-justify 
+      :require-justify
         {:doc "Justify namespaces in :require",
-	 :max-variance 20
-	 :style-fn (fn
-	             ([] "require-justify")
-		     ([existing-options new-otions style-fn-map style-call]
-		      {:fn-map {":require"
-		                  [:flow 
-				    {:style :jrequireguide
-				     :pair 
-				       {:justify
-				         {:max-variance 
-					   (:max-variance
-					     (merge-deep 
-					       style-fn-map
-					       style-call))}}}]}}))}
-
-
-
-      :require-macros-justify 
+         :max-variance 20,
+         :style-fn (fn
+                     ([] "require-justify")
+                     ([existing-options new-otions style-fn-map style-call]
+                      {:fn-map {":require" [:flow
+                                            {:style :jrequireguide,
+                                             :pair
+                                               {:justify
+                                                  {:max-variance
+                                                     (:max-variance
+                                                       (merge-deep
+                                                         style-fn-map
+                                                         style-call))}}}]}}))},
+      :require-macros-justify
         {:doc "Justify namespaces in :require-macros",
-	 :max-variance 20
-	 :style-fn (fn
-	             ([] "require-macros-justify")
-		     ([existing-options new-otions style-fn-map style-call]
-		      {:fn-map {":require-macros"
-		                  [:flow 
-				    {:style :jrequiremacrosguide
-				     :pair 
-				       {:justify
-				         {:max-variance 
-					   (:max-variance
-					     (merge-deep 
-					       style-fn-map
-					       style-call))}}}]}}))}
+         :max-variance 20,
+         :style-fn (fn
+                     ([] "require-macros-justify")
+                     ([existing-options new-otions style-fn-map style-call]
+                      {:fn-map {":require-macros"
+                                  [:flow
+                                   {:style :jrequiremacrosguide,
+                                    :pair {:justify
+                                             {:max-variance
+                                                (:max-variance
+                                                  (merge-deep
+                                                    style-fn-map
+                                                    style-call))}}}]}}))},
       :import-justify
         {:doc "Justify :import",
-	 :max-variance 1000
-	 :style-fn (fn
-	             ([] "import-justify")
-		     ([existing-options new-otions style-fn-map style-call]
-		      {:fn-map {":import"
-		                  [:flow 
-				    {:style :jimportguide
-				     :pair 
-				       {:justify
-				         {:max-variance 
-					   (:max-variance
-					     (merge-deep 
-					       style-fn-map
-					       style-call))}}}]}}))}
-
+         :max-variance 1000,
+         :style-fn (fn
+                     ([] "import-justify")
+                     ([existing-options new-otions style-fn-map style-call]
+                      {:fn-map {":import" [:flow
+                                           {:style :jimportguide,
+                                            :pair
+                                              {:justify
+                                                 {:max-variance
+                                                    (:max-variance
+                                                      (merge-deep
+                                                        style-fn-map
+                                                        style-call))}}}]}}))},
       :ns-justify
         {:doc "Justify :require, :require-macros, :import in ns",
-	 :require-macros-max-variance 20
-	 :require-max-variance 20
-	 :import-max-variance 1000
-	 :style-fn (fn
-	             ([] "ns-justify")
-		     ([existing-options new-otions style-fn-map style-call]
-		      (let [merged-options (merge-deep style-fn-map style-call)]
-			  {:style
-		       [{:style-call :require-justify
-			 :max-variance (:require-max-variance merged-options)}
-		        {:style-call :require-macros-justify
-			 :max-variance (:require-macros-max-variance 
-			                        merged-options)}
-		        {:style-call :import-justify
-			 :max-variance (:import-max-variance merged-options)}]})))}
-
-
+         :require-macros-max-variance 20,
+         :require-max-variance 20,
+         :import-max-variance 1000,
+         :style-fn (fn
+                     ([] "ns-justify")
+                     ([existing-options new-otions style-fn-map style-call]
+                      (let [merged-options (merge-deep style-fn-map style-call)]
+                        {:style [{:style-call :require-justify,
+                                  :max-variance (:require-max-variance
+                                                  merged-options)}
+                                 {:style-call :require-macros-justify,
+                                  :max-variance (:require-macros-max-variance
+                                                  merged-options)}
+                                 {:style-call :import-justify,
+                                  :max-variance (:import-max-variance
+                                                  merged-options)}]})))},
       :original-tuning
         {:doc "Original tuning prior to stability fixes for multiple passes",
          :binding {:hang-expand 2.0,
@@ -1230,35 +1214,34 @@
       :rod {:doc "Rules of defn, with newlines between arities.",
             :multi-arity-nl? true,
             :one-line-ok? false,
-	    :style-fn (fn
-			([] "rod-style-fn")
-			([existing-options new-options style-fn-map style-call]
-			 {:fn-map {"defn" [:none
-					   {:list {:option-fn (partial
-								rodfn
-								(merge-deep
-								  style-fn-map
-								 style-call))}}],
-				    "defn-" "defn"}}))},
+            :style-fn (fn
+                        ([] "rod-style-fn")
+                        ([existing-options new-options style-fn-map style-call]
+                         {:fn-map {"defn" [:none
+                                           {:list {:option-fn
+                                                     (partial rodfn
+                                                              (merge-deep
+                                                                style-fn-map
+                                                                style-call))}}],
+                                   "defn-" "defn"}}))},
       :rod-no-ma-nl {:doc "Rules of defn, no newlines between arities.",
                      :multi-arity-nl? false,
                      :one-line-ok? false,
                      :style-call :rod},
-      :rod-config
-        {:doc "DEPRECATED, here for backward compatibility",
-         :one-line-ok? false,
-         :multi-arity-nl? false,
-         :style-fn (fn
-                     ([] "rod-config-style-fn")
-                     ([existing-options new-options style-fn-map style-call]
-                      {:fn-map {"defn" [:none
-                                        {:list {:option-fn (partial
-                                                             rodfn
+      :rod-config {:doc "DEPRECATED, here for backward compatibility",
+                   :one-line-ok? false,
+                   :multi-arity-nl? false,
+                   :style-fn
+                     (fn
+                       ([] "rod-config-style-fn")
+                       ([existing-options new-options style-fn-map style-call]
+                        {:fn-map {"defn" [:none
+                                          {:list {:option-fn
+                                                    (partial rodfn
                                                              (merge-deep
                                                                style-fn-map
                                                                style-call))}}],
-                                "defn-" "defn"}}))
-				},
+                                  "defn-" "defn"}}))},
       :signature1 {:doc
                      "defprotocol signatures with doc on newline, experimental",
                    :list {:option-fn signatureguide1}},
@@ -1266,25 +1249,21 @@
                           :fn-map {"defproject" [:arg2-pair
                                                  {:vector {:wrap? false},
                                                   :list {:option-fn
-                                                           sort-deps}}]}}
-
-	:sort-require
+                                                           sort-deps}}]}},
+      :sort-require
         {:doc "Sort requires & refers in ns macro, possibly with regexes.",
-	 :regex-vec []
-	 :sort-refer? true
+         :regex-vec [],
+         :sort-refer? true,
          :style-fn (fn
                      ([] "sort-require-config")
                      ([existing-options new-options style-fn-map style-call]
                       {:fn-map {"ns" [:arg1-body
-                                        {:list {:option-fn (partial
-                                                             sort-reqs
-                                                             (merge-deep
-                                                               style-fn-map
-                                                               style-call))}}],
-                                }}))},
-							   
-							   },
-
+                                      {:list {:option-fn
+                                                (partial
+                                                  sort-reqs
+                                                  (merge-deep
+                                                    style-fn-map
+                                                    style-call))}}]}}))}},
    :tab {:expand? true, :size 8},
    :tagged-literal {:hang-diff 1,
                     :hang-expand 1000.0,
@@ -1331,9 +1310,9 @@
                         :syntax-quote-paren :yellow,
                         :true :yellow,
                         :uneval :magenta,
-                        :user-fn :cyan
-			:left :none
-			:right :none}},
+                        :user-fn :cyan,
+                        :left :none,
+                        :right :none}},
    :user-fn-map {},
    :vector {:indent 1,
             :binding? false,
@@ -2112,8 +2091,7 @@
 (defn error-str-merge
   "Take an existing error-str and add some punctuation if there is one."
   [s]
-  (when s
-    (str s ", ")))
+  (when s (str s ", ")))
 
 (defn apply-one-style
   "Take a [doc-string new-map styles-applied [existing-map doc-map
@@ -2170,9 +2148,8 @@
                                  "apply-one-style: style-name:" style-name
                                  "new-error-str:" (pr-str new-error-str))
                           [(:style-call result) style-call style-fn-map
-			   (when (or error-str new-error-str)
-                           (str (error-str-merge error-str) new-error-str)
-			   )])
+                           (when (or error-str new-error-str)
+                             (str (error-str-merge error-str) new-error-str))])
                         [style-name nil result error-str])
                     _ (dbg-s new-map
                              #{:apply-style}
@@ -2226,102 +2203,104 @@
 
 
 #_(defn apply-one-style
-  "Take a [doc-string new-map styles-applied [existing-map doc-map
+    "Take a [doc-string new-map styles-applied [existing-map doc-map
   error-str] style-name] and produce a new [existing-map doc-map
   error-str] from the style defined in the new-map if it exists,
   or the existing-map if it doesn't.  Does not throw exceptions."
-  [doc-string new-map [existing-map doc-map error-str] style-name]
-  (if (or (= style-name :not-specified) (nil? style-name))
-    [existing-map doc-map nil]
-    ; A single :style specification (i.e., the value of :style or
-    ; one of the elements of vector which is the value of :style)
-    ; must either be a keyword or a map which contains :style-call.
-    (if (not (or (keyword? style-name)
-                 (and (map? style-name) (:style-call style-name))))
-      [existing-map doc-map
-       (str "A single style specification must either be a keyword"
-            " referencing a style in the :style-map, or a map"
-            " which contains a :style-call key.  This style: '"
-            style-name
-            "' contains neither!")]
-      (let [[style-name style-call style-map error-str]
-              (let [result style-name
-                    [style-name result error-str]
-                      (if (keyword? result)
-                        (let [style-map
-                                (get-style-map new-map existing-map result)]
-                          (if style-map
-                            [style-name style-map nil]
-                            [style-name nil
-                             (str "Style '" result "' not found!")]))
-                        [nil result nil])
-                    _ (dbg-s new-map
-                             #{:apply-style}
-                             "apply-one-style: style-name:" style-name
-                             "result:" result)
-                    [style-name style-call result error-str]
-                      (if (and (not error-str)
-                               (map? result)
-                               (:style-call result))
-                        (let [[style-call style-fn-map error-str]
-                                (style-call->style-fn-map
-                                  doc-string
-                                  new-map
-                                  existing-map
-                                  result
-                                  (if style-name #{style-name} #{}))]
-                          [(:style-call result) style-call style-fn-map
-                           error-str])
-                        [style-name nil result error-str])
-                    _ (dbg-s new-map
-                             #{:apply-style}
-                             "apply-one-style: style-name:" style-name
-                             "style-call:" style-call
-                             "result:" result
-                             "error-str:" error-str)
-                    [result error-str] (if error-str
-                                         [result error-str]
-                                         (if (and (map? result)
-                                                  (:style-fn result))
-                                           (call-style-fn doc-string
-                                                          new-map
-                                                          existing-map
-                                                          result
-                                                          style-call)
-                                           [result error-str]))]
-                [style-name style-call result error-str])
-            _ (dbg-s new-map
-                     #{:apply-style}
-                     "apply-one-style: style-name:" style-name
-                     "style-call:" style-call
-                     "style-map:" style-map
-                     "error-str:" error-str)
-            ; Remove the :doc key from the style,  or it will end up in
-            ; the top level options map.
-            style-map (dissoc style-map :doc)
-            ; Note that styles-applied is initialized in
-            ; config-and-validate to be [].
-            existing-map (assoc existing-map
-                           :styles-applied (conj (:styles-applied existing-map)
-                                                 style-name))]
-        (if error-str
-          [existing-map doc-map error-str]
-          (if style-map
-            (let [[updated-map new-doc-map error-vec]
-                    (internal-config
-                      (str doc-string " specified :style " style-name)
-                      doc-map
-                      existing-map
-                      style-map)
-                  new-doc-map (when new-doc-map
-                                (assoc new-doc-map
-                                  :styles-applied (:styles-applied
-                                                    updated-map)))]
-              [updated-map new-doc-map
-               (when (or error-str error-vec)
-                 (str error-str (when error-str ",") error-vec))])
-            ; It all worked, but the :style-fn returned nil, which is fine.
-            [existing-map doc-map nil]))))))
+    [doc-string new-map [existing-map doc-map error-str] style-name]
+    (if (or (= style-name :not-specified) (nil? style-name))
+      [existing-map doc-map nil]
+      ; A single :style specification (i.e., the value of :style or
+      ; one of the elements of vector which is the value of :style)
+      ; must either be a keyword or a map which contains :style-call.
+      (if (not (or (keyword? style-name)
+                   (and (map? style-name) (:style-call style-name))))
+        [existing-map doc-map
+         (str "A single style specification must either be a keyword"
+              " referencing a style in the :style-map, or a map"
+              " which contains a :style-call key.  This style: '"
+              style-name
+              "' contains neither!")]
+        (let [[style-name style-call style-map error-str]
+                (let [result style-name
+                      [style-name result error-str]
+                        (if (keyword? result)
+                          (let [style-map
+                                  (get-style-map new-map existing-map result)]
+                            (if style-map
+                              [style-name style-map nil]
+                              [style-name nil
+                               (str "Style '" result "' not found!")]))
+                          [nil result nil])
+                      _ (dbg-s new-map
+                               #{:apply-style}
+                               "apply-one-style: style-name:" style-name
+                               "result:" result)
+                      [style-name style-call result error-str]
+                        (if (and (not error-str)
+                                 (map? result)
+                                 (:style-call result))
+                          (let [[style-call style-fn-map error-str]
+                                  (style-call->style-fn-map
+                                    doc-string
+                                    new-map
+                                    existing-map
+                                    result
+                                    (if style-name #{style-name} #{}))]
+                            [(:style-call result) style-call style-fn-map
+                             error-str])
+                          [style-name nil result error-str])
+                      _ (dbg-s new-map
+                               #{:apply-style}
+                               "apply-one-style: style-name:" style-name
+                               "style-call:" style-call
+                               "result:" result
+                               "error-str:" error-str)
+                      [result error-str] (if error-str
+                                           [result error-str]
+                                           (if (and (map? result)
+                                                    (:style-fn result))
+                                             (call-style-fn doc-string
+                                                            new-map
+                                                            existing-map
+                                                            result
+                                                            style-call)
+                                             [result error-str]))]
+                  [style-name style-call result error-str])
+              _ (dbg-s new-map
+                       #{:apply-style}
+                       "apply-one-style: style-name:" style-name
+                       "style-call:" style-call
+                       "style-map:" style-map
+                       "error-str:" error-str)
+              ; Remove the :doc key from the style,  or it will end up in
+              ; the top level options map.
+              style-map (dissoc style-map :doc)
+              ; Note that styles-applied is initialized in
+              ; config-and-validate to be [].
+              existing-map (assoc existing-map
+                             :styles-applied (conj (:styles-applied
+                                                     existing-map)
+                                                   style-name))]
+          (if error-str
+            [existing-map doc-map error-str]
+            (if style-map
+              (let [[updated-map new-doc-map error-vec]
+                      (internal-config
+                        (str doc-string " specified :style " style-name)
+                        doc-map
+                        existing-map
+                        style-map)
+                    new-doc-map (when new-doc-map
+                                  (assoc new-doc-map
+                                    :styles-applied (:styles-applied
+                                                      updated-map)))]
+                [updated-map new-doc-map
+                 (when (or error-str error-vec)
+                   (str error-str (when error-str ",") error-vec))])
+              ; It all worked, but the :style-fn returned nil, which is
+              ; fine.
+              [existing-map doc-map nil]))))))
 
 
 (defn apply-style
@@ -2410,7 +2389,7 @@
                                'rodfn zprint.optionfn/rodfn,
                                'rulesfn zprint.optionfn/rulesfn,
                                'regexfn zprint.optionfn/regexfn,
-                               'merge-deep zprint.config/merge-deep
+                               'merge-deep zprint.config/merge-deep,
                                'metaguide zprint.guide/metaguide}}})
 (def sci-ctx (sci/init opts))
 ;  #?(:bb (sci/init opts)

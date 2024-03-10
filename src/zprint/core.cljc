@@ -1,44 +1,45 @@
-;!zprint {:style :require-justify}
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns zprint.core
   #?@(:cljs [[:require-macros
               [zprint.macros :refer [dbg dbg-pr dbg-form dbg-print]]]])
   (:require
     #?@(:clj [[zprint.macros :refer [dbg-pr dbg dbg-form dbg-print]]])
-    clojure.string
+    #_[clojure.spec.alpha :as s]
     #?@(:cljs [[cljs.reader :refer [read-string]]])
     #?@(:clj [[clojure.java.io :as io] [clojure.repl :refer [source-fn]]])
-    [zprint.zprint      :as    zprint
-                        :refer [fzprint line-count max-width line-widths
-                                expand-tabs zcolor-map
-                                determine-ending-split-lines]]
-    [zprint.finish      :refer [cvec-to-style-vec compress-style no-style-map
-                                color-comp-vec handle-lines create-hvec-or-str]]
-    [zprint.comment     :refer [fzprint-inline-comments fzprint-wrap-comments
-                                fzprint-align-inline-comments blanks
-                                fzprint-smart-wrap fzprint-fix-spaces-in-comments]]
+    clojure.string
+    [zprint.comment     :refer [blanks fzprint-align-inline-comments
+                                fzprint-fix-spaces-in-comments
+                                fzprint-inline-comments fzprint-smart-wrap
+                                fzprint-wrap-comments]]
     [zprint.config      :as    config
-                        :refer [add-calculated-options config-set-options!
-                                get-options config-configure-all! reset-options!
-                                help-str get-explained-options
-                                get-explained-set-options
-                                get-explained-all-options get-default-options
-                                validate-options apply-style perform-remove
-                                no-color-map merge-deep sci-load-string
-                                config-and-validate get-options-from-comment
-                                protected-configure-all! configure-if-needed!
-                                get-configured-options ensure-options-are-map]]
-    [zprint.zutil       :refer [zmap-all zcomment? whitespace? znewline?
-                                find-root-and-path-nw]]
+                        :refer [add-calculated-options apply-style
+                                config-and-validate config-configure-all!
+                                config-set-options! configure-if-needed!
+                                ensure-options-are-map get-configured-options
+                                get-default-options get-explained-all-options
+                                get-explained-options get-explained-set-options
+                                get-options get-options-from-comment help-str
+                                merge-deep no-color-map perform-remove
+                                protected-configure-all! reset-options!
+                                sci-load-string validate-options]]
+    [zprint.finish      :refer [color-comp-vec compress-style create-hvec-or-str
+                                cvec-to-style-vec handle-lines no-style-map]]
+    [zprint.focus       :refer [range-ssv]]
+    [zprint.hiccup      :refer [hiccup->html wrap-w-p]]
+    [zprint.range       :refer [drop-lines expand-range-to-top-level
+                                reassemble-range split-out-range
+                                wrap-comment-api]]
     [zprint.sutil]
     [zprint.util        :refer [dissoc-two]]
-    [zprint.hiccup      :refer [wrap-w-p hiccup->html]]
-    [zprint.focus       :refer [range-ssv]]
-    [zprint.range       :refer [expand-range-to-top-level split-out-range
-                                reassemble-range wrap-comment-api drop-lines]]
+    [zprint.zprint      :as    zprint
+                        :refer [determine-ending-split-lines expand-tabs fzprint
+                                line-count line-widths max-width zcolor-map]]
+    [zprint.zutil       :refer [find-root-and-path-nw whitespace? zcomment?
+                                zmap-all znewline?]]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
-                        :refer [of-node* string]]
-    #_[clojure.spec.alpha :as s])
+                        :refer [of-node* string]])
   #?@(:clj ((:import #?(:bb []
                         :clj (java.net URL URLConnection))
                      #?(:bb []
@@ -846,11 +847,11 @@
                 focus-vec
                 accept-vec)
             #_(def ssvx str-style-vec)
-	    ; Ensure that every comment has at least min-space-after-semi
-	    ; spaces after the semicolon.  Does nothing if min-space-after-semi
-	    ; is zero.
-	    fixed-style-vec (fzprint-fix-spaces-in-comments 
-	                      options str-style-vec)
+            ; Ensure that every comment has at least min-space-after-semi
+            ; spaces after the semicolon.  Does nothing if
+            ; min-space-after-semi is zero.
+            fixed-style-vec (fzprint-fix-spaces-in-comments options
+                                                            str-style-vec)
             #_(def fsvx fixed-style-vec)
             smart-style-vec (if (and (:smart-wrap? (:comment options))
                                      (:wrap? (:comment options)))

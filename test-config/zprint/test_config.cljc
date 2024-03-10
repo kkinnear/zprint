@@ -246,8 +246,8 @@
               (cond (= style "uberjar")
                       [(str "/usr/bin/java")
                        ["-jar" (str "target/zprint-filter-" version)] nil]
-                    (= style "graalvm-mac-i") [(str "./" "zprintm-" version)
-                                               nil nil]
+                    (= style "graalvm-mac-i") [(str "./" "zprintm-" version) nil
+                                               nil]
                     (= style "graalvm-mac-a") [(str "./" "zprintma-" version)
                                                nil nil]
                     (= style "graalvm-linux") [(str "./" "zprintl-" version) nil

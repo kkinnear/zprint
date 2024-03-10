@@ -1,17 +1,20 @@
+;!zprint {:style [{:style-call :sort-require :regex-vec [#"^clojure" #"^zprint" #"^rewrite" #"^taoensso"]} :require-justify]}
 (ns ^:no-doc zprint.optionfn
   #?@(:cljs [[:require-macros
               [zprint.macros :refer
                [dbg dbg-s dbg-pr dbg-s-pr dbg-form dbg-print zfuture]]]])
-  (:require #?@(:clj [[zprint.macros :refer
-                       [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
-            [zprint.rewrite :refer [sort-dependencies sort-requires]]
-            [rewrite-clj.zip :as z :refer [string]]
-            [zprint.util :refer [column-alignment cumulative-alignment]]))
+  (:require
+    #?@(:clj [[zprint.macros :refer
+               [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+    [zprint.rewrite  :refer [sort-dependencies sort-requires]]
+    [zprint.util     :refer [column-alignment cumulative-alignment]]
+    [rewrite-clj.zip :as    z
+                     :refer [string]]))
 
 ;;
 ;; Contains functions which can be called with {:option-fn <fn>} to produce
 ;; a new options map.  Option-fns which produce a "guide" are in guide.cljc.
-;; The optionfns here are called the same way, but just produce a basic 
+;; The optionfns here are called the same way, but just produce a basic
 ;; option map.
 ;;
 
@@ -75,15 +78,14 @@
      (let [zfn-map (:zfn-map opts)
            zloc-seq-nc ((:zmap-no-comment zfn-map) identity (:zloc opts))
            meta-zloc (second zloc-seq-nc)
-           #_ (println "tag:" ((:ztag zfn-map) meta-zloc))
+           #_(println "tag:" ((:ztag zfn-map) meta-zloc))
            meta-seq ((:zmap-no-comment zfn-map) identity meta-zloc)
-           #_ (println "count meta-seq:" (count meta-seq)
+           #_(println "count meta-seq:" (count meta-seq)
                       "\nmeta-seq:" (map (:zstring zfn-map) meta-seq)
                       "\nmeta-seq-tag:" (map (:ztag zfn-map) meta-seq)
-		      "\nfirst meta-seq:" ((:zstring zfn-map) (first meta-seq))
-		      "\nsecond meta-seq:" ((:zstring zfn-map) (second meta-seq))
-		      )
-		      ]
+                      "\nfirst meta-seq:" ((:zstring zfn-map) (first meta-seq))
+                      "\nsecond meta-seq:" ((:zstring zfn-map)
+                                             (second meta-seq)))]
        (if (= :meta ((:ztag zfn-map) (second meta-seq)))
          ; Figure out next-inner restore
          nil
@@ -93,8 +95,7 @@
                              (> (count (keys (meta (second exprs)))) 1))
                       :arg1-body
                       :arg2),
-          :next-inner-restore [[:list :hang-expand]]})))
-	  ))
+          :next-inner-restore [[:list :hang-expand]]})))))
 
 
 ;;
@@ -140,8 +141,10 @@
      (let [caller (:caller options)
            zloc (:zloc options)
            new-zloc (sort-dependencies caller options zloc)]
-       (dbg-s options #{:sort-dependencies} "sort-deps: new-zloc:"
-         (z/string new-zloc))
+       (dbg-s options
+              #{:sort-dependencies}
+              "sort-deps: new-zloc:"
+              (z/string new-zloc))
        {:new-zloc new-zloc, :list {:option-fn nil}}))))
 
 (defn sort-reqs
@@ -153,8 +156,10 @@
      (let [caller (:caller options)
            zloc (:zloc options)
            new-zloc (sort-requires caller sort-options options zloc)]
-       (dbg-s options #{:sort-requires} "sort-reqs: new-zloc:"
-         (z/string new-zloc))
+       (dbg-s options
+              #{:sort-requires}
+              "sort-reqs: new-zloc:"
+              (z/string new-zloc))
        {:new-zloc new-zloc, :list {:option-fn nil}}))))
 
 

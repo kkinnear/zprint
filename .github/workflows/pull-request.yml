@@ -85,7 +85,7 @@ jobs:
       - name: Setup Babashka
         uses: zharinov/clj-toolbox@v1.0.0
         with:
-          babashka: "0.9.161"
+          babashka: "1.3.184"
 
       - name: Download artifacts
         uses: actions/download-artifact@v3.0.0
@@ -100,7 +100,7 @@ jobs:
       - run: chmod +x zprintl-${{ steps.version.outputs.zprint }}
 
       - name: Run tests
-        run: ./test_config ${{ steps.version.outputs.zprint }} graalvm-linux
+        run: bb testconfig:bb -v ${{ steps.version.outputs.zprint }} -s graalvm-linux
 
   test-clj:
     needs: build-jar
@@ -140,7 +140,7 @@ jobs:
       - name: Setup Clojure
         uses: zharinov/clj-toolbox@v1.0.0
         with:
-          babashka: "0.9.161"
+          babashka: "1.3.184"
 
       - name: Download artifacts
         uses: actions/download-artifact@v3.0.0
@@ -149,4 +149,4 @@ jobs:
           path: target/
 
       - name: Run tests
-        run: ./test_config ${{ steps.version.outputs.zprint }} uberjar
+        run: bb testconfig:bb -v ${{ steps.version.outputs.zprint }} -s uberjar

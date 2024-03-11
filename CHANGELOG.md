@@ -65,7 +65,7 @@ All notable changes to this project will be documented in this file.
   vector, if there were any errors detected when applying the styles,
   the errors were lost unless they occurred in the rightmost (that
   is, final) style.  Any styles that had errors wouldn't be applied,
-  but there would be no idication of that and it would all appear
+  but there would be no indication of that and it would all appear
   to be successful.  This has now been fixed to detect and report
   errors from any styles where there was a failure to apply the
   style.  There is a small chance that this will appear to break

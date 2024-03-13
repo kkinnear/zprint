@@ -337,6 +337,6 @@ into zprint.
 
 ## License
 
-Copyright © 2016-2023 Kim Kinnear
+Copyright © 2016-2024 Kim Kinnear
 
 Distributed under the MIT License.  See the file LICENSE for details.

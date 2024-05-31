@@ -40,7 +40,7 @@ the current version: [![Clojars Project](https://img.shields.io/clojars/v/zprint
 
 
 ```
-{:tasks {zprint {:extra-deps {zprint/zprint {:mvn/version "1.2.9"}},
+{:tasks {zprint {:extra-deps {zprint/zprint {:mvn/version "1.3.0"}},
                  :requires ([zprint.main]),
                  :task (apply zprint.main/-main *command-line-args*)}}}
 ```

@@ -52,6 +52,7 @@ the a variety of major source code formattng approaches.
       * [:comment](#comment)
       * [:delay](#agent-atom-delay-fn-future-promise)
       * [:extend](#extend)
+      * [:files] (#files)
       * [:fn](#agent-atom-delay-fn-future-promise)
       * [:future](#agent-atom-delay-fn-future-promise)
       * [:list](#list)
@@ -350,6 +351,7 @@ the way that zprint outputs your code or data.   If you do, read on...
   * [:comment](#comment)
   * [:delay](#agent-atom-delay-fn-future-promise)
   * [:extend](#extend)
+  * [:files](#files)
   * [:fn](#agent-atom-delay-fn-future-promise)
   * [:future](#agent-atom-delay-fn-future-promise)
   * [:list](#list)
@@ -3991,6 +3993,63 @@ An example:
 
     (xdomore [this that]))
 ```
+
+_____
+## :files
+
+The zprint executables and uberjar are capable processing multiple files
+without using the shell to search for them.  This can be useful in cases
+where the wildcard file specification given to the shell produces too many
+files for the various elements of the processing pipeline to handle.  
+
+You may include the `:files` key in an options map supplied on the command
+line of the uberjar or one of the pre-built zprint executables.  The value
+of the `:files` key is a map which will specify all of the files to be 
+processed.
+
+It is an error to have a `:files` key in the command line options map and
+to also specify files explicitly on the command line.  It is also an error
+to specify the `:files` key in an options map that appears in a configuration 
+file, such as `~/.zprintrc`. 
+
+#### :directory _"."_
+
+This is the directory that is the root of the processing for the `:glob`
+key.  It is optional, and defaults to ".".
+
+#### :glob _nil_
+
+If you have the `:files` key, you must include a `:glob` key in the
+map that is the value of the `:files` key.
+
+The value of the `:glob` key is a string.  This string specifies all of the
+files to be processed by the executable.  This string is similar to the
+wildcard format used by many popular shell programs, but also supports
+some additional capabilities.  The full description of the pattern 
+supported by the `:glob` capability is [here](https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String))
+
+In simple terms, the normal wildcard characters of "*" and "?" are supported,
+as are "**" for recursive descent into directories.  In addition, you can
+specify multiple "subpatterns", any of which may match.
+
+For instance, the following command line options map:
+
+```
+{:files {:glob "**{.clj,.cljc}"}}
+```
+
+will match all files ending in ".clj" and ".cljc" in the current directory
+and all subdirectories.  The ".clj" and ".cljc" are subpatterns.
+
+Note that the braces in the `:glob` string (which specify subpatterns) 
+do not create a map!  They do need to be balanced, but this string is 
+not a string version of a Clojure data structure.
+
+The `:files` capability uses `babashka/fs` library's `:glob` 
+capability rather directly, so you could look there for more information.
+However, if you really want to explore how to specify complex file
+specifications, you will need to explore the information referenced 
+in the link to the Java documentation above.
 
 _____
 ## :input

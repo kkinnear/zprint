@@ -7,6 +7,7 @@
   (:require
     #?@(:clj [[zprint.macros :refer
                [dbg-pr dbg-s-pr dbg dbg-s dbg-form dbg-print zfuture]]])
+    #_clojure.stacktrace
     [clojure.data    :as d]
     [clojure.set     :refer [difference]]
     clojure.string
@@ -38,7 +39,7 @@
 ;; # Program Version
 ;;
 
-(defn about "Return version of this program." [] (str "zprint-1.2.9"))
+(defn about "Return version of this program." [] (str "zprint-1.3.0"))
 
 ;;
 ;; # External Configuration
@@ -62,7 +63,7 @@
 (def zprint-keys [:width])
 
 (def operational-options
-  [:cache :cwd-zprintrc? :parallel? :search-config? :url])
+  [:cache :cwd-zprintrc? :parallel? :search-config? :url :files])
 
 ;;
 ;; Keys to remove from the options map before displaying it to a user
@@ -607,6 +608,7 @@
                      :hang-flow-limit 12,
                      :hang-if-equal-flow? false}},
    :file? false,
+ ;  :files {:directory nil :filespec nil}
    :fn-force-nl #{:noarg1-body :noarg1 :force-nl-body :force-nl :flow
                   :arg1-force-nl :arg1-force-nl-body :flow-body
                   :arg2-force-nl-body :arg2-force-nl},
@@ -2929,6 +2931,13 @@
                                search-doc-map
                                search-map
                                cwd-rcfile)
+	;
+	; We do not allow :file to appear in any .rc/.edn files at this
+	; time.
+	;
+	file-errors
+	  (when (:files updated-map)
+	    "The key :files is not allowed in an options configuration file!")
         ;
         ; Process errors together
         ;
@@ -2942,7 +2951,8 @@
                                search-errors-rcfile
                                search-rc-errors
                                cwd-errors-rcfile
-                               cwd-rc-errors))))
+                               cwd-rc-errors
+			       file-errors))))
         all-errors (if (empty? all-errors) nil all-errors)]
     #_(println "finished config-and-validate-all!")
     [updated-map new-doc-map all-errors]))

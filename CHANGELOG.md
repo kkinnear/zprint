@@ -1,6 +1,29 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
+## 1.3.0 - 2024-5-31
+
+### Added
+
+  * The ability to locate and process multiple files directly.  If
+  you add the `{:files {:glob "<filespec>"}}` key-value pair to the
+  options map that appears on the command line of one of the pre-built
+  zprint binaries or the uberjar, it will process all of the specified
+  files.  An example that will process all of the `.clj` and `.cljc`
+  files in the current directory and all subdirectories would be
+  `{:files {:glob "**{.clj,.cljc}"}}`.  Note that the string which
+  is the value of the `:glob` key is just a string, not a string
+  value of a Clojure data structure. The `:files` key can not appear
+  on a command line which also includes file specifications for the
+  shell -- you must either specify files with the shell, or with
+  the `:files` key, but not both! See the reference manual for
+  additional details.
+  
+### Changed
+
+### Fixed
+
+
 ## 1.2.9 - 2024-3-12
 
 ### Added

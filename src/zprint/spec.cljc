@@ -385,6 +385,12 @@
                       ::modifiers ::nl-separator? ::nl-count :alt/tuning]))
 (s/def :alt/extend (only-keys :opt-un [::modifiers]))
 (s/def ::file? ::boolean)
+
+(s/def ::files
+  (only-keys :opt-un [::directory] :req-un [::glob]))
+
+(s/def ::glob string?)
+
 (s/def ::fn-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
 (s/def ::fn-gt2-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
 (s/def ::fn-gt3-force-nl (s/nilable (s/coll-of ::fn-type :kind set?)))
@@ -527,27 +533,27 @@
 ;;
 
 (s/def ::options
-  (only-keys :opt-un
-               [::agent ::array ::atom ::binding ::cache ::call-stack ::color?
-                ::color-map :alt/comment ::configured? ::dbg? ::dbg-s
-                ::dbg-local? ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge
-                ::delay ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
-                ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
-                ::force-eol-blanks? ::format ::future ::indent ::input ::list
-                ::map ::max-depth ::max-depth-string ::max-hang-count
-                ::max-hang-depth ::max-hang-span ::max-length ::object ::old?
-                ::output ::pair ::pair-fn ::parallel? ::parse
-                ::parse-string-all? ::parse-string? ::perf-vs-format
-                ::process-bang-zprint? ::promise ::reader-cond ::record ::remove
-                ::next-inner ::return-cvec? ::search-config? ::set ::spaces?
-                ::script ::spec ::style ::styles-applied ::style-map ::tab
-                ::test-for-eol-blanks? ::trim-comments? ::tuning :alt/uneval
-                ::user-fn-map ::vector ::vector-fn ::version ::width ::url
-                ::zipper? ::guide ::guide-debug ::no-validate? ::force-validate?
-                ::doc ::next-inner-restore ::fn-style ::!zprint-elide-skip-next?
-                ::meta ::fn-str ::fn-type-map ::new-zloc ::new-l-str ::new-r-str
-                ::option-fn-map ::alt? ::one-line-ok? ::tagged-literal
-                #_::memoize? ::remove-final-keys ::modify-sexpr-by-type]))
+  (only-keys
+    :opt-un [::agent ::array ::atom ::binding ::cache ::call-stack ::color?
+             ::color-map :alt/comment ::configured? ::dbg? ::dbg-s ::dbg-local?
+             ::cwd-zprintrc? ::dbg-bug? ::dbg-print? ::dbg-ge ::delay
+             ::do-in-hang? ::drop? ::extend ::file? ::fn-force-nl
+             ::fn-gt2-force-nl ::fn-gt3-force-nl ::fn-map ::fn-name ::fn-obj
+             ::force-eol-blanks? ::format ::future ::indent ::input ::list ::map
+             ::max-depth ::max-depth-string ::max-hang-count ::max-hang-depth
+             ::max-hang-span ::max-length ::object ::old? ::output ::pair
+             ::pair-fn ::parallel? ::parse ::parse-string-all? ::parse-string?
+             ::perf-vs-format ::process-bang-zprint? ::promise ::reader-cond
+             ::record ::remove ::next-inner ::return-cvec? ::search-config?
+             ::set ::spaces? ::script ::spec ::style ::styles-applied
+             ::style-map ::tab ::test-for-eol-blanks? ::trim-comments? ::tuning
+             :alt/uneval ::user-fn-map ::vector ::vector-fn ::version ::width
+             ::url ::zipper? ::guide ::guide-debug ::no-validate?
+             ::force-validate? ::doc ::next-inner-restore ::fn-style
+             ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
+             ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
+             ::tagged-literal #_::memoize? ::remove-final-keys
+	     ::modify-sexpr-by-type ::files]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 
@@ -641,7 +647,14 @@
           (if (< (count (:pred problem)) 10)
             (str (ks-phrase problem) " was not one of " (:pred problem))
             (str (ks-phrase problem) " was not recognized as valid!"))
-        :else (str "what?")))
+	(and (:pred problem)
+	     (= 'clojure.core/contains? (first (last (:pred problem)))))
+	   (str (ks-phrase problem) " did not contain the key "
+	                (last (last (:pred problem))))
+	  
+        :else (str (ks-phrase problem) " was wrong for a reason difficult  to interpret.  The raw problem was "
+	           problem)
+	))
 
 (defn lower-first
   "Lowercase the first character of a string."

@@ -1196,6 +1196,156 @@
   (delete-tree "test_config.map1.clj")
 
   ;----------------------------------------------------------------
+  (display-test "-w test with one file using {:files ...}")
+
+  ; This tests that you can format files without using the shell to find
+  ; them for you using the {:files } construction.
+
+  ; Put in a reasonable (and different than before) .zprintrc
+
+  (spit (str (expand-home "~/.zprintrc")) "{:width 40 :style :justified}")
+
+  ; No ./.zprintrc
+
+  (delete-tree "./.zprintrc")
+
+  ; Note that {:keys [:replace-existing]} does not work in copy
+  ; so we have to delete the file first!
+
+  (delete-tree "test_config.map1.clj")
+
+  (copy "test_config.map.clj" "test_config.map1.clj")
+  (def test_config.map1.clj (slurp "test_config.map1.clj"))
+
+  ; Get zprint to know about new configure files
+  ; and notice if it doesn't go well!
+
+  (expect nil (configure-all!))
+
+  (execute-test (expect (more-of result-map
+                          0 (:exit result-map)
+                          "" (:out result-map)
+			  "" (:err result-map)
+                          (zprint-file-str test_config.map1.clj "-w" {})
+                            (slurp "test_config.map1.clj")
+			    )
+                        (do-command ["{:files {:directory \".\" :glob \"test_config.map1.clj\"}}" "-w"])))
+
+  (delete-tree "test_config.map1.clj")
+
+  ;----------------------------------------------------------------
+  (display-test "-w test with one file that doesn't exist using {:files ...}")
+
+  ; This tests that you can format files without using the shell to find
+  ; them for you using the {:files } construction.
+
+  ; Put in a reasonable (and different than before) .zprintrc
+
+  (spit (str (expand-home "~/.zprintrc")) "{:width 40 :style :justified}")
+
+  ; No ./.zprintrc
+
+  (delete-tree "./.zprintrc")
+
+  ; Note that {:keys [:replace-existing]} does not work in copy
+  ; so we have to delete the file first!
+
+  (delete-tree "test_config.map1.clj")
+
+  (copy "test_config.map.clj" "test_config.map1.clj")
+  (def test_config.map1.clj (slurp "test_config.map1.clj"))
+
+  ; Get zprint to know about new configure files
+  ; and notice if it doesn't go well!
+
+  (expect nil (configure-all!))
+
+  (execute-test (expect (more-of result-map
+                          1 (:exit result-map)
+                          "" (:out result-map)
+			 "Unable to access files specified by: '{:files {:directory \".\", :glob \"test_config.map\"}}'\n" 
+			  (:err result-map)
+			    )
+                        (do-command ["{:files {:directory \".\" :glob \"test_config.map\"}}" "-w"])))
+
+  (delete-tree "test_config.map1.clj")
+
+  ;----------------------------------------------------------------
+  (display-test "-w test with one file using {:files ...} no :directory")
+
+  ; This tests that you can format files without using the shell to find
+  ; them for you using the {:files } construction.
+
+  ; Put in a reasonable (and different than before) .zprintrc
+
+  (spit (str (expand-home "~/.zprintrc")) "{:width 40 :style :justified}")
+
+  ; No ./.zprintrc
+
+  (delete-tree "./.zprintrc")
+
+  ; Note that {:keys [:replace-existing]} does not work in copy
+  ; so we have to delete the file first!
+
+  (delete-tree "test_config.map1.clj")
+
+  (copy "test_config.map.clj" "test_config.map1.clj")
+  (def test_config.map1.clj (slurp "test_config.map1.clj"))
+
+  ; Get zprint to know about new configure files
+  ; and notice if it doesn't go well!
+
+  (expect nil (configure-all!))
+
+  (execute-test (expect (more-of result-map
+                          0 (:exit result-map)
+                          "" (:out result-map)
+                          "" (:err result-map)
+                          (zprint-file-str test_config.map1.clj "-w" {})
+                            (slurp "test_config.map1.clj"))
+                        (do-command ["{:files {:glob \"test_config.map1.clj\"}}" "-w"])))
+
+  (delete-tree "test_config.map1.clj")
+
+  ;----------------------------------------------------------------
+  (display-test "-w test with one file using {:files ...} and shell files")
+
+  ; This tests that you get an error message when you use the {:fies ...}
+  ; construction along with shell files as well.
+
+  ; Put in a reasonable (and different than before) .zprintrc
+
+  (spit (str (expand-home "~/.zprintrc")) "{:width 40 :style :justified}")
+
+  ; No ./.zprintrc
+
+  (delete-tree "./.zprintrc")
+
+  ; Note that {:keys [:replace-existing]} does not work in copy
+  ; so we have to delete the file first!
+
+  (delete-tree "test_config.map1.clj")
+
+  (copy "test_config.map.clj" "test_config.map1.clj")
+  (def test_config.map1.clj (slurp "test_config.map1.clj"))
+
+  ; Get zprint to know about new configure files
+  ; and notice if it doesn't go well!
+
+  (expect nil (configure-all!))
+
+  (execute-test (expect (more-of result-map
+                          1 (:exit result-map)
+                          "" (:out result-map)
+"Cannot have :files key in command-line options: '{:files {:directory \".\" :glob \"test_config.map1.clj\"}}' and also process files supplied by the shell!\n"
+
+			  (:err result-map)
+			    )
+                        (do-command ["{:files {:directory \".\" :glob \"test_config.map1.clj\"}}" "-w" "test_config.map1.clj"])))
+
+  (delete-tree "test_config.map1.clj")
+
+  ;----------------------------------------------------------------
   (display-test "-w test with two files")
 
   ;
@@ -1246,6 +1396,93 @@
   (delete-tree "test_config.map2.clj")
 
   ;----------------------------------------------------------------
+  (display-test "-w test with two files using {:files ...}")
+
+  ;
+  ; -w with multiple files
+  ;
+
+  ; This tests not only that the command doesn't blow up, but that
+  ; the formatting actually matches that done by the library built
+  ; in here.
+
+  ; Put in a reasonable (and different than before) .zprintrc
+
+  (spit (str (expand-home "~/.zprintrc")) "{:width 40 :style :justified}")
+
+  ; No ./.zprintrc
+
+  (delete-tree "./.zprintrc")
+
+  ; Note that {:keys [:replace-existing]} does not work in copy
+  ; so we have to delete the file(s) first!
+
+  (delete-tree "test_config.map1.clj")
+  (delete-tree "test_config.map2.clj")
+
+  (copy "test_config.map.clj" "test_config.map1.clj")
+  (copy "test_config.map.clj" "test_config.map2.clj")
+
+  (def test_config.map1.clj (slurp "test_config.map1.clj"))
+  (def test_config.map2.clj (slurp "test_config.map2.clj"))
+
+  ; Get zprint to know about new configure files
+  ; and notice if it doesn't go well!
+
+ (execute-test (expect (more-of result-map
+                          0 (:exit result-map)
+                          "" (:out result-map)
+                          "" (:err result-map)
+                          (zprint-file-str test_config.map1.clj "-w" {})
+                            (slurp "test_config.map1.clj")
+                          (zprint-file-str test_config.map2.clj "-w" {})
+                            (slurp "test_config.map2.clj"))
+                        (do-command ["{:files {:directory \".\" :glob \"test_config.map*.clj\"}}" "-w"])))
+
+
+  (delete-tree "test_config.map1.clj")
+  (delete-tree "test_config.map2.clj")
+
+  ;----------------------------------------------------------------
+  (display-test ":files appears in ~/.zprintrc file")
+
+  ;
+  ; :files in .zprint.edn file
+  ;
+
+  ; Put in a reasonable (and different than before) .zprintrc
+
+  (spit (str (expand-home "~/.zprintrc")) 
+    "{:files {:glob \"test_config.map.clj\"}}")
+
+  ; No ./.zprintrc
+
+  (delete-tree "./.zprintrc")
+
+  ; Note that {:keys [:replace-existing]} does not work in copy
+  ; so we have to delete the file(s) first!
+
+  (delete-tree "test_config.map1.clj")
+  (delete-tree "test_config.map2.clj")
+
+  (copy "test_config.map.clj" "test_config.map1.clj")
+  (copy "test_config.map.clj" "test_config.map2.clj")
+
+  (def test_config.map1.clj (slurp "test_config.map1.clj"))
+  (def test_config.map2.clj (slurp "test_config.map2.clj"))
+
+  ; Get zprint to know about new configure files
+  ; and notice if it doesn't go well!
+
+  (expect 
+"The key :files is not allowed in an options configuration file!"
+   (configure-all!))
+
+  (delete-tree "test_config.map1.clj")
+  (delete-tree "test_config.map2.clj")
+
+
+  ;----------------------------------------------------------------
   (display-test "-w test with two files, one of which doesn't exist")
 
   ;
@@ -1263,6 +1500,8 @@
   ; No ./.zprintrc
 
   (delete-tree "./.zprintrc")
+
+  (expect nil (configure-all!))
 
   ; Note that {:keys [:replace-existing]} does not work in copy
   ; so we have to delete the file(s) first!
@@ -1286,7 +1525,7 @@
       (more-of result-map
         1 (:exit result-map)
         "" (:out result-map)
-        "Failed to open file test_config.map2.clj because: java.io.FileNotFoundException: test_config.map2.clj (No such file or directory)\n"
+        "Failed to open file 'test_config.map2.clj' because: java.io.FileNotFoundException: test_config.map2.clj (No such file or directory)\n"
           (:err result-map)
         (zprint-file-str test_config.map1.clj "-w" {})
           (slurp "test_config.map1.clj"))
@@ -1336,8 +1575,8 @@
   (execute-test (expect (more-of result-map
                           1 (:exit result-map)
                           "" (:out result-map)
-                          "Failed to open file test_config.map2.clj"
-                            (re-find #"Failed to open file test_config.map2.clj"
+                          "Failed to open file 'test_config.map2.clj'"
+                            (re-find #"Failed to open file 'test_config.map2.clj'"
                                      (:err result-map))
                           (zprint-file-str test_config.map1.clj "-w" {})
                             (slurp "test_config.map1.clj"))

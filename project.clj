@@ -1,4 +1,4 @@
-(defproject zprint "1.2.9"
+(defproject zprint "1.3.0"
   :description "Pretty print Clojure source and s-expressions"
   :url "https://github.com/kkinnear/zprint"
   :license {:name "MIT License",
@@ -52,4 +52,5 @@
                  #_[org.clojure/clojure "1.8.0"]
                  #_[org.babashka/sci "0.7.39"]
                  [org.babashka/sci "0.8.40"]
+		 [babashka/fs "0.5.20"]
                  [rewrite-clj/rewrite-clj "1.1.47"]])

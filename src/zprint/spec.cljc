@@ -475,7 +475,19 @@
                       ::indent ::key-order ::sort-in-code? ::sort?
                       :alt/tuning]))
 (s/def ::tagged-literal
-  (only-keys :opt-un [::hang-diff ::hang-expand ::hang? ::indent :alt/tuning]))
+  (only-keys :opt-un [::hang-diff ::hang-expand ::hang? ::indent :alt/tuning
+
+  ::indent-only?
+  ::no-wrap-after
+  ::respect-bl?
+  ::respect-nl?
+  ::wrap-after-multi?
+  ::wrap-coll?
+  ::wrap?
+  
+  ]))
+
+
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl

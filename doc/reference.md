@@ -2788,6 +2788,9 @@ whitespace.  When `:indent-only?` is specified, other configuration
 parameters for the lists, maps, sets, or vectors will be
 ignored except for `:indent` (for all of the data types) and
 `:indent-only-style` (to control hang or flow, only for lists).
+Note that
+`:indent-only?` is ignored when formatting Clojure structures as opposed
+to formatting source files, since it has no means without explicit newlines.
 
 ### :respect-bl? _false_
 

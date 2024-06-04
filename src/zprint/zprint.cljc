@@ -4600,9 +4600,11 @@
         indent-only? (get caller-options :indent-only? :undef)]
     [(if (not= respect-nl? :undef) respect-nl? (:respect-nl? (backup options)))
      (if (not= respect-bl? :undef) respect-bl? (:respect-bl? (backup options)))
-     (if (not= indent-only? :undef)
-       indent-only?
-       (:indent-only? (backup options)))]))
+     ; indent-only? can only ever be true for zippers
+     (when (= (:ztype options) :zipper)
+       (if (not= indent-only? :undef)
+         indent-only?
+         (:indent-only? (backup options))))]))
 
 (defn allow-one-line?
   "Should we allow this function to print on a single line?"
@@ -5027,7 +5029,9 @@
           ; re-written by the function style being a vector.
           indent (:indent (options caller))
           indent-arg (:indent-arg (options caller))
-          indent-only? (:indent-only? (options caller))
+	  ; indent-only? can only ever be true for zippers
+          indent-only? (when (= (:ztype options) :zipper)
+                          (:indent-only? (options caller)))
           ; set indent based on fn-style
           indent (if (body-set fn-style) indent (or indent-arg indent))
           indent (+ indent (dec l-str-len))
@@ -8441,7 +8445,9 @@
             "fzprint-meta: zloc:" (zstring zloc)
             "zloc-seq" (map zstring zloc-seq))
     (concat-no-nil l-str-vec
-                   (if (:indent-only? (:list options))
+                   (if (when (= (:ztype options) :zipper)
+                          (:indent-only? (:list options)))
+		   #_(:indent-only? (:list options))
                      ; Since l-str isn't a "pair" and shouldn't be
                      ; considered in the indent, we don't tell
                      ; fzprint-indent about it.
@@ -8919,6 +8925,19 @@
       (zatom? zloc) (fzprint-atom options indent zloc)
       (zmeta? zloc) (fzprint-meta options indent zloc)
       (prefix-tags (ztag zloc))
+        (let [prefix-tags-options
+                      (-> (prefix-options options (ztag zloc))
+                          (make-caller :prefix-tags :list [:indent-only?])
+                          (make-caller :prefix-tags :list [:respect-nl?])
+                          (make-caller :prefix-tags :list [:respect-bl?]))
+	      ; If we aren't doing a zipper, then :indent-only? must be false.
+	      prefix-tags-options
+                           (if (= (:ztype options) :zipper)
+			      prefix-tags-options
+			      (assoc-in prefix-tags-options
+			            [:prefix-tags :indent-only?]
+				    false))]
+
         (fzprint-vec* :prefix-tags
                       (prefix-tags (ztag zloc))
                       ""
@@ -8927,12 +8946,11 @@
                       ; routine get-respect-indent exists, and its use in
                       ; fzprint-vec* and fzprint-map* also
                       ; solves a similar problem
-                      (-> (prefix-options options (ztag zloc))
-                          (make-caller :prefix-tags :list [:indent-only?])
-                          (make-caller :prefix-tags :list [:respect-nl?])
-                          (make-caller :prefix-tags :list [:respect-bl?]))
+		      prefix-tags-options
+
+
                       indent
-                      zloc)
+                      zloc))
       (zns? zloc) (fzprint-ns options indent zloc)
       (or (zpromise? zloc) (zfuture? zloc) (zdelay? zloc) (zagent? zloc))
         (fzprint-future-promise-delay-agent options indent zloc)

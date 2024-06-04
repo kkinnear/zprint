@@ -9199,6 +9199,19 @@ ser/collect-vars-acc %1 %2) )))"
     "(cond (odd? a) 1\n      ; This is a comment\n      :let [a (quot a 2)]\n      :when-let ; this is also a comment\n        [x (fn-which-may-return-falsey a)\n         y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y)) 2\n      3)"
     (zprint-str bc1a {:parse-string? true}))
 
+;;
+;; Style :indent-only doesn't work with structures.  Issue #321.
+;;
+
+(expect
+"{:a :b, :c :d}"
+(zprint-str {:a :b :c :d} {:style :indent-only}))
+
+(expect
+"(aaaaaaaaaaa bbbbbbbbbb\n             cccccccccc\n             ddddddddd\n             eeeeeeeeee\n             ffffffff\n             gggg\n             hhhhhhhhhh\n             iiiii)"
+(zprint-str '(aaaaaaaaaaa bbbbbbbbbb cccccccccc ddddddddd eeeeeeeeee ffffffff gggg hhhhhhhhhh iiiii) {:style :indent-only}))
+
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

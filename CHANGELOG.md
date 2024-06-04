@@ -23,6 +23,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+  * Configuring `:indent-only?` when using zprint to format Clojure
+  structures (as opposed to source files) doesn't work and produces 
+  incorrect results.  Issue #321.
 
 ## 1.2.9 - 2024-3-12
 

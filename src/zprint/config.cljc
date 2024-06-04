@@ -1273,7 +1273,19 @@
                     :indent 0,
                     :tuning {:hang-flow 1.1,
                              :hang-flow-limit 12,
-                             :hang-if-equal-flow? false}},
+                             :hang-if-equal-flow? false}
+
+         :indent-only? false,
+         :no-wrap-after nil,
+         :respect-bl? false,
+         :respect-nl? false,
+         :wrap-after-multi? true,
+         :wrap-coll? true,
+         :wrap? true,
+
+
+			     
+			     },
    :test-for-eol-blanks? false,
    :trim-comments? nil,
    :tuning {; do hang if (< (/ hang-count flow-count) :hang-flow)

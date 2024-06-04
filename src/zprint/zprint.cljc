@@ -29,7 +29,7 @@
                                 zsecond zseqnws zseqnws-w-bl zseqnws-w-nl zset?
                                 zsexpr zsexpr? zstart zstring zsymbol? ztag
                                 ztake-append zuneval? zvector? zwhitespace?
-                                zwhitespaceorcomment?]]
+                                zwhitespaceorcomment? ztagged-literal?]]
     [zprint.zutil       :refer [add-spec-to-docstring]]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
@@ -8472,6 +8472,17 @@
                        zloc-seq))
                    r-str-vec)))
 
+(defn fzprint-tagged-literal
+  "Format a tagged-literal -- the actual clojure structure, not the
+  reader-macro from parsing a tagged-literal out of source."
+  [options ind zloc]
+  (let [l-str "#"
+        r-str ""
+	; Since this can only be called for a structure, we can concoct
+	; a zloc given that we know it is a tagged-literal.
+	zloc (list (:tag zloc) (:form zloc))]
+    (fzprint-vec* :tagged-literal l-str r-str (rightmost options) ind zloc)))
+
 (defn fzprint-reader-macro
   "Print a reader-macro, often a reader-conditional. Adapted for differences
   in parsing #?@ between rewrite-clj and rewrite-cljs.  Also adapted for
@@ -8925,7 +8936,10 @@
       (zns? zloc) (fzprint-ns options indent zloc)
       (or (zpromise? zloc) (zfuture? zloc) (zdelay? zloc) (zagent? zloc))
         (fzprint-future-promise-delay-agent options indent zloc)
+      ; Note that tagged-literals in source are parsed as reader-macro?
+      ; but tagged-literal structure objects are not
       (zreader-macro? zloc) (fzprint-reader-macro options indent zloc)
+      (ztagged-literal? zloc) (fzprint-tagged-literal options indent zloc)
       ; This is needed to not be there for newlines in parse-string-all,
       ; but is needed for respect-nl? support.
       ;(and (= (ztag zloc) :newline) (> depth 0)) [["\n" :none :newline]]

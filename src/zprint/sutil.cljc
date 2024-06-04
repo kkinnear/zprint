@@ -211,6 +211,11 @@
   #?(:clj (re-find #"promise" (pr-str (type x)))
      :cljs nil))
 
+(defn stagged-literal?
+  "Is this an actual tagged-literal?"
+  [x]
+  (tagged-literal? x))
+
 (defn sagent?
   "Is this an agent?"
   [x]
@@ -353,5 +358,6 @@
     zprint.zfns/zfind sfind
     zprint.zfns/ztake-append stake-append
     zprint.zfns/zcount-nc scount
-    zprint.zfns/zreader-macro-splicing? (constantly false)]
+    zprint.zfns/zreader-macro-splicing? (constantly false)
+    zprint.zfns/ztagged-literal? stagged-literal?]
    (body-fn)))

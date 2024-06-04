@@ -887,5 +887,8 @@
     zprint.zfns/zfind zfind
     zprint.zfns/ztake-append ztake-append
     zprint.zfns/zcount-nc zcount-nc
-    zprint.zfns/zreader-macro-splicing? zreader-macro-splicing?]
+    zprint.zfns/zreader-macro-splicing? zreader-macro-splicing?
+    ; This is to detect a structure tagged-literal.  Tagged literals
+    ; detected during parsing are seen as reader-macro?
+    zprint.zfns/ztagged-literal? (constantly nil)]
    (body-fn)))

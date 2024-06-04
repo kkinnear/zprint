@@ -77,6 +77,7 @@
 (def ztake-append nil)
 (def zcount-nc nil)
 (def zreader-macro-splicing? nil)
+(def ztagged-literal? nil)
 
 (defn zfn-map
   []

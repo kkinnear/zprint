@@ -5275,19 +5275,79 @@ ser/collect-vars-acc %1 %2) )))"
                          :style :respect-nl,
                          :tagged-literal {:hang? false, :indent -1}}))
 
+; Used to be :indent -1, changed to :indent 0 for complete rework
+; of tagged-literals for Issue #318.
   (expect "#stuff/bother\n(list :this\n      \"is\"\n      a\n      :test)"
-          (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
-                      {:parse-string? true,
-                       :style :respect-nl,
-                       :tagged-literal {:hang? false, :indent -1}}))
-
-
-  (expect "#stuff/bother\n (list :this\n       \"is\"\n       a\n       :test)"
           (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
                       {:parse-string? true,
                        :style :respect-nl,
                        :tagged-literal {:hang? false, :indent 0}}))
 
+
+; Used to be :indent 0, removed to use default :indent 1 for 
+; Issue #318
+  (expect "#stuff/bother\n (list :this\n       \"is\"\n       a\n       :test)"
+          (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
+                      {:parse-string? true,
+                       :style :respect-nl,
+                       :tagged-literal {:hang? false}}))
+
+;;
+;; tagged-literals rework, Issue #318
+;;
+
+;; Try out end of line handling and :hang with structures
+
+
+(expect
+"[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+(zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb :ccccccc :dddddd})] {:tagged-literal {:hang? true} :width 40}))
+
+(expect
+"[#x {:aaaaa :bbbbbbb,\n     :ccccccc :dddddd}]"
+(zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb :ccccccc :dddddd})] {:tagged-literal {:hang? true} :width 39}))
+
+(expect
+"[#x\n  {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+(zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb :ccccccc :dddddd})] {:tagged-literal {:hang? false} :width 39}))
+
+;; Try out end of line handling and :hang with zippers
+
+(expect
+"[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+(zprint-str "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? true} :width 40}))
+
+(expect
+"[#x {:aaaaa :bbbbbbb,\n     :ccccccc :dddddd}]"
+(zprint-str "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? true} :width 39}))
+
+(expect
+"[#x\n  {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+(zprint-str "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? false} :width 39}))
+
+;; :indent-only for zippers and structures
+
+(expect
+"[#x {:aaaaa\n     :bbbbbbb :ccccccc :dddddd}]"
+(zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? true} :style :indent-only :width 40}))
+
+(expect
+"[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+(zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb :ccccccc :dddddd})] {:tagged-literal {:hang? false} :style :indent-only :width 40}))
+
+;; :respect-nl for zippers
+
+(expect
+"[#x {:aaaaa\n       :bbbbbbb,\n     :ccccccc :dddddd}]"
+(zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? true} :style :respect-nl :width 40}))
+
+(expect
+"[#x\n  {:aaaaa\n     :bbbbbbb,\n   :ccccccc :dddddd}]"
+(zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? false} :style :respect-nl :width 40}))
+
+(expect
+"[#x\n {:aaaaa\n    :bbbbbbb,\n  :ccccccc :dddddd}]"
+(zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? false :indent 0} :style :respect-nl :width 40}))
 
 
   (expect
@@ -9210,6 +9270,24 @@ ser/collect-vars-acc %1 %2) )))"
 (expect
 "(aaaaaaaaaaa bbbbbbbbbb\n             cccccccccc\n             ddddddddd\n             eeeeeeeeee\n             ffffffff\n             gggg\n             hhhhhhhhhh\n             iiiii)"
 (zprint-str '(aaaaaaaaaaa bbbbbbbbbb cccccccccc ddddddddd eeeeeeeeee ffffffff gggg hhhhhhhhhh iiiii) {:style :indent-only}))
+
+;;
+;; Actually correctly format tagged literals -- real ones, as structures
+;;
+
+(def i318e [{:a :b :c :d} (tagged-literal 'x {:e :f :g :h})])
+
+(expect
+"[{:a :b, :c :d} #x {:e :f, :g :h}]"
+(zprint-str i318e))
+
+(expect
+"[{:a :b :c :d} #x {:e :f :g :h}]"
+(zprint-str i318e {:map {:comma? false}}))
+
+ (expect
+"[{:a :b :c :d} #x {:e :f :g :h}]"
+ (zprint-str i318e {:map {:comma? false} :style :indent-only}))
 
 
 

@@ -4436,6 +4436,7 @@
                    "fzprint-indent: caller:" caller
                    "l-str-len:" l-str-len
                    "ind:" ind
+		   "rightcnt:" (:rightcnt options)
                    "fn-style:" fn-style
                    "arg-1-indent:" arg-1-indent
                    "flow-indent:" flow-indent
@@ -8478,7 +8479,7 @@
                        zloc-seq))
                    r-str-vec)))
 
-(defn fzprint-tagged-literal
+(defn fzprint-tagged-literal-alt
   "Format a tagged-literal -- the actual clojure structure, not the
   reader-macro from parsing a tagged-literal out of source."
   [options ind zloc]
@@ -8489,11 +8490,176 @@
 	zloc (list (:tag zloc) (:form zloc))]
     (fzprint-vec* :tagged-literal l-str r-str (rightmost options) ind zloc)))
 
+(defn fzprint-tagged-literal
+  "Format a tagged-literal -- an actual clojure structure, or the
+  reader-macro from parsing a tagged-literal out of source."
+  [options ind zloc]
+  (let [l-str "#"
+        r-str ""
+        zloc (if (= (:ztype options) :zipper)
+               zloc
+               ; If this is being called for a structure, we can concoct
+               ; a zloc given that we know it is a tagged-literal.
+               (list (:tag zloc) (:form zloc)))]
+    (fzprint-list* :tagged-literal l-str r-str (assoc options :fn-style :none) #_(rightmost options) ind zloc)))
+
 (defn fzprint-reader-macro
+  "Print a reader-macro, often a reader-conditional.  This does not
+  processed namespaced maps, they are now processed by fzprint-map
+  since the parser recognizes them.  Note that :ztype :zipper calls
+  are the only ones that this routine will encounter, since
+  (zreader-macro? ...) is constantly false in sutil.cljc."
+  [options ind zloc]
+  (let [zstr (zstring (zfirst zloc))
+        ; rewrite-cljs parses #?@ differently from rewrite-clj.  In
+        ; rewrite-cljs zfirst is ?@, not ?, so deal with that.
+        ; Not clear which is correct, I could see it go either way.
+        alt-at? (and (= (count zstr) 2) (= (subs zstr 1 2) "@"))
+        reader-cond? (= (subs zstr 0 1) "?")
+        at? (or (= (ztag (zsecond zloc)) :deref) alt-at?)
+        options (if (:splicing-pair? (:reader-cond options))
+                  (if at?
+                    options
+                    (assoc-in options [:reader-cond :splicing-pair?] false))
+                  options)
+        l-str (cond (and reader-cond? at?) "#?@"
+                    (and reader-cond? (zcoll? (zsecond zloc))) "#?"
+                    reader-cond?
+                      (throw (#?(:clj Exception.
+                                 :cljs js/Error.)
+                              (str "Unknown reader macro: '" (zstring zloc)
+                                   "' zfirst zloc: " (zstring (zfirst zloc)))))
+                    :else "#")
+        r-str ""
+        ; Error to debug zpst
+        _ (when (:dbg-bug? options)
+            #?(:clj (+ "a" "b")
+               :cljs nil))
+        indent (count l-str)
+        ; we may want to color this based on something other than
+        ; its actual character string
+        l-str-vec (lstr-vec options l-str)
+        r-str-vec (rstr-vec options ind r-str)
+        floc
+          (if (and at? (not alt-at?)) (zfirst (zsecond zloc)) (zsecond zloc))]
+    (dbg-pr options
+            "fzprint-reader-macro: zloc:" (zstring zloc)
+            "floc:" (zstring floc)
+            "l-str:" l-str
+            "reader-cond?" reader-cond?)
+    (dbg-s options
+           #{:reader-cond}
+           "fzprint-reader-macro splicing-pair?:"
+           (:splicing-pair? (:reader-cond options)))
+    (if reader-cond?
+      (let [; If :reader-cond doesn't have these things, then let :map govern
+            ; indent-only? will never be set for structures
+            [respect-nl? respect-bl? indent-only?]
+              (get-respect-indent options :reader-cond :map)]
+        ; This isn't really all that correct, but does yield the right output.
+        ; Question about whether or not it does the right stuff for focus.
+        ; Maybe there is some way to call fzprint-indent with just the
+        ; #? and "", and let it deal with the underlying list. I don't know
+        ; if that would be possible, though maybe if we carefully positioned
+        ; the floc for that case.  But could we hack in the ["" :none :element]
+        ; in that case? At present documented that focus and :indent-only
+        ; don't work together..
+        (if indent-only?
+          (let [l-str-io (str l-str "(")
+                r-str-io ")"
+                l-str-vec-io (lstr-vec options l-str-io)
+                r-str-vec-io (rstr-vec options ind r-str-io)]
+            (concat-no-nil l-str-vec-io
+                           (fzprint-indent :map
+                                           l-str-io
+                                           r-str-io
+                                           (rightmost options)
+                                           ind
+                                           floc
+                                           nil ;fn-style
+                                           nil) ;arg-1-indent, will prevent
+                                                ;hang
+                           r-str-vec-io))
+          (concat-no-nil l-str-vec
+                         ; Because there is a token here in the zipper,
+                         ; we need something to make the focus
+                         ; positioning come out right.
+                         [["" :none :element]]
+                         (fzprint-map*
+                           :reader-cond
+                           "("
+                           ")"
+                           (rightmost options)
+                           ; Here is where we might adjust the
+                           ; indent, but if we do it here
+                           ; (since this looks like a list),
+                           ; we also have to deal with it when
+                           ; the map code is doing the next
+                           ; thing (like :cljs after  :clj).
+                           ; If you just (dec indent) here
+                           ; you break 14 tests.
+                           (+ indent ind)
+                           floc
+                           nil))))
+      ; Not reader-cond?
+      (let [[respect-nl? respect-bl? indent-only?]
+              (get-respect-indent options :tagged-literal :map)]
+        (if indent-only?
+          (let [l-str-io l-str
+                r-str-io ""
+                l-str-vec-io (lstr-vec options l-str-io)
+                r-str-vec-io (rstr-vec options ind r-str-io)]
+            (concat-no-nil l-str-vec-io
+	    (do (dbg-s options #{:issue-318} 
+	              "fzprint-reader-macro NOT reader-cond indent-only ind:" ind
+		      "indent:" indent
+		      "zloc:" (zstring zloc))
+		 :noseq)
+                           (fzprint-indent
+                             :tagged-literal
+                             l-str-io
+                             r-str-io
+                             (rightmost options)
+                             ind
+                             zloc
+                             nil ; fn-style
+                             nil) ;arg-1-indent
+                           r-str-vec-io))
+	  (fzprint-tagged-literal options ind zloc)
+          #_(concat-no-nil
+            l-str-vec
+            ; Because there is a token here in the zipper,
+            ; we need something to make the focus
+            ; positioning come out right.
+            [["" :none :element]]
+	    (do (dbg-s options #{:issue-318} 
+	              "fzprint-reader-macro NOT reader-cond ind:" ind
+		      "indent:" indent
+		      "zloc:" (zstring zloc))
+		 :noseq)
+            (fzprint-pairs #_(rightmost options) options
+                           ; If we have :indent 0 by default, then if the RHS
+                           ; of the pair flows, it will be one space past the
+                           ; # because that is "where we are" on the line.
+                           ; If you want to not have any spaces there, then
+                           ; specify an :indent -1, which moves us to the
+                           ; left of "where we are" on the line.
+                           ind #_(+ indent ind)
+                           (let [zloc-seq
+                                   (cond respect-nl? (zmap-w-nl identity zloc)
+                                         respect-bl? (zmap-w-bl identity zloc)
+                                         :else (zmap identity zloc))]
+                             zloc-seq)
+                           :tagged-literal)
+            r-str-vec))))))
+
+(defn fzprint-reader-macro-alt
   "Print a reader-macro, often a reader-conditional. Adapted for differences
   in parsing #?@ between rewrite-clj and rewrite-cljs.  Also adapted for
   the rewrite-clj not parsing namespaced maps in the version presently
-  used."
+  used. Note that :ztype :zipper calls are the only ones that this
+  routine will encounter, since (zreader-macro? ...) is constantly false
+  in sutil.cljc."
   [options ind zloc]
   (let [zstr (zstring (zfirst zloc))
         ; rewrite-cljs parses #?@ differently from rewrite-clj.  In
@@ -8513,6 +8679,7 @@
                     (assoc-in options [:reader-cond :splicing-pair?] false))
                   options)
         ; If :reader-cond doesn't have these things, then let :map govern
+	; indent-only? will never be set for structures
         [respect-nl? respect-bl? indent-only?]
           (get-respect-indent options :reader-cond :map)
         l-str (cond (and reader-cond? at?) "#?@"
@@ -8604,6 +8771,17 @@
                         floc
                         nil)
           ; not reader-cond?
+	  (let [[respect-nl? respect-bl? indent-only?]
+		      (get-respect-indent options :tagged-literal :map)]
+    (dbg-s options
+           #{:not-reader-cond}
+           "fzprint-reader-macro not reader cond:"
+	   (zstring zloc))
+
+    (prn "fzprint-reader-macro not reader cond:"
+	   (zstring zloc))
+
+
           (fzprint-pairs options
                          ; If we have :indent 0 by default, then if the RHS
                          ; of the pair flows, it will be one space past the
@@ -8617,7 +8795,7 @@
                                        respect-bl? (zmap-w-bl identity zloc)
                                        :else (zmap identity zloc))]
                            (if namespaced? (next zloc-seq) zloc-seq))
-                         :tagged-literal))
+                         :tagged-literal)))
         r-str-vec))))
 
 (defn fzprint-newline

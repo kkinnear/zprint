@@ -7827,10 +7827,13 @@ line as the tagged literal.  You can configure zprint to
 consider the tagged literal and the element following it as unrelated
 by configuring: `{:tagged-literal {:hang? false}}`.
 
-##### :indent _0_
+##### :indent _1_
 ##### :hang? _true_
 ##### :hang-expand _1000.0_
 ##### :hang-diff _1_
+#### :indent-only? _false_
+#### :respect-nl? _false_
+#### :respect-bl? _false_
 
 _____
 ## :vector

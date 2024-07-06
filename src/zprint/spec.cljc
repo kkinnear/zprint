@@ -478,12 +478,8 @@
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang? ::indent :alt/tuning
 
   ::indent-only?
-  ::no-wrap-after
   ::respect-bl?
   ::respect-nl?
-  ::wrap-after-multi?
-  ::wrap-coll?
-  ::wrap?
   
   ]))
 

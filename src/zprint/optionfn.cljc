@@ -210,3 +210,23 @@
                   rule-pairs)]
      result)))
 
+(defn vector-defn
+  "Place an extra newline between defn forms in vectors."
+  ([] "vector-defn")
+  ([options n sexpr]
+   (when (= (:ztype options) :zipper)
+     (let [first-seq? (list? (first sexpr))
+           defn? (when first-seq? (= (first (first sexpr)) 'defn))]
+       (when defn?
+         (let [guide (into []
+                           (flatten (interpose [:newline :newline]
+                                      (repeat (count sexpr) :element))))]
+           {:guide guide}))))))
+
+
+;     {:guide guide,
+;      :pair {:justify? true},
+;      :next-inner {:pair {:justify? false}, :list {:option-fn nil}}})))
+
+
+

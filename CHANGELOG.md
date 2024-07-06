@@ -21,6 +21,18 @@ All notable changes to this project will be documented in this file.
   
 ### Changed
 
+  * Formatting for tagged-literals was completed reimplemented.
+  This corrected many problems (not least that they were ignored
+  when they appeared in Clojure data structures formatted by zprint
+  as a library) and brought the implementation and configuration
+  into line with the rest of zprint. Unfortunately, this also caused
+  a change to the interpretation of the `:indent` for tagged-literals.
+  Previously, the default was `:indent 0`, which would place the
+  literal one space to the right of the `#` if it formatted onto
+  the line below the tag.  That same placement remains the default,
+  but the configuration to generate that output is now `:indent 1`,
+  which is an unfortunate but necessary change.  Issue #318, #304.
+
 ### Fixed
 
   * Configuring `:indent-only?` when using zprint to format Clojure

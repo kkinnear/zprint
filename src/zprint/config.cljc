@@ -961,6 +961,7 @@
                     :list {:indent-only? true},
                     :map {:indent-only? true},
                     :set {:indent-only? true},
+		    :tagged-literal {:indent-only? true}
                     ; Should we also set :vector-fn to :indent-only?  That
                     ; is only used by :fn-format, so it might confuse
                     ; people if we did that.
@@ -1197,22 +1198,26 @@
                    :list {:respect-bl? true},
                    :map {:respect-bl? true},
                    :vector {:respect-bl? true},
-                   :set {:respect-bl? true}},
+                   :set {:respect-bl? true}
+		   :tagged-literal {:respect-bl? true} },
       :respect-bl-off {:doc "Disable respect blank lines for every type",
                        :list {:respect-bl? false},
                        :map {:respect-bl? false},
                        :vector {:respect-bl? false},
-                       :set {:respect-bl? false}},
+                       :set {:respect-bl? false}
+		       :tagged-literal {:respect-bl? false}},
       :respect-nl {:doc "Enable respect newlines for every type",
                    :list {:respect-nl? true},
                    :map {:respect-nl? true},
                    :vector {:respect-nl? true},
-                   :set {:respect-nl? true}},
+                   :set {:respect-nl? true}
+		   :tagged-literal {:respect-nl? true}},
       :respect-nl-off {:doc "Disable respect newline for every type",
                        :list {:respect-nl? false},
                        :map {:respect-nl? false},
                        :vector {:respect-nl? false},
-                       :set {:respect-nl? false}},
+                       :set {:respect-nl? false}
+		       :tagged-literal {:respect-nl? false}},
       :rod {:doc "Rules of defn, with newlines between arities.",
             :multi-arity-nl? true,
             :one-line-ok? false,
@@ -1270,18 +1275,14 @@
    :tagged-literal {:hang-diff 1,
                     :hang-expand 1000.0,
                     :hang? true,
-                    :indent 0,
+                    :indent 1,
                     :tuning {:hang-flow 1.1,
                              :hang-flow-limit 12,
                              :hang-if-equal-flow? false}
 
          :indent-only? false,
-         :no-wrap-after nil,
          :respect-bl? false,
          :respect-nl? false,
-         :wrap-after-multi? true,
-         :wrap-coll? true,
-         :wrap? true,
 
 
 			     

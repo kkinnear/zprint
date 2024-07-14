@@ -5332,7 +5332,13 @@ map, it is particularly useful when paired with `{:parse
 When all of the keys in a map are namespaced, and they all have the same
 key, "lift" that namespace out of the keys and make it a namespaced map.
 
-For example:
+Unusually, `:lift-ns?` can also be an integer, and if it is an integer,
+then a namespace will only be lifted out of map when the number of keys
+in the map is greater than the value of `:lift-ns?`.  Typically the number
+you would want would probably be `1`, since lifting a namespace from a
+single key is odd.
+
+For example, when `:lift-ns?` is a boolean:
 ```clojure
 (zprint {:x/a :b :x/c :d} {:map {:lift-ns? true}})
 #:x{:a :b, :c :d}

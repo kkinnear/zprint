@@ -247,8 +247,13 @@
   in seqs with more than one element have the same namespace. Returns
   the [namespace pair-seq] or nil."
   [{:keys [in-code? lift-ns? lift-ns-in-code? unlift-ns?], :as map-options}
-   pair-seq ns]
+   pair-seq ns key-count]
   (if (and lift-ns? (if in-code? lift-ns-in-code? true))
+
+	(if (and (number? lift-ns?) (<= key-count lift-ns?))
+	[ns pair-seq]
+
+
     (let [strip-ns (fn [named]
                      (if (symbol? named)
                        (symbol nil (name named))
@@ -272,7 +277,7 @@
                        (next pair-seq)
                        (conj out (cons (strip-ns k) rest-of-pair))))
               (when (= (count pair) 1)
-                (recur ns (next pair-seq) (conj out pair))))))))
+                (recur ns (next pair-seq) (conj out pair)))))))))
     [nil pair-seq]))
 
 ;!zprint {:vector {:respect-nl? true}}

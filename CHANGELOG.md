@@ -17,7 +17,15 @@ All notable changes to this project will be documented in this file.
   on a command line which also includes file specifications for the
   shell -- you must either specify files with the shell, or with
   the `:files` key, but not both! See the reference manual for
-  additional details.
+  additional details.  Issue #313.
+
+  * Addtional control over lifting namespaces.  Prior to this change
+  `:map {:lift-ns? ...}` was soley boolean. It can now either be boolean
+  or an integer.  If it is an integer, the namespace will be lifted only
+  if the number of keys is greater than the value of `:lift-ns?`.  Thus,
+  a value of `1` would be a reasonable value in many situations, as lifting
+  a namespace from a single key looks pretty odd, but lifting namespaces
+  from more than one key usually does not.  Issue #325.
   
 ### Changed
 

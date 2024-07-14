@@ -2199,6 +2199,20 @@
                       {:parse-string? true,
                        :map {:lift-ns? true, :lift-ns-in-code? false}}))
 
+  ; lift-ns? as an integer Issue #325 should lift
+
+  (expect "(list #:x{:a :b, :c :d})"
+          (zprint-str "(list {:x/a :b :x/c :d})"
+                      {:parse-string? true,
+                       :map {:lift-ns? 1, :lift-ns-in-code? true}}))
+
+  ; lift-ns? as an integer Issue #325 should not lift
+
+  (expect "(list {:x/a :b, :x/c :d})"
+          (zprint-str "(list {:x/a :b :x/c :d})"
+                      {:parse-string? true,
+                       :map {:lift-ns? 2, :lift-ns-in-code? true}}))
+
   (expect "(list {::a :b, ::c :d})"
           (zprint-str "(list {::a :b ::c :d})"
                       {:parse-string? true,
@@ -2230,6 +2244,17 @@
 
   (expect "{:zprint.zprint-test/a :b, :zprint.zprint-test/c :d}"
           (zprint-str {::a :b, ::c :d} {:map {:lift-ns? false}}))
+
+  ; lift-ns? as an integer, Issue #325, should lift
+
+  (expect "#:zprint.zprint-test{:a :b, :c :d}"
+          (zprint-str {::a :b, ::c :d} {:map {:lift-ns? 1}}))
+
+  ; lift-ns? as an integer, Issue #325, should not lift
+
+  (expect "{:zprint.zprint-test/a :b, :zprint.zprint-test/c :d}"
+          (zprint-str {::a :b, ::c :d} {:map {:lift-ns? 2}}))
+
 
   (expect "#:zprint.zprint-test{:a :b, :c :d}"
           (zprint-str {::a :b, ::c :d} {:map {:lift-ns? true}}))

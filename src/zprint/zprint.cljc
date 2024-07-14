@@ -8077,16 +8077,20 @@
                                           respect-bl? (zseqnws-w-bl zloc)
                                           :else (zseqnws zloc)))
               _ (dbg-s options
-                       :justify
+                       #{:justify :pair-seq}
                        "fzprint-map* pair-seq:"
                        (mapv #(vector (count %) (mapv (comp pr-str zstring) %))
-                         pair-seq))
+                         pair-seq)
+			 "counts:" (map count pair-seq)
+			 "key count:" (count (filter #(>= % 2) (map count pair-seq)))
+			 "ns:" ns)
+	      key-count (count (filter #(>= % 2) (map count pair-seq)))
               #_(dbg-pr "fzprint-map* pair-seq:"
                         (map (comp zstring first) pair-seq))
               ; don't sort if we are doing respect-nl?
               no-sort? (or no-sort? respect-nl? respect-bl?)
               [ns lift-pair-seq]
-                (zlift-ns (assoc map-options :in-code? in-code?) pair-seq ns)
+                (zlift-ns (assoc map-options :in-code? in-code?) pair-seq ns key-count)
               _ (dbg-pr options
                         "fzprint-map* zlift-ns ns:" ns
                         "no-sort?" no-sort?)

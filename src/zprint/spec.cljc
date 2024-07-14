@@ -315,7 +315,9 @@
 (s/def ::sort-in-code? ::boolean)
 (s/def ::start (s/nilable number?))
 (s/def :alt/style (s/nilable string?))
-(s/def ::lift-ns? ::boolean)
+#_(s/def ::lift-ns? ::boolean)
+(s/def ::lift-ns? (s/or :boolean ::boolean
+                        :lift-if-over number?))
 (s/def ::unlift-ns? ::boolean)
 (s/def ::lift-ns-in-code? ::boolean)
 (s/def ::to-string? ::boolean)

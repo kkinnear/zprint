@@ -720,19 +720,26 @@
   in seqs with more than one element have the same namespace. Returns
   the [namespace pair-seq] or nil."
   [{:keys [in-code? lift-ns? lift-ns-in-code? unlift-ns?], :as map-options}
-   pair-seq ns]
+   pair-seq ns key-count]
   #_(println "zlift-ns: lift-ns?" lift-ns?)
   (cond
     (and lift-ns? (if in-code? lift-ns-in-code? true))
       (if ns
         ; Already lifted, leave it alone
-        ;
+        [ns pair-seq]
         ; One option might be to only lift it if there is more than one
         ; key-value pair, since a lifted namespace with a single key-value
         ; pair is kind of odd.  That would solve the deps.edn problem. Note
         ; that it is not trivial to figure out how many key-value pairs
         ; there are here, since pair-seq isn't really all key-value pairs.
-        [ns pair-seq]
+	; But since we were given the key-count as an argument, that is a
+	; solved problem (by the caller).  lift-ns? can now be either true
+	; false or a number.  If it is a number and the key-count is greater
+	; than that number, we will lift the namespace (if we were able to
+	; lift it anyway).
+	(if (and (number? lift-ns?) (<= key-count lift-ns?))
+	[ns pair-seq]
+
         ; Needs a lift, if possible
         (let [strip-ns (fn [named]
                          (if (symbol? named)
@@ -770,7 +777,7 @@
                                                                  (z/sexpr k))))
                                        rest-of-pair))))
                   (when (= (count pair) 1)
-                    (recur ns (next pair-seq) (conj out pair)))))))))
+                    (recur ns (next pair-seq) (conj out pair))))))))))
     (and ns unlift-ns? (not lift-ns?))
       ; We have a namespace that was already lifted, and we want to unlift
       ; it, and we didn't ask to have things lifted.  That last is so that
@@ -809,6 +816,8 @@
                                              (str ns "/" (name (z/sexpr k))))))
                                        rest-of-pair)))))))
     :else [ns pair-seq]))
+
+
 
 ;!zprint {:vector {:respect-nl? true}}
 (defn zredef-call

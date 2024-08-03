@@ -314,6 +314,7 @@
 (s/def ::sort? ::boolean)
 (s/def ::sort-in-code? ::boolean)
 (s/def ::start (s/nilable number?))
+(s/def ::string-str? ::boolean)
 (s/def :alt/style (s/nilable string?))
 #_(s/def ::lift-ns? ::boolean)
 (s/def ::lift-ns? (s/or :boolean ::boolean
@@ -563,7 +564,7 @@
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
              ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
              ::tagged-literal #_::memoize? ::remove-final-keys
-	     ::modify-sexpr-by-type ::files]))
+	     ::modify-sexpr-by-type ::files ::string-str?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 

@@ -6249,6 +6249,13 @@ not be your favorite color choices, but at least things should be
 visible, allowing you to fine-tune the colors to better meet your
 preferences.
 
+#### :docstring-nl
+
+Renders any embedded newlines in docstrings in structures as actual
+newlines, not `\n`.  This is only useful if you are using zprint
+as a library to format actual runtime Clojure lists whose first
+element is `defn`. 
+
 #### :extend-nl
 
 This sets up a different way of formatting extend styles, with a new-line

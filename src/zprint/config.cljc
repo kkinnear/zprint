@@ -15,7 +15,7 @@
                              guideguide jrequireguide metaguide odrguide
                              rodguide signatureguide1]]
     [zprint.optionfn :refer [fn*->% meta-base-fn regexfn rodfn rulesfn sort-deps
-                             sort-reqs]]
+                             sort-reqs docstring-nl]]
     [zprint.rewrite  :refer [sort-dependencies sort-requires]]
     [zprint.spec     :refer [coerce-to-boolean validate-basic]]
     [zprint.util     :refer [dbg-s-merge dissoc-two]]
@@ -925,6 +925,9 @@
                                             :right :bright-white}}},
       :defprotocolguide {:doc "Allow alteration of defprotocol in :fn-map",
                          :list {:option-fn defprotocolguide}},
+      :docstring-nl {:doc "Put real \n in docstrings in structures."
+                     :fn-map {"defn" [:arg1-body {:list {:option-fn docstring-nl}}]}}
+
       :extend-nl {:doc "Add a blank line between protocols",
                   :extend {:flow? true, :indent 0, :nl-separator? true}},
       :how-to-ns {:doc "Make newlines and indentation match 'how to ns'",

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * New style `:docstring-nl` which will render any embedded newlines
+  in docstrings in structures as actual newlines, not `\n`.  This
+  is only useful if you are using zprint as a library to format
+  actual runtime Clojure lists whose first element is `defn`.  Issue
+  #326.
+
   * The ability to locate and process multiple files directly.  If
   you add the `{:files {:glob "<filespec>"}}` key-value pair to the
   options map that appears on the command line of one of the pre-built

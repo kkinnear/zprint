@@ -133,6 +133,32 @@
         :new-zloc new-zloc,
         :new-l-str (str "#" l-str)}))))
 
+(defn docstring-nl
+  "If there is a docstring, add it to :render-fn"
+  ([] "docstring-nl")
+  ([options n exprs]
+   #_(println zloc)
+   (when (= (:ztype options) :sexpr)
+     ; We know we've got a struct
+     (let [caller (:caller options)
+           ; This should match exprs, one hopes
+           zloc (:zloc options)]
+       ; Ensure we have enough to get the third thing
+       (when (and (> (count zloc) 2) (string? (nth zloc 2)))
+         ; and it is a string.
+         (let [; Get all of the strings at the top level of the defn.
+               strs (filter string? zloc)
+               ; Fix them to all print correctly with string-str? true.
+               strs-out (map pr-str strs)
+               ; Fix the first one to turn \n into an actual newline.
+               fixed-docstr (clojure.string/replace (first strs-out) "\\n" "\n")
+               strs-out (cons fixed-docstr (next strs-out))
+               new-zloc (replace (zipmap strs strs-out) zloc)]
+           {:list {:option-fn nil},
+            :next-inner {:string-str? false},
+            :string-str? true,
+            :new-zloc new-zloc}))))))
+
 (defn sort-deps
   "option-fn interface to sort-dependencies"
   ([] "sort-deps")

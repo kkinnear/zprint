@@ -18,7 +18,7 @@
     [zprint.comment            :refer [blanks]]
     [zprint.zutil]
     [zprint.config             :refer [merge-deep]]
-    [zprint.optionfn           :refer [rodfn regexfn rulesfn]]
+    [zprint.optionfn           :refer [rodfn regexfn rulesfn docstring-nl]]
     #?@(:clj ([clojure.repl :refer [source-fn]]))
     [zprint.core-test          :refer [trim-gensym-regex x8]]
     [rewrite-clj.parser        :as    p
@@ -9314,7 +9314,26 @@ ser/collect-vars-acc %1 %2) )))"
 "[{:a :b :c :d} #x {:e :f :g :h}]"
  (zprint-str i318e {:map {:comma? false} :style :indent-only}))
 
+ ;;
+ ;; Testing how to get \n for real in docstrings in structures
+ ;;
+ ;; Issue 326
 
+(def i326l
+"(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more stuff \"and a string\" \"\\\"a second \\\\n string\\\"\")\n  \"this is\n  also a test\")\n")
+
+(expect
+"(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
+(zprint-str (read-string i326l) {:parse-string? false :width 20 :fn-map {"defn" [:arg1-body {:list {:option-fn docstring-nl}}]}}))
+
+
+(expect
+"(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
+(zprint-str (read-string i326l) {:parse-string? false :width 20 :style :docstring-nl}))
+
+(expect
+"(defn stuff\n  \"this is\\n  a test with \\\"stuff\\\" in\\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
+(zprint-str (read-string i326l) {:parse-string? false :width 20}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

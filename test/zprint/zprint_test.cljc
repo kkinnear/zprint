@@ -3379,11 +3379,26 @@
   (expect "'(a b c)" (zprint-str "'(a b c)" {:parse-string? true}))
   (expect "`(a b c)" (zprint-str "`(a b c)" {:parse-string? true}))
   (expect "~(a b c)" (zprint-str "~(a b c)" {:parse-string? true}))
-  (expect "~@(a b c)" (zprint-str "~@(a b c)" {:parse-string? true}))
   (expect "@(a b c)" (zprint-str "@(a b c)" {:parse-string? true}))
   (expect "#'thisisatest" (zprint-str "#'thisisatest" {:parse-string? true}))
   (expect "#_(a b c)" (zprint-str "#_(a b c)" {:parse-string? true}))
   (expect "#_#_(a b c) d" (zprint-str "#_#_(a b c) d" {:parse-string? true}))
+
+  ;; unquote deref vs unquote-splicing
+  (expect "(clojure.core/unquote (clojure.core/deref (a b c)))"
+          (zprint-str '~ @(a b c) {}))
+  (expect "(clojure.core/unquote-splicing (a b c))"
+          (zprint-str '~@(a b c) {}))
+  (expect "~(deref a)" (zprint-str "~(deref a)" {:parse-string? true}))
+  (expect "~(clojure.core/deref a)" (zprint-str "~(clojure.core/deref a)" {:parse-string? true}))
+  (expect "~;;comment\n  @(a b c)" (zprint-str "~;;comment\n@(a b c)" {:parse-string? true}))
+  (expect "~@(a b c)" (zprint-str "~@(a b c)" {:parse-string? true}))
+  (expect "~ @(a b c)" (zprint-str "~ @(a b c)" {:parse-string? true}))
+  (expect "~ @(a b c)" (zprint-str "~  @(a b c)" {:parse-string? true}))
+  (expect "~ @(a b c)" (zprint-str "~ @(a b c)" {:parse-string? true}))
+  (expect "~#_@(a b c) a" (zprint-str "~#_@(a b c)a" {:parse-string? true}))
+  (expect "~#_a  @(a b c)" (zprint-str "~#_a@(a b c)" {:parse-string? true}))
+  (expect "[#_a @(a b c)]" (zprint-str "[#_a@(a b c)]" {:parse-string? true}))
 
   ;;
   ;; These try for the indents

@@ -8909,7 +8909,12 @@
       (zmeta? zloc) (fzprint-meta options indent zloc)
       (prefix-tags (ztag zloc))
         (fzprint-vec* :prefix-tags
-                      (prefix-tags (ztag zloc))
+                      (let [tag (ztag zloc)]
+                        (if (and (= :deref tag)
+                                 (z/left* zloc)
+                                 (= :unquote (some-> (z/up* zloc) ztag)))
+                          " @"
+                          (prefix-tags tag)))
                       ""
                       ; Pick up the :indent-only?, :respect-nl?, and
                       ; respect-bl? config from :list. Note that the

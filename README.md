@@ -306,11 +306,11 @@ __Thanks for all of the great contributions!__
   * Readme updates: @mathiasn, @Quezion, @vemv, @arichiardi, @bhurlow, @kommen.
   * `--url` and `--url-only`: @coltnz
   * Use `UTF-8` locale to build the native image: @mynomoto
-  * Suggestion/encouragement to implement `:respect-bl`: @griffis
+  * Suggestion/encouragement to implement `:respect-bl`: @agriffis
   * Thread safety suggestions: @fazzone
   * `:option-fn` and `:fn-format` for enhanced vector formatting: @milankinen
   * Fixed missing require in `spec.cljc`: @Quezion
-  * Corrected readme: @griffis
+  * Corrected readme: @agriffis
   * Fixed nested reader conditional: @rgould1
   * Clarified and added useful example for clj usage: @bherrmann7
   * Sublime text plugin instructions: @ekinnear

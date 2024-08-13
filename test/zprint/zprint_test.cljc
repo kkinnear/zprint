@@ -3493,6 +3493,8 @@
 
   (expect "{a 1}" (zprint-str "{a 1}" {:parse-string? true}))
 
+  ; This looks wrong, as the [acc] should have hung, but because of a possible
+  ; bug
   (expect
     "(defrecord ~tagname ~fields\n  (~-collect-vars\n    [acc]\n    (reduce #(list datascript.par ser/collect-vars-acc %1 %2))))"
     (zprint-str
@@ -9334,6 +9336,16 @@ ser/collect-vars-acc %1 %2) )))"
 (expect
 "(defn stuff\n  \"this is\\n  a test with \\\"stuff\\\" in\\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
 (zprint-str (read-string i326l) {:parse-string? false :width 20}))
+
+;;
+;; Can't set :indent n where n is also the hang indent.  Thus 
+;; (czprint "(assoc m k v k v)" {:parse-string? true :list {:indent 7}}) 
+;; doesn't work, but puts a newline before m.  Issue #329
+;;
+
+(expect
+"(assoc m\n       k v\n       k v)"
+(zprint-str "(assoc m k v k v)" {:parse-string? true :list {:indent 7}}))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;

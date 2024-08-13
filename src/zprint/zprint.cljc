@@ -1009,7 +1009,7 @@
        "zloc:" (zstring (zfirst zloc)))
   ; If the hindent is different than the findent, we'll try hang, otherwise
   ; we will just do the flow
-  (let [hanging (when (not= hindent findent)
+  (let [hanging (when (not (zero? hindent)) 
                   (fzfn (in-hang options) hindent zloc))]
     (dbg-form
       options
@@ -2822,7 +2822,7 @@
   [{:keys [one-line? force-eol-blanks?], :as options} caller hindent findent
    fzfn zloc-count zloc-seq]
   (dbg options "fzprint-hang: caller:" caller)
-  (let [hanging (when (and (not= hindent findent)
+  (let [hanging (when (and (not (zero? hindent)) 
                            ((options caller) :hang?)
                            ; If it starts with a newline, we aren't hanging
                            ; it.  Comment, sure, but not newline.
@@ -2939,7 +2939,7 @@
                 (let [result (fzprint-hang-remaining :extend
                                                      (assoc options
                                                        :fn-style :fn)
-                                                     ind
+						     0
                                                      ind
                                                      zloc-seq
                                                      nil)]
@@ -3119,7 +3119,7 @@
         ; This implements :hang-avoid for fzprint-hang-one, instead of just
         ; for fzprint-hang-remaining.  It didn't change the tests, but
         ; removed some silly formatting when using :arg2 and small widths.
-        hanging (when (and (not= hindent findent)
+        hanging (when (and (not (zero? hindent))
                            (or (not hang-avoid)
                                (< hang-count (* (- width hindent) hang-avoid))))
                   (fzprint* (in-hang local-options) hindent zloc))
@@ -3485,7 +3485,7 @@
                      ; isn't about making it prettier. People call this
                      ; routine with these values equal to ensure that it
                      ; always flows.
-                     (not= hindent findent)
+		     (not (zero? hindent))
                      ; This is not the original, below. If we are doing
                      ; respect-nl?, then the count of seq-right is going to
                      ; be a lot more, even if it doesn't end up looking
@@ -3788,7 +3788,7 @@
                    ; isn't about making it prettier. People call this
                    ; routine with these values equal to ensure that it
                    ; always flows.
-                   (not= hindent findent)
+		   (not (zero? hindent))
                    ; This is not the original, below. If we are doing
                    ; respect-nl?, then the count of seq-right is going to
                    ; be a lot more, even if it doesn't end up looking
@@ -5109,14 +5109,15 @@
           arg-1-indent (if-not arg-1-coll?
                          (+ ind (inc l-str-len) (count (zstring arg-1-zloc))))
           ; If we don't have an arg-1-indent, and we noticed that the
-          ; inputs justify using an alternative, then use the alternative.
-          arg-1-indent (or arg-1-indent (when arg-1-indent-alt? (+ indent ind)))
+	  ; input justifies using an alternative, then set arg-1-indent to
+	  ; zero so that we won't hang.
+          arg-1-indent (or arg-1-indent (when arg-1-indent-alt? 0))
           ; If we have anything in pre-arg-2-style-vec, then we aren't
           ; hanging anything and we replace any existing arg-1-indent with
-          ; a normal one.
+	  ; zero, which indicates that we don't want to hang something.
           arg-1-indent (if (= pre-arg-2-style-vec :noseq)
                          arg-1-indent
-                         (when arg-1-indent (+ indent ind)))
+                         (when arg-1-indent 0))
           ; Tell people inside that we are in code. We don't catch places
           ; where the first thing in a list is a collection or a seq which
           ; yields a function.
@@ -5163,6 +5164,7 @@
               "one-line-ok?" one-line-ok?
               "arg-1-coll?" arg-1-coll?
               "arg-1-indent:" arg-1-indent
+	      "arg-1-indent-alt?" arg-1-indent-alt?
               "arg-1-zloc:" (zstring arg-1-zloc)
               "pre-arg-1-style-vec:" pre-arg-1-style-vec
               "l-str:" (str "'" l-str "'")
@@ -5231,7 +5233,7 @@
         ; =================================
         ; All additional fn-styles go here
         ; =================================
-        (dbg options "fzprint-list*: fn-style:" fn-style) nil
+        (dbg options "fzprint-list*: fn-style:" fn-style "arg-1-indent" arg-1-indent "arg-1:" (zstring arg-1-zloc) ) nil
         (and (= len 0) (= pre-arg-1-style-vec :noseq)) (concat-no-nil l-str-vec
                                                                       r-str-vec)
         (= len 1)
@@ -5250,7 +5252,7 @@
         (and (= fn-style :binding) (> len 1) (zvector? arg-2-zloc))
           (let [[hang-or-flow binding-style-vec]
                   (fzprint-hang-unless-fail loptions
-                                            (or arg-1-indent (+ indent ind))
+                                            (or arg-1-indent 0)
                                             (+ indent ind)
                                             fzprint-binding-vec
                                             arg-2-zloc)
@@ -5272,7 +5274,7 @@
                              ; 2) before we call it.
                              (fzprint-hang-remaining caller
                                                      options
-                                                     (+ indent ind)
+						     0
                                                      (+ indent ind)
                                                      (get-zloc-seq-right
                                                        second-data)
@@ -5387,7 +5389,7 @@
                               ; hang it if possible
                               max-width
                               ; flow it
-                              (+ indent ind))
+			      0)
                             (+ indent ind)
                             arg-3-zloc)
                           (prepend-nl options
@@ -5423,8 +5425,8 @@
                                                         (assoc options
                                                           :fn-style :fn)
                                                         options)
-                                                      (+ indent ind)
                                                       ; force flow
+						      0
                                                       (+ indent ind)
                                                       zloc-seq-right-third
                                                       fn-style))
@@ -5452,8 +5454,8 @@
                 doc-string (when doc-string?
                              (fzprint-hang-one caller
                                                loptions
-                                               (+ indent ind)
                                                ; force flow
+					       0
                                                (+ indent ind)
                                                arg-3-zloc))
                 #_(prn ":arg1-mixin: doc-string?" doc-string?
@@ -5475,8 +5477,8 @@
                   (when mixins?
                     (let [mixin-sentinal (fzprint-hang-one caller
                                                            loptions
-                                                           (+ indent ind)
                                                            ; force flow
+							   0
                                                            (+ indent ind)
                                                            (if doc-string?
                                                              arg-4-zloc
@@ -5521,8 +5523,8 @@
               (fzprint-hang-remaining
                 caller
                 (noarg1 options fn-style)
-                (+ indent ind)
                 ; force flow
+		0
                 (+ indent ind)
                 (nthnext zloc-seq
                          (if mixins?
@@ -5555,8 +5557,8 @@
                                          (get-zloc-seq-right second-data)))
               (fzprint-hang-remaining caller
                                       (noarg1 options fn-style)
-                                      (+ indent ind)
                                       ; force flow
+				      0
                                       (+ indent ind)
                                       (get-zloc-seq-right second-data)
                                       fn-style))
@@ -5715,9 +5717,9 @@
                                        (noarg1 options fn-style)
                                        (if (= fn-style :flow)
                                          ; If the fn-type is :flow, make
-                                         ; the hindent = findent so that it
+                                         ; the hindent = 0 so that it
                                          ; will flow
-                                         (+ indent ind)
+					 0
                                          arg-1-indent)
                                        ; Removed indent-adj because it
                                        ; caused several problems, issue
@@ -6234,7 +6236,7 @@
                                                #_(assoc options :dbg? true)
                                                ; flow it if we are doing it
                                                ; here
-                                               next-ind
+					       0
                                                next-ind
                                                hang-remaining-seq
                                                nil ;fn-type
@@ -6244,7 +6246,7 @@
                                           options
                                           #_(assoc options :dbg? true)
                                           ; flow it if we are doing it here
-                                          next-ind
+					  0
                                           next-ind
                                           wrap-flow-seq
                                           nil ;fn-type

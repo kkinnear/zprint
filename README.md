@@ -299,6 +299,7 @@ A number of folks have contributed to zprint, not all of whom
 show up on GitHub because I have integrated the code or suggestions manually.
 __Thanks for all of the great contributions!__
 
+  * Finding and fixing `~ @stuff` formatted as `~@stuff`: @frenchy64
   * Exposing `sci.core` in babashka: @borkdude
   * Tests running in babashka: @borkdude
   * Additional colors and color-map entries: @RingMan

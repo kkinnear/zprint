@@ -9347,6 +9347,33 @@ ser/collect-vars-acc %1 %2) )))"
 "(assoc m\n       k v\n       k v)"
 (zprint-str "(assoc m k v k v)" {:parse-string? true :list {:indent 7}}))
 
+;;
+;; ~ @stuff is different than ~@stuff  Issue #331
+;;
+;; unquote deref vs unquote-splicing
+;;
+;; Following tests are from frenchy64:ws-resolved-ambiguity, lightly
+;; edited.
+;;
+;; Thanks to Ambrose Bonnaire-Sergeant @frenchy64 for finding this
+;; problem and supplying both a fix and tests.
+;;
+
+   (expect "(clojure.core/unquote (clojure.core/deref (a b c)))"
+           (zprint-str '~ @(a b c) {}))
+   (expect "(clojure.core/unquote-splicing (a b c))"
+           (zprint-str '~@(a b c) {}))
+   (expect "~(deref a)" (zprint-str "~(deref a)" {:parse-string? true}))
+   (expect "~(clojure.core/deref a)" (zprint-str "~(clojure.core/deref a)" {:parse-string? true}))
+   (expect "~ ;;comment\n  @(a b c)" (zprint-str "~;;comment\n@(a b c)" {:parse-string? true}))
+   (expect "~@(a b c)" (zprint-str "~@(a b c)" {:parse-string? true}))
+   (expect "~ @(a b c)" (zprint-str "~ @(a b c)" {:parse-string? true}))
+   (expect "~ @(a b c)" (zprint-str "~  @(a b c)" {:parse-string? true}))
+   (expect "~ @(a b c)" (zprint-str "~ @(a b c)" {:parse-string? true}))
+   (expect "~#_@(a b c) a" (zprint-str "~#_@(a b c)a" {:parse-string? true}))
+   (expect "~ #_a @(a b c)" (zprint-str "~#_a@(a b c)" {:parse-string? true}))
+   (expect "[#_a @(a b c)]" (zprint-str "[#_a@(a b c)]" {:parse-string? true}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

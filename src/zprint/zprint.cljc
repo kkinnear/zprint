@@ -8817,14 +8817,24 @@
     (into []
           (repeat newline-count [(str "\n" (blanks ind)) :none :newline 2]))))
 
-(def prefix-tags
-  {:quote "'",
-   :syntax-quote "`",
-   :unquote "~",
-   :unquote-splicing "~@",
-   :deref "@",
-   :var "#'",
-   :uneval "#_"})
+(defn prefix-tags
+  "Return appropriate lhs for various ztag values.  Do deeper inspection for
+  :unquote, to see if it contains a :deref and thus avoid turning it into
+  an :unquote-splicing on output by accident."
+  [zloc]
+  (let [result (let [tag (ztag zloc)]
+                 (if (= tag :unquote)
+                   (let [zloc-down-right (z/right (z/down* zloc))]
+                     (if (= (ztag zloc-down-right) :deref) "~ " "~"))
+                   ({:quote "'",
+                     :syntax-quote "`",
+                     :unquote "~",
+                     :unquote-splicing "~@",
+                     :deref "@",
+                     :var "#'",
+                     :uneval "#_"}
+                    tag)))]
+    result))
 
 (defn prefix-options
   "Change options as necessary based on prefix tag."
@@ -9108,7 +9118,7 @@
                                       (zexpandarray zloc)))
       (zatom? zloc) (fzprint-atom options indent zloc)
       (zmeta? zloc) (fzprint-meta options indent zloc)
-      (prefix-tags (ztag zloc))
+      (prefix-tags zloc)
         (let [prefix-tags-options
                       (-> (prefix-options options (ztag zloc))
                           (make-caller :prefix-tags :list [:indent-only?])
@@ -9121,9 +9131,8 @@
 			      (assoc-in prefix-tags-options
 			            [:prefix-tags :indent-only?]
 				    false))]
-
         (fzprint-vec* :prefix-tags
-                      (prefix-tags (ztag zloc))
+                      (prefix-tags zloc)
                       ""
                       ; Pick up the :indent-only?, :respect-nl?, and
                       ; respect-bl? config from :list. Note that the
@@ -9131,8 +9140,6 @@
                       ; fzprint-vec* and fzprint-map* also
                       ; solves a similar problem
 		      prefix-tags-options
-
-
                       indent
                       zloc))
       (zns? zloc) (fzprint-ns options indent zloc)

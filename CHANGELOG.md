@@ -53,6 +53,9 @@ All notable changes to this project will be documented in this file.
   structures (as opposed to source files) doesn't work and produces 
   incorrect results.  Issue #321.
 
+  * The construct "~ @stuff` was being formatted as though it were
+  `~@stuff`, which is very different.  Issue #331.
+
 ## 1.2.9 - 2024-3-12
 
 ### Added

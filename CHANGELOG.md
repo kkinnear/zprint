@@ -56,6 +56,10 @@ All notable changes to this project will be documented in this file.
   * The construct "~ @stuff` was being formatted as though it were
   `~@stuff`, which is very different.  Issue #331.
 
+  * In the event that `{:list {:indent n}}` was configured with 
+  n = size-of-the-first-element-of-a-list + 1, a newline was added
+  after the first element of the list.  Issue #329.
+
 ## 1.2.9 - 2024-3-12
 
 ### Added

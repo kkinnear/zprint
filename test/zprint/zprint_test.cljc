@@ -9374,6 +9374,152 @@ ser/collect-vars-acc %1 %2) )))"
    (expect "~ #_a @(a b c)" (zprint-str "~#_a@(a b c)" {:parse-string? true}))
    (expect "[#_a @(a b c)]" (zprint-str "[#_a@(a b c)]" {:parse-string? true}))
 
+;;
+;; :style :meta-guide
+;;
+;; Issue #312
+;;
+
+ (def
+ i312
+"(def ^:const\n     ^:private\n     ^:test\n     ^:lots\n     ^:of\n     ^:meta\n     ^:stuff\n  port-file-name\n  (....))\n")
+
+
+(def i312a
+"(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n(...))\n")
+
+(def i312b
+"(def ^:const\n     ^:private\n     ^:test\n     ^:lots\n     ^:of\n     ^:meta\n     ^:stuff\n     ^:and\n     ^:even\n     ^:more\n     ^:things\n  port-file-name\n  (....))\n")
+
+(def i312c
+"(def port-file-name\n  (....))\n")
+
+(def i312d
+"(def ^:private port-file-name\n  (....))\n")
+
+(def i245
+" (def ^:const ^:private port-file-name \".nrepl-port\")\n")
+
+(def i245a
+" (def ^:const port-file-name \".nrepl-port\")\n")
+
+(def i245b
+" (def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name \".nrepl-port\")\n")
+
+(def i245c
+"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n    (let [foo (bar \"1\")] foo))\n")
+
+(expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  (....))"
+(zprint-str i312 {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+(expect
+"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
+(zprint-str i312a {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+(expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff ^:and ^:even ^:more\n     ^:things\n  port-file-name\n  (....))"
+(zprint-str i312b {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+(expect
+"(def port-file-name (....))"
+(zprint-str i312c {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+(expect
+"(def ^:private\n  port-file-name\n  (....))"
+(zprint-str i312d {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+(expect
+"(def ^:const ^:private\n  port-file-name\n  \".nrepl-port\")"
+(zprint-str i245 {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+(expect
+"(def ^:const\n  port-file-name\n  \".nrepl-port\")"
+(zprint-str i245a {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+(expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
+(zprint-str i245b {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+(expect
+"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+(zprint-str i245c {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+
+ (expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name (....))"
+ (zprint-str i312 {:parse-string? true :style :meta-guide}))
+
+ (expect
+"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
+(zprint-str i312a {:parse-string? true :style :meta-guide}))
+
+(expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff ^:and ^:even ^:more\n     ^:things\n  port-file-name\n  (....))"
+(zprint-str i312b {:parse-string? true :style :meta-guide}))
+
+(expect
+"(def port-file-name (....))"
+(zprint-str i312c {:parse-string? true :style :meta-guide}))
+
+(expect
+"(def ^:private port-file-name (....))"
+(zprint-str i312d {:parse-string? true :style :meta-guide}))
+
+(expect
+"(def ^:const ^:private port-file-name \".nrepl-port\")"
+(zprint-str i245 {:parse-string? true :style :meta-guide}))
+
+(expect
+"(def ^:const port-file-name \".nrepl-port\")"
+(zprint-str i245a {:parse-string? true :style :meta-guide}))
+
+(expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
+(zprint-str i245b {:parse-string? true :style :meta-guide}))
+
+(expect
+"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+(zprint-str i245c {:parse-string? true :style :meta-guide}))
+
+(expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  (....))"
+(zprint-str i312 {:parse-string? true :style :meta-guide :width 60}))
+
+(expect
+"(deftest ^{:database true,\n           ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
+(zprint-str i312a {:parse-string? true :style :meta-guide :width 60}))
+
+(expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n     ^:and ^:even ^:more ^:things\n  port-file-name\n  (....))"
+(zprint-str i312b {:parse-string? true :style :meta-guide :width 60}))
+
+(expect
+"(def port-file-name (....))"
+(zprint-str i312c {:parse-string? true :style :meta-guide :width 60}))
+
+(expect
+"(def ^:private port-file-name (....))"
+(zprint-str i312d {:parse-string? true :style :meta-guide :width 60}))
+
+(expect
+"(def ^:const ^:private port-file-name \".nrepl-port\")"
+(zprint-str i245 {:parse-string? true :style :meta-guide :width 60}))
+
+(expect
+"(def ^:const port-file-name \".nrepl-port\")"
+(zprint-str i245a {:parse-string? true :style :meta-guide :width 60}))
+
+(expect
+"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
+(zprint-str i245b {:parse-string? true :style :meta-guide :width 60}))
+
+(expect
+"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+(zprint-str i245c {:parse-string? true :style :meta-guide :width 60}))
+
+
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

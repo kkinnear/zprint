@@ -991,16 +991,12 @@
                :map {:indent 0, :nl-separator? true}},
       :map-nl-all {:doc "Add newline between all map pairs",
                    :map {:indent 0, :nl-separator-all? true}},
-      :meta-base {:doc "Alternative format for metadata. Experimental.",
+      :meta-base {:doc "Alternative format for metadata. Experimental. Deprecated",
                   :list {:option-fn meta-base-fn},
                   :next-inner-restore [[:list :option-fn]]},
-      :meta-alt {:doc "Alternative for metadata. Experimental.",
+      :meta-alt {:doc "Alternative for metadata. Experimental. Deprecated",
                  :fn-map {"def" [:arg2 {:style :meta-base}],
                           "deftest" [:arg1-body {:style :meta-base}]}},
-      #_#_:meta-guide
-        {:doc "Alternative for metadata. Experimental.",
-         :fn-map {"def" [:arg2 {:list {:option-fn metaguide}}],
-                  "deftest" [:arg1-body {:list {:option-fn metaguide}}]}},
       :meta-guide
         {:doc "Alternative for metadata. Experimental.",
          :one-line-ok? true,

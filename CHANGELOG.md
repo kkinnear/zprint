@@ -32,6 +32,9 @@ All notable changes to this project will be documented in this file.
   a value of `1` would be a reasonable value in many situations, as lifting
   a namespace from a single key looks pretty odd, but lifting namespaces
   from more than one key usually does not.  Issue #325.
+
+  * Documented new style `:meta-guide`, which appeared several releases
+  ago.  Also deprecated style `:meta-alt` -- use `:meta-guide` instead.
   
 ### Changed
 

@@ -6673,11 +6673,15 @@ This operates similarly for bindings (i.e., `let`, etc.) using
 `:style :binding-nl-all` and for pairs (i.e., things in `cond`, 
 as well as constant pairs) when using `:style :pair-nl-all`.
 
-#### :meta-alt
+#### :meta-alt  DEPRECATED
+
+Use `:meta-guide` which does essentially the same things, but better.
+
+#### :meta-guide EXPERIMENTAL
 
 An alternative way to format metadata in `def` and `deftest`.  Tends
 to hang just the metadata, instead of hanging the metadata along with
-the symbol.
+the symbol.  Also allows forcing multi-line output.
 
 For example:
 
@@ -6694,6 +6698,19 @@ For example:
 (deftest ^{:database true, ::test.hooks/system-init-keys system-keys}
   websocket-diagnostic-report-measurements-updated-event
   (let [foo (bar "1")] foo))
+```
+
+You can cause it to force multi-line output when it would otherwise
+fit on one line by setting `:one-line-ok?` false:
+
+```
+(czprint i312 {:parse-string? true :style {:style-call :meta-guide :one-line-ok? true}})
+(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name (....))
+
+(czprint i312 {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}})
+(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff
+  port-file-name
+  (....))
 ```
 
 #### :moustache

@@ -45,12 +45,15 @@
             ["README.md" "doc/bang.md" "doc/graalvm.md" "doc/filter.md"],
           :metadata {:doc/format :markdown}}
   :dependencies [#_[org.clojure/clojure "1.10.3"]
-                 [org.clojure/clojure "1.11.1"]
-                 #_[org.clojure/clojure "1.12.0-alpha8"]
+                 #_[org.clojure/clojure "1.11.1"]
+                 #_[org.clojure/clojure "1.11.4"]
+                 [org.clojure/clojure "1.12.0"]
                  #_[org.clojure/clojure "1.10.0"]
                  #_[org.clojure/clojure "1.9.0"]
                  #_[org.clojure/clojure "1.8.0"]
                  #_[org.babashka/sci "0.7.39"]
                  [org.babashka/sci "0.8.40"]
 		 [babashka/fs "0.5.20"]
-                 [rewrite-clj/rewrite-clj "1.1.47"]])
+                 #_[rewrite-clj/rewrite-clj "1.1.47"]
+                 [rewrite-clj/rewrite-clj "1.1.48"]
+		 ])

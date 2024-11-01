@@ -49,6 +49,8 @@
 
 (def zprintrc ".zprintrc")
 (def zprintedn ".zprint.edn")
+(def xdg-zprintrc "zprintrc")
+(def xdg-zprintedn "zprint.edn")
 
 (declare merge-deep)
 
@@ -2859,22 +2861,35 @@
         op-options (select-op-options op-options)
         #_(println "op-options:" op-options)
         ;
-        ; $HOME/.zprintrc
+        ; $HOME/.zprintrc $HOME/.zprint.edn
+        ;
+        ; $XDG_CONFIG_HOME/zprint/zprintrc
+        ; $XDG_CONFIG_HOME/zprint/zprint.edn
         ;
         home #?(:clj (System/getenv "HOME")
                 :cljs nil)
         file-separator #?(:clj (System/getProperty "file.separator")
                           :cljs nil)
-        zprintrc-file (str home file-separator zprintrc)
+        xdg-config-home #?(:clj (or (System/getenv "XDG_CONFIG_HOME")
+                                    (when (and home file-separator)
+                                      (str home file-separator ".config")))
+                           :cljs nil)
         [opts-rcfile errors-rcfile rc-filename :as home-config]
-          (when (and home file-separator)
-            (get-config-from-path [zprintrc zprintedn] file-separator [home]))
+          (or (when (and home file-separator)
+                (get-config-from-path [zprintrc zprintedn]
+                                      file-separator
+                                      [home]))
+              (when (and xdg-config-home file-separator)
+                (get-config-from-path [xdg-zprintrc xdg-zprintedn]
+                                      file-separator
+                                      [xdg-config-home])))
         _ (dbg-s (merge op-options opts-rcfile)
                  #{:zprintrc}
                  "~/.zprintrc:"
                  home-config)
         [updated-map new-doc-map rc-errors]
-          (config-and-validate (str "Home directory file: " rc-filename)
+          (config-and-validate (str "$HOME/$XDG_CONFIG_HOME directory file: "
+                                    rc-filename)
                                default-doc-map
                                default-map
                                opts-rcfile)

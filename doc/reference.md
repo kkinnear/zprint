@@ -448,9 +448,12 @@ time it will configure itself from all of the information that it
 has available at that time.  It will examine the following information
 in order to configure itself:
 
-* The file `$HOME/.zprintrc` or if that file does not exist, the  file
-  `$HOME/.zprint.edn` for an options map in EDN format.
-* If the file found above or the options map on the command line has 
+* The first file found among:
+  * `$HOME/.zprintrc`
+  * `$HOME/.zprint.edn` (for an options map in EDN format)
+  * `$XDG_CONFIG_HOME/zprint/zprintrc`
+  * `$XDG_CONFIG_HOME/zprint/zprint.edn` (for an options map in EDN format)
+* If the file found above or the options map on the command line has
   `:search-config?` true, it will look
   in the current directory for a file `.zprintrc` and if it doesn't find
   one, it will look for `.zprint.edn`.l  If it doesn't find either of them,

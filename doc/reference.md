@@ -1311,7 +1311,9 @@ possible.  Later arguments are indented the amount specified by
 ```clojure
  (if (= a 1)
    (map inc coll) (map dec coll))
-``` #### :arg1-pair
+```
+
+#### :arg1-pair
 
 The function has an important first argument, then the rest of the
 arguments are paired up. Leftmost part of the pair is indented by
@@ -1321,7 +1323,9 @@ if it is not.
 ```clojure
  (assoc my-map
    :key1 :val1 :key2 :val2)
-``` #### :arg1-pair-body
+```
+
+#### :arg1-pair-body
 
 The function has an important first argument, then the rest of the
 arguments are paired up.  The leftmost part of the pair is indented

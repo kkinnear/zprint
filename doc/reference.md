@@ -1383,9 +1383,10 @@ by `:pair {:indent n}`.
 ```clojure
   (condp = stuff
     :bother "bother" :foo "foo" :bar "bar" "baz")
-``` Note: This is implemented as a "body" function, as if it were
-`:arg2-pair-body`.
+```
 
+Note: This is implemented as a "body" function, as if it were
+`:arg2-pair-body`.
 
 #### :arg2-fn
 

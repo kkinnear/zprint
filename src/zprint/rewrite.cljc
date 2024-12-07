@@ -9,7 +9,7 @@
     clojure.string
     [zprint.util        :refer [local-abs]]
     [zprint.zutil       :as    zu
-                        :refer [zreplace]]
+                        :refer [zreplace zcount-nc]]
     [rewrite-clj.node   :as n]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
@@ -98,6 +98,7 @@
 (defn ^:no-doc sort-val
   "Sort everything in the vector to the right of zloc."
   [get-sortable-fn sort-fn skip-fn? zloc]
+  #_(println "sort-val")
   (if (contains-comment? zloc)
     zloc
     (let [dep-val zloc
@@ -109,11 +110,12 @@
                         (recur (z/right nloc) out)
                         (recur (z/right nloc) (conj out nloc)))
                       out))
-          #_(println "sort-val: count:" (count dep-seq))
+          #_ (println "sort-val: count:" (count dep-seq))
           dep-count (count dep-seq)
+          #_ (println "sort-val: dep-seq:" (mapv z/string dep-seq))
           sorted-seq (sort-fn get-sortable-fn dep-seq)
-          #_(println "sort-val: dep-seq:" (mapv get-sortable-fn dep-seq))
-          #_(println "sort-val: sorted-seq:" (mapv get-sortable-fn sorted-seq))]
+          #_ (println "sort-val: dep-seq:" (mapv get-sortable-fn dep-seq))
+          #_ (println "sort-val: sorted-seq:" (mapv get-sortable-fn sorted-seq))]
       ; Loop through all of the elements of zloc, replacing them one by one
       ; with the elements of sorted-seq.  Since there should be the same
       ; amount of elements in each, this should work.
@@ -285,7 +287,13 @@
   (let [refer-zloc (z/find-value (z/down zloc) :refer)
         refer-right (when refer-zloc (z/right refer-zloc))
         refer-tag (when refer-right (z/tag refer-right))]
-    (if (and refer-zloc (= refer-tag :vector))
+    #_(println "sort-refer: zloc:" (z/string zloc))
+    #_(println "sort-refer: refer-zloc:" (z/string refer-zloc))
+    #_(println "sort-refer: refer-right:" (z/string refer-right))
+    #_(println "sort-refer: zcount-nc refer-zloc:" (zcount-nc refer-right))
+    ; Ensure that if we have a vector that it also has something in it before
+    ; we try to sort it.
+    (if (and refer-zloc refer-right (= refer-tag :vector) (pos? (zcount-nc refer-right)))
       (z/up
         (z/up
           (sort-val z/string sort-by no-skip? (z/down (z/right refer-zloc)))))
@@ -301,6 +309,7 @@
   req-seq, which contains the things to sort.  regex-vec is a vector
   of regexes."
   [sort-options get-sortable-fn req-seq]
+  #_(println "sort-w-regex:" (map z/string req-seq))
   ; First, we need to get any :| out of the regex-vec, and remember where
   ; it was.  This separates the first from the last groups.
   (let [regex-vec (:regex-vec sort-options)
@@ -317,4 +326,5 @@
         ; vector in the divider-position if it is positive.
         out (assemble-by-numeric-key divider-position groups-sorted)
         refer-sorted (if (:sort-refer? sort-options) (mapv sort-refer out) out)]
+    #_(println "sort-w-regex: refer-sorted:" (mapv z/string refer-sorted))
     refer-sorted))

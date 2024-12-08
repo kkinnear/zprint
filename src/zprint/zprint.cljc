@@ -727,7 +727,7 @@
            out []]
       (if (or (and (empty? next-vec) (empty? current-string)))
         ; A trailing newline isn't counted.
-        (cond (and (zero? line-length) (not previous-comment?)) out
+        (cond #_#_(and (zero? line-length) (not previous-comment?)) out
               previous-comment? (conj out line-length 0)
               :else (conj out line-length))
         (let [advance? (empty? current-string)
@@ -2742,6 +2742,21 @@
 (defn rstr-vec
   "Create an r-str-vec with the indent appropriate for the r-str if
   it is preceded by a newline."
+  ([caller options ind indent r-str r-type]
+   [[r-str (zcolor-map options (or r-type r-str) (or r-type :right))
+     (or r-type :right) #_ind
+     ; If we want a trailing right paren/bracket/brace to be indented
+     (if (and caller ((options caller) :indent-trailing-right?))
+       (+ ind indent)
+       ind)]])
+  ([options ind r-str] (rstr-vec nil options ind 0 r-str nil))
+  ([options ind r-str r-type] (rstr-vec nil options ind 0 r-str r-type))
+  ([caller options ind indent r-str]
+   (rstr-vec caller options ind indent r-str nil)))
+
+(defn rstr-vec-alt
+  "Create an r-str-vec with the indent appropriate for the r-str if
+  it is preceded by a newline."
   ([options ind r-str r-type]
    [[r-str (zcolor-map options (or r-type r-str) (or r-type :right))
      (or r-type :right) ind]])
@@ -2760,7 +2775,7 @@
 
 (defn fzprint-binding-vec
   ([options ind zloc] (fzprint-binding-vec "[" "]" options ind zloc))
-  ([l-str r-str {{:keys [nl-separator?]} :binding, :as options} ind zloc]
+  ([l-str r-str {{:keys [nl-separator? :indent]} :binding, :as options} ind zloc]
    (dbg-s options
           #{:binding}
           "fzprint-binding-vec:"
@@ -2770,7 +2785,13 @@
           "zloc:" (zstring (zfirst zloc)))
    (let [options (rightmost options)
          l-str-vec (lstr-vec options l-str)
-         r-str-vec (rstr-vec options ind r-str)]
+         r-str-vec #_(rstr-vec options ind r-str)
+
+          (rstr-vec :vector options ind indent r-str)
+	 
+	 ]
+
+
      (dbg-form options
                "fzprint-binding-vec exit:"
                (if (= (zcount zloc) 0)
@@ -3886,13 +3907,81 @@
 ;; # Find out and print what comes before the next element
 ;;
 
+(defn count-nl-from-right
+  "Look at a vector of tags, and return the number of newlines on the
+  right that don't immediately follow a comment."
+  [tag-seq]
+  (loop [tag-id (dec (count tag-seq))
+         previous-nl? false
+         nl-count 0]
+    (if (neg? tag-id) 
+      (if previous-nl? (inc nl-count) nl-count)
+      (let [current-tag (nth tag-seq tag-id)]
+        (cond (= current-tag :comment) nl-count
+              (= current-tag :newline)
+                (recur (dec tag-id)
+                       true
+                       (if previous-nl? (inc nl-count) nl-count))
+              :else (if previous-nl? (inc nl-count) nl-count))))))
+	              
+(defn collapse-trailing-right
+  "Remove any trailing right newlines that don't follow immediately after
+  comments."
+  [options zloc-seq]
+  (if (not (vector? zloc-seq))
+    (throw (#?(:clj Exception.
+               :cljs js/Error.)
+            (str "collapse-trailing-right zloc-seq not a vector!"))))
+  (let [tag-seq (mapv ztag zloc-seq)
+        nl-count (count-nl-from-right tag-seq)]
+    (dbg-s options
+           #{:collapse}
+           "zloc-seq:" (map zstring zloc-seq)
+           "tags:" (map ztag zloc-seq)
+           "nl-count:" nl-count)
+    (if (pos? nl-count)
+      (subvec zloc-seq 0 (- (count zloc-seq) nl-count))
+      zloc-seq)))
+
 (defn fzprint-get-zloc-seq
+  "Get the zloc seq, with or without newlines, as indicated by the options.
+  In the event that you have already figured out :respect-nl?, :respect-bl?
+  then call with a vector of those things.  That is because sometimes the
+  caller has used (get-respect-indent options caller :map) to determine the
+  values, and we can't know when that is appropriate here.  The point is to
+  allow everyone to call this routine to produce zloc-seqs so that everyone
+  will get the collapse-trailing-right processing handled here."
+  ([caller options zloc [respect-nl? respect-bl? _ :as respect-vec]]
+   (let [caller-options (caller options)
+         ; Note that this uses zseqnws and not zmap.
+         ; This is because zseqnws has special processing for maps
+         ; that are structures, and zmap does not.
+         zloc-seq (if respect-vec
+		    ; We have be called with the respect values
+                    (cond respect-nl? (zseqnws-w-nl zloc)
+                          respect-bl? (zseqnws-w-bl zloc)
+                          :else (zseqnws zloc))
+		    ; Determine the respect values from the caller options
+                    (cond (:respect-nl? caller-options) (zseqnws-w-nl zloc)
+                          (:respect-bl? caller-options) (zseqnws-w-bl zloc)
+                          :else (zseqnws zloc)))
+         zloc-seq (if (:collapse-trailing-right? caller-options)
+                    (collapse-trailing-right options zloc-seq)
+                    zloc-seq)]
+     (dbg-pr options "fzprint-get-zloc-seq:" (map zstring zloc-seq))
+     zloc-seq))
+  ([caller options zloc] (fzprint-get-zloc-seq caller options zloc nil)))
+
+(defn fzprint-get-zloc-seq-alt
   "Get the zloc seq, with or without newlines, as indicated by the options."
   [caller options zloc]
   (let [caller-options (caller options)
         zloc-seq (cond (:respect-nl? caller-options) (zmap-w-nl identity zloc)
                        (:respect-bl? caller-options) (zmap-w-bl identity zloc)
-                       :else (zmap identity zloc))]
+                       :else (zmap identity zloc))
+        zloc-seq (if (:collapse-trailing-right? caller-options)
+                   (collapse-trailing-right options zloc-seq)
+                   zloc-seq)]
     (dbg-pr options "fzprint-get-zloc-seq:" (map zstring zloc-seq))
     zloc-seq))
 
@@ -4161,7 +4250,64 @@
                "third-indent:" third-indent)
         (and second-element third-element (= second-indent third-indent))))))
 
+
 (defn indent-shift
+  "Take a style-vec that was once output from indent-zmap, and fix
+  up all of the :indent elements in it by adding (- actual-ind ind)
+  to them.  If we find a multiple thing in here, call indent-shift
+  recursively with the ind and cur-ind that is approprite.  All of
+  the actual indents are correct already -- all we are doing is
+  setting up their base.  There is no attempt to determine if we
+  are exceeding any configured width."
+  [caller options ind actual-ind svec]
+  (let [shift-ind actual-ind
+	; Calculate a special indent for trailing right things if it is
+	; configured for them.
+        right-ind (if (:indent-trailing-right? (caller options))
+	             (+ actual-ind (:indent (caller options)))
+		     actual-ind)]
+    (dbg-pr options
+            "indent-shift: ind:" ind
+            "actual-ind:" actual-ind
+            "shift-ind:" shift-ind
+            "svec:" svec)
+    (loop [cur-seq svec
+           cur-ind actual-ind
+           out []]
+      (if-not cur-seq
+        out
+        (let [this-seq (first cur-seq)
+              new-seq (if (vector? (first this-seq))
+                        ; is this ind correct?
+                        (indent-shift caller options ind cur-ind this-seq)
+                        (let [[s color type] this-seq
+                              next-seq (first (next cur-seq))
+                              this-shift (if (and next-seq
+                                                  (not (vector? (first
+                                                                  next-seq)))
+                                                  (= (nth next-seq 2) :indent))
+                                           0
+                                           shift-ind)]
+                          (cond (= type :indent) [(str s (blanks this-shift))
+                                                  color type 42]
+                                (= type :right) [s color type right-ind]
+                                :else this-seq)))
+              _ (dbg-pr options
+                        "indent-shift: cur-ind:" cur-ind
+                        "this-seq:" this-seq
+                        "new-seq:" new-seq)
+              ; Shouldn't this be (inc cur-ind)?
+              [linecnt max-width lines] (style-lines options cur-ind [new-seq])
+              ; Figure out where we are
+              last-width (last lines)]
+          (dbg-pr options
+                  "indent-shift: last-width:" last-width
+                  "new-seq:" new-seq)
+          ; Should this be (inc last-width)?
+          (recur (next cur-seq) last-width (conj out new-seq)))))))
+
+
+(defn indent-shift-alt
   "Take a style-vec that was once output from indent-zmap, and fix
   up all of the :indent elements in it by adding (- actual-ind ind)
   to them.  If we find a multiple thing in here, call indent-shift
@@ -4428,10 +4574,17 @@
                        (if arg-1-indent flow-indent l-str-len)
                        flow-indent)
          actual-ind (+ ind l-str-len)
+	 caller-options (caller options)
          ; We could enable :comma? for lists, sets, vectors someday
-         zloc-seq (if (:comma? (caller options))
+         zloc-seq (if (:comma? caller-options)
                     (zmap-w-nl-comma identity zloc)
                     (zmap-w-nl identity zloc))
+
+        zloc-seq (if (:collapse-trailing-right? caller-options)
+                   (collapse-trailing-right options zloc-seq)
+                   zloc-seq)
+
+
          _ (dbg-pr options
                    "fzprint-indent: caller:" caller
                    "l-str-len:" l-str-len
@@ -4441,9 +4594,11 @@
                    "arg-1-indent:" arg-1-indent
                    "flow-indent:" flow-indent
                    "actual-ind:" actual-ind
-                   "comma?" (:comma? (caller options))
+                   "comma?" (:comma? caller-options)
                    "zloc" (zstring zloc)
                    "zloc-seq" (map zstring zloc-seq))
+
+
          coll-print (fzprint-seq options ind zloc-seq)
          _ (dbg-pr options "fzprint-indent: coll-print:" coll-print)
          indent-only-style (:indent-only-style (caller options))
@@ -5151,7 +5306,18 @@
           roptions options
           l-str-vec (lstr-vec options l-str)
           ; Fudge the ind a bit for r-str-vec for anon fns: #()
-          r-str-vec (rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
+          r-str-vec #_(rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
+
+              #_(rstr-vec options 
+	      (if (:indent-trailing-right? (options caller))
+	        (+ ind indent)
+	      (+ ind (max 0 (dec l-str-len))) )
+	      r-str)
+
+          (rstr-vec caller options (+ ind (max 0 (dec l-str-len))) indent r-str)
+
+
+
           _ (dbg-pr
               options
               "fzprint-list*:" (zstring zloc)
@@ -7519,7 +7685,12 @@
             ; Do this after call-option-fn in case anything changed.
             l-str-len (count l-str)
             l-str-vec (lstr-vec options l-str)
-            r-str-vec (rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
+            r-str-vec #_(rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
+
+          (rstr-vec caller options (+ ind (max 0 (dec l-str-len))) indent r-str)
+
+
+
             len (zcount zloc)
             #_(when option-fn
                 (dbg-pr options
@@ -8040,7 +8211,7 @@
       r-str
       options
       zloc)
-    (let [[respect-nl? respect-bl? indent-only?]
+    (let [[respect-nl? respect-bl? indent-only? :as respect-vec]
             (get-respect-indent options caller :map)]
       (dbg-pr options "fzprint-map* caller:" caller)
       (if indent-only?
@@ -8048,7 +8219,11 @@
               ; Put a namespaced map back together
               l-str (if ns (str "#" ns l-str) l-str)
               l-str-vec (lstr-vec options l-str)
-              r-str-vec (rstr-vec options ind r-str)]
+              r-str-vec #_(rstr-vec options ind r-str)
+	      
+          (rstr-vec caller options ind indent r-str)
+	      
+	      ]
           (if (zero? (zcount zloc))
             (concat-no-nil l-str-vec r-str-vec)
             (concat-no-nil l-str-vec
@@ -8075,9 +8250,21 @@
               [no-sort? pair-seq] (partition-all-2-nc
                                     caller
                                     (no-max-length options)
-                                    (cond respect-nl? (zseqnws-w-nl zloc)
+				    ; Implement 177 here
+                                    #_(cond respect-nl? (zseqnws-w-nl zloc)
                                           respect-bl? (zseqnws-w-bl zloc)
-                                          :else (zseqnws zloc)))
+                                          :else (zseqnws zloc))
+
+
+				  (fzprint-get-zloc-seq
+				       caller
+				       options
+				       zloc
+				       respect-vec)
+				     
+					  
+					  
+					  )
               _ (dbg-s options
                        #{:justify :pair-seq}
                        "fzprint-map* pair-seq:"
@@ -8107,9 +8294,24 @@
                          (concat (take max-length pair-seq)
                                  (list (list (zdotdotdot))))
                          pair-seq)
+	      ; i177
               indent (count l-str)
               l-str-vec (lstr-vec options l-str)
-              r-str-vec (rstr-vec options ind r-str)]
+	      ; There is some strangeness going on with the indent, since it
+	      ; seems to be handled elsewhere.  But because rstr-vec may have
+	      ; indent the right-most thing (in this case a brace), we need
+	      ; the real indent here, not just the l-str width.
+              r-str-vec #_(rstr-vec options ind r-str)
+
+                       (rstr-vec caller options ind 
+
+		       #_indent 
+	             ((caller options) :indent)
+		       
+		       r-str)
+	      
+	      
+	      ]
           (if (empty? pair-seq)
             (concat-no-nil l-str-vec r-str-vec)
             (let [_ (dbg-pr options

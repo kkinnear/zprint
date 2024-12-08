@@ -658,7 +658,12 @@
           :wrap-after-multi? true,
           :wrap-multi? true,
           :tuning
-            {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}},
+            {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}
+	  :collapse-trailing-right? false
+	  :indent-trailing-right? false
+	    
+	    
+	    },
    :map {:indent 2,
          :sort? true,
          :sort-in-code? nil,
@@ -704,7 +709,12 @@
          :respect-nl? false,
          :unlift-ns? false,
          :tuning
-           {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}},
+           {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}
+	   
+	  :collapse-trailing-right? false
+	  :indent-trailing-right? false
+	   
+	   },
    :max-depth 1000000,
    :max-depth-string "##",
    :modify-sexpr-by-type nil,
@@ -808,7 +818,13 @@
          :sort-in-code? false,
          :wrap-after-multi? true,
          :wrap-coll? true,
-         :wrap? true},
+         :wrap? true
+	 
+	  :collapse-trailing-right? false
+	  :indent-trailing-right? false
+	 
+	 
+	 },
    :spaces? nil,
    :spec {:docstring? true, :value nil},
    :style nil,
@@ -1342,7 +1358,13 @@
             :wrap-coll? true,
             :wrap? true,
             :wrap-multi? false,
-            :indent-only? false},
+            :indent-only? false
+	    
+	  :collapse-trailing-right? false
+	  :indent-trailing-right? false
+	    
+	    
+	    },
    ; Needs to have same keys as :list, since this replaces :list when
    ; vectors are formatted as functions.
    :vector-fn {:constant-pair-fn nil,
@@ -1370,7 +1392,12 @@
                :wrap-multi? true,
                :tuning {:hang-flow 1.1,
                         :hang-flow-limit 12,
-                        :hang-if-equal-flow? false}},
+                        :hang-if-equal-flow? false}
+			
+	  :collapse-trailing-right? false
+	  :indent-trailing-right? false
+			
+			},
    :width 80,
    :url {:cache-dir "urlcache", :cache-secs 300},
    :zipper? false,

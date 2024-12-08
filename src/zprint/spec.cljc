@@ -200,6 +200,7 @@
 (s/def ::cache-dir (s/nilable string?))
 (s/def ::cache-path (s/nilable string?)); debugging only
 (s/def ::cache-secs ::nilable-number)
+(s/def ::collapse-trailing-right? ::boolean)
 (s/def ::comma? ::boolean)
 (s/def ::constant-pair? ::boolean)
 (s/def ::constant-pair-min number?)
@@ -239,6 +240,7 @@
 (s/def ::indent-arg ::nilable-number)
 (s/def ::indent-only? ::boolean)
 (s/def ::indent-only-style ::indent-only-style-value)
+(s/def ::indent-trailing-right? ::boolean)
 (s/def ::inline-align-style ::inline-align-style-value)
 (s/def ::inline? ::boolean)
 (s/def ::interpose ::boolean-or-string)
@@ -417,7 +419,8 @@
                       ::indent-only? ::indent-only-style ::replacement-string
                       ::wrap-coll? ::wrap-after-multi? ::wrap-multi? ::force-nl?
                       ::wrap? ::nl-count ::no-wrap-after :alt/tuning
-                      ::nl-separator?]))
+                      ::nl-separator? ::collapse-trailing-right? 
+		      ::indent-trailing-right?]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
@@ -430,7 +433,12 @@
                       ::key-order ::lift-ns? ::lift-ns-in-code? ::key-no-sort
                       ::multi-lhs-hang? ::nl-separator? ::nl-separator-all?
                       ::respect-bl? ::respect-nl? ::sort-in-code? ::sort?
-                      ::unlift-ns? ::key-value-options :alt/tuning]))
+                      ::unlift-ns? ::key-value-options :alt/tuning
+		      
+                      ::collapse-trailing-right? 
+		      ::indent-trailing-right?
+		      
+		      ]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -511,7 +519,12 @@
 (s/def ::set
   (only-keys :opt-un [::indent ::indent-only? ::respect-bl? ::respect-nl?
                       ::sort? ::sort-in-code? ::wrap-after-multi? ::wrap-coll?
-                      ::wrap? ::no-wrap-after]))
+                      ::wrap? ::no-wrap-after
+
+                      ::collapse-trailing-right? 
+		      ::indent-trailing-right?
+		      
+		      ]))
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::split? ::boolean)
@@ -533,7 +546,12 @@
   (only-keys :opt-un [::indent ::binding? ::respect-bl? ::respect-nl?
                       ::option-fn-first ::option-fn ::fn-format
                       ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap?
-                      ::indent-only? ::hang? ::force-nl? ::no-wrap-after]))
+                      ::indent-only? ::hang? ::force-nl? ::no-wrap-after
+		      
+                      ::collapse-trailing-right? 
+		      ::indent-trailing-right?
+		      
+		      ]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))

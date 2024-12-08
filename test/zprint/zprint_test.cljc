@@ -9517,6 +9517,62 @@ ser/collect-vars-acc %1 %2) )))"
 "(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
 (zprint-str i245c {:parse-string? true :style :meta-guide :width 60}))
 
+;;
+;; Added :collapse-trailing-right? and :indent-trailing-right? to :list
+;; :map, :vector, :set and :vector-fn.
+;;
+;; Issue #177.
+;;
+;; This also came up in Issue #143, which is why the innn are mixed.
+;;
+
+; Vector-fn
+
+(def i143g "[this is a test\n]\n")
+
+(expect
+"[this is\n     a\n     test]"
+(zprint-str i143g {:parse-string? true  :vector {:fn-format :arg1-force-nl} :vector-fn {:respect-nl? true :collapse-trailing-right? true :indent 5}}))
+
+(expect
+"[this is\n     a\n     test\n     ]"
+(zprint-str i143g {:parse-string? true  :vector {:fn-format :arg1-force-nl} :vector-fn {:respect-nl? true :indent-trailing-right? true :indent 5}}))
+
+; :binding
+
+(def i143f "(defn i143f\n  [this is a test]\n  (let [a b\n        c d \n\t]\n    (this is a test)))\n")
+
+(expect
+"(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n            ]\n    (this is a test)))"
+(zprint-str i143f {:parse-string? true  :vector {:respect-nl? true :collapse-trailing-right? false :indent-trailing-right? true} :binding {:indent 5}}))
+
+(expect
+"(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n       ]\n    (this is a test)))"
+(zprint-str i143f {:parse-string? true  :vector {:respect-nl? true :collapse-trailing-right? false} :binding {:indent 5}}))
+
+(expect
+"(defn i143f\n  [this is a test]\n  (let [a b\n        c d]\n    (this is a test)))"
+(zprint-str i143f {:parse-string? true  :vector {:respect-nl? true :collapse-trailing-right? true} :binding {:indent 5}}))
+
+; :list
+
+(def i143b "(a (b (c (d e f\n) h\n)\n) i j)\n")
+
+(expect
+"(a (b (c (d e f) h)) i j)"
+(zprint-str i143b {:parse-string? true :list {:respect-nl? true :collapse-trailing-right? true}}))
+
+(expect
+"(a (b (c (d e\n            f\n         )\n         h\n      )\n   )\n   i\n   j)"
+(zprint-str i143b {:parse-string? true :list {:respect-nl? true :collapse-trailing-right? false}}))
+
+(expect
+"(a (b (c (d e\n            f\n           )\n         h\n        )\n     )\n   i\n   j)"
+(zprint-str i143b {:parse-string? true :list {:respect-nl? true :indent-trailing-right? true}}))
+
+; :map
+
+
 
 
 

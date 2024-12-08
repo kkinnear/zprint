@@ -38,7 +38,7 @@ All notable changes to this project will be documented in this file.
   
 ### Changed
 
-  * Formatting for tagged-literals was completed reimplemented.
+  * Formatting for tagged-literals was completely reimplemented.
   This corrected many problems (not least that they were ignored
   when they appeared in Clojure data structures formatted by zprint
   as a library) and brought the implementation and configuration

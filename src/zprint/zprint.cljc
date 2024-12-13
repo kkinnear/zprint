@@ -5949,7 +5949,7 @@
   and ind is where we should be after a newline."
   ; Note: I think this routine assumes a "[" (or at least a single
   ; character left element) at the start of the seequence, since it
-  ; adds one space to everything element other than the first.
+  ; adds one space to every element other than the first.
   [caller
    {:keys [width rightcnt],
     {:keys [wrap-after-multi? respect-nl? no-wrap-after]} caller,
@@ -5971,6 +5971,7 @@
                   this-seq (first cur-seq)
                   _ (log-lines options "wrap-zmap:" ind this-seq)
                   _ (dbg-pr options "wrap-zmap: ind:" ind "this-seq:" this-seq)
+		  ; Figure the length of this-seq
                   [linecnt max-width lines] (style-lines options ind this-seq)
                   last-width (last lines)
                   len (- last-width ind)
@@ -5978,21 +5979,53 @@
                   ; Do we have a no-wrap element?
                   no-wrap-element? (when no-wrap-after
                                      (no-wrap-after (first (first this-seq))))
-                  ; If we do, then add its length to the length of the
-                  ; existing element
+		  ; Find the length of the next thing on the line
+		  ; if we have a no-wrap-element.
                   next-len (when (and no-wrap-element? (second cur-seq))
-                             (let [[linecnt max-width lines]
+                             (let [; Figure the length of the the thing beyond
+			           ; cur-seq
+				   [linecnt max-width lines]
                                      (style-lines options ind (second cur-seq))
                                    last-width (last lines)]
                                (max 0 (- last-width ind))))
-                  ; If we have a no-wrap element, make the index the index
-                  ; of the next element, so we handle rightcnt correctly
+
+
                   original-len len
+
+		  ; We might be about to compare the size of this element
+		  ; and the the size of the next element with the width.  
+		  ; If the next element is the last thing in a collection, 
+		  ; ensure that we account for the rightcnt.
+		  next-width (when next-len 
+		              (if (= (inc index) last-index) 
+		                (- width rightcnt)
+			        width))
+
+
+                  ; If we have a no-wrap element, then see if the combination
+		  ; of the no-wrap element and the next element (and the space
+		  ; between them) will fit on the line. If they do, make the 
+		  ; length of the current element, the no-wrap element,
+		  ; equal to the sum of the no-wrap-element, the space between
+		  ; them, and the next element.  Which, kind of by definition,
+		  ; should cause this element to then go on the next line.
+		  
                   [len ^long index] (if next-len
-                                      ; Add the lengths together, and also
-                                      ; one for the space
-                                      [(+ len next-len 1) (inc index)]
+                                      ; Check to see if they fit.  To do this,
+				      ; add the lengths of this and the next
+				      ; element together and also the
+				      ; one space space between them, as 
+				      ; the other space is already accounted
+				      ; for in the cur-ind calculation from
+				      ; the previous time around the loop.
+				      (if (<= (+ cur-ind len 1 next-len) next-width)
+				        [len index]
+					; The length of the two things together
+					; is the length of each plus the one
+					; space between them.
+                                        [(+ len 1 next-len) (inc index)])
                                       [len index])
+		  _ (dbg-s options #{:no-wrap-after} "wrap-zmap: no-wrap-element?" no-wrap-element? "element:" (pr-str (first (first this-seq))) "next-len:" next-len "original-len:" original-len "len:" len)
                   newline? (= (nth (first this-seq) 2) :newline)
                   comment?
                     (if respect-nl? nil (= (nth (first this-seq) 2) :comment))
@@ -6000,6 +6033,8 @@
                                     nil
                                     (= (nth (first this-seq) 2)
                                        :comment-inline))
+		  ; Note that we might have advanced the index because of
+		  ; the no-wrap-after code, a bit above here.
                   width (if (= index last-index) (- width rightcnt) width)
                   ; need to check size, and if one line and fits, should
                   ; fit
@@ -6008,6 +6043,7 @@
                             (or (zero? index)
                                 (and (if multi? (= linecnt 1) true)
                                      (<= (+ cur-ind len) width))))
+		  _ (dbg-s options #{:wrap-zmap} "wrap-zmap: fit?" fit? "newline?" newline? "multi?" multi? "linecnt:" linecnt "ind:" ind "cur-ind:" cur-ind "len:" len "new-ind:" (+ cur-ind len 1) "width:" width "next-seq:" ((:dzprint options) {} next-seq))
                   _ (when no-wrap-element?
                       (dbg-pr options
                               "wrap-zmap: no-wrap-element:" (first (first
@@ -6017,9 +6053,15 @@
                               "index:" index
                               "rightcnt:" rightcnt
                               "fit?" fit?))
+		  ; This calculates the new-ind to be one after the length
+		  ; of the current element, so that the width check for the
+		  ; next element (next time around the loop) includes that 
+		  ; space in what is then the cur-ind.
                   new-ind (cond
                             ; Comments cause an overflow of the size
                             (or comment? comment-inline?) (inc width)
+			    ; i341
+			    #_#_(and multi? (> linecnt 1)) (+ cur-ind len)
                             (and multi? (> linecnt 1) (not wrap-after-multi?))
                               width
                             fit? (+ cur-ind len 1)
@@ -6270,10 +6312,16 @@
                              (and (< cur-ind width) (< this-ind width))))
           this-result
             (when try-this?
+
+              (dbg-s options :guide "guided-output: try-this? true") 
+              (dbg-s options :guide "guided-output: hang-remaining-seq:" 
+	             (mapv zstring hang-remaining-seq)) 
+
               (cond
                 do-pairs? (fzprint-pairs (in-hang options) this-ind group-seq)
                 do-hang-remaining? (fzprint-hang-remaining
                                      caller
+				     ; i341
                                      options
                                      #_(assoc options :dbg? true)
                                      ; This is the correct hindent, but it
@@ -6305,7 +6353,7 @@
                                (= (ffirst this-result) " "))
                         (next this-result)
                         this-result)
-          #_(println "this-result:" this-result)
+          _  (dbg-s options :guide "guided-output: this-result:" (pr-str this-result)) 
           this-lines (style-lines options this-ind this-result)
           ; Force wrap-multi? true for this guide if we are doing binding,
           ; regardless of its value in the options map.
@@ -6338,11 +6386,13 @@
                              (= (nth (first output-seq) 2) :comment))
                         ; We tried a this, and it didn't fit.
                         (and try-this? (not this-fit?)))
-          #_(dbg-s options
+          _ (dbg-s options
                    :guide
                    "guided-output: this-lines:" this-lines
+		   "output-seq:" (pr-str output-seq)
                    "this-multi?" this-multi?
                    "this-linecnt:" this-linecnt
+		   "wrap-multi:" wrap-multi?
                    "this-ind:" this-ind
                    "try-this?" try-this?
                    "this-fit?" this-fit?
@@ -8294,7 +8344,7 @@
                          (concat (take max-length pair-seq)
                                  (list (list (zdotdotdot))))
                          pair-seq)
-	      ; i177
+	      ; i177 (see below)
               indent (count l-str)
               l-str-vec (lstr-vec options l-str)
 	      ; There is some strangeness going on with the indent, since it

@@ -7545,6 +7545,13 @@ ser/collect-vars-acc %1 %2) )))"
       "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body]\n  (+ 1 2 3))\n"
       {:parse-string? true, :width 79, :vector {:no-wrap-after #{"&"}}}))
 
+  (expect
+    "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body\n   stuff bother]\n  (+ 1 2 3))"
+    (zprint-str
+      "(defn example\n  [vvvvvveeeeeeeerrrrrrryyyyy looooooooooooooooooonnnnggggg paraaaaaaams & body stuff bother]\n  (+ 1 2 3))\n"
+      {:parse-string? true, :width 79, :vector {:no-wrap-after #{"&"}}}))
+
+
   ;; Does it work for :wrap in lists as well?
 
   (expect

@@ -1521,7 +1521,7 @@ Print the first argument on the same line as the function, if
 possible.  Later arguments go indented and `:arg1` and `:arg-1-pair`
 top level fns are become `:none` and `:pair`, respectively.
 
-Currently `->` is `:narg1-body`, however, and there are no `:arg1->`
+Currently `->` is `:noarg1-body`, however, and there are no `:arg1->`
 functions.
 
 ```clojure
@@ -5249,7 +5249,7 @@ given by the `:key-depth-color` vector.
 
 The value of `:key-value-options` is a map which relates map keys to options
 maps used to format the values of those map keys.  This capability, had
-it been around earlier, would make :key-value-color` unnecessary.  
+it been around earlier, would make `:key-value-color` unnecessary.  
 It would also have made `:key-ignore` unnecessary, as the options map
 for a specific key could specify a `:max-length` which was very short.
 While it seems simple, this is a particularly powerful formatting

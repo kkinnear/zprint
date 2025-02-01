@@ -225,6 +225,24 @@ reassemble-range]]
     "(ns automaton-core.utils.uuid-gen\n  \"Generate uuid, is a proxy to `http://danlentz.github.io/clj-uuid/`\"\n  (:require))"
     (zprint-str i310p {:parse-string? true, :style :sort-require}))
 
+   ;;
+   ;; :style :sort-require loops forever.  Turns out that if the :require
+   ;; isn't the first thing in the collection where it appears, it will
+   ;; keep putting the :require in front of where it is going to go next,
+   ;; causing a very hard infinite loop.  Issue #346.
+
+ (expect
+"(ns a\n  (:require [a]\n            [b]\n            [c]))"
+(zprint-str "(ns a (:require [c] [b] [a]))" {:parse-string? true :style :sort-require}))
+
+(expect
+"(ns a (stuff :require [c] [b] [a]))"
+(zprint-str "(ns a (stuff :require [c] [b] [a]))" {:parse-string? true :style :sort-require}))
+
+(expect
+"(ns a\n  (#?(:clj :require\n      :cljs :require-macros)\n   [b]))"
+(zprint-str "(ns a (#?(:clj :require  :cljs :require-macros) [b]))" {:parse-string? true :style :sort-require}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

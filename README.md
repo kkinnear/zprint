@@ -10,7 +10,7 @@ a number of major source code formatting approaches.
 ### Quickstart
 
   * Latest pre-compiled binaries for macOS and Linux are [here on GitHub](https://github.com/kkinnear/zprint/releases/latest)  
-  * Run the same code [in babashka](doc/getting/babashka.md) [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+  * Run the same code [in babashka](doc/getting/babashka.md) [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://book.babashka.org#badges)
   * Library to use [in the REPL](doc/using/repl.md) or embed in your project: [![Clojars Project](https://img.shields.io/clojars/v/zprint.svg)](https://clojars.org/zprint)    
 
 ### Overview
@@ -191,7 +191,7 @@ Some commonly used styles:
 
 [![cljdoc badge](https://cljdoc.org/badge/zprint/zprint)](https://cljdoc.org/d/zprint/zprint/CURRENT)
 
-[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://book.babashka.org#badges)
 
 
 ### Clojure 1.9, 1.10, 1.10.3, 1.11.1, 1.12.0-alpha8:

@@ -1,6 +1,6 @@
 # Use babashka to run zprint
 
-[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://book.babashka.org#badges)
 
 You can format files with  zprint using babashka.  This has several benefits:
 

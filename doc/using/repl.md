@@ -110,7 +110,7 @@ zpuse.core=> (require '[zprint.core :as zp])
 
 ## Babashka
 
-[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://book.babashka.org#badges)
 
 zprint will work well in a babashka REPL. At least Babashka v1.3.183 is
 required. You need to get it into

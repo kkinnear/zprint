@@ -527,9 +527,9 @@
          "end-cg" end-cg)
   (loop [idx index
          depth depth
-         start-col 0
-         number-semis 0 ; non-zero says we currently in a group
-         current-spacing 0
+         start-col (Long/valueOf 0)
+         number-semis (Long/valueOf 0) ; non-zero says we currently in a group
+         current-spacing (Long/valueOf 0)
          nl-indent-count 0
          out [nil 0 0]]
     ; Find the start of the comment group
@@ -1094,8 +1094,8 @@
            ((:dzprint options)
              {}
              (map #(vector %1 %2 %3) (range) start-col style-vec)))
-    (loop [idx 0
-           depth 0
+    (loop [idx       (Long/valueOf 0)
+           depth     (Long/valueOf 0)
            style-vec style-vec]
       (let [[new-depth comment-group]
               (get-next-comment-group options depth idx start-col style-vec)
@@ -1174,9 +1174,9 @@
   #_(def fcic style-vec)
   (loop [cvec style-vec
          index 0
-         last-indent 0
+         last-indent (Long/valueOf 0)
          current-seq []
-         current-column 0
+         current-column (Long/valueOf 0)
          distance 0
          out []]
     (if-not cvec
@@ -1259,7 +1259,7 @@
   #_(def fcic style-vec)
   (loop [cvec style-vec
          index 0
-         last-indent 0
+         last-indent (Long/valueOf 0)
          current-seq []
          out []]
     (if-not cvec
@@ -1327,7 +1327,7 @@
                :cljs js/Error.)
             (str "comment-column: style-vec not a vector!! " style-vec))))
   (loop [index indent-index
-         column 0]
+         column (Long/valueOf 0)]
     (if (= index comment-index)
       column
       (recur (inc index) (loc-vec column (nth style-vec index))))))

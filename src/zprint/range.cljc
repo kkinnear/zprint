@@ -107,8 +107,8 @@
      (println "find-row: linenumber:" linenumber "scan-size:" scan-size))
    (let [size (count row-vec)]
      ; We are 1 based, because edamame row numbers are 1 based.
-     (loop [row-vec-index (int (/ size 2))
-            previous-index 0
+     (loop [row-vec-index (Long/valueOf (quot size 2))
+            previous-index (Long/valueOf 0)
             tries 0]
        #_(println "\n\n================== row-vec-index:" row-vec-index)
        (if (> tries 10)

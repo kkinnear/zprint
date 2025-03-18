@@ -78,7 +78,7 @@
   "Given a non-whitespace path from a zipper, find that same
   collection or element in a str-style-vec."
   [nwpath ssv]
-  (loop [idx 0
+  (loop [idx (Long/valueOf 0)
          nwp nwpath]
     (when idx
       (if (empty? nwp)

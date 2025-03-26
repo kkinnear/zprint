@@ -8281,6 +8281,62 @@ If there is a collection in the vector, should it wrap?
  18
  19]
 ```
+
+#### :wrap-multi? _false_
+
+When wrapping a collection, if that collection contains another collection,
+and that contained collection is multi-line, should zprint attempt to
+format the contained multi-line collection on a line which already 
+contains elements of the outer collection, or should zprint format the
+contained multi-line collection starting on a new line.  Prior to
+zprint `1.3.0` the only way you could get a collection to wrap on the
+same line as other elements was to use a guide.
+
+That's a lot of words for something not that complex.
+
+A real world example:
+
+```
+; The default version -- look at the second arglist.  It is not bad, but
+; not great either.:
+
+(czprint "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd] :c [eeee ffff ggggg]} last])})" {:parse-string? true :vector {:wrap-multi? false} :map {:force-nl? true} :fn-map {:quote [:none {}]}})
+(defn stuff
+  "..."
+  {:arglists '([obj mapping-fn]
+               [obj mapping-fn
+                {:a [bbbb cccc dddd],
+                 :c [eeee ffff ggggg]} last])})
+
+; If you enable :wrap-multi? true in :vector
+
+(czprint "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd] :c [eeee ffff ggggg]} last])})" {:parse-string? true :vector {:wrap-multi? true} :map {:force-nl? true} :fn-map {:quote [:none {}]}})
+(defn stuff
+  "..."
+  {:arglists '([obj mapping-fn]
+               [obj mapping-fn {:a [bbbb cccc dddd],
+                                :c [eeee ffff ggggg]} last])})
+
+; Maybe you don't want the thing after the multi-line collection
+; on the same line as the last line of the collection
+
+(czprint "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd] :c [eeee ffff ggggg]} last])})" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :map {:force-nl? true} :fn-map {:quote [:none {}]}})
+(defn stuff
+  "..."
+  {:arglists '([obj mapping-fn]
+               [obj mapping-fn {:a [bbbb cccc dddd],
+                                :c [eeee ffff ggggg]}
+                last])})
+
+This is what the Issue that resulted in this capability wanted to see,
+and it is pretty clear. 
+
+```
+
+There are plenty of other situations where this can be useful.
+It isn't the default because it is so different from how zprint
+has done things in the past.
+
 #### :wrap-after-multi? _true_
 
 Should a vector continue to wrap after a multi-line element is
@@ -8338,6 +8394,11 @@ that contains strings.  For instance:
 ```
 
 will solve this particular problem.  
+
+Note that if you configure `:no-wrap-after`, when zprint encounters the
+element specified in the no-wrap-after set, it will implicitly enable 
+`:wrap-multi? true` for the next element -- in order to try to keep
+the elements together successfully.
 
 It would make sense to simply configure `{:vector {:no-wrap-after #{"&"}}}` 
 globally, since it probably wouldn't affect anything but

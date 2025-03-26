@@ -498,7 +498,8 @@
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-                      :alt/extend ::binding ::pair ::map ::parse ::vector]))
+                      :alt/extend ::binding ::pair ::map ::parse ::vector
+		      ::list ::set ::vector-fn]))
 
 (s/def ::remove-final-keys (s/nilable ::vector-of-vector-of-keywords))
 
@@ -523,6 +524,8 @@
 
                       ::collapse-trailing-right? 
 		      ::indent-trailing-right?
+
+		      ::wrap-multi?
 		      
 		      ]))
 (s/def ::spaces? ::boolean)

@@ -275,7 +275,7 @@
                                                ; only do the first column
                                                1)
                _ (dbg-s options
-                        :guide
+                        #{:guide :jrequireguide}
                         "jrequireguide max-width-vec:"
                         max-width-vec)
                max-first (first max-width-vec)
@@ -291,6 +291,10 @@
            ; Do this for all of the first level vectors and lists  below
            ; the :require, but no other vectors or lists more deeply
            ; nested.
+
+	   (dbg-s options #{:jrequireguide} "jrequireguide: vector-guide:" 
+	   vector-guide)
+
            {:next-inner {:vector {:option-fn (fn [_ _ _] {:guide vector-guide}),
                                   :wrap-multi? true,
                                   :hang? true},

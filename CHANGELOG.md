@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file. 
 
-## 1.3.0 - 2024-5-31
+## 1.3.0 - 2025-3-26
 
 ### Added
 
@@ -35,6 +35,13 @@ All notable changes to this project will be documented in this file.
 
   * Documented new style `:meta-guide`, which appeared several releases
   ago.  Also deprecated style `:meta-alt` -- use `:meta-guide` instead.
+
+  * The capability `:wrap-multi?` is now supported for `:list`, `:vector`, 
+  and `:set`.  It is false by default, but if true will allow a multi-line
+  collection to be added to a line which already contains elements.  If it
+  is false, then every multi-line collection will "flow" and always start
+  on the next line (which is what has always happened prior to this release).
+  See the reference manual for some examples.
   
 ### Changed
 
@@ -48,10 +55,34 @@ All notable changes to this project will be documented in this file.
   literal one space to the right of the `#` if it formatted onto
   the line below the tag.  That same placement remains the default,
   but the configuration to generate that output is now `:indent 1`,
-  which is an unfortunate but necessary change.  Issue #318, #304.
+  which is an unfortunate but necessary change.  Issue #318.
+
+  * `:wrap-multi?` was previously true for lists, but only actually
+  implemented in guides.  It is not false by default, and the guides
+  that used it have been upgraded to specify it explicitly.  If you 
+  have a guide that changes behavior with this release, please submit
+  as issue.  This is a "breaking change", but the scope is small and
+  while it could have been avoided by creating an additional
+  configuration option, the additional complexity was deemed a larger
+  problem.
 
 ### Fixed
 
+  * Use of a "guide", which powers a few styles, could produce a
+  deletion of code if the guide was generated from the `option-fn`
+  in `:vector`.  The styles at risk are `:hiccup`, `:keyword-respect-nl`,
+  `:odr`, and `:require-pair`.  If those styles encounter an empty vector,
+  `[]`, code may be deleted.  Also, option configurations returned as the 
+  answer to an Issue may rarely include guides for :vector. Issue #347.
+
+  * In extremely rare situations with both styles `:respect-nl` and
+  `:ns-justify` code could be corrupted because a newline would be
+  missing. Issue #348.
+
+  * Even though `:style :respect-nl` was in use, newlines at the 
+  beginning of maps, binding vectors, and sets would sometimes be
+  ignored.  Issue #348.
+  
   * Configuring `:indent-only?` when using zprint to format Clojure
   structures (as opposed to source files) doesn't work and produces 
   incorrect results.  Issue #321.
@@ -62,6 +93,20 @@ All notable changes to this project will be documented in this file.
   * In the event that `{:list {:indent n}}` was configured with 
   n = size-of-the-first-element-of-a-list + 1, a newline was added
   after the first element of the list.  Issue #329.
+
+  * When using `:style :sort-require` if the `:require` wasn't the first 
+  thing in the collection, zprint would loop forever.  Now it doesn't.
+  Issue #346.
+
+  * Some incorrect indentation in vectors and lists when wrapping
+  collections containing collections.  Found as part of Issue #341.
+
+  * `:no-wrap-after` has been around for a while.  This lets you specify
+  an element where you would prefer the next element be on the same line.
+  It has been completely re-implemented and now works well in more situations.
+  When specified, it also implies `:wrap-multi? true` for the next element.
+  Note that the element you specify for `:no-wrap-after` should be short
+  and not a collection.
 
 ## 1.2.9 - 2024-3-12
 

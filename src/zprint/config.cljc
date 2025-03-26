@@ -656,7 +656,7 @@
           :wrap? false,
           :wrap-coll? true,
           :wrap-after-multi? true,
-          :wrap-multi? true,
+          :wrap-multi? false 
           :tuning
             {:hang-flow 1.1, :hang-flow-limit 12, :hang-if-equal-flow? false}
 	  :collapse-trailing-right? false
@@ -805,6 +805,9 @@
             :map {:key-no-sort nil,
                   :justify {:no-justify nil, :ignore-for-variance nil}},
             :parse {:ignore-if-parse-fails nil},
+	    :list {:no-wrap-after nil}
+	    :set {:no-wrap-after nil}
+	    :vector-fn {:no-wrap-after nil}
             :vector {:no-wrap-after nil}},
    :return-cvec? false,
    :script {:more-options nil},
@@ -822,6 +825,8 @@
 	 
 	  :collapse-trailing-right? false
 	  :indent-trailing-right? false
+
+	  :wrap-multi? false
 	 
 	 
 	 },

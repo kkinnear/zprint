@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
   not "trailing right" characters anymore.  Both capabilties are
   now supported, the first by `:indent-trailing-right?` and the
   second by `:collapse-trailing-right?`, for lists, vectors, maps
-  and sets.  See the documentation for details.  Issue #177.
+  and sets.  See the reference manual for details.  Issue #177.
 
   * New style `:docstring-nl` which will render any embedded newlines
   in docstrings in structures as actual newlines, not `\n`.  This

@@ -296,6 +296,7 @@
     zprint.zfns/zseqnws sseqnws
     zprint.zfns/zseqnws-w-nl sseqnws
     zprint.zfns/zseqnws-w-bl sseqnws
+    zprint.zfns/zseqnws-w-nl-comma sseqnws
     zprint.zfns/zfocus-style sfocus-style
     zprint.zfns/zstart sfirst
     zprint.zfns/zfirst sfirst

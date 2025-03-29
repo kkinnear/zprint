@@ -481,6 +481,12 @@
   [zloc]
   (zmap-w-bl identity zloc))
 
+(defn zseqnws-w-nl-comma
+  "Return a seq of all of the non-whitespace children of zloc, including
+  newlines and commas."
+  [zloc]
+  (zmap-w-nl-comma identity zloc))
+
 (defn zremove-right
   "Remove everything to the right of the current zloc. In other words,
   make the current zloc the rightmost."
@@ -836,6 +842,7 @@
     zprint.zfns/zseqnws zseqnws
     zprint.zfns/zseqnws-w-nl zseqnws-w-nl
     zprint.zfns/zseqnws-w-bl zseqnws-w-bl
+    zprint.zfns/zseqnws-w-nl-comma zseqnws-w-nl-comma
     zprint.zfns/zfocus-style zfocus-style
     zprint.zfns/zstart zstart
     zprint.zfns/zfirst zfirst

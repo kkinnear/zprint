@@ -16,6 +16,7 @@
 (def zseqnws nil)
 (def zseqnws-w-nl nil)
 (def zseqnws-w-bl nil)
+(def zseqnws-w-nl-comma nil)
 (def zfocus-style nil)
 (def zfirst nil)
 (def zfirst-sexpr nil)

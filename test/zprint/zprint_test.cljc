@@ -9572,6 +9572,14 @@ ser/collect-vars-acc %1 %2) )))"
 "(defn i143f\n  [this is a test]\n  (let [a b\n        c d]\n    (this is a test)))"
 (zprint-str i143f {:parse-string? true  :vector {:respect-nl? true :collapse-trailing-right? true} :binding {:indent 5}}))
 
+(expect
+"(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n       ]\n    (this is a test)))"
+(zprint-str i143f {:parse-string? true :vector {:indent-only? true :collapse-trailing-right? false}}))
+
+(expect
+"(defn i143f\n  [this is a test]\n  (let [a b\n        c d]\n    (this is a test)))"
+(zprint-str i143f {:parse-string? true :vector {:indent-only? true :collapse-trailing-right? true}}))
+
 ; :list
 
 (def i143b "(a (b (c (d e f\n) h\n)\n) i j)\n")
@@ -9594,7 +9602,127 @@ ser/collect-vars-acc %1 %2) )))"
 "(a (b (c (d e\n            f\n           )\n         h\n        )\n     )\n   i\n   j)"
 (zprint-str i143b {:parse-string? true :list {:respect-nl? true :indent-trailing-right? true}}))
 
+(expect
+"(a (b (c (d e f) h)) i j)"
+(zprint-str i143b {:parse-string? true :list {:indent-only? true :collapse-trailing-right? true}}))
+
 ; :map
+
+(def
+i143i
+"{a {b {c {d e  \n} h i\n} \n} i j}\n")
+
+(expect
+"{a {b {c {d e\n         },\n       h i\n      }\n   },\n i j}"
+(zprint-str i143i {:parse-string? true :map {:respect-nl? true :indent-trailing-right? false}}))
+
+(expect
+"{a {b {c {d e\n           },\n       h i\n        }\n     },\n i j}"
+(zprint-str i143i {:parse-string? true :map {:respect-nl? true :indent-trailing-right? true}}))
+
+(expect
+"{a {b {c {d e\n         },\n       h i\n      }\n   },\n i j}"
+(zprint-str i143i {:parse-string? true :map {:respect-nl? true :collapse-trailing-right? false}}))
+
+(expect
+"{a {b {c {d e}, h i}}, i j}"
+(zprint-str i143i {:parse-string? true :map {:respect-nl? true :collapse-trailing-right? true}}))
+
+(expect
+"{a {b {c {d e\n         } h i\n      }\n   } i j}"
+(zprint-str i143i {:parse-string? true :map {:indent-only? true :respect-nl? true :indent-trailing-right? false}}))
+
+(expect
+"{a {b {c {d e\n           } h i\n        }\n     } i j}"
+(zprint-str i143i {:parse-string? true :map {:indent-only? true :respect-nl? true :indent-trailing-right? true}}))
+
+(expect
+"{a {b {c {d e\n         } h i\n      }\n   } i j}"
+(zprint-str i143i {:parse-string? true :map {:indent-only? true :respect-nl? true :collapse-trailing-right? false}}))
+
+(expect
+"{a {b {c {d e} h i}} i j}"
+(zprint-str i143i {:parse-string? true :map {:indent-only? true :respect-nl? true :collapse-trailing-right? true}}))
+
+
+
+; :vector
+
+ (def
+ i143k
+"[a [b [c [d e f\n] h\n]\n] i j]\n")
+
+(expect
+"[a\n [b\n  [c\n   [d e f\n   ] h\n  ]\n ] i j]"
+(zprint-str i143k {:parse-string? true :vector {:respect-nl? true :indent-trailing-right? false}}))
+
+(expect
+"[a\n [b\n  [c\n   [d e f\n    ] h\n   ]\n  ] i j]"
+(zprint-str i143k {:parse-string? true :vector {:respect-nl? true :indent-trailing-right? true}}))
+
+(expect
+"[a\n [b\n  [c\n   [d e f\n   ] h\n  ]\n ] i j]"
+(zprint-str i143k {:parse-string? true :vector {:respect-nl? true :collapse-trailing-right? false}}))
+
+(expect
+"[a [b [c [d e f] h]] i j]"
+(zprint-str i143k {:parse-string? true :vector {:respect-nl? true :collapse-trailing-right? true}}))
+
+(expect
+"[a [b [c [d e f\n         ] h\n      ]\n   ] i j]"
+(zprint-str i143k {:parse-string? true :vector {:indent-only? true :respect-nl? true :indent-trailing-right? false}}))
+
+(expect
+"[a [b [c [d e f\n          ] h\n       ]\n    ] i j]"
+(zprint-str i143k {:parse-string? true :vector {:indent-only? true :respect-nl? true :indent-trailing-right? true}}))
+
+(expect
+"[a [b [c [d e f\n         ] h\n      ]\n   ] i j]"
+(zprint-str i143k {:parse-string? true :vector {:indent-only? true :respect-nl? true :collapse-trailing-right? false}}))
+
+(expect
+"[a [b [c [d e f] h]] i j]"
+(zprint-str i143k {:parse-string? true :vector {:indent-only? true :respect-nl? true :collapse-trailing-right? true}}))
+
+; set
+
+(def
+i143h
+"#{a #{b #{c #{d e f \n} h \n} \n} i j}\n")
+
+(expect
+"#{a\n  #{b\n    #{c\n      #{d e f\n       } h\n     }\n   } i j}"
+(zprint-str i143h {:parse-string? true :set {:respect-nl? true :collapse-trailing-right? false}}))
+
+(expect
+"#{a #{b #{c #{d e f} h}} i j}"
+(zprint-str i143h {:parse-string? true :set {:respect-nl? true :collapse-trailing-right? true}}))
+
+(expect
+"#{a\n  #{b\n    #{c\n      #{d e f\n       } h\n     }\n   } i j}"
+(zprint-str i143h {:parse-string? true :set {:respect-nl? true :indent-trailing-right? false}}))
+
+
+(expect
+"#{a\n  #{b\n    #{c\n      #{d e f\n         } h\n       }\n     } i j}"
+(zprint-str i143h {:parse-string? true :set {:respect-nl? true :indent-trailing-right? true}}))
+
+(expect
+"#{a #{b #{c #{d e f\n            } h\n        }\n    } i j}"
+(zprint-str i143h {:parse-string? true :set {:indent-only? true :respect-nl? true :collapse-trailing-right? false}}))
+
+(expect
+"#{a #{b #{c #{d e f} h}} i j}"
+(zprint-str i143h {:parse-string? true :set {:indent-only? true :respect-nl? true :collapse-trailing-right? true}}))
+
+(expect
+"#{a #{b #{c #{d e f\n            } h\n        }\n    } i j}"
+(zprint-str i143h {:parse-string? true :set {:indent-only? true :respect-nl? true :indent-trailing-right? false}}))
+
+(expect
+"#{a #{b #{c #{d e f\n              } h\n          }\n      } i j}"
+(zprint-str i143h {:parse-string? true :set {:indent-only? true :respect-nl? true :indent-trailing-right? true}}))
+
 
 ;;
 ;; :no-wrap-after Issue #343

@@ -3322,6 +3322,89 @@ in a deeply nested expression the time it takes can be noticeable.  If
 you find justification is taking too much time, try setting `:max-depth` to
 4 or 5.  It might help a lot.
 
+#### :indent-trailing-right _false_
+
+Trailing right characters are characters that terminate a collection:
+`)]}`, which also fall on their own line, either because of
+`:respect-nl`, `:indent-only` or because of a comment. 
+
+Typically, a trailing right character is formatted to fall directly
+under the associated "left" character, the character that opened the
+collection.  For example:
+
+```
+(czprint i143b {:parse-string? true :list {:respect-nl? true}})
+(a (b (c (d e
+            f
+         )
+         h
+      )
+   )
+   i
+   j)
+```
+
+The logic behind this approach is that it is really hard
+to figure out which "left" character the various "right" characters
+are associated with if the right characters are not immediatly 
+underneath the left characters.
+
+However, some people wanted the right characters be indented,
+so you can use `:indent-trailing-right? true` to indent them:
+
+```
+(czprint i143b {:parse-string? true :list {:respect-nl? true :indent-trailing-right? true}})
+(a (b (c (d e
+            f
+           )
+         h
+        )
+     )
+   i
+   j)
+```
+
+This also works for `:indent-only` output.
+
+#### :collapse-trailing-right _false_
+
+Trailing right characters are characters that terminate a collection:
+`)]}`, which also fall on their own line, either because of
+`:respect-nl`, `:indent-only` or because of a comment. 
+
+It is possible to have trailing right characters moved up to the
+previous line (in cases where that won't break something).  This is
+controlled by the configuration element `:collapse-trailing-right?`.
+
+For example:
+
+```
+; Here is the default behavior for trailing-right parens
+
+(czprint i143n {:parse-string? true :list {:respect-nl? true :collapse-trailing-right? false}})
+(a (b (c (d e
+            f ;stuff
+         )
+         h
+      )
+   )
+   i
+   j)
+
+; Here is where most of them are "collapsed", except for the first one,
+; which would cause the code to be incorrect,
+
+(czprint i143n {:parse-string? true :list {:respect-nl? true :collapse-trailing-right? true}})
+(a (b (c (d e
+            f ;stuff
+         )
+         h))
+   i
+   j)
+```
+
+This behavior is available for `:respect-nl`, `:respect-bl`, and `:indent-only`.
+
 ## Configuring functions to make formatting changes based on content
 
 There are several places in the options map where user defined
@@ -4155,6 +4238,8 @@ configuration affects the look of formatted code.
 ##### :hang-avoid _0.5_
 ##### :hang-expand _2.0_
 ##### :hang-diff _1_
+##### :indent-trailing-right? _false_
+##### :collapse-trailing-right? _false_
 
 #### :indent-arg _nil_
 
@@ -4631,6 +4716,7 @@ allowed, and if a vector is configured, the value 2 is used instead.
 ##### :no-wrap-after _nil_
 ##### :wrap? _true_
 ##### :wrap-coll? _true_
+##### :wrap-multi? _false_
 ##### :wrap-after-multi? _true_
 
 See the section on :vector for information on these keys.  A simple example:
@@ -4745,6 +4831,8 @@ hangs.
 ##### :justify? _false_
 ##### :justify {:max-variance 1000, :ignore-for-variance nil, :no-justify nil, :lhs-narrow 2.0 :max-depth 100}
 ##### :multi-lhs-hang? _false_
+##### :indent-trailing-right? _false_
+##### :collapse-trailing-right? _false_
 
 #### :flow? _false_
 
@@ -5972,7 +6060,10 @@ _____
 ##### :no-wrap-after _nil_
 ##### :wrap? _true_
 ##### :wrap-coll? _true_
+##### :wrap-multi? _false_
 ##### :wrap-after-multi? _true_
+##### :indent-trailing-right? _false_
+##### :collapse-trailing-right? _false_
 
 #### :indent-only? _false_
 
@@ -7869,6 +7960,8 @@ _____
 ## :vector
 
 ##### :indent _1_
+##### :indent-trailing-right? _false_
+##### :collapse-trailing-right? _false_
 
 #### :indent-only? _false_
 
@@ -8429,6 +8522,8 @@ because `:style :indent-only` does __not__ set `:indent-only?` for
 ##### :hang-avoid _0.5_
 ##### :hang-expand _2.0_
 ##### :hang-diff _1_
+##### :indent-trailing-right? _false_
+##### :collapse-trailing-right? _false_
 
 #### :indent-arg _nil_
 

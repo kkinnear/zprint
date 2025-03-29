@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+  * Several people have requested differing treatment of "trailing
+  right" characters.  Those are characters that terminate a collection:
+  `)]}`, which also fall on their own line, either because of
+  `:respect-nl` or because of a comment.  Some have requested that
+  these characters be indented to the indent of the structure
+  involved.  Others have requested that (unless required by a
+  comment) they be brought up to the previous line so that they are
+  not "trailing right" characters anymore.  Both capabilties are
+  now supported, the first by `:indent-trailing-right?` and the
+  second by `:collapse-trailing-right?`, for lists, vectors, maps
+  and sets.  See the documentation for details.  Issue #177.
+
   * New style `:docstring-nl` which will render any embedded newlines
   in docstrings in structures as actual newlines, not `\n`.  This
   is only useful if you are using zprint as a library to format
@@ -58,13 +70,14 @@ All notable changes to this project will be documented in this file.
   which is an unfortunate but necessary change.  Issue #318.
 
   * `:wrap-multi?` was previously true for lists, but only actually
-  implemented in guides.  It is not false by default, and the guides
+  implemented in guides.  It is now false by default, and the guides
   that used it have been upgraded to specify it explicitly.  If you 
   have a guide that changes behavior with this release, please submit
   as issue.  This is a "breaking change", but the scope is small and
   while it could have been avoided by creating an additional
-  configuration option, the additional complexity was deemed a larger
-  problem.
+  configuration option, the additional complexity of doing so was 
+  deemed a larger problem as there are already too many configuration
+  options.
 
 ### Fixed
 

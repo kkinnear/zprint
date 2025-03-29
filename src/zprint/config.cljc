@@ -872,6 +872,13 @@
                    :binding {:indent 0, :nl-separator? true}},
       :binding-nl-all {:doc "Add a blank line between every pair",
                        :binding {:indent 0, :nl-separator-all? true}},
+      :collapse-trailing-right
+         {:doc "collapse-trailing-right for everything"
+	  :list {:collapse-trailing-right? true}
+	  :map {:collapse-trailing-right? true}
+	  :set {:collapse-trailing-right? true}
+	  :vector {:collapse-trailing-right? true}
+	  :vector-fn {:collapse-trailing-right? true}}
       :community {:doc "Modify defaults to format to 'community' approach",
                   :binding {:indent 0},
                   :fn-map {"apply" :none,
@@ -990,6 +997,13 @@
                     ; is only used by :fn-format, so it might confuse
                     ; people if we did that.
                     :vector {:indent-only? true}},
+      :indent-trailing-right
+         {:doc "indent-trailing-right for everything"
+	  :list {:indent-trailing-right? true}
+	  :map {:indent-trailing-right? true}
+	  :set {:indent-trailing-right? true}
+	  :vector {:indent-trailing-right? true}
+	  :vector-fn {:indent-trailing-right? true}}
       :justified {:doc "Justify everything possible",
                   :binding {:justify? true},
                   :map {:justify? true},

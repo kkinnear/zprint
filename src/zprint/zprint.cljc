@@ -2779,7 +2779,7 @@
           "zloc:" (zstring (zfirst zloc)))
    (let [options (rightmost options)
          l-str-vec (lstr-vec options l-str)
-         r-str-vec #_(rstr-vec options ind r-str)
+         r-str-vec 
 
           (rstr-vec :vector options ind indent r-str)
 	 
@@ -5278,13 +5278,7 @@
           roptions options
           l-str-vec (lstr-vec options l-str)
           ; Fudge the ind a bit for r-str-vec for anon fns: #()
-          r-str-vec #_(rstr-vec options (+ ind (max 0 (dec l-str-len))) r-str)
-
-              #_(rstr-vec options 
-	      (if (:indent-trailing-right? (options caller))
-	        (+ ind indent)
-	      (+ ind (max 0 (dec l-str-len))) )
-	      r-str)
+          r-str-vec 
 
           (rstr-vec caller options (+ ind (max 0 (dec l-str-len))) indent r-str)
 

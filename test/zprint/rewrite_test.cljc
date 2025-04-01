@@ -243,6 +243,18 @@ reassemble-range]]
 "(ns a\n  (#?(:clj :require\n      :cljs :require-macros)\n   [b]))"
 (zprint-str "(ns a (#?(:clj :require  :cljs :require-macros) [b]))" {:parse-string? true :style :sort-require}))
 
+;;
+;; Issue #342 -- :sort-require throws a NPE when the :refer is empty
+;;
+
+(def
+i342
+"(ns foo (:require [a.b.c :refer []]))\n")
+
+(expect
+"(ns foo\n  (:require [a.b.c :refer []]))"
+(zprint-str "(ns foo (:require [a.b.c :refer []]))\n" {:parse-string? true :style :sort-require}))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;
   ;; End of defexpect

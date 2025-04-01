@@ -47,6 +47,7 @@ All notable changes to this project will be documented in this file.
 
   * Documented new style `:meta-guide`, which appeared several releases
   ago.  Also deprecated style `:meta-alt` -- use `:meta-guide` instead.
+  Issue #312.
 
   * The capability `:wrap-multi?` is now supported for `:list`, `:vector`, 
   and `:set`.  It is false by default, but if true will allow a multi-line
@@ -108,18 +109,21 @@ All notable changes to this project will be documented in this file.
   after the first element of the list.  Issue #329.
 
   * When using `:style :sort-require` if the `:require` wasn't the first 
-  thing in the collection, zprint would loop forever.  Now it doesn't.
-  Issue #346.
+  thing in the collection, zprint would loop forever. Issue #346.
 
   * Some incorrect indentation in vectors and lists when wrapping
   collections containing collections.  Found as part of Issue #341.
 
-  * `:no-wrap-after` has been around for a while.  This lets you specify
-  an element where you would prefer the next element be on the same line.
-  It has been completely re-implemented and now works well in more situations.
-  When specified, it also implies `:wrap-multi? true` for the next element.
-  Note that the element you specify for `:no-wrap-after` should be short
-  and not a collection.
+  * `:no-wrap-after` has been around for a while.  This lets you
+  specify an element where you would prefer the next element be on
+  the same line.  It has been completely re-implemented and now
+  works well in many more situations.  When specified, it also
+  implies `:wrap-multi? true` for the next element.  Note that the
+  element you specify for `:no-wrap-after` should be short and not
+  a collection.  Issue #343.
+
+  * Style `:sort-require` will fail and throw an exception in
+  cases where there is an empty `:refer []` clause.  Issue #342.
 
 ## 1.2.9 - 2024-3-12
 

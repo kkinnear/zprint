@@ -2449,6 +2449,11 @@
                                'rodfn zprint.optionfn/rodfn,
                                'rulesfn zprint.optionfn/rulesfn,
                                'regexfn zprint.optionfn/regexfn,
+			       'sort-deps zprint.optionfn/sort-deps,
+			       'sort-reqs zprint.optionfn/sort-reqs,
+			       'docstring-nl zprint.optionfn/docstring-nl,
+			       'meta-base-fn zprint.optionfn/meta-base-fn,
+			       'fn*->% zprint.optionfn/fn*->%,
                                'merge-deep zprint.config/merge-deep,
                                'metaguide zprint.guide/metaguide}}})
 (def sci-ctx (sci/init opts))

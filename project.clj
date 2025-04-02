@@ -52,8 +52,8 @@
                  #_[org.clojure/clojure "1.9.0"]
                  #_[org.clojure/clojure "1.8.0"]
                  #_[org.babashka/sci "0.7.39"]
-                 [org.babashka/sci "0.8.40"]
-		 [babashka/fs "0.5.20"]
+                 [org.babashka/sci "0.9.45"]
+		 [babashka/fs "0.5.24"]
                  #_[rewrite-clj/rewrite-clj "1.1.47"]
-                 [rewrite-clj/rewrite-clj "1.1.48"]
+                 [rewrite-clj/rewrite-clj "1.1.49"]
 		 ])

@@ -245,12 +245,18 @@
 ;; # Guide to justify the content of the vectors in a (:require ...)
 ;;
 
+(defn justifiable-require-clause?
+  "Is the following thing a list or a vector which is likely to be a
+  require-clause that we want to use in justification?  We check for
+  list or vector with a keyword second.  If it isn't one of those,
+  we pass."
+  [coll]
+  (and (or (vector? coll) (list? coll)) (keyword? (second coll))))
+
 ;
 ; A much simpler version of the require guide.  This version doesn't
-; require
-; use of the call-stack, and has only one option-fn instead of two.  It
-; also
-; uses the new variance-based justification capabilities.
+; require ; use of the call-stack, and has only one option-fn instead 
+; of two.  It also uses the new variance-based justification capabilities.
 ;
 
 (defn jrequireguide
@@ -267,7 +273,10 @@
   ([keyword] "jrequireguide")
   ([keyword options len sexpr]
    (when (= (first sexpr) keyword)
-     (let [vectors+lists (filter #(or (vector? %) (list? %)) sexpr)]
+     (let [vectors+lists  (filter (if (= keyword :import)
+				      #(or (vector? %) (list? %))     
+				      justifiable-require-clause?)
+                                  sexpr)]
        (when (not (empty? vectors+lists))
          (let [max-width-vec (column-alignment (:max-variance
                                                  (:justify (:pair options)))

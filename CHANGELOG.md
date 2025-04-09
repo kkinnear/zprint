@@ -125,6 +125,12 @@ All notable changes to this project will be documented in this file.
   * Style `:sort-require` will fail and throw an exception in
   cases where there is an empty `:refer []` clause.  Issue #342.
 
+  * When using `:require-justify` or any related styles that justify
+  things in `ns` macros, elements in the `:require` that were not just
+  vectors or lists could affect the justification while not actually
+  participating in the justification after all.  Issue #353.
+
+
 ## 1.2.9 - 2024-3-12
 
 ### Added

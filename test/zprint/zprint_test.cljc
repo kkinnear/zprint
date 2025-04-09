@@ -1,4 +1,4 @@
-;!zprint {:style :require-justify :style-map {:rj-var {:pair {:justify {:max-variance 10}}}}}
+;''!zprint {:style :require-justify :style-map {:rj-var {:pair {:justify {:max-variance 10}}}}}
 (ns zprint.zprint-test
   (:require
     [expectations.clojure.test #?(:clj :refer
@@ -8254,7 +8254,38 @@ ser/collect-vars-acc %1 %2) )))"
   ;; We don't allow {:fn-style [:arg1 {:list ...}]}
   ;;
 
-  #?(:clj
+  #?(
+  
+      :bb
+       (expect
+
+"java.util.concurrent.ExecutionException: java.util.concurrent.ExecutionException: java.lang.Exception: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a clojure.core/string?"
+
+         (try (zprint-str sooox
+                          {:parse-string? true,
+                           :fn-map {:default-not-none
+                                      [:none
+                                       {:list {:option-fn
+                                                 (partial
+                                                   regexfn
+                                                   [#"^partial$"
+                                                    {:fn-style
+                                                       [:arg1
+                                                        {:list {:nl-count
+                                                                  3}}]}])}}]},
+                           :width 70})
+              (catch Exception e (str e))))
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      :clj
        (expect
          "java.lang.Exception: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a clojure.core/string?"
          (try (zprint-str sooox

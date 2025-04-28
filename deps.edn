@@ -18,6 +18,6 @@
            :zprint {:main-opts ["-m" "zprint.main"]}},
  :deps {#_#_org.clojure/clojure {:mvn/version "1.9.0"},
         #_#_org.clojure/clojure {:mvn/version "1.10.3"},
-        org.babashka/sci {:mvn/version "0.8.40"},
-        rewrite-clj/rewrite-clj {:mvn/version "1.1.47"}},
+        org.babashka/sci {:mvn/version "0.9.45"},
+        rewrite-clj/rewrite-clj {:mvn/version "1.1.49"}},
  :paths ["src" "test" "cljs-test-runner-out/gen"]}

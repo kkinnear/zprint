@@ -26,7 +26,7 @@ jobs:
         run: lein uberjar
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v4
         with:
           name: jar-files
           path: target/zprint-filter-${{ steps.version.outputs.zprint }}
@@ -72,7 +72,7 @@ jobs:
           --no-fallback
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v4
         with:
           name: zprintl
           path: zprintl-${{ steps.version.outputs.zprint }}

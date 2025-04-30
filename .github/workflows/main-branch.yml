@@ -163,7 +163,7 @@ jobs:
         uses: actions/checkout@v3.0.2
 
       - name: Setup Clojure
-        uses: zharinov/clj-toolbox@v1.0.0
+        uses: zharinov/clj-toolbox@v1.0.3
 
       - name: Install Planck
         run: brew install planck

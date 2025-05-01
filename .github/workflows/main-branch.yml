@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v4
         with:
           name: jar-files
           path: target/
@@ -92,7 +92,7 @@ jobs:
           babashka: "1.3.184"
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v4
         with:
           name: zprintl
 
@@ -119,7 +119,7 @@ jobs:
         uses: kkinnear/clj-toolbox@v2.0.0
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v4
         with:
           name: jar-files
           path: target/
@@ -147,7 +147,7 @@ jobs:
           babashka: "1.3.184"
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v4
         with:
           name: jar-files
           path: target/

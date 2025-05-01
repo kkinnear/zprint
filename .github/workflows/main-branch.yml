@@ -36,7 +36,10 @@ jobs:
 
     # ubuntu-latest uses a GLIBC not available on older Linux systems
     # making distribution of the build artifact not possible
-    runs-on: ubuntu-20.04
+    # so use 20.04
+    # but 20.04 has been deprecated, so we will use the oldest supported
+    # version
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Download artifacts

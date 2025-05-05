@@ -1,6 +1,7 @@
 (ns ^:no-doc zprint.focus
   (:require [clojure.string :as s]
-            [zprint.ansi :refer [color-str]]))
+            [zprint.ansi :refer [color-str]]
+	    [zprint.util :refer [zLong]]))
 
 ;;
 ;; # Find focus in a style-vec
@@ -78,7 +79,7 @@
   "Given a non-whitespace path from a zipper, find that same
   collection or element in a str-style-vec."
   [nwpath ssv]
-  (loop [idx (Long/valueOf 0)
+  (loop [idx (zLong 0)
          nwp nwpath]
     (when idx
       (if (empty? nwp)

@@ -309,3 +309,8 @@
             [0 []]
             max-width-vec)))
 
+(defn zLong
+  "Handle clj and cljs differences."
+  [^long n]
+  #?(:clj (Long/valueOf n)
+     :cljs n))

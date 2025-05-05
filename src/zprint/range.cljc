@@ -3,7 +3,7 @@
   (:require
     [clojure.string     :as s]
     [zprint.config]
-    [zprint.util        :refer [local-abs]]
+    [zprint.util        :refer [local-abs zLong]]
     [rewrite-clj.node   :as n]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as z]))
@@ -107,8 +107,8 @@
      (println "find-row: linenumber:" linenumber "scan-size:" scan-size))
    (let [size (count row-vec)]
      ; We are 1 based, because edamame row numbers are 1 based.
-     (loop [row-vec-index (Long/valueOf (quot size 2))
-            previous-index (Long/valueOf 0)
+     (loop [row-vec-index (zLong (quot size 2))
+            previous-index (zLong 0)
             tries 0]
        #_(println "\n\n================== row-vec-index:" row-vec-index)
        (if (> tries 10)

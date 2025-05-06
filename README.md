@@ -50,8 +50,26 @@ a number of major source code formatting approaches.
 
 ### *Recent Additions!* 
 
-
-  * A new style, `:sort-require`, will sort the requires in an `ns` macro, 
+  * There have been several requests for differing treatment of "trailing
+  right" characters.  Those are characters that terminate a collection:
+  `)]}`, which also fall on their own line, either because of
+  `:respect-nl` or because of a comment.  Some have requested that
+  these characters be indented to the indent of the structure
+  involved.  Others have requested that (unless required by a
+  comment) they be brought up to the previous line so that they are
+  not "trailing right" characters anymore.  Both capabilties are
+  now supported, the first by `:indent-trailing-right?` and the
+  second by `:collapse-trailing-right?`, for lists, vectors, maps
+  and sets.  See the reference manual for details.  
+  * `:no-wrap-after` has been around for a while.  This lets you
+  specify an element where you would prefer the next element be on
+  the same line.  It has been completely re-implemented and now
+  works well in many more situations.
+  * Formatting for tagged-literals was completely reimplemented.
+  * The zprint executables now have the ability to locate and process
+  multiple files directly.  See the reference manual and look up the
+  `{:files {:glob "<filespec>"}}` key-value pair for the options map.
+  * The style `:sort-require` will sort the requires in an `ns` macro, 
   as suggested by 
   [how-to-ns](https://stuartsierra.com/2016/clojure-how-to-ns.html).
   This will interoperate with `:ns-justify` well, but be sure and put
@@ -67,41 +85,11 @@ a number of major source code formatting approaches.
   * A new pre-compiled binary is available for macOS running on Apple 
   Silicon.  While the macOS Intel binary runs fine on Apple Silicon, the
   Apple Silicon binary runs considerably (up to 3x) faster!  Download
-  `zprintma-1.2.9` from the release to get the Apple Silicon version.
+  `zprintma-1.3.0` from the release to get the Apple Silicon version.
   * You can now run zprint as a babashka task or use `bbin`.
   It starts very quickly and runs faster than the uberjar on even very 
   large files.  If using a task,  you don't need to install a new version, 
   just edit `bb.edn`.  See the simple detals [here](./doc/getting/babashka.md)
-  * Important updates and fixes for comment wrapping changes first
-  available in `1.2.6`. Avoid `1.2.6`, use `1.2.7` or later. 
-  * Comment wrapping has been considerably altered.  When working
-  on the stability fixes for `1.2.5`, the largest remaining problem
-  was comment wrapping causing changes to the formatting in subsequent
-  runs.  In addition, the comment wrapping has been very simplistic
-  since its inception, leaving wrapped comments looking pretty bad.
-  There is a new capability called `{:comment {:smart-wrap? true}}`
-  which will now word wrap comments cleanly.  It will also repair
-  most of the problems that the simplistic wrapping produced in the
-  past.  It is now the default, in no small part to repair the
-  problems of the past.  If you are working to minimize changes
-  when running zprint, I would recommend running it once over your
-  code before you disable it, as will clean up most of the problems
-  that were added by zprint in the past.  You can disable it with
-  `{:comment {:smart-wrap? false}}`.  You can also configure it to
-  minimize the amount of word wrapping it does, while still allowing
-  it to do much better than the previous default by using `{:style
-  :minimal-smart-wrap}`.  You need to have `{:comment {:smart-wrap?
-  true}}` to use `:minimal-smart-wrap`.  Smart wrap works hard to
-  not wrap things like numbered or bulleted lists.  If you have a
-  case where it wraps something that it shouldn't, please submit an
-  issue. It is likely that it can be fixed with a configuration
-  change. See the reference manual for more details on how to
-  configure smart wrap.
-  * You can now specify some keys to come last in a map as well as
-  some keys to appear first in a sorted map.  The `{:map {:key-order [...]}}`
-  configuration places all of the keys prior to the distinguished key
-  `:|` at the front of the map, and all of the keys after the `:|` key
-  at the end of the map.  
   * [All changes](./CHANGELOG.md)
 
 ## See zprint:
@@ -194,7 +182,7 @@ Some commonly used styles:
 [![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://book.babashka.org#badges)
 
 
-### Clojure 1.9, 1.10, 1.10.3, 1.11.1, 1.12.0-alpha8:
+### Clojure 1.9, 1.10, 1.10.3, 1.11.1, 1.12.0:
 
 __Leiningen ([via Clojars](http://clojars.org/zprint))__
 
@@ -206,7 +194,7 @@ zprint has been tested in each of the following environments:
 
   * figwheel-main 0.2.16 (Clojurescript 1.11.4)
   * shadow-cljs 2.18.0
-  * `planck` 2.27.0 (Clojurescript 1.11.60)
+  * `planck` 2.28.0 (Clojurescript 1.11.132)
 
 It requires `tools.reader` at least 1.0.5, which all of the environments
 above contain.
@@ -338,6 +326,6 @@ into zprint.
 
 ## License
 
-Copyright © 2016-2024 Kim Kinnear
+Copyright © 2016-2025 Kim Kinnear
 
 Distributed under the MIT License.  See the file LICENSE for details.

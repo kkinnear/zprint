@@ -130,6 +130,11 @@ All notable changes to this project will be documented in this file.
   vectors or lists could affect the justification while not actually
   participating in the justification after all.  Issue #353.
 
+  * When using `clj` to create a REPL, and testing with 
+  `(set! *warn-on-reflection* true)`, some addtional issues appeared which
+  were not flagged when using `lein repl` to create the REPL.  These have
+  been fixed.  PR #351
+
 
 ## 1.2.9 - 2024-3-12
 

@@ -121,7 +121,7 @@ jobs:
           path: target/
 
       - name: Run tests
-        run: clojure -Srepro -M:cljtest:humane:runner
+        run: clojure -Srepro -M:cljtest
 
   test-jar:
     needs: build-jar

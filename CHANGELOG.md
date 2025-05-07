@@ -74,7 +74,7 @@ All notable changes to this project will be documented in this file.
   implemented in guides.  It is now false by default, and the guides
   that used it have been upgraded to specify it explicitly.  If you 
   have a guide that changes behavior with this release, please submit
-  as issue.  This is a "breaking change", but the scope is small and
+  an issue.  This is a "breaking change", but the scope is small and
   while it could have been avoided by creating an additional
   configuration option, the additional complexity of doing so was 
   deemed a larger problem as there are already too many configuration
@@ -101,7 +101,7 @@ All notable changes to this project will be documented in this file.
   structures (as opposed to source files) doesn't work and produces 
   incorrect results.  Issue #321.
 
-  * The construct "~ @stuff` was being formatted as though it were
+  * The construct `~ @stuff` was being formatted as though it were
   `~@stuff`, which is very different.  Issue #331.
 
   * In the event that `{:list {:indent n}}` was configured with 

@@ -1,7 +1,7 @@
 (ns ^:no-doc zprint.focus
   (:require [clojure.string :as s]
             [zprint.ansi :refer [color-str]]
-	    [zprint.util :refer [zLong]]))
+            [zprint.util :refer [zLong]]))
 
 ;;
 ;; # Find focus in a style-vec

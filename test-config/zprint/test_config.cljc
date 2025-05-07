@@ -1222,14 +1222,16 @@
 
   (expect nil (configure-all!))
 
-  (execute-test (expect (more-of result-map
-                          0 (:exit result-map)
-                          "" (:out result-map)
-			  "" (:err result-map)
-                          (zprint-file-str test_config.map1.clj "-w" {})
-                            (slurp "test_config.map1.clj")
-			    )
-                        (do-command ["{:files {:directory \".\" :glob \"test_config.map1.clj\"}}" "-w"])))
+  (execute-test
+    (expect (more-of result-map
+              0 (:exit result-map)
+              "" (:out result-map)
+              "" (:err result-map)
+              (zprint-file-str test_config.map1.clj "-w" {})
+                (slurp "test_config.map1.clj"))
+            (do-command
+              ["{:files {:directory \".\" :glob \"test_config.map1.clj\"}}"
+               "-w"])))
 
   (delete-tree "test_config.map1.clj")
 
@@ -1260,13 +1262,15 @@
 
   (expect nil (configure-all!))
 
-  (execute-test (expect (more-of result-map
-                          1 (:exit result-map)
-                          "" (:out result-map)
-			 "Unable to access files specified by: '{:files {:directory \".\", :glob \"test_config.map\"}}'\n" 
-			  (:err result-map)
-			    )
-                        (do-command ["{:files {:directory \".\" :glob \"test_config.map\"}}" "-w"])))
+  (execute-test
+    (expect
+      (more-of result-map
+        1 (:exit result-map)
+        "" (:out result-map)
+        "Unable to access files specified by: '{:files {:directory \".\", :glob \"test_config.map\"}}'\n"
+          (:err result-map))
+      (do-command ["{:files {:directory \".\" :glob \"test_config.map\"}}"
+                   "-w"])))
 
   (delete-tree "test_config.map1.clj")
 
@@ -1303,7 +1307,8 @@
                           "" (:err result-map)
                           (zprint-file-str test_config.map1.clj "-w" {})
                             (slurp "test_config.map1.clj"))
-                        (do-command ["{:files {:glob \"test_config.map1.clj\"}}" "-w"])))
+                        (do-command ["{:files {:glob \"test_config.map1.clj\"}}"
+                                     "-w"])))
 
   (delete-tree "test_config.map1.clj")
 
@@ -1334,14 +1339,15 @@
 
   (expect nil (configure-all!))
 
-  (execute-test (expect (more-of result-map
-                          1 (:exit result-map)
-                          "" (:out result-map)
-"Cannot have :files key in command-line options: '{:files {:directory \".\" :glob \"test_config.map1.clj\"}}' and also process files supplied by the shell!\n"
-
-			  (:err result-map)
-			    )
-                        (do-command ["{:files {:directory \".\" :glob \"test_config.map1.clj\"}}" "-w" "test_config.map1.clj"])))
+  (execute-test
+    (expect
+      (more-of result-map
+        1 (:exit result-map)
+        "" (:out result-map)
+        "Cannot have :files key in command-line options: '{:files {:directory \".\" :glob \"test_config.map1.clj\"}}' and also process files supplied by the shell!\n"
+          (:err result-map))
+      (do-command ["{:files {:directory \".\" :glob \"test_config.map1.clj\"}}"
+                   "-w" "test_config.map1.clj"])))
 
   (delete-tree "test_config.map1.clj")
 
@@ -1429,15 +1435,18 @@
   ; Get zprint to know about new configure files
   ; and notice if it doesn't go well!
 
- (execute-test (expect (more-of result-map
-                          0 (:exit result-map)
-                          "" (:out result-map)
-                          "" (:err result-map)
-                          (zprint-file-str test_config.map1.clj "-w" {})
-                            (slurp "test_config.map1.clj")
-                          (zprint-file-str test_config.map2.clj "-w" {})
-                            (slurp "test_config.map2.clj"))
-                        (do-command ["{:files {:directory \".\" :glob \"test_config.map*.clj\"}}" "-w"])))
+  (execute-test
+    (expect (more-of result-map
+              0 (:exit result-map)
+              "" (:out result-map)
+              "" (:err result-map)
+              (zprint-file-str test_config.map1.clj "-w" {})
+                (slurp "test_config.map1.clj")
+              (zprint-file-str test_config.map2.clj "-w" {})
+                (slurp "test_config.map2.clj"))
+            (do-command
+              ["{:files {:directory \".\" :glob \"test_config.map*.clj\"}}"
+               "-w"])))
 
 
   (delete-tree "test_config.map1.clj")
@@ -1452,8 +1461,8 @@
 
   ; Put in a reasonable (and different than before) .zprintrc
 
-  (spit (str (expand-home "~/.zprintrc")) 
-    "{:files {:glob \"test_config.map.clj\"}}")
+  (spit (str (expand-home "~/.zprintrc"))
+        "{:files {:glob \"test_config.map.clj\"}}")
 
   ; No ./.zprintrc
 
@@ -1474,9 +1483,8 @@
   ; Get zprint to know about new configure files
   ; and notice if it doesn't go well!
 
-  (expect 
-"The key :files is not allowed in an options configuration file!"
-   (configure-all!))
+  (expect "The key :files is not allowed in an options configuration file!"
+          (configure-all!))
 
   (delete-tree "test_config.map1.clj")
   (delete-tree "test_config.map2.clj")
@@ -1572,16 +1580,16 @@
 
   (expect nil (configure-all!))
 
-  (execute-test (expect (more-of result-map
-                          1 (:exit result-map)
-                          "" (:out result-map)
-                          "Failed to open file 'test_config.map2.clj'"
-                            (re-find #"Failed to open file 'test_config.map2.clj'"
-                                     (:err result-map))
-                          (zprint-file-str test_config.map1.clj "-w" {})
-                            (slurp "test_config.map1.clj"))
-                        (do-command ["-w" "test_config.map1.clj"
-                                     "test_config.map2.clj"])))
+  (execute-test
+    (expect (more-of result-map
+              1 (:exit result-map)
+              "" (:out result-map)
+              "Failed to open file 'test_config.map2.clj'"
+                (re-find #"Failed to open file 'test_config.map2.clj'"
+                         (:err result-map))
+              (zprint-file-str test_config.map1.clj "-w" {})
+                (slurp "test_config.map1.clj"))
+            (do-command ["-w" "test_config.map1.clj" "test_config.map2.clj"])))
 
   (delete-tree "test_config.map1.clj")
 

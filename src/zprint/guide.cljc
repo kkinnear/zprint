@@ -255,7 +255,7 @@
 
 ;
 ; A much simpler version of the require guide.  This version doesn't
-; require ; use of the call-stack, and has only one option-fn instead 
+; require ; use of the call-stack, and has only one option-fn instead
 ; of two.  It also uses the new variance-based justification capabilities.
 ;
 
@@ -273,10 +273,10 @@
   ([keyword] "jrequireguide")
   ([keyword options len sexpr]
    (when (= (first sexpr) keyword)
-     (let [vectors+lists  (filter (if (= keyword :import)
-				      #(or (vector? %) (list? %))     
-				      justifiable-require-clause?)
-                                  sexpr)]
+     (let [vectors+lists (filter (if (= keyword :import)
+                                   #(or (vector? %) (list? %))
+                                   justifiable-require-clause?)
+                           sexpr)]
        (when (not (empty? vectors+lists))
          (let [max-width-vec (column-alignment (:max-variance
                                                  (:justify (:pair options)))
@@ -300,10 +300,10 @@
            ; Do this for all of the first level vectors and lists  below
            ; the :require, but no other vectors or lists more deeply
            ; nested.
-
-	   (dbg-s options #{:jrequireguide} "jrequireguide: vector-guide:" 
-	   vector-guide)
-
+           (dbg-s options
+                  #{:jrequireguide}
+                  "jrequireguide: vector-guide:"
+                  vector-guide)
            {:next-inner {:vector {:option-fn (fn [_ _ _] {:guide vector-guide}),
                                   :wrap-multi? true,
                                   :hang? true},

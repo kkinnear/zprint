@@ -1,31 +1,29 @@
-;''!zprint {:style :require-justify :style-map {:rj-var {:pair {:justify {:max-variance 10}}}}}
+;''!zprint {:style :require-justify :style-map {:rj-var {:pair {:justify
+;{:max-variance 10}}}}}
 (ns zprint.zprint-test
-  (:require
-    [expectations.clojure.test #?(:clj :refer
-                                  :cljs :refer-macros)
-                                 [defexpect expect]]
-    #?(:cljs [cljs.test :refer-macros [deftest is]])
-    #?(:clj [clojure.test :refer [deftest is]])
-    #?(:cljs [cljs.tools.reader :refer [read-string]])
-    [clojure.string            :as str]
-    [zprint.core               :refer [zprint-str set-options!
-                                       zprint-str-internal czprint-str
-                                       zprint-file-str zprint czprint
-                                       #?@(:clj [czprint-fn czprint-fn-str
-                                                 zprint-fn-str zprint-fn])]]
-    [zprint.zprint             :refer [line-count max-width line-lengths
-                                       make-record contains-nil? map-ignore]]
-    [zprint.comment            :refer [blanks]]
-    [zprint.zutil]
-    [zprint.config             :refer [merge-deep]]
-    [zprint.optionfn           :refer [rodfn regexfn rulesfn docstring-nl]]
-    #?@(:clj ([clojure.repl :refer [source-fn]]))
-    [zprint.core-test          :refer [trim-gensym-regex x8]]
-    [rewrite-clj.parser        :as    p
-                               :refer [parse-string parse-string-all]]
-    [rewrite-clj.node          :as n]
-    [rewrite-clj.zip           :as    z
-                               :refer [edn*]]))
+  (:require [expectations.clojure.test
+             #?(:clj :refer
+                :cljs :refer-macros) [defexpect expect]]
+            #?(:cljs [cljs.test :refer-macros [deftest is]])
+            #?(:clj [clojure.test :refer [deftest is]])
+            #?(:cljs [cljs.tools.reader :refer [read-string]])
+            [clojure.string :as str]
+            [zprint.core :refer
+             [zprint-str set-options! zprint-str-internal czprint-str
+              zprint-file-str zprint czprint
+              #?@(:clj [czprint-fn czprint-fn-str zprint-fn-str zprint-fn])]]
+            [zprint.zprint :refer
+             [line-count max-width line-lengths make-record contains-nil?
+              map-ignore]]
+            [zprint.comment :refer [blanks]]
+            [zprint.zutil]
+            [zprint.config :refer [merge-deep]]
+            [zprint.optionfn :refer [rodfn regexfn rulesfn docstring-nl]]
+            #?@(:clj ([clojure.repl :refer [source-fn]]))
+            [zprint.core-test :refer [trim-gensym-regex x8]]
+            [rewrite-clj.parser :as p :refer [parse-string parse-string-all]]
+            [rewrite-clj.node :as n]
+            [rewrite-clj.zip :as z :refer [edn*]]))
 
 ;; Keep some of the test on wrapping so they still work
 ;!zprint {:comment {:wrap? false}}
@@ -5302,8 +5300,8 @@ ser/collect-vars-acc %1 %2) )))"
                          :style :respect-nl,
                          :tagged-literal {:hang? false, :indent -1}}))
 
-; Used to be :indent -1, changed to :indent 0 for complete rework
-; of tagged-literals for Issue #318.
+  ; Used to be :indent -1, changed to :indent 0 for complete rework
+  ; of tagged-literals for Issue #318.
   (expect "#stuff/bother\n(list :this\n      \"is\"\n      a\n      :test)"
           (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
                       {:parse-string? true,
@@ -5311,70 +5309,86 @@ ser/collect-vars-acc %1 %2) )))"
                        :tagged-literal {:hang? false, :indent 0}}))
 
 
-; Used to be :indent 0, removed to use default :indent 1 for 
-; Issue #318
+  ; Used to be :indent 0, removed to use default :indent 1 for
+  ; Issue #318
   (expect "#stuff/bother\n (list :this\n       \"is\"\n       a\n       :test)"
           (zprint-str "#stuff/bother (list :this\n \"is\" a :test)"
                       {:parse-string? true,
                        :style :respect-nl,
                        :tagged-literal {:hang? false}}))
 
-;;
-;; tagged-literals rework, Issue #318
-;;
+  ;;
+  ;; tagged-literals rework, Issue #318
+  ;;
 
-;; Try out end of line handling and :hang with structures
+  ;; Try out end of line handling and :hang with structures
 
 
-(expect
-"[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
-(zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb :ccccccc :dddddd})] {:tagged-literal {:hang? true} :width 40}))
+  (expect "[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+          (zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb, :ccccccc :dddddd})]
+                      {:tagged-literal {:hang? true}, :width 40}))
 
-(expect
-"[#x {:aaaaa :bbbbbbb,\n     :ccccccc :dddddd}]"
-(zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb :ccccccc :dddddd})] {:tagged-literal {:hang? true} :width 39}))
+  (expect "[#x {:aaaaa :bbbbbbb,\n     :ccccccc :dddddd}]"
+          (zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb, :ccccccc :dddddd})]
+                      {:tagged-literal {:hang? true}, :width 39}))
 
-(expect
-"[#x\n  {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
-(zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb :ccccccc :dddddd})] {:tagged-literal {:hang? false} :width 39}))
+  (expect "[#x\n  {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+          (zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb, :ccccccc :dddddd})]
+                      {:tagged-literal {:hang? false}, :width 39}))
 
-;; Try out end of line handling and :hang with zippers
+  ;; Try out end of line handling and :hang with zippers
 
-(expect
-"[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
-(zprint-str "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? true} :width 40}))
+  (expect "[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+          (zprint-str
+            "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]"
+            {:parse-string? true, :tagged-literal {:hang? true}, :width 40}))
 
-(expect
-"[#x {:aaaaa :bbbbbbb,\n     :ccccccc :dddddd}]"
-(zprint-str "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? true} :width 39}))
+  (expect "[#x {:aaaaa :bbbbbbb,\n     :ccccccc :dddddd}]"
+          (zprint-str
+            "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]"
+            {:parse-string? true, :tagged-literal {:hang? true}, :width 39}))
 
-(expect
-"[#x\n  {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
-(zprint-str "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? false} :width 39}))
+  (expect "[#x\n  {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+          (zprint-str
+            "[#x {:aaaaa :bbbbbbb :ccccccc :dddddd}]"
+            {:parse-string? true, :tagged-literal {:hang? false}, :width 39}))
 
-;; :indent-only for zippers and structures
+  ;; :indent-only for zippers and structures
 
-(expect
-"[#x {:aaaaa\n     :bbbbbbb :ccccccc :dddddd}]"
-(zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? true} :style :indent-only :width 40}))
+  (expect "[#x {:aaaaa\n     :bbbbbbb :ccccccc :dddddd}]"
+          (zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]"
+                      {:parse-string? true,
+                       :tagged-literal {:hang? true},
+                       :style :indent-only,
+                       :width 40}))
 
-(expect
-"[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
-(zprint-str [(tagged-literal 'x {:aaaaa :bbbbbbb :ccccccc :dddddd})] {:tagged-literal {:hang? false} :style :indent-only :width 40}))
+  (expect "[#x {:aaaaa :bbbbbbb, :ccccccc :dddddd}]"
+          (zprint-str
+            [(tagged-literal 'x {:aaaaa :bbbbbbb, :ccccccc :dddddd})]
+            {:tagged-literal {:hang? false}, :style :indent-only, :width 40}))
 
-;; :respect-nl for zippers
+  ;; :respect-nl for zippers
 
-(expect
-"[#x {:aaaaa\n       :bbbbbbb,\n     :ccccccc :dddddd}]"
-(zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? true} :style :respect-nl :width 40}))
+  (expect "[#x {:aaaaa\n       :bbbbbbb,\n     :ccccccc :dddddd}]"
+          (zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]"
+                      {:parse-string? true,
+                       :tagged-literal {:hang? true},
+                       :style :respect-nl,
+                       :width 40}))
 
-(expect
-"[#x\n  {:aaaaa\n     :bbbbbbb,\n   :ccccccc :dddddd}]"
-(zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? false} :style :respect-nl :width 40}))
+  (expect "[#x\n  {:aaaaa\n     :bbbbbbb,\n   :ccccccc :dddddd}]"
+          (zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]"
+                      {:parse-string? true,
+                       :tagged-literal {:hang? false},
+                       :style :respect-nl,
+                       :width 40}))
 
-(expect
-"[#x\n {:aaaaa\n    :bbbbbbb,\n  :ccccccc :dddddd}]"
-(zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]" {:parse-string? true :tagged-literal {:hang? false :indent 0} :style :respect-nl :width 40}))
+  (expect "[#x\n {:aaaaa\n    :bbbbbbb,\n  :ccccccc :dddddd}]"
+          (zprint-str "[#x  {:aaaaa \n :bbbbbbb :ccccccc :dddddd}]"
+                      {:parse-string? true,
+                       :tagged-literal {:hang? false, :indent 0},
+                       :style :respect-nl,
+                       :width 40}))
 
 
   (expect
@@ -8254,13 +8268,9 @@ ser/collect-vars-acc %1 %2) )))"
   ;; We don't allow {:fn-style [:arg1 {:list ...}]}
   ;;
 
-  #?(
-  
-      :bb
+  #?(:bb
        (expect
-
-"java.util.concurrent.ExecutionException: java.util.concurrent.ExecutionException: java.lang.Exception: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a clojure.core/string?"
-
+         "java.util.concurrent.ExecutionException: java.util.concurrent.ExecutionException: java.lang.Exception: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a clojure.core/string?"
          (try (zprint-str sooox
                           {:parse-string? true,
                            :fn-map {:default-not-none
@@ -8275,17 +8285,7 @@ ser/collect-vars-acc %1 %2) )))"
                                                                   3}}]}])}}]},
                            :width 70})
               (catch Exception e (str e))))
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-      :clj
+     :clj
        (expect
          "java.lang.Exception: Options resulting from :list :option-fn named 'regexfn' called with an sexpr of length 4 had these errors: The value of the key-sequence [:fn-style] -> [:arg1 {:list {:nl-count 3}}] was not a clojure.core/string?"
          (try (zprint-str sooox
@@ -9295,24 +9295,20 @@ ser/collect-vars-acc %1 %2) )))"
                      r-str-vec))))")
 
   (expect
-
     "(defn tst-pair-1\n  [{{:keys [object?]} :fn-obj, :as options} ind zloc]\n  (if (and object? (object-str? (zstring zloc)))\n    (fzprint-object options ind zloc)\n    (let [l-str \"#<\"\n          r-str \">\"\n          indent (count l-str)\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)\n          arg-1-left \"Fn@\"\n          arg-1-right (hash-identity-str zloc)\n          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))\n          class-str (pr-str #?(:clj (class zloc)\n                               :cljs (type zloc)))\n          class-str (pr-str #?(:clj (this is\n                                          a\n                                          test\n                                          this\n                                          is\n                                          only\n                                          a\n                                          test\n                                          it\n                                          should\n                                          not\n                                          show\n                                          up\n                                          in\n                                          pairs)\n                               :cljs (type zloc)))\n          #?@(;lots of comments\n              :clj ([class-name & more]\n                      (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\")\n                    color (if (re-find #\"clojure\" class-name)\n                            (zcolor-map options :fn)\n                            :none)\n                    arg-2 (str class-name (when more \"[fn]\")))\n              :cljs\n                ; This has a lot of comments and even more\n                [name-js\n                   ; and they are inside of the sequences too\n                   (str (.-name zloc))\n                 color (if (or (re-find #\"^clojure\" name-js)\n                               (re-find #\"^cljs\" name-js))\n                         (zcolor-map options :fn)\n                         :none)\n                 name-split (clojure.string/split name-js #\"x\")\n                 arg-2 (str (apply str (interpose \".\" (butlast name-split)))\n                            \"/\"\n                            (last name-split))])\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)]\n      (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]\n            (string? third3) [third nil nil]\n            (keyword? third) [nil\n                              #?@(:clj [third fourth fifth sixth]\n                                  :cljs (fifth sixth fifth sixth))]\n            #?@(:clj ((keyword? first) [fourth nil nil]\n                      (string? fourth) [nil nil nil]\n                      (string? third2) [nil fifth #?@(:clj [:a :b :c :d]) nil])\n                :cljs ((keyword? fifth) [first nil nil]\n                       (string? third1) [nil nil nil]))\n            :else [nil nil nil])\n      (concat-no-nil l-str-vec r-str-vec))))"
-
-
     (zprint-str tp8 {:parse-string? true}))
 
 
 
-; Interestingly, the original expected output for tp8 with respect-nl
-; was missing many of the respect-nl newlines.  After a much closer look,
-; at least the blank lines seem to be there now for sure.  After addtional
-; checking, the total line count for a width 40 version input is still
-; correct for an width 80 output.  4 lines are missing, but those are
-; where comments are reformatted.  Who knew?
+  ; Interestingly, the original expected output for tp8 with respect-nl
+  ; was missing many of the respect-nl newlines.  After a much closer look,
+  ; at least the blank lines seem to be there now for sure.  After addtional
+  ; checking, the total line count for a width 40 version input is still
+  ; correct for an width 80 output.  4 lines are missing, but those are
+  ; where comments are reformatted.  Who knew?
 
   (expect
-"(defn tst-pair-1\n  [{{:keys [object?]} :fn-obj, :as options} ind zloc]\n  (if (and object? (object-str? (zstring zloc)))\n    (fzprint-object options ind zloc)\n    (let [l-str \"#<\"\n          r-str \">\"\n          indent (count l-str)\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)\n          arg-1-left \"Fn@\"\n          arg-1-right (hash-identity-str zloc)\n          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))\n          class-str (pr-str #?(:clj (class zloc)\n                               :cljs (type zloc)))\n          class-str (pr-str #?(:clj (this is\n                                          a\n                                          test\n                                          this\n                                          is\n                                          only\n                                          a\n                                          test\n                                          it\n                                          should\n                                          not\n                                          show\n                                          up\n                                          in\n                                          pairs)\n                               :cljs (type zloc)))\n          #?@(\n              ;lots of comments\n              :clj\n                ([class-name & more]\n                   (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\")\n                 color (if (re-find #\"clojure\" class-name)\n                         (zcolor-map options :fn)\n                         :none)\n                 arg-2 (str class-name (when more \"[fn]\")))\n              :cljs\n                ; This has a lot of comments\n\n                ; and even more\n\n                [name-js\n\n                   ; and they are inside of the sequences too\n\n                   (str (.-name zloc))\n                 color\n                   (if (or (re-find #\"^clojure\" name-js)\n                           (re-find #\"^cljs\" name-js))\n                     (zcolor-map options :fn)\n                     :none)\n                 name-split (clojure.string/split name-js #\"x\")\n                 arg-2\n                   (str (apply str (interpose \".\" (butlast name-split)))\n                        \"/\"\n                        (last name-split))])\n          l-str-vec\n            (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)]\n\n      (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]\n            (string? third3) [third nil nil]\n            (keyword? third) [nil\n                              #?@(:clj [third fourth fifth sixth]\n                                  :cljs (fifth sixth fifth sixth))]\n            #?@(:clj ((keyword? first) [fourth nil nil]\n                      (string? fourth) [nil nil nil]\n                      (string? third2) [nil fifth #?@(:clj [:a :b :c :d]) nil])\n                :cljs ((keyword? fifth) [first nil nil]\n                       (string? third1) [nil nil nil]))\n            :else [nil nil nil])\n\n\n      (concat-no-nil l-str-vec\n                     r-str-vec))))"
-
+    "(defn tst-pair-1\n  [{{:keys [object?]} :fn-obj, :as options} ind zloc]\n  (if (and object? (object-str? (zstring zloc)))\n    (fzprint-object options ind zloc)\n    (let [l-str \"#<\"\n          r-str \">\"\n          indent (count l-str)\n          l-str-vec (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)\n          arg-1-left \"Fn@\"\n          arg-1-right (hash-identity-str zloc)\n          arg-1-indent (+ ind indent 1 (count arg-1-left) (count arg-1-right))\n          class-str (pr-str #?(:clj (class zloc)\n                               :cljs (type zloc)))\n          class-str (pr-str #?(:clj (this is\n                                          a\n                                          test\n                                          this\n                                          is\n                                          only\n                                          a\n                                          test\n                                          it\n                                          should\n                                          not\n                                          show\n                                          up\n                                          in\n                                          pairs)\n                               :cljs (type zloc)))\n          #?@(\n              ;lots of comments\n              :clj\n                ([class-name & more]\n                   (s/split (s/replace-first class-str #\"x\" \"/\") #\"x\")\n                 color (if (re-find #\"clojure\" class-name)\n                         (zcolor-map options :fn)\n                         :none)\n                 arg-2 (str class-name (when more \"[fn]\")))\n              :cljs\n                ; This has a lot of comments\n\n                ; and even more\n\n                [name-js\n\n                   ; and they are inside of the sequences too\n\n                   (str (.-name zloc))\n                 color\n                   (if (or (re-find #\"^clojure\" name-js)\n                           (re-find #\"^cljs\" name-js))\n                     (zcolor-map options :fn)\n                     :none)\n                 name-split (clojure.string/split name-js #\"x\")\n                 arg-2\n                   (str (apply str (interpose \".\" (butlast name-split)))\n                        \"/\"\n                        (last name-split))])\n          l-str-vec\n            (lstr-vec options l-str :fn)\n          r-str-vec (rstr-vec options ind r-str :fn)]\n\n      (cond (and (string? third4) (keyword? fourth)) [third fourth fifth]\n            (string? third3) [third nil nil]\n            (keyword? third) [nil\n                              #?@(:clj [third fourth fifth sixth]\n                                  :cljs (fifth sixth fifth sixth))]\n            #?@(:clj ((keyword? first) [fourth nil nil]\n                      (string? fourth) [nil nil nil]\n                      (string? third2) [nil fifth #?@(:clj [:a :b :c :d]) nil])\n                :cljs ((keyword? fifth) [first nil nil]\n                       (string? third1) [nil nil nil]))\n            :else [nil nil nil])\n\n\n      (concat-no-nil l-str-vec\n                     r-str-vec))))"
     (zprint-str tp8 {:parse-string? true, :style :respect-nl}))
 
   (def bc1a
@@ -9335,835 +9331,1153 @@ ser/collect-vars-acc %1 %2) )))"
     "(cond (odd? a) 1\n      ; This is a comment\n      :let [a (quot a 2)]\n      :when-let ; this is also a comment\n        [x (fn-which-may-return-falsey a)\n         y (fn-which-may-return-falsey (* 2 a))]\n      :when-some [b (fn-which-may-return-nil x)\n                  c (fn-which-may-return-nil y)]\n      :when (seq x)\n      :do (println x)\n      (odd? (+ x y)) 2\n      3)"
     (zprint-str bc1a {:parse-string? true}))
 
-;;
-;; Style :indent-only doesn't work with structures.  Issue #321.
-;;
-
-(expect
-"{:a :b, :c :d}"
-(zprint-str {:a :b :c :d} {:style :indent-only}))
-
-(expect
-"(aaaaaaaaaaa bbbbbbbbbb\n             cccccccccc\n             ddddddddd\n             eeeeeeeeee\n             ffffffff\n             gggg\n             hhhhhhhhhh\n             iiiii)"
-(zprint-str '(aaaaaaaaaaa bbbbbbbbbb cccccccccc ddddddddd eeeeeeeeee ffffffff gggg hhhhhhhhhh iiiii) {:style :indent-only}))
-
-;;
-;; Actually correctly format tagged literals -- real ones, as structures
-;;
-
-(def i318e [{:a :b :c :d} (tagged-literal 'x {:e :f :g :h})])
-
-(expect
-"[{:a :b, :c :d} #x {:e :f, :g :h}]"
-(zprint-str i318e))
-
-(expect
-"[{:a :b :c :d} #x {:e :f :g :h}]"
-(zprint-str i318e {:map {:comma? false}}))
-
- (expect
-"[{:a :b :c :d} #x {:e :f :g :h}]"
- (zprint-str i318e {:map {:comma? false} :style :indent-only}))
-
- ;;
- ;; Testing how to get \n for real in docstrings in structures
- ;;
- ;; Issue 326
-
-(def i326l
-"(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more stuff \"and a string\" \"\\\"a second \\\\n string\\\"\")\n  \"this is\n  also a test\")\n")
-
-(expect
-"(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
-(zprint-str (read-string i326l) {:parse-string? false :width 20 :fn-map {"defn" [:arg1-body {:list {:option-fn docstring-nl}}]}}))
-
-
-(expect
-"(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
-(zprint-str (read-string i326l) {:parse-string? false :width 20 :style :docstring-nl}))
-
-(expect
-"(defn stuff\n  \"this is\\n  a test with \\\"stuff\\\" in\\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
-(zprint-str (read-string i326l) {:parse-string? false :width 20}))
-
-;;
-;; Can't set :indent n where n is also the hang indent.  Thus 
-;; (czprint "(assoc m k v k v)" {:parse-string? true :list {:indent 7}}) 
-;; doesn't work, but puts a newline before m.  Issue #329
-;;
-
-(expect
-"(assoc m\n       k v\n       k v)"
-(zprint-str "(assoc m k v k v)" {:parse-string? true :list {:indent 7}}))
-
-;;
-;; ~ @stuff is different than ~@stuff  Issue #331
-;;
-;; unquote deref vs unquote-splicing
-;;
-;; Following tests are from frenchy64:ws-resolved-ambiguity, lightly
-;; edited.
-;;
-;; Thanks to Ambrose Bonnaire-Sergeant @frenchy64 for finding this
-;; problem and supplying both a fix and tests.
-;;
-
-   (expect "(clojure.core/unquote (clojure.core/deref (a b c)))"
-           (zprint-str '~ @(a b c) {}))
-   (expect "(clojure.core/unquote-splicing (a b c))"
-           (zprint-str '~@(a b c) {}))
-   (expect "~(deref a)" (zprint-str "~(deref a)" {:parse-string? true}))
-   (expect "~(clojure.core/deref a)" (zprint-str "~(clojure.core/deref a)" {:parse-string? true}))
-   (expect "~ ;;comment\n  @(a b c)" (zprint-str "~;;comment\n@(a b c)" {:parse-string? true}))
-   (expect "~@(a b c)" (zprint-str "~@(a b c)" {:parse-string? true}))
-   (expect "~ @(a b c)" (zprint-str "~ @(a b c)" {:parse-string? true}))
-   (expect "~ @(a b c)" (zprint-str "~  @(a b c)" {:parse-string? true}))
-   (expect "~ @(a b c)" (zprint-str "~ @(a b c)" {:parse-string? true}))
-   (expect "~#_@(a b c) a" (zprint-str "~#_@(a b c)a" {:parse-string? true}))
-   (expect "~ #_a @(a b c)" (zprint-str "~#_a@(a b c)" {:parse-string? true}))
-   (expect "[#_a @(a b c)]" (zprint-str "[#_a@(a b c)]" {:parse-string? true}))
-
-;;
-;; :style :meta-guide
-;;
-;; Issue #312
-;;
-
- (def
- i312
-"(def ^:const\n     ^:private\n     ^:test\n     ^:lots\n     ^:of\n     ^:meta\n     ^:stuff\n  port-file-name\n  (....))\n")
-
-
-(def i312a
-"(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n(...))\n")
+  ;;
+  ;; Style :indent-only doesn't work with structures.  Issue #321.
+  ;;
+
+  (expect "{:a :b, :c :d}" (zprint-str {:a :b, :c :d} {:style :indent-only}))
+
+  (expect
+    "(aaaaaaaaaaa bbbbbbbbbb\n             cccccccccc\n             ddddddddd\n             eeeeeeeeee\n             ffffffff\n             gggg\n             hhhhhhhhhh\n             iiiii)"
+    (zprint-str '(aaaaaaaaaaa
+                  bbbbbbbbbb
+                  cccccccccc
+                  ddddddddd
+                  eeeeeeeeee
+                  ffffffff
+                  gggg
+                  hhhhhhhhhh
+                  iiiii)
+                {:style :indent-only}))
+
+  ;;
+  ;; Actually correctly format tagged literals -- real ones, as structures
+  ;;
+
+  (def i318e [{:a :b, :c :d} (tagged-literal 'x {:e :f, :g :h})])
+
+  (expect "[{:a :b, :c :d} #x {:e :f, :g :h}]" (zprint-str i318e))
+
+  (expect "[{:a :b :c :d} #x {:e :f :g :h}]"
+          (zprint-str i318e {:map {:comma? false}}))
+
+  (expect "[{:a :b :c :d} #x {:e :f :g :h}]"
+          (zprint-str i318e {:map {:comma? false}, :style :indent-only}))
+
+  ;;
+  ;; Testing how to get \n for real in docstrings in structures
+  ;;
+  ;; Issue 326
+
+  (def i326l
+    "(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more stuff \"and a string\" \"\\\"a second \\\\n string\\\"\")\n  \"this is\n  also a test\")\n")
+
+  (expect
+    "(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
+    (zprint-str (read-string i326l)
+                {:parse-string? false,
+                 :width 20,
+                 :fn-map {"defn" [:arg1-body
+                                  {:list {:option-fn docstring-nl}}]}}))
+
+
+  (expect
+    "(defn stuff\n  \"this is\n  a test with \\\"stuff\\\" in\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
+    (zprint-str (read-string i326l)
+                {:parse-string? false, :width 20, :style :docstring-nl}))
+
+  (expect
+    "(defn stuff\n  \"this is\\n  a test with \\\"stuff\\\" in\\n  it\"\n  [x]\n  (more\n    stuff\n    \"and a string\"\n    \"\\\"a second \\\\n string\\\"\")\n  \"this is\\n  also a test\")"
+    (zprint-str (read-string i326l) {:parse-string? false, :width 20}))
+
+  ;;
+  ;; Can't set :indent n where n is also the hang indent.  Thus
+  ;; (czprint "(assoc m k v k v)" {:parse-string? true :list {:indent 7}})
+  ;; doesn't work, but puts a newline before m.  Issue #329
+  ;;
+
+  (expect "(assoc m\n       k v\n       k v)"
+          (zprint-str "(assoc m k v k v)"
+                      {:parse-string? true, :list {:indent 7}}))
+
+  ;;
+  ;; ~ @stuff is different than ~@stuff  Issue #331
+  ;;
+  ;; unquote deref vs unquote-splicing
+  ;;
+  ;; Following tests are from frenchy64:ws-resolved-ambiguity, lightly
+  ;; edited.
+  ;;
+  ;; Thanks to Ambrose Bonnaire-Sergeant @frenchy64 for finding this
+  ;; problem and supplying both a fix and tests.
+  ;;
+
+  (expect "(clojure.core/unquote (clojure.core/deref (a b c)))"
+          (zprint-str '~ @(a b c) {}))
+  (expect "(clojure.core/unquote-splicing (a b c))" (zprint-str '~@(a b c) {}))
+  (expect "~(deref a)" (zprint-str "~(deref a)" {:parse-string? true}))
+  (expect "~(clojure.core/deref a)"
+          (zprint-str "~(clojure.core/deref a)" {:parse-string? true}))
+  (expect "~ ;;comment\n  @(a b c)"
+          (zprint-str "~;;comment\n@(a b c)" {:parse-string? true}))
+  (expect "~@(a b c)" (zprint-str "~@(a b c)" {:parse-string? true}))
+  (expect "~ @(a b c)" (zprint-str "~ @(a b c)" {:parse-string? true}))
+  (expect "~ @(a b c)" (zprint-str "~  @(a b c)" {:parse-string? true}))
+  (expect "~ @(a b c)" (zprint-str "~ @(a b c)" {:parse-string? true}))
+  (expect "~#_@(a b c) a" (zprint-str "~#_@(a b c)a" {:parse-string? true}))
+  (expect "~ #_a @(a b c)" (zprint-str "~#_a@(a b c)" {:parse-string? true}))
+  (expect "[#_a @(a b c)]" (zprint-str "[#_a@(a b c)]" {:parse-string? true}))
+
+  ;;
+  ;; :style :meta-guide
+  ;;
+  ;; Issue #312
+  ;;
 
-(def i312b
-"(def ^:const\n     ^:private\n     ^:test\n     ^:lots\n     ^:of\n     ^:meta\n     ^:stuff\n     ^:and\n     ^:even\n     ^:more\n     ^:things\n  port-file-name\n  (....))\n")
+  (def i312
+    "(def ^:const\n     ^:private\n     ^:test\n     ^:lots\n     ^:of\n     ^:meta\n     ^:stuff\n  port-file-name\n  (....))\n")
 
-(def i312c
-"(def port-file-name\n  (....))\n")
 
-(def i312d
-"(def ^:private port-file-name\n  (....))\n")
+  (def i312a
+    "(deftest ^{:database true ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n(...))\n")
 
-(def i245
-" (def ^:const ^:private port-file-name \".nrepl-port\")\n")
+  (def i312b
+    "(def ^:const\n     ^:private\n     ^:test\n     ^:lots\n     ^:of\n     ^:meta\n     ^:stuff\n     ^:and\n     ^:even\n     ^:more\n     ^:things\n  port-file-name\n  (....))\n")
 
-(def i245a
-" (def ^:const port-file-name \".nrepl-port\")\n")
+  (def i312c "(def port-file-name\n  (....))\n")
 
-(def i245b
-" (def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name \".nrepl-port\")\n")
+  (def i312d "(def ^:private port-file-name\n  (....))\n")
 
-(def i245c
-"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n    (let [foo (bar \"1\")] foo))\n")
+  (def i245 " (def ^:const ^:private port-file-name \".nrepl-port\")\n")
 
-(expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  (....))"
-(zprint-str i312 {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (def i245a " (def ^:const port-file-name \".nrepl-port\")\n")
 
-(expect
-"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
-(zprint-str i312a {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (def i245b
+    " (def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name \".nrepl-port\")\n")
 
-(expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff ^:and ^:even ^:more\n     ^:things\n  port-file-name\n  (....))"
-(zprint-str i312b {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (def i245c
+    "(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n    (let [foo (bar \"1\")] foo))\n")
 
-(expect
-"(def port-file-name (....))"
-(zprint-str i312c {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  (....))"
+    (zprint-str i312
+                {:parse-string? true,
+                 :style {:style-call :meta-guide, :one-line-ok? false}}))
 
-(expect
-"(def ^:private\n  port-file-name\n  (....))"
-(zprint-str i312d {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (expect
+    "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
+    (zprint-str i312a
+                {:parse-string? true,
+                 :style {:style-call :meta-guide, :one-line-ok? false}}))
 
-(expect
-"(def ^:const ^:private\n  port-file-name\n  \".nrepl-port\")"
-(zprint-str i245 {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff ^:and ^:even ^:more\n     ^:things\n  port-file-name\n  (....))"
+    (zprint-str i312b
+                {:parse-string? true,
+                 :style {:style-call :meta-guide, :one-line-ok? false}}))
 
-(expect
-"(def ^:const\n  port-file-name\n  \".nrepl-port\")"
-(zprint-str i245a {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (expect "(def port-file-name (....))"
+          (zprint-str i312c
+                      {:parse-string? true,
+                       :style {:style-call :meta-guide, :one-line-ok? false}}))
 
-(expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
-(zprint-str i245b {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (expect "(def ^:private\n  port-file-name\n  (....))"
+          (zprint-str i312d
+                      {:parse-string? true,
+                       :style {:style-call :meta-guide, :one-line-ok? false}}))
 
-(expect
-"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
-(zprint-str i245c {:parse-string? true :style {:style-call :meta-guide :one-line-ok? false}}))
+  (expect "(def ^:const ^:private\n  port-file-name\n  \".nrepl-port\")"
+          (zprint-str i245
+                      {:parse-string? true,
+                       :style {:style-call :meta-guide, :one-line-ok? false}}))
 
- (expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name (....))"
- (zprint-str i312 {:parse-string? true :style :meta-guide}))
+  (expect "(def ^:const\n  port-file-name\n  \".nrepl-port\")"
+          (zprint-str i245a
+                      {:parse-string? true,
+                       :style {:style-call :meta-guide, :one-line-ok? false}}))
 
- (expect
-"(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
-(zprint-str i312a {:parse-string? true :style :meta-guide}))
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
+    (zprint-str i245b
+                {:parse-string? true,
+                 :style {:style-call :meta-guide, :one-line-ok? false}}))
+
+  (expect
+    "(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str i245c
+                {:parse-string? true,
+                 :style {:style-call :meta-guide, :one-line-ok? false}}))
 
-(expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff ^:and ^:even ^:more\n     ^:things\n  port-file-name\n  (....))"
-(zprint-str i312b {:parse-string? true :style :meta-guide}))
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff port-file-name (....))"
+    (zprint-str i312 {:parse-string? true, :style :meta-guide}))
 
-(expect
-"(def port-file-name (....))"
-(zprint-str i312c {:parse-string? true :style :meta-guide}))
-
-(expect
-"(def ^:private port-file-name (....))"
-(zprint-str i312d {:parse-string? true :style :meta-guide}))
-
-(expect
-"(def ^:const ^:private port-file-name \".nrepl-port\")"
-(zprint-str i245 {:parse-string? true :style :meta-guide}))
-
-(expect
-"(def ^:const port-file-name \".nrepl-port\")"
-(zprint-str i245a {:parse-string? true :style :meta-guide}))
-
-(expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
-(zprint-str i245b {:parse-string? true :style :meta-guide}))
-
-(expect
-"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
-(zprint-str i245c {:parse-string? true :style :meta-guide}))
-
-(expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  (....))"
-(zprint-str i312 {:parse-string? true :style :meta-guide :width 60}))
-
-(expect
-"(deftest ^{:database true,\n           ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
-(zprint-str i312a {:parse-string? true :style :meta-guide :width 60}))
-
-(expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n     ^:and ^:even ^:more ^:things\n  port-file-name\n  (....))"
-(zprint-str i312b {:parse-string? true :style :meta-guide :width 60}))
-
-(expect
-"(def port-file-name (....))"
-(zprint-str i312c {:parse-string? true :style :meta-guide :width 60}))
-
-(expect
-"(def ^:private port-file-name (....))"
-(zprint-str i312d {:parse-string? true :style :meta-guide :width 60}))
-
-(expect
-"(def ^:const ^:private port-file-name \".nrepl-port\")"
-(zprint-str i245 {:parse-string? true :style :meta-guide :width 60}))
-
-(expect
-"(def ^:const port-file-name \".nrepl-port\")"
-(zprint-str i245a {:parse-string? true :style :meta-guide :width 60}))
-
-(expect
-"(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
-(zprint-str i245b {:parse-string? true :style :meta-guide :width 60}))
-
-(expect
-"(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
-(zprint-str i245c {:parse-string? true :style :meta-guide :width 60}))
-
-;;
-;; Added :collapse-trailing-right? and :indent-trailing-right? to :list
-;; :map, :vector, :set and :vector-fn.
-;;
-;; Issue #177.
-;;
-;; This also came up in Issue #143, which is why the innn are mixed.
-;;
-
-; Vector-fn
-
-(def i143g "[this is a test\n]\n")
-
-(expect
-"[this is\n     a\n     test]"
-(zprint-str i143g {:parse-string? true  :vector {:fn-format :arg1-force-nl} :vector-fn {:respect-nl? true :collapse-trailing-right? true :indent 5}}))
-
-(expect
-"[this is\n     a\n     test\n     ]"
-(zprint-str i143g {:parse-string? true  :vector {:fn-format :arg1-force-nl} :vector-fn {:respect-nl? true :indent-trailing-right? true :indent 5}}))
-
-; :binding
-
-(def i143f "(defn i143f\n  [this is a test]\n  (let [a b\n        c d \n\t]\n    (this is a test)))\n")
-
-(expect
-"(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n            ]\n    (this is a test)))"
-(zprint-str i143f {:parse-string? true  :vector {:respect-nl? true :collapse-trailing-right? false :indent-trailing-right? true} :binding {:indent 5}}))
-
-(expect
-"(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n       ]\n    (this is a test)))"
-(zprint-str i143f {:parse-string? true  :vector {:respect-nl? true :collapse-trailing-right? false} :binding {:indent 5}}))
-
-(expect
-"(defn i143f\n  [this is a test]\n  (let [a b\n        c d]\n    (this is a test)))"
-(zprint-str i143f {:parse-string? true  :vector {:respect-nl? true :collapse-trailing-right? true} :binding {:indent 5}}))
-
-(expect
-"(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n       ]\n    (this is a test)))"
-(zprint-str i143f {:parse-string? true :vector {:indent-only? true :collapse-trailing-right? false}}))
-
-(expect
-"(defn i143f\n  [this is a test]\n  (let [a b\n        c d]\n    (this is a test)))"
-(zprint-str i143f {:parse-string? true :vector {:indent-only? true :collapse-trailing-right? true}}))
-
-; :list
-
-(def i143b "(a (b (c (d e f\n) h\n)\n) i j)\n")
-
-;;
-;; HOW CAN THIS BE CORRECT?
-;; Answer: Because the :collapse-trailing-right? true causes newlines to
-;; disappear.  Thus, even with respect-nl they are gone, and it fits on one
-;; line.
-
-(expect
-"(a (b (c (d e f) h)) i j)"
-(zprint-str i143b {:parse-string? true :list {:respect-nl? true :collapse-trailing-right? true}}))
-
-(expect
-"(a (b (c (d e\n            f\n         )\n         h\n      )\n   )\n   i\n   j)"
-(zprint-str i143b {:parse-string? true :list {:respect-nl? true :collapse-trailing-right? false}}))
-
-(expect
-"(a (b (c (d e\n            f\n           )\n         h\n        )\n     )\n   i\n   j)"
-(zprint-str i143b {:parse-string? true :list {:respect-nl? true :indent-trailing-right? true}}))
-
-(expect
-"(a (b (c (d e f) h)) i j)"
-(zprint-str i143b {:parse-string? true :list {:indent-only? true :collapse-trailing-right? true}}))
-
-; :map
-
-(def
-i143i
-"{a {b {c {d e  \n} h i\n} \n} i j}\n")
-
-(expect
-"{a {b {c {d e\n         },\n       h i\n      }\n   },\n i j}"
-(zprint-str i143i {:parse-string? true :map {:respect-nl? true :indent-trailing-right? false}}))
-
-(expect
-"{a {b {c {d e\n           },\n       h i\n        }\n     },\n i j}"
-(zprint-str i143i {:parse-string? true :map {:respect-nl? true :indent-trailing-right? true}}))
-
-(expect
-"{a {b {c {d e\n         },\n       h i\n      }\n   },\n i j}"
-(zprint-str i143i {:parse-string? true :map {:respect-nl? true :collapse-trailing-right? false}}))
-
-(expect
-"{a {b {c {d e}, h i}}, i j}"
-(zprint-str i143i {:parse-string? true :map {:respect-nl? true :collapse-trailing-right? true}}))
-
-(expect
-"{a {b {c {d e\n         } h i\n      }\n   } i j}"
-(zprint-str i143i {:parse-string? true :map {:indent-only? true :respect-nl? true :indent-trailing-right? false}}))
-
-(expect
-"{a {b {c {d e\n           } h i\n        }\n     } i j}"
-(zprint-str i143i {:parse-string? true :map {:indent-only? true :respect-nl? true :indent-trailing-right? true}}))
-
-(expect
-"{a {b {c {d e\n         } h i\n      }\n   } i j}"
-(zprint-str i143i {:parse-string? true :map {:indent-only? true :respect-nl? true :collapse-trailing-right? false}}))
-
-(expect
-"{a {b {c {d e} h i}} i j}"
-(zprint-str i143i {:parse-string? true :map {:indent-only? true :respect-nl? true :collapse-trailing-right? true}}))
-
-
-
-; :vector
-
- (def
- i143k
-"[a [b [c [d e f\n] h\n]\n] i j]\n")
-
-(expect
-"[a\n [b\n  [c\n   [d e f\n   ] h\n  ]\n ] i j]"
-(zprint-str i143k {:parse-string? true :vector {:respect-nl? true :indent-trailing-right? false}}))
-
-(expect
-"[a\n [b\n  [c\n   [d e f\n    ] h\n   ]\n  ] i j]"
-(zprint-str i143k {:parse-string? true :vector {:respect-nl? true :indent-trailing-right? true}}))
-
-(expect
-"[a\n [b\n  [c\n   [d e f\n   ] h\n  ]\n ] i j]"
-(zprint-str i143k {:parse-string? true :vector {:respect-nl? true :collapse-trailing-right? false}}))
-
-(expect
-"[a [b [c [d e f] h]] i j]"
-(zprint-str i143k {:parse-string? true :vector {:respect-nl? true :collapse-trailing-right? true}}))
-
-(expect
-"[a [b [c [d e f\n         ] h\n      ]\n   ] i j]"
-(zprint-str i143k {:parse-string? true :vector {:indent-only? true :respect-nl? true :indent-trailing-right? false}}))
-
-(expect
-"[a [b [c [d e f\n          ] h\n       ]\n    ] i j]"
-(zprint-str i143k {:parse-string? true :vector {:indent-only? true :respect-nl? true :indent-trailing-right? true}}))
-
-(expect
-"[a [b [c [d e f\n         ] h\n      ]\n   ] i j]"
-(zprint-str i143k {:parse-string? true :vector {:indent-only? true :respect-nl? true :collapse-trailing-right? false}}))
-
-(expect
-"[a [b [c [d e f] h]] i j]"
-(zprint-str i143k {:parse-string? true :vector {:indent-only? true :respect-nl? true :collapse-trailing-right? true}}))
-
-; set
-
-(def
-i143h
-"#{a #{b #{c #{d e f \n} h \n} \n} i j}\n")
-
-(expect
-"#{a\n  #{b\n    #{c\n      #{d e f\n       } h\n     }\n   } i j}"
-(zprint-str i143h {:parse-string? true :set {:respect-nl? true :collapse-trailing-right? false}}))
-
-(expect
-"#{a #{b #{c #{d e f} h}} i j}"
-(zprint-str i143h {:parse-string? true :set {:respect-nl? true :collapse-trailing-right? true}}))
-
-(expect
-"#{a\n  #{b\n    #{c\n      #{d e f\n       } h\n     }\n   } i j}"
-(zprint-str i143h {:parse-string? true :set {:respect-nl? true :indent-trailing-right? false}}))
-
-
-(expect
-"#{a\n  #{b\n    #{c\n      #{d e f\n         } h\n       }\n     } i j}"
-(zprint-str i143h {:parse-string? true :set {:respect-nl? true :indent-trailing-right? true}}))
-
-(expect
-"#{a #{b #{c #{d e f\n            } h\n        }\n    } i j}"
-(zprint-str i143h {:parse-string? true :set {:indent-only? true :respect-nl? true :collapse-trailing-right? false}}))
-
-(expect
-"#{a #{b #{c #{d e f} h}} i j}"
-(zprint-str i143h {:parse-string? true :set {:indent-only? true :respect-nl? true :collapse-trailing-right? true}}))
-
-(expect
-"#{a #{b #{c #{d e f\n            } h\n        }\n    } i j}"
-(zprint-str i143h {:parse-string? true :set {:indent-only? true :respect-nl? true :indent-trailing-right? false}}))
-
-(expect
-"#{a #{b #{c #{d e f\n              } h\n          }\n      } i j}"
-(zprint-str i143h {:parse-string? true :set {:indent-only? true :respect-nl? true :indent-trailing-right? true}}))
-
-
-;;
-;; :no-wrap-after Issue #343
-;;
-;; It really didn't work right...
-;;
-
-(def i341k
-"[aaa bbb & [ccc\n            ddd] eee fff]\n")
-
-(expect
-"[aaa bbb & [ccc ddd]\n eee fff]"
-(zprint-str i341k {:parse-string? true :vector {:no-wrap-after #{"&"}} :width 20}))
-
-(expect
-"[aaa bbb & [ccc\n            ddd]\n eee fff]"
-; As of 1.3.0, we assume a mild form of wrap-multi? when encounting
-; no-wrap-after elements.
-#_"[aaa bbb\n & [ccc ddd] eee\n fff]"
-(zprint-str i341k {:parse-string? true :vector {:no-wrap-after #{"&"}} :width 19}))
-
- (def i343 "[aaa bbb & ccc ddd eee fff]\n")
-
-(expect
-"[aaa bbb & ccc\n ddd eee fff]"
-(zprint-str i343 {:parse-string? true :vector {:no-wrap-after #{"&"}} :width 14}))
-
-(expect
-"[aaa bbb\n & ccc ddd\n eee fff]"
-(zprint-str i343 {:parse-string? true :vector {:no-wrap-after #{"&"}} :width 13}))
-
-;;
-;; :wrap-multi?
-;; Issue 341 and 347
-;;
-
-;; Check indentation with basic code, not new code.  Multiple multi-line 
-;; collections had problems.
-
-(expect
-"(;test\n ;stuff\n (aaaa\n     bbbbbbbbbbbbbbbb\n     cccc\n     dddd)\n    eeee\n    ffff\n    (gggg\n        hhhhhhhhhhhh\n        iiii))"
-(zprint-str "(;test\n;stuff\n(aaaa bbbbbbbbbbbbbbbb cccc dddd) eeee ffff (gggg hhhhhhhhhhhh iiii))" {:parse-string? true :list {:indent 4}  :width 20}))
-
-(expect
-"((aaaa\n     bbbbbbbbbbbbbbbb\n     cccc\n     dddd)\n    eeee\n    ffff\n    (gggg\n        hhhhhhhhhhhh\n        iiii))"
-(zprint-str "((aaaa bbbbbbbbbbbbbbbb cccc dddd) eeee ffff (gggg hhhhhhhhhhhh iiii))" {:parse-string? true :list {:indent 4}  :width 20}))
-
-
-; Now with :wrap? true and :wrap-multi? true
-
-(expect
-"(;test\n ;stuff\n (aaaa bbbb\n     cccc\n     dddd)\n    eeee ffff\n    (gggg\n        hhhh\n        iiii))"
-(zprint-str "(;test\n;stuff\n(aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))" {:parse-string? true :list {:wrap? true :wrap-multi? true :indent 4}  :width 13}))
-
-(expect
-"(;test\n ;stuff\n (aaaa bbbb cccc\n     dddd) eeee ffff\n    (gggg hhhh\n        iiii))"
-(zprint-str "(;test\n;stuff\n(aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))" {:parse-string? true :list {:wrap? true :wrap-multi? true :indent 4}  :width 20}))
-
-; How do we indent if we have one thing or multiple things after a comment?
-
-(expect
-"(;test\n (aaaa bbbb cccc dddd)\n    eeee\n    ffff\n    (gggg hhhh iiii))"
-(zprint-str "(;test\n(aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))" {:parse-string? true :list {:wrap? false :wrap-multi? true :indent 4} :width 80}))
-
-
-(expect
-"(;test\n (aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))"
-(zprint-str "(;test\n(aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))" {:parse-string? true :list {:wrap? true :wrap-multi? true :indent 4} :width 80}))
-
-(expect
-"(;test\n ((aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii)))"
-(zprint-str "(;test\n((aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii)))" {:parse-string? true :list {:wrap? true :wrap-multi? true :indent 4} :width 80}))
-
-; Check wrapping and wrap-multi? w/out comment
-
-(expect
-"((aaaa bbbb cccc\n     dddd) eeee ffff\n    (gggg hhhh\n        iiii))"
-(zprint-str "((aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))" {:parse-string? true :list {:wrap? true :wrap-multi? true :indent 4} :width 20}))
-
-; Indents didn't used to work in vectors.
-
-(expect
-"[[cccc dddd eeee jjjj kkkk llll mmmm\n     nnnn] aaaa bbbb]"
-(zprint-str "[[cccc dddd eeee jjjj kkkk llll mmmm nnnn] aaaa bbbb]" {:parse-string? true :width 40 :vector {:indent 4}}))
-
-(expect
-"[[cccc dddd eeee jjjj kkkk llll mmmm nnnn] aaaa\n    bbbb]"
-(zprint-str "[[cccc dddd eeee jjjj kkkk llll mmmm nnnn] aaaa bbbb]" {:parse-string? true :width 50 :vector {:indent 4}}))
-
-; Apparently :list :wrap? true had issues in the past with identation
-
-(expect
-"((cccc dddd eeee jjjj kkkk llll mmmm\n   nnnn) aaaa bbbb)"
-(zprint-str "((cccc dddd eeee jjjj kkkk llll mmmm nnnn) aaaa bbbb)" {:parse-string? true :list {:wrap? true} :width 40}))
-
-; :wrap-multi? for sets
-
-(expect
-"#{pppp qqqq\n    #{cccc dddd eeee jjjj kkkk llll mmmm\n        nnnn} aaaa bbbb}"
-(zprint-str "#{pppp qqqq #{cccc dddd eeee jjjj kkkk llll mmmm nnnn} aaaa bbbb}" {:parse-string? true :set {:wrap? true :wrap-multi? false :sort? false :indent 4} :width 40}))
-
-
-(expect
-"#{pppp qqqq #{cccc dddd eeee jjjj kkkk\n                llll mmmm nnnn} aaaa\n    bbbb}"
-(zprint-str "#{pppp qqqq #{cccc dddd eeee jjjj kkkk llll mmmm nnnn} aaaa bbbb}" {:parse-string? true :set {:wrap? true :wrap-multi? true :sort? false :indent 4} :width 40}))
-
-; Set without :wrap? true
-
-(expect
-"#{pppp\n    qqqq\n    #{cccc\n        dddd\n        eeee\n        jjjj\n        kkkk\n        llll\n        mmmm\n        nnnn}\n    aaaa\n    bbbb}"
-(zprint-str "#{pppp qqqq #{cccc dddd eeee jjjj kkkk llll mmmm nnnn} aaaa bbbb}" {:parse-string? true :set {:wrap? false :wrap-multi? true :sort? false :indent 4} :width 40}))
-
-; Complex set with :wrap? true
-
-(expect
-"#{#{#{#{hhhh iiii} ffff gggg} cccc dddd\n      eeee jjjj kkkk llll mmmm nnnn} aaaa\n    bbbb}"
-(zprint-str "#{#{#{#{hhhh iiii} ffff gggg} cccc dddd eeee jjjj kkkk llll mmmm nnnn} aaaa bbbb}" {:parse-string? true :set {:wrap? true :wrap-multi? false :sort? false :indent 4} :width 40}))
-
-; More sets
-
-(expect
-"#{aaaa bbbb\n    #{cccc dddd eeee\n        #{#{iiii hhhh} ffff\n            gggg}}}"
-(zprint-str "#{aaaa bbbb #{cccc dddd eeee #{#{iiii hhhh} ffff gggg}}}" {:parse-string? true :set {:wrap? true :wrap-multi? false :sort? false :indent 4} :width 30}))
-
-(expect
-"#{aaaa bbbb #{cccc dddd eeee\n                #{#{iiii hhhh}\n                    ffff\n                    gggg}}}"
-(zprint-str "#{aaaa bbbb #{cccc dddd eeee #{#{iiii hhhh} ffff gggg}}}" {:parse-string? true :set {:wrap? true :wrap-multi? true :sort? false :indent 4} :width 30}))
-
-; lists with one element and more than one
-
-(expect
-"(test-comment\n ;; so changes made within abcd-abcde-abcdefg.txt will be reflected upon\n ;; deployment. I felt comfortable downloading from the abcdefghij abcde\n)"
-(zprint-str "(test-comment\n  ;; so changes made within abcd-abcde-abcdefg.txt will be reflected upon\n  ;; deployment.\n  ;; I felt comfortable downloading from the abcdefghij abcde\n )\n" {:parse-string? true :list {:indent 4}}))
-
-(expect
-"(test-comment\n    ;; so changes made within abcd-abcde-abcdefg.txt will be reflected upon\n    ;; deployment. I felt comfortable downloading from the abcdefghij\n    ;; abcde\n    aaaa\n    bbbb)"
-(zprint-str "(test-comment\n  ;; so changes made within abcd-abcde-abcdefg.txt will be reflected upon\n  ;; deployment.\n  ;; I felt comfortable downloading from the abcdefghij abcde\naaaa bbbb )\n" {:parse-string? true :list {:indent 4}}))
-
-
-; The original problem that started all of this
-
-(def i341c
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn]\n                                :as   opts}])}\n  ...)\n")
-
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn],\n                                :as opts}])}\n  ...)"
-(zprint-str i341c {:parse-string? true :style :respect-nl :vector {:wrap-multi? true :indent 2} :width 71}))
-
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec\n                                        apply-tx-fn],\n                                :as opts}])}\n  ...)"
-(zprint-str i341c {:parse-string? true :style :respect-nl :vector {:wrap-multi? true :indent 2} :width 70}))
-
-; should fit in 14
-
-(def i343
-"[aaa bbb & ccc ddd eee fff]\n")
-
-(expect
-"[aaa bbb & ccc\n  ddd eee fff]"
-(zprint-str i343 {:parse-string? true, :vector {:no-wrap-after #{"&"} :indent 2}, :width 14}))
-
-; a bug while doing development, that now works
-
- (expect
-"[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo\n                              pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk\n llll]"
- (zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? true} :width 69}))
-
-
-(expect
-"[[1111 2222 3333] &\n [ccccccccccccccccccccccc\n  dddddddddddddddddddd\n  eeee ffff gggg mmmm nnnn\n  oooo pppp qqqq rrrr ss]]"
-(zprint-str "[[1111 2222 3333] & [ccccccccccccccccccccccc dddddddddddddddddddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false :no-wrap-after #{"&"}}  :width 26}))
-
-; Despite wrap-multi? being false, we get a wrap-multi here because we have
-; :no-wrap-after.
-
-(def  i341da
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn] \n               [obj mapping-fn & {:keys [tempid entity-spec apply-tx-fn] :as   opts}])}\n  ...)\n")
-
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid entity-spec apply-tx-fn],\n                   :as opts}])}\n  ...)"
-(zprint-str i341da {:parse-string? true :style :respect-nl :vector {:wrap-multi? false :no-wrap-after #{"&"}} :width 70}))
-
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid entity-spec apply-tx-fn], :as opts}])}\n  ...)"
-(zprint-str i341da {:parse-string? true :style :respect-nl :vector {:wrap-multi? false :no-wrap-after #{"&"}} :width 71}))
-
-(expect
-"[[1111 2222 3333] [cccc dddd eeee ffff\n                   gggg mmmm nnnn oooo\n                   pppp qqqq rrrr ss]]"
-(zprint-str "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 38}))
-
-(expect
-"[[1111 2222 3333]\n [cccc dddd eeee ffff gggg mmmm nnnn\n  oooo pppp qqqq rrrr ss]]"
-(zprint-str "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 37}))
-
-
-(expect
-"[aaaa bbbb [[1111 2222 3333]\n            [cccc dddd eeee ffff gggg mmmm nnnn\n             oooo pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 48}))
-
-(expect
-"[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff\n                              gggg mmmm nnnn oooo\n                              pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 49}))
-
-(expect
-"[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm\n                              nnnn oooo pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? true} :width 59}))
-
-(expect
-"[aaaa bbbb\n [[1111 2222 3333]\n  [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr\n   ss]]\n hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? false :wrap-after-multi? false} :width 57}))
-
-(expect
-"[aaaa bbbb\n [[1111 2222 3333]\n  [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq\n   rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? false :wrap-after-multi? false} :width 56}))
-
-(expect
-"[aaaa bbbb\n [[1111 2222 3333]\n  [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr\n   ss]] hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? false :wrap-after-multi? true} :width 60}))
-
-(expect
-"[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm\n                              nnnn oooo pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? true} :width 60}))
-
- (expect
-"(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:a [bbbb cccc dddd],\n                                :c [eeee ffff gg]}\n                last])})"
- (zprint-str "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff gg]}\n last])})" {:parse-string? true :vector {:wrap-multi? true :respect-nl? true} :map {:respect-nl? true} :fn-map {:quote [:none {}]} :width 52}))
-
-(expect
-"(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:a [bbbb cccc\n                                    dddd],\n                                :c [eeee ffff gg]}\n                last])})"
-(zprint-str "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff gg]}\n last])})" {:parse-string? true :vector {:wrap-multi? true :respect-nl? true} :map {:respect-nl? true} :fn-map {:quote [:none {}]} :width 51}))
-
-(expect
-"(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                {:a [bbbb cccc dddd],\n                 :c [eeee ffff gg]}\n                last])})"
-(zprint-str "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff gg]}\n last])})" {:parse-string? true :vector {:wrap-multi? true :respect-nl? true} :map {:respect-nl? true} :fn-map {:quote [:none {}]} :width 49}))
-
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn],\n                                :as opts}])}\n  ...)"
-(zprint-str i341c {:parse-string? true :style :respect-nl :vector {:wrap-multi? true} :width 71}))
-
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                {:keys [tempid entity-spec apply-tx-fn],\n                 :as opts}])}\n  ...)"
-(zprint-str i341c {:parse-string? true :style :respect-nl :vector {:wrap-multi? false} :width 71}))
-
-
-(expect
-"[aaa bbb & [ccc ddd]\n eee fff]"
-(zprint-str "[aaa bbb & [ccc ddd] eee fff]" {:vector {:wrap-multi? false :hang? false :no-wrap-after #{"&"}} :parse-string? true :width 20}))
-
-(expect
-"[aaa bbb & [ccc\n            ddd]\n eee fff]"
-(zprint-str "[aaa bbb & [ccc ddd] eee fff]" {:vector {:wrap-multi? false :hang? false :no-wrap-after #{"&"}} :parse-string? true :width 19}))
-
-(expect
-"[aaa bbb\n & [ccc ddd]\n eee fff]"
-(zprint-str "[aaa bbb & [ccc ddd] eee fff]" {:vector {:wrap-multi? false :hang? false :no-wrap-after #{"&"}} :parse-string? true :width 15}))
-
-; wrap-after-multi and wrap-multi tests
-
-(def i341s
-"(defn my-fn-3\n  \"...\"\n  {:arglists '([client db-name {:keys [db-actions migrations-dir] :as options} more args {:keys [stuff bother] :as keystuff} are here])}\n  ...)\n")
-
-(expect
-"(defn my-fn-3\n  \"...\"\n  {:arglists '([client db-name\n                {:keys [db-actions migrations-dir],\n                 :as options} more args\n                {:keys [stuff bother],\n                 :as keystuff} are here])}\n  ...)"
-(zprint-str i341s {:parse-string? true :map {:force-nl? true}}))
-
-(expect
-"(defn my-fn-3\n  \"...\"\n  {:arglists '([client db-name {:keys [db-actions migrations-dir],\n                                :as options} more args {:keys [stuff bother],\n                                                        :as keystuff} are\n                here])}\n  ...)"
-(zprint-str i341s {:parse-string? true :map {:force-nl? true} :vector {:wrap-multi? true}}))
-
-(expect
-"(defn my-fn-3\n  \"...\"\n  {:arglists '([client db-name {:keys [db-actions migrations-dir],\n                                :as options}\n                more args {:keys [stuff bother],\n                           :as keystuff}\n                are here])}\n  ...)"
-(zprint-str i341s {:parse-string? true :map {:force-nl? true} :vector {:wrap-multi? true :wrap-after-multi? false}}))
-
-(def i343a
-"[aaa bbb & {:g ccc :h ddd} eee fff]\n")
-
-(expect
-"[aaa bbb & {:g ccc,\n            :h ddd}\n eee fff]"
-(zprint-str i343a {:parse-string? true :vector {:no-wrap-after #{"&"}} :map {:force-nl? true} :width 19}))
-
-(expect
-"[aaa bbb\n & {:g ccc,\n    :h ddd} eee\n fff]"
-(zprint-str i343a {:parse-string? true :vector {:no-wrap-after #{"&"}} :map {:force-nl? true} :width 18}))
-
-
-; Check for when a wrap-multi item is multi-line when formatted at cur-ind,
-; but was single line when formatted at ind
-
-(expect
-"(defnx many-args\n  (a b c d (e f g h\n             i j)\n    k l)\n  body)"
-(zprint-str "(defnx many-args (a b c d (e f g h i j) k l) body)" {:parse-string? true :list {:wrap? true :wrap-multi? true :wrap-after-multi? false} :width 20}))
-
-(expect
-"[defn many-args\n  [a b c d [e f g h\n             i j]\n    k l]]"
-(zprint-str "[defn many-args [a b c d [e f g h i j] k l]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false :indent 2} :width 19}))
-
-(expect
-"[defn many-args\n  [a b c d\n    [e f g h i j]\n    k l]]"
-(zprint-str "[defn many-args [a b c d [e f g h i j] k l]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false :indent 2} :width 18}))
-
-; Kind of an odd one.  Probably not wrong, but a bit out there
-
-(expect
-"[defn many-args\n    [a b c d [e f g\n                 h i\n                 j]\n        k l]]"
-(zprint-str "[defn many-args [a b c d [e f g h i j] k l]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false :indent 4} :width 20}))
-
-(expect
-"(((((defn many-args\n      (a b c d\n        (e f g h i\n          j) k l)\n      body)))))"
-(zprint-str "(((((defn many-args (a b c d (e f g h i j) k l) body)))))" {:parse-string? true :list {:wrap? true :wrap-multi? true :wrap-after-multi? true} :width 20}))
-
-(expect
-"(((((defn many-args\n      (a b c d\n        (e f g h i\n          j)\n        k l)\n      body)))))"
-(zprint-str "(((((defn many-args (a b c d (e f g h i j) k l) body)))))" {:parse-string? true :list {:wrap? true :wrap-multi? true :wrap-after-multi? false} :width 20}))
-
-
-(expect
-"(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:a [bbbb cccc dddd],\n                                :c [eeee ffff ggggg]}\n                last])})"
-(zprint-str "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff ggggg]}\n last])})" {:parse-string? true :vector {:wrap-multi? true :respect-nl? true} :map {:respect-nl? true} :fn-map {:quote [:none {}]} :width 53}))
-
-(expect
-"(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:a [bbbb cccc dddd],\n                                :c [eeee ffff\n                                    ggggg]}\n                last])})"
-(zprint-str "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff ggggg]}\n last])})" {:parse-string? true :vector {:wrap-multi? true :respect-nl? true} :map {:respect-nl? true} :fn-map {:quote [:none {}]} :width 52}))
-
-(expect
-"(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                {:a [bbbb cccc dddd],\n                 :c [eeee ffff ggggg]}\n                last])})"
-(zprint-str "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff ggggg]}\n last])})" {:parse-string? true :vector {:wrap-multi? true :respect-nl? true} :map {:respect-nl? true} :fn-map {:quote [:none {}]} :width 51}))
-
-;;
-;; Issue #347 -- empty vector in guide causes code to disappear. 
-;; Ultimately, guides can't format an empty vector.
-;;
-
-(expect "[]"
- (zprint-str "[]" {:parse-string? true :vector {:option-fn (fn [_ _ _] {:guide [:element :element-*]})}}))
-
-(expect "()"
- (zprint-str "()" {:parse-string? true :list {:option-fn (fn [_ _ _] {:guide [:element :element-*]})}}))
-
-(expect "[\n]"
- (zprint-str "[\n]" {:parse-string? true :style :respect-nl}))
-
-;
-; Let's try a big function and see if it all get done with simple guides
-; for list and vector.
-;
+  (expect
+    "(deftest ^{:database true, ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
+    (zprint-str i312a {:parse-string? true, :style :meta-guide}))
+
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff ^:and ^:even ^:more\n     ^:things\n  port-file-name\n  (....))"
+    (zprint-str i312b {:parse-string? true, :style :meta-guide}))
+
+  (expect "(def port-file-name (....))"
+          (zprint-str i312c {:parse-string? true, :style :meta-guide}))
+
+  (expect "(def ^:private port-file-name (....))"
+          (zprint-str i312d {:parse-string? true, :style :meta-guide}))
+
+  (expect "(def ^:const ^:private port-file-name \".nrepl-port\")"
+          (zprint-str i245 {:parse-string? true, :style :meta-guide}))
+
+  (expect "(def ^:const port-file-name \".nrepl-port\")"
+          (zprint-str i245a {:parse-string? true, :style :meta-guide}))
+
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
+    (zprint-str i245b {:parse-string? true, :style :meta-guide}))
+
+  (expect
+    "(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str i245c {:parse-string? true, :style :meta-guide}))
+
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  (....))"
+    (zprint-str i312 {:parse-string? true, :style :meta-guide, :width 60}))
+
+  (expect
+    "(deftest ^{:database true,\n           ::test.hooks/system-init-keys system-keys}\n  copy-diagnostic-report-test-base-case-destination-has-no-user-input\n  (...))"
+    (zprint-str i312a {:parse-string? true, :style :meta-guide, :width 60}))
+
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n     ^:and ^:even ^:more ^:things\n  port-file-name\n  (....))"
+    (zprint-str i312b {:parse-string? true, :style :meta-guide, :width 60}))
+
+  (expect "(def port-file-name (....))"
+          (zprint-str i312c
+                      {:parse-string? true, :style :meta-guide, :width 60}))
+
+  (expect "(def ^:private port-file-name (....))"
+          (zprint-str i312d
+                      {:parse-string? true, :style :meta-guide, :width 60}))
+
+  (expect "(def ^:const ^:private port-file-name \".nrepl-port\")"
+          (zprint-str i245
+                      {:parse-string? true, :style :meta-guide, :width 60}))
+
+  (expect "(def ^:const port-file-name \".nrepl-port\")"
+          (zprint-str i245a
+                      {:parse-string? true, :style :meta-guide, :width 60}))
+
+  (expect
+    "(def ^:const ^:private ^:test ^:lots ^:of ^:meta ^:stuff\n  port-file-name\n  \".nrepl-port\")"
+    (zprint-str i245b {:parse-string? true, :style :meta-guide, :width 60}))
+
+  (expect
+    "(deftest ^:database-stuff-and-bother\n  websocket-diagnostic-and-a-bit-more-that-does-not-fit\n  (let [foo (bar \"1\")] foo))"
+    (zprint-str i245c {:parse-string? true, :style :meta-guide, :width 60}))
+
+  ;;
+  ;; Added :collapse-trailing-right? and :indent-trailing-right? to :list
+  ;; :map, :vector, :set and :vector-fn.
+  ;;
+  ;; Issue #177.
+  ;;
+  ;; This also came up in Issue #143, which is why the innn are mixed.
+  ;;
+
+  ; Vector-fn
+
+  (def i143g "[this is a test\n]\n")
+
+  (expect "[this is\n     a\n     test]"
+          (zprint-str i143g
+                      {:parse-string? true,
+                       :vector {:fn-format :arg1-force-nl},
+                       :vector-fn {:respect-nl? true,
+                                   :collapse-trailing-right? true,
+                                   :indent 5}}))
+
+  (expect "[this is\n     a\n     test\n     ]"
+          (zprint-str i143g
+                      {:parse-string? true,
+                       :vector {:fn-format :arg1-force-nl},
+                       :vector-fn {:respect-nl? true,
+                                   :indent-trailing-right? true,
+                                   :indent 5}}))
+
+  ; :binding
+
+  (def i143f
+    "(defn i143f\n  [this is a test]\n  (let [a b\n        c d \n\t]\n    (this is a test)))\n")
+
+  (expect
+    "(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n            ]\n    (this is a test)))"
+    (zprint-str i143f
+                {:parse-string? true,
+                 :vector {:respect-nl? true,
+                          :collapse-trailing-right? false,
+                          :indent-trailing-right? true},
+                 :binding {:indent 5}}))
+
+  (expect
+    "(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n       ]\n    (this is a test)))"
+    (zprint-str i143f
+                {:parse-string? true,
+                 :vector {:respect-nl? true, :collapse-trailing-right? false},
+                 :binding {:indent 5}}))
+
+  (expect
+    "(defn i143f\n  [this is a test]\n  (let [a b\n        c d]\n    (this is a test)))"
+    (zprint-str i143f
+                {:parse-string? true,
+                 :vector {:respect-nl? true, :collapse-trailing-right? true},
+                 :binding {:indent 5}}))
+
+  (expect
+    "(defn i143f\n  [this is a test]\n  (let [a b\n        c d\n       ]\n    (this is a test)))"
+    (zprint-str i143f
+                {:parse-string? true,
+                 :vector {:indent-only? true,
+                          :collapse-trailing-right? false}}))
+
+  (expect
+    "(defn i143f\n  [this is a test]\n  (let [a b\n        c d]\n    (this is a test)))"
+    (zprint-str i143f
+                {:parse-string? true,
+                 :vector {:indent-only? true, :collapse-trailing-right? true}}))
+
+  ; :list
+
+  (def i143b "(a (b (c (d e f\n) h\n)\n) i j)\n")
+
+  ;;
+  ;; HOW CAN THIS BE CORRECT?
+  ;; Answer: Because the :collapse-trailing-right? true causes newlines to
+  ;; disappear.  Thus, even with respect-nl they are gone, and it fits on one
+  ;; line.
+
+  (expect "(a (b (c (d e f) h)) i j)"
+          (zprint-str i143b
+                      {:parse-string? true,
+                       :list {:respect-nl? true,
+                              :collapse-trailing-right? true}}))
+
+  (expect
+    "(a (b (c (d e\n            f\n         )\n         h\n      )\n   )\n   i\n   j)"
+    (zprint-str i143b
+                {:parse-string? true,
+                 :list {:respect-nl? true, :collapse-trailing-right? false}}))
+
+  (expect
+    "(a (b (c (d e\n            f\n           )\n         h\n        )\n     )\n   i\n   j)"
+    (zprint-str i143b
+                {:parse-string? true,
+                 :list {:respect-nl? true, :indent-trailing-right? true}}))
+
+  (expect "(a (b (c (d e f) h)) i j)"
+          (zprint-str i143b
+                      {:parse-string? true,
+                       :list {:indent-only? true,
+                              :collapse-trailing-right? true}}))
+
+  ; :map
+
+  (def i143i "{a {b {c {d e  \n} h i\n} \n} i j}\n")
+
+  (expect "{a {b {c {d e\n         },\n       h i\n      }\n   },\n i j}"
+          (zprint-str i143i
+                      {:parse-string? true,
+                       :map {:respect-nl? true,
+                             :indent-trailing-right? false}}))
+
+  (expect "{a {b {c {d e\n           },\n       h i\n        }\n     },\n i j}"
+          (zprint-str i143i
+                      {:parse-string? true,
+                       :map {:respect-nl? true, :indent-trailing-right? true}}))
+
+  (expect "{a {b {c {d e\n         },\n       h i\n      }\n   },\n i j}"
+          (zprint-str i143i
+                      {:parse-string? true,
+                       :map {:respect-nl? true,
+                             :collapse-trailing-right? false}}))
+
+  (expect "{a {b {c {d e}, h i}}, i j}"
+          (zprint-str i143i
+                      {:parse-string? true,
+                       :map {:respect-nl? true,
+                             :collapse-trailing-right? true}}))
+
+  (expect "{a {b {c {d e\n         } h i\n      }\n   } i j}"
+          (zprint-str i143i
+                      {:parse-string? true,
+                       :map {:indent-only? true,
+                             :respect-nl? true,
+                             :indent-trailing-right? false}}))
+
+  (expect "{a {b {c {d e\n           } h i\n        }\n     } i j}"
+          (zprint-str i143i
+                      {:parse-string? true,
+                       :map {:indent-only? true,
+                             :respect-nl? true,
+                             :indent-trailing-right? true}}))
+
+  (expect "{a {b {c {d e\n         } h i\n      }\n   } i j}"
+          (zprint-str i143i
+                      {:parse-string? true,
+                       :map {:indent-only? true,
+                             :respect-nl? true,
+                             :collapse-trailing-right? false}}))
+
+  (expect "{a {b {c {d e} h i}} i j}"
+          (zprint-str i143i
+                      {:parse-string? true,
+                       :map {:indent-only? true,
+                             :respect-nl? true,
+                             :collapse-trailing-right? true}}))
+
+
+
+  ; :vector
+
+  (def i143k "[a [b [c [d e f\n] h\n]\n] i j]\n")
+
+  (expect "[a\n [b\n  [c\n   [d e f\n   ] h\n  ]\n ] i j]"
+          (zprint-str i143k
+                      {:parse-string? true,
+                       :vector {:respect-nl? true,
+                                :indent-trailing-right? false}}))
+
+  (expect "[a\n [b\n  [c\n   [d e f\n    ] h\n   ]\n  ] i j]"
+          (zprint-str i143k
+                      {:parse-string? true,
+                       :vector {:respect-nl? true,
+                                :indent-trailing-right? true}}))
+
+  (expect "[a\n [b\n  [c\n   [d e f\n   ] h\n  ]\n ] i j]"
+          (zprint-str i143k
+                      {:parse-string? true,
+                       :vector {:respect-nl? true,
+                                :collapse-trailing-right? false}}))
+
+  (expect "[a [b [c [d e f] h]] i j]"
+          (zprint-str i143k
+                      {:parse-string? true,
+                       :vector {:respect-nl? true,
+                                :collapse-trailing-right? true}}))
+
+  (expect "[a [b [c [d e f\n         ] h\n      ]\n   ] i j]"
+          (zprint-str i143k
+                      {:parse-string? true,
+                       :vector {:indent-only? true,
+                                :respect-nl? true,
+                                :indent-trailing-right? false}}))
+
+  (expect "[a [b [c [d e f\n          ] h\n       ]\n    ] i j]"
+          (zprint-str i143k
+                      {:parse-string? true,
+                       :vector {:indent-only? true,
+                                :respect-nl? true,
+                                :indent-trailing-right? true}}))
+
+  (expect "[a [b [c [d e f\n         ] h\n      ]\n   ] i j]"
+          (zprint-str i143k
+                      {:parse-string? true,
+                       :vector {:indent-only? true,
+                                :respect-nl? true,
+                                :collapse-trailing-right? false}}))
+
+  (expect "[a [b [c [d e f] h]] i j]"
+          (zprint-str i143k
+                      {:parse-string? true,
+                       :vector {:indent-only? true,
+                                :respect-nl? true,
+                                :collapse-trailing-right? true}}))
+
+  ; set
+
+  (def i143h "#{a #{b #{c #{d e f \n} h \n} \n} i j}\n")
+
+  (expect "#{a\n  #{b\n    #{c\n      #{d e f\n       } h\n     }\n   } i j}"
+          (zprint-str i143h
+                      {:parse-string? true,
+                       :set {:respect-nl? true,
+                             :collapse-trailing-right? false}}))
+
+  (expect "#{a #{b #{c #{d e f} h}} i j}"
+          (zprint-str i143h
+                      {:parse-string? true,
+                       :set {:respect-nl? true,
+                             :collapse-trailing-right? true}}))
+
+  (expect "#{a\n  #{b\n    #{c\n      #{d e f\n       } h\n     }\n   } i j}"
+          (zprint-str i143h
+                      {:parse-string? true,
+                       :set {:respect-nl? true,
+                             :indent-trailing-right? false}}))
+
+
+  (expect
+    "#{a\n  #{b\n    #{c\n      #{d e f\n         } h\n       }\n     } i j}"
+    (zprint-str i143h
+                {:parse-string? true,
+                 :set {:respect-nl? true, :indent-trailing-right? true}}))
+
+  (expect "#{a #{b #{c #{d e f\n            } h\n        }\n    } i j}"
+          (zprint-str i143h
+                      {:parse-string? true,
+                       :set {:indent-only? true,
+                             :respect-nl? true,
+                             :collapse-trailing-right? false}}))
+
+  (expect "#{a #{b #{c #{d e f} h}} i j}"
+          (zprint-str i143h
+                      {:parse-string? true,
+                       :set {:indent-only? true,
+                             :respect-nl? true,
+                             :collapse-trailing-right? true}}))
+
+  (expect "#{a #{b #{c #{d e f\n            } h\n        }\n    } i j}"
+          (zprint-str i143h
+                      {:parse-string? true,
+                       :set {:indent-only? true,
+                             :respect-nl? true,
+                             :indent-trailing-right? false}}))
+
+  (expect "#{a #{b #{c #{d e f\n              } h\n          }\n      } i j}"
+          (zprint-str i143h
+                      {:parse-string? true,
+                       :set {:indent-only? true,
+                             :respect-nl? true,
+                             :indent-trailing-right? true}}))
+
+
+  ;;
+  ;; :no-wrap-after Issue #343
+  ;;
+  ;; It really didn't work right...
+  ;;
+
+  (def i341k "[aaa bbb & [ccc\n            ddd] eee fff]\n")
+
+  (expect "[aaa bbb & [ccc ddd]\n eee fff]"
+          (zprint-str
+            i341k
+            {:parse-string? true, :vector {:no-wrap-after #{"&"}}, :width 20}))
+
+  (expect "[aaa bbb & [ccc\n            ddd]\n eee fff]"
+          ; As of 1.3.0, we assume a mild form of wrap-multi? when encounting
+          ; no-wrap-after elements.
+          #_"[aaa bbb\n & [ccc ddd] eee\n fff]"
+          (zprint-str
+            i341k
+            {:parse-string? true, :vector {:no-wrap-after #{"&"}}, :width 19}))
+
+  (def i343 "[aaa bbb & ccc ddd eee fff]\n")
+
+  (expect "[aaa bbb & ccc\n ddd eee fff]"
+          (zprint-str
+            i343
+            {:parse-string? true, :vector {:no-wrap-after #{"&"}}, :width 14}))
+
+  (expect "[aaa bbb\n & ccc ddd\n eee fff]"
+          (zprint-str
+            i343
+            {:parse-string? true, :vector {:no-wrap-after #{"&"}}, :width 13}))
+
+  ;;
+  ;; :wrap-multi?
+  ;; Issue 341 and 347
+  ;;
+
+  ;; Check indentation with basic code, not new code.  Multiple multi-line
+  ;; collections had problems.
+
+  (expect
+    "(;test\n ;stuff\n (aaaa\n     bbbbbbbbbbbbbbbb\n     cccc\n     dddd)\n    eeee\n    ffff\n    (gggg\n        hhhhhhhhhhhh\n        iiii))"
+    (zprint-str
+      "(;test\n;stuff\n(aaaa bbbbbbbbbbbbbbbb cccc dddd) eeee ffff (gggg hhhhhhhhhhhh iiii))"
+      {:parse-string? true, :list {:indent 4}, :width 20}))
+
+  (expect
+    "((aaaa\n     bbbbbbbbbbbbbbbb\n     cccc\n     dddd)\n    eeee\n    ffff\n    (gggg\n        hhhhhhhhhhhh\n        iiii))"
+    (zprint-str
+      "((aaaa bbbbbbbbbbbbbbbb cccc dddd) eeee ffff (gggg hhhhhhhhhhhh iiii))"
+      {:parse-string? true, :list {:indent 4}, :width 20}))
+
+
+  ; Now with :wrap? true and :wrap-multi? true
+
+  (expect
+    "(;test\n ;stuff\n (aaaa bbbb\n     cccc\n     dddd)\n    eeee ffff\n    (gggg\n        hhhh\n        iiii))"
+    (zprint-str
+      "(;test\n;stuff\n(aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))"
+      {:parse-string? true,
+       :list {:wrap? true, :wrap-multi? true, :indent 4},
+       :width 13}))
+
+  (expect
+    "(;test\n ;stuff\n (aaaa bbbb cccc\n     dddd) eeee ffff\n    (gggg hhhh\n        iiii))"
+    (zprint-str
+      "(;test\n;stuff\n(aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))"
+      {:parse-string? true,
+       :list {:wrap? true, :wrap-multi? true, :indent 4},
+       :width 20}))
+
+  ; How do we indent if we have one thing or multiple things after a comment?
+
+  (expect
+    "(;test\n (aaaa bbbb cccc dddd)\n    eeee\n    ffff\n    (gggg hhhh iiii))"
+    (zprint-str "(;test\n(aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))"
+                {:parse-string? true,
+                 :list {:wrap? false, :wrap-multi? true, :indent 4},
+                 :width 80}))
+
+
+  (expect "(;test\n (aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))"
+          (zprint-str
+            "(;test\n(aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))"
+            {:parse-string? true,
+             :list {:wrap? true, :wrap-multi? true, :indent 4},
+             :width 80}))
+
+  (expect "(;test\n ((aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii)))"
+          (zprint-str
+            "(;test\n((aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii)))"
+            {:parse-string? true,
+             :list {:wrap? true, :wrap-multi? true, :indent 4},
+             :width 80}))
+
+  ; Check wrapping and wrap-multi? w/out comment
+
+  (expect
+    "((aaaa bbbb cccc\n     dddd) eeee ffff\n    (gggg hhhh\n        iiii))"
+    (zprint-str "((aaaa bbbb cccc dddd) eeee ffff (gggg hhhh iiii))"
+                {:parse-string? true,
+                 :list {:wrap? true, :wrap-multi? true, :indent 4},
+                 :width 20}))
+
+  ; Indents didn't used to work in vectors.
+
+  (expect "[[cccc dddd eeee jjjj kkkk llll mmmm\n     nnnn] aaaa bbbb]"
+          (zprint-str "[[cccc dddd eeee jjjj kkkk llll mmmm nnnn] aaaa bbbb]"
+                      {:parse-string? true, :width 40, :vector {:indent 4}}))
+
+  (expect "[[cccc dddd eeee jjjj kkkk llll mmmm nnnn] aaaa\n    bbbb]"
+          (zprint-str "[[cccc dddd eeee jjjj kkkk llll mmmm nnnn] aaaa bbbb]"
+                      {:parse-string? true, :width 50, :vector {:indent 4}}))
+
+  ; Apparently :list :wrap? true had issues in the past with identation
+
+  (expect "((cccc dddd eeee jjjj kkkk llll mmmm\n   nnnn) aaaa bbbb)"
+          (zprint-str "((cccc dddd eeee jjjj kkkk llll mmmm nnnn) aaaa bbbb)"
+                      {:parse-string? true, :list {:wrap? true}, :width 40}))
+
+  ; :wrap-multi? for sets
+
+  (expect
+    "#{pppp qqqq\n    #{cccc dddd eeee jjjj kkkk llll mmmm\n        nnnn} aaaa bbbb}"
+    (zprint-str
+      "#{pppp qqqq #{cccc dddd eeee jjjj kkkk llll mmmm nnnn} aaaa bbbb}"
+      {:parse-string? true,
+       :set {:wrap? true, :wrap-multi? false, :sort? false, :indent 4},
+       :width 40}))
+
+
+  (expect
+    "#{pppp qqqq #{cccc dddd eeee jjjj kkkk\n                llll mmmm nnnn} aaaa\n    bbbb}"
+    (zprint-str
+      "#{pppp qqqq #{cccc dddd eeee jjjj kkkk llll mmmm nnnn} aaaa bbbb}"
+      {:parse-string? true,
+       :set {:wrap? true, :wrap-multi? true, :sort? false, :indent 4},
+       :width 40}))
+
+  ; Set without :wrap? true
+
+  (expect
+    "#{pppp\n    qqqq\n    #{cccc\n        dddd\n        eeee\n        jjjj\n        kkkk\n        llll\n        mmmm\n        nnnn}\n    aaaa\n    bbbb}"
+    (zprint-str
+      "#{pppp qqqq #{cccc dddd eeee jjjj kkkk llll mmmm nnnn} aaaa bbbb}"
+      {:parse-string? true,
+       :set {:wrap? false, :wrap-multi? true, :sort? false, :indent 4},
+       :width 40}))
+
+  ; Complex set with :wrap? true
+
+  (expect
+    "#{#{#{#{hhhh iiii} ffff gggg} cccc dddd\n      eeee jjjj kkkk llll mmmm nnnn} aaaa\n    bbbb}"
+    (zprint-str
+      "#{#{#{#{hhhh iiii} ffff gggg} cccc dddd eeee jjjj kkkk llll mmmm nnnn} aaaa bbbb}"
+      {:parse-string? true,
+       :set {:wrap? true, :wrap-multi? false, :sort? false, :indent 4},
+       :width 40}))
+
+  ; More sets
+
+  (expect
+    "#{aaaa bbbb\n    #{cccc dddd eeee\n        #{#{iiii hhhh} ffff\n            gggg}}}"
+    (zprint-str "#{aaaa bbbb #{cccc dddd eeee #{#{iiii hhhh} ffff gggg}}}"
+                {:parse-string? true,
+                 :set
+                   {:wrap? true, :wrap-multi? false, :sort? false, :indent 4},
+                 :width 30}))
+
+  (expect
+    "#{aaaa bbbb #{cccc dddd eeee\n                #{#{iiii hhhh}\n                    ffff\n                    gggg}}}"
+    (zprint-str "#{aaaa bbbb #{cccc dddd eeee #{#{iiii hhhh} ffff gggg}}}"
+                {:parse-string? true,
+                 :set {:wrap? true, :wrap-multi? true, :sort? false, :indent 4},
+                 :width 30}))
+
+  ; lists with one element and more than one
+
+  (expect
+    "(test-comment\n ;; so changes made within abcd-abcde-abcdefg.txt will be reflected upon\n ;; deployment. I felt comfortable downloading from the abcdefghij abcde\n)"
+    (zprint-str
+      "(test-comment\n  ;; so changes made within abcd-abcde-abcdefg.txt will be reflected upon\n  ;; deployment.\n  ;; I felt comfortable downloading from the abcdefghij abcde\n )\n"
+      {:parse-string? true, :list {:indent 4}}))
+
+  (expect
+    "(test-comment\n    ;; so changes made within abcd-abcde-abcdefg.txt will be reflected upon\n    ;; deployment. I felt comfortable downloading from the abcdefghij\n    ;; abcde\n    aaaa\n    bbbb)"
+    (zprint-str
+      "(test-comment\n  ;; so changes made within abcd-abcde-abcdefg.txt will be reflected upon\n  ;; deployment.\n  ;; I felt comfortable downloading from the abcdefghij abcde\naaaa bbbb )\n"
+      {:parse-string? true, :list {:indent 4}}))
+
+
+  ; The original problem that started all of this
+
+  (def i341c
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn]\n                                :as   opts}])}\n  ...)\n")
+
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn],\n                                :as opts}])}\n  ...)"
+    (zprint-str i341c
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? true, :indent 2},
+                 :width 71}))
+
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec\n                                        apply-tx-fn],\n                                :as opts}])}\n  ...)"
+    (zprint-str i341c
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? true, :indent 2},
+                 :width 70}))
+
+  ; should fit in 14
+
+  (def i343 "[aaa bbb & ccc ddd eee fff]\n")
+
+  (expect "[aaa bbb & ccc\n  ddd eee fff]"
+          (zprint-str i343
+                      {:parse-string? true,
+                       :vector {:no-wrap-after #{"&"}, :indent 2},
+                       :width 14}))
+
+  ; a bug while doing development, that now works
+
+  (expect
+    "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo\n                              pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk\n llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? true},
+       :width 69}))
+
+
+  (expect
+    "[[1111 2222 3333] &\n [ccccccccccccccccccccccc\n  dddddddddddddddddddd\n  eeee ffff gggg mmmm nnnn\n  oooo pppp qqqq rrrr ss]]"
+    (zprint-str
+      "[[1111 2222 3333] & [ccccccccccccccccccccccc dddddddddddddddddddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]"
+      {:parse-string? true,
+       :vector
+         {:wrap-multi? true, :wrap-after-multi? false, :no-wrap-after #{"&"}},
+       :width 26}))
+
+  ; Despite wrap-multi? being false, we get a wrap-multi here because we have
+  ; :no-wrap-after.
+
+  (def i341da
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn] \n               [obj mapping-fn & {:keys [tempid entity-spec apply-tx-fn] :as   opts}])}\n  ...)\n")
+
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid entity-spec apply-tx-fn],\n                   :as opts}])}\n  ...)"
+    (zprint-str i341da
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? false, :no-wrap-after #{"&"}},
+                 :width 70}))
+
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid entity-spec apply-tx-fn], :as opts}])}\n  ...)"
+    (zprint-str i341da
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? false, :no-wrap-after #{"&"}},
+                 :width 71}))
+
+  (expect
+    "[[1111 2222 3333] [cccc dddd eeee ffff\n                   gggg mmmm nnnn oooo\n                   pppp qqqq rrrr ss]]"
+    (zprint-str
+      "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 38}))
+
+  (expect
+    "[[1111 2222 3333]\n [cccc dddd eeee ffff gggg mmmm nnnn\n  oooo pppp qqqq rrrr ss]]"
+    (zprint-str
+      "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 37}))
+
+
+  (expect
+    "[aaaa bbbb [[1111 2222 3333]\n            [cccc dddd eeee ffff gggg mmmm nnnn\n             oooo pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 48}))
+
+  (expect
+    "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff\n                              gggg mmmm nnnn oooo\n                              pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 49}))
+
+  (expect
+    "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm\n                              nnnn oooo pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true, :vector {:wrap-multi? true}, :width 59}))
+
+  (expect
+    "[aaaa bbbb\n [[1111 2222 3333]\n  [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr\n   ss]]\n hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? false, :wrap-after-multi? false},
+       :width 57}))
+
+  (expect
+    "[aaaa bbbb\n [[1111 2222 3333]\n  [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq\n   rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? false, :wrap-after-multi? false},
+       :width 56}))
+
+  (expect
+    "[aaaa bbbb\n [[1111 2222 3333]\n  [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr\n   ss]] hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? false, :wrap-after-multi? true},
+       :width 60}))
+
+  (expect
+    "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm\n                              nnnn oooo pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? true},
+       :width 60}))
+
+  (expect
+    "(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:a [bbbb cccc dddd],\n                                :c [eeee ffff gg]}\n                last])})"
+    (zprint-str
+      "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff gg]}\n last])})"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :respect-nl? true},
+       :map {:respect-nl? true},
+       :fn-map {:quote [:none {}]},
+       :width 52}))
+
+  (expect
+    "(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:a [bbbb cccc\n                                    dddd],\n                                :c [eeee ffff gg]}\n                last])})"
+    (zprint-str
+      "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff gg]}\n last])})"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :respect-nl? true},
+       :map {:respect-nl? true},
+       :fn-map {:quote [:none {}]},
+       :width 51}))
+
+  (expect
+    "(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                {:a [bbbb cccc dddd],\n                 :c [eeee ffff gg]}\n                last])})"
+    (zprint-str
+      "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff gg]}\n last])})"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :respect-nl? true},
+       :map {:respect-nl? true},
+       :fn-map {:quote [:none {}]},
+       :width 49}))
+
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn],\n                                :as opts}])}\n  ...)"
+    (zprint-str i341c
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? true},
+                 :width 71}))
+
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                {:keys [tempid entity-spec apply-tx-fn],\n                 :as opts}])}\n  ...)"
+    (zprint-str i341c
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? false},
+                 :width 71}))
+
+
+  (expect "[aaa bbb & [ccc ddd]\n eee fff]"
+          (zprint-str
+            "[aaa bbb & [ccc ddd] eee fff]"
+            {:vector {:wrap-multi? false, :hang? false, :no-wrap-after #{"&"}},
+             :parse-string? true,
+             :width 20}))
+
+  (expect "[aaa bbb & [ccc\n            ddd]\n eee fff]"
+          (zprint-str
+            "[aaa bbb & [ccc ddd] eee fff]"
+            {:vector {:wrap-multi? false, :hang? false, :no-wrap-after #{"&"}},
+             :parse-string? true,
+             :width 19}))
+
+  (expect "[aaa bbb\n & [ccc ddd]\n eee fff]"
+          (zprint-str
+            "[aaa bbb & [ccc ddd] eee fff]"
+            {:vector {:wrap-multi? false, :hang? false, :no-wrap-after #{"&"}},
+             :parse-string? true,
+             :width 15}))
+
+  ; wrap-after-multi and wrap-multi tests
+
+  (def i341s
+    "(defn my-fn-3\n  \"...\"\n  {:arglists '([client db-name {:keys [db-actions migrations-dir] :as options} more args {:keys [stuff bother] :as keystuff} are here])}\n  ...)\n")
+
+  (expect
+    "(defn my-fn-3\n  \"...\"\n  {:arglists '([client db-name\n                {:keys [db-actions migrations-dir],\n                 :as options} more args\n                {:keys [stuff bother],\n                 :as keystuff} are here])}\n  ...)"
+    (zprint-str i341s {:parse-string? true, :map {:force-nl? true}}))
+
+  (expect
+    "(defn my-fn-3\n  \"...\"\n  {:arglists '([client db-name {:keys [db-actions migrations-dir],\n                                :as options} more args {:keys [stuff bother],\n                                                        :as keystuff} are\n                here])}\n  ...)"
+    (zprint-str i341s
+                {:parse-string? true,
+                 :map {:force-nl? true},
+                 :vector {:wrap-multi? true}}))
+
+  (expect
+    "(defn my-fn-3\n  \"...\"\n  {:arglists '([client db-name {:keys [db-actions migrations-dir],\n                                :as options}\n                more args {:keys [stuff bother],\n                           :as keystuff}\n                are here])}\n  ...)"
+    (zprint-str i341s
+                {:parse-string? true,
+                 :map {:force-nl? true},
+                 :vector {:wrap-multi? true, :wrap-after-multi? false}}))
+
+  (def i343a "[aaa bbb & {:g ccc :h ddd} eee fff]\n")
+
+  (expect "[aaa bbb & {:g ccc,\n            :h ddd}\n eee fff]"
+          (zprint-str i343a
+                      {:parse-string? true,
+                       :vector {:no-wrap-after #{"&"}},
+                       :map {:force-nl? true},
+                       :width 19}))
+
+  (expect "[aaa bbb\n & {:g ccc,\n    :h ddd} eee\n fff]"
+          (zprint-str i343a
+                      {:parse-string? true,
+                       :vector {:no-wrap-after #{"&"}},
+                       :map {:force-nl? true},
+                       :width 18}))
+
+
+  ; Check for when a wrap-multi item is multi-line when formatted at cur-ind,
+  ; but was single line when formatted at ind
+
+  (expect
+    "(defnx many-args\n  (a b c d (e f g h\n             i j)\n    k l)\n  body)"
+    (zprint-str "(defnx many-args (a b c d (e f g h i j) k l) body)"
+                {:parse-string? true,
+                 :list
+                   {:wrap? true, :wrap-multi? true, :wrap-after-multi? false},
+                 :width 20}))
+
+  (expect "[defn many-args\n  [a b c d [e f g h\n             i j]\n    k l]]"
+          (zprint-str
+            "[defn many-args [a b c d [e f g h i j] k l]]"
+            {:parse-string? true,
+             :vector {:wrap-multi? true, :wrap-after-multi? false, :indent 2},
+             :width 19}))
+
+  (expect "[defn many-args\n  [a b c d\n    [e f g h i j]\n    k l]]"
+          (zprint-str
+            "[defn many-args [a b c d [e f g h i j] k l]]"
+            {:parse-string? true,
+             :vector {:wrap-multi? true, :wrap-after-multi? false, :indent 2},
+             :width 18}))
+
+  ; Kind of an odd one.  Probably not wrong, but a bit out there
+
+  (expect
+    "[defn many-args\n    [a b c d [e f g\n                 h i\n                 j]\n        k l]]"
+    (zprint-str "[defn many-args [a b c d [e f g h i j] k l]]"
+                {:parse-string? true,
+                 :vector
+                   {:wrap-multi? true, :wrap-after-multi? false, :indent 4},
+                 :width 20}))
+
+  (expect
+    "(((((defn many-args\n      (a b c d\n        (e f g h i\n          j) k l)\n      body)))))"
+    (zprint-str "(((((defn many-args (a b c d (e f g h i j) k l) body)))))"
+                {:parse-string? true,
+                 :list
+                   {:wrap? true, :wrap-multi? true, :wrap-after-multi? true},
+                 :width 20}))
+
+  (expect
+    "(((((defn many-args\n      (a b c d\n        (e f g h i\n          j)\n        k l)\n      body)))))"
+    (zprint-str "(((((defn many-args (a b c d (e f g h i j) k l) body)))))"
+                {:parse-string? true,
+                 :list
+                   {:wrap? true, :wrap-multi? true, :wrap-after-multi? false},
+                 :width 20}))
+
+
+  (expect
+    "(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:a [bbbb cccc dddd],\n                                :c [eeee ffff ggggg]}\n                last])})"
+    (zprint-str
+      "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff ggggg]}\n last])})"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :respect-nl? true},
+       :map {:respect-nl? true},
+       :fn-map {:quote [:none {}]},
+       :width 53}))
+
+  (expect
+    "(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:a [bbbb cccc dddd],\n                                :c [eeee ffff\n                                    ggggg]}\n                last])})"
+    (zprint-str
+      "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff ggggg]}\n last])})"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :respect-nl? true},
+       :map {:respect-nl? true},
+       :fn-map {:quote [:none {}]},
+       :width 52}))
+
+  (expect
+    "(defn stuff\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                {:a [bbbb cccc dddd],\n                 :c [eeee ffff ggggg]}\n                last])})"
+    (zprint-str
+      "(defn stuff \"...\" {:arglists '([obj mapping-fn] [obj mapping-fn {:a [bbbb cccc dddd]\n :c [eeee ffff ggggg]}\n last])})"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :respect-nl? true},
+       :map {:respect-nl? true},
+       :fn-map {:quote [:none {}]},
+       :width 51}))
+
+  ;;
+  ;; Issue #347 -- empty vector in guide causes code to disappear.
+  ;; Ultimately, guides can't format an empty vector.
+  ;;
+
+  (expect "[]"
+          (zprint-str "[]"
+                      {:parse-string? true,
+                       :vector {:option-fn (fn [_ _ _]
+                                             {:guide [:element :element-*]})}}))
+
+  (expect "()"
+          (zprint-str "()"
+                      {:parse-string? true,
+                       :list {:option-fn (fn [_ _ _]
+                                           {:guide [:element :element-*]})}}))
+
+  (expect "[\n]" (zprint-str "[\n]" {:parse-string? true, :style :respect-nl}))
+
+  ;
+  ; Let's try a big function and see if it all get done with simple guides
+  ; for list and vector.
+  ;
 
   #?(:clj (def xyz3 (source-fn 'zprint.zprint/fzprint-list*)))
   #?(:clj (expect (trim-gensym-regex (read-string xyz3))
-                  (trim-gensym-regex (read-string (zprint-str xyz3
-		  {
-                   :list
-		     {:option-fn (fn [_ _ _] {:guide [:element :element-*]})}
-                   :vector 
-		     {:option-fn (fn [_ _ _] {:guide [:element :element-*]})}
-                                                               :parse-string?
-                                                                 true})))))
+                  (trim-gensym-regex
+                    (read-string
+                      (zprint-str
+                        xyz3
+                        {:list {:option-fn (fn [_ _ _]
+                                             {:guide [:element :element-*]})},
+                         :vector {:option-fn (fn [_ _ _]
+                                               {:guide [:element :element-*]})},
+                         :parse-string? true})))))
 
 
-;;
-;; Validation of fixing missing code in Issue #348
-;;
+  ;;
+  ;; Validation of fixing missing code in Issue #348
+  ;;
 
- (def
- i348h
-"(defn pop-and-archive-belief\n  [turn]\n  (let [fluxes (conflux.utils/fluxes turn)\n        #_(tap>\n           {:turn turn\n            :fluxes fluxes\n            :fluxes-type (type fluxes)})\n        flux (last fluxes)\n        #_(tap>\n           {:flux flux\n            :flux-type (type flux)}) ;; tu jest jeszcze\n        [first-belief & new-pending] (conflux.utils/pending-beliefs flux)\n        first-belief-tx-data (belief.utils/belief-tx-data first-belief)\n        first-belief-with-time\n        (assoc first-belief-tx-data :lk3.conflux.belief/created-at (xdatetime/instant))\n        #_#__\n          (tap>\n           {::pop-and-archive-first-belief-tx-data first-belief-tx-data\n            :new-pending-type (type new-pending)})\n        new-flux (->\n                   flux\n                   (assoc :lk3.conflux.turn.flux/pending-beliefs new-pending))\n        new-fluxes (conj (butlast fluxes) new-flux)\n        #_(tap> {::new-fluxes-type (type new-fluxes)})\n        new-turn\n        (->\n          turn\n          (update :lk3.conflux.turn/processed-beliefs (fnil conj []) first-belief-with-time)\n          (assoc :lk3.conflux.turn/fluxes new-fluxes))\n        #_(tap> {::pending-beliefs-after-pop (conflux.utils/pending-beliefs new-flux)})]\n    new-turn))\n")
+  (def i348h
+    "(defn pop-and-archive-belief\n  [turn]\n  (let [fluxes (conflux.utils/fluxes turn)\n        #_(tap>\n           {:turn turn\n            :fluxes fluxes\n            :fluxes-type (type fluxes)})\n        flux (last fluxes)\n        #_(tap>\n           {:flux flux\n            :flux-type (type flux)}) ;; tu jest jeszcze\n        [first-belief & new-pending] (conflux.utils/pending-beliefs flux)\n        first-belief-tx-data (belief.utils/belief-tx-data first-belief)\n        first-belief-with-time\n        (assoc first-belief-tx-data :lk3.conflux.belief/created-at (xdatetime/instant))\n        #_#__\n          (tap>\n           {::pop-and-archive-first-belief-tx-data first-belief-tx-data\n            :new-pending-type (type new-pending)})\n        new-flux (->\n                   flux\n                   (assoc :lk3.conflux.turn.flux/pending-beliefs new-pending))\n        new-fluxes (conj (butlast fluxes) new-flux)\n        #_(tap> {::new-fluxes-type (type new-fluxes)})\n        new-turn\n        (->\n          turn\n          (update :lk3.conflux.turn/processed-beliefs (fnil conj []) first-belief-with-time)\n          (assoc :lk3.conflux.turn/fluxes new-fluxes))\n        #_(tap> {::pending-beliefs-after-pop (conflux.utils/pending-beliefs new-flux)})]\n    new-turn))\n")
 
-(expect
-"(defn pop-and-archive-belief\n  [turn]\n  (let [fluxes (conflux.utils/fluxes turn)\n        #_(tap>\n            {:turn turn,\n             :fluxes fluxes,\n             :fluxes-type (type fluxes)})\n        flux (last fluxes)\n        #_(tap>\n            {:flux flux,\n             :flux-type (type flux)}) ;; tu jest jeszcze\n        [first-belief & new-pending] (conflux.utils/pending-beliefs flux)\n        first-belief-tx-data (belief.utils/belief-tx-data first-belief)\n        first-belief-with-time\n          (assoc first-belief-tx-data\n            :lk3.conflux.belief/created-at (xdatetime/instant))\n        #_#__\n          (tap>\n            {::pop-and-archive-first-belief-tx-data first-belief-tx-data,\n             :new-pending-type (type new-pending)})\n        new-flux (->\n                   flux\n                   (assoc :lk3.conflux.turn.flux/pending-beliefs new-pending))\n        new-fluxes (conj (butlast fluxes) new-flux)\n        #_(tap> {::new-fluxes-type (type new-fluxes)})\n        new-turn\n          (->\n            turn\n            (update :lk3.conflux.turn/processed-beliefs (fnil conj [])\n              first-belief-with-time)\n            (assoc :lk3.conflux.turn/fluxes new-fluxes))\n        #_(tap> {::pending-beliefs-after-pop (conflux.utils/pending-beliefs\n                                               new-flux)})]\n    new-turn))"
-(zprint-str i348h {:parse-string? true :fn-map {"update" [:guided {:guide [:element :element :element :element-*] :list {:wrap-multi? true} :vector {:option-fn (fn ([opts n exprs] {:guide [:element-*]}) ([] "internal-vector-guide")) :wrap-multi? true}}]} :style :respect-nl}))
+  (expect
+    "(defn pop-and-archive-belief\n  [turn]\n  (let [fluxes (conflux.utils/fluxes turn)\n        #_(tap>\n            {:turn turn,\n             :fluxes fluxes,\n             :fluxes-type (type fluxes)})\n        flux (last fluxes)\n        #_(tap>\n            {:flux flux,\n             :flux-type (type flux)}) ;; tu jest jeszcze\n        [first-belief & new-pending] (conflux.utils/pending-beliefs flux)\n        first-belief-tx-data (belief.utils/belief-tx-data first-belief)\n        first-belief-with-time\n          (assoc first-belief-tx-data\n            :lk3.conflux.belief/created-at (xdatetime/instant))\n        #_#__\n          (tap>\n            {::pop-and-archive-first-belief-tx-data first-belief-tx-data,\n             :new-pending-type (type new-pending)})\n        new-flux (->\n                   flux\n                   (assoc :lk3.conflux.turn.flux/pending-beliefs new-pending))\n        new-fluxes (conj (butlast fluxes) new-flux)\n        #_(tap> {::new-fluxes-type (type new-fluxes)})\n        new-turn\n          (->\n            turn\n            (update :lk3.conflux.turn/processed-beliefs (fnil conj [])\n              first-belief-with-time)\n            (assoc :lk3.conflux.turn/fluxes new-fluxes))\n        #_(tap> {::pending-beliefs-after-pop (conflux.utils/pending-beliefs\n                                               new-flux)})]\n    new-turn))"
+    (zprint-str
+      i348h
+      {:parse-string? true,
+       :fn-map {"update" [:guided
+                          {:guide [:element :element :element :element-*],
+                           :list {:wrap-multi? true},
+                           :vector {:option-fn (fn
+                                                 ([opts n exprs]
+                                                  {:guide [:element-*]})
+                                                 ([] "internal-vector-guide")),
+                                    :wrap-multi? true}}]},
+       :style :respect-nl}))
 
-;;
-;; Tests for fix for Issue #348 where respect-nl newlines were not being
-;; output and therefore code would be corrupted.
-;;
+  ;;
+  ;; Tests for fix for Issue #348 where respect-nl newlines were not being
+  ;; output and therefore code would be corrupted.
+  ;;
 
-; Newlines at the start of maps weren't working
+  ; Newlines at the start of maps weren't working
 
-(expect
-"(abc {\n      :a :b,\n      :c :d,\n      :e :f})"
- (zprint-str "(abc { \n :a :b :c :d  :e :f})" {:parse-string? true :style :respect-nl}))
+  (expect "(abc {\n      :a :b,\n      :c :d,\n      :e :f})"
+          (zprint-str "(abc { \n :a :b :c :d  :e :f})"
+                      {:parse-string? true, :style :respect-nl}))
 
-; Newlines at the start of binding vectors weren't working
+  ; Newlines at the start of binding vectors weren't working
 
-(expect
-"(let [\n      a b\n      c d\n      e f]\n  (stuff bother))"
-(zprint-str "(let [ \n a b c d  e f] (stuff bother))" {:parse-string? true :style :respect-nl}))
+  (expect "(let [\n      a b\n      c d\n      e f]\n  (stuff bother))"
+          (zprint-str "(let [ \n a b c d  e f] (stuff bother))"
+                      {:parse-string? true, :style :respect-nl}))
 
-; Newlines at the start of constart pairs weren't working
+  ; Newlines at the start of constart pairs weren't working
 
-(expect
-"(let [\n      a b\n      c d\n      e f]\n  (stuff bother\n         :a foo\n         :b bar\n         :c baz))"
-(zprint-str "(let [ \n a b c d  e f] (stuff bother \n:a foo :b bar :c baz))" {:parse-string? true :style :respect-nl :width 30}))
+  (expect
+    "(let [\n      a b\n      c d\n      e f]\n  (stuff bother\n         :a foo\n         :b bar\n         :c baz))"
+    (zprint-str "(let [ \n a b c d  e f] (stuff bother \n:a foo :b bar :c baz))"
+                {:parse-string? true, :style :respect-nl, :width 30}))
 
-; Newlines in extend things weren't working
+  ; Newlines in extend things weren't working
 
-(expect
-"(;comment1\n this ;comment2\n\n  [a\n   b c]\n  ;comment3\n  Protocol\n\n    (should cause it to not fit on one line)\n    (and more test)\n    (and more test)\n    (and more test))"
- (zprint-str "(;comment1 \nthis ;comment2\n\n [a \nb c]\n ;comment3\n Protocol\n\n (should cause it to not fit on one line) (and more test) (and more test) (and more test))" {:parse-string? true, :fn-map {"this" :arg1-extend}, :style :respect-nl}))
+  (expect
+    "(;comment1\n this ;comment2\n\n  [a\n   b c]\n  ;comment3\n  Protocol\n\n    (should cause it to not fit on one line)\n    (and more test)\n    (and more test)\n    (and more test))"
+    (zprint-str
+      "(;comment1 \nthis ;comment2\n\n [a \nb c]\n ;comment3\n Protocol\n\n (should cause it to not fit on one line) (and more test) (and more test) (and more test))"
+      {:parse-string? true, :fn-map {"this" :arg1-extend}, :style :respect-nl}))
 
-; Code was being corrupted because of missing newlines and therefore things
-; were getting concatenated together.
+  ; Code was being corrupted because of missing newlines and therefore things
+  ; were getting concatenated together.
 
-(def
-i348a
-"(ns test\n  (:require\n    [very.long.namespace.that-hits-the-limit-in-this-weird-way\n     :as my-weird-way-ns]\n    [short-namespace-after :as foo]))\n")
+  (def i348a
+    "(ns test\n  (:require\n    [very.long.namespace.that-hits-the-limit-in-this-weird-way\n     :as my-weird-way-ns]\n    [short-namespace-after :as foo]))\n")
 
 
-(expect
-"(ns test\n  (:require\n    [very.long.namespace.that-hits-the-limit-in-this-weird-way\n     :as my-weird-way-ns]\n    [short-namespace-after :as foo]))"
-(zprint-str i348a {:parse-string? true :style :respect-nl}))
+  (expect
+    "(ns test\n  (:require\n    [very.long.namespace.that-hits-the-limit-in-this-weird-way\n     :as my-weird-way-ns]\n    [short-namespace-after :as foo]))"
+    (zprint-str i348a {:parse-string? true, :style :respect-nl}))
 
 
 

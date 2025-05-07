@@ -905,7 +905,7 @@
     "(stuff (caller aaaa bbbb (-> this\n                             is\n                             a\n                             test) ccc dddddd))"
     (zprint-str "(stuff (caller aaaa bbbb (-> this is a test) ccc dddddd))"
                 {:parse-string? true,
-                 :list {:respect-nl? false :wrap-multi? true},
+                 :list {:respect-nl? false, :wrap-multi? true},
                  :guide-debug [:list 2
                                [:element :element :element :element :element
                                 :element]],
@@ -1012,7 +1012,7 @@
     "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff ggggg\n         hh iiiiiii))"
     (zprint-str "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
                 {:parse-string? true,
-                 :list {:respect-nl? false :wrap-multi? true},
+                 :list {:respect-nl? false, :wrap-multi? true},
                  :vector {:wrap-multi? true},
                  :guide-debug [:list 2
                                [:element :element-guide [:element-pair-*]
@@ -1031,8 +1031,10 @@
        :fn-map {"my-wrapper-macro"
                   [:none
                    {:guide [:element :options
-                            {:list {:wrap-multi? true} :pair {:flow? false}, :vector {:wrap-multi? true}}
-                            :element-guide [:element-pair-*] :newline :options
+                            {:list {:wrap-multi? true},
+                             :pair {:flow? false},
+                             :vector {:wrap-multi? true}} :element-guide
+                            [:element-pair-*] :newline :options
                             {:pair {:flow? true, :nl-separator-all? true},
                              :binding {:justify? true}} :element-pair-*]}]}}))
 
@@ -1042,7 +1044,7 @@
     "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff\n           ggggg\n         hh\n           iiiiiii))"
     (zprint-str "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
                 {:parse-string? true,
-                 :list {:respect-nl? false :wrap-multi? true},
+                 :list {:respect-nl? false, :wrap-multi? true},
                  :vector {:wrap-multi? true},
                  :guide-debug [:list 2
                                [:element :options {:pair {:flow? false}}
@@ -1060,7 +1062,7 @@
     "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff\n           ggggg\n         hh\n           iiiiiii))"
     (zprint-str "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
                 {:parse-string? true,
-                 :list {:respect-nl? false :wrap-multi? true},
+                 :list {:respect-nl? false, :wrap-multi? true},
                  :guide-debug [:list 2
                                [:element :options {:pair {:flow? false}}
                                 :element-guide [:element-pair-*] :newline
@@ -1072,7 +1074,7 @@
     "(stuff (caller [aaaa bbbb\n                ccc dddddd]\n         fff\n           ggggg\n         hh\n           iiiiiii))"
     (zprint-str "(stuff (caller [aaaa bbbb ccc dddddd] fff ggggg hh iiiiiii))"
                 {:parse-string? true,
-                 :list {:respect-nl? false :wrap-multi? true},
+                 :list {:respect-nl? false, :wrap-multi? true},
                  :guide-debug [:list 2
                                [:element :options {:pair {:flow? false}}
                                 :element-guide [:element-pair-*] :newline
@@ -1090,7 +1092,7 @@
     (zprint-str
       "(stuff (caller [aaaa bbbb ccc dddddd] fff #_stuff ggggg hh iiiiiii))"
       {:parse-string? true,
-       :list {:respect-nl? false :wrap-multi? true},
+       :list {:respect-nl? false, :wrap-multi? true},
        :guide-debug [:list 2
                      [:element :options {:pair {:flow? false}} :element-guide
                       [:element-pair-*] :newline :options {} :group-begin
@@ -1365,7 +1367,7 @@
       "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
       {:parse-string? true,
        :guide-debug [:list 2 [:element :element-*]],
-       :list {:wrap-multi? true}
+       :list {:wrap-multi? true},
        :vector {:wrap-multi? true},
        :width 60}))
 
@@ -1375,7 +1377,7 @@
       "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
       {:parse-string? true,
        :guide-debug [:list 2 [:element :element-*]],
-       :list {:wrap-multi? true}
+       :list {:wrap-multi? true},
        :vector {:wrap-multi? true},
        :width 50}))
 
@@ -1385,7 +1387,7 @@
       "(stuff (caller aaaaa (bbbbbbbbb fff (gggggg (hhhh iii) jjjj) kkkk) ccccc ddd eeee bbbb))"
       {:parse-string? true,
        :guide-debug [:list 2 [:element :element-*]],
-       :list {:wrap-multi? true}
+       :list {:wrap-multi? true},
        :vector {:wrap-multi? true},
        :width 40}))
 
@@ -1430,7 +1432,7 @@
                      [:element :element-binding-vec :newline
                       :element-newline-best-*]],
        :width 50,
-       :list {:wrap-multi? true}
+       :list {:wrap-multi? true},
        :binding {:justify? true}}))
 
   ;;
@@ -1461,7 +1463,7 @@
                      [:element :element-guide [:element-binding-*] :newline
                       :element-newline-best-*]],
        :width 50,
-       :list {:wrap-multi? true}
+       :list {:wrap-multi? true},
        :binding {:justify? true}}))
 
   (expect
@@ -1539,7 +1541,7 @@
                        :element-binding-group] :newline
                       :element-newline-best-*]],
        :binding {:justify? true},
-       :list {:wrap-multi? true}
+       :list {:wrap-multi? true},
        :vector {:wrap-multi? false},
        :width 80}))
 
@@ -1559,7 +1561,7 @@
                        :element-binding-group] :element-newline-best-*]],
        :binding {:justify? true},
        :vector {:wrap-multi? false},
-       :list {:wrap-multi? true :wrap-after-multi? false},
+       :list {:wrap-multi? true, :wrap-after-multi? false},
        :width 80}))
 
   ;;
@@ -3183,71 +3185,124 @@
                 {:parse-string? true,
                  :style {:style-call :ns-justify, :require-max-variance 1000}}))
 
-;;
-;; Implemented :list {:wrap-multi? true} for regular processing, not just
-;; in guides.  Also reimplemented :no-wrap-after? for everything.  A lot
-;; of work and lots of changes in wrap-zmap!  Issue #341.
-;;
+  ;;
+  ;; Implemented :list {:wrap-multi? true} for regular processing, not just
+  ;; in guides.  Also reimplemented :no-wrap-after? for everything.  A lot
+  ;; of work and lots of changes in wrap-zmap!  Issue #341.
+  ;;
 
-(def
-i341da
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn] \n               [obj mapping-fn & {:keys [tempid entity-spec apply-tx-fn] :as   opts}])}\n  ...)\n")
+  (def i341da
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn] \n               [obj mapping-fn & {:keys [tempid entity-spec apply-tx-fn] :as   opts}])}\n  ...)\n")
 
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid entity-spec apply-tx-fn], :as opts}])}\n  ...)"
-(zprint-str i341da {:parse-string? true :style :respect-nl :vector {:wrap-multi? false :no-wrap-after #{"&"}} :width 71}))
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid entity-spec apply-tx-fn], :as opts}])}\n  ...)"
+    (zprint-str i341da
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? false, :no-wrap-after #{"&"}},
+                 :width 71}))
 
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid entity-spec apply-tx-fn],\n                   :as opts}])}\n  ...)"
-(zprint-str i341da {:parse-string? true :style :respect-nl :vector {:wrap-multi? false :no-wrap-after #{"&"}} :width 70}))
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid entity-spec apply-tx-fn],\n                   :as opts}])}\n  ...)"
+    (zprint-str i341da
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? false, :no-wrap-after #{"&"}},
+                 :width 70}))
 
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid\n                          entity-spec\n                          apply-tx-fn],\n                   :as opts}])}\n  ...)"
-(zprint-str i341da {:parse-string? true :style :respect-nl :vector {:wrap-multi? false :no-wrap-after #{"&"}} :dbg-s #{} :width 43}))
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn\n                & {:keys [tempid\n                          entity-spec\n                          apply-tx-fn],\n                   :as opts}])}\n  ...)"
+    (zprint-str i341da
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? false, :no-wrap-after #{"&"}},
+                 :dbg-s #{},
+                 :width 43}))
 
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn & {:keys [tempid entity-spec\n                                         apply-tx-fn],\n                                  :as opts}])}\n  ...)"
-(zprint-str i341da {:parse-string? true :style :respect-nl :vector {:wrap-multi? true :no-wrap-after #{"&"}} :width 71}))
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn & {:keys [tempid entity-spec\n                                         apply-tx-fn],\n                                  :as opts}])}\n  ...)"
+    (zprint-str i341da
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? true, :no-wrap-after #{"&"}},
+                 :width 71}))
 
-(expect
-"[[1111 2222 3333] &\n [ccccccccccccccccccccccc\n  dddddddddddddddddddd\n  eeee ffff gggg mmmm nnnn\n  oooo pppp qqqq rrrr ss]]"
-(zprint-str "[[1111 2222 3333] & [ccccccccccccccccccccccc dddddddddddddddddddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false :no-wrap-after #{"&"}}  :width 26}))
+  (expect
+    "[[1111 2222 3333] &\n [ccccccccccccccccccccccc\n  dddddddddddddddddddd\n  eeee ffff gggg mmmm nnnn\n  oooo pppp qqqq rrrr ss]]"
+    (zprint-str
+      "[[1111 2222 3333] & [ccccccccccccccccccccccc dddddddddddddddddddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]"
+      {:parse-string? true,
+       :vector
+         {:wrap-multi? true, :wrap-after-multi? false, :no-wrap-after #{"&"}},
+       :width 26}))
 
-(expect
-"[[1111 2222 3333]\n & [ccccccccccccccccccccccc\n    dddddddddddddddddddd\n    eeee ffff gggg mmmm\n    nnnn oooo pppp qqqq\n    rrrr ss]]"
-(zprint-str "[[1111 2222 3333] & [ccccccccccccccccccccccc dddddddddddddddddddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false :no-wrap-after #{"&"}}  :width 27}))
+  (expect
+    "[[1111 2222 3333]\n & [ccccccccccccccccccccccc\n    dddddddddddddddddddd\n    eeee ffff gggg mmmm\n    nnnn oooo pppp qqqq\n    rrrr ss]]"
+    (zprint-str
+      "[[1111 2222 3333] & [ccccccccccccccccccccccc dddddddddddddddddddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]"
+      {:parse-string? true,
+       :vector
+         {:wrap-multi? true, :wrap-after-multi? false, :no-wrap-after #{"&"}},
+       :width 27}))
 
-(expect
-"[[1111 2222 3333] [cccc dddd eeee ffff\n                   gggg mmmm nnnn oooo\n                   pppp qqqq rrrr ss]]"
-(zprint-str "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 38}))
+  (expect
+    "[[1111 2222 3333] [cccc dddd eeee ffff\n                   gggg mmmm nnnn oooo\n                   pppp qqqq rrrr ss]]"
+    (zprint-str
+      "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 38}))
 
-(expect
-"[[1111 2222 3333]\n [cccc dddd eeee ffff gggg mmmm nnnn\n  oooo pppp qqqq rrrr ss]]"
-(zprint-str "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 37}))
+  (expect
+    "[[1111 2222 3333]\n [cccc dddd eeee ffff gggg mmmm nnnn\n  oooo pppp qqqq rrrr ss]]"
+    (zprint-str
+      "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 37}))
 
-(expect
-"[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr\n                   ss]]"
-(zprint-str "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 75}))
+  (expect
+    "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr\n                   ss]]"
+    (zprint-str
+      "[[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 75}))
 
-(expect
-"[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff\n                              gggg mmmm nnnn oooo\n                              pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 49}))
+  (expect
+    "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff\n                              gggg mmmm nnnn oooo\n                              pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 49}))
 
-(expect
-"[aaaa bbbb [[1111 2222 3333]\n            [cccc dddd eeee ffff gggg mmmm nnnn\n             oooo pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
-(zprint-str "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]" {:parse-string? true :vector {:wrap-multi? true :wrap-after-multi? false} :width 48}))
+  (expect
+    "[aaaa bbbb [[1111 2222 3333]\n            [cccc dddd eeee ffff gggg mmmm nnnn\n             oooo pppp qqqq rrrr ss]]\n hhhh iiii jjjj kkkk llll]"
+    (zprint-str
+      "[aaaa bbbb [[1111 2222 3333] [cccc dddd eeee ffff gggg mmmm nnnn oooo pppp qqqq rrrr ss]] hhhh iiii jjjj kkkk llll]"
+      {:parse-string? true,
+       :vector {:wrap-multi? true, :wrap-after-multi? false},
+       :width 48}))
 
-(def
-i341c
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn]\n                                :as   opts}])}\n  ...)\n")
+  (def i341c
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn]\n                                :as   opts}])}\n  ...)\n")
 
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn],\n                                :as opts}])}\n  ...)"
-(zprint-str i341c {:parse-string? true :style :respect-nl :vector {:wrap-multi? true} :width 71}))
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec apply-tx-fn],\n                                :as opts}])}\n  ...)"
+    (zprint-str i341c
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? true},
+                 :width 71}))
 
-(expect
-"(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec\n                                       apply-tx-fn],\n                                :as opts}])}\n  ...)"
-(zprint-str i341c {:parse-string? true :style :respect-nl :vector {:wrap-multi? true} :width 70}))
+  (expect
+    "(defn my-fn-1\n  \"...\"\n  {:arglists '([obj mapping-fn]\n               [obj mapping-fn {:keys [tempid entity-spec\n                                       apply-tx-fn],\n                                :as opts}])}\n  ...)"
+    (zprint-str i341c
+                {:parse-string? true,
+                 :style :respect-nl,
+                 :vector {:wrap-multi? true},
+                 :width 70}))
 
 
 

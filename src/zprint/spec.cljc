@@ -319,8 +319,9 @@
 (s/def ::string-str? ::boolean)
 (s/def :alt/style (s/nilable string?))
 #_(s/def ::lift-ns? ::boolean)
-(s/def ::lift-ns? (s/or :boolean ::boolean
-                        :lift-if-over number?))
+(s/def ::lift-ns?
+  (s/or :boolean ::boolean
+        :lift-if-over number?))
 (s/def ::unlift-ns? ::boolean)
 (s/def ::lift-ns-in-code? ::boolean)
 (s/def ::to-string? ::boolean)
@@ -391,8 +392,7 @@
 (s/def :alt/extend (only-keys :opt-un [::modifiers]))
 (s/def ::file? ::boolean)
 
-(s/def ::files
-  (only-keys :opt-un [::directory] :req-un [::glob]))
+(s/def ::files (only-keys :opt-un [::directory] :req-un [::glob]))
 
 (s/def ::glob string?)
 
@@ -411,16 +411,15 @@
 (s/def ::input (only-keys :opt-un [::range]))
 ; When you modify list, you are also modifying vector-fn (see below)
 (s/def ::list
-  (only-keys :opt-un [::constant-pair-fn ::constant-pair-min ::constant-pair?
-                      ::hang-diff ::hang-avoid ::hang-expand ::hang-size ::hang?
-                      ::indent ::hang-accept ::ha-depth-factor ::ha-width-factor
-                      ::indent-arg ::option-fn ::pair-hang?
-                      ::return-altered-zipper ::respect-bl? ::respect-nl?
-                      ::indent-only? ::indent-only-style ::replacement-string
-                      ::wrap-coll? ::wrap-after-multi? ::wrap-multi? ::force-nl?
-                      ::wrap? ::nl-count ::no-wrap-after :alt/tuning
-                      ::nl-separator? ::collapse-trailing-right? 
-		      ::indent-trailing-right?]))
+  (only-keys
+    :opt-un
+      [::constant-pair-fn ::constant-pair-min ::constant-pair? ::hang-diff
+       ::hang-avoid ::hang-expand ::hang-size ::hang? ::indent ::hang-accept
+       ::ha-depth-factor ::ha-width-factor ::indent-arg ::option-fn ::pair-hang?
+       ::return-altered-zipper ::respect-bl? ::respect-nl? ::indent-only?
+       ::indent-only-style ::replacement-string ::wrap-coll? ::wrap-after-multi?
+       ::wrap-multi? ::force-nl? ::wrap? ::nl-count ::no-wrap-after :alt/tuning
+       ::nl-separator? ::collapse-trailing-right? ::indent-trailing-right?]))
 ; vector-fn needs to accept exactly the same things as list
 (s/def ::vector-fn ::list)
 (s/def ::map
@@ -434,11 +433,7 @@
                       ::multi-lhs-hang? ::nl-separator? ::nl-separator-all?
                       ::respect-bl? ::respect-nl? ::sort-in-code? ::sort?
                       ::unlift-ns? ::key-value-options :alt/tuning
-		      
-                      ::collapse-trailing-right? 
-		      ::indent-trailing-right?
-		      
-		      ]))
+                      ::collapse-trailing-right? ::indent-trailing-right?]))
 (s/def ::max-depth number?)
 (s/def ::max-depth-string string?)
 (s/def ::max-hang-count number?)
@@ -487,19 +482,14 @@
                       :alt/tuning]))
 (s/def ::tagged-literal
   (only-keys :opt-un [::hang-diff ::hang-expand ::hang? ::indent :alt/tuning
-
-  ::indent-only?
-  ::respect-bl?
-  ::respect-nl?
-  
-  ]))
+                      ::indent-only? ::respect-bl? ::respect-nl?]))
 
 
 (s/def ::record (only-keys :opt-un [::hang? ::record-type? ::to-string?]))
 (s/def ::remove
   (only-keys :opt-un [::fn-force-nl ::fn-gt2-force-nl ::fn-gt3-force-nl
-                      :alt/extend ::binding ::pair ::map ::parse ::vector
-		      ::list ::set ::vector-fn]))
+                      :alt/extend ::binding ::pair ::map ::parse ::vector ::list
+                      ::set ::vector-fn]))
 
 (s/def ::remove-final-keys (s/nilable ::vector-of-vector-of-keywords))
 
@@ -520,14 +510,8 @@
 (s/def ::set
   (only-keys :opt-un [::indent ::indent-only? ::respect-bl? ::respect-nl?
                       ::sort? ::sort-in-code? ::wrap-after-multi? ::wrap-coll?
-                      ::wrap? ::no-wrap-after
-
-                      ::collapse-trailing-right? 
-		      ::indent-trailing-right?
-
-		      ::wrap-multi?
-		      
-		      ]))
+                      ::wrap? ::no-wrap-after ::collapse-trailing-right?
+                      ::indent-trailing-right? ::wrap-multi?]))
 (s/def ::spaces? ::boolean)
 (s/def ::spec (only-keys :opt-un [::docstring? ::value]))
 (s/def ::split? ::boolean)
@@ -550,11 +534,7 @@
                       ::option-fn-first ::option-fn ::fn-format
                       ::wrap-after-multi? ::wrap-multi? ::wrap-coll? ::wrap?
                       ::indent-only? ::hang? ::force-nl? ::no-wrap-after
-		      
-                      ::collapse-trailing-right? 
-		      ::indent-trailing-right?
-		      
-		      ]))
+                      ::collapse-trailing-right? ::indent-trailing-right?]))
 (s/def ::version string?)
 (s/def ::width number?)
 (s/def ::url (only-keys :opt-un [::cache-dir ::cache-path ::cache-secs]))
@@ -585,7 +565,7 @@
              ::!zprint-elide-skip-next? ::meta ::fn-str ::fn-type-map ::new-zloc
              ::new-l-str ::new-r-str ::option-fn-map ::alt? ::one-line-ok?
              ::tagged-literal #_::memoize? ::remove-final-keys
-	     ::modify-sexpr-by-type ::files ::string-str?]))
+             ::modify-sexpr-by-type ::files ::string-str?]))
 
 (defn numbers-or-number-pred?
   "If they are both numbers and are equal, or the first is a number 
@@ -671,22 +651,24 @@
 (defn phrase-problem-str
   "Take a single problem and turn it into a phrase."
   [problem last?]
-  (cond (clojure.string/ends-with? (str (:pred problem)) "?")
-          (str (ks-phrase
-                 (if last? (assoc problem :in [(last (:in problem))]) problem))
-               " was not a " (map-pred (str (:pred problem))))
-        (set? (:pred problem))
-          (if (< (count (:pred problem)) 10)
-            (str (ks-phrase problem) " was not one of " (:pred problem))
-            (str (ks-phrase problem) " was not recognized as valid!"))
-	(and (:pred problem)
-	     (= 'clojure.core/contains? (first (last (:pred problem)))))
-	   (str (ks-phrase problem) " did not contain the key "
-	                (last (last (:pred problem))))
-	  
-        :else (str (ks-phrase problem) " was wrong for a reason difficult  to interpret.  The raw problem was "
-	           problem)
-	))
+  (cond
+    (clojure.string/ends-with? (str (:pred problem)) "?")
+      (str (ks-phrase
+             (if last? (assoc problem :in [(last (:in problem))]) problem))
+           " was not a " (map-pred (str (:pred problem))))
+    (set? (:pred problem))
+      (if (< (count (:pred problem)) 10)
+        (str (ks-phrase problem) " was not one of " (:pred problem))
+        (str (ks-phrase problem) " was not recognized as valid!"))
+    (and (:pred problem)
+         (= 'clojure.core/contains? (first (last (:pred problem)))))
+      (str (ks-phrase problem)
+           " did not contain the key " (last (last (:pred problem))))
+    :else
+      (str
+        (ks-phrase problem)
+        " was wrong for a reason difficult  to interpret.  The raw problem was "
+          problem)))
 
 (defn lower-first
   "Lowercase the first character of a string."

@@ -9,11 +9,11 @@
     clojure.string
     [zprint.util        :refer [local-abs]]
     [zprint.zutil       :as    zu
-                        :refer [zreplace zcount-nc]]
+                        :refer [zcount-nc zreplace]]
     [rewrite-clj.node   :as n]
     [rewrite-clj.parser :as p]
     [rewrite-clj.zip    :as    z
-                        :refer [of-node* sexpr string tag prewalk]]))
+                        :refer [of-node* prewalk sexpr string tag]]))
 
 ;;
 ;; No prewalk in rewrite-cljs, so we'll do it ourselves here
@@ -83,7 +83,7 @@
   #_(println "sort-val")
   (if (contains-comment? zloc)
     ; If we aren't going to do anything, return nil, not zloc
-    nil 
+    nil
     (let [dep-val zloc
           ; Put all of the individual zlocs into a vector.
           dep-seq (loop [nloc zloc
@@ -93,55 +93,57 @@
                         (recur (z/right nloc) out)
                         (recur (z/right nloc) (conj out nloc)))
                       out))
-          #_ (println "sort-val: count:" (count dep-seq))
+          #_(println "sort-val: count:" (count dep-seq))
           dep-count (count dep-seq)
-          #_ (println "sort-val: dep-seq1:" (mapv z/string dep-seq))
+          #_(println "sort-val: dep-seq1:" (mapv z/string dep-seq))
           sorted-seq (when (pos? dep-count) (sort-fn get-sortable-fn dep-seq))
-          #_ (println "sort-val: dep-seq2:" (mapv get-sortable-fn dep-seq))
-          #_ (println "sort-val: sorted-seq:" (mapv get-sortable-fn sorted-seq))]
-	  #_ (println "sort-val: equal?" (= dep-seq sorted-seq))
+          #_(println "sort-val: dep-seq2:" (mapv get-sortable-fn dep-seq))
+          #_(println "sort-val: sorted-seq:" (mapv get-sortable-fn sorted-seq))]
+      #_(println "sort-val: equal?" (= dep-seq sorted-seq))
       ; Loop through all of the elements of zloc, replacing them one by one
       ; with the elements of sorted-seq.  Since there should be the same
       ; amount of elements in each, this should work.
       (if (or (not (pos? dep-count)) (= dep-seq sorted-seq))
-	; Either we don't actually have anything, or the sort didn't change
-	; anything.  In this case, return nil indicating no change to the
-	; existing zloc.  Issue #346.
-        nil 
-      (loop [nloc zloc
-             new-loc sorted-seq
-             last-loc nil]
-        #_(println "sort-val: loop: before:" (z/string nloc))
-        #_(when nloc (println "sort-val: loop: n/tag:" (n/tag (z/node nloc))))
-        #_(when new-loc
-            (println "sort-val: loop: after:"
-                     (n/string (z/node (first new-loc))))
-            (println "sort-val: loop: n/tag:" (n/tag (z/node (first new-loc)))))
-        (if nloc
-          (if (skip-fn? nloc)
-            (recur (z/right nloc) new-loc last-loc)
-            (if new-loc
-              (let [new-z (first new-loc)
-                    ; rewrite-cljs doesn't handle z/node for :uneval
-                    ; so we will get an :uneval node a different way
-                    new-node (if (= (z/tag new-z) :uneval)
-                               (p/parse-string (z/string new-z))
-                               (z/node new-z))
-                    ; use clojure.zip for cljs, since the z/replace has
-                    ; a built-in coerce, which doesn't work for an :uneval
-                    replaced-loc #?(:clj (z/replace nloc new-node)
-                                    :cljs (clojure.zip/replace nloc new-node))]
-                #_(println "sort-val: loop: replaced-loc n/tag:"
-                           (n/tag (z/node replaced-loc)))
-                ; Why isn't this (z/right nloc)?  Because after modifying a
-                ; zipper, the thing you have is the only thing that
-                ; contains the modification, so you have to work with that
-                ; else you lose what you did.
-                (recur (right-fn skip-fn? replaced-loc)
-                       (next new-loc)
-                       replaced-loc))
-              last-loc))
-          last-loc))))))
+        ; Either we don't actually have anything, or the sort didn't change
+        ; anything.  In this case, return nil indicating no change to the
+        ; existing zloc.  Issue #346.
+        nil
+        (loop [nloc zloc
+               new-loc sorted-seq
+               last-loc nil]
+          #_(println "sort-val: loop: before:" (z/string nloc))
+          #_(when nloc (println "sort-val: loop: n/tag:" (n/tag (z/node nloc))))
+          #_(when new-loc
+              (println "sort-val: loop: after:"
+                       (n/string (z/node (first new-loc))))
+              (println "sort-val: loop: n/tag:"
+                       (n/tag (z/node (first new-loc)))))
+          (if nloc
+            (if (skip-fn? nloc)
+              (recur (z/right nloc) new-loc last-loc)
+              (if new-loc
+                (let [new-z (first new-loc)
+                      ; rewrite-cljs doesn't handle z/node for :uneval
+                      ; so we will get an :uneval node a different way
+                      new-node (if (= (z/tag new-z) :uneval)
+                                 (p/parse-string (z/string new-z))
+                                 (z/node new-z))
+                      ; use clojure.zip for cljs, since the z/replace has a
+                      ; built-in coerce, which doesn't work for an :uneval
+                      replaced-loc #?(:clj (z/replace nloc new-node)
+                                      :cljs (clojure.zip/replace nloc
+                                                                 new-node))]
+                  #_(println "sort-val: loop: replaced-loc n/tag:"
+                             (n/tag (z/node replaced-loc)))
+                  ; Why isn't this (z/right nloc)?  Because after modifying
+                  ; a zipper, the thing you have is the only thing that
+                  ; contains the modification, so you have to work with
+                  ; that else you lose what you did.
+                  (recur (right-fn skip-fn? replaced-loc)
+                         (next new-loc)
+                         replaced-loc))
+                last-loc))
+            last-loc))))))
 
 (defn ^:no-doc sort-down
   "Do a down and a sort-val"
@@ -174,18 +176,17 @@
   "Sort to the right of zloc."
   [get-sortable-fn sort-options zloc]
   #_(println "sort-within")
-  ; Return nil if we are not currently pointing at the leftmost
-  ; element in the collection.  That says "don't change anything".
-  ; It also means that we won't loop forever, which we would if 
-  ; the :require wasn't the leftmost thing in the collection!
-  ; Seems to handle a comment as the leftmost thing correctly, which
-  ; great but a little concerning.
-  ; Issue 346.
+  ; Return nil if we are not currently pointing at the leftmost element in
+  ; the collection.  That says "don't change anything". It also means that
+  ; we won't loop forever, which we would if the :require wasn't the
+  ; leftmost thing in the collection! Seems to handle a comment as the
+  ; leftmost thing correctly, which great but a little concerning. Issue
+  ; 346.
   (if (= (z/leftmost zloc) zloc)
-  (z/leftmost (sort-val get-sortable-fn
-                        (partial sort-w-regex sort-options)
-                        req-skip?
-                        (z/right zloc)))))
+    (z/leftmost (sort-val get-sortable-fn
+                          (partial sort-w-regex sort-options)
+                          req-skip?
+                          (z/right zloc)))))
 
 (defn sort-requires
   "Reorder the requires in an ns macro."
@@ -289,15 +290,18 @@
     #_(println "sort-refer: refer-zloc:" (z/string refer-zloc))
     #_(println "sort-refer: refer-right:" (z/string refer-right))
     #_(println "sort-refer: zcount-nc refer-zloc:" (zcount-nc refer-right))
-    ; Ensure that if we have a vector that it also has something in it before
-    ; we try to sort it.
-    (if (and refer-zloc refer-right (= refer-tag :vector) (pos? (zcount-nc refer-right)))
+    ; Ensure that if we have a vector that it also has something in it
+    ; before we try to sort it.
+    (if (and refer-zloc
+             refer-right
+             (= refer-tag :vector)
+             (pos? (zcount-nc refer-right)))
       ; Handle sort-val returning nil if nothing changed.
-      (or
-       (z/up
-        (z/up
-          (sort-val z/string sort-by no-skip? (z/down (z/right refer-zloc)))))
-        zloc)
+      (or (z/up (z/up (sort-val z/string
+                                sort-by
+                                no-skip?
+                                (z/down (z/right refer-zloc)))))
+          zloc)
       zloc)))
 
 (defn ^:no-doc sort-w-regex

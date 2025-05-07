@@ -189,29 +189,29 @@
        {:new-zloc new-zloc, :list {:option-fn nil}}))))
 
 #_(defn sort-reqs
-  "option-fn interface to sort-dependencies for :require clauses in ns macros"
-  ([] "sort-reqs")
-  ([sort-options] "sort-reqs")
-  ([sort-options options n exprs]
-   (when (= (:ztype options) :zipper)
-     (let [caller (:caller options)
-           zloc (:zloc options)
-           new-zloc (sort-requires caller sort-options options zloc)
-	   list-map (if (:how-to-ns? sort-options)
-	               {:hang? false
-		        :indent-arg 1
-			:option-fn nil}
-		       {:option-fn nil})
-           fn-map (if (:how-to-ns? sort-options)
-	             {":import" [:flow {:list {:hang? true}}],
-		      ":require" :flow}
-		     {})]
-       (dbg-s options
-              #{:sort-requires}
-              "sort-reqs: new-zloc:"
-              (z/string new-zloc))
-       {:new-zloc new-zloc, :list list-map #_{:option-fn nil}
-        :fn-map fn-map}))))
+    "option-fn interface to sort-dependencies for :require clauses in ns macros"
+    ([] "sort-reqs")
+    ([sort-options] "sort-reqs")
+    ([sort-options options n exprs]
+     (when (= (:ztype options) :zipper)
+       (let [caller (:caller options)
+             zloc (:zloc options)
+             new-zloc (sort-requires caller sort-options options zloc)
+             list-map (if (:how-to-ns? sort-options)
+                        {:hang? false, :indent-arg 1, :option-fn nil}
+                        {:option-fn nil})
+             fn-map (if (:how-to-ns? sort-options)
+                      {":import" [:flow {:list {:hang? true}}],
+                       ":require" :flow}
+                      {})]
+         (dbg-s options
+                #{:sort-requires}
+                "sort-reqs: new-zloc:"
+                (z/string new-zloc))
+         {:new-zloc new-zloc,
+          :list list-map,
+          #_{:option-fn nil},
+          :fn-map fn-map}))))
 
 
 (defn regexfn

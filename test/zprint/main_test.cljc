@@ -13,12 +13,12 @@
     #?(:cljs [cljs.tools.reader :refer [read-string]])
     #?(:clj [zprint.main :refer [-main]])
     #?(:clj [clojure.java.shell :refer [sh]])
-    [clojure.string            :refer [split join]]
-    [zprint.core               :refer [zprint-str set-options! czprint-str
-                                       zprint-file-str configure-all!]]
-    [zprint.zprint             :refer [line-count]]
-    [zprint.config             :as    config
-                               :refer [about merge-deep get-default-options]]
+    [clojure.string :refer [split join]]
+    [zprint.core    :refer [zprint-str set-options! czprint-str zprint-file-str
+                            configure-all!]]
+    [zprint.zprint  :refer [line-count]]
+    [zprint.config  :as    config
+                    :refer [about merge-deep get-default-options]]
     #_[zprint.config :refer :all :exclude
        [set-options! configure-all! get-options]]
     #?@(:clj [[clojure.repl :refer :all]])))
@@ -155,9 +155,11 @@
 
 
   (expect
-"Processing file ttt_test.clj\nFormatting required in file ttt_test.clj\nProcessed 1 file, 1 of which requires formatting.\n"
+    "Processing file ttt_test.clj\nFormatting required in file ttt_test.clj\nProcessed 1 file, 1 of which requires formatting.\n"
     (with-out-str (binding [*err* *out*]
-                    (-main ":debug" "{:width 40 :files {:glob \"ttt_test.clj\"}}" "-lfsc" ))))
+                    (-main ":debug"
+                           "{:width 40 :files {:glob \"ttt_test.clj\"}}"
+                           "-lfsc"))))
 
   ;;
   ;; Does it work with :directory?
@@ -166,9 +168,12 @@
   (set-options! (get-default-options))
 
   (expect
-"Processing file ttt_test.clj\nFormatting required in file ttt_test.clj\nProcessed 1 file, 1 of which requires formatting.\n"
-    (with-out-str (binding [*err* *out*]
-                    (-main ":debug" "{:width 40 :files {:directory \".\" :glob \"ttt_test.clj\"}}" "-lfsc" ))))
+    "Processing file ttt_test.clj\nFormatting required in file ttt_test.clj\nProcessed 1 file, 1 of which requires formatting.\n"
+    (with-out-str
+      (binding [*err* *out*]
+        (-main ":debug"
+               "{:width 40 :files {:directory \".\" :glob \"ttt_test.clj\"}}"
+               "-lfsc"))))
 
   ;;
   ;; Does directory actually do something?  Let's use :directory to force
@@ -178,31 +183,36 @@
   (set-options! (get-default-options))
 
   (expect
-"Unable to access files specified by: '{:files {:directory \"..\", :glob \"ttt_test.clj\"}}'\n"
-    (with-out-str (binding [*err* *out*]
-                    (-main ":debug" "{:width 40 :files {:directory \"..\" :glob \"ttt_test.clj\"}}" "-lfsc" ))))
+    "Unable to access files specified by: '{:files {:directory \"..\", :glob \"ttt_test.clj\"}}'\n"
+    (with-out-str
+      (binding [*err* *out*]
+        (-main ":debug"
+               "{:width 40 :files {:directory \"..\" :glob \"ttt_test.clj\"}}"
+               "-lfsc"))))
 
 
-  ; Get rid of previous options map: :width 40 
+  ; Get rid of previous options map: :width 40
   ; If we did (configure-all!), it would configure from outside .rc files
   ; as well, so don't do that!
-  
+
   (set-options! (get-default-options))
 
   (expect
-"Cannot have :files key in command-line options: '{:files {:glob \"ttt_test.clj\"}}' and also process files supplied by the shell!\n"
+    "Cannot have :files key in command-line options: '{:files {:glob \"ttt_test.clj\"}}' and also process files supplied by the shell!\n"
     (with-out-str (binding [*err* *out*]
-                    (-main ":debug" "{:files {:glob \"ttt_test.clj\"}}" "-lfsc" "tt2_test.clj"))))
+                    (-main ":debug" "{:files {:glob \"ttt_test.clj\"}}"
+                           "-lfsc" "tt2_test.clj"))))
 
   (set-options! (get-default-options))
-  
+
 
   (expect zero? (:exit (sh "chmod" "-w" "tt2_test.clj")))
-   
+
   (expect
     "Processing file ttt_test.clj\nProcessing file tt2_test.clj\nFailed to write output file: tt2_test.clj because java.io.FileNotFoundException: tt2_test.clj (Permission denied)\nProcessed 2 files, with 1 error, 1 of which required formatting.\n"
-    (with-out-str (binding [*err* *out*]
-                    (-main ":debug" "{:files {:glob \"tt*_test.clj\"}}" "-lfsw" ))))
+    (with-out-str
+      (binding [*err* *out*]
+        (-main ":debug" "{:files {:glob \"tt*_test.clj\"}}" "-lfsw"))))
 
   (set-options! (get-default-options))
 
@@ -210,20 +220,20 @@
 
   ;;
   ;; See if the above command actually processed one file
-  ;; 
+  ;;
 
   (expect
     "(defn tictactoe-game\n  []\n  [:div [:div [:h1 (:text @app-state)] [:p \"Do you want to play a game?\"]]\n   [:center\n    [:svg {:view-box \"0 0 3 3\", :width 500, :height 500}\n     (for [x-cell (range (count (:board @app-state)))\n           y-cell (range (count (:board @app-state)))]\n       ^{:key (str x-cell y-cell)}\n       [:rect\n        {:width 0.9,\n         :height 0.9,\n         :fill (if (= :empty (get-in @app-state [:board y-cell x-cell]))\n                 \"green\"\n                 \"purple\"),\n         :x x-cell,\n         :y y-cell,\n         :on-click (fn rectangle-click [e]\n                     (println \"Cell\" x-cell y-cell \"was clicked!\")\n                     (println (swap! app-state assoc-in\n                                [:board y-cell x-cell]\n                                :clicked)))}])]]])\n"
     (slurp "ttt_test.clj"))
 
-    ;;
-    ;; What happens if we don't have :glob in :files?
-    ;;
+  ;;
+  ;; What happens if we don't have :glob in :files?
+  ;;
 
   (expect
-"In Operational options, The value of the key-sequence [:files] -> {} did not contain the key :glob\n"
+    "In Operational options, The value of the key-sequence [:files] -> {} did not contain the key :glob\n"
     (with-out-str (binding [*err* *out*]
-                    (-main ":debug" "{:files {}}" "-lfsc" ))))
+                    (-main ":debug" "{:files {}}" "-lfsc"))))
 
 
   ;;

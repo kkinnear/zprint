@@ -1094,8 +1094,8 @@
            ((:dzprint options)
              {}
              (map #(vector %1 %2 %3) (range) start-col style-vec)))
-    (loop [idx       (zLong 0)
-           depth     (zLong 0)
+    (loop [idx (zLong 0)
+           depth (zLong 0)
            style-vec style-vec]
       (let [[new-depth comment-group]
               (get-next-comment-group options depth idx start-col style-vec)
